@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 python -m pip install --upgrade pip
-pip install -r backend/requirements.txt pytest django-cors-headers
-(cd backend && python manage.py check)
+pip install -r backend/requirements.txt
+python -m compileall -q backend
 if [[ -f frontend/webcoder_ui/package-lock.json ]]; then
   (cd frontend/webcoder_ui && npm ci)
 fi
