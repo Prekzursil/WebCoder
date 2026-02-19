@@ -186,7 +186,7 @@ ACCOUNT_LOGIN_METHODS = ['username', 'email']
 ACCOUNT_SIGNUP_FIELDS = {
     "username": {"required": True},
     "email"   : {"required": True},
-    "password": {"required": True},
+    "password1": {"required": True},
 }
 DJ_REST_AUTH = {
     'SIGNUP_FIELDS': ACCOUNT_SIGNUP_FIELDS,
