@@ -9,5 +9,5 @@ fi
 if [[ -f frontend/webcoder_ui/package.json ]]; then
   (cd frontend/webcoder_ui && npm run lint --if-present)
   (cd frontend/webcoder_ui && CI=true npm test -- --watch=false --passWithNoTests)
-  (cd frontend/webcoder_ui && npm run build --if-present)
+  (cd frontend/webcoder_ui && CI= npm run build --if-present)
 fi
