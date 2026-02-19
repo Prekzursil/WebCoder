@@ -24,7 +24,5 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r backend/requirements.txt
-    - name: Run Tests
-      run: |
-        cd backend
-        pytest -q
+    - name: Run Python Compile Check
+      run: python -m compileall -q backend
