@@ -12,6 +12,7 @@ Use GitHub Copilot coding agent and Codex app/IDE/CLI for implementation and rev
 - High-risk changes require rollback notes in the PR.
 
 ## Canonical Verification Command
+
 Run this command before claiming completion:
 
 ```bash
@@ -31,4 +32,5 @@ bash scripts/verify
 - Queue workflow will post a task packet and notify `@copilot`.
 
 ## Queue Trigger Warning
+
 Applying label `agent:ready` triggers the queue workflow immediately.
