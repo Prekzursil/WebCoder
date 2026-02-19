@@ -4,10 +4,10 @@ set -euo pipefail
 python -m pip install --upgrade pip setuptools wheel
 pip install -r backend/requirements.txt
 
-python backend/manage.py check
+DJANGO_SETTINGS_MODULE=webcoder_api.settings_ci python backend/manage.py check
 (
   cd backend
-  python -m pytest -q
+  DJANGO_SETTINGS_MODULE=webcoder_api.settings_ci python -m pytest -q
 )
 
 if [[ -f frontend/webcoder_ui/package-lock.json ]]; then
