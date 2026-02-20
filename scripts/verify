@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+python -m pip install --upgrade pip setuptools wheel
+pip install -r backend/requirements.txt
+
+DJANGO_SETTINGS_MODULE=webcoder_api.settings_ci python backend/manage.py check
+(
+  cd backend
+  DJANGO_SETTINGS_MODULE=webcoder_api.settings_ci python -m pytest -q
+)
+
+if [[ -f frontend/webcoder_ui/package-lock.json ]]; then
+  (cd frontend/webcoder_ui && npm ci)
+fi
+
+if [[ -f frontend/webcoder_ui/package.json ]]; then
+  (cd frontend/webcoder_ui && npm run lint --if-present)
+  (cd frontend/webcoder_ui && CI=true npm test -- --watch=false --passWithNoTests)
+  (cd frontend/webcoder_ui && CI= npm run build --if-present)
+fi

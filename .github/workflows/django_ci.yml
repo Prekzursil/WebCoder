@@ -51,8 +51,8 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
       continue-on-error: true # Or set to false to fail on linting errors
 
-    - name: Run Django Check
-      run: python manage.py check
+    - name: Run Python Compile Check
+      run: python -m compileall -q .
 
     # - name: Run Tests (Uncomment when you have tests)
     #   run: python manage.py test
