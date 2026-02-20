@@ -48,6 +48,23 @@ jobs:
 
             if (existingContract && hadInProgress) {
               core.info("Idempotency guard: contract already posted and agent:in-progress already set; skipping duplicate enqueue.");
+              if (hadReady) {
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner,
+                    repo,
+                    issue_number,
+                    name: "agent:ready",
+                  });
+                } catch (removeError) {
+                  if (removeError.status === 404) {
+                    core.info("agent:ready was already removed.");
+                  } else {
+                    core.error(`Idempotency cleanup failed to remove agent:ready: ${removeError.message}`);
+                    throw removeError;
+                  }
+                }
+              }
               return;
             }
 
