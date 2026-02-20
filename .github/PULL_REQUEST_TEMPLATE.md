@@ -25,3 +25,5 @@
 - [ ] Change is minimal and task-focused
 - [ ] No unrelated refactors included
 - [ ] No secrets or private tokens added
+- [ ] Labels applied match risk level (`risk:low`, `risk:medium`, or `risk:high`)
+- [ ] `agent:ready` label NOT applied until task packet is complete and authorized
