@@ -1,0 +1,39 @@
+name: strict-21 Preflight
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  strict21-preflight:
+    name: strict-21-preflight
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run strict-21 preflight
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STAMP: ${{ github.event.pull_request.number || github.run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p .tmp/strict21-preflight
+          python3 scripts/strict21_preflight.py \
+            --repo "${GITHUB_REPOSITORY}" \
+            --branch main \
+            --ref "${GITHUB_SHA}" \
+            --out-json ".tmp/strict21-preflight/preflight.json" \
+            --out-md ".tmp/strict21-preflight/preflight.md"
+          cat .tmp/strict21-preflight/preflight.md
+
+      - name: Upload strict-21 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: strict21-preflight
+          path: .tmp/strict21-preflight
