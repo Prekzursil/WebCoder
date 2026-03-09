@@ -46,6 +46,28 @@ jobs:
               c.body?.includes(`- #${issue_number}:`)
             );
 
+            if (existingContract && hadInProgress) {
+              core.info("Idempotency guard: contract already posted and agent:in-progress already set; skipping duplicate enqueue.");
+              if (hadReady) {
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner,
+                    repo,
+                    issue_number,
+                    name: "agent:ready",
+                  });
+                } catch (removeError) {
+                  if (removeError.status === 404) {
+                    core.info("agent:ready was already removed.");
+                  } else {
+                    core.error(`Idempotency cleanup failed to remove agent:ready: ${removeError.message}`);
+                    throw removeError;
+                  }
+                }
+              }
+              return;
+            }
+
             let addedInProgress = false;
             let removedReady = false;
 
@@ -69,11 +91,11 @@ jobs:
                     name: "agent:ready",
                   });
                   removedReady = true;
-                } catch (error) {
-                  if (error.status === 404) {
+                } catch (removeError) {
+                  if (removeError.status === 404) {
                     core.info("agent:ready was already removed.");
                   } else {
-                    throw error;
+                    throw removeError;
                   }
                 }
               }
@@ -104,7 +126,7 @@ jobs:
                 body: lines.join("\n"),
               });
             } catch (error) {
-              core.warning(`Queue transition failed: ${error.message}`);
+              core.error(`Queue transition failed: ${error.message}`);
 
               if (addedInProgress && !hadInProgress) {
                 try {
@@ -115,7 +137,7 @@ jobs:
                     name: "agent:in-progress",
                   });
                 } catch (rollbackError) {
-                  core.warning(`Rollback remove agent:in-progress failed: ${rollbackError.message}`);
+                  core.error(`Rollback remove agent:in-progress failed: ${rollbackError.message}`);
                 }
               }
 
@@ -128,7 +150,7 @@ jobs:
                     labels: ["agent:ready"],
                   });
                 } catch (rollbackError) {
-                  core.warning(`Rollback add agent:ready failed: ${rollbackError.message}`);
+                  core.error(`Rollback add agent:ready failed: ${rollbackError.message}`);
                 }
               }
 
