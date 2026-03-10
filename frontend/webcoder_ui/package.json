@@ -29,7 +29,10 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "visual:test": "npx --yes --package=@playwright/test --package=playwright playwright test --config=playwright.config.cjs tests/visual/public-routes.playwright.spec.mjs",
+    "visual:chromatic:archive": "npx --yes --package=@chromatic-com/playwright --package=@playwright/test --package=playwright playwright test --config=playwright.config.cjs tests/visual/public-routes.chromatic.spec.mjs",
+    "visual:applitools": "npx --yes --package=@playwright/test --package=playwright --package=@applitools/eyes-playwright playwright test --config=playwright.config.cjs tests/visual/public-routes.applitools.spec.mjs"
   },
   "eslintConfig": {
     "extends": [
