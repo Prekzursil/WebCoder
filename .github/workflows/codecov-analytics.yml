@@ -1,7 +1,8 @@
-name: Quality Zero Gate
+name: Codecov Analytics
 
 permissions:
   contents: read
+  id-token: write
 
 on:
   push:
@@ -11,13 +12,16 @@ on:
   workflow_dispatch:
 
 jobs:
-  aggregate-gate:
+  shared-codecov-analytics:
     permissions:
       contents: read
-    uses: Prekzursil/quality-zero-platform/.github/workflows/reusable-quality-zero-gate.yml@2be048255a27d55eb7be18b82091b57f29d34ee6
+      id-token: write
+    uses: Prekzursil/quality-zero-platform/.github/workflows/reusable-codecov-analytics.yml@2be048255a27d55eb7be18b82091b57f29d34ee6
     with:
       repo_slug: ${{ github.repository }}
       event_name: ${{ github.event_name }}
       sha: ${{ github.event.pull_request.head.sha || github.sha }}
       platform_repository: Prekzursil/quality-zero-platform
       platform_ref: 2be048255a27d55eb7be18b82091b57f29d34ee6
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
