@@ -3,14 +3,8 @@ name: Applitools Visual
 on:
   push:
     branches: [main]
-    paths:
-      - "frontend/webcoder_ui/**"
-      - ".github/workflows/applitools-visual.yml"
   pull_request:
     branches: [main]
-    paths:
-      - "frontend/webcoder_ui/**"
-      - ".github/workflows/applitools-visual.yml"
   workflow_dispatch:
 
 permissions:
