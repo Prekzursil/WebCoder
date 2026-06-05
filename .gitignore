@@ -1,5 +1,8 @@
 # Python
 venv/
+.venv/
+backend/venv/
+**/site-packages/
 __pycache__/
 *.pyc
 
