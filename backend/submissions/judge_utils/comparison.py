@@ -1,4 +1,3 @@
-import pathlib # Not strictly needed by this function but good for consistency if other utils use it
 from problems.models import Problem # For Problem.ComparisonMode
 
 def compare_outputs(

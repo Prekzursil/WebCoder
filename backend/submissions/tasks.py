@@ -2,12 +2,8 @@ from celery import shared_task
 from django.db import transaction
 from .models import Submission, SubmissionTestResult # Import SubmissionTestResult
 from problems.models import Problem, TestCase
-import time
-import random
-import subprocess
 import tempfile
 import pathlib
-import shutil
 
 from .judge_utils.comparison import compare_outputs
 from .judge_utils.compilation import compile_code_in_sandbox

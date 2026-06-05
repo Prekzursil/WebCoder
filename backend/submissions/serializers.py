@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import Submission, SubmissionTestResult # Import SubmissionTestResult
 from users.serializers import UserSerializer 
-from problems.models import Problem, TestCase # Import TestCase for SubmissionTestResultSerializer
+from problems.models import Problem # Import TestCase for SubmissionTestResultSerializer
 
 class SubmissionTestResultSerializer(serializers.ModelSerializer):
     # test_case_id = serializers.ReadOnlyField(source='test_case.id') # Simple ID

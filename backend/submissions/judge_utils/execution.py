@@ -1,6 +1,5 @@
 import pathlib
 import subprocess
-import random 
 from django.conf import settings # Import Django settings
 from ..models import Submission 
 

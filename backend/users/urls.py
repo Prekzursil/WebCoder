@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import UserRegistrationView, PasswordChangeView, UserMeView, AdminUserViewSet, GoogleLogin, GithubLogin, AdminStatsView, UserViewSet
+from .views import UserRegistrationView, PasswordChangeView, UserMeView, AdminUserViewSet, AdminStatsView, UserViewSet
 
 app_name = "users"
 

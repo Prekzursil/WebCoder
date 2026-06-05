@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from .models import Tag, Problem, TestCase
 from .serializers import TagSerializer, ProblemSerializer, ProblemDetailSerializer, TestCaseSerializer
 from users.models import User
-from users.permissions import IsAdminUser, IsProblemCreator, IsProblemVerifier, ProblemObjectPermissions
+from users.permissions import IsProblemCreator, IsProblemVerifier, ProblemObjectPermissions
 
 
 class TagViewSet(viewsets.ModelViewSet):
