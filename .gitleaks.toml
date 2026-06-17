@@ -1,0 +1,28 @@
+# gitleaks configuration for the lean secrets gate (pinned tool: gitleaks 8.30.1).
+# The gate runs via pre-commit over the working tree and must report 0.
+# Extends the upstream default ruleset; we only add path/match allowlists for
+# vendored dependencies, build output, and the local venv (no real secrets).
+title = "WebCoder lean secrets gate"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Vendored deps, build output, and local tooling trees (not real secrets)."
+
+# Never scan third-party / generated / local-tooling trees. These are not our
+# source and produce only upstream-example false positives.
+paths = [
+  '''(^|/)\.venv/''',
+  '''(^|/)backend/venv/''',
+  '''(^|/)node_modules/''',
+  '''(^|/)frontend/webcoder_ui/node_modules/''',
+  '''(^|/)frontend/webcoder_ui/build/''',
+  '''(^|/)vendor/''',
+  '''(^|/)dist/''',
+  '''(^|/)build/''',
+  '''(^|/)out/''',
+  '''(^|/)\.git/''',
+  '''.*\.egg-info/''',
+  '''(^|/)tree\.txt$''',
+]
