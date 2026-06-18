@@ -169,11 +169,8 @@ const UserProfilePage: React.FC = () => {
                 {message}
               </Alert>
             )}
-            {error && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {error}
-              </Alert>
-            )}
+            {/* NB: an inline error Alert was removed here — any non-null `error`
+                triggers the top-level early return above, so it was dead code. */}
             <Box component="form" onSubmit={handleChangePassword} noValidate>
               <TextField
                 margin="normal"
