@@ -35,6 +35,9 @@ const AdminDashboardPage: React.FC = () => {
   }, [auth.token, t]);
 
   const handleRoleChange = async (userId: number, newRole: string) => {
+    /* istanbul ignore else -- defensive: the role <select> only renders when the
+       user table is shown, which itself requires a valid auth.token, so the
+       no-token branch is unreachable from the UI. */
     if (auth.token) {
       try {
         await AdminService.updateUser(userId, { role: newRole });
@@ -51,6 +54,9 @@ const AdminDashboardPage: React.FC = () => {
   };
 
   const handleStatusChange = async (userId: number, isActive: boolean) => {
+    /* istanbul ignore else -- defensive: the status <select> only renders when the
+       user table is shown, which itself requires a valid auth.token, so the
+       no-token branch is unreachable from the UI. */
     if (auth.token) {
       try {
         await AdminService.updateUser(userId, { is_active: isActive });
