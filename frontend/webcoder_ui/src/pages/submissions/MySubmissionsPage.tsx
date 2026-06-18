@@ -54,16 +54,17 @@ const MySubmissionsPage: React.FC = () => {
       };
       fetchSubmissions();
     } else {
+      // Reached only when the user is unauthenticated.
       setLoading(false);
       setSubmissions([]);
-      if (!auth.isAuthenticated) {
-        setError(t('please_login_to_view_submissions', 'Please login to view submissions.'));
-      }
+      setError(t('please_login_to_view_submissions', 'Please login to view submissions.'));
     }
   }, [auth.isAuthenticated, auth.user, t, problemFilter, languageFilter]);
 
   const sortedSubmissions = useMemo(() => {
-    let sorted = [...submissions];
+    const sorted = [...submissions];
+    /* istanbul ignore else -- sortKey defaults to 'submission_time' and every
+       sort <select> option is a non-empty value, so it is never falsy. */
     if (sortKey) {
       sorted.sort((a, b) => {
         let valA = (a as any)[sortKey];
@@ -93,6 +94,8 @@ const MySubmissionsPage: React.FC = () => {
   const totalPages = Math.ceil(sortedSubmissions.length / itemsPerPage);
 
   const handlePageChange = (newPage: number) => {
+    /* istanbul ignore next -- defensive bounds check: the Previous/Next buttons are
+       disabled at the first/last page, so out-of-range values never reach here. */
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
     }
