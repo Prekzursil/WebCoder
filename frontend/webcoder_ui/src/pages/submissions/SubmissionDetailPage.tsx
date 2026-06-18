@@ -64,6 +64,9 @@ const SubmissionDetailPage: React.FC = () => {
     let intervalId: NodeJS.Timeout | undefined = undefined;
     if (isPolling && submissionId && auth.token) {
       intervalId = setInterval(() => {
+        /* istanbul ignore else -- the interval is only created while submissionId
+           and auth.token are truthy and neither changes for its lifetime, so the
+           guard is always satisfied here. */
         if (submissionId && auth.token) fetchDetails(submissionId);
       }, 3000);
     }
