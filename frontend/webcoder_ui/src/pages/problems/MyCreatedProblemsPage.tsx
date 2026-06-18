@@ -34,6 +34,9 @@ const MyCreatedProblemsPage: React.FC = () => {
   }, [auth.isAuthenticated, auth.user, auth.token, t]);
 
   const handleSubmitForApproval = async (problemId: number) => {
+    /* istanbul ignore if -- defensive: the Submit-for-Approval button only renders
+       for an authenticated author (a valid token is required for the list to load),
+       so reaching this handler without a token is not possible from the UI. */
     if (!auth.token) {
       toast.error(t('error_auth_required_action', 'Authentication required for this action.'));
       return;
@@ -54,6 +57,9 @@ const MyCreatedProblemsPage: React.FC = () => {
 
   if (loading) return <LoadingSpinner />;
   if (error) return <p style={{ color: 'red' }}>{error}</p>;
+  /* istanbul ignore next -- defensive: an unauthenticated user always has the
+     auth-required error set by the effect above, so the `if (error)` guard returns
+     first and this branch is unreachable. */
   if (!auth.isAuthenticated)
     return <p>{t('please_login_to_view_content', 'Please login to view this content.')}</p>;
 
