@@ -1,28 +1,28 @@
 // This file contains TypeScript types for API requests and responses.
 
 import {
-	AdminUserType,
-	DetailedSubmissionType,
-	ProblemType,
-	SubmissionType,
-	TagType,
-	TestCaseType,
-	User,
-} from ".";
+  AdminUserType,
+  DetailedSubmissionType,
+  ProblemType,
+  SubmissionType,
+  TagType,
+  TestCaseType,
+  User,
+} from '.';
 
 // =================================
 // Auth Service
 // =================================
 
 export interface LoginResponse {
-	access: string;
-	refresh: string;
-	user: User;
+  access: string;
+  refresh: string;
+  user: User;
 }
 
 export interface RegisterResponse {
-	user: User;
-	message: string;
+  user: User;
+  message: string;
 }
 
 // =================================
@@ -56,7 +56,7 @@ export type CreateTestCaseResponse = TestCaseType;
 export type GetAdminUsersResponse = AdminUserType[];
 
 export interface AdminStatsResponse {
-	user_count: number;
-	problem_count: number;
-	submission_count: number;
+  user_count: number;
+  problem_count: number;
+  submission_count: number;
 }
