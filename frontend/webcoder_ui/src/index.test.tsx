@@ -1,3 +1,5 @@
+export {}; // ensure this file is treated as a module under --isolatedModules
+
 const mockRender = jest.fn();
 const mockCreateRoot = jest.fn();
 const mockReportWebVitals = jest.fn();
