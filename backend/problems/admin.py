@@ -7,12 +7,11 @@ class TagAdmin(admin.ModelAdmin):
     search_fields = ("name_i18n", "slug")
     # prepopulated_fields = {'slug': ('name_i18n_display_for_slug',)} # Removed due to admin.E030
 
+    @admin.display(description="Name (i18n)")
     def name_i18n_display(self, obj):
         if isinstance(obj.name_i18n, dict):
             return obj.name_i18n.get("en", obj.name_i18n.get("ro", "N/A"))
         return "N/A"
-
-    name_i18n_display.short_description = "Name (i18n)"
 
     # Removed name_i18n_display_for_slug method as it's not used by prepopulated_fields
 
@@ -88,17 +87,15 @@ class ProblemAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description="Title (i18n)")
     def title_i18n_display(self, obj):
         if isinstance(obj.title_i18n, dict):
             return obj.title_i18n.get("en", obj.title_i18n.get("ro", "N/A"))
         return "N/A"
 
-    title_i18n_display.short_description = "Title (i18n)"
-
+    @admin.display(description="Author")
     def author_display(self, obj):
         return obj.author.username if obj.author else "N/A"
-
-    author_display.short_description = "Author"
 
     # When saving a problem, if author is not set, set it to current user
     def save_model(self, request, obj, form, change):

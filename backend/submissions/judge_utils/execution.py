@@ -175,17 +175,20 @@ def run_code_in_sandbox(
 
     print(f"Executing Docker command for {language}: {' '.join(run_command)}")
 
+    # Computed before the try block so it is always bound in the
+    # TimeoutExpired handler below (it depends only on call parameters).
+    process_timeout = (
+        time_limit_s + 10
+        if (language == "python3" and custom_libraries_allowed)
+        else time_limit_s + 3
+    )
+
     try:
         actual_time_ms = -1
         actual_mem_kb = -1
         stdout_data = ""
         stderr_data = ""
         parsed_stderr = ""
-        process_timeout = (
-            time_limit_s + 10
-            if (language == "python3" and custom_libraries_allowed)
-            else time_limit_s + 3
-        )
 
         process = subprocess.Popen(
             run_command,

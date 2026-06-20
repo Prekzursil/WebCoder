@@ -2,7 +2,7 @@ from rest_framework import viewsets, permissions, status, generics
 from rest_framework.response import Response
 from .models import Submission
 from .serializers import SubmissionSerializer, SubmissionCreateSerializer
-from .tasks import judge_submission_task
+from .tasks import judge_task
 from users.permissions import IsOwnerOrAdminForSubmission
 
 
@@ -47,7 +47,7 @@ class SubmissionCreateView(generics.CreateAPIView):
         submission_instance = self.perform_create(serializer)
 
         # Dispatch the Celery task to judge the submission
-        judge_submission_task.delay(submission_instance.id)
+        judge_task.delay(submission_instance.id)
         print(
             f"Dispatched judging task for submission ID: {submission_instance.id}"
         )  # For server log

@@ -1,3 +1,5 @@
+from typing import Any, Protocol, cast
+
 from celery import shared_task
 from django.db import transaction
 from .models import Submission, SubmissionTestResult  # Import SubmissionTestResult
@@ -9,6 +11,22 @@ from .judge_utils.comparison import compare_outputs
 from .judge_utils.compilation import compile_code_in_sandbox
 from .judge_utils.execution import run_code_in_sandbox
 from .judge_utils.checkers import run_custom_checker
+
+
+class _CeleryTask(Protocol):
+    """Minimal structural type for a Celery task.
+
+    ``celery.shared_task`` is untyped in the type-check environment (celery
+    ships no stubs there), so the decorator's return is opaque. Declaring this
+    Protocol lets callers reference the task's async-dispatch API (``delay`` /
+    ``apply_async``) without losing type checking on the rest of the module.
+    """
+
+    def delay(self, *args: Any, **kwargs: Any) -> Any: ...
+
+    def apply_async(self, *args: Any, **kwargs: Any) -> Any: ...
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any: ...
 
 
 @shared_task(bind=True)
@@ -157,8 +175,11 @@ def judge_submission_task(self, submission_id):
             submission.score = total_score
             submission.execution_time_ms = max_time_ms_overall
             submission.memory_used_kb = max_memory_kb_overall
+            verdict_label = dict(Submission.VerdictStatus.choices).get(
+                overall_verdict, overall_verdict
+            )
             submission.detailed_feedback = (
-                f"Overall Verdict: {overall_verdict.label}. Score: {total_score}."
+                f"Overall Verdict: {verdict_label}. Score: {total_score}."
             )
             if compiler_output:
                 submission.detailed_feedback = f"Compiler Output:\n{compiler_output}\n\n{submission.detailed_feedback}"
@@ -187,3 +208,10 @@ def judge_submission_task(self, submission_id):
         if temp_dir_obj:
             temp_dir_obj.cleanup()
     return final_message
+
+
+# ``shared_task`` is untyped here, so expose the task through the structural
+# task type for callers that dispatch it asynchronously (e.g. ``.delay``).
+# At runtime ``judge_submission_task`` is a bound Celery Task that provides
+# these methods; the cast restores that interface for the type checker.
+judge_task: _CeleryTask = cast(_CeleryTask, judge_submission_task)

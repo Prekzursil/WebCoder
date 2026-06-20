@@ -2,6 +2,14 @@ import pathlib
 import subprocess
 from ..models import Submission  # For Submission.VerdictStatus
 
+# Verdict values as plain strings. Submission.VerdictStatus members are str
+# subclasses at runtime (str(member) yields the value, e.g. "IE"), so these are
+# interchangeable with the enum members in comparisons and DB writes, while
+# remaining typed as ``str`` for the checker's return contract.
+_VERDICT_INTERNAL_ERROR: str = str(Submission.VerdictStatus.INTERNAL_ERROR)
+_VERDICT_ACCEPTED: str = str(Submission.VerdictStatus.ACCEPTED)
+_VERDICT_WRONG_ANSWER: str = str(Submission.VerdictStatus.WRONG_ANSWER)
+
 
 def run_custom_checker(
     checker_code: str,
@@ -10,7 +18,10 @@ def run_custom_checker(
     user_output_file_path: pathlib.Path,
     answer_file_path: pathlib.Path,
     checker_submission_dir: pathlib.Path,
-) -> tuple[Submission.VerdictStatus, str]:
+) -> tuple[str, str]:
+    # The verdict is a Submission.VerdictStatus member, which is a ``str``
+    # subclass at runtime (Django TextChoices); typed as ``str`` so callers
+    # and the type checker agree on its string identity.
     print(f"Running custom checker ({checker_language}) in {checker_submission_dir}")
     checker_executable_path_str: str | None = None
     compile_ok = False
@@ -88,13 +99,13 @@ def run_custom_checker(
 
     else:
         return (
-            Submission.VerdictStatus.INTERNAL_ERROR,
+            _VERDICT_INTERNAL_ERROR,
             f"Unsupported checker language: {checker_language}",
         )
 
     if not compile_ok:
         return (
-            Submission.VerdictStatus.INTERNAL_ERROR,
+            _VERDICT_INTERNAL_ERROR,
             f"Checker compile failed.\n{compiler_out}",
         )
     # Check if essential run configurations were set (they should be if compile_ok is true for supported languages)
@@ -104,7 +115,7 @@ def run_custom_checker(
         or not checker_run_command_args
     ):
         return (
-            Submission.VerdictStatus.INTERNAL_ERROR,
+            _VERDICT_INTERNAL_ERROR,
             "Checker config error after compile (executable, image, or run_args missing).",
         )
 
@@ -183,24 +194,24 @@ def run_custom_checker(
         feedback = f"Checker STDOUT:\n{checker_stdout}\nChecker STDERR:\n{checker_stderr}{checker_resource_msg}"
         if checker_process.returncode == 124:
             return (
-                Submission.VerdictStatus.INTERNAL_ERROR,
+                _VERDICT_INTERNAL_ERROR,
                 f"Checker timed out.\n{feedback}",
             )
         exit_code = checker_process.returncode
         if exit_code == 0:
-            return Submission.VerdictStatus.ACCEPTED, feedback
+            return _VERDICT_ACCEPTED, feedback
         # For checkers, non-zero often means WA, but could be PE or other custom codes.
         # Defaulting to WA for simplicity here.
         return (
-            Submission.VerdictStatus.WRONG_ANSWER,
+            _VERDICT_WRONG_ANSWER,
             f"Checker indicated failure (code {exit_code}).\n{feedback}",
         )
     except subprocess.TimeoutExpired:
-        return Submission.VerdictStatus.INTERNAL_ERROR, "Checker communication timeout."
+        return _VERDICT_INTERNAL_ERROR, "Checker communication timeout."
     except FileNotFoundError:
-        return Submission.VerdictStatus.INTERNAL_ERROR, "Docker/checker cmd not found."
+        return _VERDICT_INTERNAL_ERROR, "Docker/checker cmd not found."
     except Exception as e:
         return (
-            Submission.VerdictStatus.INTERNAL_ERROR,
+            _VERDICT_INTERNAL_ERROR,
             f"Checker run error: {str(e)}\nSTDOUT: {checker_stdout}\nSTDERR: {checker_stderr}",
         )
