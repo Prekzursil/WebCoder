@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitFor, fireEvent } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/react';
 import UserProfilePage from './UserProfilePage';
 import { renderWithProviders, seedAuthUser, makeUser } from '../../test-utils';
 import { AuthService } from '../../services/ApiService';
