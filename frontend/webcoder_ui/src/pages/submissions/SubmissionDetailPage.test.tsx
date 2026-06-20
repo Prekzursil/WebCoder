@@ -56,10 +56,7 @@ describe('SubmissionDetailPage', () => {
     getDetail.mockResolvedValue({ data: submission() });
     renderWithProviders(<SubmissionDetailPage />);
     expect(await screen.findByText(/Submission Detail/)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Problem X' })).toHaveAttribute(
-      'href',
-      '/problems/3',
-    );
+    expect(screen.getByRole('link', { name: 'Problem X' })).toHaveAttribute('href', '/problems/3');
     expect(screen.getByText('alice')).toBeInTheDocument();
     expect(screen.getByText('python3')).toBeInTheDocument();
     expect(screen.getByText('print(1)')).toBeInTheDocument();
@@ -200,9 +197,7 @@ describe('SubmissionDetailPage', () => {
     await act(async () => {
       jest.advanceTimersByTime(3000);
     });
-    await waitFor(() =>
-      expect(screen.queryByText(/Polling for updates/)).not.toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.queryByText(/Polling for updates/)).not.toBeInTheDocument());
   });
 
   it('shows an auth-required error when there is no token', async () => {

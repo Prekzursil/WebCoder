@@ -5,10 +5,7 @@ import ProtectedRoute from './ProtectedRoute';
 import { AuthProvider } from '../../context/AuthContext';
 import { seedAuthUser, makeUser } from '../../test-utils';
 
-const renderAt = (
-  initialPath: string,
-  element: React.ReactElement,
-): ReturnType<typeof render> =>
+const renderAt = (initialPath: string, element: React.ReactElement): ReturnType<typeof render> =>
   render(
     <AuthProvider>
       <MemoryRouter initialEntries={[initialPath]}>
@@ -31,10 +28,7 @@ describe('ProtectedRoute', () => {
 
   it('redirects to / when the user lacks the required role', () => {
     seedAuthUser(makeUser({ role: 'BASIC_USER' }));
-    renderAt(
-      '/secret',
-      <ProtectedRoute roles={['ADMIN']}>{<div>Secret</div>}</ProtectedRoute>,
-    );
+    renderAt('/secret', <ProtectedRoute roles={['ADMIN']}>{<div>Secret</div>}</ProtectedRoute>);
     expect(screen.getByText('Home Screen')).toBeInTheDocument();
   });
 

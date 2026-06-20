@@ -22,9 +22,7 @@ describe('ProblemsListPage', () => {
   it('renders an empty-state message when no problems are returned', async () => {
     getProblems.mockResolvedValue({ data: [] });
     renderWithProviders(<ProblemsListPage />, { withAuth: false });
-    expect(
-      await screen.findByText('No problems available at the moment.'),
-    ).toBeInTheDocument();
+    expect(await screen.findByText('No problems available at the moment.')).toBeInTheDocument();
   });
 
   it('renders the localized title, difficulty and status for each problem', async () => {

@@ -105,9 +105,7 @@ describe('ProblemVerificationQueuePage', () => {
     renderWithProviders(<ProblemVerificationQueuePage />);
     fireEvent.change(await screen.findByRole('textbox'), { target: { value: 'looks good' } });
     fireEvent.click(await screen.findByRole('button', { name: 'Approve' }));
-    await waitFor(() =>
-      expect(approveProblem).toHaveBeenCalledWith(1, { feedback: 'looks good' }),
-    );
+    await waitFor(() => expect(approveProblem).toHaveBeenCalledWith(1, { feedback: 'looks good' }));
   });
 
   it('shows an error when approval fails', async () => {

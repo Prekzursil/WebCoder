@@ -78,7 +78,10 @@ describe('MySubmissionsPage', () => {
     getSubmissions.mockResolvedValue([sub()]);
     renderWithProviders(<MySubmissionsPage />);
     await screen.findByRole('link', { name: 'Alpha' });
-    expect(console.error).toHaveBeenCalledWith('Failed to load problems for filter', expect.anything());
+    expect(console.error).toHaveBeenCalledWith(
+      'Failed to load problems for filter',
+      expect.anything(),
+    );
   });
 
   it('refetches with a problemId filter when a problem is selected', async () => {
@@ -86,9 +89,7 @@ describe('MySubmissionsPage', () => {
     renderWithProviders(<MySubmissionsPage />);
     await screen.findByRole('link', { name: 'Alpha' });
     fireEvent.change(screen.getByLabelText(/Filter by Problem/), { target: { value: '10' } });
-    await waitFor(() =>
-      expect(getSubmissions).toHaveBeenLastCalledWith({ problemId: 10 }),
-    );
+    await waitFor(() => expect(getSubmissions).toHaveBeenLastCalledWith({ problemId: 10 }));
   });
 
   it('refetches with a language filter when text is entered', async () => {
@@ -96,9 +97,7 @@ describe('MySubmissionsPage', () => {
     renderWithProviders(<MySubmissionsPage />);
     await screen.findByRole('link', { name: 'Alpha' });
     fireEvent.change(screen.getByLabelText(/Filter by Language/), { target: { value: ' cpp17 ' } });
-    await waitFor(() =>
-      expect(getSubmissions).toHaveBeenLastCalledWith({ language: 'cpp17' }),
-    );
+    await waitFor(() => expect(getSubmissions).toHaveBeenLastCalledWith({ language: 'cpp17' }));
   });
 
   it('sorts by score ascending, putting a null score first', async () => {
@@ -118,10 +117,7 @@ describe('MySubmissionsPage', () => {
   it('sorts by score ascending when the first row outranks the second', async () => {
     // first row score is null (-Infinity) only for valB; valA is a real number
     // and is greater, exercising the valA > valB / ascending => 1 path.
-    getSubmissions.mockResolvedValue([
-      sub({ id: 1, score: 90 }),
-      sub({ id: 2, score: null }),
-    ]);
+    getSubmissions.mockResolvedValue([sub({ id: 1, score: 90 }), sub({ id: 2, score: null })]);
     renderWithProviders(<MySubmissionsPage />);
     await screen.findByRole('link', { name: '1' });
     fireEvent.change(screen.getByLabelText(/Sort by/), { target: { value: 'score' } });
@@ -216,12 +212,8 @@ describe('MySubmissionsPage', () => {
   });
 
   it('falls back to english title then problem id in the filter options and rows', async () => {
-    getProblems
-      .mockReset()
-      .mockResolvedValue({ data: [{ id: 99, title_i18n: {} }] });
-    getSubmissions.mockResolvedValue([
-      sub({ id: 1, problem: { id: 77, title_i18n: {} } }),
-    ]);
+    getProblems.mockReset().mockResolvedValue({ data: [{ id: 99, title_i18n: {} }] });
+    getSubmissions.mockResolvedValue([sub({ id: 1, problem: { id: 77, title_i18n: {} } })]);
     renderWithProviders(<MySubmissionsPage />);
     expect(await screen.findByRole('link', { name: 'ID: 77' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'ID: 99' })).toBeInTheDocument();

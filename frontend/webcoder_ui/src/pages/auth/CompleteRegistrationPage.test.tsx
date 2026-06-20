@@ -91,7 +91,11 @@ describe('CompleteRegistrationPage', () => {
     renderAt('?email=new@user.io');
     await submit();
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
-    resolveReg({ access: 'a', refresh: 'r', user: { id: 2, username: 'c', email: 'e', role: 'BASIC_USER' } });
+    resolveReg({
+      access: 'a',
+      refresh: 'r',
+      user: { id: 2, username: 'c', email: 'e', role: 'BASIC_USER' },
+    });
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/'));
   });
 });

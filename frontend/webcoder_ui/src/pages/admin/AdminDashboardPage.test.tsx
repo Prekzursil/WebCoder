@@ -82,9 +82,7 @@ describe('AdminDashboardPage', () => {
     renderWithProviders(<AdminDashboardPage />);
     await screen.findByText('bob');
     fireEvent.change(screen.getAllByRole('combobox')[0], { target: { value: 'ADMIN' } });
-    await waitFor(() =>
-      expect(toastError).toHaveBeenCalledWith('Failed to update role: nope'),
-    );
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith('Failed to update role: nope'));
   });
 
   it('updates a status and toasts success', async () => {
@@ -104,9 +102,7 @@ describe('AdminDashboardPage', () => {
     renderWithProviders(<AdminDashboardPage />);
     await screen.findByText('bob');
     fireEvent.change(screen.getAllByRole('combobox')[1], { target: { value: 'Inactive' } });
-    await waitFor(() =>
-      expect(toastError).toHaveBeenCalledWith('Failed to update status: bad'),
-    );
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith('Failed to update status: bad'));
   });
 
   it('only mutates the targeted user when multiple users are listed', async () => {

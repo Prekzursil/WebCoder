@@ -86,7 +86,11 @@ describe('LoginPage', () => {
     renderWithProviders(<LoginPage />);
     await fillAndSubmit();
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
-    resolveLogin({ access: 'a', refresh: 'r', user: { id: 1, username: 'x', email: 'e', role: 'BASIC_USER' } });
+    resolveLogin({
+      access: 'a',
+      refresh: 'r',
+      user: { id: 1, username: 'x', email: 'e', role: 'BASIC_USER' },
+    });
     await waitFor(() => expect(mockNavigate).toHaveBeenCalled());
   });
 });

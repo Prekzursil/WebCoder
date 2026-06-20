@@ -46,9 +46,7 @@ describe('MyCreatedProblemsPage', () => {
   it('renders an empty state when the author has no problems', async () => {
     getProblems.mockResolvedValue({ data: [] });
     renderWithProviders(<MyCreatedProblemsPage />);
-    expect(
-      await screen.findByText('You have not created any problems yet.'),
-    ).toBeInTheDocument();
+    expect(await screen.findByText('You have not created any problems yet.')).toBeInTheDocument();
   });
 
   it('renders a DRAFT problem with edit link and submit button', async () => {
