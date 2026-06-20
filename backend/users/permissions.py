@@ -104,4 +104,4 @@ class IsOwnerOrAdminForSubmission(permissions.BasePermission):
 
         is_admin = request.user.role == User.Roles.ADMIN or request.user.is_superuser
 
-        return obj.author == request.user or is_admin
+        return obj.user == request.user or is_admin

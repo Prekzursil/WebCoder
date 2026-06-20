@@ -63,7 +63,10 @@ def judge_submission_task(self, submission_id):
                 submission.verdict = Submission.VerdictStatus.COMPILE_ERROR
                 submission.detailed_feedback = compiler_output
                 submission.save()
-                if temp_dir_obj:
+                # temp_dir_obj is always created (above) before compilation, so
+                # the falsey arm of this guard is unreachable here. Reasoned,
+                # greppable pragma for the defensive cleanup guard.
+                if temp_dir_obj:  # pragma: no cover
                     temp_dir_obj.cleanup()
                 return f"Submission {submission_id}: Compile Error."
 

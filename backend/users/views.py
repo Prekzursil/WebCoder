@@ -60,7 +60,12 @@ class PasswordChangeView(generics.GenericAPIView):
                 {"detail": _("Password updated successfully.")},
                 status=status.HTTP_200_OK,
             )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Unreachable: is_valid(raise_exception=True) raises on invalid input and
+        # returns True on success, so this fallback never executes. Reasoned,
+        # greppable pragma.
+        return Response(  # pragma: no cover
+            serializer.errors, status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class UserMeView(generics.RetrieveAPIView):

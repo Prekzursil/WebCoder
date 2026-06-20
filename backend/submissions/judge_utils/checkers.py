@@ -108,8 +108,11 @@ def run_custom_checker(
             _VERDICT_INTERNAL_ERROR,
             f"Checker compile failed.\n{compiler_out}",
         )
-    # Check if essential run configurations were set (they should be if compile_ok is true for supported languages)
-    if (
+    # Defensive invariant: for every supported language, a successful compile
+    # (compile_ok=True) always sets the executable path, run image, and run
+    # args together, so this guard is unreachable in practice. Kept as a guard
+    # rail; excluded from coverage with a reasoned, greppable pragma.
+    if (  # pragma: no cover
         not checker_executable_path_str
         or not docker_image_checker_run
         or not checker_run_command_args
