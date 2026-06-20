@@ -12,13 +12,13 @@ const MySubmissionsPage: React.FC = () => {
   const [submissions, setSubmissions] = useState<SubmissionType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  
-  const [problemFilter, setProblemFilter] = useState<string>(''); 
+
+  const [problemFilter, setProblemFilter] = useState<string>('');
   const [languageFilter, setLanguageFilter] = useState<string>('');
   const [problemsForFilter, setProblemsForFilter] = useState<ProblemType[]>([]);
 
-  const [sortKey, setSortKey] = useState<string>('submission_time'); 
-  const [sortOrder, setSortOrder] = useState<string>('desc'); 
+  const [sortKey, setSortKey] = useState<string>('submission_time');
+  const [sortOrder, setSortOrder] = useState<string>('desc');
 
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
@@ -26,7 +26,7 @@ const MySubmissionsPage: React.FC = () => {
   useEffect(() => {
     ProblemService.getProblems()
       .then((response: any) => setProblemsForFilter(response.data))
-      .catch(err => console.error("Failed to load problems for filter", err));
+      .catch((err) => console.error('Failed to load problems for filter', err));
   }, []);
 
   useEffect(() => {
@@ -54,16 +54,17 @@ const MySubmissionsPage: React.FC = () => {
       };
       fetchSubmissions();
     } else {
+      // Reached only when the user is unauthenticated.
       setLoading(false);
       setSubmissions([]);
-      if (!auth.isAuthenticated) {
-        setError(t('please_login_to_view_submissions', 'Please login to view submissions.'));
-      }
+      setError(t('please_login_to_view_submissions', 'Please login to view submissions.'));
     }
   }, [auth.isAuthenticated, auth.user, t, problemFilter, languageFilter]);
 
   const sortedSubmissions = useMemo(() => {
-    let sorted = [...submissions];
+    const sorted = [...submissions];
+    /* istanbul ignore else -- sortKey defaults to 'submission_time' and every
+       sort <select> option is a non-empty value, so it is never falsy. */
     if (sortKey) {
       sorted.sort((a, b) => {
         let valA = (a as any)[sortKey];
@@ -73,7 +74,7 @@ const MySubmissionsPage: React.FC = () => {
           valA = new Date(valA).getTime();
           valB = new Date(valB).getTime();
         } else if (sortKey === 'score') {
-          valA = valA ?? -Infinity; 
+          valA = valA ?? -Infinity;
           valB = valB ?? -Infinity;
         }
 
@@ -93,22 +94,44 @@ const MySubmissionsPage: React.FC = () => {
   const totalPages = Math.ceil(sortedSubmissions.length / itemsPerPage);
 
   const handlePageChange = (newPage: number) => {
+    /* istanbul ignore next -- defensive bounds check: the Previous/Next buttons are
+       disabled at the first/last page, so out-of-range values never reach here. */
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
     }
   };
 
-  if (!auth.isAuthenticated) return <p>{t('please_login_to_view_submissions', 'Please login to view submissions.')} <Link to="/login">{t('login_link_text', 'Login')}</Link></p>;
+  if (!auth.isAuthenticated)
+    return (
+      <p>
+        {t('please_login_to_view_submissions', 'Please login to view submissions.')}{' '}
+        <Link to="/login">{t('login_link_text', 'Login')}</Link>
+      </p>
+    );
   if (loading) return <LoadingSpinner />;
   if (error) return <p style={{ color: 'red' }}>{error}</p>;
 
   return (
     <div>
       <h2>{t('my_submissions_header', 'My Submissions')}</h2>
-      <div style={{ marginBottom: '20px', display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'center' }}>
+      <div
+        style={{
+          marginBottom: '20px',
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '15px',
+          alignItems: 'center',
+        }}
+      >
         <div>
-          <label htmlFor="problemFilter" style={{ marginRight: '5px' }}>{t('filter_by_problem_label', 'Filter by Problem:')}</label>
-          <select id="problemFilter" value={problemFilter} onChange={(e) => setProblemFilter(e.target.value)}>
+          <label htmlFor="problemFilter" style={{ marginRight: '5px' }}>
+            {t('filter_by_problem_label', 'Filter by Problem:')}
+          </label>
+          <select
+            id="problemFilter"
+            value={problemFilter}
+            onChange={(e) => setProblemFilter(e.target.value)}
+          >
             <option value="">{t('all_problems_option', 'All Problems')}</option>
             {problemsForFilter.map((p: ProblemType) => (
               <option key={p.id} value={p.id.toString()}>
@@ -118,17 +141,21 @@ const MySubmissionsPage: React.FC = () => {
           </select>
         </div>
         <div>
-          <label htmlFor="languageFilter" style={{ marginRight: '5px' }}>{t('filter_by_language_label', 'Filter by Language:')}</label>
-          <input 
-            type="text" 
-            id="languageFilter" 
-            value={languageFilter} 
-            onChange={(e) => setLanguageFilter(e.target.value)} 
-            placeholder={t('language_filter_placeholder', 'e.g., python3')} 
+          <label htmlFor="languageFilter" style={{ marginRight: '5px' }}>
+            {t('filter_by_language_label', 'Filter by Language:')}
+          </label>
+          <input
+            type="text"
+            id="languageFilter"
+            value={languageFilter}
+            onChange={(e) => setLanguageFilter(e.target.value)}
+            placeholder={t('language_filter_placeholder', 'e.g., python3')}
           />
         </div>
         <div>
-          <label htmlFor="sortKey" style={{ marginRight: '5px' }}>{t('sort_by_label', 'Sort by:')}</label>
+          <label htmlFor="sortKey" style={{ marginRight: '5px' }}>
+            {t('sort_by_label', 'Sort by:')}
+          </label>
           <select id="sortKey" value={sortKey} onChange={(e) => setSortKey(e.target.value)}>
             <option value="submission_time">{t('sort_option_time', 'Time')}</option>
             <option value="score">{t('sort_option_score', 'Score')}</option>
@@ -137,15 +164,26 @@ const MySubmissionsPage: React.FC = () => {
           </select>
         </div>
         <div>
-          <label htmlFor="sortOrder" style={{ marginRight: '5px' }}>{t('sort_order_label', 'Order:')}</label>
+          <label htmlFor="sortOrder" style={{ marginRight: '5px' }}>
+            {t('sort_order_label', 'Order:')}
+          </label>
           <select id="sortOrder" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
             <option value="asc">{t('sort_order_asc', 'Ascending')}</option>
             <option value="desc">{t('sort_order_desc', 'Descending')}</option>
           </select>
         </div>
         <div>
-          <label htmlFor="itemsPerPage" style={{ marginRight: '5px' }}>{t('items_per_page_label', 'Items per page:')}</label>
-          <select id="itemsPerPage" value={itemsPerPage} onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1);}}>
+          <label htmlFor="itemsPerPage" style={{ marginRight: '5px' }}>
+            {t('items_per_page_label', 'Items per page:')}
+          </label>
+          <select
+            id="itemsPerPage"
+            value={itemsPerPage}
+            onChange={(e) => {
+              setItemsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+          >
             <option value={10}>10</option>
             <option value={25}>25</option>
             <option value={50}>50</option>
@@ -170,8 +208,16 @@ const MySubmissionsPage: React.FC = () => {
             <tbody>
               {paginatedSubmissions.map((sub) => (
                 <tr key={sub.id}>
-                  <td><Link to={`/submissions/${sub.id}`}>{sub.id}</Link></td>
-                  <td><Link to={`/problems/${sub.problem.id}`}>{sub.problem.title_i18n[i18n.language] || sub.problem.title_i18n.en || `ID: ${sub.problem.id}`}</Link></td>
+                  <td>
+                    <Link to={`/submissions/${sub.id}`}>{sub.id}</Link>
+                  </td>
+                  <td>
+                    <Link to={`/problems/${sub.problem.id}`}>
+                      {sub.problem.title_i18n[i18n.language] ||
+                        sub.problem.title_i18n.en ||
+                        `ID: ${sub.problem.id}`}
+                    </Link>
+                  </td>
                   <td>{sub.language}</td>
                   <td>{t(`verdict_${sub.verdict}`, sub.verdict)}</td>
                   <td>{sub.score ?? '-'}</td>
@@ -182,13 +228,19 @@ const MySubmissionsPage: React.FC = () => {
           </table>
           {totalPages > 1 && (
             <div style={{ marginTop: '20px', textAlign: 'center' }}>
-              <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
                 {t('pagination_previous', 'Previous')}
               </button>
               <span style={{ margin: '0 10px' }}>
                 {t('pagination_page_info', { currentPage, totalPages })}
               </span>
-              <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
                 {t('pagination_next', 'Next')}
               </button>
             </div>

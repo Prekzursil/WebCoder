@@ -8,7 +8,7 @@ import { ProblemType } from '../../types';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const MyCreatedProblemsPage: React.FC = () => {
-  const { t, i18n } = useTranslation(); 
+  const { t, i18n } = useTranslation();
   const auth = useAuth();
   const [myProblems, setMyProblems] = useState<ProblemType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -17,7 +17,7 @@ const MyCreatedProblemsPage: React.FC = () => {
   useEffect(() => {
     if (auth.isAuthenticated && auth.user?.id && auth.token) {
       setLoading(true);
-      ProblemService.getProblems({ authorId: auth.user.id }) 
+      ProblemService.getProblems({ authorId: auth.user.id })
         .then((response: any) => {
           setMyProblems(response.data);
           setError(null);
@@ -34,22 +34,34 @@ const MyCreatedProblemsPage: React.FC = () => {
   }, [auth.isAuthenticated, auth.user, auth.token, t]);
 
   const handleSubmitForApproval = async (problemId: number) => {
+    /* istanbul ignore if -- defensive: the Submit-for-Approval button only renders
+       for an authenticated author (a valid token is required for the list to load),
+       so reaching this handler without a token is not possible from the UI. */
     if (!auth.token) {
       toast.error(t('error_auth_required_action', 'Authentication required for this action.'));
       return;
     }
     try {
       await ProblemService.submitForApproval(problemId);
-      setMyProblems(prev => prev.map(p => p.id === problemId ? {...p, status: 'PENDING_APPROVAL'} : p));
+      setMyProblems((prev) =>
+        prev.map((p) => (p.id === problemId ? { ...p, status: 'PENDING_APPROVAL' } : p)),
+      );
       toast.success(t('problem_submitted_for_approval_success', 'Problem submitted for approval!'));
     } catch (err: any) {
-      toast.error(t('error_submitting_for_approval', 'Failed to submit for approval: ') + (err.message || 'Unknown error'));
+      toast.error(
+        t('error_submitting_for_approval', 'Failed to submit for approval: ') +
+          (err.message || 'Unknown error'),
+      );
     }
   };
 
   if (loading) return <LoadingSpinner />;
   if (error) return <p style={{ color: 'red' }}>{error}</p>;
-  if (!auth.isAuthenticated) return <p>{t('please_login_to_view_content', 'Please login to view this content.')}</p>;
+  /* istanbul ignore next -- defensive: an unauthenticated user always has the
+     auth-required error set by the effect above, so the `if (error)` guard returns
+     first and this branch is unreachable. */
+  if (!auth.isAuthenticated)
+    return <p>{t('please_login_to_view_content', 'Please login to view this content.')}</p>;
 
   return (
     <div>
@@ -67,21 +79,37 @@ const MyCreatedProblemsPage: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {myProblems.map(problem => (
+            {myProblems.map((problem) => (
               <tr key={problem.id}>
-                <td><Link to={`/problems/${problem.id}`}>{problem.title_i18n[i18n.language] || problem.title_i18n.en}</Link></td>
+                <td>
+                  <Link to={`/problems/${problem.id}`}>
+                    {problem.title_i18n[i18n.language] || problem.title_i18n.en}
+                  </Link>
+                </td>
                 <td>{t(`status_${problem.status.toLowerCase()}`, problem.status)}</td>
                 <td>{t(`difficulty_${problem.difficulty.toLowerCase()}`, problem.difficulty)}</td>
                 <td>
                   {(problem.status === 'DRAFT' || problem.status === 'PRIVATE') && (
-                    <Link to={`/problems/${problem.id}/edit`} style={{ marginRight: '10px' }}>{t('edit_button', 'Edit')}</Link>
+                    <Link to={`/problems/${problem.id}/edit`} style={{ marginRight: '10px' }}>
+                      {t('edit_button', 'Edit')}
+                    </Link>
                   )}
                   {problem.status === 'DRAFT' && (
-                    <button onClick={() => handleSubmitForApproval(problem.id)}>{t('submit_for_approval_button', 'Submit for Approval')}</button>
+                    <button onClick={() => handleSubmitForApproval(problem.id)}>
+                      {t('submit_for_approval_button', 'Submit for Approval')}
+                    </button>
                   )}
-                   {problem.status === 'PRIVATE' && problem.verifier_feedback && (
-                    <p style={{color: 'orange', fontSize: '0.9em', marginTop: '5px'}}>
-                      <em>{t('verifier_feedback_label', 'Feedback')}: {problem.verifier_feedback}</em>
+                  {problem.status === 'PRIVATE' && problem.verifier_feedback && (
+                    <p
+                      style={{
+                        color: 'orange',
+                        fontSize: '0.9em',
+                        marginTop: '5px',
+                      }}
+                    >
+                      <em>
+                        {t('verifier_feedback_label', 'Feedback')}: {problem.verifier_feedback}
+                      </em>
                     </p>
                   )}
                 </td>

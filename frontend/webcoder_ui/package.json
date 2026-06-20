@@ -29,6 +29,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "test:coverage": "react-scripts test --coverage --watchAll=false --ci",
     "eject": "react-scripts eject",
     "e2e:chromatic": "playwright test --config ./playwright.chromatic.config.ts ./e2e/chromatic/public-routes.spec.ts",
     "e2e:applitools": "playwright test --config ./playwright.chromatic.config.ts ./e2e/applitools-core-routes.spec.ts --project=chromium --workers=1"
@@ -38,6 +39,37 @@
       "react-app",
       "react-app/jest"
     ]
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "src/**/*.{ts,tsx}",
+      "!src/**/*.d.ts",
+      "!src/test-utils.tsx",
+      "!src/**/*.test.{ts,tsx}",
+      "!src/types/**/*.ts"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 100,
+        "functions": 100,
+        "lines": 100,
+        "statements": 100
+      }
+    }
+  },
+  "overrides": {
+    "nth-check": "^2.1.1",
+    "postcss": "^8.4.31",
+    "prismjs": "^1.30.0",
+    "serialize-javascript": "^7.0.5",
+    "ws": "^7.5.11",
+    "underscore": "^1.13.8",
+    "js-yaml": "^4.2.0",
+    "http-proxy-middleware": "^3.0.6",
+    "@tootallnate/once": "^2.0.1",
+    "webpack-dev-server": "^5.2.5",
+    "uuid": "^11.1.1",
+    "storybook": "^8.6.17"
   },
   "browserslist": {
     "production": [

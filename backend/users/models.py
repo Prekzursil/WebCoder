@@ -2,16 +2,18 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+
 class User(AbstractUser):
     """
     Custom User model for WebCoder.
     Inherits from Django's AbstractUser and adds role-based functionalities.
     """
+
     class Roles(models.TextChoices):
-        BASIC_USER = 'BASIC', _('Basic User')
-        PROBLEM_CREATOR = 'CREATOR', _('Problem Creator')
-        PROBLEM_VERIFIER = 'VERIFIER', _('Problem Verifier')
-        ADMIN = 'ADMIN', _('Admin') # Django's is_superuser can also denote admin
+        BASIC_USER = "BASIC", _("Basic User")
+        PROBLEM_CREATOR = "CREATOR", _("Problem Creator")
+        PROBLEM_VERIFIER = "VERIFIER", _("Problem Verifier")
+        ADMIN = "ADMIN", _("Admin")  # Django's is_superuser can also denote admin
 
     # We can use Django's built-in groups and permissions for fine-grained control,
     # but a simple role field can be useful for quick checks and broader role categories.
@@ -21,11 +23,11 @@ class User(AbstractUser):
     # is_staff, is_active, is_superuser, date_joined, last_login.
 
     role = models.CharField(
-        _('role'),
+        _("role"),
         max_length=10,
         choices=Roles.choices,
         default=Roles.BASIC_USER,
-        help_text=_('The primary role of the user on the platform.')
+        help_text=_("The primary role of the user on the platform."),
     )
 
     # Add any additional fields specific to WebCoder users here in the future

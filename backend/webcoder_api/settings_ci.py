@@ -1,4 +1,5 @@
 from . import settings as base_settings
+from .settings import BASE_DIR
 
 for _name in dir(base_settings):
     if _name.isupper():

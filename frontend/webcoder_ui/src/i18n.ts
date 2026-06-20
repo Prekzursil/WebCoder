@@ -9,52 +9,52 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 const resources = {
   en: {
     translation: {
-      "app_title": "WebCoder",
-      "nav_home": "Home",
-      "nav_problems": "Problems",
-      "nav_login": "Login",
-      "nav_register": "Register",
-      "login_header": "Login",
-      "username_label": "Username",
-      "password_label": "Password",
-      "login_button": "Login",
-      "or_login_with": "Or login with",
-      "google_login": "Google",
-      "github_login": "GitHub",
-      "no_account_prompt": "Don't have an account?",
-      "register_link_text": "Register here",
-      "welcome_message": "Welcome to WebCoder",
-      "problem_list_header": "Problems",
-      "nav_my_submissions": "My Submissions",
-      "nav_profile": "Profile",
-      "nav_welcome_user": "Welcome, {{username}}!",
-      "nav_logout": "Logout"
-    }
+      app_title: 'WebCoder',
+      nav_home: 'Home',
+      nav_problems: 'Problems',
+      nav_login: 'Login',
+      nav_register: 'Register',
+      login_header: 'Login',
+      username_label: 'Username',
+      password_label: 'Password',
+      login_button: 'Login',
+      or_login_with: 'Or login with',
+      google_login: 'Google',
+      github_login: 'GitHub',
+      no_account_prompt: "Don't have an account?",
+      register_link_text: 'Register here',
+      welcome_message: 'Welcome to WebCoder',
+      problem_list_header: 'Problems',
+      nav_my_submissions: 'My Submissions',
+      nav_profile: 'Profile',
+      nav_welcome_user: 'Welcome, {{username}}!',
+      nav_logout: 'Logout',
+    },
   },
   ro: {
     translation: {
-      "app_title": "WebCoder",
-      "nav_home": "Acasă",
-      "nav_problems": "Probleme",
-      "nav_login": "Autentificare",
-      "nav_register": "Înregistrare",
-      "login_header": "Autentificare",
-      "username_label": "Nume de utilizator",
-      "password_label": "Parolă",
-      "login_button": "Autentificare",
-      "or_login_with": "Sau autentifică-te cu",
-      "google_login": "Google",
-      "github_login": "GitHub",
-      "no_account_prompt": "Nu ai un cont?",
-      "register_link_text": "Înregistrează-te aici",
-      "welcome_message": "Bun venit la WebCoder",
-      "problem_list_header": "Probleme",
-      "nav_my_submissions": "Submisiile Mele",
-      "nav_profile": "Profil",
-      "nav_welcome_user": "Bun venit, {{username}}!",
-      "nav_logout": "Deconectare"
-    }
-  }
+      app_title: 'WebCoder',
+      nav_home: 'Acasă',
+      nav_problems: 'Probleme',
+      nav_login: 'Autentificare',
+      nav_register: 'Înregistrare',
+      login_header: 'Autentificare',
+      username_label: 'Nume de utilizator',
+      password_label: 'Parolă',
+      login_button: 'Autentificare',
+      or_login_with: 'Sau autentifică-te cu',
+      google_login: 'Google',
+      github_login: 'GitHub',
+      no_account_prompt: 'Nu ai un cont?',
+      register_link_text: 'Înregistrează-te aici',
+      welcome_message: 'Bun venit la WebCoder',
+      problem_list_header: 'Probleme',
+      nav_my_submissions: 'Submisiile Mele',
+      nav_profile: 'Profil',
+      nav_welcome_user: 'Bun venit, {{username}}!',
+      nav_logout: 'Deconectare',
+    },
+  },
 };
 
 i18n
@@ -70,9 +70,18 @@ i18n
     },
     detection: {
       // Order and from where user language should be detected
-      order: ['querystring', 'cookie', 'localStorage', 'sessionStorage', 'navigator', 'htmlTag', 'path', 'subdomain'],
+      order: [
+        'querystring',
+        'cookie',
+        'localStorage',
+        'sessionStorage',
+        'navigator',
+        'htmlTag',
+        'path',
+        'subdomain',
+      ],
       caches: ['localStorage', 'cookie'], // Where to cache detected language
-    }
+    },
   });
 
 export default i18n;

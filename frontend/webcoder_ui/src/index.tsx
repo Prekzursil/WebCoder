@@ -7,9 +7,7 @@ import './i18n'; // Import the i18n configuration
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext'; // Import AuthProvider
 
-const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
-);
+const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 root.render(
   <React.StrictMode>
     <BrowserRouter>
@@ -17,7 +15,7 @@ root.render(
         <App />
       </AuthProvider>
     </BrowserRouter>
-  </React.StrictMode>
+  </React.StrictMode>,
 );
 
 // If you want to start measuring performance in your app, pass a function

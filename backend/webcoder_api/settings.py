@@ -10,8 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+from datetime import timedelta
 from pathlib import Path
-import os # Import os for environment variables
+import os  # Import os for environment variables
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -39,7 +40,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
-
     # Third-party apps
     "rest_framework",
     "rest_framework.authtoken",
@@ -53,7 +53,6 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.github",
     "dj_rest_auth",
     "dj_rest_auth.registration",
-
     # Local apps
     "users.apps.UsersConfig",
     "problems.apps.ProblemsConfig",
@@ -137,12 +136,12 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
 LANGUAGES = [
-    ('en', 'English'),
-    ('ro', 'Romanian'),
+    ("en", "English"),
+    ("ro", "Romanian"),
 ]
 
 LOCALE_PATHS = [
-    BASE_DIR / 'locale',
+    BASE_DIR / "locale",
 ]
 
 LANGUAGE_CODE = "en-us"
@@ -169,11 +168,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "users.User"
 
 # allauth settings
-LOGIN_REDIRECT_URL = '/'
-ACCOUNT_LOGOUT_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = "/"
+ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 SOCIALACCOUNT_QUERY_EMAIL = True
-ACCOUNT_ADAPTER = 'users.adapters.CustomAccountAdapter'
-SOCIALACCOUNT_ADAPTER = 'users.adapters.CustomSocialAccountAdapter'
+ACCOUNT_ADAPTER = "users.adapters.CustomAccountAdapter"
+SOCIALACCOUNT_ADAPTER = "users.adapters.CustomSocialAccountAdapter"
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
 ACCOUNT_LOGIN_ON_PASSWORD_CHANGE = True
@@ -181,48 +180,47 @@ ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = True
 ACCOUNT_SESSION_REMEMBER = True
 ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
 ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_EMAIL_VERIFICATION = 'optional'
-ACCOUNT_LOGIN_METHODS = ['username', 'email']
+ACCOUNT_EMAIL_VERIFICATION = "optional"
+ACCOUNT_LOGIN_METHODS = ["username", "email"]
 ACCOUNT_SIGNUP_FIELDS = {
     "username": {"required": True},
-    "email"   : {"required": True},
+    "email": {"required": True},
     "password1": {"required": True},
 }
 DJ_REST_AUTH = {
-    'SIGNUP_FIELDS': ACCOUNT_SIGNUP_FIELDS,
+    "SIGNUP_FIELDS": ACCOUNT_SIGNUP_FIELDS,
 }
 SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'SCOPE': [
-            'profile',
-            'email',
+    "google": {
+        "SCOPE": [
+            "profile",
+            "email",
         ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        }
+        "AUTH_PARAMS": {
+            "access_type": "online",
+        },
     },
-    'github': {
-        'SCOPE': [
-            'user',
-            'repo',
-            'read:org',
+    "github": {
+        "SCOPE": [
+            "user",
+            "repo",
+            "read:org",
         ],
-    }
+    },
 }
 
 AUTHENTICATION_BACKENDS = (
     # Needed to login by username in Django admin, regardless of `allauth`
-    'django.contrib.auth.backends.ModelBackend',
-
+    "django.contrib.auth.backends.ModelBackend",
     # `allauth` specific authentication methods, such as login by e-mail
-    'allauth.account.auth_backends.AuthenticationBackend',
+    "allauth.account.auth_backends.AuthenticationBackend",
 )
 
 # Django REST Framework settings
 # https://www.django-rest-framework.org/api-guide/settings/
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
         # Add other authentication classes if needed, e.g., SessionAuthentication for browsable API
         # 'rest_framework.authentication.SessionAuthentication',
     ),
@@ -234,8 +232,6 @@ REST_FRAMEWORK = {
 
 # Simple JWT settings (optional, for customization)
 # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html
-from datetime import timedelta # Ensure timedelta is imported
-
 # Reverting to all library defaults by setting SIMPLE_JWT to an empty dict
 # or commenting it out entirely. Let's use an empty dict for now.
 # SIMPLE_JWT = {} # Commenting this out to define specific keys below for debugging
@@ -243,34 +239,34 @@ from datetime import timedelta # Ensure timedelta is imported
 
 # Forcing SECRET_KEY usage explicitly for debugging token validation
 SIMPLE_JWT = {
-    'SIGNING_KEY': SECRET_KEY,
-    'VERIFYING_KEY': SECRET_KEY, # For symmetric algorithms, this should match SIGNING_KEY
-    'ALGORITHM': 'HS256', # Explicitly state default
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5), # Default
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1), # Default
-    'LEEWAY': timedelta(seconds=0), # Default
+    "SIGNING_KEY": SECRET_KEY,
+    "VERIFYING_KEY": SECRET_KEY,  # For symmetric algorithms, this should match SIGNING_KEY
+    "ALGORITHM": "HS256",  # Explicitly state default
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),  # Default
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),  # Default
+    "LEEWAY": timedelta(seconds=0),  # Default
     # Other settings can remain default or be added if needed
-    "UPDATE_LAST_LOGIN": True, # Explicitly set this as it was in a previous attempt
+    "UPDATE_LAST_LOGIN": True,  # Explicitly set this as it was in a previous attempt
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
 REST_USE_JWT = True
 DJ_REST_AUTH = {
     "USE_JWT": True,
-    'LOGIN_SERIALIZER': 'users.serializers.CustomLoginSerializer',
-    'SIGNUP_FIELDS': ACCOUNT_SIGNUP_FIELDS,
+    "LOGIN_SERIALIZER": "users.serializers.CustomLoginSerializer",
+    "SIGNUP_FIELDS": ACCOUNT_SIGNUP_FIELDS,
 }
 
 # Celery Configuration Options
-CELERY_BROKER_URL = 'filesystem://'
-CELERY_BROKER_FOLDER_MAIN = os.path.join(BASE_DIR, '..', 'celery_broker')
-CELERY_BROKER_FOLDER_PROCESSED = os.path.join(BASE_DIR, '..', 'celery_broker_processed')
-CELERY_BROKER_FOLDER_SENT = os.path.join(BASE_DIR, '..', 'celery_broker_sent')
+CELERY_BROKER_URL = "filesystem://"
+CELERY_BROKER_FOLDER_MAIN = os.path.join(BASE_DIR, "..", "celery_broker")
+CELERY_BROKER_FOLDER_PROCESSED = os.path.join(BASE_DIR, "..", "celery_broker_processed")
+CELERY_BROKER_FOLDER_SENT = os.path.join(BASE_DIR, "..", "celery_broker_sent")
 os.makedirs(CELERY_BROKER_FOLDER_MAIN, exist_ok=True)
 os.makedirs(CELERY_BROKER_FOLDER_PROCESSED, exist_ok=True)
 os.makedirs(CELERY_BROKER_FOLDER_SENT, exist_ok=True)
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
 
 # Custom Judge Settings
@@ -281,11 +277,13 @@ CELERY_TIMEZONE = TIME_ZONE
 # For development, you might set this to a local path where you've downloaded Boost.
 # It's recommended to use an environment variable for this in production.
 # Example: "/opt/boost_1_82_0" or "C:/dev/boost_1_82_0" (adjust for your OS)
-JUDGE_BOOST_HEADERS_PATH = os.environ.get('JUDGE_BOOST_HEADERS_PATH', "/opt/boost_headers") # Default to /opt/boost_headers if env var not set
+JUDGE_BOOST_HEADERS_PATH = os.environ.get(
+    "JUDGE_BOOST_HEADERS_PATH", "/opt/boost_headers"
+)  # Default to /opt/boost_headers if env var not set
 
 # Path on the host machine where pre-approved Java JAR libraries are stored.
 # This directory will be mounted into the Docker container for Java execution.
 # Each JAR file in this directory will be added to the classpath.
 # IMPORTANT: This path MUST exist on the judge server.
 # Example: "/opt/java_libs"
-JUDGE_JAVA_LIBS_DIR_HOST = os.environ.get('JUDGE_JAVA_LIBS_DIR_HOST', "/opt/java_libs")
+JUDGE_JAVA_LIBS_DIR_HOST = os.environ.get("JUDGE_JAVA_LIBS_DIR_HOST", "/opt/java_libs")

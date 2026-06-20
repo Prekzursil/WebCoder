@@ -3,7 +3,15 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AuthService } from '../../services/ApiService';
 import { useAuth } from '../../context/AuthContext';
-import { Container, Box, TextField, Button, Typography, Alert, CircularProgress } from '@mui/material';
+import {
+  Container,
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Alert,
+  CircularProgress,
+} from '@mui/material';
 
 const CompleteRegistrationPage: React.FC = () => {
   const { t } = useTranslation();
@@ -36,7 +44,11 @@ const CompleteRegistrationPage: React.FC = () => {
         setError(t('registration_completion_failed', 'Failed to complete registration.'));
       }
     } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || t('registration_completion_failed', 'Failed to complete registration.'));
+      setError(
+        err.response?.data?.detail ||
+          err.message ||
+          t('registration_completion_failed', 'Failed to complete registration.'),
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -55,7 +67,11 @@ const CompleteRegistrationPage: React.FC = () => {
         <Typography component="h1" variant="h5">
           {t('complete_registration_header', 'Complete Your Registration')}
         </Typography>
-        {error && <Alert severity="error" sx={{ width: '100%', mt: 2 }}>{error}</Alert>}
+        {error && (
+          <Alert severity="error" sx={{ width: '100%', mt: 2 }}>
+            {error}
+          </Alert>
+        )}
         <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
           <TextField
             margin="normal"
@@ -87,7 +103,11 @@ const CompleteRegistrationPage: React.FC = () => {
             sx={{ mt: 3, mb: 2 }}
             disabled={isSubmitting}
           >
-            {isSubmitting ? <CircularProgress size={24} /> : t('complete_registration_button', 'Complete Registration')}
+            {isSubmitting ? (
+              <CircularProgress size={24} />
+            ) : (
+              t('complete_registration_button', 'Complete Registration')
+            )}
           </Button>
         </Box>
       </Box>
