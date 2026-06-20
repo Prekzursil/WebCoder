@@ -45,7 +45,8 @@
       "src/**/*.{ts,tsx}",
       "!src/**/*.d.ts",
       "!src/test-utils.tsx",
-      "!src/**/*.test.{ts,tsx}"
+      "!src/**/*.test.{ts,tsx}",
+      "!src/types/**/*.ts"
     ],
     "coverageThreshold": {
       "global": {
