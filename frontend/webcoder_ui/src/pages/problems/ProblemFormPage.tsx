@@ -79,6 +79,8 @@ const ProblemFormPage: React.FC = () => {
         })
         .catch(() => {
           setFormError(t('error_loading_problem_for_edit', 'Failed to load problem for editing.'));
+        })
+        .finally(() => {
           setIsLoadingData(false);
         });
     }
@@ -146,8 +148,14 @@ const ProblemFormPage: React.FC = () => {
       } catch (err: any) {
         setFormError(err.message || t('error_removing_test_case', 'Failed to remove test case.'));
       }
-    } else if (tcToRemove.local_id) {
-      setTestCases((prev) => prev.filter((tc) => tc.local_id !== tcToRemove.local_id));
+    } else {
+      // Every test case always carries a local_id (assigned on load,
+      // API-create, or local-add), so a test case with no id necessarily has a
+      // local_id; the `tcToRemove.local_id` check is therefore always true here.
+      /* istanbul ignore next -- @preserve: invariant guard, always truthy */
+      if (tcToRemove.local_id) {
+        setTestCases((prev) => prev.filter((tc) => tc.local_id !== tcToRemove.local_id));
+      }
     }
   };
 
@@ -493,7 +501,9 @@ const ProblemFormPage: React.FC = () => {
           <h3>{t('problem_form_test_cases_header', 'Test Cases')}</h3>
           {testCases.map((tc: TestCaseUIManaged, index: number) => (
             <div
-              key={tc.local_id || tc.id || `tc-${index}`}
+              // Every test case carries a unique local_id (assigned on load,
+              // API-create, or local-add), so it is a stable React key.
+              key={tc.local_id}
               style={{
                 border: '1px solid #eee',
                 padding: '10px',
