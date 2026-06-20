@@ -53,6 +53,11 @@ const ProblemDetailPage: React.FC = () => {
   }, [problemId, t]);
 
   const handleActualSubmit = async () => {
+    // Defensive guards: the submit form only renders when isAuthenticated
+    // (=== !!auth.token) and problemId are truthy, and selectedLanguage always
+    // defaults to 'python3'. These branches are therefore unreachable from the
+    // UI and exist only to fail safe if those invariants are ever broken.
+    /* istanbul ignore next -- @preserve: unreachable invariant guard */
     if (!auth.token || !problemId) {
       setSubmissionError(
         t('error_not_logged_in_or_no_problem', 'Authentication required to submit.'),
@@ -60,6 +65,7 @@ const ProblemDetailPage: React.FC = () => {
       setIsModalOpen(false);
       return;
     }
+    /* istanbul ignore next -- @preserve: unreachable invariant guard */
     if (!selectedLanguage) {
       setSubmissionError(t('error_select_language', 'Please select a language.'));
       setIsModalOpen(false);
