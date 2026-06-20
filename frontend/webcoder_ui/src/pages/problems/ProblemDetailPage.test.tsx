@@ -102,6 +102,26 @@ describe('ProblemDetailPage', () => {
     expect(await screen.findByRole('heading', { name: 'Problem ID: 42' })).toBeInTheDocument();
   });
 
+  it('renders a multi-line statement as escaped text with line breaks (no HTML injection)', async () => {
+    getProblemDetail.mockResolvedValue({
+      data: fullProblem({
+        statement_i18n: { en: 'Line one\n<img src=x onerror="alert(1)">' },
+      }),
+    });
+    const { container } = renderAuthed();
+    await screen.findByRole('heading', { name: 'Two Sum' });
+    // The statement <div> follows the "Problem Statement" header.
+    const header = screen.getByRole('heading', { name: 'Problem Statement' });
+    const statementDiv = header.nextElementSibling as HTMLElement;
+    // Newlines become <br> elements (line-break behavior preserved).
+    expect(statementDiv.querySelectorAll('br')).toHaveLength(1);
+    // The raw HTML is rendered as TEXT, escaped — the <img> sink is NOT created.
+    expect(statementDiv.querySelector('img')).toBeNull();
+    expect(statementDiv.textContent).toContain('<img src=x onerror="alert(1)">');
+    // And nothing in the document used dangerouslySetInnerHTML to inject it.
+    expect(container.querySelector('img[onerror]')).toBeNull();
+  });
+
   it('omits limits, statement and samples when they are absent', async () => {
     getProblemDetail.mockResolvedValue({
       data: fullProblem({

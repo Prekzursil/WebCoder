@@ -132,11 +132,19 @@ const ProblemDetailPage: React.FC = () => {
         </p>
       )}
       <h3>{t('problem_statement_header', 'Problem Statement')}</h3>
-      <div
-        dangerouslySetInnerHTML={{
-          __html: problemStatement.replace(/\n/g, '<br />'),
-        }}
-      />
+      <div>
+        {/*
+          Render the statement as plain text with explicit line breaks. React
+          escapes the text content, so author-supplied statement HTML cannot
+          execute (no dangerouslySetInnerHTML / XSS sink). Newlines map to <br/>.
+        */}
+        {problemStatement.split('\n').map((line, index) => (
+          <React.Fragment key={index}>
+            {index > 0 && <br />}
+            {line}
+          </React.Fragment>
+        ))}
+      </div>
       {sampleTestCases.length > 0 && (
         <>
           <h3>{t('sample_test_cases_header', 'Sample Test Cases')}</h3>
