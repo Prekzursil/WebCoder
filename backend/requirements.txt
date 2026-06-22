@@ -1,29 +1,29 @@
 amqp==5.3.1
-asgiref==3.8.1
-billiard==4.2.1
-celery==5.5.3
-click==8.2.1
+asgiref==3.11.1
+billiard==4.2.4
+celery==5.6.3
+click==8.4.1
 click-didyoumean==0.3.1
 click-plugins==1.1.1
 click-repl==0.3.0
 colorama==0.4.6
 Django==5.2.15
-django-cors-headers==4.4.0
-djangorestframework==3.16.0
+django-cors-headers==4.9.0
+djangorestframework==3.17.1
 djangorestframework_simplejwt==5.5.1
-kombu==5.5.4
+kombu==5.6.2
 packaging==25.0
-prompt_toolkit==3.0.51
-psycopg2-binary==2.9.10
+prompt_toolkit==3.0.52
+psycopg2-binary==2.9.12
 PyJWT==2.13.0
 python-dateutil==2.9.0.post0
-redis==6.2.0
+redis==6.4.0
 six==1.17.0
 sqlparse==0.5.5
-tzdata==2025.2
+tzdata==2025.3
 vine==5.1.0
-wcwidth==0.2.13
-pytest==9.0.3
+wcwidth==0.8.1
+pytest==9.1.1
 pytest-django==4.12.0
 pytest-cov==7.1.0
 django-allauth==65.18.0
@@ -35,5 +35,5 @@ cryptography==49.0.0
 # Transitive deps pinned to patched versions to clear osv-scanner findings:
 #   idna   <- requests   (PYSEC-2026-215 / GHSA-65pc-fj4g-8rjx)
 #   pygments <- pytest    (PYSEC-2023-117, GHSA-5239-wwwm-4pmq)
-idna==3.15
+idna==3.18
 pygments==2.20.0
