@@ -3,7 +3,17 @@ import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AuthService } from '../../services/ApiService';
 import { useAuth } from '../../context/AuthContext';
-import { Container, Box, TextField, Button, Typography, Link, Alert, CircularProgress, Divider } from '@mui/material';
+import {
+  Container,
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Link,
+  Alert,
+  CircularProgress,
+  Divider,
+} from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
 import GitHubIcon from '@mui/icons-material/GitHub';
 
@@ -29,7 +39,11 @@ const LoginPage: React.FC = () => {
         setError(t('login_failed_no_token', 'Login failed: No token received.'));
       }
     } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || t('login_failed', 'Login failed. Please check your credentials.'));
+      setError(
+        err.response?.data?.detail ||
+          err.message ||
+          t('login_failed', 'Login failed. Please check your credentials.'),
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -48,7 +62,11 @@ const LoginPage: React.FC = () => {
         <Typography component="h1" variant="h5">
           {t('login_header', 'Login')}
         </Typography>
-        {error && <Alert severity="error" sx={{ width: '100%', mt: 2 }}>{error}</Alert>}
+        {error && (
+          <Alert severity="error" sx={{ width: '100%', mt: 2 }}>
+            {error}
+          </Alert>
+        )}
         <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
           <TextField
             margin="normal"

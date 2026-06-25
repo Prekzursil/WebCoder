@@ -1,9 +1,19 @@
 import React, { useState, FormEvent, useEffect } from 'react';
-import { Link as RouterLink, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AuthService } from '../../services/ApiService';
 import { useAuth } from '../../context/AuthContext';
-import { Container, Box, TextField, Button, Typography, Link, Alert, CircularProgress, Divider, Paper } from '@mui/material';
+import {
+  Container,
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Alert,
+  CircularProgress,
+  Divider,
+  Paper,
+} from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import { User } from '../../types';
@@ -38,7 +48,7 @@ const UserProfilePage: React.FC = () => {
           return;
         }
         setProfileUser(userData);
-      } catch (err: any) {
+      } catch {
         setError(t('failed_to_load_profile', 'Failed to load user profile.'));
       } finally {
         setIsLoading(false);
@@ -62,14 +72,22 @@ const UserProfilePage: React.FC = () => {
     }
     setIsSubmitting(true);
     try {
-      await AuthService.changePassword({ old_password: currentPassword, new_password1: newPassword, new_password2: confirmNewPassword });
+      await AuthService.changePassword({
+        old_password: currentPassword,
+        new_password1: newPassword,
+        new_password2: confirmNewPassword,
+      });
       setMessage(t('password_change_successful', 'Password changed successfully.'));
       setCurrentPassword('');
       setNewPassword('');
       setConfirmNewPassword('');
     } catch (err: any) {
       if (err.response?.data && typeof err.response.data === 'object') {
-        setError(Object.entries(err.response.data).map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`).join('; ') || t('password_change_failed', 'Password change failed.'));
+        setError(
+          Object.entries(err.response.data)
+            .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
+            .join('; ') || t('password_change_failed', 'Password change failed.'),
+        );
       } else {
         setError(err.message || t('password_change_failed', 'Password change failed.'));
       }
@@ -105,9 +123,16 @@ const UserProfilePage: React.FC = () => {
           {t('user_profile_header', 'User Profile')}
         </Typography>
         <Paper sx={{ p: 2, mb: 4 }}>
-          <Typography><strong>{t('username_label', 'Username')}:</strong> {profileUser.username}</Typography>
-          <Typography><strong>{t('email_label', 'Email')}:</strong> {profileUser.email}</Typography>
-          <Typography><strong>{t('role_label', 'Role')}:</strong> {t(`user_role_${profileUser.role.toLowerCase()}`, profileUser.role)}</Typography>
+          <Typography>
+            <strong>{t('username_label', 'Username')}:</strong> {profileUser.username}
+          </Typography>
+          <Typography>
+            <strong>{t('email_label', 'Email')}:</strong> {profileUser.email}
+          </Typography>
+          <Typography>
+            <strong>{t('role_label', 'Role')}:</strong>{' '}
+            {t(`user_role_${profileUser.role.toLowerCase()}`, profileUser.role)}
+          </Typography>
         </Paper>
 
         {isOwnProfile && (
@@ -139,8 +164,13 @@ const UserProfilePage: React.FC = () => {
             <Typography variant="h5" component="h2" gutterBottom>
               {t('change_password_header', 'Change Password')}
             </Typography>
-            {message && <Alert severity="success" sx={{ mb: 2 }}>{message}</Alert>}
-            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+            {message && (
+              <Alert severity="success" sx={{ mb: 2 }}>
+                {message}
+              </Alert>
+            )}
+            {/* NB: an inline error Alert was removed here — any non-null `error`
+                triggers the top-level early return above, so it was dead code. */}
             <Box component="form" onSubmit={handleChangePassword} noValidate>
               <TextField
                 margin="normal"
@@ -182,7 +212,11 @@ const UserProfilePage: React.FC = () => {
                 sx={{ mt: 3, mb: 2 }}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? <CircularProgress size={24} /> : t('change_password_button', 'Change Password')}
+                {isSubmitting ? (
+                  <CircularProgress size={24} />
+                ) : (
+                  t('change_password_button', 'Change Password')
+                )}
               </Button>
             </Box>
           </>

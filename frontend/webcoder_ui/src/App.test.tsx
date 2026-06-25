@@ -10,7 +10,7 @@ test('renders app shell', () => {
       <AuthProvider>
         <App />
       </AuthProvider>
-    </BrowserRouter>
+    </BrowserRouter>,
   );
   expect(screen.getByRole('main')).toBeInTheDocument();
 });

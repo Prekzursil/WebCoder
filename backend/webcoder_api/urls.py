@@ -25,19 +25,22 @@ from rest_framework_simplejwt.views import (
 )
 
 urlpatterns = [
-    path('', RedirectView.as_view(url='/api/v1/problems/', permanent=False)),
+    path("", RedirectView.as_view(url="/api/v1/problems/", permanent=False)),
     path("admin/", admin.site.urls),
     path("api/v1/users/", include("users.urls", namespace="users_api_v1")),
     path("api/v1/problems/", include("problems.urls", namespace="problems_api_v1")),
-    path("api/v1/submissions/", include("submissions.urls", namespace="submissions_api_v1")),
+    path(
+        "api/v1/submissions/",
+        include("submissions.urls", namespace="submissions_api_v1"),
+    ),
     # JWT Token Authentication
-    path('api/v1/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/v1/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/v1/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    path("api/v1/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/v1/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("api/v1/token/verify/", TokenVerifyView.as_view(), name="token_verify"),
     # dj-rest-auth and allauth urls
-    path('api/v1/auth/', include('dj_rest_auth.urls')),
-    path('api/v1/auth/registration/', include('dj_rest_auth.registration.urls')),
-    path('api/v1/auth/google/', include('users.api.oauth.google.urls')),
-    path('api/v1/auth/github/', include('users.api.oauth.github.urls')),
-    path('accounts/', include('allauth.urls')),
+    path("api/v1/auth/", include("dj_rest_auth.urls")),
+    path("api/v1/auth/registration/", include("dj_rest_auth.registration.urls")),
+    path("api/v1/auth/google/", include("users.api.oauth.google.urls")),
+    path("api/v1/auth/github/", include("users.api.oauth.github.urls")),
+    path("accounts/", include("allauth.urls")),
 ]

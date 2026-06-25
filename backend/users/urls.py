@@ -1,13 +1,20 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import UserRegistrationView, PasswordChangeView, UserMeView, AdminUserViewSet, GoogleLogin, GithubLogin, AdminStatsView, UserViewSet
+from .views import (
+    UserRegistrationView,
+    PasswordChangeView,
+    UserMeView,
+    AdminUserViewSet,
+    AdminStatsView,
+    UserViewSet,
+)
 
 app_name = "users"
 
 # Using a router for the AdminUserViewSet to handle standard CRUD URLs
 router = DefaultRouter()
-router.register(r'admin/manage', AdminUserViewSet, basename='admin-user-management')
-router.register(r'', UserViewSet, basename='user')
+router.register(r"admin/manage", AdminUserViewSet, basename="admin-user-management")
+router.register(r"", UserViewSet, basename="user")
 
 urlpatterns = [
     path("register/", UserRegistrationView.as_view(), name="user_register"),

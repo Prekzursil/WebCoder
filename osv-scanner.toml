@@ -1,0 +1,33 @@
+# osv-scanner configuration for the lean dependency gate (pinned tool: osv-scanner 2.3.8).
+# The CI gate runs `osv-scanner scan source --config=osv-scanner.toml --recursive .`
+# (see .github/workflows/quality.yml -> reusable-quality.yml gate-deps step), which
+# auto-discovers and scans the lockfiles in this repo:
+#   - backend/requirements.txt              (Django backend pip deps)
+#   - frontend/webcoder_ui/package-lock.json (React/CRA frontend npm tree)
+#
+# POLICY: ignore entries are allowed ONLY for a genuinely-unfixable vuln (no
+# non-breaking upgrade) OR one that is provably not reachable in THIS product,
+# each with a reason + dated review note (greppable). We do NOT use a baseline
+# file — clean-zero is reached by upgrading where a safe fix exists, and only by
+# a reasoned per-CVE ignore where it does not.
+#
+# 2026-06-17: no IgnoredVulns recorded at migration time. Add a dated, reasoned
+# entry here only for a future vuln that is genuinely unfixable or provably
+# unreachable in this product.
+#
+# 2026-06-20: dependency modernization pass. Bumped every fixable lockfile vuln
+# to its patched version (backend/requirements.txt pins + frontend npm
+# overrides), taking the tree from 188 known vulns to a single genuinely
+# unfixable transitive entry, recorded below.
+
+[[IgnoredVulns]]
+id = "GHSA-848j-6mx2-7j84"
+# elliptic "uses a cryptographic primitive with a risky implementation".
+# NO FIX AVAILABLE: the advisory's last_affected is 6.6.1 and 6.6.1 is also the
+# latest published release on npm (verified 2026-06-20 via `npm view elliptic
+# versions` — nothing above 6.6.1 exists), so there is no non-breaking (or any)
+# upgrade. It is a deep transitive dep of crypto-browserify (browserify-sign /
+# create-ecdh), a browser polyfill for Node's `crypto` pulled in only by the
+# CRA webpack build; it is not used for any first-party signing/key-exchange in
+# this product. Re-review when elliptic publishes a release > 6.6.1.
+reason = "No fix available (6.6.1 is latest published); transitive via crypto-browserify polyfill, not first-party crypto. Reviewed 2026-06-20."

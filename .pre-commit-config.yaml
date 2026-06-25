@@ -1,0 +1,64 @@
+# Lean quality gates — local auto-fixers + fast checks (lean-gate charter, 2026-06-16).
+# `pre-commit run --all-files` is the gate-1/gate-5 entrypoint used by CI (reusable-quality.yml).
+# Every rev is pinned; bump versions here together with .quality/charter.yml.
+#
+# Languages present in this repo: Python (Django backend) + TS/JS (React/CRA frontend).
+minimum_pre_commit_version: "3.5.0"
+
+default_language_version:
+  python: python3
+
+exclude: |-
+  (?x)^(
+    node_modules/|
+    frontend/webcoder_ui/node_modules/|
+    frontend/webcoder_ui/build/|
+    backend/venv/|
+    dist/|
+    build/|
+    vendor/|
+    \.venv/|
+    .*\.egg-info/|
+    tree\.txt$
+  )
+
+repos:
+  # --- Gate 1: Python lint + format (ruff 0.15.17) ---
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.17
+    hooks:
+      - id: ruff
+        name: ruff (lint --fix)
+        args: ["--fix"]
+        files: '^backend/.*\.py$'
+        exclude: '^backend/venv/'
+      - id: ruff-format
+        name: ruff (format)
+        files: '^backend/.*\.py$'
+        exclude: '^backend/venv/'
+
+  # --- Gate 1: JS/TS lint (oxlint 1.69.0 mirror) ---
+  - repo: https://github.com/oxc-project/mirrors-oxlint
+    rev: v1.69.0
+    hooks:
+      - id: oxlint
+        name: oxlint (frontend)
+        args: ["--fix", "--deny-warnings"]
+        files: '^frontend/webcoder_ui/src/.*\.(ts|tsx|js|jsx)$'
+
+  # --- Gate 1: JS/TS format (Biome 2.5.0, format-only) ---
+  - repo: https://github.com/biomejs/pre-commit
+    rev: v2.5.0
+    hooks:
+      - id: biome-format
+        name: biome (format)
+        additional_dependencies: ["@biomejs/biome@2.5.0"]
+        files: '^frontend/webcoder_ui/src/.*\.(ts|tsx|js|jsx|css|json)$'
+
+  # --- Gate 5: secrets (gitleaks 8.30.1) ---
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+        name: gitleaks (secrets)
+        args: ["--config", ".gitleaks.toml"]

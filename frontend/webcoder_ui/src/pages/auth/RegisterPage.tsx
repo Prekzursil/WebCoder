@@ -2,7 +2,17 @@ import React, { useState, FormEvent } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AuthService } from '../../services/ApiService';
-import { Container, Box, TextField, Button, Typography, Link, Alert, CircularProgress, Divider } from '@mui/material';
+import {
+  Container,
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Link,
+  Alert,
+  CircularProgress,
+  Divider,
+} from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
 import GitHubIcon from '@mui/icons-material/GitHub';
 
@@ -28,11 +38,19 @@ const RegisterPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       await AuthService.register({ username, email, password, password2 });
-      setSuccess(t('registration_successful_redirecting', 'Registration successful! Redirecting to login...'));
+      setSuccess(
+        t(
+          'registration_successful_redirecting',
+          'Registration successful! Redirecting to login...',
+        ),
+      );
       setTimeout(() => navigate('/login'), 2000);
     } catch (err: any) {
       if (err.response?.data && typeof err.response.data === 'object') {
-        setError(Object.values(err.response.data).flat().join(' ') || t('registration_failed', 'Registration failed. Please check your input.'));
+        setError(
+          Object.values(err.response.data).flat().join(' ') ||
+            t('registration_failed', 'Registration failed. Please check your input.'),
+        );
       } else {
         setError(err.message || t('registration_failed', 'Registration failed. Please try again.'));
       }
@@ -54,8 +72,16 @@ const RegisterPage: React.FC = () => {
         <Typography component="h1" variant="h5">
           {t('register_header', 'Register')}
         </Typography>
-        {error && <Alert severity="error" sx={{ width: '100%', mt: 2 }}>{error}</Alert>}
-        {success && <Alert severity="success" sx={{ width: '100%', mt: 2 }}>{success}</Alert>}
+        {error && (
+          <Alert severity="error" sx={{ width: '100%', mt: 2 }}>
+            {error}
+          </Alert>
+        )}
+        {success && (
+          <Alert severity="success" sx={{ width: '100%', mt: 2 }}>
+            {success}
+          </Alert>
+        )}
         <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
           <TextField
             margin="normal"
