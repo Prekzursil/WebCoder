@@ -30,9 +30,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "test:coverage": "react-scripts test --coverage --watchAll=false --ci",
-    "eject": "react-scripts eject",
-    "e2e:chromatic": "playwright test --config ./playwright.chromatic.config.ts ./e2e/chromatic/public-routes.spec.ts",
-    "e2e:applitools": "playwright test --config ./playwright.chromatic.config.ts ./e2e/applitools-core-routes.spec.ts --project=chromium --workers=1"
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
