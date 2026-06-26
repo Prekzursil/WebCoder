@@ -103,22 +103,6 @@ class ProblemAdmin(admin.ModelAdmin):
             obj.author = request.user
         super().save_model(request, obj, form, change)
 
-    # Customize queryset for admin to potentially show more fields or filter
-    # def get_queryset(self, request):
-    #     qs = super().get_queryset(request)
-    #     return qs
-
-
-# TestCase can also be registered separately if needed for direct management,
-# but often managed inline with Problems.
-# class TestCaseAdmin(admin.ModelAdmin):
-#     list_display = ('id', 'problem_id_display', 'order', 'is_sample', 'points')
-#     list_filter = ('problem', 'is_sample')
-#     search_fields = ('problem__title_i18n', 'input_data', 'expected_output_data')
-
-#     def problem_id_display(self, obj):
-#         return obj.problem.id
-#     problem_id_display.short_description = 'Problem ID'
 
 admin.site.register(Tag, TagAdmin)
 admin.site.register(Problem, ProblemAdmin)

@@ -38,12 +38,3 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
-
-    # You might add helper properties here later, e.g.:
-    # @property
-    # def is_problem_creator(self):
-    #     return self.role in {self.Roles.PROBLEM_CREATOR, self.Roles.PROBLEM_VERIFIER, self.Roles.ADMIN}
-
-    # @property
-    # def is_problem_verifier(self):
-    #     return self.role in {self.Roles.PROBLEM_VERIFIER, self.Roles.ADMIN}

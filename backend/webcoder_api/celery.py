@@ -10,7 +10,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "webcoder_api.settings")
 # ``celery`` ships no type information in the lean type-check environment, so the
 # imported ``Celery`` symbol is opaque (pyright cannot confirm it is callable).
 # Cast it to a callable to construct the app without losing checking elsewhere.
-_Celery = cast("type[Any]", Celery)
+_Celery = cast(type[Any], Celery)
 app = _Celery("webcoder_api")
 
 # Using a string here means the worker doesn't have to serialize

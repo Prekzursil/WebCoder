@@ -164,8 +164,4 @@ class PasswordChangeSerializer(serializers.Serializer):
         user = self.context["request"].user
         user.set_password(self.validated_data["new_password1"])
         user.save()
-        # Optionally, update session auth hash if using session authentication alongside JWT
-        # from django.contrib.auth import update_session_auth_hash
-        # if hasattr(self.context['request'], 'session'):
-        #    update_session_auth_hash(self.context['request'], user)
         return user
