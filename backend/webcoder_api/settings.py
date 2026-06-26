@@ -22,7 +22,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-tra1bid*d3-t-+a$uu+1k&l+-aqxrp5u_ezlg5*oa%h$9cg45o"
+# Sourced from the environment; the insecure fallback is for local/dev only and
+# MUST be overridden via DJANGO_SECRET_KEY in any real deployment.
+SECRET_KEY = os.environ.get(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-dev-only-change-me",
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -104,11 +109,11 @@ WSGI_APPLICATION = "webcoder_api.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "webcoder_db",  # Replace with your database name
-        "USER": "webcoder_user",  # Replace with your PostgreSQL username
-        "PASSWORD": "darkstarone",  # Replace with your PostgreSQL password
-        "HOST": "localhost",  # Or your PostgreSQL host
-        "PORT": "5432",  # Or your PostgreSQL port
+        "NAME": os.environ.get("POSTGRES_DB", "webcoder_db"),
+        "USER": os.environ.get("POSTGRES_USER", "webcoder_user"),
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", ""),
+        "HOST": os.environ.get("POSTGRES_HOST", "localhost"),
+        "PORT": os.environ.get("POSTGRES_PORT", "5432"),
     }
 }
 
