@@ -13,7 +13,7 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
         # This method is called just before the user is logged in.
         # We can use it to check if the user is new and needs to complete registration.
         if sociallogin.is_existing:
-            return
+            return None
 
         # There is no existing social account for this user.
         # Check if a user already exists with the same email address.
@@ -21,7 +21,7 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
             # This will fail if the user does not exist
             _ = sociallogin.user
             # If the user exists, we can just link the social account and log them in.
-            return
+            return None
         except Exception:
             # The user does not exist, so we need to redirect them to complete registration.
             # We'll pass the email address as a query parameter.
@@ -33,4 +33,4 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
                 return HttpResponseRedirect(redirect_url)
 
         # If we can't get an email, we'll just let allauth handle it.
-        return
+        return None

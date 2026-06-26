@@ -187,9 +187,6 @@ ACCOUNT_SIGNUP_FIELDS = {
     "email": {"required": True},
     "password1": {"required": True},
 }
-DJ_REST_AUTH = {
-    "SIGNUP_FIELDS": ACCOUNT_SIGNUP_FIELDS,
-}
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "SCOPE": [
