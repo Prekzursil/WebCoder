@@ -1,0 +1,23 @@
+name: "webcoder CodeQL config"
+
+# Exclude vendored / generated / build-time tooling from CodeQL analysis.
+#
+# Rationale:
+#   * backend/venv               - generated Python virtualenv (third-party
+#                                  packages, e.g. Django REST Framework static
+#                                  JS). Already git-ignored and purged from VCS
+#                                  in #78; excluded defensively so a stray local
+#                                  venv can never re-pollute the scan.
+#   * frontend/webcoder_ui/config
+#   * frontend/webcoder_ui/scripts
+#                                - Create React App (react-scripts) *ejected*
+#                                  boilerplate. These are build-time Node tools
+#                                  whose file paths come from developer/CI env
+#                                  vars (NODE_ENV, SSL_CRT_FILE, .env files),
+#                                  not from attacker-reachable input. Treating
+#                                  them as application source produces
+#                                  build-tooling false positives.
+paths-ignore:
+  - backend/venv
+  - frontend/webcoder_ui/config
+  - frontend/webcoder_ui/scripts
