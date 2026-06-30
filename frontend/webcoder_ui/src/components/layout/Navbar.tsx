@@ -26,7 +26,7 @@ const Navbar: React.FC = () => {
   const navLinkStyle = ({ isActive }: { isActive: boolean }): React.CSSProperties => ({
     marginRight: '15px',
     textDecoration: 'none',
-    color: isActive ? '#007bff' : '#333', // Example active color
+    color: isActive ? '#0062cc' : '#333', // AA-compliant active color (>=4.5:1 on navbar bg); was #007bff (3.77:1)
     fontWeight: isActive ? 'bold' : 'normal',
   });
 

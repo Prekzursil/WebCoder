@@ -38,7 +38,7 @@ h3 { font-size: 1.5em; }
 h4 { font-size: 1.2em; }
 
 a {
-  color: #007bff;
+  color: #0062cc; /* AA-compliant blue (>=4.5:1 on light bg); was #007bff (3.77:1) */
   text-decoration: none;
 }
 
@@ -48,8 +48,8 @@ a:hover {
 
 button {
   padding: 10px 15px;
-  border: 1px solid #007bff;
-  background-color: #007bff;
+  border: 1px solid #0062cc; /* AA-compliant blue (white-on >=4.5:1); was #007bff (3.97:1) */
+  background-color: #0062cc;
   color: white;
   border-radius: 4px;
   cursor: pointer;

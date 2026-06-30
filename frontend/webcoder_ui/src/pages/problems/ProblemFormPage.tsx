@@ -70,8 +70,8 @@ const ProblemFormPage: React.FC = () => {
         })
         .catch(err => {
           setFormError(t('error_loading_problem_for_edit', 'Failed to load problem for editing.'));
-          setIsLoadingData(false);
-        });
+        })
+        .finally(() => setIsLoadingData(false)); // Fix: spinner never cleared on successful load -> edit form never rendered
     }
   }, [problemId, isEditMode, auth.token, t]);
 
