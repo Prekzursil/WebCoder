@@ -1,3 +1,4 @@
+# DO NOT MERGE - evidence branch for the quality-zero-platform v1 tag-move decision (paired A/B; sibling branch differs only in the reusable pin).
 # Lean 6-gate quality caller (ADDITIVE — see the lean-gate charter, 2026-06-16).
 #
 # This thin caller delegates to the shared reusable lean-quality template. It does
