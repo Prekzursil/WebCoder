@@ -18,7 +18,7 @@
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.6.0",
     "react-i18next": "^13.0.1",
-    "react-router-dom": "^6.23.0",
+    "react-router": "^7.18.0",
     "react-scripts": "5.0.1",
     "react-syntax-highlighter": "^15.5.0",
     "stream-http": "^3.2.0",
@@ -57,17 +57,24 @@
   },
   "overrides": {
     "nth-check": "^2.1.1",
-    "postcss": "^8.4.31",
+    "postcss": ">=8.5.18 <9",
     "prismjs": "^1.30.0",
     "serialize-javascript": "^7.0.5",
-    "ws": "^7.5.11",
     "underscore": "^1.13.8",
-    "js-yaml": "^4.2.0",
+    "js-yaml": ">=4.3.0 <5",
     "http-proxy-middleware": "^3.0.6",
     "@tootallnate/once": "^2.0.1",
-    "webpack-dev-server": "^5.2.5",
+    "webpack-dev-server": ">=5.2.6 <6",
     "uuid": "^11.1.1",
-    "storybook": "^8.6.17"
+    "storybook": "^8.6.17",
+    "websocket-driver": ">=0.7.5 <0.8",
+    "fast-xml-parser": ">=5.10.1 <6",
+    "body-parser": ">=1.20.6 <2",
+    "fast-uri": ">=3.1.4 <4",
+    "find-my-way": ">=9.7.0 <10",
+    "sharp": ">=0.35.0 <0.36",
+    "shell-quote": ">=1.9.0 <2",
+    "svgo": ">=2.8.3 <3"
   },
   "browserslist": {
     "production": [
