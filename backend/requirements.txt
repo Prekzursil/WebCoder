@@ -31,7 +31,7 @@ dj-rest-auth==7.2.0
 requests==2.34.2
 requests-oauthlib==2.0.0
 oauthlib==3.3.1
-cryptography==49.0.0
+cryptography==50.0.0
 # Transitive deps pinned to patched versions to clear osv-scanner findings:
 #   idna   <- requests   (PYSEC-2026-215 / GHSA-65pc-fj4g-8rjx)
 #   pygments <- pytest    (PYSEC-2023-117, GHSA-5239-wwwm-4pmq)
