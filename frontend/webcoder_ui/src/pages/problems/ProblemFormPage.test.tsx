@@ -1,13 +1,13 @@
 import React from 'react';
 import { screen, waitFor, fireEvent } from '@testing-library/react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router';
 import ProblemFormPage from './ProblemFormPage';
 import { renderWithProviders, seedAuthUser, makeUser } from '../../test-utils';
 import { ProblemService, TestCaseService } from '../../services/ApiService';
 import * as authModule from '../../context/AuthContext';
 
-jest.mock('react-router-dom', () => {
-  const actual = jest.requireActual('react-router-dom');
+jest.mock('react-router', () => {
+  const actual = jest.requireActual('react-router');
   return { ...actual, useParams: jest.fn(), useNavigate: jest.fn() };
 });
 

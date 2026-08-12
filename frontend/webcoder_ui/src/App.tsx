@@ -1,5 +1,5 @@
 import React from 'react'; // Ensuring React is explicitly imported
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router';
 import { Toaster } from 'react-hot-toast';
 import './App.css';
 // import { useAuth } from './context/AuthContext'; // No longer needed directly in App for ProtectedRoute logic

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom'; // Import NavLink
+import { Link, NavLink, useNavigate } from 'react-router'; // Import NavLink
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 

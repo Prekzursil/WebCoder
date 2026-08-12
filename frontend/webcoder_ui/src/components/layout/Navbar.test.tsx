@@ -6,8 +6,8 @@ import { renderWithProviders, seedAuthUser, makeUser } from '../../test-utils';
 import i18n from '../../i18n';
 
 const mockNavigate = jest.fn();
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+jest.mock('react-router', () => ({
+  ...jest.requireActual('react-router'),
   useNavigate: () => mockNavigate,
 }));
 

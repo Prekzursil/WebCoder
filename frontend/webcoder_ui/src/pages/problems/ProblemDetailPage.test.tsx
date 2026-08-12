@@ -1,12 +1,12 @@
 import React from 'react';
 import { screen, waitFor, fireEvent } from '@testing-library/react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import ProblemDetailPage from './ProblemDetailPage';
 import { renderWithProviders, seedAuthUser, makeUser } from '../../test-utils';
 import { ProblemService, SubmissionService } from '../../services/ApiService';
 
-jest.mock('react-router-dom', () => {
-  const actual = jest.requireActual('react-router-dom');
+jest.mock('react-router', () => {
+  const actual = jest.requireActual('react-router');
   return { ...actual, useParams: jest.fn() };
 });
 

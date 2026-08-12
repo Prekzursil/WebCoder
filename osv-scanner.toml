@@ -19,6 +19,14 @@
 # to its patched version (backend/requirements.txt pins + frontend npm
 # overrides), taking the tree from 188 known vulns to a single genuinely
 # unfixable transitive entry, recorded below.
+#
+# 2026-07-25: dependency modernization pass #2. Took the tree from 25 known
+# vulns (1 Critical) to 0 actionable, by bumping Django 5.2.15 -> 5.2.16 and
+# adding/raising bounded-floor npm overrides (websocket-driver, fast-xml-parser,
+# body-parser, brace-expansion, fast-uri, find-my-way, sharp, shell-quote, svgo,
+# js-yaml, postcss, webpack-dev-server) plus react-router-dom 6.30.4 -> 7.18.x.
+# One residual react-router advisory is genuinely unfixable on React 18 and is
+# recorded below with a reachability argument.
 
 [[IgnoredVulns]]
 id = "GHSA-848j-6mx2-7j84"
@@ -31,3 +39,61 @@ id = "GHSA-848j-6mx2-7j84"
 # CRA webpack build; it is not used for any first-party signing/key-exchange in
 # this product. Re-review when elliptic publishes a release > 6.6.1.
 reason = "No fix available (6.6.1 is latest published); transitive via crypto-browserify polyfill, not first-party crypto. Reviewed 2026-06-20."
+
+[[IgnoredVulns]]
+id = "GHSA-qwww-vcr4-c8h2"
+# react-router "RSC Mode CSRF Bypass Allows Action Execution Before 400 Response"
+# (follow-up to CVE-2026-22030). Affected range is react-router >= 7.12.0 < 8.3.0.
+#
+# NOT REACHABLE IN THIS PRODUCT: the advisory text states verbatim "This only
+# affects your application if you are using the unstable RSC APIs". webcoder_ui
+# is a Create-React-App client-side SPA: it mounts <BrowserRouter> + <Routes> in
+# src/index.tsx and uses only the declarative API (Link, NavLink, Navigate,
+# useNavigate, useParams, useLocation). Verified 2026-07-25 that src/ contains no
+# match for rsc / matchRSCServerRequest / createStaticHandler / StaticRouter /
+# renderToString / renderToPipeableStream / unstable_ / createBrowserRouter /
+# RouterProvider, and no route loader: or action: — so there is no RSC code path,
+# no SSR, and no data-router server action to bypass CSRF on.
+#
+# NO FIX AVAILABLE ON REACT 18: the fix lands in react-router 8.3.0, whose
+# peerDependencies require react >= 19.2.7 and react-dom >= 19.2.7 (verified
+# 2026-07-25 via `npm view react-router@8.3.0 peerDependencies`); this app is on
+# react/react-dom 18.3.1 under react-scripts 5.0.1. react-router-dom has no 8.x
+# release at all (`npm view react-router-dom@8` -> E404). The union of the four
+# open react-router advisories covers >= 6.0.0 < 8.3.0, so on React 18 there is
+# no clean version: staying on 7.18.x is the minimum-vulnerability choice and it
+# clears GHSA-337j-9hxr-rhxg, GHSA-wrjc-x8rr-h8h6 and GHSA-jjmj-jmhj-qwj2 (the
+# last of which has no fix anywhere in the react-router-dom 6.x line).
+#
+# Re-review when this app migrates to React 19, at which point react-router
+# should go to >= 8.3.0 and this entry must be deleted.
+reason = "Unstable-RSC-only code path, not used by this CRA client-side SPA (no RSC/SSR/data-router in src/); fix requires react-router 8.3.0 which peer-requires React >= 19.2.7 while this app is on React 18.3.1. Reviewed 2026-07-25."
+
+[[IgnoredVulns]]
+id = "GHSA-mh99-v99m-4gvg"
+# brace-expansion "DoS via unbounded expansion length causing an out-of-memory
+# process crash". The advisory has a SINGLE affected range: introduced 0, fixed
+# 5.0.8 (verified 2026-07-25 against api.osv.dev) -- i.e. there is NO patched
+# release anywhere in the 1.x, 2.x, 3.x or 4.x lines. The tree carries 1.1.16
+# (under minimatch 3.x) and 2.1.2 (under @wdio/config, filelist, sucrase); both
+# are already the highest release in their line and both carry the fix for the
+# other brace-expansion advisory, GHSA-3jxr-9vmj-r5cp.
+#
+# NO NON-BREAKING UPGRADE (measured, not assumed): brace-expansion 5.0.8
+# restructured its package to an exports map with main "./dist/commonjs/index.js"
+# and no longer provides a callable default export. Forcing the tree to
+# ">=5.0.8 <6" via an override was attempted on 2026-07-25 and broke the
+# production build outright -- `react-scripts build` failed with
+# "[eslint] expand is not a function", because minimatch 3.x does
+# `require("brace-expansion")` and calls the result. That is a hard build break,
+# so per this file's policy there is no safe fix available.
+#
+# LIMITED REACHABILITY: brace-expansion is reached only through minimatch inside
+# BUILD- and TEST-time tooling (eslint, jest, glob, filelist, sucrase, @wdio).
+# The glob patterns it expands come from this repository's own config, not from
+# user input, and it is not part of the shipped browser bundle. The impact is a
+# crash of a developer/CI process on a hostile pattern nobody supplies.
+#
+# Re-review when a fix is backported to the 1.x/2.x lines, or when the toolchain
+# moves off minimatch 3.x (at which point ">=5.0.8 <6" becomes viable).
+reason = "No fix below 5.0.8 in any line (advisory range is introduced 0 -> fixed 5.0.8); forcing >=5.0.8 breaks the build (measured: [eslint] expand is not a function, minimatch 3.x requires a callable default). Build/test-time glob tooling only, repo-authored patterns, not in the shipped bundle. Reviewed 2026-07-25."

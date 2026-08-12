@@ -5,8 +5,8 @@ import { renderWithProviders, seedAuthUser, makeUser } from '../../test-utils';
 import { AuthService } from '../../services/ApiService';
 
 let mockParams: { userId?: string } = {};
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+jest.mock('react-router', () => ({
+  ...jest.requireActual('react-router'),
   useParams: () => mockParams,
 }));
 jest.mock('../../services/ApiService', () => ({

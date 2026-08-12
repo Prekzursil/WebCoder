@@ -6,8 +6,8 @@ import { renderWithProviders } from '../../test-utils';
 import { AuthService } from '../../services/ApiService';
 
 const mockNavigate = jest.fn();
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+jest.mock('react-router', () => ({
+  ...jest.requireActual('react-router'),
   useNavigate: () => mockNavigate,
 }));
 jest.mock('../../services/ApiService', () => ({
