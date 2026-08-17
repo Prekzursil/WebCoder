@@ -19,7 +19,7 @@ PyJWT==2.13.0
 python-dateutil==2.9.0.post0
 redis==6.4.0
 six==1.17.0
-sqlparse==0.5.5
+sqlparse==0.6.0
 tzdata==2025.3
 vine==5.1.0
 wcwidth==0.8.1
