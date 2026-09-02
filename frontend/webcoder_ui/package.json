@@ -70,7 +70,7 @@
     "websocket-driver": ">=0.7.5 <0.8",
     "fast-xml-parser": ">=5.10.1 <6",
     "body-parser": ">=1.20.6 <2",
-    "fast-uri": ">=3.1.4 <4",
+    "fast-uri": ">=3.1.7 <4",
     "find-my-way": ">=9.7.0 <10",
     "sharp": ">=0.35.0 <0.36",
     "shell-quote": ">=1.9.0 <2",
