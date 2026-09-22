@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { DetailedSubmissionType, SubmissionTestResultType } from '../../types'; // Import SubmissionTestResultType
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 
 const SubmissionDetailPage: React.FC = () => {
   const { submissionId } = useParams<{ submissionId: string }>();
