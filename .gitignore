@@ -3,6 +3,10 @@ venv/
 __pycache__/
 *.pyc
 
+# Secrets
+backend/.env
+.env
+
 # Node
 node_modules/
 build/

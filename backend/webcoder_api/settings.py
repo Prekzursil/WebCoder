@@ -13,6 +13,16 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os # Import os for environment variables
 
+# Minimal .env loader (no python-dotenv dependency): reads backend/.env if present.
+_ENV_PATH = Path(__file__).resolve().parent.parent / ".env"
+if _ENV_PATH.exists():
+    with _ENV_PATH.open(encoding="utf-8") as _f:
+        for _line in _f:
+            _line = _line.strip()
+            if _line and not _line.startswith("#") and "=" in _line:
+                _key, _, _val = _line.partition("=")
+                os.environ.setdefault(_key.strip(), _val.strip())
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,7 +31,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-tra1bid*d3-t-+a$uu+1k&l+-aqxrp5u_ezlg5*oa%h$9cg45o"
+SECRET_KEY = os.environ["SECRET_KEY"]  # fail-loud: required in backend/.env or environment
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -105,11 +115,12 @@ WSGI_APPLICATION = "webcoder_api.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "webcoder_db",  # Replace with your database name
-        "USER": "webcoder_user",  # Replace with your PostgreSQL username
-        "PASSWORD": "darkstarone",  # Replace with your PostgreSQL password
-        "HOST": "localhost",  # Or your PostgreSQL host
-        "PORT": "5432",  # Or your PostgreSQL port
+        "NAME": os.environ.get("DB_NAME", "webcoder_db"),
+        "USER": os.environ.get("DB_USER", "webcoder_user"),
+        "PASSWORD": os.environ["DB_PASSWORD"],  # fail-loud: no secret defaults in source
+        "HOST": os.environ.get("DB_HOST", "localhost"),
+        # Local PostgreSQL 18 service listens on 5433 on this machine (measured).
+        "PORT": os.environ.get("DB_PORT", "5433"),
     }
 }
 
