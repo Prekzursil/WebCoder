@@ -300,3 +300,14 @@ JUDGE_BOOST_HEADERS_PATH = os.environ.get('JUDGE_BOOST_HEADERS_PATH', "/opt/boos
 # IMPORTANT: This path MUST exist on the judge server.
 # Example: "/opt/java_libs"
 JUDGE_JAVA_LIBS_DIR_HOST = os.environ.get('JUDGE_JAVA_LIBS_DIR_HOST', "/opt/java_libs")
+
+# Judge execution backend (settings-driven switch, consumed by
+# submissions/judge_utils/backend.py — the ADDITIVE judge path; the legacy
+# docker-run-per-submission flow in compilation.py/execution.py ignores it):
+# - "local"    (default, dev): judged commands run directly on this host via
+#              subprocess. No Docker needed.
+# - "container" (prod): judged commands run inside the sandboxed judge-runner
+#              container from the repo-root docker-compose.yml via
+#              `docker exec` (network-isolated, read-only rootfs, cap_drop ALL,
+#              resource-limited).
+JUDGE_BACKEND = os.environ.get('JUDGE_BACKEND', 'local')
