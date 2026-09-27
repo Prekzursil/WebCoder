@@ -25,20 +25,28 @@ class SubmissionAdmin(admin.ModelAdmin):
     def user_link(self, obj):
         from django.urls import reverse
         from django.utils.html import format_html
-        if obj.user:
-            link = reverse("admin:users_user_change", args=[obj.user.id]) # Assumes app_label is 'users'
-            return format_html('<a href="{}">{}</a>', link, obj.user.username)
+        from django.core.exceptions import ObjectDoesNotExist
+        try:
+            if obj.user:
+                link = reverse("admin:users_user_change", args=[obj.user.id]) # Assumes app_label is 'users'
+                return format_html('<a href="{}">{}</a>', link, obj.user.username)
+        except ObjectDoesNotExist:
+            pass
         return "N/A"
     user_link.short_description = 'User'
 
     def problem_link(self, obj):
         from django.urls import reverse
         from django.utils.html import format_html
-        if obj.problem:
-            link = reverse("admin:problems_problem_change", args=[obj.problem.id]) # Assumes app_label is 'problems'
-            # Display problem title (e.g., English) if available
-            problem_title = obj.problem.title_i18n.get('en', f"ID: {obj.problem.id}") if isinstance(obj.problem.title_i18n, dict) else f"ID: {obj.problem.id}"
-            return format_html('<a href="{}">{}</a>', link, problem_title)
+        from django.core.exceptions import ObjectDoesNotExist
+        try:
+            if obj.problem:
+                link = reverse("admin:problems_problem_change", args=[obj.problem.id]) # Assumes app_label is 'problems'
+                # Display problem title (e.g., English) if available
+                problem_title = obj.problem.title_i18n.get('en', f"ID: {obj.problem.id}") if isinstance(obj.problem.title_i18n, dict) else f"ID: {obj.problem.id}"
+                return format_html('<a href="{}">{}</a>', link, problem_title)
+        except ObjectDoesNotExist:
+            pass
         return "N/A"
     problem_link.short_description = 'Problem'
 

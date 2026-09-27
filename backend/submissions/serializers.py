@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.core.exceptions import ObjectDoesNotExist
 from .models import Submission, SubmissionTestResult # Import SubmissionTestResult
 from users.serializers import UserSerializer 
 from problems.models import Problem, TestCase # Import TestCase for SubmissionTestResultSerializer
@@ -23,13 +24,17 @@ class SubmissionTestResultSerializer(serializers.ModelSerializer):
         read_only_fields = fields # All fields are read-only as they are set by the judge
 
     def get_test_case_details(self, obj):
-        if obj.test_case:
-            return {
-                'id': obj.test_case.id,
-                'order': obj.test_case.order,
-                'is_sample': obj.test_case.is_sample,
-                'points': obj.test_case.points,
-            }
+        try:
+            if obj.test_case:
+                return {
+                    'id': obj.test_case.id,
+                    'order': obj.test_case.order,
+                    'is_sample': obj.test_case.is_sample,
+                    'points': obj.test_case.points,
+                }
+        except ObjectDoesNotExist:
+            # Unset required FK (unsaved/defensive display path) — schema stays NOT NULL.
+            pass
         return None
 
 class SubmissionSerializer(serializers.ModelSerializer):
@@ -55,11 +60,14 @@ class SubmissionSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        if instance.problem:
-            representation['problem'] = {
-                'id': instance.problem.id,
-                'title_i18n': instance.problem.title_i18n 
-            }
+        try:
+            if instance.problem:
+                representation['problem'] = {
+                    'id': instance.problem.id,
+                    'title_i18n': instance.problem.title_i18n
+                }
+        except ObjectDoesNotExist:
+            representation['problem'] = None
         # Ensure test_results are serialized if not handled by default due to read_only=True on field
         # This is usually handled automatically by DRF if 'test_results' is in fields.
         return representation

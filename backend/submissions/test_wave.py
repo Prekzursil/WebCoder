@@ -226,8 +226,11 @@ class SerializerTests(TestCase):
             data={"problem": p.id, "language": "cpp17", "code": "int main(){}"}
         )
         self.assertTrue(ser.is_valid(), ser.errors)
-        obj = ser.create(ser.validated_data)
+        # Mirrors the view contract: SubmissionViewSet.perform_create injects
+        # user=request.user via save() kwargs (NOT NULL FK — schema is authoritative).
+        obj = ser.save(user=u)
         self.assertEqual(obj.problem_id, p.id)
+        self.assertEqual(obj.user_id, u.id)
         self.assertEqual(obj.language, "cpp17")
 
 
