@@ -16,8 +16,8 @@ RUN apt-get update \
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY deps.txt .
+RUN pip install --no-cache-dir -r deps.txt
 
 COPY . .
 
@@ -32,6 +32,6 @@ USER webcoder
 EXPOSE 8000
 
 # Development-grade server for now; swap for gunicorn/uwsgi (add to
-# requirements.txt) when hardening for real traffic. Migrations run on boot
+# deps.txt) when hardening for real traffic. Migrations run on boot
 # for convenience in local compose runs.
 CMD ["sh", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
