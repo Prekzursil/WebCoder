@@ -12,6 +12,9 @@ permissions:
 
 jobs:
   verify:
+    env:
+      SECRET_KEY: ci-placeholder
+      DB_PASSWORD: ci-placeholder
     name: verify
     runs-on: ubuntu-latest
     steps:

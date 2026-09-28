@@ -1,0 +1,74 @@
+/* Home page styles — ported from the CRA HomePage's MUI layout
+   (Container maxWidth="md" + centered Box column). Plain CSS keeps the page
+   a fully static server render with no emotion/MUI runtime on the critical
+   path; the button pair mirrors MUI's contained/outlined primary variants. */
+
+.home {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 4rem 1rem 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.title {
+  font-size: 2.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0 0 1rem;
+}
+
+.subtitle {
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.6);
+  margin: 0 0 1.5rem;
+}
+
+.description {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  max-width: 640px;
+  margin: 0 0 2rem;
+}
+
+.actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.button {
+  display: inline-block;
+  padding: 0.5rem 1.4rem;
+  font-size: 1rem;
+  line-height: 1.75;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background-color 150ms ease, box-shadow 150ms ease;
+}
+
+.buttonPrimary {
+  background-color: #1976d2;
+  border: 1px solid #1976d2;
+  color: #ffffff;
+}
+
+.buttonPrimary:hover {
+  background-color: #1565c0;
+}
+
+.buttonOutlined {
+  background-color: transparent;
+  border: 1px solid rgba(25, 118, 210, 0.5);
+  color: #1976d2;
+}
+
+.buttonOutlined:hover {
+  background-color: rgba(25, 118, 210, 0.08);
+  border-color: #1976d2;
+}
