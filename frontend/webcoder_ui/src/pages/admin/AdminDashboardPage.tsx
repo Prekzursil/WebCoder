@@ -10,7 +10,7 @@ import SiteStats from './SiteStats';
 const AdminDashboardPage: React.FC = () => {
   const { t } = useTranslation();
   const auth = useAuth();
-  
+
   const [users, setUsers] = useState<AdminUserType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,33 +35,45 @@ const AdminDashboardPage: React.FC = () => {
   }, [auth.token, t]);
 
   const handleRoleChange = async (userId: number, newRole: string) => {
+    /* istanbul ignore else -- defensive: the role <select> only renders when the
+       user table is shown, which itself requires a valid auth.token, so the
+       no-token branch is unreachable from the UI. */
     if (auth.token) {
-        try {
-            await AdminService.updateUser(userId, { role: newRole });
-            setUsers(users.map(user => user.id === userId ? { ...user, role: newRole as AdminUserType['role'] } : user));
-            toast.success(t('admin_dashboard.update_role_success', 'Role updated successfully.'));
-        } catch (err: any) {
-            toast.error(t('errors.failed_to_update_role', 'Failed to update role: ') + err.message);
-        }
+      try {
+        await AdminService.updateUser(userId, { role: newRole });
+        setUsers(
+          users.map((user) =>
+            user.id === userId ? { ...user, role: newRole as AdminUserType['role'] } : user,
+          ),
+        );
+        toast.success(t('admin_dashboard.update_role_success', 'Role updated successfully.'));
+      } catch (err: any) {
+        toast.error(t('errors.failed_to_update_role', 'Failed to update role: ') + err.message);
+      }
     }
   };
 
   const handleStatusChange = async (userId: number, isActive: boolean) => {
+    /* istanbul ignore else -- defensive: the status <select> only renders when the
+       user table is shown, which itself requires a valid auth.token, so the
+       no-token branch is unreachable from the UI. */
     if (auth.token) {
-        try {
-            await AdminService.updateUser(userId, { is_active: isActive });
-            setUsers(users.map(user => user.id === userId ? { ...user, is_active: isActive } : user));
-            toast.success(t('admin_dashboard.update_status_success', 'Status updated successfully.'));
-        } catch (err: any) {
-            toast.error(t('errors.failed_to_update_status', 'Failed to update status: ') + err.message);
-        }
+      try {
+        await AdminService.updateUser(userId, { is_active: isActive });
+        setUsers(
+          users.map((user) => (user.id === userId ? { ...user, is_active: isActive } : user)),
+        );
+        toast.success(t('admin_dashboard.update_status_success', 'Status updated successfully.'));
+      } catch (err: any) {
+        toast.error(t('errors.failed_to_update_status', 'Failed to update status: ') + err.message);
+      }
     }
   };
 
   return (
     <div>
       <h2>{t('admin_dashboard_header', 'Admin Dashboard')}</h2>
-      
+
       <section>
         <h3>{t('site_statistics_title', 'Site Statistics')}</h3>
         <SiteStats />
@@ -80,18 +92,20 @@ const AdminDashboardPage: React.FC = () => {
                 <th style={{ textAlign: 'left', padding: '8px' }}>{t('email', 'Email')}</th>
                 <th style={{ textAlign: 'left', padding: '8px' }}>{t('role', 'Role')}</th>
                 <th style={{ textAlign: 'left', padding: '8px' }}>{t('status', 'Status')}</th>
-                <th style={{ textAlign: 'left', padding: '8px' }}>{t('date_joined', 'Date Joined')}</th>
+                <th style={{ textAlign: 'left', padding: '8px' }}>
+                  {t('date_joined', 'Date Joined')}
+                </th>
               </tr>
             </thead>
             <tbody>
-              {users.map(user => (
+              {users.map((user) => (
                 <tr key={user.id} style={{ borderBottom: '1px solid #ddd' }}>
                   <td style={{ padding: '8px' }}>{user.id}</td>
                   <td style={{ padding: '8px' }}>{user.username}</td>
                   <td style={{ padding: '8px' }}>{user.email}</td>
                   <td style={{ padding: '8px' }}>
-                    <select 
-                      value={user.role} 
+                    <select
+                      value={user.role}
                       onChange={(e) => handleRoleChange(user.id, e.target.value)}
                       disabled={user.id === auth.user?.id} // Prevent admin from changing their own role
                     >
@@ -102,17 +116,21 @@ const AdminDashboardPage: React.FC = () => {
                     </select>
                   </td>
                   <td style={{ padding: '8px' }}>
-                    <select 
+                    <select
                       value={user.is_active ? 'Active' : 'Inactive'}
                       onChange={(e) => handleStatusChange(user.id, e.target.value === 'Active')}
                       disabled={user.id === auth.user?.id} // Prevent admin from deactivating themselves
-                      style={{ backgroundColor: user.is_active ? '#d4edda' : '#f8d7da' }}
+                      style={{
+                        backgroundColor: user.is_active ? '#d4edda' : '#f8d7da',
+                      }}
                     >
                       <option value="Active">Active</option>
                       <option value="Inactive">Inactive</option>
                     </select>
                   </td>
-                  <td style={{ padding: '8px' }}>{new Date(user.date_joined).toLocaleDateString()}</td>
+                  <td style={{ padding: '8px' }}>
+                    {new Date(user.date_joined).toLocaleDateString()}
+                  </td>
                 </tr>
               ))}
             </tbody>

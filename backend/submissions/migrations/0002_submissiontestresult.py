@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("problems", "0004_problem_verifier_feedback"),
         ("submissions", "0001_initial"),

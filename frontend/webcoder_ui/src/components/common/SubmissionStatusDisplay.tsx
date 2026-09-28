@@ -14,28 +14,39 @@ const SubmissionStatusDisplay: React.FC<SubmissionStatusDisplayProps> = ({ statu
   }
 
   return (
-    <div style={{ marginTop: '15px', padding: '10px', borderRadius: '5px', border: '1px solid transparent' }}>
+    <div
+      style={{
+        marginTop: '15px',
+        padding: '10px',
+        borderRadius: '5px',
+        border: '1px solid transparent',
+      }}
+    >
       {status && (
-        <p style={{ 
-          color: '#155724', // Dark green
-          backgroundColor: '#d4edda', // Light green
-          borderColor: '#c3e6cb', 
-          padding: '10px',
-          borderRadius: '5px',
-          margin: 0
-        }}>
+        <p
+          style={{
+            color: '#155724', // Dark green
+            backgroundColor: '#d4edda', // Light green
+            borderColor: '#c3e6cb',
+            padding: '10px',
+            borderRadius: '5px',
+            margin: 0,
+          }}
+        >
           {status}
         </p>
       )}
       {error && (
-        <p style={{ 
-          color: '#721c24', // Dark red
-          backgroundColor: '#f8d7da', // Light red
-          borderColor: '#f5c6cb',
-          padding: '10px',
-          borderRadius: '5px',
-          margin: status ? '10px 0 0 0' : 0 // Add margin top if status is also shown
-        }}>
+        <p
+          style={{
+            color: '#721c24', // Dark red
+            backgroundColor: '#f8d7da', // Light red
+            borderColor: '#f5c6cb',
+            padding: '10px',
+            borderRadius: '5px',
+            margin: status ? '10px 0 0 0' : 0, // Add margin top if status is also shown
+          }}
+        >
           <strong>{t('error_label', 'Error')}:</strong> {error}
         </p>
       )}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Container, Typography, Button, Box } from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 
 const HomePage: React.FC = () => {
@@ -27,7 +27,10 @@ const HomePage: React.FC = () => {
           {t('homepage_subtitle', 'The ultimate platform for competitive programming.')}
         </Typography>
         <Typography variant="body1" paragraph>
-          {t('homepage_description', 'Sharpen your skills, solve challenging problems, and compete with a community of developers from around the world. Whether you are a beginner or an expert, WebCoder has something for you.')}
+          {t(
+            'homepage_description',
+            'Sharpen your skills, solve challenging problems, and compete with a community of developers from around the world. Whether you are a beginner or an expert, WebCoder has something for you.',
+          )}
         </Typography>
         <Box sx={{ mt: 4 }}>
           <Button

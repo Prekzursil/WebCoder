@@ -15,7 +15,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(localStorage.getItem('accessToken'));
-  const [refreshToken, setRefreshToken] = useState<string | null>(localStorage.getItem('refreshToken'));
+  const [refreshToken, setRefreshToken] = useState<string | null>(
+    localStorage.getItem('refreshToken'),
+  );
   const [user, setUser] = useState<User | null>(() => {
     const storedUser = localStorage.getItem('user');
     return storedUser ? JSON.parse(storedUser) : null;
@@ -25,17 +27,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const fetchUserOnLoad = async () => {
       if (token && !user) {
         try {
-          console.log("AuthContext: Attempting to fetch user details on load...");
+          console.log('AuthContext: Attempting to fetch user details on load...');
           const fetchedUser = await AuthService.getMe();
           if (fetchedUser) {
             setUser(fetchedUser as User);
             localStorage.setItem('user', JSON.stringify(fetchedUser));
-            console.log("AuthContext: User details fetched and set on load:", fetchedUser);
+            console.log('AuthContext: User details fetched and set on load:', fetchedUser);
           } else {
-            console.warn("AuthContext: getMe returned no user data despite valid token on load.");
+            console.warn('AuthContext: getMe returned no user data despite valid token on load.');
           }
         } catch (error) {
-          console.error("AuthContext: Failed to fetch user details on load, logging out.", error);
+          console.error('AuthContext: Failed to fetch user details on load, logging out.', error);
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
           localStorage.removeItem('user');
@@ -46,7 +48,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     };
     fetchUserOnLoad();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const login = (access: string, refresh: string, userData: User) => {
@@ -56,7 +58,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setToken(access);
     setRefreshToken(refresh);
     setUser(userData);
-    console.log("AuthContext: User logged in and data set:", userData);
+    console.log('AuthContext: User logged in and data set:', userData);
   };
 
   const logout = () => {
@@ -66,11 +68,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setToken(null);
     setRefreshToken(null);
     setUser(null);
-    console.log("AuthContext: User logged out.");
+    console.log('AuthContext: User logged out.');
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated: !!token, token, refreshToken, user, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated: !!token,
+        token,
+        refreshToken,
+        user,
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

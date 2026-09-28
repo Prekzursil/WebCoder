@@ -1,17 +1,16 @@
 import React from 'react';
-import { render } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { render, screen } from '@testing-library/react';
+import { BrowserRouter } from 'react-router';
 import App from './App';
 import { AuthProvider } from './context/AuthContext';
-import './i18n';
 
-test('renders the app shell without crashing', () => {
-  const { container } = render(
-    <MemoryRouter>
+test('renders app shell', () => {
+  render(
+    <BrowserRouter>
       <AuthProvider>
         <App />
       </AuthProvider>
-    </MemoryRouter>
+    </BrowserRouter>,
   );
-  expect(container).toBeInTheDocument();
+  expect(screen.getByRole('main')).toBeInTheDocument();
 });

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ProblemService } from '../../services/ApiService';
 import { ProblemType } from '../../types';
@@ -13,17 +13,15 @@ const ProblemsListPage: React.FC = () => {
 
   useEffect(() => {
     const fetchProblems = async () => {
-      try { 
-        setLoading(true); 
-        setError(null); 
+      try {
+        setLoading(true);
+        setError(null);
         const response = await ProblemService.getProblems();
-        setProblems(response.data as ProblemType[]); 
-      }
-      catch (err: any) { 
-        setError(err.message || t('error_loading_problems', 'Failed to load problems.')); 
-      }
-      finally { 
-        setLoading(false); 
+        setProblems(response.data as ProblemType[]);
+      } catch (err: any) {
+        setError(err.message || t('error_loading_problems', 'Failed to load problems.'));
+      } finally {
+        setLoading(false);
       }
     };
     fetchProblems();
@@ -42,12 +40,14 @@ const ProblemsListPage: React.FC = () => {
           {problems.map((problem) => (
             <li key={problem.id}>
               <Link to={`/problems/${problem.id}`}>
-                {problem.title_i18n[i18n.language] || problem.title_i18n.en || `Problem ID: ${problem.id}`}
+                {problem.title_i18n[i18n.language] ||
+                  problem.title_i18n.en ||
+                  `Problem ID: ${problem.id}`}
               </Link>
-              {' - '} 
-              {t(`difficulty_${problem.difficulty?.toLowerCase()}`, problem.difficulty)} 
-              {' ('} 
-              {t(`status_${problem.status?.toLowerCase()}`, problem.status)} 
+              {' - '}
+              {t(`difficulty_${problem.difficulty?.toLowerCase()}`, problem.difficulty)}
+              {' ('}
+              {t(`status_${problem.status?.toLowerCase()}`, problem.status)}
               {')'}
             </li>
           ))}

@@ -11,7 +11,12 @@ const NotFoundPage: React.FC<NotFoundPageProps> = ({ message }) => {
   return (
     <div style={{ textAlign: 'center', marginTop: '50px' }}>
       <h2>{message || t('not_found_default_header', '404 - Page Not Found')}</h2>
-      <p>{t('not_found_default_message', 'The page you are looking for does not exist or you may not have permission to view it.')}</p>
+      <p>
+        {t(
+          'not_found_default_message',
+          'The page you are looking for does not exist or you may not have permission to view it.',
+        )}
+      </p>
     </div>
   );
 };
