@@ -167,10 +167,11 @@ export const ProblemService = {
 
 export const SubmissionService = {
     createSubmission: (submissionData: Record<string, unknown>) => apiFetch<CreateSubmissionResponse>('/submissions/submit/', { method: 'POST', body: JSON.stringify(submissionData) }),
-    getSubmissions: (filters: { problemId?: number, userId?: number } = {}) => {
+    getSubmissions: (filters: { problemId?: number, userId?: number, language?: string } = {}) => {
         const params = new URLSearchParams();
         if (filters.problemId !== undefined) params.set('problemId', String(filters.problemId));
         if (filters.userId !== undefined) params.set('userId', String(filters.userId));
+        if (filters.language !== undefined) params.set('language', filters.language);
         return apiFetch<GetSubmissionsResponse>(`/submissions/submissions/?${params.toString()}`);
     },
     getSubmissionDetail: (id: number | string) => apiFetch<GetSubmissionDetailResponse>(`/submissions/submissions/${id}/`),

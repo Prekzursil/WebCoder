@@ -2,9 +2,6 @@
 
 import ProtectedRoute from '@/components/common/ProtectedRoute';
 import ProblemFormPage from '../../_components/ProblemFormPage';
-import { useParams } from 'react-router-dom';
-
-
 
 // Route port of CRA App.tsx:37 — /problems/:problemId/edit -> ProblemFormPage
 // guarded by [ADMIN, PROBLEM_CREATOR, PROBLEM_VERIFIER]. The problemId route
