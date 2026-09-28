@@ -24,6 +24,9 @@ concurrency:
 
 jobs:
   quality:
+    env:
+      SECRET_KEY: ci-placeholder
+      DB_PASSWORD: ci-placeholder
     uses: Prekzursil/quality-zero-platform/.github/workflows/reusable-quality.yml@v1
     with:
       opengrep-paths: "backend frontend"
