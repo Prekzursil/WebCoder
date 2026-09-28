@@ -1,10 +1,4 @@
-// Ported from frontend/webcoder_ui/src/pages/HomePage.tsx (CRA reference) —
-// route "/" (App.tsx:30).
-//
-// Static server component (no data fetching; the task brief allows a static
-// home). The auth-gated Sign Up CTA becomes a small client island
-// (HomeSignUpButton) because auth lives in localStorage and is only knowable
-// after hydration — the same information timing as the CRA SPA.
+// Ported from frontend/webcoder_ui/src/pages/HomePage.tsx (CRA reference)
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -23,10 +17,13 @@ export default async function HomePage() {
 
   return (
     <main className={styles.home}>
+      <div className={styles.badge}>
+        ✦ Competitive Programming Platform
+      </div>
       <h1 className={styles.title}>{t('welcome_message', 'Welcome to WebCoder')}</h1>
-      <h2 className={styles.subtitle}>
+      <p className={styles.subtitle}>
         {t('homepage_subtitle', 'The ultimate platform for competitive programming.')}
-      </h2>
+      </p>
       <p className={styles.description}>
         {t(
           'homepage_description',
@@ -35,9 +32,23 @@ export default async function HomePage() {
       </p>
       <div className={styles.actions}>
         <Link href="/problems" className={`${styles.button} ${styles.buttonPrimary}`}>
-          {t('view_problems_button', 'View Problems')}
+          {t('view_problems_button', 'View Problems')} →
         </Link>
         <HomeSignUpButton label={t('sign_up_button', 'Sign Up')} />
+      </div>
+      <div className={styles.stats}>
+        <div className={styles.statItem}>
+          <span className={styles.statValue}>100+</span>
+          <span className={styles.statLabel}>Problems</span>
+        </div>
+        <div className={styles.statItem}>
+          <span className={styles.statValue}>5+</span>
+          <span className={styles.statLabel}>Languages</span>
+        </div>
+        <div className={styles.statItem}>
+          <span className={styles.statValue}>24/7</span>
+          <span className={styles.statLabel}>Judge</span>
+        </div>
       </div>
     </main>
   );

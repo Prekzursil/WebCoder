@@ -19,6 +19,7 @@ import {
 import GoogleIcon from '@mui/icons-material/Google';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import { User } from '@/types';
+import { API_BASE_URL } from '@/lib/api-config';
 
 // Ported from frontend/webcoder_ui/src/pages/user/UserProfilePage.tsx (CRA reference).
 // Route: /profile (CRA App.tsx:45) — all four roles.
@@ -105,7 +106,7 @@ export function UserProfilePage() {
     return <CircularProgress />;
   }
 
-  const apiBase = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:8000';
+  const apiBase = API_BASE_URL;
 
   return (
     <Container maxWidth="md">
