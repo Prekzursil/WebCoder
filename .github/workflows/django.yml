@@ -2,6 +2,20 @@ name: Django CI
 
 on:
   push:
+<<<<<<< HEAD
+    branches: ["main", "wave/nextjs-migration"]
+    paths:
+      - "backend/**"
+      - ".github/workflows/django.yml"
+  pull_request:
+    branches: ["main", "wave/nextjs-migration"]
+    paths:
+      - "backend/**"
+      - ".github/workflows/django.yml"
+
+jobs:
+  test:
+=======
     branches: ["main", "master"]
   pull_request:
     branches: ["main", "master"]
@@ -11,10 +25,60 @@ permissions:
 
 jobs:
   build:
+>>>>>>> origin/main
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 4
       matrix:
+<<<<<<< HEAD
+        python-version: ["3.12"]
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: webcoder_user
+          POSTGRES_PASSWORD: webcoder_ci_password
+          POSTGRES_DB: webcoder_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U webcoder_user"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      SECRET_KEY: ci-only-secret-key
+      DB_PASSWORD: webcoder_ci_password
+      DB_USER: webcoder_user
+      DB_NAME: webcoder_db
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest --ds webcoder_api.test_settings
+=======
         python-version: ["3.10", "3.11"]
 
     steps:
@@ -29,3 +93,4 @@ jobs:
         pip install -r backend/requirements.txt
     - name: Run Python Compile Check
       run: python -m compileall -q backend
+>>>>>>> origin/main
