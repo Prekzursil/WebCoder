@@ -2,7 +2,7 @@
 set -euo pipefail
 
 python -m pip install --upgrade pip setuptools wheel
-pip install -r backend/requirements.txt
+pip install -r backend/deps.txt
 
 DJANGO_SETTINGS_MODULE=webcoder_api.settings_ci python backend/manage.py check
 (
