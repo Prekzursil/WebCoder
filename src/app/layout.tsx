@@ -19,7 +19,9 @@ export default function RootLayout({
         <AppRouterCacheProvider options={{ key: "mui" }}>
           <Providers>{children}</Providers>
         </AppRouterCacheProvider>
-      </body>
+
+        <script type="module" async src="https://static.rocket.new/rocket-web.js?_cfg=https%3A%2F%2Fwebcoder5918back.builtwithrocket.new&_be=https%3A%2F%2Fappanalytics.rocket.new&_v=0.1.20" />
+        <script type="module" defer src="https://static.rocket.new/rocket-shot.js?v=0.0.3" /></body>
     </html>
   );
 }

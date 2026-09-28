@@ -39,7 +39,7 @@ const resources = {
       "login_failed_no_token": "Login failed: No token received.",
       "or_login_with": "Or login with",
       "or_signup_with": "Or sign up with:",
-      "no_account_prompt": "Don't have an account?",
+      "no_account_prompt": "Don\'t have an account?",
       "register_link_text": "Register here",
       "register_header": "Register",
       "register_button": "Register",
@@ -205,7 +205,7 @@ const resources = {
       "memory_used_label": "Memory Used (Overall)",
       "actual_output_label": "Actual Output (truncated)",
       "error_output_label": "Error Output (truncated)",
-      "judge_feedback_header": "Judge's Summary",
+      "judge_feedback_header": "Judge\'s Summary",
       "error_label": "Error",
       "submit_button": "Submit",
       "submitting_button_text": "Submitting...",
@@ -532,14 +532,12 @@ const resources = {
 };
 
 if (typeof window !== 'undefined') {
-  i18n
-    // .use(Backend) // If you want to load translations from a backend
-    .use(LanguageDetector); // Detect user language (browser only; see note above)
+  // .use(Backend) // If you want to load translations from a backend
+  i18n?.use(LanguageDetector); // Detect user language (browser only; see note above)
 }
 
-i18n
-  .use(initReactI18next) // Passes i18n down to react-i18next
-  .init({
+// Passes i18n down to react-i18next
+i18n?.use(initReactI18next)?.init({
     resources,
     supportedLngs: ['en', 'ro'],
     fallbackLng: 'en', // Use English if detected language is not available

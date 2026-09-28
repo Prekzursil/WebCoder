@@ -40,8 +40,15 @@ export async function generateMetadata({
   params,
 }: ProblemDetailPageProps): Promise<Metadata> {
   const { problemId } = await params;
-  const [locale, problem] = await Promise.all([getLocale(), getProblemDetail(problemId)]);
+  const locale = await getLocale();
   const t = createTranslator(locale);
+
+  let problem: ProblemType | null = null;
+  try {
+    problem = await getProblemDetail(problemId);
+  } catch {
+    return { title: t('problem_not_found', 'Problem not found.') };
+  }
 
   if (!problem) {
     return { title: t('problem_not_found', 'Problem not found.') };
@@ -66,7 +73,19 @@ export default async function ProblemDetailPage({ params }: ProblemDetailPagePro
   const locale = await getLocale();
   const t = createTranslator(locale);
 
-  const problem = await getProblemDetail(problemId);
+  let problem: ProblemType | null = null;
+  try {
+    problem = await getProblemDetail(problemId);
+  } catch (err) {
+    return (
+      <div>
+        <p style={{ color: 'red' }}>
+          {err instanceof Error ? err.message : 'Failed to load problem.'}
+        </p>
+      </div>
+    );
+  }
+
   if (!problem) {
     notFound();
   }

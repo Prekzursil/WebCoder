@@ -34,7 +34,9 @@ function renderWithProvider() {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  localStorage.clear();
+  if (typeof window !== 'undefined') {
+    localStorage.clear();
+  }
   authState = undefined;
   mocks.getMe.mockResolvedValue(user);
 });
@@ -58,11 +60,11 @@ describe('AuthProvider auth-state lifecycle', () => {
   });
 
   it('drops a corrupt stored user (no token -> no fetch)', async () => {
-    localStorage.setItem('user', '{not json');
+    if (typeof window !== 'undefined') localStorage.setItem('user', '{not json');
     renderWithProvider();
     await waitFor(() => expect(authState?.token).toBeNull());
     expect(authState?.user).toBeNull();
-    expect(localStorage.getItem('user')).toBeNull();
+    expect(typeof window !== 'undefined' ? localStorage.getItem('user') : null).toBeNull();
     expect(mocks.getMe).not.toHaveBeenCalled();
   });
 

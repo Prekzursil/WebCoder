@@ -100,13 +100,15 @@ const pText = (expected: string) => (_: string, el: Element | null) =>
   !!el && el.tagName === 'P' && norm(el.textContent) === expected;
 
 const findPre = (content: string) =>
-  Array.from(document.querySelectorAll('pre')).find((el) => norm(el.textContent) === content);
+  typeof window !== 'undefined'
+    ? Array.from(document.querySelectorAll('pre')).find((el) => norm(el.textContent) === content)
+    : undefined;
 
 beforeEach(async () => {
   vi.clearAllMocks();
   setAuth();
   mocks.params = { submissionId: '42' };
-  localStorage.clear();
+  if (typeof window !== 'undefined') localStorage.clear();
   await i18n.changeLanguage('en');
   mocks.getSubmissionDetail.mockResolvedValue(baseDetail());
 });

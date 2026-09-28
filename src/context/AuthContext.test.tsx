@@ -28,9 +28,11 @@ function unauthorized(): Response {
 }
 
 function seedSession(): void {
-  localStorage.setItem('accessToken', 'expired-access');
-  localStorage.setItem('refreshToken', 'stored-refresh');
-  localStorage.setItem('user', JSON.stringify(storedUser));
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('accessToken', 'expired-access');
+    localStorage.setItem('refreshToken', 'stored-refresh');
+    localStorage.setItem('user', JSON.stringify(storedUser));
+  }
 }
 
 const AuthStateProbe: React.FC = () => {
@@ -41,7 +43,9 @@ const AuthStateProbe: React.FC = () => {
 afterEach(() => {
   cleanup();
   setUnauthorizedHandler(null);
-  localStorage.clear();
+  if (typeof window !== 'undefined') {
+    localStorage.clear();
+  }
   vi.unstubAllGlobals();
 });
 

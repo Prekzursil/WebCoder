@@ -33,12 +33,26 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ProblemsListPage() {
   const locale = await getLocale();
   const t = createTranslator(locale);
-  const problems = await getProblems();
+
+  let problems: Awaited<ReturnType<typeof getProblems>> = [];
+  let fetchError: string | null = null;
+
+  try {
+    problems = await getProblems();
+  } catch (err) {
+    fetchError =
+      err instanceof Error ? err.message : 'Failed to load problems.';
+  }
 
   return (
     <div>
       <h2>{t('problem_list_header', 'Problems')}</h2>
-      {problems.length === 0 ? (
+      {fetchError ? (
+        <p style={{ color: 'red' }}>
+          {t('problems_load_error', 'Could not load problems: ')}
+          {fetchError}
+        </p>
+      ) : problems.length === 0 ? (
         <p>{t('no_problems_available', 'No problems available at the moment.')}</p>
       ) : (
         <ul>
