@@ -315,7 +315,7 @@ describe('SubmissionDetailPage', () => {
       baseDetail({ problem: { id: 9, title_i18n: { en: 'English Only' } }, language: 'java11' })
     );
     const { unmount } = render(<SubmissionDetailPage />);
-    await screen.findByText('Submission Detail #42');
+    await screen.findByText('Detaliile Submisiei #42');
     expect(screen.getByRole('link', { name: 'English Only' })).toHaveAttribute('href', '/problems/9');
     expect(screen.getByTestId('code-block')).toHaveAttribute('data-language', 'java');
     unmount();

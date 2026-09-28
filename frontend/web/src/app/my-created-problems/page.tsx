@@ -92,8 +92,8 @@ export function MyCreatedProblemsPage() {
             {myProblems.map((problem) => (
               <tr key={problem.id}>
                 <td><Link href={`/problems/${problem.id}`}>{problem.title_i18n[i18n.language] || problem.title_i18n.en}</Link></td>
-                <td>{t(`status_${problem.status.toLowerCase()}`, problem.status)}</td>
-                <td>{t(`difficulty_${problem.difficulty.toLowerCase()}`, problem.difficulty)}</td>
+                <td>{problem.status}</td>
+                <td>{problem.difficulty}</td>
                 <td>
                   {(problem.status === 'DRAFT' || problem.status === 'PRIVATE') && (
                     <Link href={`/problems/${problem.id}/edit`} style={{ marginRight: '10px' }}>{t('edit_button', 'Edit')}</Link>

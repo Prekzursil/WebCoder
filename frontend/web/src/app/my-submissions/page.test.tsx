@@ -240,6 +240,33 @@ describe('MySubmissionsPage', () => {
     expect(firstRowId()).toBe('1');
   });
 
+  it('treats a nullish language as empty string when sorting (first operand)', async () => {
+    // Comparator sees (nullish, 'python3'): the `?? ''` fallback fires for valA.
+    mocks.getSubmissions.mockResolvedValue([
+      submission(1, { language: null as unknown as string, submission_time: '2026-01-01T10:00:00Z' }),
+      submission(2, { language: 'python3', submission_time: '2026-01-02T10:00:00Z' }),
+    ]);
+    render(<MySubmissionsPage />);
+    await waitFor(() => expect(screen.getByRole('table')).toBeInTheDocument());
+    fireEvent.change(screen.getByLabelText('Sort by:'), { target: { value: 'language' } });
+    // desc: '' sorts below 'python3', so id 2 comes first.
+    expect(screen.getAllByRole('row')[1].textContent?.[0]).toBe('2');
+  });
+
+  it('treats a nullish language as empty string when sorting (second operand)', async () => {
+    // Comparator sees ('python3', nullish): the `?? ''` fallback fires for valB.
+    mocks.getSubmissions.mockResolvedValue([
+      submission(1, { language: 'python3', submission_time: '2026-01-01T10:00:00Z' }),
+      submission(2, { language: null as unknown as string, submission_time: '2026-01-02T10:00:00Z' }),
+    ]);
+    render(<MySubmissionsPage />);
+    await waitFor(() => expect(screen.getByRole('table')).toBeInTheDocument());
+    fireEvent.change(screen.getByLabelText('Sort by:'), { target: { value: 'language' } });
+    fireEvent.change(screen.getByLabelText('Order:'), { target: { value: 'asc' } });
+    // asc: '' sorts before 'python3', so the nullish-language row leads.
+    expect(screen.getAllByRole('row')[1].textContent?.[0]).toBe('2');
+  });
+
   it('paginates: 10 per page, prev/next disabled at bounds, items-per-page switch', async () => {
     const subs = Array.from({ length: 11 }, (_, i) =>
       submission(i + 1, {

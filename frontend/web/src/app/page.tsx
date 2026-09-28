@@ -37,7 +37,7 @@ export default async function HomePage() {
         <Link href="/problems" className={`${styles.button} ${styles.buttonPrimary}`}>
           {t('view_problems_button', 'View Problems')}
         </Link>
-        <HomeSignUpButton label={t('register_button', 'Sign Up')} />
+        <HomeSignUpButton label={t('sign_up_button', 'Sign Up')} />
       </div>
     </main>
   );

@@ -40,7 +40,7 @@ from problems import admin as problems_admin
 from problems import migrations as problems_migrations
 from problems.models import Problem, Tag
 from problems.models import TestCase as ProblemTestCase
-from problems.serializers import ProblemSerializer, TestCaseSerializer
+from problems.serializers import ProblemSerializer, TestCaseSerializer as ProblemTestCaseSerializer  # alias: avoid pytest Test-prefixed collection warning
 from problems.views import ProblemViewSet
 from users.models import User
 from users.permissions import ProblemObjectPermissions
@@ -254,7 +254,7 @@ class TestCaseSerializerRepresentationTests(DjangoTestCase):
         self.tc_sample = make_testcase(self.problem, is_sample=True)
 
     def serialize(self, tc, request):
-        serializer = TestCaseSerializer(instance=tc, context={"request": request})
+        serializer = ProblemTestCaseSerializer(instance=tc, context={"request": request})
         return serializer.data
 
     def test_anonymous_cannot_see_hidden_output(self):

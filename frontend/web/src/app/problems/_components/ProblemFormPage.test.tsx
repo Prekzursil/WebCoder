@@ -395,7 +395,7 @@ describe('ProblemFormPage (edit mode)', () => {
     expect((screen.getByLabelText('java11') as HTMLInputElement).checked).toBe(true);
     expect((screen.getByLabelText('python3') as HTMLInputElement).checked).toBe(false);
     expect((screen.getByLabelText('Greedy') as HTMLInputElement).checked).toBe(true);
-    expect((screen.getByLabelText(/checker_code/) as HTMLTextAreaElement).value).toBe('print("chk")');
+    expect((screen.getByLabelText(/checker code/i) as HTMLTextAreaElement).value).toBe('print("chk")');
 
     // Prefetched test cases render with the sample marker on the first one.
     expect(screen.getByText('Test Case 1 (Sample)')).toBeInTheDocument();
@@ -613,10 +613,10 @@ describe('ProblemFormPage (advanced configuration branches)', () => {
     render(<ProblemFormPage />);
     await screen.findByText('Create New Problem');
 
-    expect(screen.queryByLabelText(/float_epsilon/)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/epsilon/i)).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Comparison Mode:'), { target: { value: 'FLOAT_PRECISE' } });
 
-    const epsilon = await screen.findByLabelText(/float_epsilon/);
+    const epsilon = await screen.findByLabelText(/epsilon/i);
     expect(epsilon).toBeInTheDocument();
     // Default 1e-6 is shown; replace it and submit.
     fireEvent.change(epsilon, { target: { value: '0.25' } });
@@ -633,7 +633,7 @@ describe('ProblemFormPage (advanced configuration branches)', () => {
     await screen.findByText('Create New Problem');
 
     fireEvent.change(screen.getByLabelText('Comparison Mode:'), { target: { value: 'FLOAT_PRECISE' } });
-    const epsilon = await screen.findByLabelText(/float_epsilon/);
+    const epsilon = await screen.findByLabelText(/epsilon/i);
     fireEvent.change(epsilon, { target: { value: '' } });
     fillRequiredCreateFields();
     submitForm();
@@ -654,7 +654,7 @@ describe('ProblemFormPage (advanced configuration branches)', () => {
     } as unknown as ProblemType);
     render(<ProblemFormPage />);
 
-    const epsilon = await screen.findByLabelText(/float_epsilon/);
+    const epsilon = await screen.findByLabelText(/epsilon/i);
     expect((epsilon as HTMLInputElement).value).toBe('');
   });
 
@@ -663,12 +663,12 @@ describe('ProblemFormPage (advanced configuration branches)', () => {
     render(<ProblemFormPage />);
     await screen.findByText('Create New Problem');
 
-    expect(screen.queryByLabelText(/checker_code/)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/checker code/i)).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Comparison Mode:'), { target: { value: 'CUSTOM_CHECKER' } });
 
-    expect(await screen.findByLabelText(/checker_code/)).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText(/checker_language/), { target: { value: 'python3' } });
-    fireEvent.change(screen.getByLabelText(/checker_code/), { target: { value: 'def check(): pass' } });
+    expect(await screen.findByLabelText(/checker code/i)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText(/checker language/i), { target: { value: 'python3' } });
+    fireEvent.change(screen.getByLabelText(/checker code/i), { target: { value: 'def check(): pass' } });
     fillRequiredCreateFields();
     submitForm();
 
@@ -678,8 +678,8 @@ describe('ProblemFormPage (advanced configuration branches)', () => {
     );
 
     // Clearing both sends nulls (the `|| null` onChange branches).
-    fireEvent.change(screen.getByLabelText(/checker_language/), { target: { value: '' } });
-    fireEvent.change(screen.getByLabelText(/checker_code/), { target: { value: '' } });
+    fireEvent.change(screen.getByLabelText(/checker language/i), { target: { value: '' } });
+    fireEvent.change(screen.getByLabelText(/checker code/i), { target: { value: '' } });
     submitForm();
     await waitFor(() => expect(api.createProblem).toHaveBeenCalledTimes(2));
     expect(api.createProblem).toHaveBeenLastCalledWith(

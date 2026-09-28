@@ -122,7 +122,7 @@ function MySubmissionsPageContent() {
     return (
       <p>
         {t('please_login_to_view_submissions', 'Please login to view submissions.')}{' '}
-        <Link href="/login">{t('login_link_text', 'Login')}</Link>
+        <Link href="/login">{t('nav_login', 'Login')}</Link>
       </p>
     );
   if (loading) return <LoadingSpinner />;

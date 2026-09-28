@@ -141,7 +141,7 @@ export function ProblemVerificationQueuePage() {
                   </Link>
                 </td>
                 <td>{problem.author?.username || t('unknown_author', 'Unknown')}</td>
-                <td>{t(`difficulty_${problem.difficulty.toLowerCase()}`, problem.difficulty)}</td>
+                <td>{problem.difficulty}</td>
                 <td>
                   <textarea
                     value={feedbackMap[problem.id] || ''}

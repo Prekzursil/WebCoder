@@ -71,8 +71,12 @@ describe('createTranslator', () => {
   });
 
   it('falls back to the default value for keys absent from the dictionary', () => {
-    expect(createTranslator('ro')('homepage_subtitle', 'The subtitle')).toBe('The subtitle');
-    expect(createTranslator('en')('no_problems_available', 'None here')).toBe('None here');
+    // Enum-badge keys are deliberately absent from MESSAGES (they render the
+    // raw backend code via defaultValue — see the note in public-i18n.ts), so
+    // they are stable fixtures for the fallback path. Real copy keys such as
+    // homepage_subtitle / no_problems_available ARE in the dictionary now.
+    expect(createTranslator('ro')('difficulty_easy', 'Easy Mode')).toBe('Easy Mode');
+    expect(createTranslator('en')('status_approved', 'Approved!')).toBe('Approved!');
   });
 
   it('falls back to the raw key when no default is provided', () => {

@@ -2,6 +2,11 @@
 // Next.js adaptation: the API base URL comes from NEXT_PUBLIC_API_BASE
 // (default http://localhost:8000). The /api/v1 prefix is preserved from the
 // reference — every endpoint path below is relative to it.
+//
+// NEW (not in the CRA reference): apiFetch wraps every request with a
+// refresh-token flow — on a 401 it POSTs the simplejwt refresh endpoint
+// once, retries the original request once, and reports refresh failures to
+// AuthContext via the registered unauthorized handler. See apiFetch below.
 
 import {
   AdminStatsResponse,
@@ -20,7 +25,75 @@ import { TestCaseType, User } from '@/types';
 
 const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:8000'}/api/v1`;
 
-const apiFetch = async <T>(url: string, options: RequestInit = {}): Promise<T> => {
+// simplejwt refresh endpoint (backend/webcoder_api/urls.py: api/v1/token/refresh/).
+const REFRESH_ENDPOINT = '/token/refresh/';
+
+// NOTE (hardening follow-up, deliberately out of scope here): tokens remain
+// in localStorage exactly as in the CRA reference. Migrating them to
+// httpOnly cookies is tracked as a separate hardening item.
+
+type UnauthorizedHandler = () => void;
+
+// AuthContext registers its logout() here on mount (and unregisters on
+// unmount) so the service layer can clear React auth state when a refresh
+// fails. Injected via setter instead of importing the context to avoid a
+// circular dependency (AuthContext -> ApiService).
+let unauthorizedHandler: UnauthorizedHandler | null = null;
+
+export const setUnauthorizedHandler = (handler: UnauthorizedHandler | null): void => {
+  unauthorizedHandler = handler;
+};
+
+// Single-flight refresh: while one refresh POST is pending, concurrent 401s
+// await the same promise instead of stampeding the refresh endpoint.
+let refreshInFlight: Promise<boolean> | null = null;
+
+const refreshAccessToken = (): Promise<boolean> => {
+  if (!refreshInFlight) {
+    const attempt = (async () => {
+      const storedRefresh = localStorage.getItem('refreshToken');
+      if (!storedRefresh) {
+        return false;
+      }
+      try {
+        const response = await fetch(`${API_BASE_URL}${REFRESH_ENDPOINT}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh: storedRefresh }),
+        });
+        if (!response.ok) {
+          return false;
+        }
+        const data: { access?: string } = await response.json().catch(() => ({}));
+        if (!data.access) {
+          return false;
+        }
+        localStorage.setItem('accessToken', data.access);
+        return true;
+      } catch {
+        // A network failure during refresh behaves like a failed refresh.
+        return false;
+      }
+    })();
+    refreshInFlight = attempt;
+    // Free the slot once the attempt settles. The reset must live OUTSIDE the
+    // async body: on the no-refresh-token path the body completes
+    // synchronously, so an in-body `finally` would clear the slot BEFORE the
+    // `refreshInFlight = attempt` assignment lands — that assignment would
+    // then pin the settled promise in the slot forever, silently disabling
+    // all future refreshes. The identity guard keeps a concurrent newer
+    // attempt from being clobbered.
+    const clear = () => {
+      if (refreshInFlight === attempt) {
+        refreshInFlight = null;
+      }
+    };
+    attempt.then(clear, clear);
+  }
+  return refreshInFlight;
+};
+
+const authenticatedFetch = async (url: string, options: RequestInit): Promise<Response> => {
   const token = localStorage.getItem('accessToken');
   const headers = new Headers(options.headers || {});
   if (token) {
@@ -30,10 +103,28 @@ const apiFetch = async <T>(url: string, options: RequestInit = {}): Promise<T> =
     headers.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(`${API_BASE_URL}${url}`, {
+  return fetch(`${API_BASE_URL}${url}`, {
     ...options,
     headers,
   });
+};
+
+const apiFetch = async <T>(url: string, options: RequestInit = {}): Promise<T> => {
+  let response = await authenticatedFetch(url, options);
+
+  if (response.status === 401) {
+    // One refresh attempt, then exactly one retry of the ORIGINAL request.
+    // The retried response is never fed back into this branch, so a 401 on
+    // the retry surfaces as a normal error — no retry loop is possible.
+    const refreshed = await refreshAccessToken();
+    if (refreshed) {
+      response = await authenticatedFetch(url, options);
+    } else {
+      // Refresh failed (expired/blacklisted refresh token, network error, or
+      // none stored): the session is dead — let AuthContext log the user out.
+      unauthorizedHandler?.();
+    }
+  }
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));

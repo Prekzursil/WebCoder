@@ -28,10 +28,13 @@ describe('not-found (catch-all "*")', () => {
     ).toBeInTheDocument();
   });
 
-  it('falls back to English copy for Romanian visitors (no ro value exists, same as CRA)', async () => {
+  it('renders the Romanian copy for Romanian visitors (ro values now exist)', async () => {
     mockLocale('ro');
     render(await NotFound());
 
-    expect(screen.getByRole('heading', { name: '404 - Page Not Found' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '404 - Pagină Negăsită' })).toBeInTheDocument();
+    expect(
+      screen.getByText('Pagina pe care o cauți nu există sau este posibil să nu ai permisiunea să o vezi.')
+    ).toBeInTheDocument();
   });
 });

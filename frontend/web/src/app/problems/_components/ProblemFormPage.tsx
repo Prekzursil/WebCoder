@@ -115,7 +115,7 @@ export default function ProblemFormPage() {
       return;
     }
     if (!auth.token) {
-      setFormError(t('error_auth_required_action', 'Authentication required.'));
+      setFormError(t('error_auth_required', 'Authentication required.'));
       return;
     }
 
@@ -156,7 +156,7 @@ export default function ProblemFormPage() {
 
   const handleRemoveTestCase = async (tcToRemove: TestCaseUIManaged) => {
     if (!auth.token) {
-      setFormError(t('error_auth_required_action', 'Authentication required.'));
+      setFormError(t('error_auth_required', 'Authentication required.'));
       return;
     }
     if (tcToRemove.id) {
@@ -291,8 +291,8 @@ export default function ProblemFormPage() {
             <div key={tc.local_id} style={{ border: '1px solid #eee', padding: '10px', marginBottom: '10px', backgroundColor: tc.is_sample ? '#f0f8ff' : 'transparent' }}>
               <h4>{t('test_case_label', 'Test Case')} {index + 1} {tc.is_sample && `(${t('sample_label', 'Sample')})`}</h4>
               <p><strong>{t('points_label', 'Points')}:</strong> {tc.points}</p>
-              <div><label style={labelStyle}>{t('input_data_label', 'Input')}:</label><pre style={{ backgroundColor: '#f9f9f9', padding: '5px', whiteSpace: 'pre-wrap', border: '1px solid #ddd' }}>{tc.input_data}</pre></div>
-              <div><label style={labelStyle}>{t('expected_output_label', 'Output')}:</label><pre style={{ backgroundColor: '#f9f9f9', padding: '5px', whiteSpace: 'pre-wrap', border: '1px solid #ddd' }}>{tc.expected_output_data}</pre></div>
+              <div><label style={labelStyle}>{t('test_case_input_label', 'Input')}:</label><pre style={{ backgroundColor: '#f9f9f9', padding: '5px', whiteSpace: 'pre-wrap', border: '1px solid #ddd' }}>{tc.input_data}</pre></div>
+              <div><label style={labelStyle}>{t('test_case_output_label', 'Output')}:</label><pre style={{ backgroundColor: '#f9f9f9', padding: '5px', whiteSpace: 'pre-wrap', border: '1px solid #ddd' }}>{tc.expected_output_data}</pre></div>
               <button type="button" onClick={() => handleRemoveTestCase(tc)} style={{ marginTop: '5px', padding: '5px 10px' }}>{t('remove_test_case_button', 'Remove')}</button>
             </div>
           ))}

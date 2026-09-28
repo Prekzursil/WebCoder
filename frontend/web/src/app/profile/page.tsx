@@ -118,7 +118,7 @@ export function UserProfilePage() {
             <strong>{t('username_label', 'Username')}:</strong> {profileUser.username}
           </Typography>
           <Typography>
-            <strong>{t('email_label', 'Email')}:</strong> {profileUser.email}
+            <strong>{t('email', 'Email')}:</strong> {profileUser.email}
           </Typography>
           <Typography>
             <strong>{t('role_label', 'Role')}:</strong>{' '}

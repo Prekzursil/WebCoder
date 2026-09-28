@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AdminService } from '@/services/ApiService';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import type { AdminStatsResponse } from '@/types/api';
@@ -41,6 +42,7 @@ const cardValueStyle: React.CSSProperties = {
 };
 
 export default function SiteStats() {
+  const { t } = useTranslation();
   const [stats, setStats] = useState<AdminStatsResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,15 +70,15 @@ export default function SiteStats() {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
       <div style={cardStyle}>
-        <h3 style={cardTitleStyle}>Total Users</h3>
+        <h3 style={cardTitleStyle}>{t('stats_total_users', 'Total Users')}</h3>
         <p style={cardValueStyle}>{stats.user_count}</p>
       </div>
       <div style={cardStyle}>
-        <h3 style={cardTitleStyle}>Total Problems</h3>
+        <h3 style={cardTitleStyle}>{t('stats_total_problems', 'Total Problems')}</h3>
         <p style={cardValueStyle}>{stats.problem_count}</p>
       </div>
       <div style={cardStyle}>
-        <h3 style={cardTitleStyle}>Total Submissions</h3>
+        <h3 style={cardTitleStyle}>{t('stats_total_submissions', 'Total Submissions')}</h3>
         <p style={cardValueStyle}>{stats.submission_count}</p>
       </div>
     </div>

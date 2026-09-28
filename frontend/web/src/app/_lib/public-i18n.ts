@@ -12,9 +12,12 @@
 // this keeps SSR output locale-consistent with the hydrated client app
 // without introducing [locale] URL routing (a scaffold-level decision).
 //
-// Behavior parity: `ro` carries ONLY the keys that have real Romanian values
-// in the shared resources (src/i18n.ts). Every other key falls back to the
-// English default — exactly what RO users see in the CRA app today.
+// Behavior parity: MESSAGES mirrors the shared client resources
+// (src/i18n.ts) for every key the public server pages render, in both
+// locales, so SSR output is locale-consistent with the hydrated client app.
+// The catalog's `difficulty_${...}` / `status_${...}` badges are DELIBERATELY
+// absent — they render the raw backend enum via the defaultValue fallback
+// (pinned by page tests and e2e/problems.spec.ts).
 
 import { cookies } from 'next/headers';
 
@@ -24,14 +27,59 @@ const LOCALE_COOKIE_NAME = 'i18nextLng';
 
 const MESSAGES: Record<PublicLocale, Record<string, string>> = {
   en: {
-    // Keys that exist in the shared resources (src/i18n.ts en block).
+    // Parity with the shared resources (src/i18n.ts en block) for every key
+    // the public server pages render.
     welcome_message: 'Welcome to WebCoder',
     problem_list_header: 'Problems',
+    homepage_subtitle: 'The ultimate platform for competitive programming.',
+    homepage_description:
+      'Sharpen your skills, solve challenging problems, and compete with a community of developers from around the world. Whether you are a beginner or an expert, WebCoder has something for you.',
+    view_problems_button: 'View Problems',
+    sign_up_button: 'Sign Up',
+    problems_page_description:
+      'Browse the public competitive programming problem catalog on WebCoder.',
+    no_problems_available: 'No problems available at the moment.',
+    not_found_default_header: '404 - Page Not Found',
+    not_found_default_message:
+      'The page you are looking for does not exist or you may not have permission to view it.',
+    difficulty_label: 'Difficulty',
+    time_limit_label: 'Time Limit',
+    memory_limit_label: 'Memory Limit',
+    problem_id_label: 'Problem ID',
+    problem_not_found: 'Problem not found.',
+    problem_statement_header: 'Problem Statement',
+    sample_test_cases_header: 'Sample Test Cases',
+    sample_input_label: 'Sample Input',
+    sample_output_label: 'Sample Output',
+    solve_problem_description: 'Solve this problem on WebCoder.',
+    submit_solution_header: 'Submit Solution',
   },
   ro: {
-    // Keys that exist in the shared resources (src/i18n.ts ro block).
+    // Parity with the shared resources (src/i18n.ts ro block).
     welcome_message: 'Bun venit la WebCoder',
     problem_list_header: 'Probleme',
+    homepage_subtitle: 'Platforma definitivă pentru programare competitivă.',
+    homepage_description:
+      'Perfecționează-ți abilitățile, rezolvă probleme provocatoare și concurează alături de o comunitate de programatori din toată lumea. Fie că ești la început de drum sau expert, WebCoder are ceva pentru tine.',
+    view_problems_button: 'Vezi Problemele',
+    sign_up_button: 'Înscrie-te',
+    problems_page_description:
+      'Răsfoiește catalogul public de probleme de programare competitivă de pe WebCoder.',
+    no_problems_available: 'Momentan nu sunt probleme disponibile.',
+    not_found_default_header: '404 - Pagină Negăsită',
+    not_found_default_message:
+      'Pagina pe care o cauți nu există sau este posibil să nu ai permisiunea să o vezi.',
+    difficulty_label: 'Dificultate',
+    time_limit_label: 'Limită de timp',
+    memory_limit_label: 'Limită de memorie',
+    problem_id_label: 'ID-ul problemei',
+    problem_not_found: 'Problema nu a fost găsită.',
+    problem_statement_header: 'Enunțul Problemei',
+    sample_test_cases_header: 'Exemple',
+    sample_input_label: 'Intrare exemplu',
+    sample_output_label: 'Ieșire exemplu',
+    solve_problem_description: 'Rezolvă această problemă pe WebCoder.',
+    submit_solution_header: 'Trimite o Soluție',
   },
 };
 

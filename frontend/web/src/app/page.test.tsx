@@ -58,9 +58,9 @@ describe('HomePage (route "/")', () => {
     render(await Home());
 
     expect(screen.getByRole('heading', { level: 1, name: 'Bun venit la WebCoder' })).toBeInTheDocument();
-    // Subtitle has no Romanian value in the shared resources — English fallback, same as CRA.
+    // Subtitle now carries a Romanian value in the shared resources.
     expect(
-      screen.getByRole('heading', { level: 2, name: 'The ultimate platform for competitive programming.' })
+      screen.getByRole('heading', { level: 2, name: 'Platforma definitivă pentru programare competitivă.' })
     ).toBeInTheDocument();
   });
 
