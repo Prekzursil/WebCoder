@@ -297,7 +297,7 @@ class SubmissionViewTests(TestCase):
 
     def test_create_dispatches_judge_task(self):
         client = self._api(self.owner)
-        with patch("submissions.views.judge_submission_task") as mock_task:
+        with patch("submissions.views.judge_task") as mock_task:
             resp = client.post(
                 reverse(self.CREATE_URL_NAME),
                 {"problem": self.problem.id, "language": "python3", "code": "print(42)"},

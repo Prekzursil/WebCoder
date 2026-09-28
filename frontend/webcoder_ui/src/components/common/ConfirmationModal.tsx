@@ -72,11 +72,6 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           >
             {cancelButtonText || t('cancel_button', 'Cancel')}
           </button>
-<<<<<<< HEAD
-          <button 
-            onClick={onConfirm} 
-            style={{ padding: '10px 20px', borderRadius: '5px', border: 'none', backgroundColor: '#0062cc', color: 'white', cursor: 'pointer' }}
-=======
           <button
             onClick={onConfirm}
             style={{
@@ -87,7 +82,6 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               color: 'white',
               cursor: 'pointer',
             }}
->>>>>>> origin/main
           >
             {confirmButtonText || t('confirm_button', 'Confirm')}
           </button>

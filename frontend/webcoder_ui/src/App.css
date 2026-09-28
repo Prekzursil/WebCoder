@@ -52,13 +52,8 @@ h4 {
 }
 
 a {
-<<<<<<< HEAD
   color: #0062cc; /* AA-compliant blue (>=4.5:1 on light bg); was #007bff (3.77:1) */
   text-decoration: none;
-=======
-	color: #007bff;
-	text-decoration: none;
->>>>>>> origin/main
 }
 
 a:hover {
@@ -66,7 +61,6 @@ a:hover {
 }
 
 button {
-<<<<<<< HEAD
   padding: 10px 15px;
   border: 1px solid #0062cc; /* AA-compliant blue (white-on >=4.5:1); was #007bff (3.97:1) */
   background-color: #0062cc;
@@ -75,16 +69,6 @@ button {
   cursor: pointer;
   font-size: 1em;
   transition: background-color 0.2s ease-in-out;
-=======
-	padding: 10px 15px;
-	border: 1px solid #007bff;
-	background-color: #007bff;
-	color: white;
-	border-radius: 4px;
-	cursor: pointer;
-	font-size: 1em;
-	transition: background-color 0.2s ease-in-out;
->>>>>>> origin/main
 }
 
 button:hover {

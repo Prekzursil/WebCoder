@@ -32,16 +32,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-<<<<<<< HEAD
 SECRET_KEY = os.environ["SECRET_KEY"]  # fail-loud: required in backend/.env or environment
-=======
-# Sourced from the environment; the insecure fallback is for local/dev only and
-# MUST be overridden via DJANGO_SECRET_KEY in any real deployment.
-SECRET_KEY = os.environ.get(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-dev-only-change-me",
-)
->>>>>>> origin/main
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -123,20 +114,12 @@ WSGI_APPLICATION = "webcoder_api.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-<<<<<<< HEAD
         "NAME": os.environ.get("DB_NAME", "webcoder_db"),
         "USER": os.environ.get("DB_USER", "webcoder_user"),
         "PASSWORD": os.environ["DB_PASSWORD"],  # fail-loud: no secret defaults in source
         "HOST": os.environ.get("DB_HOST", "localhost"),
         # Local PostgreSQL 18 service listens on 5433 on this machine (measured).
         "PORT": os.environ.get("DB_PORT", "5433"),
-=======
-        "NAME": os.environ.get("POSTGRES_DB", "webcoder_db"),
-        "USER": os.environ.get("POSTGRES_USER", "webcoder_user"),
-        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", ""),
-        "HOST": os.environ.get("POSTGRES_HOST", "localhost"),
-        "PORT": os.environ.get("POSTGRES_PORT", "5432"),
->>>>>>> origin/main
     }
 }
 
@@ -311,7 +294,6 @@ JUDGE_BOOST_HEADERS_PATH = os.environ.get(
 # Each JAR file in this directory will be added to the classpath.
 # IMPORTANT: This path MUST exist on the judge server.
 # Example: "/opt/java_libs"
-<<<<<<< HEAD
 JUDGE_JAVA_LIBS_DIR_HOST = os.environ.get('JUDGE_JAVA_LIBS_DIR_HOST', "/opt/java_libs")
 
 # Judge execution backend (settings-driven switch, consumed by
@@ -324,6 +306,3 @@ JUDGE_JAVA_LIBS_DIR_HOST = os.environ.get('JUDGE_JAVA_LIBS_DIR_HOST', "/opt/java
 #              `docker exec` (network-isolated, read-only rootfs, cap_drop ALL,
 #              resource-limited).
 JUDGE_BACKEND = os.environ.get('JUDGE_BACKEND', 'local')
-=======
-JUDGE_JAVA_LIBS_DIR_HOST = os.environ.get("JUDGE_JAVA_LIBS_DIR_HOST", "/opt/java_libs")
->>>>>>> origin/main

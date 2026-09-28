@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """Tests for the settings-driven JUDGE_BACKEND switch (judge_utils/backend.py).
 
 Deliberately plain ``unittest.TestCase`` classes: these are pure unit tests of
@@ -237,6 +236,3 @@ class LegacyJudgeFlowUntouchedTests(unittest.TestCase):
             self.assertNotIn("judge_utils.backend", source, legacy)
             self.assertNotIn("JUDGE_BACKEND", source, legacy)
             self.assertNotIn("run_judged_process", source, legacy)
-=======
-# Create your tests here.
->>>>>>> origin/main
