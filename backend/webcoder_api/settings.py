@@ -14,6 +14,16 @@ from datetime import timedelta
 from pathlib import Path
 import os  # Import os for environment variables
 
+# Minimal .env loader (no python-dotenv dependency): reads backend/.env if present.
+_ENV_PATH = Path(__file__).resolve().parent.parent / ".env"
+if _ENV_PATH.exists():
+    with _ENV_PATH.open(encoding="utf-8") as _f:
+        for _line in _f:
+            _line = _line.strip()
+            if _line and not _line.startswith("#") and "=" in _line:
+                _key, _, _val = _line.partition("=")
+                os.environ.setdefault(_key.strip(), _val.strip())
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -22,12 +32,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# Sourced from the environment; the insecure fallback is for local/dev only and
-# MUST be overridden via DJANGO_SECRET_KEY in any real deployment.
-SECRET_KEY = os.environ.get(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-dev-only-change-me",
-)
+SECRET_KEY = os.environ["SECRET_KEY"]  # fail-loud: required in backend/.env or environment
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -109,11 +114,12 @@ WSGI_APPLICATION = "webcoder_api.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("POSTGRES_DB", "webcoder_db"),
-        "USER": os.environ.get("POSTGRES_USER", "webcoder_user"),
-        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", ""),
-        "HOST": os.environ.get("POSTGRES_HOST", "localhost"),
-        "PORT": os.environ.get("POSTGRES_PORT", "5432"),
+        "NAME": os.environ.get("DB_NAME", "webcoder_db"),
+        "USER": os.environ.get("DB_USER", "webcoder_user"),
+        "PASSWORD": os.environ["DB_PASSWORD"],  # fail-loud: no secret defaults in source
+        "HOST": os.environ.get("DB_HOST", "localhost"),
+        # Local PostgreSQL 18 service listens on 5433 on this machine (measured).
+        "PORT": os.environ.get("DB_PORT", "5433"),
     }
 }
 
@@ -288,4 +294,15 @@ JUDGE_BOOST_HEADERS_PATH = os.environ.get(
 # Each JAR file in this directory will be added to the classpath.
 # IMPORTANT: This path MUST exist on the judge server.
 # Example: "/opt/java_libs"
-JUDGE_JAVA_LIBS_DIR_HOST = os.environ.get("JUDGE_JAVA_LIBS_DIR_HOST", "/opt/java_libs")
+JUDGE_JAVA_LIBS_DIR_HOST = os.environ.get('JUDGE_JAVA_LIBS_DIR_HOST', "/opt/java_libs")
+
+# Judge execution backend (settings-driven switch, consumed by
+# submissions/judge_utils/backend.py — the ADDITIVE judge path; the legacy
+# docker-run-per-submission flow in compilation.py/execution.py ignores it):
+# - "local"    (default, dev): judged commands run directly on this host via
+#              subprocess. No Docker needed.
+# - "container" (prod): judged commands run inside the sandboxed judge-runner
+#              container from the repo-root docker-compose.yml via
+#              `docker exec` (network-isolated, read-only rootfs, cap_drop ALL,
+#              resource-limited).
+JUDGE_BACKEND = os.environ.get('JUDGE_BACKEND', 'local')

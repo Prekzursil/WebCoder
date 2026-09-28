@@ -33,9 +33,14 @@ def run_code_in_sandbox(
     final_output = ""
     final_error = "Judge execution did not complete as expected."
 
+    if time_limit_ms <= 0:
+        # Zero/negative time limit floors to one second — same rule the container
+        # timeout below applies. Without this, the CPU-time comparison at the
+        # verdict stage sees 0ms and every parsed run reads as TLE.
+        time_limit_ms = 1000
     time_limit_s = (time_limit_ms / 1000.0) if time_limit_ms > 0 else 1
-    time_format_string = "%U %S %M %x %P %e"
-
+    time_format_string = "%U %S %M %x %P %e" 
+    
     docker_image = ""
     program_and_args_in_container: list[str] = []
     abs_mount_path = str(submission_dir.resolve())

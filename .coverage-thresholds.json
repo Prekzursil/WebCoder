@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "WebCoder coverage SSOT. Two surfaces: Next.js frontend (frontend/web) and Django backend (backend). Thresholds are 100 per task spec. enforcement.command entries mirror the CI gate commands in .github/workflows/frontend.yml and django.yml. Note: the 100 percent floor is enforced by the orchestrator reading this file; vitest.config.ts has no coverage.thresholds block and pytest.ini has no --cov-fail-under flag, so the raw tools exit 0 below 100 percent.",
+  "thresholds": {
+    "lines": 100,
+    "branches": 100,
+    "functions": 100,
+    "statements": 100
+  },
+  "enforcement": {
+    "command": [
+      "cd frontend/web && npm ci && npm run build && npx vitest run --coverage",
+      "cd backend && pip install -r requirements.txt && pytest --ds webcoder_api.test_settings"
+    ],
+    "blockPRCreation": true,
+    "blockTaskCompletion": true,
+    "description": "Orchestrator agents MUST check coverage against these thresholds for both surfaces before marking any task complete or creating a PR. Commands must exit 0 and measured coverage must meet thresholds.lines/branches/functions/statements at 100."
+  },
+  "surfaces": {
+    "frontend": {
+      "cwd": "frontend/web",
+      "install": "npm ci",
+      "build": "npm run build",
+      "test": "npx vitest run --coverage"
+    },
+    "django": {
+      "cwd": "backend",
+      "install": "pip install -r requirements.txt",
+      "test": "pytest --ds webcoder_api.test_settings"
+    }
+  }
+}
