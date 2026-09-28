@@ -1,6 +1,0 @@
-{
-  "include": ["backend"],
-  "typeCheckingMode": "standard",
-  "reportMissingImports": false,
-  "reportMissingModuleSource": false
-}
