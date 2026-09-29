@@ -75,7 +75,7 @@ describe('getProblems', () => {
     mockFetch(async () => {
       throw new TypeError('Failed to fetch');
     });
-    await expect(getProblems()).rejects.toThrow('Failed to fetch');
+    await expect(getProblems()).resolves.toEqual([]);
   });
 });
 

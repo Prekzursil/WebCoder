@@ -1,4 +1,3 @@
-import React from 'react';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, act, cleanup } from '@testing-library/react';
 import UserProfilePageRoute from './page';
@@ -51,9 +50,10 @@ const authed = (overrides: Partial<AuthShape> = {}): AuthShape => ({
 // The MUI TextField labels are not resolvable via getByLabelText in this MUI
 // version, so the password inputs are addressed by their explicit ids.
 const fillPasswordForm = (current: string, next: string, confirm: string) => {
-  fireEvent.change(document.querySelector('#current-password')!, { target: { value: current } });
-  fireEvent.change(document.querySelector('#new-password')!, { target: { value: next } });
-  fireEvent.change(document.querySelector('#confirm-new-password')!, { target: { value: confirm } });
+  fireEvent.change(screen.getByDisplayValue('') || document.getElementById('current-password')!, { target: { value: current } });
+  fireEvent.change(document.getElementById('current-password') as HTMLElement, { target: { value: current } });
+  fireEvent.change(document.getElementById('new-password') as HTMLElement, { target: { value: next } });
+  fireEvent.change(document.getElementById('confirm-new-password') as HTMLElement, { target: { value: confirm } });
 };
 
 const submitPasswordForm = () => {

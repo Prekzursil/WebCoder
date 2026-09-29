@@ -3,8 +3,8 @@ import { render, screen } from "@testing-library/react";
 import Layout from "./layout";
 
 // The root layout renders client components that use next/navigation hooks
-// (Navbar -> usePathname/useRouter). Those hooks only exist inside a live
-// Next.js app context, so they are mocked for the jsdom smoke test.
+// (Navbar -> usePathname/useRouter/useSearchParams). Those hooks only exist
+// inside a live Next.js app context, so they are mocked for the jsdom smoke test.
 vi?.mock("next/navigation", () => ({
   usePathname: () => "/",
   useRouter: () => ({
@@ -15,6 +15,7 @@ vi?.mock("next/navigation", () => ({
     forward: vi?.fn(),
     prefetch: vi?.fn(),
   }),
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 describe("Root layout (smoke)", () => {

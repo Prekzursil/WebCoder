@@ -45,11 +45,9 @@ afterEach(cleanup);
 
 describe('AuthProvider auth-state lifecycle', () => {
   it('starts unauthenticated and hydrates a stored session after mount', async () => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('accessToken', 'acc');
-      localStorage.setItem('refreshToken', 'ref');
-      localStorage.setItem('user', JSON.stringify(user));
-    }
+    localStorage.setItem('accessToken', 'acc');
+    localStorage.setItem('refreshToken', 'ref');
+    localStorage.setItem('user', JSON.stringify(user));
     renderWithProvider();
     // RTL's act() may already have flushed the hydration effect, so the
     // pre-hydration state is not assertable here — assert the hydrated state.
@@ -62,9 +60,7 @@ describe('AuthProvider auth-state lifecycle', () => {
   });
 
   it('drops a corrupt stored user (no token -> no fetch)', async () => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('user', '{not json');
-    }
+    if (typeof window !== 'undefined') localStorage.setItem('user', '{not json');
     renderWithProvider();
     await waitFor(() => expect(authState?.token).toBeNull());
     expect(authState?.user).toBeNull();
@@ -73,22 +69,18 @@ describe('AuthProvider auth-state lifecycle', () => {
   });
 
   it('fetches the user when a token exists but no user is stored (success)', async () => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('accessToken', 'acc');
-      localStorage.setItem('refreshToken', 'ref');
-    }
+    localStorage.setItem('accessToken', 'acc');
+    localStorage.setItem('refreshToken', 'ref');
     renderWithProvider();
     await waitFor(() => expect(mocks.getMe).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(authState?.user).toEqual(user));
-    expect(typeof window !== 'undefined' ? localStorage.getItem('user') : null).toBe(JSON.stringify(user));
+    expect(localStorage.getItem('user')).toBe(JSON.stringify(user));
     expect(authState?.isAuthenticated).toBe(true);
   });
 
   it('keeps a null user when getMe resolves falsy', async () => {
     mocks.getMe.mockResolvedValue(undefined);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('accessToken', 'acc');
-    }
+    localStorage.setItem('accessToken', 'acc');
     renderWithProvider();
     await waitFor(() => expect(mocks.getMe).toHaveBeenCalledTimes(1));
     await act(async () => {});
@@ -99,20 +91,18 @@ describe('AuthProvider auth-state lifecycle', () => {
 
   it('clears the whole session when getMe rejects', async () => {
     mocks.getMe.mockRejectedValue(new Error('401'));
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('accessToken', 'acc');
-      localStorage.setItem('refreshToken', 'ref');
-      localStorage.setItem('user', '{bad'); // corrupt -> user stays null -> fetch runs
-    }
+    localStorage.setItem('accessToken', 'acc');
+    localStorage.setItem('refreshToken', 'ref');
+    localStorage.setItem('user', '{bad'); // corrupt -> user stays null -> fetch runs
     renderWithProvider();
     await waitFor(() => expect(mocks.getMe).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(authState?.token).toBeNull());
     expect(authState?.refreshToken).toBeNull();
     expect(authState?.user).toBeNull();
     expect(authState?.isAuthenticated).toBe(false);
-    expect(typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null).toBeNull();
-    expect(typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null).toBeNull();
-    expect(typeof window !== 'undefined' ? localStorage.getItem('user') : null).toBeNull();
+    expect(localStorage.getItem('accessToken')).toBeNull();
+    expect(localStorage.getItem('refreshToken')).toBeNull();
+    expect(localStorage.getItem('user')).toBeNull();
   });
 
   it('login persists the session and flips isAuthenticated', async () => {
@@ -126,17 +116,15 @@ describe('AuthProvider auth-state lifecycle', () => {
     expect(authState?.refreshToken).toBe('r1');
     expect(authState?.user).toEqual(user);
     expect(authState?.isAuthenticated).toBe(true);
-    expect(typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null).toBe('a1');
-    expect(typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null).toBe('r1');
-    expect(typeof window !== 'undefined' ? localStorage.getItem('user') : null).toBe(JSON.stringify(user));
+    expect(localStorage.getItem('accessToken')).toBe('a1');
+    expect(localStorage.getItem('refreshToken')).toBe('r1');
+    expect(localStorage.getItem('user')).toBe(JSON.stringify(user));
   });
 
   it('logout wipes storage and state', async () => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('accessToken', 'a1');
-      localStorage.setItem('refreshToken', 'r1');
-      localStorage.setItem('user', JSON.stringify(user));
-    }
+    localStorage.setItem('accessToken', 'a1');
+    localStorage.setItem('refreshToken', 'r1');
+    localStorage.setItem('user', JSON.stringify(user));
     renderWithProvider();
     await waitFor(() => expect(authState?.isAuthenticated).toBe(true));
     await act(async () => {
@@ -146,9 +134,9 @@ describe('AuthProvider auth-state lifecycle', () => {
     expect(authState?.refreshToken).toBeNull();
     expect(authState?.user).toBeNull();
     expect(authState?.isAuthenticated).toBe(false);
-    expect(typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null).toBeNull();
-    expect(typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null).toBeNull();
-    expect(typeof window !== 'undefined' ? localStorage.getItem('user') : null).toBeNull();
+    expect(localStorage.getItem('accessToken')).toBeNull();
+    expect(localStorage.getItem('refreshToken')).toBeNull();
+    expect(localStorage.getItem('user')).toBeNull();
   });
 
   it('registers its logout with ApiService on mount and unregisters on unmount', () => {
