@@ -539,6 +539,7 @@ if (typeof window !== 'undefined') {
 // Passes i18n down to react-i18next
 i18n?.use(initReactI18next)?.init({
     resources,
+    lng: 'en', // Pin initial language to English on both server and client to prevent SSR/hydration mismatch
     supportedLngs: ['en', 'ro'],
     fallbackLng: 'en', // Use English if detected language is not available
     interpolation: {
