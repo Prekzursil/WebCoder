@@ -79,6 +79,7 @@ const Navbar: React.FC = () => {
             { href: '/', label: t('nav_home', 'Home') },
             { href: '/problems', label: t('nav_problems', 'Problems') },
             { href: '/leaderboard', label: t('nav_leaderboard', 'Leaderboard') },
+            { href: '/forum', label: t('nav_forum', 'Forum') },
           ].map(({ href, label }) => (
             <Link key={href} href={href} style={{
               padding: '6px 12px',
@@ -104,6 +105,17 @@ const Navbar: React.FC = () => {
                 backgroundColor: isActive('/my-submissions') ? 'rgba(56,189,248,0.1)' : 'transparent',
                 transition: 'all 150ms ease',
               }}>{t('nav_my_submissions', 'My Submissions')}</Link>
+
+              <Link href="/submission-history" style={{
+                padding: '6px 12px',
+                borderRadius: '6px',
+                fontSize: '0.875rem',
+                fontWeight: isActive('/submission-history') ? 600 : 400,
+                color: isActive('/submission-history') ? '#38bdf8' : 'rgba(255,255,255,0.7)',
+                textDecoration: 'none',
+                backgroundColor: isActive('/submission-history') ? 'rgba(56,189,248,0.1)' : 'transparent',
+                transition: 'all 150ms ease',
+              }}>{t('nav_submission_history', 'History')}</Link>
 
               <Link href="/profile" style={{
                 padding: '6px 12px',
