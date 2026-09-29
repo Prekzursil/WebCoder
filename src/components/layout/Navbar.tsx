@@ -78,6 +78,7 @@ const Navbar: React.FC = () => {
           {[
             { href: '/', label: t('nav_home', 'Home') },
             { href: '/problems', label: t('nav_problems', 'Problems') },
+            { href: '/leaderboard', label: t('nav_leaderboard', 'Leaderboard') },
           ].map(({ href, label }) => (
             <Link key={href} href={href} style={{
               padding: '6px 12px',
