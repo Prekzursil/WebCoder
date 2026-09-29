@@ -93,8 +93,10 @@ describe('ProblemDetailPage (route "/problems/:problemId")', () => {
     // Only the sample test case is exposed.
     expect(screen.getByText('3')).toBeInTheDocument();
     expect(screen.queryByText('18')).not.toBeInTheDocument();
-    expect(screen.getByText('Sample Input 1:')).toBeInTheDocument();
-    expect(screen.getByText('Sample Output 1:')).toBeInTheDocument();
+    // Samples are now grouped under "Example n" with plain Input / Output labels.
+    expect(screen.getByText('Example 1')).toBeInTheDocument();
+    expect(screen.getAllByText(/Input/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Output/i).length).toBeGreaterThan(0);
 
     // The interactive submit surface is the client island, fed by the server.
     const form = screen.getByTestId('submit-form');
@@ -160,10 +162,9 @@ describe('ProblemDetailPage (route "/problems/:problemId")', () => {
     );
     render(await ProblemDetailPage(pageProps()));
 
-    const statements = screen
-      .getAllByText((_, element) => element?.tagName === 'PRE')
-      .filter((pre) => pre.textContent === '');
-    expect(statements.length).toBeGreaterThan(0);
+    // The statement is a <div> with whiteSpace: pre-wrap; when empty the page
+    // renders an explicit placeholder instead of an empty <pre>.
+    expect(screen.getByText(/No statement/i)).toBeInTheDocument();
   });
 
   it('passes an empty language list to the form when the problem declares none', async () => {
@@ -180,12 +181,14 @@ describe('ProblemDetailPage (route "/problems/:problemId")', () => {
     expect(notFound).toHaveBeenCalledTimes(1);
   });
 
-  it('propagates API failures to the error boundary', async () => {
+  it('renders API failures inline instead of reaching the error boundary', async () => {
+    // page.tsx now catches getProblemDetail errors and renders the message in an
+    // inline alert (see the try/catch around line 64) rather than rethrowing.
     vi.mocked(getProblemDetail).mockRejectedValue(new Error('Failed to load problem details.'));
 
-    await expect(ProblemDetailPage(pageProps())).rejects.toThrow(
-      'Failed to load problem details.'
-    );
+    render(await ProblemDetailPage(pageProps()));
+
+    expect(screen.getByText('Failed to load problem details.')).toBeInTheDocument();
   });
 });
 

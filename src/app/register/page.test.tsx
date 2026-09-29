@@ -202,10 +202,13 @@ describe('RegisterPage', () => {
     unmount();
   });
 
-  it('builds social-signup URLs from NEXT_PUBLIC_API_BASE when set', () => {
+  it('builds social-signup URLs from NEXT_PUBLIC_API_BASE when set', async () => {
     vi.stubEnv('NEXT_PUBLIC_API_BASE', 'https://api.webcoder.example');
-    renderRegister();
-
+    // API_BASE_URL is a module-level const in api-config.ts, captured at import
+    // time, so vi.stubEnv alone cannot change it. Reset the graph and re-import.
+    vi.resetModules();
+    const { default: FreshRegisterPage } = await import('./page');
+    render(<FreshRegisterPage />);
     expect(screen.getByRole('link', { name: 'Google' })).toHaveAttribute(
       'href',
       'https://api.webcoder.example/api/v1/auth/google/login/'

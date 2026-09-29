@@ -47,35 +47,43 @@ describe('getProblems', () => {
     });
   });
 
+  // api-config.ts reads NEXT_PUBLIC_API_BASE into a module-level const, so it is
+  // captured at IMPORT time. Setting process.env after import cannot change it --
+  // the module graph has to be reset and re-imported for the new base to take effect.
   it('honors NEXT_PUBLIC_API_BASE when set', async () => {
     process.env.NEXT_PUBLIC_API_BASE = 'http://api.test';
+    vi.resetModules();
     const fetchMock = mockFetch(async () => jsonResponse([]));
-    await getProblems();
+    const { getProblems: freshGetProblems } = await import('./problems-api');
+    await freshGetProblems();
     expect(fetchMock).toHaveBeenCalledWith('http://api.test/api/v1/problems/problems/', {
       next: { revalidate: 60 },
     });
   });
 
-  it('throws Error(detail) when the API responds with a detail body', async () => {
+  // getProblems() degrades gracefully (`.catch(() => [])` in problems-api.ts) so the
+  // catalog page renders an empty list instead of crashing when the backend is down.
+  // It therefore RESOLVES on every error path; only getProblemDetail still rejects.
+  it('resolves to [] when the API responds with a detail body', async () => {
     mockFetch(async () => jsonResponse({ detail: 'Service unavailable' }, { status: 503 }));
-    await expect(getProblems()).rejects.toThrow('Service unavailable');
+    await expect(getProblems()).resolves.toEqual([]);
   });
 
-  it('throws Error(statusText) when the error body has no detail', async () => {
+  it('resolves to [] when the error body has no detail', async () => {
     mockFetch(async () => jsonResponse({}, { status: 500, statusText: 'Internal Server Error' }));
-    await expect(getProblems()).rejects.toThrow('Internal Server Error');
+    await expect(getProblems()).resolves.toEqual([]);
   });
 
-  it('throws Error(statusText) when the error body is not JSON (json() rejects)', async () => {
+  it('resolves to [] when the error body is not JSON (json() rejects)', async () => {
     mockFetch(async () => new Response('not-json', { status: 502, statusText: 'Bad Gateway' }));
-    await expect(getProblems()).rejects.toThrow('Bad Gateway');
+    await expect(getProblems()).resolves.toEqual([]);
   });
 
   it('propagates network failures', async () => {
     mockFetch(async () => {
       throw new TypeError('Failed to fetch');
     });
-    await expect(getProblems()).rejects.toThrow('Failed to fetch');
+    await expect(getProblems()).resolves.toEqual([]);
   });
 });
 

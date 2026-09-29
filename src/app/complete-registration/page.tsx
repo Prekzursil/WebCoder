@@ -33,6 +33,10 @@ import {
   CircularProgress,
 } from '@mui/material';
 
+
+
+
+
 function CompleteRegistrationForm() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -55,10 +59,6 @@ function CompleteRegistrationForm() {
     setError(null);
     setIsSubmitting(true);
     try {
-      // Typed as LoginResponse via cast: this page consumes token fields from
-      // the register endpoint (see the UNVERIFIED contract note in the header
-      // comment); the service-level RegisterResponse type covers the other
-      // caller (RegisterPage) which expects {user, message}.
       const response = (await AuthService.register({ email, username })) as unknown as
         | LoginResponse
         | undefined;
