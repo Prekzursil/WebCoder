@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
+import ForumLiveClient from './ForumLiveClient';
 
 interface ForumCategory {
   id: string;
@@ -311,6 +312,7 @@ export default function ForumPage() {
           );
         })}
       </div>
+      <ForumLiveClient />
     </div>
   );
 }

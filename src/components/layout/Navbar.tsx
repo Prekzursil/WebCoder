@@ -6,6 +6,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
 
+const MOCK_UNREAD_COUNT = 4;
+
 const Navbar: React.FC = () => {
   const { i18n, t } = useTranslation();
   const auth = useAuth();
@@ -184,6 +186,46 @@ const Navbar: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {auth.isAuthenticated ? (
             <>
+              {/* Notification bell */}
+              <Link
+                href="/notifications"
+                title="Notifications"
+                style={{
+                  position: 'relative',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '8px',
+                  background: isActive('/notifications') ? 'rgba(56,189,248,0.12)' : 'rgba(255,255,255,0.06)',
+                  border: `1px solid ${isActive('/notifications') ? 'rgba(56,189,248,0.3)' : 'rgba(255,255,255,0.1)'}`,
+                  textDecoration: 'none',
+                  transition: 'all 150ms ease',
+                }}
+              >
+                <span style={{ fontSize: '0.95rem', lineHeight: 1 }}>🔔</span>
+                {MOCK_UNREAD_COUNT > 0 && (
+                  <span style={{
+                    position: 'absolute',
+                    top: '-4px',
+                    right: '-4px',
+                    background: '#38bdf8',
+                    color: '#0f172a',
+                    fontSize: '0.55rem',
+                    fontWeight: 800,
+                    minWidth: '16px',
+                    height: '16px',
+                    borderRadius: '999px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '0 3px',
+                    border: '2px solid #0f172a',
+                    lineHeight: 1,
+                  }}>{MOCK_UNREAD_COUNT}</span>
+                )}
+              </Link>
               <span style={{
                 fontSize: '0.8rem',
                 color: 'rgba(255,255,255,0.5)',
