@@ -19,7 +19,6 @@ import NextLink from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { AuthService } from '@/services/ApiService';
 import { useAuth } from '@/context/AuthContext';
-import { API_BASE_URL } from '@/lib/api-config';
 import {
   Container,
   Box,
@@ -43,7 +42,7 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  const apiBase = API_BASE_URL;
+  const apiBase = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:8000';
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();

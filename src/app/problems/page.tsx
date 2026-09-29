@@ -15,9 +15,9 @@
 // the App Router loading.tsx / error.tsx boundaries in this directory.
 
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { createTranslator, getLocale } from '../_lib/public-i18n';
 import { getProblems } from './_lib/problems-api';
-import ProblemsListClient from './ProblemsListClient';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = createTranslator(await getLocale());
@@ -33,23 +33,31 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ProblemsListPage() {
   const locale = await getLocale();
   const t = createTranslator(locale);
-
-  let problems: Awaited<ReturnType<typeof getProblems>> = [];
-  let fetchError: string | null = null;
-
-  try {
-    problems = await getProblems();
-  } catch (err) {
-    fetchError =
-      err instanceof Error ? err.message : 'Failed to load problems.';
-  }
+  const problems = await getProblems();
 
   return (
-    <ProblemsListClient
-      problems={problems}
-      fetchError={fetchError}
-      locale={locale}
-      t={t}
-    />
+    <div>
+      <h2>{t('problem_list_header', 'Problems')}</h2>
+      {problems.length === 0 ? (
+        <p>{t('no_problems_available', 'No problems available at the moment.')}</p>
+      ) : (
+        <ul>
+          {problems.map((problem) => (
+            <li key={problem.id}>
+              <Link href={`/problems/${problem.id}`}>
+                {problem.title_i18n[locale] ||
+                  problem.title_i18n.en ||
+                  `Problem ID: ${problem.id}`}
+              </Link>
+              {' - '}
+              {t(`difficulty_${problem.difficulty?.toLowerCase()}`, problem.difficulty)}
+              {' ('}
+              {t(`status_${problem.status?.toLowerCase()}`, problem.status)}
+              {')'}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
