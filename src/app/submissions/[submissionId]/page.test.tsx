@@ -121,7 +121,7 @@ describe('SubmissionDetailPage', () => {
     setAuth({ isAuthenticated: false, token: null });
     render(<SubmissionDetailPage />);
     const el = await screen.findByText('Authentication required to view submission details.');
-    expect(el).toHaveStyle({ color: 'rgb(255, 0, 0)' });
+    expect((el as HTMLElement).style.color).toBe('var(--danger)');
     expect(mocks.getSubmissionDetail).not.toHaveBeenCalled();
   });
 
@@ -145,7 +145,7 @@ describe('SubmissionDetailPage', () => {
     mocks.getSubmissionDetail.mockRejectedValue(new Error('Boom'));
     render(<SubmissionDetailPage />);
     const el = await screen.findByText('Boom');
-    expect(el).toHaveStyle({ color: 'rgb(255, 0, 0)' });
+    expect((el as HTMLElement).style.color).toBe('var(--danger)');
   });
 
   it('falls back to the default error text when the error has no message', async () => {

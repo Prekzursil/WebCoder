@@ -247,7 +247,7 @@ describe('MySubmissionsPage', () => {
       submission(2, { language: 'python3', submission_time: '2026-01-02T10:00:00Z' }),
     ]);
     render(<MySubmissionsPage />);
-    await waitFor(() => expect(screen.getByRole('table')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole('table')).toBeInTheDocument());
     fireEvent.change(screen.getByLabelText('Sort by:'), { target: { value: 'language' } });
     // desc: '' sorts below 'python3', so id 2 comes first.
     expect(screen.getAllByRole('row')[1].textContent?.[0]).toBe('2');
@@ -260,7 +260,7 @@ describe('MySubmissionsPage', () => {
       submission(2, { language: null as unknown as string, submission_time: '2026-01-02T10:00:00Z' }),
     ]);
     render(<MySubmissionsPage />);
-    await waitFor(() => expect(screen.getByRole('table')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole('table')).toBeInTheDocument());
     fireEvent.change(screen.getByLabelText('Sort by:'), { target: { value: 'language' } });
     fireEvent.change(screen.getByLabelText('Order:'), { target: { value: 'asc' } });
     // asc: '' sorts before 'python3', so the nullish-language row leads.

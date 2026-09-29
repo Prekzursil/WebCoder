@@ -58,7 +58,7 @@ const refreshAccessToken = (): Promise<boolean> => {
         return false;
       }
       try {
-        let response = await fetch(`${API_BASE_URL}${REFRESH_ENDPOINT}`, {
+        const response = await fetch(`${API_BASE_URL}${REFRESH_ENDPOINT}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ refresh: storedRefresh }),

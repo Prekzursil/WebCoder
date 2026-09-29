@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { ProblemType } from '@/types';
-import type { PublicLocale, PublicTranslator } from './_lib/public-i18n';
+import type { PublicLocale, PublicTranslator } from '../_lib/public-i18n';
 
 interface ProblemsListClientProps {
   problems: ProblemType[];

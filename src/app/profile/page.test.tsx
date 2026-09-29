@@ -50,10 +50,16 @@ const authed = (overrides: Partial<AuthShape> = {}): AuthShape => ({
 // The MUI TextField labels are not resolvable via getByLabelText in this MUI
 // version, so the password inputs are addressed by their explicit ids.
 const fillPasswordForm = (current: string, next: string, confirm: string) => {
-  fireEvent.change(screen.getByDisplayValue('') || document.getElementById('current-password')!, { target: { value: current } });
   fireEvent.change(document.getElementById('current-password') as HTMLElement, { target: { value: current } });
   fireEvent.change(document.getElementById('new-password') as HTMLElement, { target: { value: next } });
   fireEvent.change(document.getElementById('confirm-new-password') as HTMLElement, { target: { value: confirm } });
+};
+
+// The redesigned profile splits content across an 'overview' / 'settings' tab bar
+// (page.tsx:221,282). Account info, connected accounts and the password form all
+// live under 'settings', which is NOT the mounted default -- so tests must switch.
+const openSettings = async () => {
+  fireEvent.click(await screen.findByRole('button', { name: 'settings' }));
 };
 
 const submitPasswordForm = () => {
@@ -84,12 +90,13 @@ describe('UserProfilePage (/profile)', () => {
     vi.mocked(useAuth).mockReturnValue(authed({ user: basicUser }));
     vi.mocked(AuthService.getMe).mockResolvedValue(basicUser);
     render(<UserProfilePageRoute />);
+    await openSettings();
     expect(await screen.findByText('alice')).toBeInTheDocument();
-    expect(screen.getByText('Username:')).toBeInTheDocument();
-    expect(screen.getByText('Email:')).toBeInTheDocument();
+    expect(screen.getByText('Username')).toBeInTheDocument();
+    expect(screen.getByText('Email')).toBeInTheDocument();
     expect(screen.getByText('alice@example.com')).toBeInTheDocument();
-    expect(screen.getByText('Role:')).toBeInTheDocument();
-    expect(screen.getByText('BASIC_USER')).toBeInTheDocument();
+    expect(screen.getByText('Role')).toBeInTheDocument();
+    expect(screen.getByText('BASIC USER')).toBeInTheDocument();
   });
 
   it('shows the spinner while the profile is loading', () => {
@@ -107,7 +114,12 @@ describe('UserProfilePage (/profile)', () => {
 
   it('builds connect-account hrefs from NEXT_PUBLIC_API_BASE when set', async () => {
     process.env.NEXT_PUBLIC_API_BASE = 'http://api.example.com';
-    render(<UserProfilePageRoute />);
+    // API_BASE_URL is a module-level const in api-config.ts, frozen at import.
+    // The module graph must be reset and the page re-imported for a new base.
+    vi.resetModules();
+    const { default: FreshProfileRoute } = await import('./page');
+    render(<FreshProfileRoute />);
+    await openSettings();
     expect(await screen.findByText('admin')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Connect Google' })).toHaveAttribute(
       'href',
@@ -121,6 +133,7 @@ describe('UserProfilePage (/profile)', () => {
 
   it('defaults connect-account hrefs to localhost when no env var is set', async () => {
     render(<UserProfilePageRoute />);
+    await openSettings();
     expect(await screen.findByText('admin')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Connect Google' })).toHaveAttribute(
       'href',
@@ -134,6 +147,7 @@ describe('UserProfilePage (/profile)', () => {
 
   it('blocks submission and alerts when the new passwords do not match', async () => {
     render(<UserProfilePageRoute />);
+    await openSettings();
     await screen.findByText('admin');
     fillPasswordForm('old', 'newpass1', 'different');
     submitPasswordForm();
@@ -144,6 +158,7 @@ describe('UserProfilePage (/profile)', () => {
   it('blocks submission when there is no auth token', async () => {
     vi.mocked(useAuth).mockReturnValue(authed({ token: null }));
     render(<UserProfilePageRoute />);
+    await openSettings();
     await screen.findByText('admin');
     fillPasswordForm('old', 'newpass1', 'newpass1');
     submitPasswordForm();
@@ -153,6 +168,7 @@ describe('UserProfilePage (/profile)', () => {
 
   it('changes the password, shows a success message, and clears the fields', async () => {
     render(<UserProfilePageRoute />);
+    await openSettings();
     await screen.findByText('admin');
     fillPasswordForm('oldpass', 'newpass1', 'newpass1');
     submitPasswordForm();
@@ -172,6 +188,7 @@ describe('UserProfilePage (/profile)', () => {
   it('surfaces the API error message when the change fails', async () => {
     vi.mocked(AuthService.changePassword).mockRejectedValue(new Error('Old password is incorrect.'));
     render(<UserProfilePageRoute />);
+    await openSettings();
     await screen.findByText('admin');
     fillPasswordForm('wrong', 'newpass1', 'newpass1');
     submitPasswordForm();
@@ -181,6 +198,7 @@ describe('UserProfilePage (/profile)', () => {
   it('falls back to a generic message when the error message is empty', async () => {
     vi.mocked(AuthService.changePassword).mockRejectedValue(new Error(''));
     render(<UserProfilePageRoute />);
+    await openSettings();
     await screen.findByText('admin');
     fillPasswordForm('old', 'newpass1', 'newpass1');
     submitPasswordForm();
@@ -190,6 +208,7 @@ describe('UserProfilePage (/profile)', () => {
   it('falls back to a generic message for a non-Error rejection', async () => {
     vi.mocked(AuthService.changePassword).mockRejectedValue('service unavailable');
     render(<UserProfilePageRoute />);
+    await openSettings();
     await screen.findByText('admin');
     fillPasswordForm('old', 'newpass1', 'newpass1');
     submitPasswordForm();
@@ -205,15 +224,18 @@ describe('UserProfilePage (/profile)', () => {
         }) as ReturnType<typeof AuthService.changePassword>
     );
     render(<UserProfilePageRoute />);
+    await openSettings();
     await screen.findByText('admin');
     fillPasswordForm('old', 'newpass1', 'newpass1');
     submitPasswordForm();
-    expect(screen.getByRole('button')).toBeDisabled();
+    expect(document.querySelector('form button[type="submit"]')).toBeDisabled();
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
     await act(async () => {
       resolveChange({});
     });
-    await waitFor(() => expect(screen.getByRole('button')).toBeEnabled());
+    await waitFor(() =>
+      expect(document.querySelector('form button[type="submit"]')).toBeEnabled()
+    );
     expect(await screen.findByText('Password changed successfully.')).toBeInTheDocument();
   });
 });

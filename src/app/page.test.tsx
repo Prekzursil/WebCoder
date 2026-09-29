@@ -43,11 +43,11 @@ describe('HomePage (route "/")', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: 'Welcome to WebCoder' })).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { level: 2, name: 'The ultimate platform for competitive programming.' })
+      screen.getByText('The ultimate platform for competitive programming.')
     ).toBeInTheDocument();
     expect(screen.getByText(/compete with a community of developers/i)).toBeInTheDocument();
 
-    const viewProblems = screen.getByRole('link', { name: 'View Problems' });
+    const viewProblems = screen.getByRole('link', { name: /View Problems/ });
     expect(viewProblems.getAttribute('href')).toBe('/problems');
     const signUp = screen.getByRole('link', { name: 'Sign Up' });
     expect(signUp.getAttribute('href')).toBe('/register');
@@ -60,7 +60,7 @@ describe('HomePage (route "/")', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Bun venit la WebCoder' })).toBeInTheDocument();
     // Subtitle now carries a Romanian value in the shared resources.
     expect(
-      screen.getByRole('heading', { level: 2, name: 'Platforma definitivă pentru programare competitivă.' })
+      screen.getByText('Platforma definitivă pentru programare competitivă.')
     ).toBeInTheDocument();
   });
 

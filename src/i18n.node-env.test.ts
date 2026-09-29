@@ -9,16 +9,16 @@ import i18n from './i18n';
 
 describe('i18n bootstrap (SSR / node)', () => {
   it('has no window in this environment', () => {
-    expect(typeof window)?.toBe('undefined');
+    expect(typeof window).toBe('undefined');
   });
 
   it('skips the browser language detector and still initializes', () => {
-    expect(i18n?.isInitialized)?.toBe(true);
-    expect(i18n?.services?.languageDetector)?.toBeUndefined();
+    expect(i18n.isInitialized).toBe(true);
+    expect(i18n.services.languageDetector).toBeUndefined();
   });
 
   it('translates from the bundled resources without any detector', () => {
-    expect(i18n?.t('nav_home'))?.toBe('Home');
-    expect(i18n?.t('nav_problems', { lng: 'ro' }))?.toBe('Probleme');
+    expect(i18n.t('nav_home')).toBe('Home');
+    expect(i18n.t('nav_problems', { lng: 'ro' })).toBe('Probleme');
   });
 });

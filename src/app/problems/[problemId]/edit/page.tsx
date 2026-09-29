@@ -2,7 +2,6 @@
 
 import ProtectedRoute from '@/components/common/ProtectedRoute';
 import ProblemFormPage from '../../_components/ProblemFormPage';
-import { useParams } from 'react-router-dom';
 
 
 

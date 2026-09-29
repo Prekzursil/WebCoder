@@ -9,7 +9,7 @@ describe('problems loading boundary', () => {
   it('renders the shared spinner with its loading label', () => {
     render(<ProblemsLoading />);
 
-    expect(screen?.getByText('Loading...'))?.toBeInTheDocument();
-    expect(document.querySelector('.spinner'))?.not?.toBeNull();
+    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(document.querySelector('.spinner')).not.toBeNull();
   });
 });

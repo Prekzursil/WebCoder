@@ -8,20 +8,20 @@ import i18n from './i18n';
 
 describe('i18n bootstrap (browser)', () => {
   it('initializes i18next with the bundled resources', () => {
-    expect(i18n?.isInitialized)?.toBe(true);
-    expect(i18n?.t('nav_home'))?.toBe('Home');
-    expect(i18n?.t('app_title'))?.toBe('WebCoder');
+    expect(i18n.isInitialized).toBe(true);
+    expect(i18n.t('nav_home')).toBe('Home');
+    expect(i18n.t('app_title')).toBe('WebCoder');
   });
 
   it('wires the browser language detector when window exists', () => {
     // i18next only exposes services.languageDetector when a detector module
     // was registered via .use() — the window-present branch of the guard.
-    expect(i18n?.services?.languageDetector)?.toBeTruthy();
+    expect(i18n.services.languageDetector).toBeTruthy();
   });
 
   it('interpolates and falls back to English for unsupported locales', () => {
-    expect(i18n?.t('nav_welcome_user', { username: 'Ada', lng: 'en' }))?.toBe('Welcome, Ada!');
-    expect(i18n?.t('nav_problems', { lng: 'xx' }))?.toBe('Problems');
-    expect(i18n?.t('nav_problems', { lng: 'ro' }))?.toBe('Probleme');
+    expect(i18n.t('nav_welcome_user', { username: 'Ada', lng: 'en' })).toBe('Welcome, Ada!');
+    expect(i18n.t('nav_problems', { lng: 'xx' })).toBe('Problems');
+    expect(i18n.t('nav_problems', { lng: 'ro' })).toBe('Probleme');
   });
 });

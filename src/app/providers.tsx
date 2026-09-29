@@ -67,24 +67,33 @@ const darkTheme = createTheme({
       },
     },
     MuiButton: {
-      styleOverrides: {
-        containedPrimary: {
-          background: '#38bdf8',
-          color: '#0f172a',
-          fontWeight: 600,
-          '&:hover': {
-            background: '#7dd3fc',
+      // MUI v6+ dropped the composite `containedPrimary` / `outlinedPrimary`
+      // styleOverrides keys; `variants` is the supported equivalent. Colours and
+      // hover states below are unchanged from the original overrides.
+      variants: [
+        {
+          props: { variant: 'contained', color: 'primary' },
+          style: {
+            background: '#38bdf8',
+            color: '#0f172a',
+            fontWeight: 600,
+            '&:hover': {
+              background: '#7dd3fc',
+            },
           },
         },
-        outlinedPrimary: {
-          borderColor: 'rgba(56,189,248,0.4)',
-          color: '#38bdf8',
-          '&:hover': {
-            borderColor: '#38bdf8',
-            background: 'rgba(56,189,248,0.08)',
+        {
+          props: { variant: 'outlined', color: 'primary' },
+          style: {
+            borderColor: 'rgba(56,189,248,0.4)',
+            color: '#38bdf8',
+            '&:hover': {
+              borderColor: '#38bdf8',
+              background: 'rgba(56,189,248,0.08)',
+            },
           },
         },
-      },
+      ],
     },
     MuiDivider: {
       styleOverrides: {
