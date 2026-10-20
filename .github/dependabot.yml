@@ -1,32 +1,12 @@
 version: 2
 updates:
-- package-ecosystem: pip
-  directory: /backend
-  schedule:
-    interval: weekly
-  open-pull-requests-limit: 10
-  groups:
-    pip-backend-patch-minor:
-      patterns:
-      - '*'
-      update-types:
-      - patch
-      - minor
-  ignore:
-  - dependency-name: '*'
-    update-types:
-    - version-update:semver-major
-  labels:
-  - dependencies
-  - type:chore
-  - area:ci
 - package-ecosystem: npm
-  directory: /frontend/webcoder_ui
+  directory: /
   schedule:
     interval: weekly
   open-pull-requests-limit: 10
   groups:
-    npm-frontend-webcoder-ui-patch-minor:
+    npm-root-patch-minor:
       patterns:
       - '*'
       update-types:
