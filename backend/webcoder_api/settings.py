@@ -93,6 +93,7 @@ INSTALLED_APPS = [
     "submissions.apps.SubmissionsConfig",
     "leaderboard",
     "notifications",
+    "forum",
 ]
 
 SITE_ID = 1

@@ -41,6 +41,7 @@ urlpatterns = [
         "api/v1/notifications/",
         include("notifications.urls", namespace="notifications_api_v1"),
     ),
+    path("api/v1/forum/", include("forum.urls", namespace="forum_api_v1")),
     # JWT Token Authentication
     path("api/v1/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/v1/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
