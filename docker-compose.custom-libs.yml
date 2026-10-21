@@ -1,0 +1,56 @@
+# WebCoder — custom-libs judge egress variant (SPEC-GAPS J3/E1 follow-up).
+#
+# OPT-IN overlay for operators who want python3 `custom_libraries_allowed`
+# problems to actually install packages. Default behavior (no overlay):
+# the one-shot pip install container runs with `--network none` and every
+# custom-libs submission fails closed — judged code NEVER gets network.
+#
+# With this overlay the pip install container joins an INTERNAL network
+# (`judge-build`) whose only egress member is pypi-proxy, a pypiserver
+# serving the operator-seeded ./pypi-packages directory (offline allowlist:
+# only wheels you placed there can ever be installed — no implicit PyPI
+# mirror, no arbitrary internet fetch). The judged RUNS stay network-
+# isolated (network_mode: none) regardless.
+#
+# Usage:
+#   mkdir -p pypi-packages        # drop approved wheels (e.g. numpy-1.26.4-cp311-*.whl)
+#   docker compose -f docker-compose.yml -f docker-compose.custom-libs.yml up -d --build
+#
+# Verified egress contract (RUNBOOK §judge-pip-egress): from the pip
+# container only http://pypi-proxy:8080 is reachable; the judge-runner and
+# every judged run have no network at all.
+
+services:
+  pypi-proxy:
+    image: pypiserver/pypiserver:v2.2.0
+    command: ["run", "-p", "8080", "--hash-algo", "sha256", "/data/packages"]
+    volumes:
+      # Operator-seeded package allowlist (wheels only; offline mirror).
+      - ./pypi-packages:/data/packages
+    networks:
+      - judge-build
+      - default
+    restart: unless-stopped
+
+  backend:
+    environment:
+      # The one-shot pip container joins the internal judge-build network
+      # (docker network webcoder_judge-build, created below) and resolves
+      # pypi-proxy inside it.
+      JUDGE_PIP_NETWORK: webcoder_judge-build
+      JUDGE_PYPI_INDEX_URL: http://pypi-proxy:8080/simple/
+    depends_on:
+      pypi-proxy:
+        condition: service_started
+
+  celery-worker:
+    environment:
+      JUDGE_PIP_NETWORK: webcoder_judge-build
+      JUDGE_PYPI_INDEX_URL: http://pypi-proxy:8080/simple/
+    depends_on:
+      pypi-proxy:
+        condition: service_started
+
+networks:
+  judge-build:
+    internal: true

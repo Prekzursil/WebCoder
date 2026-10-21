@@ -1,5 +1,6 @@
 from rest_framework import viewsets, permissions, status, generics
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from webcoder_api.pagination import NewestFirstCursorPagination
 from .models import Submission
 from .serializers import (
@@ -59,6 +60,10 @@ class SubmissionCreateView(generics.CreateAPIView):
     permission_classes = [
         permissions.IsAuthenticated
     ]  # Only authenticated users can submit
+    # SPEC-GAPS SP4: each submission spawns compile+run judge containers —
+    # the judge-DoS chokepoint. Scope-throttled at THROTTLE_RATES['submit'].
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "submit"
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

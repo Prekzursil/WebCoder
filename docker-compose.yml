@@ -68,9 +68,15 @@ services:
       # Prod judge path: submissions run inside the sandboxed judge-runner
       # container via `docker exec` (submissions/judge_utils/backend.py).
       JUDGE_BACKEND: container
+      # Named volume behind the shared /srv/judge mount (custom-libs pip
+      # install container mounts it by this name; unset = fail closed).
+      JUDGE_SANDBOX_VOLUME: webcoder_judge-sandbox
       # Celery over redis (webcoder_api/celery.py honours CELERY_BROKER_URL;
       # filesystem:// remains the local-dev default when this is unset).
       CELERY_BROKER_URL: redis://redis:6379/0
+      # Shared throttle cache (SPEC-GAPS SP4): rate-limit counters shared
+      # across gunicorn/celery processes instead of per-process LocMem.
+      REDIS_URL: redis://redis:6379/1
     # The service runs as non-root uid 1000 (backend/Dockerfile USER), but
     # the host-mounted docker.sock is root:root 0660 (Docker Desktop bind;
     # there is no docker group to join). Supplementary gid 0 grants the
@@ -118,7 +124,9 @@ services:
       DB_HOST: postgres
       DB_PORT: "5432"
       JUDGE_BACKEND: container
+      JUDGE_SANDBOX_VOLUME: webcoder_judge-sandbox
       CELERY_BROKER_URL: redis://redis:6379/0
+      REDIS_URL: redis://redis:6379/1
     # Non-root uid 1000 + docker.sock root:root 0660: supplementary gid 0
     # for socket access (see the backend service note above).
     group_add:

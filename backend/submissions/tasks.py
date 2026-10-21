@@ -10,6 +10,7 @@ import pathlib
 from .judge_utils.backend import CONTAINER, get_judge_backend, judge_workspace_root
 from .judge_utils.comparison import compare_outputs
 from .judge_utils.compilation import compile_code_in_sandbox
+from .judge_utils.custom_libs import install_custom_libs
 from .judge_utils.execution import run_code_in_sandbox
 from .judge_utils.checkers import run_custom_checker
 from leaderboard.aggregation import update_user_entry_task
@@ -116,6 +117,29 @@ def judge_submission_task(self, submission_id):
             submission.verdict = Submission.VerdictStatus.RUNNING
             submission.detailed_feedback = f"Compilation successful. Running test cases...\nCompiler Output:\n{compiler_output}"
             submission.save()
+
+        # Custom-library install phase (SPEC-GAPS J3/E1): ONE pip container
+        # per submission, BEFORE any judged run. Fail-closed egress by
+        # default (JUDGE_PIP_NETWORK=none); the judged runs themselves stay
+        # network-isolated either way (execution.py).
+        if submission.language == "python3" and problem.custom_libraries_allowed:
+            libs_ok, libs_message = install_custom_libs(
+                submission_dir, problem.custom_libraries_allowed
+            )
+            if not libs_ok:
+                with transaction.atomic():
+                    submission = Submission.objects.select_for_update().get(
+                        id=submission_id
+                    )
+                    submission.verdict = Submission.VerdictStatus.INTERNAL_ERROR
+                    submission.detailed_feedback = (
+                        "Custom library installation failed.\n" + libs_message
+                    )
+                    submission.save()
+                    _notify_judged(submission, submission.verdict)
+                if temp_dir_obj:
+                    temp_dir_obj.cleanup()
+                return f"Submission {submission_id}: library install failed."
 
         overall_verdict = Submission.VerdictStatus.ACCEPTED
         total_score = 0

@@ -65,6 +65,86 @@ class JudgeSubmissionTaskTest(TestCase):
         self.assertEqual(sub.verdict, Submission.VerdictStatus.COMPILE_ERROR)
         self.assertIn("Compile Error", msg)
 
+    # --- Custom-library install phase (SPEC-GAPS J3/E1) -------------------
+
+    def test_custom_libs_install_failure_internal_error_no_runs(self):
+        # Fail-closed install (no pip egress / allowlist hit at judge time)
+        # must verdict INTERNAL_ERROR without executing a single test case.
+        self.problem.custom_libraries_allowed = ["numpy"]
+        self.problem.save()
+        sub = self._sub()
+        with (
+            mock.patch(
+                f"{TASKS}.compile_code_in_sandbox",
+                return_value=(True, "ok", "/tmp/exe"),
+            ),
+            mock.patch(
+                f"{TASKS}.install_custom_libs",
+                return_value=(False, "no network egress (fail closed)"),
+            ) as install_mock,
+            mock.patch(f"{TASKS}.run_code_in_sandbox") as run_mock,
+        ):
+            msg = _call(sub.id)
+        sub.refresh_from_db()
+        self.assertEqual(sub.verdict, Submission.VerdictStatus.INTERNAL_ERROR)
+        self.assertIn("library install failed", msg)
+        self.assertIn("no network egress", sub.detailed_feedback)
+        install_mock.assert_called_once()
+        run_mock.assert_not_called()
+        self.assertEqual(SubmissionTestResult.objects.count(), 0)
+
+    def test_custom_libs_install_runs_once_before_test_loop(self):
+        # Exactly ONE install container per submission regardless of the
+        # number of test cases (the old flow re-installed per test case).
+        self.problem.custom_libraries_allowed = ["numpy"]
+        self.problem.save()
+        ProblemTestCase.objects.create(
+            problem=self.problem,
+            input_data="in2",
+            expected_output_data="out2",
+            points=10,
+            order=2,
+        )
+        sub = self._sub()
+        with (
+            mock.patch(
+                f"{TASKS}.compile_code_in_sandbox",
+                return_value=(True, "ok", "/tmp/exe"),
+            ),
+            mock.patch(
+                f"{TASKS}.install_custom_libs", return_value=(True, "installed")
+            ) as install_mock,
+            mock.patch(
+                f"{TASKS}.run_code_in_sandbox",
+                return_value=(Submission.VerdictStatus.ACCEPTED, 5, 100, "out", ""),
+            ),
+            mock.patch(f"{TASKS}.compare_outputs", return_value=True),
+        ):
+            _call(sub.id)
+        sub.refresh_from_db()
+        self.assertEqual(sub.verdict, Submission.VerdictStatus.ACCEPTED)
+        install_mock.assert_called_once()
+        # Install receives the submission workspace (where runs execute).
+        self.assertEqual(install_mock.call_args[0][1], ["numpy"])
+
+    def test_custom_libs_skipped_for_non_python_and_unlibbed(self):
+        # No install attempt when the problem declares no libraries.
+        sub = self._sub()
+        with (
+            mock.patch(
+                f"{TASKS}.compile_code_in_sandbox",
+                return_value=(True, "ok", "/tmp/exe"),
+            ),
+            mock.patch(f"{TASKS}.install_custom_libs") as install_mock,
+            mock.patch(
+                f"{TASKS}.run_code_in_sandbox",
+                return_value=(Submission.VerdictStatus.ACCEPTED, 5, 100, "out", ""),
+            ),
+            mock.patch(f"{TASKS}.compare_outputs", return_value=True),
+        ):
+            _call(sub.id)
+        install_mock.assert_not_called()
+
     def test_multiple_test_cases_first_fails(self):
         # A second test case so the loop iterates twice. The first fails (sets the
         # overall verdict), the second is ACCEPTED -> exercises the loop-back

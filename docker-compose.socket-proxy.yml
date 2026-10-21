@@ -1,0 +1,98 @@
+# WebCoder — docker-socket-proxy variant (SPEC-GAPS SP3 / v1 G12).
+#
+# Replaces the raw `/var/run/docker.sock` mount in the backend and
+# celery-worker services (root-equivalent host access — SECURITY-AUDIT-judge
+# J5) with tecnativa/docker-socket-proxy: a filtering reverse proxy that
+# exposes ONLY the Docker API endpoints the judge needs.
+#
+# The container-backend judge's entire docker usage is `docker exec` into
+# the fixed judge-runner container (submissions/judge_utils/backend.py),
+# which needs exactly: CONTAINERS=1 + EXEC=1 + POST=1 (exec = POST
+# /containers/{id}/exec then POST /exec/{id}/start) plus PING/VERSION for
+# clients. Everything else — image build/pull, container create, volumes,
+# networks, swarm, daemon config — stays denied (the proxy answers 403).
+#
+# NOTE: under this variant the python3 custom-libs pip install (which uses
+# a one-shot `docker run`, i.e. containers/create + images) stays FAIL
+# CLOSED unless an operator also flips IMAGES=1 and removes CONTAINERS
+# create-by-default; docker-compose.custom-libs.yml + this variant are
+# therefore mutually exclusive today (RUNBOOK §socket-proxy).
+#
+# Usage (documented in docs/RUNBOOK.md §socket-proxy):
+#   docker compose -f docker-compose.yml -f docker-compose.socket-proxy.yml up -d --build
+#
+# Acceptance smoke (RUNBOOK §socket-proxy):
+#   docker compose exec backend docker -H tcp://socket-proxy:2375 ps
+#     → lists webcoder-judge-runner (containers GET granted)
+#   docker compose exec backend docker -H tcp://socket-proxy:2375 exec webcoder-judge-runner id
+#     → uid=1000 gid=1000 (the judge path works through the proxy)
+#   docker compose exec backend docker -H tcp://socket-proxy:2375 run --rm hello-world
+#     → 403 (containers/create POST is not granted beyond exec; images not granted)
+#   docker compose exec backend docker -H tcp://socket-proxy:2375 info
+#     → 403 (daemon-level API denied)
+
+services:
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy:0.3.0
+    environment:
+      # Judge path grants:
+      CONTAINERS: 1
+      EXEC: 1
+      POST: 1
+      PING: 1
+      VERSION: 1
+      # Everything else denied (the proxy defaults to 0; the dangerous ones
+      # listed explicitly for auditability):
+      IMAGES: 0
+      SOCKETS: 0
+      TASKS: 0
+      NETWORKS: 0
+      VOLUMES: 0
+      BUILD: 0
+      COMMIT: 0
+      CONFIGS: 0
+      SECRETS: 0
+      SWARM: 0
+      SYSTEM: 0
+      INFO: 0
+      DISTRIBUTION: 0
+      SESSION: 0
+      PLUGINS: 0
+      AUTH: 0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - docker-sock
+    restart: unless-stopped
+
+  backend:
+    environment:
+      # Judge docker calls go through the proxy instead of the raw socket.
+      DOCKER_HOST: tcp://socket-proxy:2375
+    volumes: !override
+      # Raw docker.sock mount REMOVED; judge-sandbox stays.
+      - judge-sandbox:/srv/judge
+    networks:
+      - default
+      - docker-sock
+    depends_on:
+      socket-proxy:
+        condition: service_started
+
+  celery-worker:
+    environment:
+      DOCKER_HOST: tcp://socket-proxy:2375
+    volumes: !override
+      - judge-sandbox:/srv/judge
+    networks:
+      - default
+      - docker-sock
+    depends_on:
+      socket-proxy:
+        condition: service_started
+
+networks:
+  # Proxy-only network: the socket-proxy is reachable ONLY from inside the
+  # compose network, never published to the host.
+  docker-sock:
+    internal: true

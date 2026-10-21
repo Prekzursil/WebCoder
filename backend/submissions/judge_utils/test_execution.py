@@ -127,17 +127,12 @@ class RunCodeInSandboxTest(TestCase):
             verdict, *_ = self._run(custom_libraries_allowed=None)
         self.assertEqual(verdict, Submission.VerdictStatus.ACCEPTED)
 
-    def test_python_custom_libraries_enabled_filters_pip_noise(self):
-        noisy = (
-            "Collecting requests\n"
-            "Installing collected packages: requests\n"
-            "Successfully installed requests\n"
-            "Requirement already satisfied: x\n"
-            "Attempting to install custom Python libraries...\n"
-            "Finished library installation attempt.\n"
-            "WARNING: The script foo is installed in /x which is not on PATH.\n"
-            "real error line\n" + _RES
-        )
+    def test_python_custom_libraries_run_is_sandboxed(self):
+        # E1/J3 (SECURITY-AUDIT-judge J1 regression test): with custom libs
+        # the judged run must stay fully sandboxed — read-only mount,
+        # --network none, and NO pip in the run argv; the program is started
+        # with PYTHONPATH pointing at the pre-installed libs dir only.
+        noisy = "real error line\n" + _RES
         seen: dict = {}
 
         def fake_run(cmd, *a, **k):
@@ -151,16 +146,26 @@ class RunCodeInSandboxTest(TestCase):
             )
         self.assertEqual(verdict, Submission.VerdictStatus.ACCEPTED)
         self.assertIn("real error line", err)
-        self.assertNotIn("Collecting requests", err)
-        self.assertTrue((self.dir / "requirements_custom.txt").exists())
-        # rw mount + network bridge (legacy local-dev pip egress) + longer
-        # communication window for the pip flow.
-        self.assertIn(f"{self.dir.resolve()}:/app:rw", seen["argv"])
+        argv = seen["argv"]
+        # Read-only submission mount, never rw.
+        self.assertIn(f"{self.dir.resolve()}:/app:ro", argv)
+        # Network isolation, never bridge.
         self.assertIn(
-            ["--network", "bridge"],
-            [seen["argv"][i:i + 2] for i in range(len(seen["argv"]) - 1)],
+            ["--network", "none"],
+            [argv[i:i + 2] for i in range(len(argv) - 1)],
         )
-        self.assertEqual(seen["kwargs"]["timeout"], 11.0)
+        # PYTHONPATH shim instead of an in-run pip install.
+        sh_index = argv.index("sh")
+        self.assertEqual(argv[sh_index + 1], "-c")
+        self.assertIn("PYTHONPATH=libs", argv[sh_index + 2])
+        self.assertIn("user_code.py", argv[sh_index + 2])
+        pip_fragments = [a for a in argv if "pip" in str(a)]
+        self.assertEqual(pip_fragments, [])
+        # Standard communication window (no pip tail).
+        self.assertEqual(seen["kwargs"]["timeout"], 4.0)
+        # The requirements file is written by the install phase
+        # (custom_libs.install_custom_libs), never by the judged run.
+        self.assertFalse((self.dir / "requirements_custom.txt").exists())
 
     def test_stderr_without_resource_line(self):
         # stderr present but no line with parts[4] endswith '%' -> the
@@ -263,13 +268,18 @@ class RunCodeInSandboxTest(TestCase):
         self.assertIn("Exit code: 3", err)
 
     def test_python_pip_install_error_branch(self):
+        # With pip moved out of the judged run, a failing program with
+        # pip-flavored stderr is a plain RUNTIME_ERROR echoing the stderr
+        # (install-phase errors are custom_libs' contract, covered by
+        # test_custom_libs.py).
         pip_err = (
             "ERROR: Could not find a version that satisfies the requirement nope\n"
         )
         with _patch_run(returncode=1, stderr=pip_err):
             verdict, _t, _m, _out, err = self._run(custom_libraries_allowed=["nope"])
         self.assertEqual(verdict, Submission.VerdictStatus.RUNTIME_ERROR)
-        self.assertIn("Python Library Install Error", err)
+        self.assertIn("Could not find a version", err)
+        self.assertIn("Exit code: 1", err)
 
     def test_communicate_timeout_expired(self):
         with mock.patch.object(
@@ -281,19 +291,22 @@ class RunCodeInSandboxTest(TestCase):
         self.assertEqual(verdict, Submission.VerdictStatus.TIME_LIMIT_EXCEEDED)
         self.assertIn("Communicate timeout", err)
 
-    def test_communicate_timeout_with_custom_libs_longer_window(self):
+    def test_communicate_timeout_standard_window_with_custom_libs(self):
+        # E1/J3: pip no longer runs inside the judged run, so custom-libs
+        # runs get the SAME communication window as every other run
+        # (time limit + 3s), not the old +10s pip tail.
         seen: dict = {}
 
         def fake_run(cmd, *a, **k):
             seen["kwargs"] = k
-            raise subprocess.TimeoutExpired(cmd="docker", timeout=11)
+            raise subprocess.TimeoutExpired(cmd="docker", timeout=4)
 
         with mock.patch.object(execution.subprocess, "run", side_effect=fake_run):
             verdict, _t, _m, _out, _err = self._run(
                 custom_libraries_allowed=["requests"]
             )
         self.assertEqual(verdict, Submission.VerdictStatus.TIME_LIMIT_EXCEEDED)
-        self.assertEqual(seen["kwargs"]["timeout"], 11.0)
+        self.assertEqual(seen["kwargs"]["timeout"], 4.0)
 
     def test_docker_not_found(self):
         with mock.patch.object(
