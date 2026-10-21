@@ -264,6 +264,12 @@ SIMPLE_JWT = {
 # the JWT frontend contract).
 REST_AUTH = {
     "USE_JWT": True,
+    # dj-rest-auth 7.x defaults JWT_AUTH_HTTPONLY to True, which BLANKS the
+    # refresh token from the login response body (and, with no
+    # JWT_AUTH_REFRESH_COOKIE set, sets no cookie either — the refresh token
+    # simply never reaches the client). The frontend stores tokens from the
+    # body, so body mode it is; the httpOnly-cookie migration flips this.
+    "JWT_AUTH_HTTPONLY": False,
     "LOGIN_SERIALIZER": "users.serializers.CustomLoginSerializer",
     "SIGNUP_FIELDS": ACCOUNT_SIGNUP_FIELDS,
 }
