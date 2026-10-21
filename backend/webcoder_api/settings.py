@@ -258,8 +258,11 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
-REST_USE_JWT = True
-DJ_REST_AUTH = {
+# dj-rest-auth 7.x reads the REST_AUTH dict (DJ_REST_AUTH and the top-level
+# REST_USE_JWT are pre-5.x names that 7.x silently ignores — with them the
+# login endpoint falls back to Token-auth {"key": ...} responses, breaking
+# the JWT frontend contract).
+REST_AUTH = {
     "USE_JWT": True,
     "LOGIN_SERIALIZER": "users.serializers.CustomLoginSerializer",
     "SIGNUP_FIELDS": ACCOUNT_SIGNUP_FIELDS,
