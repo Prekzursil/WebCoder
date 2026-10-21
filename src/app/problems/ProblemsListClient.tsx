@@ -200,7 +200,9 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
         type="button"
         className="th-sort"
         onClick={() => toggleSort(key)}
-        aria-label={sortDir === 'asc' ? t('sort_descending', 'Sort descending') : t('sort_ascending', 'Sort ascending')}
+        // [Q7/Q12] axe label-content-name-mismatch (serious): the accessible
+        // name must contain the button's visible text (the column label).
+        aria-label={`${label} — ${sortDir === 'asc' ? t('sort_descending', 'Sort descending') : t('sort_ascending', 'Sort ascending')}`}
       >
         {label}
         <span aria-hidden="true" style={{ fontSize: '0.6rem' }}>
