@@ -87,22 +87,35 @@ class ProblemViewSet(viewsets.ModelViewSet):
                 hasattr(user, "role")
                 and user.role in [User.Roles.ADMIN, User.Roles.PROBLEM_VERIFIER]
             ):
-                return Problem.objects.all()  # Admins/Verifiers see all
-            # Authenticated users see APPROVED problems and their own DRAFT/PENDING problems
-            return Problem.objects.filter(
-                models.Q(status=Problem.ProblemStatus.APPROVED)
-                | (
-                    models.Q(author=user)
-                    & models.Q(
-                        status__in=[
-                            Problem.ProblemStatus.DRAFT,
-                            Problem.ProblemStatus.PENDING_APPROVAL,
-                        ]
+                qs = Problem.objects.all()  # Admins/Verifiers see all
+            else:
+                # Authenticated users see APPROVED problems and their own DRAFT/PENDING problems
+                qs = Problem.objects.filter(
+                    models.Q(status=Problem.ProblemStatus.APPROVED)
+                    | (
+                        models.Q(author=user)
+                        & models.Q(
+                            status__in=[
+                                Problem.ProblemStatus.DRAFT,
+                                Problem.ProblemStatus.PENDING_APPROVAL,
+                            ]
+                        )
                     )
-                )
-            ).distinct()
-        # Anonymous users only see APPROVED problems
-        return Problem.objects.filter(status=Problem.ProblemStatus.APPROVED)
+                ).distinct()
+        else:
+            # Anonymous users only see APPROVED problems
+            qs = Problem.objects.filter(status=Problem.ProblemStatus.APPROVED)
+        # Catalog stats add-on (SPEC-GAPS D-B8): "X tried / Y solved" per
+        # problem card. distinct=True keeps counts exact under the author
+        # branch's .distinct().
+        return qs.annotate(
+            submission_count=models.Count("submissions"),
+            solved_count=models.Count(
+                "submissions",
+                filter=models.Q(submissions__verdict="AC"),
+                distinct=True,
+            ),
+        )
 
     @action(detail=True, methods=["post"], url_path="submit-for-approval")
     def submit_for_approval(self, request, pk=None):
