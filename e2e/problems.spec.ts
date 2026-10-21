@@ -10,6 +10,16 @@
 //   ("Time Limit" / "1000 ms"); sample cases are headed "Example N".
 
 import { test, expect } from '@playwright/test';
+import { isRealStack, ensureRealStackFixtures } from './lib/realStack';
+
+// Real-backend mode: seed Two Sum / Reverse String on the live stack (see
+// e2e/lib/realStack.ts) so the same assertions hold against Django.
+let seeded = { twoSumId: 1, reverseId: 2 };
+
+test.beforeAll(async () => {
+  if (isRealStack) seeded = await ensureRealStackFixtures();
+});
+
 
 test('catalog lists mocked problems with difficulty and status', async ({
   page,
@@ -31,14 +41,15 @@ test('catalog lists mocked problems with difficulty and status', async ({
 
 test('catalog items link to the problem detail page', async ({ page }) => {
   await page?.goto('/problems');
-  await page?.getByRole('link', { name: 'Two Sum' })?.click();
-  await expect(page)?.toHaveURL(/\/problems\/1$/);
+  page?.getByRole('link', { name: 'Two Sum' })?.click();
+  // Mock mode pins id 1; real mode uses the seeded id (e2e/lib/realStack.ts).
+  await expect(page)?.toHaveURL(new RegExp(`/problems/${seeded.twoSumId}$`));
 });
 
 test('problem detail renders statement, limits and sample test cases', async ({
   page,
 }) => {
-  await page?.goto('/problems/1');
+  await page?.goto(`/problems/${seeded.twoSumId}`);
 
   await expect(page?.getByRole('heading', { level: 1 }))?.toHaveText('Two Sum');
   await expect(page?.getByText('Time Limit'))?.toBeVisible();

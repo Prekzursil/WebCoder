@@ -46,6 +46,9 @@ vi.mock('@/services/ApiService', () => ({
     login: vi.fn(),
     register: vi.fn(),
     getMe: vi.fn(),
+    // [Q13] the login flow enriches the stored user via /users/me/ with
+    // the just-received token before any state persistence happens.
+    getMeWithToken: vi.fn(),
     getUser: vi.fn(),
     changePassword: vi.fn(),
   },
@@ -55,6 +58,7 @@ const validUser: User = { id: 7, username: 'porter', email: 'porter@example.com'
 const fullLogin: LoginResponse = { access: 'access-token', refresh: 'refresh-token', user: validUser };
 
 const loginMock = vi.mocked(AuthService.login);
+const getMeWithTokenMock = vi.mocked(AuthService.getMeWithToken);
 
 function renderLogin() {
   return render(<LoginPage />);
@@ -71,6 +75,9 @@ function submitCredentials(username: string, password: string) {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.unstubAllEnvs();
+  // Default: /users/me/ echoes the login user (individual tests override
+  // to assert the [Q13] enrichment path).
+  getMeWithTokenMock.mockResolvedValue(validUser);
 });
 
 // vitest runs with globals: false, so @testing-library/react's automatic
@@ -123,6 +130,36 @@ describe('LoginPage', () => {
     expect(authMock.login).toHaveBeenCalledWith('access-token', 'refresh-token', validUser);
     expect(routerMock.push).toHaveBeenCalledWith('/');
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('[Q13] enriches the stored user from /users/me/ when the login payload lacks the role', async () => {
+    renderLogin();
+    // dj-rest-auth login payload: pk/username/email only — no id/role.
+    const bareUser = { pk: 7, username: 'porter', email: 'porter@example.com' } as unknown as typeof fullLogin.user;
+    loginMock.mockResolvedValueOnce({ ...fullLogin, user: bareUser });
+    const enriched: User = { ...validUser, role: 'ADMIN' };
+    getMeWithTokenMock.mockResolvedValueOnce(enriched);
+
+    submitCredentials('Ada', 's3cret');
+
+    await waitFor(() => expect(authMock.login).toHaveBeenCalled());
+    // The full /users/me/ profile wins over the bare login payload.
+    expect(getMeWithTokenMock).toHaveBeenCalledWith('access-token');
+    expect(authMock.login).toHaveBeenCalledWith('access-token', 'refresh-token', enriched);
+    expect(routerMock.push).toHaveBeenCalledWith('/');
+  });
+
+  it('[Q13] still logs in with the bare payload when /users/me/ fails', async () => {
+    renderLogin();
+    const bareUser = { pk: 7, username: 'porter', email: 'porter@example.com' } as unknown as typeof fullLogin.user;
+    loginMock.mockResolvedValueOnce({ ...fullLogin, user: bareUser });
+    getMeWithTokenMock.mockRejectedValueOnce(new Error('boom'));
+
+    submitCredentials('Ada', 's3cret');
+
+    await waitFor(() => expect(authMock.login).toHaveBeenCalled());
+    expect(authMock.login).toHaveBeenCalledWith('access-token', 'refresh-token', bareUser);
+    expect(routerMock.push).toHaveBeenCalledWith('/');
   });
 
   it('shows a spinner and disables the submit button while logging in', async () => {

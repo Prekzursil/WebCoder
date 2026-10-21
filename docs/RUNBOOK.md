@@ -27,6 +27,28 @@ celery -A webcoder_api worker -l info            # filesystem broker (see caveat
 JUDGE_BACKEND=local                              # judged commands run ON HOST — dev only
 ```
 
+## Real-backend e2e mode (QA wave 5, [Q13])
+
+The Playwright suite defaults to the hermetic mock API (CI never needs a
+backend). To run the SAME specs against the live compose stack:
+
+```bash
+# 1. The stack must allow the dev-server origin (CORS) — wt-live override:
+#    services.backend.environment.CORS_ALLOWED_ORIGINS with http://localhost:3311
+#    (settings.py reads CORS_ALLOWED_ORIGINS; restart backend after changing).
+# 2. Run with the toggle:
+E2E_API_BASE=http://127.0.0.1:8010 npx playwright test
+```
+
+- The mock API server is NOT started; `NEXT_PUBLIC_API_BASE` points at the
+  live stack for both server-side and browser fetches (no route mocks).
+- The seeded fixtures (`e2e/lib/realStack.ts`) self-heal: Two Sum / Reverse
+  String are created once per run and deleted by the global teardown.
+- `E2E_ADMIN_USER` / `E2E_ADMIN_PASS` (defaults: admin / the compose admin
+  password) seed fixtures; `bob / BobPass-2026!x` is the non-admin probe user.
+- The catalog's 60s ISR fetch cache is disabled while `E2E_API_BASE` is set
+  (`src/app/problems/_lib/problems-api.ts`) so seeding is immediately visible.
+
 ## Test batteries (all currently green; keep them that way per PR)
 
 ```bash

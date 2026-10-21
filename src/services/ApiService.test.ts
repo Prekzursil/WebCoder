@@ -219,6 +219,20 @@ describe('apiFetch baseline behavior (unchanged by the refresh wrapper)', () => 
     expect(new Headers(init?.headers).get('Authorization')).toBe('Bearer expired-access');
   });
 
+  it('getMeWithToken sends the EXPLICIT token even while a stale one sits in localStorage [Q13]', async () => {
+    // Login flow: tokens are not persisted yet when /users/me/ runs with
+    // the just-received access token — an explicitly provided Authorization
+    // header must win over the stored (possibly different/absent) one.
+    localStorage.setItem('accessToken', 'stale-token');
+    const fetchMock = mockFetch(async () => jsonResponse({ id: 1, username: 'admin', role: 'ADMIN' }));
+
+    const me = await AuthService.getMeWithToken('fresh-token');
+    expect(me.username).toBe('admin');
+    const [, init] = fetchMock.mock.calls[0];
+    const headers = new Headers(init?.headers);
+    expect(headers.get('Authorization')).toBe('Bearer fresh-token');
+  });
+
   it('sends JSON bodies with Content-Type and no Authorization header when logged out', async () => {
     localStorage.clear();
     const fetchMock = mockFetch(async () => jsonResponse({ access: 'a', refresh: 'r', user: { id: 1 } }));
@@ -244,6 +258,41 @@ describe('apiFetch baseline behavior (unchanged by the refresh wrapper)', () => 
   it('throws Error(statusText) when the error body has no detail', async () => {
     mockFetch(async () => jsonResponse({}, { status: 500, statusText: 'Internal Server Error' }));
     await expect(AuthService.getMe()).rejects.toThrow('Internal Server Error');
+  });
+
+  // [Q13] Real Django error shapes — dj-rest-auth posts failures as
+  // non_field_errors, serializers as {field: [msgs]}; before the fix these
+  // all surfaced as the bare statusText ("Bad Request").
+  it('surfaces non_field_errors from real login failures', async () => {
+    mockFetch(async () =>
+      jsonResponse(
+        { non_field_errors: ['Unable to log in with provided credentials.'] },
+        { status: 400, statusText: 'Bad Request' }
+      )
+    );
+    await expect(AuthService.login({ username: 'x', password: 'y' })).rejects.toThrow(
+      'Unable to log in with provided credentials.'
+    );
+  });
+
+  it('surfaces the first serializer field error when there is no detail', async () => {
+    mockFetch(async () =>
+      jsonResponse(
+        { password1: ['This password is too common.'] },
+        { status: 400, statusText: 'Bad Request' }
+      )
+    );
+    await expect(AuthService.getMe()).rejects.toThrow('This password is too common.');
+  });
+
+  it('still prefers detail over the other shapes', async () => {
+    mockFetch(async () =>
+      jsonResponse(
+        { detail: 'Not found.', non_field_errors: ['ignored'] },
+        { status: 404, statusText: 'Not Found' }
+      )
+    );
+    await expect(AuthService.getMe()).rejects.toThrow('Not found.');
   });
 });
 
