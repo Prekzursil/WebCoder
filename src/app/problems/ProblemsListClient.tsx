@@ -3,13 +3,12 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { ProblemType } from '@/types';
-import type { PublicLocale, PublicTranslator } from '../_lib/public-i18n';
+import { createTranslator, type PublicLocale } from '../_lib/public-messages';
 
 interface ProblemsListClientProps {
   problems: ProblemType[];
   fetchError: string | null;
   locale: PublicLocale;
-  t: PublicTranslator;
 }
 
 const difficultyColors: Record<string, string> = {
@@ -21,10 +20,15 @@ const difficultyColors: Record<string, string> = {
 const DIFFICULTIES = ['easy', 'medium', 'hard'];
 const STATUSES = ['approved', 'pending', 'rejected'];
 
-export default function ProblemsListClient({ problems, fetchError, locale, t }: ProblemsListClientProps) {
+export default function ProblemsListClient({ problems, fetchError, locale }: ProblemsListClientProps) {
   const [search, setSearch] = useState('');
   const [difficultyFilter, setDifficultyFilter] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('');
+
+  // Build the translator client-side: Server Components cannot pass functions
+  // (the old `t` prop) across the server→client boundary, so the serializable
+  // `locale` string crosses instead.
+  const t = useMemo(() => createTranslator(locale), [locale]);
 
   const filtered = useMemo(() => {
     return problems.filter((p) => {

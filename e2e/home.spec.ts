@@ -14,5 +14,7 @@ test('View Problems CTA navigates to the public catalog', async ({ page }) => {
   await page?.goto('/');
   await page?.getByRole('link', { name: 'View Problems' })?.click();
   await expect(page)?.toHaveURL(/\/problems$/);
-  await expect(page?.getByRole('heading', { level: 2 }))?.toHaveText('Problems');
+  // The catalog title is an <h1> (ProblemsListClient.tsx), pinned by
+  // src/app/problems/page.test.tsx.
+  await expect(page?.getByRole('heading', { level: 1 }))?.toHaveText('Problems');
 });

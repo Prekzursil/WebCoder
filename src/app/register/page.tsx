@@ -14,7 +14,7 @@
 //   ApiService throws plain `Error` objects (PORT-MAP §0.2), so the catch
 //   surfaces err.message directly with an i18n fallback.
 
-import React, { useState, FormEvent } from 'react';
+import React, { useState, useEffect, useRef, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import NextLink from 'next/link';
 import { useTranslation } from 'react-i18next';
@@ -45,6 +45,19 @@ const RegisterPage: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
+  // Redirect timer must be cleared on unmount: without this, a 2s
+  // setTimeout set right before unmount fires on the dead component and
+  // triggers a stray navigation (observed as cross-test flake where
+  // router.push('/login') fired during a later test's window).
+  const redirectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    return () => {
+      if (redirectTimer.current !== null) {
+        clearTimeout(redirectTimer.current);
+      }
+    };
+  }, []);
+
   const apiBase = API_BASE_URL;
 
   const handleSubmit = async (event: FormEvent) => {
@@ -61,7 +74,7 @@ const RegisterPage: React.FC = () => {
       setSuccess(
         t('registration_successful_redirecting', 'Registration successful! Redirecting to login...')
       );
-      setTimeout(() => router.push('/login'), 2000);
+      redirectTimer.current = setTimeout(() => router.push('/login'), 2000);
     } catch (err: unknown) {
       setError(
         err instanceof Error && err.message

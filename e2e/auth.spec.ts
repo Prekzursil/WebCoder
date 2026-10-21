@@ -29,7 +29,9 @@ test('successful login persists tokens and shows the authenticated navbar', asyn
 
   // AuthService.login resolves -> auth.login(...) -> router.push('/')
   await expect(page)?.toHaveURL(/\/$/);
-  await expect(page?.getByText('Welcome, e2e_tester!'))?.toBeVisible();
+  // The navbar greets with the bare username (Navbar.tsx renders
+  // `{auth.user?.username || 'User'}`), pinned by Navbar.test.tsx.
+  await expect(page?.getByText('e2e_tester', { exact: true }))?.toBeVisible();
 
   // AuthContext persists both tokens + user snapshot in localStorage.
   const accessToken = await page?.evaluate(() =>
@@ -63,7 +65,7 @@ test('hydrated admin session derives role-gated navbar links', async ({
 
   await page?.goto('/');
 
-  await expect(page?.getByText('Welcome, admin_e2e!'))?.toBeVisible();
+  await expect(page?.getByText('admin_e2e', { exact: true }))?.toBeVisible();
   await expect(
     page?.getByRole('link', { name: 'Admin Dashboard' })
   )?.toBeVisible();

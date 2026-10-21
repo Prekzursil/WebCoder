@@ -32,7 +32,6 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function ProblemsListPage() {
   const locale = await getLocale();
-  const t = createTranslator(locale);
 
   let problems: Awaited<ReturnType<typeof getProblems>> = [];
   let fetchError: string | null = null;
@@ -49,7 +48,6 @@ export default async function ProblemsListPage() {
       problems={problems}
       fetchError={fetchError}
       locale={locale}
-      t={t}
     />
   );
 }
