@@ -68,6 +68,22 @@ SIMPLE_JWT = {
     "VERIFYING_KEY": JWT_SECRET_KEY,
 }
 
+# --- Cookie-JWT prod posture (SP1) -------------------------------------------
+# HTTPS everywhere in prod: the wc_access/wc_refresh cookies are Secure-only.
+# SameSite stays env-driven ('Lax' same-site; cross-site frontends set
+# JWT_AUTH_SAMESITE=None which the browser only honors together with Secure).
+REST_AUTH = {
+    **REST_AUTH,  # type: ignore[name-defined]  # imported via * above
+    "JWT_AUTH_SECURE": _env_bool("JWT_AUTH_SECURE", "true"),
+}
+
+# Rate limiting behind a reverse proxy: trust exactly one X-Forwarded-For
+# hop so throttling keys on the real client IP, not the proxy's (SP4).
+REST_FRAMEWORK = {
+    **REST_FRAMEWORK,  # type: ignore[name-defined]  # imported via * above
+    "NUM_PROXIES": 1,
+}
+
 # --- Least-privilege OAuth scopes (SP2) -------------------------------------
 # GitHub 'repo' grants private-repo WRITE — massively over-scoped for login.
 # Needs only re-consent from already-connected users.

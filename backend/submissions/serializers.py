@@ -3,6 +3,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from .models import Submission, SubmissionTestResult # Import SubmissionTestResult
 from users.serializers import UserSerializer
 from problems.models import Problem, TestCase # Import TestCase for SubmissionTestResultSerializer
+from .judge_utils.custom_libs import is_allowed_requirement
 from .judge_utils.languages import SUPPORTED_LANGUAGE_IDS, get_language
 
 class SubmissionTestResultSerializer(serializers.ModelSerializer):
@@ -131,6 +132,20 @@ class SubmissionCreateSerializer(serializers.ModelSerializer):
                         )
                     }
                 )
+            # Custom-library allowlist (SPEC-GAPS J3/E1): pip requirement
+            # entries are judge inputs — reject URL/VCS/path/extras
+            # specifiers at submit time with a 400 instead of executing
+            # them anywhere near the judge. (The judge re-validates.)
+            for entry in problem.custom_libraries_allowed or []:
+                if not is_allowed_requirement(entry):
+                    raise serializers.ValidationError(
+                        {
+                            "problem": (
+                                f"disallowed library specifier: {entry!r} "
+                                "(only 'name' or 'name==version' allowed)"
+                            )
+                        }
+                    )
         return attrs
 
     def create(self, validated_data):

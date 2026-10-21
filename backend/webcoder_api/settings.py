@@ -114,6 +114,11 @@ MIDDLEWARE = [
 # Comma-separated env var (e.g. CORS_ALLOWED_ORIGINS=https://app.example.com,http://localhost:3000).
 # Dev-safe default: the local Next.js dev server.
 CORS_ALLOWED_ORIGINS = _env_list("CORS_ALLOWED_ORIGINS", ["http://localhost:3000"])
+# Credentials mode for the JWT httpOnly-cookie auth flow (SPEC-GAPS SP1):
+# credentialed cross-origin fetches require the explicit-origin +
+# Allow-Credentials CORS response the frontend's `credentials: 'include'`
+# requests need to carry the wc_access/wc_refresh cookies.
+CORS_ALLOW_CREDENTIALS = True
 
 ROOT_URLCONF = "webcoder_api.urls"
 
@@ -255,13 +260,34 @@ AUTHENTICATION_BACKENDS = (
 # https://www.django-rest-framework.org/api-guide/settings/
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-        # Add other authentication classes if needed, e.g., SessionAuthentication for browsable API
-        # 'rest_framework.authentication.SessionAuthentication',
+        # dj-rest-auth's cookie-aware JWT authentication (SPEC-GAPS SP1):
+        # Authorization-header tokens still work (it is a subclass of
+        # simplejwt's JWTAuthentication), and when the header is absent the
+        # wc_access httpOnly cookie authenticates the request instead.
+        "users.authentication.WCCookieJWTAuthentication",
     ),
-    # 'DEFAULT_PERMISSION_CLASSES': [
-    #     'rest_framework.permissions.IsAuthenticated', # Default to require authentication
-    # ],
+    # Rate limiting (SPEC-GAPS SP4): Anon+User throttle every endpoint at a
+    # generous baseline; ScopedRateThrottle applies the tighter per-surface
+    # rates ('auth' on registration, 'submit' on submission creation, plus
+    # dj-rest-auth's own 'dj_rest_auth' scope carried by the vendor
+    # LoginView/RegisterView). Rates are env-overridable; settings_ci
+    # disables the default classes so the test suite stays deterministic
+    # (the throttle mechanism itself is covered by dedicated tests that opt
+    # in via override_settings).
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+        "rest_framework.throttling.ScopedRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": os.environ.get("THROTTLE_ANON_RATE", "60/min"),
+        "user": os.environ.get("THROTTLE_USER_RATE", "240/min"),
+        "auth": os.environ.get("THROTTLE_AUTH_RATE", "10/min"),
+        "submit": os.environ.get("THROTTLE_SUBMIT_RATE", "20/hour"),
+        # dj-rest-auth's vendor LoginView/RegisterView ship throttle_scope
+        # 'dj_rest_auth'; give it the same credential-stuffing cap as 'auth'.
+        "dj_rest_auth": os.environ.get("THROTTLE_AUTH_RATE", "10/min"),
+    },
     # Pagination (SPEC-GAPS D-B4): every router-registered list endpoint
     # (problems/, tags/, testcases/, submissions/, users/, users/admin/manage/)
     # returns {count, next, previous, results} instead of an unbounded array.
@@ -271,14 +297,21 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 20,
 }
 
-# Simple JWT settings (optional, for customization)
-# https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html
-# Reverting to all library defaults by setting SIMPLE_JWT to an empty dict
-# or commenting it out entirely. Let's use an empty dict for now.
-# SIMPLE_JWT = {} # Commenting this out to define specific keys below for debugging
-# This will use the default 5-minute access token lifetime.
+# Shared throttle/cache backend (SPEC-GAPS SP4). LocMem by default (host dev,
+# test suite); set REDIS_URL in compose so the backend's throttle counters
+# are shared across gunicorn/celery processes (redis-py already pinned in
+# deps.txt for the broker).
+REDIS_URL = os.environ.get("REDIS_URL", "")
+if REDIS_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": REDIS_URL,
+        }
+    }
 
-# Forcing SECRET_KEY usage explicitly for debugging token validation
+# Simple JWT settings
+# https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html
 SIMPLE_JWT = {
     "SIGNING_KEY": SECRET_KEY,
     "VERIFYING_KEY": SECRET_KEY,  # For symmetric algorithms, this should match SIGNING_KEY
@@ -286,7 +319,11 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),  # Default
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),  # Default
     "LEEWAY": timedelta(seconds=0),  # Default
-    # Other settings can remain default or be added if needed
+    # Refresh-token hygiene (SPEC-GAPS SP1): every refresh rotates the
+    # refresh token and blacklists the presented one, so a stolen refresh
+    # cookie is single-use from the server's point of view.
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": True,  # Explicitly set this as it was in a previous attempt
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
@@ -297,12 +334,21 @@ SIMPLE_JWT = {
 # the JWT frontend contract).
 REST_AUTH = {
     "USE_JWT": True,
-    # dj-rest-auth 7.x defaults JWT_AUTH_HTTPONLY to True, which BLANKS the
-    # refresh token from the login response body (and, with no
-    # JWT_AUTH_REFRESH_COOKIE set, sets no cookie either — the refresh token
-    # simply never reaches the client). The frontend stores tokens from the
-    # body, so body mode it is; the httpOnly-cookie migration flips this.
-    "JWT_AUTH_HTTPONLY": False,
+    # httpOnly-cookie auth (SPEC-GAPS SP1): login/refresh set wc_access /
+    # wc_refresh httpOnly cookies (browser-readable only by the backend), the
+    # refresh token is removed from the login body, and cookie-authenticated
+    # unsafe methods require the X-CSRFToken double-submit header.
+    "JWT_AUTH_HTTPONLY": True,
+    "JWT_AUTH_COOKIE": "wc_access",
+    "JWT_AUTH_REFRESH_COOKIE": "wc_refresh",
+    "JWT_AUTH_COOKIE_USE_CSRF": True,
+    "JWT_AUTH_RETURN_EXPIRATION": True,
+    # Same-origin/dev default 'Lax' (frontend and API share the site
+    # 'localhost'); cross-site deployments (e.g. Vercel + API domain) set
+    # JWT_AUTH_SAMESITE=None + JWT_AUTH_SECURE=true ('None' requires Secure).
+    "JWT_AUTH_SAMESITE": os.environ.get("JWT_AUTH_SAMESITE", "Lax"),
+    # Plain-http dev stack keeps Secure off; the prod profile forces it on.
+    "JWT_AUTH_SECURE": _env_bool("JWT_AUTH_SECURE", "false"),
     "LOGIN_SERIALIZER": "users.serializers.CustomLoginSerializer",
     "SIGNUP_FIELDS": ACCOUNT_SIGNUP_FIELDS,
 }
@@ -366,3 +412,18 @@ JUDGE_BACKEND = os.environ.get('JUDGE_BACKEND', 'local')
 # is created under this root so `docker exec` reaches it at the same path
 # with no host bind-mounts.
 JUDGE_SANDBOX_ROOT = os.environ.get('JUDGE_SANDBOX_ROOT', '/srv/judge')
+
+# Name of the shared judge-sandbox docker volume on the Docker host. Needed
+# by the custom-libs pip INSTALL container under JUDGE_BACKEND=container
+# (it mounts the volume by name so the workspace path matches the worker's;
+# the judged RUN itself stays `docker exec` with no mounts at all).
+# docker-compose sets this; unset => custom-libs installs fail closed.
+JUDGE_SANDBOX_VOLUME = os.environ.get('JUDGE_SANDBOX_VOLUME', '')
+
+# Custom-libs pip egress (SPEC-GAPS J3/E1): the one-shot pip install
+# container's docker network. 'none' (default) = fail closed — judged code
+# NEVER gets network. Operators provisioning the judge-build internal
+# network + PyPI allowlist proxy (RUNBOOK §judge-pip-egress) set this to
+# 'judge-build' (and optionally JUDGE_PYPI_INDEX_URL) to enable pip.
+JUDGE_PIP_NETWORK = os.environ.get('JUDGE_PIP_NETWORK', 'none')
+JUDGE_PYPI_INDEX_URL = os.environ.get('JUDGE_PYPI_INDEX_URL', '')

@@ -2,7 +2,10 @@ from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.github.views import GitHubOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from dj_rest_auth.registration.views import SocialLoginView
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import generics, permissions, status, viewsets
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .serializers import (
@@ -26,6 +29,10 @@ class UserRegistrationView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserRegistrationSerializer
     permission_classes = [permissions.AllowAny]  # Anyone can register
+    # SPEC-GAPS SP4: anonymous registration is a credential-stuffing /
+    # spam surface — scope-throttled at THROTTLE_RATES['auth'].
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -68,9 +75,14 @@ class PasswordChangeView(generics.GenericAPIView):
         )
 
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class UserMeView(generics.RetrieveAPIView):
     """
-    An endpoint to get the current authenticated user's details.
+    API endpoint to get the current authenticated user's details.
+
+    ``ensure_csrf_cookie`` (SPEC-GAPS SP1): the SPA's hydration GET also
+    seeds the ``csrftoken`` cookie the double-submit CSRF check needs for
+    the cookie-authenticated unsafe requests that follow.
     """
 
     serializer_class = UserSerializer
@@ -78,6 +90,23 @@ class UserMeView(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class CSRFCookieView(APIView):
+    """GET-only helper that sets the ``csrftoken`` cookie (SPEC-GAPS SP1).
+
+    The cookie-JWT authentication enforces Django's double-submit CSRF on
+    unsafe methods: the browser must echo the ``csrftoken`` cookie value in
+    ``X-CSRFToken``. This endpoint lets the SPA obtain that cookie on
+    demand (e.g. right after login) without coupling CSRF seeding to an
+    authenticated endpoint. Returns ``{"detail": "CSRF cookie set"}``.
+    """
+
+    permission_classes = [permissions.AllowAny]
+
+    @method_decorator(ensure_csrf_cookie)
+    def get(self, request, *args, **kwargs):
+        return Response({"detail": _("CSRF cookie set")})
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):

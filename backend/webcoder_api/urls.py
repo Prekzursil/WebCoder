@@ -23,6 +23,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenVerifyView,
 )
+from users import views as users_views
 
 urlpatterns = [
     path("", RedirectView.as_view(url="/api/v1/problems/", permanent=False)),
@@ -49,6 +50,10 @@ urlpatterns = [
     # dj-rest-auth and allauth urls
     path("api/v1/auth/", include("dj_rest_auth.urls")),
     path("api/v1/auth/registration/", include("dj_rest_auth.registration.urls")),
+    # CSRF cookie seeding for the SPA's cookie-JWT flow (SPEC-GAPS SP1).
+    # Mounted ahead of the dj_rest_auth include; 'csrf/' collides with no
+    # vendor route.
+    path("api/v1/auth/csrf/", users_views.CSRFCookieView.as_view(), name="auth_csrf"),
     path("api/v1/auth/google/", include("users.api.oauth.google.urls")),
     path("api/v1/auth/github/", include("users.api.oauth.github.urls")),
     path("accounts/", include("allauth.urls")),

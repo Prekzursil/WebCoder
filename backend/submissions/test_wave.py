@@ -684,41 +684,33 @@ class ExecutionTests(unittest.TestCase):
         )
 
     def test_python3_custom_libs_flow(self):
-        stderr = "\n".join(
-            [
-                "Collecting numpy",
-                "Installing collected packages: numpy",
-                "Successfully installed numpy",
-                "Requirement already satisfied: requests",
-                "Attempting to install custom Python libraries...",
-                "Finished library installation attempt.",
-                "WARNING: The script demo is installed in 'C:\\x' which is not on PATH.",
-                "WARNING: The script partial is installed somewhere else.",
-                "my program stderr",
-                RESOURCE_LINE,
-            ]
-        )
+        # E1/J3: the judged run NEVER installs packages — it only points
+        # PYTHONPATH at the pre-installed libs dir, with a read-only mount
+        # and NO network (pip moved to the fail-closed install phase,
+        # judge_utils/custom_libs.py).
+        stderr = "\n".join(["my program stderr", RESOURCE_LINE])
         (verdict, t_ms, mem_kb, out, err), argv, run_kwargs = self._run(
             run_result=_run_result(0, "9\n", stderr), libs=["numpy"]
         )
         self.assertEqual(verdict, AC)
         self.assertIn("my program stderr", err)
-        self.assertIn("partial is installed somewhere else", err)
-        self.assertNotIn("Collecting", err)
-        self.assertNotIn("Successfully installed", err)
-        req = self.dir / "requirements_custom.txt"
-        self.assertEqual(req.read_text(), "numpy\n")
-        mount = "%s:/app:rw" % str(self.dir.resolve())
+        self.assertFalse((self.dir / "requirements_custom.txt").exists())
+        mount = "%s:/app:ro" % str(self.dir.resolve())
         self.assertIn(mount, argv)
         self.assertIn(
-            ["--network", "bridge"],
+            ["--network", "none"],
             [argv[i:i + 2] for i in range(len(argv) - 1)],
         )
-        self.assertIn("sh", argv)
-        self.assertIn("-c", argv)
-        self.assertEqual(run_kwargs["timeout"], 11.0)
+        sh_index = argv.index("sh")
+        self.assertEqual(argv[sh_index + 1], "-c")
+        self.assertIn("PYTHONPATH=libs", argv[sh_index + 2])
+        self.assertIn("user_code.py", argv[sh_index + 2])
+        # Standard communication window: no pip tail any more.
+        self.assertEqual(run_kwargs["timeout"], 4.0)
 
     def test_python3_libs_pip_failure(self):
+        # Pip failures now surface from the INSTALL phase (custom_libs), so
+        # at run level a failing program is a plain RE with its stderr.
         stderr = (
             "ERROR: Could not find a version that satisfies the "
             "requirement numpy (from versions: none)\n"
@@ -727,8 +719,8 @@ class ExecutionTests(unittest.TestCase):
             run_result=_run_result(1, "", stderr), libs=["numpy"]
         )
         self.assertEqual(verdict, RE)
-        self.assertTrue(err.startswith("Python Library Install Error"))
         self.assertIn("Exit code: 1.", err)
+        self.assertIn("Could not find a version", err)
 
     def test_runtime_error_without_resource_line(self):
         proc_stderr = "Traceback (most recent call last):\nRuntimeError: boom\n"

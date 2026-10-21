@@ -27,6 +27,14 @@ The legacy verdict-forging trigger substrings (TLE/MLE/RE simulation
 markers embedded in test input or source code) were removed from this
 production path (SECURITY-AUDIT-judge.md J2 / SPEC-GAPS G10); simulated
 verdicts exist only in test fixtures via mocked process results.
+
+E1 network restriction (SPEC-GAPS J3 / SECURITY-AUDIT-judge.md J1): judged
+runs NEVER receive network access or a writable submission mount. The
+python3 custom-libs pip install moved to a separate one-shot container
+(:mod:`submissions.judge_utils.custom_libs`) whose egress is fail-closed by
+default; the run below only sets ``PYTHONPATH=libs`` so the program sees the
+pre-installed packages. The legacy ``--network bridge`` + ``rw`` mount
+custom-libs flow is gone.
 """
 
 import pathlib
@@ -41,6 +49,7 @@ from .backend import (
     build_docker_run_command,
     get_judge_backend,
 )
+from .custom_libs import LIBS_DIR_NAME
 from .languages import get_language
 
 # Placeholder path for Java external libraries inside the per-run container
@@ -54,12 +63,6 @@ TIME_FORMAT_STRING = "%U %S %M %x %P %e"
 #: ``timeout --signal=SIGKILL`` reports its own kill as 124, so a raw
 #: 128+9=137 here is the kernel/cgroup OOM kill (or equivalent SIGKILL).
 OOM_EXIT_CODES = (137, -9)
-
-#: pip failure markers surfaced as a dedicated library-install error.
-PIP_ERROR_KEYWORDS = [
-    "ERROR: Could not find a version that satisfies the requirement",
-    "ERROR: No matching distribution found for",
-]
 
 
 def run_code_in_sandbox(
@@ -110,27 +113,21 @@ def run_code_in_sandbox(
     program_and_args: list[str] = list(spec.run_command)
     extra_volume_mounts: list[str] = []
     mount_mode = "ro"
+    # E1/J3: judged runs NEVER get network egress or a writable submission
+    # mount — the python3 custom-libs pip install now happens in a separate
+    # one-shot container (judge_utils/custom_libs.install_custom_libs,
+    # network-fail-closed by default), and the run below only points
+    # PYTHONPATH at the pre-installed <submission_dir>/libs.
+    network_mode = "none"
 
     backend = get_judge_backend()
 
     if language == "python3" and custom_libraries_allowed:
-        # pip-install flow. Only the LOCAL per-run backend has network
-        # egress for pip; the hardened judge-runner is network-isolated with
-        # a read-only rootfs, so there the pip step fails closed and the
-        # error is surfaced to the submitter.
-        mount_mode = "rw"
-        requirements_file_path = submission_dir / "requirements_custom.txt"
-        with open(requirements_file_path, "w") as f:
-            for lib in custom_libraries_allowed:
-                f.write(f"{lib}\n")
-        install_and_run_command = (
-            f"if [ -f requirements_custom.txt ]; then "
-            f"echo 'Attempting to install custom Python libraries...' && "
-            f"pip install --no-cache-dir -r requirements_custom.txt --user && "
-            f"echo 'Finished library installation attempt.'; "
-            f"fi && python {spec.source_filename}"
-        )
-        program_and_args = ["sh", "-c", install_and_run_command]
+        program_and_args = [
+            "sh",
+            "-c",
+            f"PYTHONPATH={LIBS_DIR_NAME}:$PYTHONPATH python {spec.source_filename}",
+        ]
 
     elif language == "java11" and custom_libraries_allowed:
         classpath_parts = ["."]
@@ -214,22 +211,18 @@ def run_code_in_sandbox(
             memory_limit_kb=memory_limit_kb,
             extra_volume_mounts=extra_volume_mounts,
             mount_mode=mount_mode,
-            # Legacy local-dev pip flow: egress for `pip install`. Every
-            # other judged run (and the whole container backend) is
-            # network-isolated.
-            network="bridge" if mount_mode == "rw" else "none",
+            # E1: every judged run is network-isolated, custom libs or not
+            # (pip moved to the fail-closed install phase — custom_libs.py).
+            network=network_mode,
         )
 
     print(f"Executing sandbox command for {language}: {' '.join(run_command)}")
 
-    # Host-side communication window: pip-install runs get a longer tail;
-    # subprocess.run kills the spawned docker client on expiry (no leaked
-    # client processes).
-    process_timeout = (
-        time_limit_s + 10
-        if (language == "python3" and custom_libraries_allowed)
-        else time_limit_s + 3
-    )
+    # Host-side communication window: subprocess.run kills the spawned
+    # docker client on expiry (no leaked client processes). No pip tail any
+    # more — library installs happen in their own container (custom_libs.py)
+    # before the first judged run.
+    process_timeout = time_limit_s + 3
 
     try:
         result = subprocess.run(
@@ -259,22 +252,6 @@ def run_code_in_sandbox(
                 if not resource_usage_line:
                     program_actual_stderr_lines = lines
 
-        if language == "python3" and custom_libraries_allowed:
-            program_actual_stderr_lines = [
-                line
-                for line in program_actual_stderr_lines
-                if not (
-                    "Collecting" in line
-                    or "Installing collected packages" in line
-                    or "Successfully installed" in line
-                    or "Requirement already satisfied" in line
-                    or "Attempting to install custom Python libraries..." in line
-                    or "Finished library installation attempt." in line
-                    or "WARNING: The script " in line
-                    and "is installed in" in line
-                    and "which is not on PATH." in line
-                )
-            ]
         parsed_stderr = "\n".join(program_actual_stderr_lines).strip()
 
         actual_time_ms = -1
@@ -335,23 +312,8 @@ def run_code_in_sandbox(
             final_verdict = Submission.VerdictStatus.ACCEPTED
         else:
             final_verdict = Submission.VerdictStatus.RUNTIME_ERROR
-            if (
-                language == "python3"
-                and custom_libraries_allowed
-                and any(kw in stderr_data for kw in PIP_ERROR_KEYWORDS)
-            ):
-                final_error = (
-                    f"Python Library Install Error:\n{stderr_data}\n\n"
-                    f"Program Stderr:\n{parsed_stderr}\n"
-                    f"Exit code: {returncode}."
-                )
-            else:
-                final_error = parsed_stderr + f"\nExit code: {returncode}."
-            if not time_output_parsed and stderr_data and not (
-                language == "python3"
-                and custom_libraries_allowed
-                and any(kw in stderr_data for kw in PIP_ERROR_KEYWORDS)
-            ):
+            final_error = parsed_stderr + f"\nExit code: {returncode}."
+            if not time_output_parsed and stderr_data:
                 final_error = stderr_data + f"\nExit code: {returncode}."
 
     except subprocess.TimeoutExpired:
