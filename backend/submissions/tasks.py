@@ -13,6 +13,8 @@ from .judge_utils.compilation import compile_code_in_sandbox
 from .judge_utils.execution import run_code_in_sandbox
 from .judge_utils.checkers import run_custom_checker
 from leaderboard.aggregation import update_user_entry_task
+from notifications.models import Notification
+from notifications.services import notify
 
 
 def _judge_workspace(prefix: str) -> tempfile.TemporaryDirectory:
@@ -33,6 +35,26 @@ def _judge_workspace(prefix: str) -> tempfile.TemporaryDirectory:
         root.mkdir(parents=True, exist_ok=True)
         return tempfile.TemporaryDirectory(prefix=prefix, dir=str(root))
     return tempfile.TemporaryDirectory(prefix=prefix)
+
+
+def _notify_judged(submission, verdict):
+    """Queue the SUBMISSION_JUDGED notification for after commit.
+
+    Called at every terminal-verdict save (AC/WA/TLE/MLE/CE/RE/IE);
+    intermediate COMPILING/RUNNING saves never call it.
+    """
+    transaction.on_commit(
+        lambda: notify(
+            submission.user,
+            Notification.Verb.SUBMISSION_JUDGED,
+            target=submission,
+            data={
+                "verdict": verdict,
+                "problem_id": submission.problem_id,
+                "submission_id": submission.id,
+            },
+        )
+    )
 
 
 class _CeleryTask(Protocol):
@@ -83,6 +105,7 @@ def judge_submission_task(self, submission_id):
                 submission.verdict = Submission.VerdictStatus.COMPILE_ERROR
                 submission.detailed_feedback = compiler_output
                 submission.save()
+                _notify_judged(submission, submission.verdict)
                 # temp_dir_obj is always created (above) before compilation, so
                 # the falsey arm of this guard is unreachable here. Reasoned,
                 # greppable pragma for the defensive cleanup guard.
@@ -215,6 +238,7 @@ def judge_submission_task(self, submission_id):
                 transaction.on_commit(
                     lambda: update_user_entry_task.delay(submission.user_id)
                 )
+            _notify_judged(submission, overall_verdict)
 
         final_message = f"Submission {submission_id} judged. Verdict: {overall_verdict}"
 
@@ -233,6 +257,7 @@ def judge_submission_task(self, submission_id):
                     f"Judge system internal error: {str(e)}"
                 )
                 submission_obj.save()
+                _notify_judged(submission_obj, submission_obj.verdict)
         except Exception as final_e:
             print(f"Failed to update sub {submission_id} to INTERNAL_ERROR: {final_e}")
     finally:
