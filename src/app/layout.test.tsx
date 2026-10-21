@@ -22,18 +22,25 @@ describe("Root layout (smoke)", () => {
   it("renders the app shell with navbar, brand, and children", () => {
     render(<Layout>smoke-child-marker</Layout>);
 
-    // Navbar brand + translated nav links render (i18n initialized via setup file).
+    // Navbar brand + translated nav links render (i18n initialized via setup
+    // file). Several links now also exist in the footer, so query with
+    // getAllByRole.
     expect(screen.getAllByText("WebCoder").length).toBeGreaterThan(0);
-    expect(screen.getByRole("link", { name: "Home" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Problems" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Login" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Register" })).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: "Home" }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("link", { name: "Problems" }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("link", { name: "Login" }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("link", { name: "Register" }).length).toBeGreaterThan(0);
 
     // Layout children pass through the provider tree.
     expect(screen.getByText("smoke-child-marker")).toBeInTheDocument();
 
-    // Language switcher is present for the anonymous navbar state.
-    expect(screen.getByRole("button", { name: "en" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "ro" })).toBeInTheDocument();
+    // Language switcher is present for the anonymous navbar state — and now
+    // mirrored in the footer, so "en"/"ro" each appear twice.
+    expect(screen.getAllByRole("button", { name: "en" }).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByRole("button", { name: "ro" }).length).toBeGreaterThanOrEqual(1);
+    // App shell: skip link + single main landmark + footer (Q11/A13).
+    expect(screen.getByRole("link", { name: "Skip to content" })).toHaveAttribute("href", "#main-content");
+    expect(document.getElementById("main-content")).toBeInTheDocument();
+    expect(screen.getByRole("contentinfo")).toHaveAttribute("aria-label", "Site footer");
   });
 });

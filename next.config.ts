@@ -7,7 +7,10 @@ const nextConfig: NextConfig = {
   // pollutes build traces and dev file-watching. npm scripts always run with
   // cwd = frontend/web, so process.cwd() resolves to this directory.
   turbopack: {
-    root: process.cwd(),
+    // TURBO_ROOT_OVERRIDE lets disposable worktrees (whose node_modules is a
+    // junction into the main checkout) widen the hermetic root for local
+    // builds only. Unset (CI, normal dev) the root stays this directory.
+    root: process.env.TURBO_ROOT_OVERRIDE || process.cwd(),
   },
 
   webpack(config, { dev }) {

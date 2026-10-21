@@ -66,13 +66,12 @@ test('hydrated admin session derives role-gated navbar links', async ({
   await page?.goto('/');
 
   await expect(page?.getByText('admin_e2e', { exact: true }))?.toBeVisible();
-  await expect(
-    page?.getByRole('link', { name: 'Admin Dashboard' })
-  )?.toBeVisible();
-  await expect(
-    page?.getByRole('link', { name: 'Verification Queue' })
-  )?.toBeVisible();
-  await expect(
-    page?.getByRole('link', { name: 'Create Problem' })
-  )?.toBeVisible();
+
+  // A8: account + role links now live in the avatar dropdown menu.
+  await page?.getByRole('button', { name: 'Account menu' })?.click();
+  const menu = page?.getByRole('menu');
+  await expect(menu?.getByRole('menuitem', { name: 'Admin Dashboard' }))?.toBeVisible();
+  await expect(menu?.getByRole('menuitem', { name: 'Verification Queue' }))?.toBeVisible();
+  await expect(menu?.getByRole('menuitem', { name: 'Create Problem' }))?.toBeVisible();
+  await expect(menu?.getByRole('menuitem', { name: 'Profile' }))?.toBeVisible();
 });

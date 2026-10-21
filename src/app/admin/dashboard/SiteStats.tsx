@@ -30,7 +30,7 @@ const cardStyle: React.CSSProperties = {
 const cardTitleStyle: React.CSSProperties = {
   fontSize: '1.125rem',
   fontWeight: 500,
-  color: '#111827',
+  color: 'var(--on-accent)',
   margin: 0,
 };
 
@@ -38,7 +38,7 @@ const cardValueStyle: React.CSSProperties = {
   marginTop: '8px',
   fontSize: '1.875rem',
   fontWeight: 700,
-  color: '#111827',
+  color: 'var(--on-accent)',
 };
 
 export default function SiteStats() {

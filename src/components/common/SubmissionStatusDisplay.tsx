@@ -2,8 +2,14 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { palette, hexAlpha } from '@/theme/tokens';
 
 // Ported from frontend/webcoder_ui/src/components/common/SubmissionStatusDisplay.tsx (CRA reference).
+//
+// [SPEC-GAPS A11/Q10] The CRA light-theme alert colors (dark green text on a
+// pale green card, dark red on pale red) are replaced with token washes
+// readable on dark, and the regions carry role=status / role=alert so screen
+// readers hear judge status changes.
 
 interface SubmissionStatusDisplayProps {
   status: string | null;
@@ -18,28 +24,35 @@ const SubmissionStatusDisplay: React.FC<SubmissionStatusDisplayProps> = ({ statu
   }
 
   return (
-    <div style={{ marginTop: '15px', padding: '10px', borderRadius: '5px', border: '1px solid transparent' }}>
+    <div style={{ marginTop: '15px', padding: '10px', borderRadius: 'var(--radius-md)', border: '1px solid transparent' }}>
       {status && (
-        <p style={{
-          color: '#155724', // Dark green
-          backgroundColor: '#d4edda', // Light green
-          borderColor: '#c3e6cb',
-          padding: '10px',
-          borderRadius: '5px',
-          margin: 0
-        }}>
+        <p
+          role="status"
+          aria-live="polite"
+          style={{
+            color: palette.success,
+            backgroundColor: hexAlpha(palette.success, 0.1),
+            borderColor: hexAlpha(palette.success, 0.25),
+            padding: '10px',
+            borderRadius: 'var(--radius-md)',
+            margin: 0,
+          }}
+        >
           {status}
         </p>
       )}
       {error && (
-        <p style={{
-          color: '#721c24', // Dark red
-          backgroundColor: '#f8d7da', // Light red
-          borderColor: '#f5c6cb',
-          padding: '10px',
-          borderRadius: '5px',
-          margin: status ? '10px 0 0 0' : 0 // Add margin top if status is also shown
-        }}>
+        <p
+          role="alert"
+          style={{
+            color: palette.danger,
+            backgroundColor: hexAlpha(palette.danger, 0.1),
+            borderColor: hexAlpha(palette.danger, 0.25),
+            padding: '10px',
+            borderRadius: 'var(--radius-md)',
+            margin: status ? '10px 0 0 0' : 0,
+          }}
+        >
           <strong>{t('error_label', 'Error')}:</strong> {error}
         </p>
       )}

@@ -1,9 +1,26 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import { ProblemType } from '@/types';
 import { createTranslator, type PublicLocale } from '../_lib/public-messages';
+import { palette, hexAlpha } from '@/theme/tokens';
+import EmptyState from '@/components/common/EmptyState';
+import PageHeader from '@/components/common/PageHeader';
+import TableScroll from '@/components/common/TableScroll';
+
+// Catalog client island [SPEC-GAPS F3/F7/Q3/A1/A11]:
+//  - search / difficulty / status filters live in the URL (?q= &difficulty=
+//    &status=) so they survive refresh and can be shared; ?q= also honors the
+//    schema.org SearchAction target.
+//  - Title / Difficulty / Status columns are sortable (aria-sort + buttons).
+//  - the status facet/column shows the REAL backend choices and only for
+//    creator/verifier/admin users — anonymous visitors only ever see APPROVED
+//    problems, so the facet was noise (and 'rejected' never existed).
+//  - filter chrome is localized (Q3), the table scrolls horizontally on small
+//    screens (A1), and empty/error states use the shared EmptyState (A11).
 
 interface ProblemsListClientProps {
   problems: ProblemType[];
@@ -11,27 +28,74 @@ interface ProblemsListClientProps {
   locale: PublicLocale;
 }
 
-const difficultyColors: Record<string, string> = {
-  easy: '#4ade80',
-  medium: '#fbbf24',
-  hard: '#f87171',
+const difficultyColor: Record<string, string> = {
+  easy: palette.success,
+  medium: palette.warn,
+  hard: palette.danger,
 };
 
 const DIFFICULTIES = ['easy', 'medium', 'hard'];
-const STATUSES = ['approved', 'pending', 'rejected'];
+// Real ProblemStatus choices (backend problems/models.py) — 'rejected' never
+// existed. [F7]
+const STATUSES = ['draft', 'pending_approval', 'approved', 'private'];
+
+type SortKey = 'title' | 'difficulty' | 'status';
+type SortDir = 'asc' | 'desc';
+
+const DIFFICULTY_ORDER: Record<string, number> = { easy: 0, medium: 1, hard: 2 };
 
 export default function ProblemsListClient({ problems, fetchError, locale }: ProblemsListClientProps) {
-  const [search, setSearch] = useState('');
-  const [difficultyFilter, setDifficultyFilter] = useState<string>('');
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const auth = useAuth();
+
+  // URL is the source of truth for filters [F3]; local state mirrors it so
+  // typing in the search box does not thrash the router per keystroke.
+  const urlSearch = searchParams.get('q') ?? '';
+  const urlDifficulty = searchParams.get('difficulty') ?? '';
+  const urlStatus = searchParams.get('status') ?? '';
+
+  const [search, setSearch] = useState(urlSearch);
+  const [difficultyFilter, setDifficultyFilter] = useState(urlDifficulty);
+  const [statusFilter, setStatusFilter] = useState(urlStatus);
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
+
+  // Keep local state in sync when the URL changes underneath (navbar search,
+  // back/forward). [F3]
+  useEffect(() => {
+    setSearch(urlSearch);
+    setDifficultyFilter(urlDifficulty);
+    setStatusFilter(urlStatus);
+  }, [urlSearch, urlDifficulty, urlStatus]);
+
+  // Push filter changes into the URL (replace, no scroll jump). [F3]
+  const syncUrl = (next: { q?: string; difficulty?: string; status?: string }) => {
+    const params = new URLSearchParams(searchParams.toString());
+    const setOrDelete = (name: string, value: string | undefined) => {
+      if (value) params.set(name, value);
+      else params.delete(name);
+    };
+    setOrDelete('q', next.q !== undefined ? next.q : urlSearch || undefined);
+    setOrDelete('difficulty', next.difficulty !== undefined ? next.difficulty : urlDifficulty || undefined);
+    setOrDelete('status', next.status !== undefined ? next.status : urlStatus || undefined);
+    const qs = params.toString();
+    router.replace(qs ? `/problems?${qs}` : '/problems', { scroll: false });
+  };
 
   // Build the translator client-side: Server Components cannot pass functions
   // (the old `t` prop) across the server→client boundary, so the serializable
   // `locale` string crosses instead.
   const t = useMemo(() => createTranslator(locale), [locale]);
 
+  // The status facet only makes sense for roles that can see non-approved
+  // problems. [F7]
+  const showStatusFacet = Boolean(
+    auth.user && ['ADMIN', 'PROBLEM_VERIFIER', 'PROBLEM_CREATOR'].includes(auth.user.role)
+  );
+
   const filtered = useMemo(() => {
-    return problems.filter((p) => {
+    const rows = problems.filter((p) => {
       const title = p.title_i18n[locale] || p.title_i18n.en || '';
       const matchesSearch = title.toLowerCase().includes(search.toLowerCase());
       const matchesDiff = difficultyFilter
@@ -42,7 +106,25 @@ export default function ProblemsListClient({ problems, fetchError, locale }: Pro
         : true;
       return matchesSearch && matchesDiff && matchesStatus;
     });
-  }, [problems, search, difficultyFilter, statusFilter, locale]);
+
+    if (!sortKey) return rows;
+    const dir = sortDir === 'asc' ? 1 : -1;
+    return [...rows].sort((a, b) => {
+      let cmp = 0;
+      if (sortKey === 'title') {
+        const at = (a.title_i18n[locale] || a.title_i18n.en || '').toLowerCase();
+        const bt = (b.title_i18n[locale] || b.title_i18n.en || '').toLowerCase();
+        cmp = at.localeCompare(bt);
+      } else if (sortKey === 'difficulty') {
+        cmp = (DIFFICULTY_ORDER[a.difficulty?.toLowerCase() ?? ''] ?? 3)
+          - (DIFFICULTY_ORDER[b.difficulty?.toLowerCase() ?? ''] ?? 3);
+      } else {
+        cmp = (a.status ?? '').localeCompare(b.status ?? '');
+      }
+      if (cmp === 0) cmp = a.id - b.id;
+      return cmp * dir;
+    });
+  }, [problems, search, difficultyFilter, statusFilter, locale, sortKey, sortDir]);
 
   const hasActiveFilters = search || difficultyFilter || statusFilter;
 
@@ -50,31 +132,50 @@ export default function ProblemsListClient({ problems, fetchError, locale }: Pro
     setSearch('');
     setDifficultyFilter('');
     setStatusFilter('');
+    router.replace('/problems', { scroll: false });
   };
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((dir) => (dir === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
+
+  const sortAria = (key: SortKey): 'ascending' | 'descending' | 'none' =>
+    sortKey === key ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none';
+
+  const sortableTh = (key: SortKey, label: string) => (
+    <th aria-sort={sortAria(key)}>
+      <button
+        type="button"
+        className="th-sort"
+        onClick={() => toggleSort(key)}
+        aria-label={sortDir === 'asc' ? t('sort_descending', 'Sort descending') : t('sort_ascending', 'Sort ascending')}
+      >
+        {label}
+        <span aria-hidden="true" style={{ fontSize: '0.6rem' }}>
+          {sortKey === key ? (sortDir === 'asc' ? '▲' : '▼') : '↕'}
+        </span>
+      </button>
+    </th>
+  );
 
   return (
     <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem 1.5rem' }}>
       {/* Page header */}
-      <div style={{ marginBottom: '1.5rem' }}>
-        <h1 style={{
-          fontSize: '1.75rem',
-          fontWeight: 800,
-          letterSpacing: '-0.03em',
-          color: '#f1f5f9',
-          marginBottom: '0.5rem',
-        }}>
-          {t('problem_list_header', 'Problems')}
-        </h1>
-        <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
-          {t('problems_page_description', 'Browse the public competitive programming problem catalog.')}
-        </p>
-      </div>
+      <PageHeader
+        title={t('problem_list_header', 'Problems')}
+        subtitle={t('problems_page_description', 'Browse the public competitive programming problem catalog.')}
+      />
 
       {/* Filter bar */}
       <div style={{
-        background: '#1e293b',
-        border: '1px solid rgba(255,255,255,0.06)',
-        borderRadius: '12px',
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-lg)',
         padding: '1rem 1.25rem',
         marginBottom: '1.25rem',
         display: 'flex',
@@ -84,259 +185,210 @@ export default function ProblemsListClient({ problems, fetchError, locale }: Pro
       }}>
         {/* Search */}
         <div style={{ position: 'relative', flex: '1 1 200px', minWidth: '160px' }}>
-          <span style={{
-            position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)',
-            color: '#475569', fontSize: '0.85rem', pointerEvents: 'none',
-          }}>🔍</span>
           <input
-            type="text"
-            placeholder="Search problems…"
+            type="search"
+            placeholder={t('problems_search_placeholder', 'Search problems…')}
+            aria-label={t('problems_search_placeholder', 'Search problems…')}
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              syncUrl({ q: e.target.value });
+            }}
             style={{
               width: '100%',
-              paddingLeft: '30px',
+              paddingLeft: '12px',
               paddingRight: '10px',
               paddingTop: '7px',
               paddingBottom: '7px',
               background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '8px',
-              color: '#f1f5f9',
-              fontSize: '0.875rem',
-              outline: 'none',
             }}
           />
         </div>
 
         {/* Difficulty filter */}
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Difficulty:
+          <span className="micro-label" style={{ color: 'var(--muted)' }}>
+            {t('difficulty_label', 'Difficulty')}:
           </span>
           <button
-            onClick={() => setDifficultyFilter('')}
-            style={{
-              padding: '4px 12px',
-              borderRadius: '999px',
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              border: '1px solid',
-              cursor: 'pointer',
-              transition: 'all 120ms ease',
-              borderColor: !difficultyFilter ? '#38bdf8' : 'rgba(255,255,255,0.1)',
-              background: !difficultyFilter ? 'rgba(56,189,248,0.12)' : 'transparent',
-              color: !difficultyFilter ? '#38bdf8' : '#64748b',
-            }}
-          >All</button>
-          {DIFFICULTIES.map(d => {
-            const color = difficultyColors[d] ?? '#94a3b8';
+            onClick={() => { setDifficultyFilter(''); syncUrl({ difficulty: '' }); }}
+            className="chip"
+            aria-pressed={!difficultyFilter}
+            style={difficultyFilter ? undefined : { borderColor: 'var(--accent)', color: 'var(--accent)', background: hexAlpha(palette.accent, 0.12) }}
+          >{t('all_option', 'All')}</button>
+          {DIFFICULTIES.map((d) => {
+            const color = difficultyColor[d] ?? palette.muted;
             const active = difficultyFilter === d;
             return (
               <button
                 key={d}
-                onClick={() => setDifficultyFilter(active ? '' : d)}
-                style={{
-                  padding: '4px 12px',
-                  borderRadius: '999px',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  border: `1px solid ${active ? color : 'rgba(255,255,255,0.1)'}`,
-                  background: active ? `${color}18` : 'transparent',
-                  color: active ? color : '#64748b',
-                  cursor: 'pointer',
-                  transition: 'all 120ms ease',
-                  textTransform: 'capitalize',
-                }}
+                onClick={() => { const next = active ? '' : d; setDifficultyFilter(next); syncUrl({ difficulty: next }); }}
+                className="chip"
+                aria-pressed={active}
+                style={active ? {
+                  borderColor: color,
+                  color,
+                  background: hexAlpha(color, 0.09),
+                } : undefined}
               >
-                {d}
+                {t(`difficulty_${d}`, d)}
               </button>
             );
           })}
         </div>
 
-        {/* Status filter */}
-        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Status:
-          </span>
-          <button
-            onClick={() => setStatusFilter('')}
-            style={{
-              padding: '4px 12px',
-              borderRadius: '999px',
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              border: '1px solid',
-              cursor: 'pointer',
-              transition: 'all 120ms ease',
-              borderColor: !statusFilter ? '#38bdf8' : 'rgba(255,255,255,0.1)',
-              background: !statusFilter ? 'rgba(56,189,248,0.12)' : 'transparent',
-              color: !statusFilter ? '#38bdf8' : '#64748b',
-            }}
-          >All</button>
-          {STATUSES.map(s => {
-            const active = statusFilter === s;
-            return (
-              <button
-                key={s}
-                onClick={() => setStatusFilter(active ? '' : s)}
-                style={{
-                  padding: '4px 12px',
-                  borderRadius: '999px',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  border: `1px solid ${active ? 'rgba(148,163,184,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                  background: active ? 'rgba(148,163,184,0.12)' : 'transparent',
-                  color: active ? '#94a3b8' : '#64748b',
-                  cursor: 'pointer',
-                  transition: 'all 120ms ease',
-                  textTransform: 'capitalize',
-                }}
-              >
-                {s}
-              </button>
-            );
-          })}
-        </div>
+        {/* Status filter — only for roles that can see non-approved problems [F7] */}
+        {showStatusFacet && (
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <span className="micro-label" style={{ color: 'var(--muted)' }}>
+              {t('status_label', 'Status')}:
+            </span>
+            <button
+              onClick={() => { setStatusFilter(''); syncUrl({ status: '' }); }}
+              className="chip"
+              aria-pressed={!statusFilter}
+              style={statusFilter ? undefined : { borderColor: 'var(--accent)', color: 'var(--accent)', background: hexAlpha(palette.accent, 0.12) }}
+            >{t('all_option', 'All')}</button>
+            {STATUSES.map((s) => {
+              const active = statusFilter === s;
+              return (
+                <button
+                  key={s}
+                  onClick={() => { const next = active ? '' : s; setStatusFilter(next); syncUrl({ status: next }); }}
+                  className="chip"
+                  aria-pressed={active}
+                  style={active ? {
+                    borderColor: 'rgba(148,163,184,0.5)',
+                    color: 'var(--muted)',
+                    background: 'rgba(148,163,184,0.12)',
+                  } : undefined}
+                >
+                  {t(`status_${s}`, s)}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* Clear filters */}
         {hasActiveFilters && (
-          <button
-            onClick={clearFilters}
-            style={{
-              padding: '4px 12px',
-              borderRadius: '8px',
-              fontSize: '0.75rem',
-              fontWeight: 500,
-              border: '1px solid rgba(248,113,113,0.3)',
-              background: 'rgba(248,113,113,0.08)',
-              color: '#f87171',
-              cursor: 'pointer',
-              marginLeft: 'auto',
-              transition: 'all 120ms ease',
-            }}
-          >
-            ✕ Clear
+          <button onClick={clearFilters} className="btn btn--danger" style={{ marginLeft: 'auto' }}>
+            {t('clear_filters_button', '✕ Clear')}
           </button>
         )}
       </div>
 
       {/* Results count */}
       {!fetchError && problems.length > 0 && (
-        <div style={{ marginBottom: '0.75rem', fontSize: '0.8rem', color: '#475569' }}>
-          Showing <span style={{ color: '#94a3b8', fontWeight: 600 }}>{filtered.length}</span>
-          {hasActiveFilters && ` of ${problems.length}`} problem{filtered.length !== 1 ? 's' : ''}
+        <div style={{ marginBottom: '0.75rem', fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
+          {hasActiveFilters
+            ? t('showing_problems_info', 'Showing {{shown}} of {{total}} problem(s)', { shown: filtered.length, total: problems.length })
+            : `${filtered.length} ${filtered.length === 1 ? 'problem' : 'problems'}`}
         </div>
       )}
 
       {/* Error state */}
       {fetchError ? (
-        <div style={{
-          padding: '1.25rem 1.5rem',
-          borderRadius: '10px',
-          background: 'rgba(248, 113, 113, 0.08)',
-          border: '1px solid rgba(248, 113, 113, 0.2)',
-          color: '#f87171',
-          fontSize: '0.9rem',
-        }}>
+        <div
+          role="alert"
+          style={{
+            padding: '1.25rem 1.5rem',
+            borderRadius: 'var(--radius-md)',
+            background: hexAlpha(palette.danger, 0.08),
+            border: `1px solid ${hexAlpha(palette.danger, 0.2)}`,
+            color: 'var(--danger)',
+            fontSize: '0.9rem',
+          }}
+        >
           {t('problems_load_error', 'Could not load problems: ')}{fetchError}
         </div>
       ) : filtered.length === 0 ? (
-        <div style={{
-          padding: '3rem',
-          textAlign: 'center',
-          color: '#64748b',
-          background: '#1e293b',
-          borderRadius: '12px',
-          border: '1px solid rgba(255,255,255,0.06)',
-        }}>
-          {hasActiveFilters
-            ? 'No problems match your filters.' : t('no_problems_available', 'No problems available at the moment.')}
-        </div>
+        hasActiveFilters ? (
+          <EmptyState
+            title={t('no_problems_match_filters', 'No problems match your filters.')}
+            action={
+              <button onClick={clearFilters} className="btn">
+                {t('clear_filters_button', '✕ Clear')}
+              </button>
+            }
+          />
+        ) : (
+          <EmptyState
+            title={t('no_problems_available', 'No problems available at the moment.')}
+          />
+        )
       ) : (
         <div style={{
-          background: '#1e293b',
-          borderRadius: '12px',
-          border: '1px solid rgba(255,255,255,0.06)',
-          overflow: 'hidden',
+          background: 'var(--surface)',
+          borderRadius: 'var(--radius-lg)',
+          border: '1px solid var(--border)',
         }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                {['#', 'Title', 'Difficulty', 'Status'].map((label, i) => (
-                  <th key={label} style={{
-                    padding: '12px 20px',
-                    textAlign: 'left',
-                    fontSize: '0.72rem',
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.07em',
-                    color: '#64748b',
-                    width: i === 0 ? '60px' : undefined,
-                  }}>
-                    {i === 1 ? t('problem_title_th', label) :
-                     i === 2 ? t('problem_difficulty_th', label) :
-                     i === 3 ? t('problem_status_th', label) : label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((problem, idx) => {
-                const diff = problem.difficulty?.toLowerCase() ?? '';
-                const diffColor = difficultyColors[diff] ?? '#94a3b8';
-                return (
-                  <tr key={problem.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    <td style={{ padding: '14px 20px', color: '#475569', fontSize: '0.8rem' }}>
-                      {idx + 1}
-                    </td>
-                    <td style={{ padding: '14px 20px' }}>
-                      <Link href={`/problems/${problem.id}`} style={{
-                        color: '#f1f5f9',
-                        fontWeight: 500,
-                        fontSize: '0.9rem',
-                        textDecoration: 'none',
-                        transition: 'color 150ms ease',
-                      }}>
-                        {problem.title_i18n[locale] || problem.title_i18n.en || `Problem #${problem.id}`}
-                      </Link>
-                    </td>
-                    <td style={{ padding: '14px 20px' }}>
-                      <span style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        padding: '2px 10px',
-                        borderRadius: '999px',
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        color: diffColor,
-                        background: `${diffColor}18`,
-                        border: `1px solid ${diffColor}30`,
-                      }}>
-                        {t(`difficulty_${diff}`, problem.difficulty)}
-                      </span>
-                    </td>
-                    <td style={{ padding: '14px 20px' }}>
-                      <span style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        padding: '2px 10px',
-                        borderRadius: '999px',
-                        fontSize: '0.75rem',
-                        fontWeight: 500,
-                        color: '#94a3b8',
-                        background: 'rgba(148,163,184,0.08)',
-                        border: '1px solid rgba(148,163,184,0.15)',
-                      }}>
-                        {t(`status_${problem.status?.toLowerCase()}`, problem.status)}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <TableScroll>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                  <th style={{ padding: '12px 20px', width: '60px' }}>#</th>
+                  {sortableTh('title', t('problem_title_th', 'Title'))}
+                  {sortableTh('difficulty', t('problem_difficulty_th', 'Difficulty'))}
+                  {showStatusFacet && sortableTh('status', t('problem_status_th', 'Status'))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((problem) => {
+                  const diff = problem.difficulty?.toLowerCase() ?? '';
+                  const diffColor = difficultyColor[diff] ?? palette.muted;
+                  return (
+                    <tr key={problem.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                      <td style={{ padding: '14px 20px', color: 'var(--text-tertiary)', fontSize: '0.8rem' }}>
+                        {problem.id}
+                      </td>
+                      <td style={{ padding: '14px 20px' }}>
+                        <Link href={`/problems/${problem.id}`} style={{
+                          color: 'var(--foreground)',
+                          fontWeight: 500,
+                          fontSize: '0.9rem',
+                        }}>
+                          {problem.title_i18n[locale] || problem.title_i18n.en || `Problem #${problem.id}`}
+                        </Link>
+                      </td>
+                      <td style={{ padding: '14px 20px' }}>
+                        <span style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          padding: '2px 10px',
+                          borderRadius: '999px',
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          color: diffColor,
+                          background: hexAlpha(diffColor, 0.09),
+                          border: `1px solid ${hexAlpha(diffColor, 0.19)}`,
+                        }}>
+                          {t(`difficulty_${diff}`, problem.difficulty)}
+                        </span>
+                      </td>
+                      {showStatusFacet && (
+                        <td style={{ padding: '14px 20px' }}>
+                          <span style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            padding: '2px 10px',
+                            borderRadius: '999px',
+                            fontSize: '0.75rem',
+                            fontWeight: 500,
+                            color: 'var(--muted)',
+                            background: 'rgba(148,163,184,0.08)',
+                            border: '1px solid rgba(148,163,184,0.15)',
+                          }}>
+                            {t(`status_${problem.status?.toLowerCase()}`, problem.status)}
+                          </span>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </TableScroll>
         </div>
       )}
     </div>

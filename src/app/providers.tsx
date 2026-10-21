@@ -2,40 +2,52 @@
 
 import { ReactNode } from 'react';
 import { Toaster } from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { AuthProvider } from '@/context/AuthContext';
 import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
+import { palette, fontFamily, typeRamp, radius } from '@/theme/tokens';
 
 import '@/i18n';
 
+// Theme built entirely from src/theme/tokens.ts — no literal colors here.
+// [SPEC-GAPS A2/A12]
 const darkTheme = createTheme({
   palette: {
     mode: 'dark',
     background: {
-      default: '#0f172a',
-      paper: '#1e293b',
+      default: palette.bg,
+      paper: palette.surface,
     },
     text: {
-      primary: '#f1f5f9',
-      secondary: '#64748b',
+      primary: palette.foreground,
+      secondary: palette.muted,
     },
     primary: {
-      main: '#38bdf8',
+      main: palette.accent,
     },
     error: {
-      main: '#f87171',
+      main: palette.danger,
     },
     success: {
-      main: '#4ade80',
+      main: palette.success,
     },
-    divider: 'rgba(255,255,255,0.08)',
+    warning: {
+      main: palette.warn,
+    },
+    divider: palette.border,
   },
   typography: {
-    fontFamily: "'DM Sans', 'Manrope', system-ui, -apple-system, sans-serif",
+    fontFamily: fontFamily.sans,
+    pageTitle: typeRamp.pageTitle,
+    sectionLabel: typeRamp.sectionLabel,
+    microLabel: typeRamp.microLabel,
+    // mono is delivered via the --font-mono token (globals.css `code, pre`)
   },
   shape: {
-    borderRadius: 12,
+    borderRadius: radius.lg,
   },
   components: {
     MuiTextField: {
@@ -47,13 +59,13 @@ const darkTheme = createTheme({
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-notchedOutline': {
-            borderColor: 'rgba(255,255,255,0.08)',
+            borderColor: palette.border,
           },
           '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: 'rgba(255,255,255,0.2)',
+            borderColor: palette.borderStrong,
           },
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#38bdf8',
+            borderColor: palette.accent,
           },
         },
       },
@@ -62,7 +74,7 @@ const darkTheme = createTheme({
       styleOverrides: {
         root: {
           backgroundImage: 'none',
-          border: '1px solid rgba(255,255,255,0.08)',
+          border: `1px solid ${palette.border}`,
         },
       },
     },
@@ -74,11 +86,11 @@ const darkTheme = createTheme({
         {
           props: { variant: 'contained', color: 'primary' },
           style: {
-            background: '#38bdf8',
-            color: '#0f172a',
+            background: palette.accent,
+            color: palette.onAccent,
             fontWeight: 600,
             '&:hover': {
-              background: '#7dd3fc',
+              background: palette.accentHover,
             },
           },
         },
@@ -86,9 +98,9 @@ const darkTheme = createTheme({
           props: { variant: 'outlined', color: 'primary' },
           style: {
             borderColor: 'rgba(56,189,248,0.4)',
-            color: '#38bdf8',
+            color: palette.accent,
             '&:hover': {
-              borderColor: '#38bdf8',
+              borderColor: palette.accent,
               background: 'rgba(56,189,248,0.08)',
             },
           },
@@ -98,14 +110,14 @@ const darkTheme = createTheme({
     MuiDivider: {
       styleOverrides: {
         root: {
-          borderColor: 'rgba(255,255,255,0.08)',
+          borderColor: palette.border,
         },
       },
     },
     MuiAlert: {
       styleOverrides: {
         root: {
-          borderRadius: 8,
+          borderRadius: radius.md,
         },
       },
     },
@@ -113,19 +125,25 @@ const darkTheme = createTheme({
 });
 
 export default function Providers({ children }: { children: ReactNode }) {
+  const { t } = useTranslation();
   return (
     <AppRouterCacheProvider options={{ key: 'mui' }}>
       <ThemeProvider theme={darkTheme}>
         <CssBaseline />
         <AuthProvider>
+          {/* Keyboard skip link + one main landmark for every route. [Q11] */}
+          <a href="#main-content" className="skip-link">
+            {t('skip_to_content', 'Skip to content')}
+          </a>
           <Navbar />
-          {children}
+          <main id="main-content">{children}</main>
+          <Footer />
           <Toaster
             toastOptions={{
               style: {
-                background: '#1e293b',
-                color: '#f1f5f9',
-                border: '1px solid rgba(255,255,255,0.08)',
+                background: palette.surface,
+                color: palette.foreground,
+                border: `1px solid ${palette.border}`,
               },
             }}
           />

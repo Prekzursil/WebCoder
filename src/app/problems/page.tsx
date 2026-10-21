@@ -15,9 +15,11 @@
 // the App Router loading.tsx / error.tsx boundaries in this directory.
 
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { createTranslator, getLocale } from '../_lib/public-i18n';
 import { getProblems } from './_lib/problems-api';
 import ProblemsListClient from './ProblemsListClient';
+import ProblemsTableSkeleton from './ProblemsTableSkeleton';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = createTranslator(await getLocale());
@@ -44,10 +46,12 @@ export default async function ProblemsListPage() {
   }
 
   return (
-    <ProblemsListClient
-      problems={problems}
-      fetchError={fetchError}
-      locale={locale}
-    />
+    <Suspense fallback={<ProblemsTableSkeleton />}>
+      <ProblemsListClient
+        problems={problems}
+        fetchError={fetchError}
+        locale={locale}
+      />
+    </Suspense>
   );
 }

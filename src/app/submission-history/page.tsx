@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import ProtectedRoute from '@/components/common/ProtectedRoute';
+import TableScroll from '@/components/common/TableScroll';
 
 interface SubmissionRecord {
   id: number;
@@ -33,28 +34,28 @@ const MOCK_SUBMISSIONS: SubmissionRecord[] = [
 ];
 
 const verdictConfig: Record<string, { color: string; bg: string; label: string }> = {
-  AC:  { color: '#4ade80', bg: 'rgba(74,222,128,0.12)',  label: 'Accepted' },
-  WA:  { color: '#f87171', bg: 'rgba(248,113,113,0.12)', label: 'Wrong Answer' },
-  TLE: { color: '#fbbf24', bg: 'rgba(251,191,36,0.12)',  label: 'Time Limit' },
-  MLE: { color: '#a78bfa', bg: 'rgba(167,139,250,0.12)', label: 'Memory Limit' },
-  CE:  { color: '#fb923c', bg: 'rgba(251,146,60,0.12)',  label: 'Compile Error' },
-  RE:  { color: '#f472b6', bg: 'rgba(244,114,182,0.12)', label: 'Runtime Error' },
+  AC:  { color: 'var(--success)', bg: 'rgba(74,222,128,0.12)',  label: 'Accepted' },
+  WA:  { color: 'var(--danger)', bg: 'rgba(248,113,113,0.12)', label: 'Wrong Answer' },
+  TLE: { color: 'var(--warn)', bg: 'rgba(251,191,36,0.12)',  label: 'Time Limit' },
+  MLE: { color: 'var(--violet)', bg: 'rgba(167,139,250,0.12)', label: 'Memory Limit' },
+  CE:  { color: 'var(--orange)', bg: 'rgba(251,146,60,0.12)',  label: 'Compile Error' },
+  RE:  { color: 'var(--pink)', bg: 'rgba(244,114,182,0.12)', label: 'Runtime Error' },
 };
 
 const difficultyConfig: Record<string, { color: string; bg: string }> = {
-  Easy:   { color: '#4ade80', bg: 'rgba(74,222,128,0.1)' },
-  Medium: { color: '#fbbf24', bg: 'rgba(251,191,36,0.1)' },
-  Hard:   { color: '#f87171', bg: 'rgba(248,113,113,0.1)' },
+  Easy:   { color: 'var(--success)', bg: 'rgba(74,222,128,0.1)' },
+  Medium: { color: 'var(--warn)', bg: 'rgba(251,191,36,0.1)' },
+  Hard:   { color: 'var(--danger)', bg: 'rgba(248,113,113,0.1)' },
 };
 
 const langColors: Record<string, string> = {
-  python3: '#3b82f6',
-  cpp17:   '#a78bfa',
-  java11:  '#fb923c',
+  python3: 'var(--blue)',
+  cpp17:   'var(--violet)',
+  java11:  'var(--orange)',
 };
 
 function VerdictBadge({ verdict }: { verdict: string }) {
-  const cfg = verdictConfig[verdict] ?? { color: '#94a3b8', bg: 'rgba(148,163,184,0.1)', label: verdict };
+  const cfg = verdictConfig[verdict] ?? { color: 'var(--muted)', bg: 'rgba(148,163,184,0.1)', label: verdict };
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center',
@@ -70,15 +71,15 @@ function VerdictBadge({ verdict }: { verdict: string }) {
 function StatCard({ label, value, sub, accent }: { label: string; value: string | number; sub?: string; accent?: string }) {
   return (
     <div style={{
-      background: '#1e293b',
+      background: 'var(--surface)',
       border: '1px solid rgba(255,255,255,0.06)',
       borderRadius: '12px',
       padding: '1.25rem 1.5rem',
       flex: '1 1 140px',
     }}>
-      <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.5rem' }}>{label}</div>
-      <div style={{ fontSize: '1.75rem', fontWeight: 800, color: accent ?? '#f1f5f9', letterSpacing: '-0.03em' }}>{value}</div>
-      {sub && <div style={{ fontSize: '0.75rem', color: '#475569', marginTop: '0.25rem' }}>{sub}</div>}
+      <div style={{ fontSize: '0.72rem', color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.5rem' }}>{label}</div>
+      <div style={{ fontSize: '1.75rem', fontWeight: 800, color: accent ?? 'var(--foreground)', letterSpacing: '-0.03em' }}>{value}</div>
+      {sub && <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: '0.25rem' }}>{sub}</div>}
     </div>
   );
 }
@@ -128,15 +129,15 @@ function SubmissionHistoryContent() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '0.5rem' }}>
           <div style={{
             width: '36px', height: '36px', borderRadius: '8px',
-            background: 'linear-gradient(135deg, #38bdf8 0%, #818cf8 100%)',
+            background: 'var(--brand-gradient)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '1.1rem',
           }}>📋</div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.03em', color: '#f1f5f9' }}>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--foreground)' }}>
             Submission History
           </h1>
         </div>
-        <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
+        <p style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>
           A full record of every solution you&apos;ve submitted.
         </p>
       </div>
@@ -144,20 +145,20 @@ function SubmissionHistoryContent() {
       {/* Stats row */}
       <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
         <StatCard label="Total Submissions" value={stats.total} />
-        <StatCard label="Accepted" value={stats.accepted} accent="#4ade80" sub={`${stats.rate}% success rate`} />
-        <StatCard label="Problems Solved" value={stats.uniqueProblems} accent="#38bdf8" />
-        <StatCard label="Avg Score" value={`${stats.avgScore}%`} accent="#fbbf24" />
+        <StatCard label="Accepted" value={stats.accepted} accent="var(--success)" sub={`${stats.rate}% success rate`} />
+        <StatCard label="Problems Solved" value={stats.uniqueProblems} accent="var(--accent)" />
+        <StatCard label="Avg Score" value={`${stats.avgScore}%`} accent="var(--warn)" />
       </div>
 
       {/* Verdict distribution bar */}
       <div style={{
-        background: '#1e293b',
+        background: 'var(--surface)',
         border: '1px solid rgba(255,255,255,0.06)',
         borderRadius: '12px',
         padding: '1.25rem 1.5rem',
         marginBottom: '1.5rem',
       }}>
-        <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.75rem' }}>
+        <div style={{ fontSize: '0.75rem', color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.75rem' }}>
           Verdict Breakdown
         </div>
         <div style={{ display: 'flex', height: '10px', borderRadius: '999px', overflow: 'hidden', gap: '2px', marginBottom: '0.75rem' }}>
@@ -177,7 +178,7 @@ function SubmissionHistoryContent() {
             return (
               <div key={v} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: cfg.color }} />
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{cfg.label}</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>{cfg.label}</span>
                 <span style={{ fontSize: '0.75rem', fontWeight: 700, color: cfg.color }}>{count}</span>
               </div>
             );
@@ -187,7 +188,7 @@ function SubmissionHistoryContent() {
 
       {/* Filter bar + view toggle */}
       <div style={{
-        background: '#1e293b',
+        background: 'var(--surface)',
         border: '1px solid rgba(255,255,255,0.06)',
         borderRadius: '12px',
         padding: '1rem 1.25rem',
@@ -207,7 +208,7 @@ function SubmissionHistoryContent() {
             background: 'rgba(255,255,255,0.04)',
             border: '1px solid rgba(255,255,255,0.08)',
             borderRadius: '8px',
-            color: '#f1f5f9',
+            color: 'var(--foreground)',
             padding: '7px 12px',
             fontSize: '0.875rem',
             outline: 'none',
@@ -215,8 +216,8 @@ function SubmissionHistoryContent() {
         />
 
         <select value={verdictFilter} onChange={e => setVerdictFilter(e.target.value)} style={{
-          background: '#0f172a', border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '8px', color: '#94a3b8', padding: '7px 10px',
+          background: 'var(--background)', border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: '8px', color: 'var(--muted)', padding: '7px 10px',
           fontSize: '0.8rem', outline: 'none', cursor: 'pointer',
         }}>
           <option value="">All Verdicts</option>
@@ -224,8 +225,8 @@ function SubmissionHistoryContent() {
         </select>
 
         <select value={langFilter} onChange={e => setLangFilter(e.target.value)} style={{
-          background: '#0f172a', border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '8px', color: '#94a3b8', padding: '7px 10px',
+          background: 'var(--background)', border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: '8px', color: 'var(--muted)', padding: '7px 10px',
           fontSize: '0.8rem', outline: 'none', cursor: 'pointer',
         }}>
           <option value="">All Languages</option>
@@ -235,8 +236,8 @@ function SubmissionHistoryContent() {
         </select>
 
         <select value={diffFilter} onChange={e => setDiffFilter(e.target.value)} style={{
-          background: '#0f172a', border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '8px', color: '#94a3b8', padding: '7px 10px',
+          background: 'var(--background)', border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: '8px', color: 'var(--muted)', padding: '7px 10px',
           fontSize: '0.8rem', outline: 'none', cursor: 'pointer',
         }}>
           <option value="">All Difficulties</option>
@@ -249,7 +250,7 @@ function SubmissionHistoryContent() {
           <button onClick={() => { setVerdictFilter(''); setLangFilter(''); setDiffFilter(''); setSearch(''); }} style={{
             padding: '6px 12px', borderRadius: '8px', fontSize: '0.75rem',
             border: '1px solid rgba(248,113,113,0.3)', background: 'rgba(248,113,113,0.08)',
-            color: '#f87171', cursor: 'pointer',
+            color: 'var(--danger)', cursor: 'pointer',
           }}>✕ Clear</button>
         )}
 
@@ -258,21 +259,22 @@ function SubmissionHistoryContent() {
             <button key={v} onClick={() => setView(v)} style={{
               padding: '5px 14px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600,
               border: 'none', cursor: 'pointer', transition: 'all 120ms ease',
-              background: view === v ? '#38bdf8' : 'transparent',
-              color: view === v ? '#0f172a' : '#64748b',
+              background: view === v ? 'var(--accent)' : 'transparent',
+              color: view === v ? 'var(--on-accent)' : 'var(--muted)',
             }}>{v === 'table' ? '⊞ Table' : '⏱ Timeline'}</button>
           ))}
         </div>
       </div>
 
-      <div style={{ fontSize: '0.8rem', color: '#475569', marginBottom: '0.75rem' }}>
-        Showing <span style={{ color: '#94a3b8', fontWeight: 600 }}>{filtered.length}</span>
+      <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', marginBottom: '0.75rem' }}>
+        Showing <span style={{ color: 'var(--muted)', fontWeight: 600 }}>{filtered.length}</span>
         {hasFilters && ` of ${MOCK_SUBMISSIONS.length}`} submission{filtered.length !== 1 ? 's' : ''}
       </div>
 
       {/* Table view */}
       {view === 'table' && (
-        <div style={{ background: '#1e293b', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+        <div style={{ background: 'var(--surface)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <TableScroll>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
@@ -280,24 +282,24 @@ function SubmissionHistoryContent() {
                   <th key={h} style={{
                     padding: '12px 16px', textAlign: 'left',
                     fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase',
-                    letterSpacing: '0.07em', color: '#64748b', whiteSpace: 'nowrap',
+                    letterSpacing: '0.07em', color: 'var(--muted)', whiteSpace: 'nowrap',
                   }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={9} style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>No submissions match your filters.</td></tr>
+                <tr><td colSpan={9} style={{ padding: '3rem', textAlign: 'center', color: 'var(--muted)' }}>No submissions match your filters.</td></tr>
               ) : filtered.map(s => {
                 const diffCfg = difficultyConfig[s.difficulty];
-                const langColor = langColors[s.language] ?? '#94a3b8';
+                const langColor = langColors[s.language] ?? 'var(--muted)';
                 return (
                   <tr key={s.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                     <td style={{ padding: '12px 16px' }}>
-                      <Link href={`/submissions/${s.id}`} style={{ color: '#38bdf8', fontWeight: 600, fontSize: '0.85rem' }}>#{s.id}</Link>
+                      <Link href={`/submissions/${s.id}`} style={{ color: 'var(--accent)', fontWeight: 600, fontSize: '0.85rem' }}>#{s.id}</Link>
                     </td>
                     <td style={{ padding: '12px 16px' }}>
-                      <Link href={`/problems/${s.problemId}`} style={{ color: '#f1f5f9', fontWeight: 500, fontSize: '0.875rem' }}>{s.problemTitle}</Link>
+                      <Link href={`/problems/${s.problemId}`} style={{ color: 'var(--foreground)', fontWeight: 500, fontSize: '0.875rem' }}>{s.problemTitle}</Link>
                     </td>
                     <td style={{ padding: '12px 16px' }}>
                       <span style={{
@@ -314,26 +316,27 @@ function SubmissionHistoryContent() {
                     </td>
                     <td style={{ padding: '12px 16px' }}><VerdictBadge verdict={s.verdict} /></td>
                     <td style={{ padding: '12px 16px' }}>
-                      <span style={{ color: s.score === 100 ? '#4ade80' : s.score === 0 ? '#f87171' : '#fbbf24', fontWeight: 700 }}>
+                      <span style={{ color: s.score === 100 ? 'var(--success)' : s.score === 0 ? 'var(--danger)' : 'var(--warn)', fontWeight: 700 }}>
                         {s.score !== null ? `${s.score}%` : '—'}
                       </span>
                     </td>
-                    <td style={{ padding: '12px 16px', color: '#94a3b8', fontSize: '0.8rem' }}>
+                    <td style={{ padding: '12px 16px', color: 'var(--muted)', fontSize: '0.8rem' }}>
                       {s.executionMs !== null ? `${s.executionMs} ms` : '—'}
                     </td>
-                    <td style={{ padding: '12px 16px', color: '#94a3b8', fontSize: '0.8rem' }}>
+                    <td style={{ padding: '12px 16px', color: 'var(--muted)', fontSize: '0.8rem' }}>
                       {s.memoryKb !== null ? `${Math.round(s.memoryKb / 1024 * 10) / 10} MB` : '—'}
                     </td>
-                    <td style={{ padding: '12px 16px', color: '#475569', fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '12px 16px', color: 'var(--text-tertiary)', fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
                       {new Date(s.time).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                       {' '}
-                      <span style={{ color: '#334155' }}>{new Date(s.time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                      <span style={{ color: 'var(--surface-2)' }}>{new Date(s.time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
                     </td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
+          </TableScroll>
         </div>
       )}
 
@@ -341,7 +344,7 @@ function SubmissionHistoryContent() {
       {view === 'timeline' && (
         <div>
           {Object.entries(byDate).length === 0 ? (
-            <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b', background: '#1e293b', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--muted)', background: 'var(--surface)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
               No submissions match your filters.
             </div>
           ) : Object.entries(byDate).map(([date, subs]) => (
@@ -349,18 +352,18 @@ function SubmissionHistoryContent() {
               <div style={{
                 display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '0.75rem',
               }}>
-                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#38bdf8', flexShrink: 0 }} />
-                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{date}</span>
+                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--accent)', flexShrink: 0 }} />
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{date}</span>
                 <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.06)' }} />
-                <span style={{ fontSize: '0.72rem', color: '#334155' }}>{subs.length} submission{subs.length !== 1 ? 's' : ''}</span>
+                <span style={{ fontSize: '0.72rem', color: 'var(--surface-2)' }}>{subs.length} submission{subs.length !== 1 ? 's' : ''}</span>
               </div>
               <div style={{ paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {subs.map(s => {
                   const diffCfg = difficultyConfig[s.difficulty];
-                  const langColor = langColors[s.language] ?? '#94a3b8';
+                  const langColor = langColors[s.language] ?? 'var(--muted)';
                   return (
                     <div key={s.id} style={{
-                      background: '#1e293b',
+                      background: 'var(--surface)',
                       border: '1px solid rgba(255,255,255,0.06)',
                       borderRadius: '10px',
                       padding: '0.875rem 1.25rem',
@@ -369,13 +372,13 @@ function SubmissionHistoryContent() {
                       gap: '1rem',
                       flexWrap: 'wrap',
                     }}>
-                      <Link href={`/submissions/${s.id}`} style={{ color: '#38bdf8', fontWeight: 700, fontSize: '0.8rem', minWidth: '52px' }}>#{s.id}</Link>
-                      <Link href={`/problems/${s.problemId}`} style={{ color: '#f1f5f9', fontWeight: 500, fontSize: '0.875rem', flex: 1, minWidth: '140px' }}>{s.problemTitle}</Link>
+                      <Link href={`/submissions/${s.id}`} style={{ color: 'var(--accent)', fontWeight: 700, fontSize: '0.8rem', minWidth: '52px' }}>#{s.id}</Link>
+                      <Link href={`/problems/${s.problemId}`} style={{ color: 'var(--foreground)', fontWeight: 500, fontSize: '0.875rem', flex: 1, minWidth: '140px' }}>{s.problemTitle}</Link>
                       <span style={{ padding: '2px 8px', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 600, color: diffCfg.color, background: diffCfg.bg }}>{s.difficulty}</span>
                       <span style={{ padding: '2px 8px', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, color: langColor, background: `${langColor}18`, fontFamily: 'monospace' }}>{s.language}</span>
                       <VerdictBadge verdict={s.verdict} />
-                      {s.executionMs !== null && <span style={{ fontSize: '0.75rem', color: '#475569' }}>{s.executionMs} ms</span>}
-                      <span style={{ fontSize: '0.72rem', color: '#334155', marginLeft: 'auto' }}>
+                      {s.executionMs !== null && <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{s.executionMs} ms</span>}
+                      <span style={{ fontSize: '0.72rem', color: 'var(--surface-2)', marginLeft: 'auto' }}>
                         {new Date(s.time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>

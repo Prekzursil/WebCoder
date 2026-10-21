@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { ProblemType, SubmissionType } from '@/types';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import ProtectedRoute from '@/components/common/ProtectedRoute';
+import TableScroll from '@/components/common/TableScroll';
 
 // Ported from frontend/webcoder_ui/src/pages/submissions/MySubmissionsPage.tsx
 // (CRA reference). Route mirrors react-router's /my-submissions (App.tsx:40),
@@ -199,7 +200,8 @@ function MySubmissionsPageContent() {
         <p>{t('no_submissions_yet', 'You have no submissions yet.')}</p>
       ) : (
         <>
-          <table>
+          <TableScroll>
+            <table>
             <thead>
               <tr>
                 <th>{t('submission_id_th', 'ID')}</th>
@@ -228,7 +230,8 @@ function MySubmissionsPageContent() {
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </TableScroll>
           {totalPages > 1 && (
             <div style={{ marginTop: '20px', textAlign: 'center' }}>
               <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
