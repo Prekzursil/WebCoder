@@ -4,6 +4,15 @@
 import { test, expect } from '@playwright/test';
 import { isRealStack, ensureRealStackFixtures, E2E_ADMIN_USER, E2E_ADMIN_PASS } from './lib/realStack';
 
+// Real-backend mode: the login round-trip is login POST + /users/me/ (with
+// DB hits) on a stack that may share a loaded host with the dev server —
+// the default 10s expect timeout flaked under load even though every
+// response was correct (observed: spinner held past timeout, then pass on
+// retry). Give the whole file breathing room in real mode only.
+if (isRealStack) {
+  test.setTimeout(90_000);
+}
+
 test('login form rejects bad credentials with the API error', async ({
   page,
 }) => {
