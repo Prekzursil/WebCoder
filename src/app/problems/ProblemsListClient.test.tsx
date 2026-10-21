@@ -66,7 +66,7 @@ afterEach(cleanup);
 describe('ProblemsListClient URL-synced filters [F3]', () => {
   it('initializes the search box from ?q= on mount', () => {
     mocks.params = new URLSearchParams('q=two');
-    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" />);
+    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
     expect((screen.getByRole('searchbox') as HTMLInputElement).value).toBe('two');
     // Filtered to the single matching row.
     expect(screen.getByRole('link', { name: 'Two Sum' })).toBeInTheDocument();
@@ -74,13 +74,13 @@ describe('ProblemsListClient URL-synced filters [F3]', () => {
   });
 
   it('pushes ?q= into the URL as the user types', () => {
-    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" />);
+    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'sum' } });
     expect(mocks.replace).toHaveBeenCalledWith('/problems?q=sum', { scroll: false });
   });
 
   it('syncs the difficulty filter to ?difficulty=', () => {
-    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" />);
+    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
     fireEvent.click(screen.getByRole('button', { name: 'hard' }));
     expect(mocks.replace).toHaveBeenCalledWith('/problems?difficulty=hard', { scroll: false });
     expect(screen.getByRole('link', { name: 'Aho-Corasick' })).toBeInTheDocument();
@@ -89,7 +89,7 @@ describe('ProblemsListClient URL-synced filters [F3]', () => {
 
   it('clears every filter param on the Clear button', () => {
     mocks.params = new URLSearchParams('q=x&difficulty=easy');
-    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" />);
+    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
     // Two Clear buttons render (filter bar + empty-state action) when the
     // filters match nothing — the filter-bar one comes first.
     fireEvent.click(screen.getAllByRole('button', { name: /Clear/i })[0]);
@@ -98,7 +98,7 @@ describe('ProblemsListClient URL-synced filters [F3]', () => {
 
   it('renders the localized no-match empty state with a clear action', () => {
     mocks.params = new URLSearchParams('q=zzz-nothing');
-    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" />);
+    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
     expect(screen.getByText('No problems match your filters.')).toBeInTheDocument();
   });
 });
@@ -111,7 +111,7 @@ describe('ProblemsListClient column sorting [F3]', () => {
       .map((row) => row.textContent ?? '');
 
   it('sorts by title asc then desc on repeated clicks, with aria-sort', () => {
-    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" />);
+    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
 
     const titleHeader = screen.getByRole('columnheader', { name: /Title/ });
     expect(titleHeader).toHaveAttribute('aria-sort', 'none');
@@ -130,7 +130,7 @@ describe('ProblemsListClient column sorting [F3]', () => {
   });
 
   it('sorts by difficulty with the easy<medium<hard order', () => {
-    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" />);
+    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
     const diffHeader = screen.getByRole('columnheader', { name: /Difficulty/ });
     fireEvent.click(within(diffHeader).getByRole('button'));
     const titles = rowTitles();
@@ -142,7 +142,7 @@ describe('ProblemsListClient column sorting [F3]', () => {
 
 describe('ProblemsListClient status facet gating [F7]', () => {
   it('hides the status facet and column from anonymous visitors', () => {
-    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" />);
+    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
     expect(screen.queryByText('Status:')).not.toBeInTheDocument();
     expect(screen.queryByRole('columnheader', { name: /Status/ })).not.toBeInTheDocument();
   });
@@ -151,7 +151,7 @@ describe('ProblemsListClient status facet gating [F7]', () => {
     mocks.auth.isAuthenticated = true;
     mocks.auth.token = 'tok';
     mocks.auth.user = { id: 1, username: 'v', email: 'v@example.com', role: 'PROBLEM_CREATOR' };
-    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" />);
+    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
     expect(screen.getByText('Status:')).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: /Status/ })).toBeInTheDocument();
     // Real backend choices only.

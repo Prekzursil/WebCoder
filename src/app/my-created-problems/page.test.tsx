@@ -46,13 +46,24 @@ const api = vi.hoisted(() => ({
   getTags: vi.fn(),
 }));
 
-vi.mock('@/services/ApiService', () => ({
-  ProblemService: {
-    getProblems: api.getProblems,
-    submitForApproval: api.submitForApproval,
-    getTags: api.getTags,
-  },
-}));
+// collectAllPages mock: single page — the tests only ever provide one page
+// of envelope data (the real helper follows `next`; the cap is covered by
+// the ApiService unit tests).
+vi.mock('@/services/ApiService', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/services/ApiService')>();
+  return {
+    ...actual,
+    collectAllPages: async (fetchPage: (page: number) => Promise<{ results: unknown[] }>) => {
+      const response = await fetchPage(1);
+      return response.results;
+    },
+    ProblemService: {
+      getProblems: api.getProblems,
+      submitForApproval: api.submitForApproval,
+      getTags: api.getTags,
+    },
+  };
+});
 
 const toasts = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
 vi.mock('react-hot-toast', () => ({
@@ -62,11 +73,13 @@ vi.mock('react-hot-toast', () => ({
   toast: toasts,
 }));
 
+// author.id = 7 matches the authenticated creator (the page filters the
+// paginated list client-side because the backend ignores ?authorId=).
 const PROBLEMS: ProblemType[] = [
-  { id: 1, title_i18n: { en: 'Two Sum', ro: 'Suma a Două' }, difficulty: 'EASY', status: 'DRAFT' },
-  { id: 2, title_i18n: { en: 'Segments' }, difficulty: 'MEDIUM', status: 'PRIVATE', verifier_feedback: 'Statement too vague.' },
-  { id: 3, title_i18n: { en: 'Max Flow' }, difficulty: 'HARD', status: 'APPROVED' },
-  { id: 4, title_i18n: { en: 'No Feedback' }, difficulty: 'EASY', status: 'PRIVATE' },
+  { id: 1, title_i18n: { en: 'Two Sum', ro: 'Suma a Două' }, difficulty: 'EASY', status: 'DRAFT', author: { id: 7, username: 'creator' } },
+  { id: 2, title_i18n: { en: 'Segments' }, difficulty: 'MEDIUM', status: 'PRIVATE', verifier_feedback: 'Statement too vague.', author: { id: 7, username: 'creator' } },
+  { id: 3, title_i18n: { en: 'Max Flow' }, difficulty: 'HARD', status: 'APPROVED', author: { id: 7, username: 'creator' } },
+  { id: 4, title_i18n: { en: 'No Feedback' }, difficulty: 'EASY', status: 'PRIVATE', author: { id: 7, username: 'creator' } },
 ];
 
 beforeEach(() => {
@@ -75,7 +88,7 @@ beforeEach(() => {
   authState.token = 'token-1';
   authState.refreshToken = 'refresh-1';
   authState.user = { id: 7, username: 'creator', email: 'creator@example.com', role: 'PROBLEM_CREATOR' };
-  api.getProblems.mockResolvedValue([]);
+  api.getProblems.mockResolvedValue({ count: 0, next: null, previous: null, results: [] });
 });
 
 
@@ -87,15 +100,15 @@ afterEach(() => {
 
 describe('MyCreatedProblemsPage (/my-created-problems)', () => {
   it('renders the spinner while fetching, then the problems table', async () => {
-    let resolveProblems!: (v: ProblemType[]) => void;
-    api.getProblems.mockImplementation(() => new Promise<ProblemType[]>((res) => { resolveProblems = res; }));
+    let resolveProblems!: (v: { count: number; next: null; previous: null; results: ProblemType[] }) => void;
+    api.getProblems.mockImplementation(() => new Promise<{ count: number; next: null; previous: null; results: ProblemType[] }>((res) => { resolveProblems = res; }));
     const { container } = render(<MyCreatedProblemsRoute />);
 
     expect(screen.getByText('Loading...')).toBeInTheDocument();
-    await act_resolve(resolveProblems, [PROBLEMS[0]]);
+    await act_resolve(resolveProblems, { count: 1, next: null, previous: null, results: [PROBLEMS[0]] });
 
     expect(await screen.findByText('My Created Problems')).toBeInTheDocument();
-    expect(api.getProblems).toHaveBeenCalledWith({ authorId: 7 });
+    expect(api.getProblems).toHaveBeenCalledWith({}, { page: 1, pageSize: 100 });
     expect(container.querySelector('a[href="/problems/1"]')?.textContent).toBe('Two Sum');
     expect(container.querySelector('a[href="/problems/1/edit"]')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Submit for Approval' })).toBeInTheDocument();
@@ -104,7 +117,7 @@ describe('MyCreatedProblemsPage (/my-created-problems)', () => {
   });
 
   it('renders the empty state when the author has no problems', async () => {
-    api.getProblems.mockResolvedValue([]);
+    api.getProblems.mockResolvedValue({ count: 0, next: null, previous: null, results: [] });
     render(<MyCreatedProblemsRoute />);
 
     expect(await screen.findByText('You have not created any problems yet.')).toBeInTheDocument();
@@ -112,7 +125,7 @@ describe('MyCreatedProblemsPage (/my-created-problems)', () => {
   });
 
   it('shows the table headers and per-status actions', async () => {
-    api.getProblems.mockResolvedValue(PROBLEMS);
+    api.getProblems.mockResolvedValue({ count: PROBLEMS.length, next: null, previous: null, results: PROBLEMS });
     render(<MyCreatedProblemsRoute />);
 
     expect(await screen.findByText('Two Sum')).toBeInTheDocument();
@@ -181,7 +194,7 @@ describe('MyCreatedProblemsPage (/my-created-problems)', () => {
 
   it('submits a draft for approval: optimistic flip + success toast', async () => {
     // Second row (different id) exercises the untouched-row side of the flip.
-    api.getProblems.mockResolvedValue([PROBLEMS[0], PROBLEMS[2]]);
+    api.getProblems.mockResolvedValue({ count: 2, next: null, previous: null, results: [PROBLEMS[0], PROBLEMS[2]] });
     render(<MyCreatedProblemsRoute />);
     await screen.findByText('Two Sum');
 
@@ -194,7 +207,7 @@ describe('MyCreatedProblemsPage (/my-created-problems)', () => {
   });
 
   it('shows the server message in the error toast when submission fails', async () => {
-    api.getProblems.mockResolvedValue([PROBLEMS[0]]);
+    api.getProblems.mockResolvedValue({ count: 1, next: null, previous: null, results: [PROBLEMS[0]] });
     api.submitForApproval.mockRejectedValue(new Error('boom'));
     render(<MyCreatedProblemsRoute />);
     await screen.findByText('Two Sum');
@@ -208,7 +221,7 @@ describe('MyCreatedProblemsPage (/my-created-problems)', () => {
   });
 
   it('falls back to Unknown error when the failure has no message', async () => {
-    api.getProblems.mockResolvedValue([PROBLEMS[0]]);
+    api.getProblems.mockResolvedValue({ count: 1, next: null, previous: null, results: [PROBLEMS[0]] });
     api.submitForApproval.mockRejectedValue({});
     render(<MyCreatedProblemsRoute />);
     await screen.findByText('Two Sum');
@@ -221,7 +234,7 @@ describe('MyCreatedProblemsPage (/my-created-problems)', () => {
   });
 
   it('blocks the submit action with a toast when the token disappeared', async () => {
-    api.getProblems.mockResolvedValue([PROBLEMS[0]]);
+    api.getProblems.mockResolvedValue({ count: 1, next: null, previous: null, results: [PROBLEMS[0]] });
     render(<MyCreatedProblemsRoute />);
     await screen.findByText('Two Sum');
 
@@ -236,10 +249,13 @@ describe('MyCreatedProblemsPage (/my-created-problems)', () => {
 
   it('renders the localized title when present, falling back to English', async () => {
     const { default: i18n } = await import('@/i18n');
-    api.getProblems.mockResolvedValue([
-      { id: 10, title_i18n: { en: 'Only EN', ro: 'Doar RO' }, difficulty: 'EASY', status: 'DRAFT' },
-      { id: 11, title_i18n: { en: 'EN Fallback' }, difficulty: 'EASY', status: 'DRAFT' },
-    ]);
+    api.getProblems.mockResolvedValue({ count: [
+      { id: 10, title_i18n: { en: 'Only EN', ro: 'Doar RO' }, difficulty: 'EASY', status: 'DRAFT', author: { id: 7, username: 'creator' } },
+      { id: 11, title_i18n: { en: 'EN Fallback' }, difficulty: 'EASY', status: 'DRAFT', author: { id: 7, username: 'creator' } },
+    ].length, next: null, previous: null, results: [
+      { id: 10, title_i18n: { en: 'Only EN', ro: 'Doar RO' }, difficulty: 'EASY', status: 'DRAFT', author: { id: 7, username: 'creator' } },
+      { id: 11, title_i18n: { en: 'EN Fallback' }, difficulty: 'EASY', status: 'DRAFT', author: { id: 7, username: 'creator' } },
+    ] });
     render(<MyCreatedProblemsRoute />);
 
     await screen.findByText('Only EN');

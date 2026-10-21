@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
-import { ProblemService } from '@/services/ApiService';
+import { ProblemService, collectAllPages } from '@/services/ApiService';
 import { useAuth } from '@/context/AuthContext';
 import { ProblemType } from '@/types';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
@@ -46,8 +46,14 @@ export function ProblemVerificationQueuePage() {
     if (auth.isAuthenticated && auth.token) {
       setLoading(true);
       try {
-        const response = await ProblemService.getProblems({ status: 'PENDING_APPROVAL' });
-        setPendingProblems(response);
+        // The backend list never honored ?status= (its queryset scopes by
+        // role), so collect pages and keep only PENDING_APPROVAL rows here.
+        const response = await collectAllPages((page) =>
+          ProblemService.getProblems({}, { page, pageSize: 100 })
+        );
+        setPendingProblems(
+          response.filter((p) => p.status === 'PENDING_APPROVAL')
+        );
         setError(null);
       } catch (err) {
         setError(errorMessage(err, t('error_loading_pending_problems', 'Failed to load pending problems.')));

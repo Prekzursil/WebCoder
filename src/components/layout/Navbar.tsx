@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
+import { NotificationService } from '@/services/ApiService';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
@@ -19,9 +20,6 @@ import styles from './navbar.module.css';
 //  - every link/menu item is a 44px touch target (A1)
 // Role literals intentionally unchanged — vocabulary normalization is F1
 // (Wave 3), which will touch these gates together with the backend enum.
-
-// FIXME(F10, Wave 3): unread count is mocked until notifications get a backend.
-const MOCK_UNREAD_COUNT = 4;
 
 interface NavLinkItem {
   href: string;
@@ -38,6 +36,32 @@ const Navbar: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // [F10] Real unread badge: GET /notifications/unread-count/ (auth-scoped)
+  // on mount and every 60s while authenticated. Best-effort — any failure
+  // (401, network, 5xx) simply leaves the badge at its last value.
+  useEffect(() => {
+    if (!auth.isAuthenticated) {
+      setUnreadCount(0);
+      return;
+    }
+    let cancelled = false;
+    const poll = () =>
+      NotificationService.getUnreadCount()
+        .then(({ count }) => {
+          if (!cancelled) setUnreadCount(count);
+        })
+        .catch(() => {
+          /* badge stays at its last value */
+        });
+    poll();
+    const interval = setInterval(poll, 60_000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [auth.isAuthenticated, auth.user]);
 
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
@@ -214,8 +238,8 @@ const Navbar: React.FC = () => {
                 className={`${styles.iconBtn} ${isActive('/notifications') ? styles.iconBtnActive : ''}`}
               >
                 <NotificationsOutlinedIcon fontSize="small" />
-                {MOCK_UNREAD_COUNT > 0 && (
-                  <span className={styles.badge}>{MOCK_UNREAD_COUNT}</span>
+                {unreadCount > 0 && (
+                  <span className={styles.badge}>{unreadCount}</span>
                 )}
               </Link>
 

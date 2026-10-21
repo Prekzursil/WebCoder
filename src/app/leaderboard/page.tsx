@@ -1,289 +1,504 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { LeaderboardService } from '@/services/ApiService';
+import { MyLeaderboardEntry } from '@/types/api';
+import { useAuth } from '@/context/AuthContext';
+import { palette, hexAlpha } from '@/theme/tokens';
+import EmptyState from '@/components/common/EmptyState';
+import PageHeader from '@/components/common/PageHeader';
 
+// Leaderboard wired to the real standings endpoint (backend leaderboard app,
+// PR #186): GET /api/v1/leaderboard/ is public, page-number paginated (50
+// rows/page) and window-ranked server-side; GET /api/v1/leaderboard/me/ adds
+// the caller's own card when authenticated. The old MOCK_LEADERBOARD lives on
+// only as a fixture in page.test.tsx.
+//
+// success_rate arrives as a 0..1 fraction (4 dp) — the UI renders percent.
+// Search/sort stay client-side over the loaded rows; "Load more" follows the
+// envelope's `next` link. Any API failure keeps the page usable: error card +
+// retry button.
 
-interface LeaderboardEntry {
+interface Row {
   rank: number;
   username: string;
-  score: number;
-  solved: number;
-  submissions: number;
-  successRate: number;
-  badge: 'gold' | 'silver' | 'bronze' | null;
+  total_points: number;
+  solved_count: number;
+  success_rate: number;
 }
 
-const MOCK_LEADERBOARD: LeaderboardEntry[] = [
-  { rank: 1, username: 'alex_coder', score: 4820, solved: 142, submissions: 178, successRate: 79.8, badge: 'gold' },
-  { rank: 2, username: 'mihai_dev', score: 4310, solved: 128, submissions: 161, successRate: 79.5, badge: 'silver' },
-  { rank: 3, username: 'ioana_pro', score: 3990, solved: 119, submissions: 155, successRate: 76.8, badge: 'bronze' },
-  { rank: 4, username: 'stefan_algo', score: 3750, solved: 111, submissions: 148, successRate: 75.0, badge: null },
-  { rank: 5, username: 'radu_bits', score: 3480, solved: 104, submissions: 140, successRate: 74.3, badge: null },
-  { rank: 6, username: 'ana_solve', score: 3210, solved: 96, submissions: 132, successRate: 72.7, badge: null },
-  { rank: 7, username: 'vlad_code', score: 2980, solved: 89, submissions: 125, successRate: 71.2, badge: null },
-  { rank: 8, username: 'elena_cp', score: 2750, solved: 82, submissions: 118, successRate: 69.5, badge: null },
-  { rank: 9, username: 'dan_prog', score: 2530, solved: 76, submissions: 112, successRate: 67.9, badge: null },
-  { rank: 10, username: 'cristina_x', score: 2310, solved: 69, submissions: 105, successRate: 65.7, badge: null },
-  { rank: 11, username: 'bogdan_dev', score: 2100, solved: 63, submissions: 99, successRate: 63.6, badge: null },
-  { rank: 12, username: 'laura_algo', score: 1890, solved: 57, submissions: 93, successRate: 61.3, badge: null },
-  { rank: 13, username: 'andrei_cp', score: 1680, solved: 50, submissions: 87, successRate: 57.5, badge: null },
-  { rank: 14, username: 'maria_code', score: 1470, solved: 44, submissions: 81, successRate: 54.3, badge: null },
-  { rank: 15, username: 'george_bits', score: 1260, solved: 38, submissions: 75, successRate: 50.7, badge: null },
+const badgeColors: { color: string; label: string }[] = [
+  { color: palette.warn, label: '🥇' },
+  { color: palette.muted, label: '🥈' },
+  // Bronze has no design token — allowlisted in design-tokens.gate.test.ts.
+  { color: '#b47c3c', label: '🥉' },
 ];
 
-const badgeColors: Record<string, { bg: string; color: string; label: string }> = {
-  gold: { bg: 'rgba(251,191,36,0.15)', color: '#fbbf24', label: '🥇' },
-  silver: { bg: 'rgba(148,163,184,0.15)', color: '#94a3b8', label: '🥈' },
-  bronze: { bg: 'rgba(180,120,60,0.15)', color: '#b47c3c', label: '🥉' },
-};
+type SortKey = 'rank' | 'total_points' | 'solved_count' | 'success_rate';
 
-type SortKey = 'rank' | 'score' | 'solved' | 'successRate';
+const percent = (rate: number): number => Math.round(rate * 1000) / 10;
 
 export default function LeaderboardPage() {
+  const auth = useAuth();
+  const [rows, setRows] = useState<Row[]>([]);
+  const [nextCursorPage, setNextCursorPage] = useState<number | null>(1);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [myEntry, setMyEntry] = useState<MyLeaderboardEntry | null>(null);
+  const [myEntryError, setMyEntryError] = useState(false);
+
   const [sortKey, setSortKey] = useState<SortKey>('rank');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [search, setSearch] = useState('');
 
+  const loadFirstPage = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await LeaderboardService.getLeaderboard({ page: 1 });
+      setRows(response.results);
+      setTotalCount(response.count);
+      setNextCursorPage(response.next ? 2 : null);
+    } catch (err) {
+      setError(err instanceof Error && err.message ? err.message : 'Failed to load leaderboard.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadFirstPage();
+  }, [loadFirstPage]);
+
+  useEffect(() => {
+    // Own-rank card is best-effort: 401 (anonymous) or any failure just
+    // hides it — the public standings remain fully usable.
+    if (!auth.isAuthenticated) {
+      setMyEntry(null);
+      setMyEntryError(false);
+      return;
+    }
+    let cancelled = false;
+    LeaderboardService.getMyEntry()
+      .then((entry) => {
+        if (!cancelled) {
+          setMyEntry(entry);
+          setMyEntryError(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setMyEntryError(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [auth.isAuthenticated, auth.user]);
+
+  const loadMore = async () => {
+    if (nextCursorPage === null || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const response = await LeaderboardService.getLeaderboard({ page: nextCursorPage });
+      setRows((prev) => {
+        const seen = new Set(prev.map((r) => r.username));
+        return [...prev, ...response.results.filter((r) => !seen.has(r.username))];
+      });
+      setNextCursorPage(response.next ? nextCursorPage + 1 : null);
+    } catch (err) {
+      setError(err instanceof Error && err.message ? err.message : 'Failed to load more entries.');
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
-      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortKey(key);
       setSortDir(key === 'rank' ? 'asc' : 'desc');
     }
   };
 
-  const filtered = MOCK_LEADERBOARD
-    .filter(e => e.username.toLowerCase().includes(search.toLowerCase()))
+  const filtered = rows
+    .filter((e) => e.username.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => {
       const mul = sortDir === 'asc' ? 1 : -1;
       return (a[sortKey] - b[sortKey]) * mul;
     });
 
   const SortIcon = ({ col }: { col: SortKey }) => {
-    if (sortKey !== col) return <span style={{ color: '#334155', marginLeft: 4 }}>↕</span>;
-    return <span style={{ color: '#38bdf8', marginLeft: 4 }}>{sortDir === 'asc' ? '↑' : '↓'}</span>;
+    if (sortKey !== col) return <span style={{ color: 'var(--text-tertiary)', marginLeft: 4 }}>↕</span>;
+    return <span style={{ color: 'var(--accent)', marginLeft: 4 }}>{sortDir === 'asc' ? '↑' : '↓'}</span>;
   };
+
+  const podium = rows.slice(0, 3);
 
   return (
     <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem 1.5rem' }}>
-      {/* Header */}
-      <div style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '0.5rem' }}>
-          <div style={{
-            width: '36px', height: '36px', borderRadius: '8px',
-            background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '1.1rem',
-          }}>🏆</div>
-          <h1 style={{
-            fontSize: '1.75rem', fontWeight: 800,
-            letterSpacing: '-0.03em', color: '#f1f5f9',
-          }}>Leaderboard</h1>
-        </div>
-        <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
-          Top competitive programmers ranked by total score.
-        </p>
-      </div>
+      <PageHeader
+        title="Leaderboard"
+        subtitle="Top competitive programmers ranked by total score."
+      />
 
-      {/* Top 3 podium cards */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: '1rem',
-        marginBottom: '2rem',
-      }}>
-        {MOCK_LEADERBOARD.slice(0, 3).map((entry) => {
-          const badge = badgeColors[entry.badge!];
-          return (
-            <div key={entry.rank} style={{
-              background: '#1e293b',
-              border: `1px solid ${badge.color}30`,
-              borderRadius: '12px',
-              padding: '1.5rem',
-              textAlign: 'center',
-              position: 'relative',
-              overflow: 'hidden',
-            }}>
-              <div style={{
-                position: 'absolute', top: 0, left: 0, right: 0, height: '3px',
-                background: `linear-gradient(90deg, transparent, ${badge.color}, transparent)`,
-              }} />
-              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{badge.label}</div>
-              <div style={{
-                fontSize: '1rem', fontWeight: 700, color: '#f1f5f9',
-                marginBottom: '0.25rem',
-              }}>{entry.username}</div>
-              <div style={{
-                fontSize: '1.5rem', fontWeight: 800, color: badge.color,
-                marginBottom: '0.5rem',
-              }}>{entry.score.toLocaleString()}</div>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
-                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                  <span style={{ color: '#4ade80', fontWeight: 600 }}>{entry.solved}</span> solved
-                </span>
-                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                  <span style={{ color: '#38bdf8', fontWeight: 600 }}>{entry.successRate}%</span> rate
-                </span>
+      {/* Loading / error states keep the page usable when the API fails */}
+      {loading ? (
+        <div role="status" style={{ padding: '3rem', textAlign: 'center', color: 'var(--muted)' }}>
+          Loading leaderboard…
+        </div>
+      ) : error && rows.length === 0 ? (
+        <div
+          role="alert"
+          style={{
+            padding: '1.25rem 1.5rem',
+            borderRadius: 'var(--radius-md)',
+            background: hexAlpha(palette.danger, 0.08),
+            border: `1px solid ${hexAlpha(palette.danger, 0.2)}`,
+            color: 'var(--danger)',
+            marginBottom: '1.5rem',
+          }}
+        >
+          Could not load leaderboard: {error}
+          <div style={{ marginTop: '0.75rem' }}>
+            <button onClick={loadFirstPage} className="btn">
+              Retry
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Own-rank card (authenticated) — best-effort */}
+          {auth.isAuthenticated && myEntry && (
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '1.5rem',
+                alignItems: 'center',
+                background: hexAlpha(palette.accent, 0.06),
+                border: '1px solid rgba(56,189,248,0.25)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '1rem 1.5rem',
+                marginBottom: '1.5rem',
+              }}
+            >
+              <div>
+                <div className="micro-label" style={{ color: 'var(--muted)' }}>Your rank</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--accent)' }}>#{myEntry.rank}</div>
+              </div>
+              <div>
+                <div className="micro-label" style={{ color: 'var(--muted)' }}>Points</div>
+                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: palette.warn }}>
+                  {myEntry.total_points.toLocaleString()}
+                </div>
+              </div>
+              <div>
+                <div className="micro-label" style={{ color: 'var(--muted)' }}>Solved</div>
+                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--success)' }}>{myEntry.solved_count}</div>
+              </div>
+              <div>
+                <div className="micro-label" style={{ color: 'var(--muted)' }}>Submissions</div>
+                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--foreground)' }}>
+                  {myEntry.total_submissions}
+                </div>
+              </div>
+              <div style={{ marginLeft: 'auto', fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>
+                Success rate {percent(myEntry.success_rate)}%
               </div>
             </div>
-          );
-        })}
-      </div>
+          )}
+          {auth.isAuthenticated && !myEntry && myEntryError && (
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', marginBottom: '1rem' }}>
+              Your rank card is unavailable right now.
+            </p>
+          )}
 
-      {/* Search bar */}
-      <div style={{ marginBottom: '1rem' }}>
-        <input
-          type="text"
-          placeholder="Search by username…"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          style={{
-            width: '100%',
-            maxWidth: '320px',
-            background: '#1e293b',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '8px',
-            color: '#f1f5f9',
-            padding: '8px 14px',
-            fontSize: '0.875rem',
-            outline: 'none',
-          }}
-        />
-      </div>
-
-      {/* Table */}
-      <div style={{
-        background: '#1e293b',
-        borderRadius: '12px',
-        border: '1px solid rgba(255,255,255,0.06)',
-        overflow: 'hidden',
-      }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-              {([
-                { key: 'rank', label: 'Rank' },
-                { key: null, label: 'User' },
-                { key: 'score', label: 'Score' },
-                { key: 'solved', label: 'Solved' },
-                { key: null, label: 'Submissions' },
-                { key: 'successRate', label: 'Success Rate' },
-              ] as { key: SortKey | null; label: string }[]).map(({ key, label }) => (
-                <th
-                  key={label}
-                  onClick={key ? () => handleSort(key) : undefined}
-                  style={{
-                    padding: '12px 20px',
-                    textAlign: 'left',
-                    fontSize: '0.72rem',
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.07em',
-                    color: '#64748b',
-                    cursor: key ? 'pointer' : 'default',
-                    userSelect: 'none',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {label}
-                  {key && <SortIcon col={key} />}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
-              <tr>
-                <td colSpan={6} style={{
-                  padding: '3rem', textAlign: 'center',
-                  color: '#64748b', fontSize: '0.9rem',
-                }}>
-                  No users found.
-                </td>
-              </tr>
-            ) : filtered.map((entry) => {
-              const badge = entry.badge ? badgeColors[entry.badge] : null;
-              return (
-                <tr key={entry.rank} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                  <td style={{ padding: '14px 20px' }}>
-                    <span style={{
-                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                      width: '28px', height: '28px', borderRadius: '6px',
-                      background: badge ? `${badge.color}18` : 'rgba(255,255,255,0.04)',
-                      border: `1px solid ${badge ? `${badge.color}30` : 'rgba(255,255,255,0.06)'}`,
-                      fontSize: '0.8rem', fontWeight: 700,
-                      color: badge ? badge.color : '#64748b',
-                    }}>
-                      {entry.rank}
-                    </span>
-                  </td>
-                  <td style={{ padding: '14px 20px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{
-                        width: '32px', height: '32px', borderRadius: '50%',
-                        background: `hsl(${(entry.username.charCodeAt(0) * 37) % 360}, 55%, 35%)`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '0.8rem', fontWeight: 700, color: '#fff',
-                        flexShrink: 0,
-                      }}>
-                        {entry.username[0].toUpperCase()}
-                      </div>
-                      <span style={{ color: '#f1f5f9', fontWeight: 500, fontSize: '0.9rem' }}>
-                        {entry.username}
-                      </span>
-                      {badge && <span style={{ fontSize: '0.85rem' }}>{badge.label}</span>}
+          {/* Top 3 podium cards */}
+          {podium.length > 0 && (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '1rem',
+                marginBottom: '2rem',
+              }}
+            >
+              {podium.map((entry, idx) => {
+                const badge = badgeColors[idx] ?? badgeColors[2];
+                return (
+                  <div
+                    key={entry.username}
+                    style={{
+                      background: 'var(--surface)',
+                      border: `1px solid ${hexAlpha(badge.color, 0.19)}`,
+                      borderRadius: '12px',
+                      padding: '1.5rem',
+                      textAlign: 'center',
+                      position: 'relative',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: '3px',
+                        background: `linear-gradient(90deg, transparent, ${badge.color}, transparent)`,
+                      }}
+                    />
+                    <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{badge.label}</div>
+                    <div
+                      style={{
+                        fontSize: '1rem',
+                        fontWeight: 700,
+                        color: 'var(--foreground)',
+                        marginBottom: '0.25rem',
+                      }}
+                    >
+                      {entry.username}
                     </div>
-                  </td>
-                  <td style={{ padding: '14px 20px' }}>
-                    <span style={{ color: '#fbbf24', fontWeight: 700, fontSize: '0.95rem' }}>
-                      {entry.score.toLocaleString()}
-                    </span>
-                  </td>
-                  <td style={{ padding: '14px 20px' }}>
-                    <span style={{
-                      display: 'inline-flex', alignItems: 'center',
-                      padding: '2px 10px', borderRadius: '999px',
-                      fontSize: '0.75rem', fontWeight: 600,
-                      color: '#4ade80', background: 'rgba(74,222,128,0.1)',
-                      border: '1px solid rgba(74,222,128,0.2)',
-                    }}>
-                      {entry.solved}
-                    </span>
-                  </td>
-                  <td style={{ padding: '14px 20px', color: '#94a3b8', fontSize: '0.875rem' }}>
-                    {entry.submissions}
-                  </td>
-                  <td style={{ padding: '14px 20px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div style={{
-                        flex: 1, maxWidth: '80px', height: '4px',
-                        background: 'rgba(255,255,255,0.08)', borderRadius: '2px', overflow: 'hidden',
-                      }}>
-                        <div style={{
-                          height: '100%', borderRadius: '2px',
-                          width: `${entry.successRate}%`,
-                          background: entry.successRate >= 70
-                            ? '#4ade80'
-                            : entry.successRate >= 50
-                              ? '#fbbf24' :'#f87171',
-                        }} />
-                      </div>
-                      <span style={{ fontSize: '0.8rem', color: '#94a3b8', whiteSpace: 'nowrap' }}>
-                        {entry.successRate}%
+                    <div
+                      style={{
+                        fontSize: '1.5rem',
+                        fontWeight: 800,
+                        color: badge.color,
+                        marginBottom: '0.5rem',
+                      }}
+                    >
+                      {entry.total_points.toLocaleString()}
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
+                        <span style={{ color: 'var(--success)', fontWeight: 600 }}>{entry.solved_count}</span> solved
+                      </span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
+                        <span style={{ color: 'var(--accent)', fontWeight: 600 }}>{percent(entry.success_rate)}%</span> rate
                       </span>
                     </div>
-                  </td>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Search bar */}
+          <div style={{ marginBottom: '1rem' }}>
+            <input
+              type="text"
+              placeholder="Search by username…"
+              aria-label="Search by username"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="input"
+              style={{
+                width: '100%',
+                maxWidth: '320px',
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                borderRadius: '8px',
+                color: 'var(--foreground)',
+                padding: '8px 14px',
+                fontSize: '0.875rem',
+                outline: 'none',
+              }}
+            />
+          </div>
+
+          {/* Table */}
+          <div
+            style={{
+              background: 'var(--surface)',
+              borderRadius: '12px',
+              border: '1px solid var(--border)',
+              overflow: 'hidden',
+            }}
+          >
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                  {(
+                    [
+                      { key: 'rank', label: 'Rank' },
+                      { key: null, label: 'User' },
+                      { key: 'total_points', label: 'Score' },
+                      { key: 'solved_count', label: 'Solved' },
+                      { key: null, label: 'Success Rate' },
+                    ] as { key: SortKey | null; label: string }[]
+                  ).map(({ key, label }) => (
+                    <th
+                      key={label}
+                      onClick={key ? () => handleSort(key) : undefined}
+                      aria-sort={key && sortKey === key ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
+                      style={{
+                        padding: '12px 20px',
+                        textAlign: 'left',
+                        fontSize: '0.72rem',
+                        fontWeight: 600,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.07em',
+                        color: 'var(--muted)',
+                        cursor: key ? 'pointer' : 'default',
+                        userSelect: 'none',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {label}
+                      {key && <SortIcon col={key} />}
+                    </th>
+                  ))}
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+              </thead>
+              <tbody>
+                {filtered.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      style={{
+                        padding: '3rem',
+                        textAlign: 'center',
+                        color: 'var(--muted)',
+                        fontSize: '0.9rem',
+                      }}
+                    >
+                      No users found.
+                    </td>
+                  </tr>
+                ) : (
+                  filtered.map((entry) => {
+                    const badge = badgeColors[entry.rank - 1] ?? null;
+                    const rate = percent(entry.success_rate);
+                    return (
+                      <tr key={entry.username} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                        <td style={{ padding: '14px 20px' }}>
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '28px',
+                              height: '28px',
+                              borderRadius: '6px',
+                              background: badge ? hexAlpha(badge.color, 0.09) : 'rgba(255,255,255,0.04)',
+                              border: `1px solid ${badge ? hexAlpha(badge.color, 0.19) : 'rgba(255,255,255,0.06)'}`,
+                              fontSize: '0.8rem',
+                              fontWeight: 700,
+                              color: badge ? badge.color : 'var(--muted)',
+                            }}
+                          >
+                            {entry.rank}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 20px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div
+                              style={{
+                                width: '32px',
+                                height: '32px',
+                                borderRadius: '50%',
+                                background: `hsl(${(entry.username.charCodeAt(0) * 37) % 360}, 55%, 35%)`,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '0.8rem',
+                                fontWeight: 700,
+                                color: '#fff',
+                                flexShrink: 0,
+                              }}
+                            >
+                              {entry.username[0].toUpperCase()}
+                            </div>
+                            <span style={{ color: 'var(--foreground)', fontWeight: 500, fontSize: '0.9rem' }}>
+                              {entry.username}
+                            </span>
+                            {badge && <span style={{ fontSize: '0.85rem' }}>{badge.label}</span>}
+                          </div>
+                        </td>
+                        <td style={{ padding: '14px 20px' }}>
+                          <span style={{ color: palette.warn, fontWeight: 700, fontSize: '0.95rem' }}>
+                            {entry.total_points.toLocaleString()}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 20px' }}>
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              padding: '2px 10px',
+                              borderRadius: '999px',
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              color: 'var(--success)',
+                              background: hexAlpha(palette.success, 0.1),
+                              border: '1px solid rgba(74,222,128,0.2)',
+                            }}
+                          >
+                            {entry.solved_count}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px 20px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div
+                              style={{
+                                flex: 1,
+                                maxWidth: '80px',
+                                height: '4px',
+                                background: 'rgba(255,255,255,0.08)',
+                                borderRadius: '2px',
+                                overflow: 'hidden',
+                              }}
+                            >
+                              <div
+                                style={{
+                                  height: '100%',
+                                  borderRadius: '2px',
+                                  width: `${Math.min(100, rate)}%`,
+                                  background:
+                                    rate >= 70 ? palette.success : rate >= 50 ? palette.warn : palette.danger,
+                                }}
+                              />
+                            </div>
+                            <span style={{ fontSize: '0.8rem', color: 'var(--muted)', whiteSpace: 'nowrap' }}>
+                              {rate}%
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
 
-      <p style={{ marginTop: '1rem', fontSize: '0.75rem', color: '#475569', textAlign: 'center' }}>
-        Leaderboard updates daily. Rankings based on accepted submissions and problem difficulty.
-      </p>
+          {/* Paged loading */}
+          {nextCursorPage !== null && (
+            <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+              <button onClick={loadMore} disabled={loadingMore} className="btn">
+                {loadingMore ? 'Loading…' : 'Load more'}
+              </button>
+            </div>
+          )}
+          {error && rows.length > 0 && (
+            <p role="alert" style={{ marginTop: '0.75rem', color: 'var(--danger)', fontSize: '0.8rem', textAlign: 'center' }}>
+              Could not load more entries: {error}
+            </p>
+          )}
+          {totalCount !== null && (
+            <p style={{ marginTop: '1rem', fontSize: '0.75rem', color: 'var(--text-tertiary)', textAlign: 'center' }}>
+              Showing {rows.length} of {totalCount.toLocaleString()} ranked users. Rankings based on accepted
+              submissions over approved problems.
+            </p>
+          )}
+        </>
+      )}
+
+      {rows.length === 0 && !loading && !error && (
+        <EmptyState title="No ranked users yet." description="Solve an approved problem to appear on the leaderboard." />
+      )}
     </div>
   );
 }

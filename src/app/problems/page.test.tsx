@@ -9,6 +9,7 @@ vi.mock('next/headers', () => ({
 
 vi.mock('./_lib/problems-api', () => ({
   getProblems: vi.fn(),
+  getProblemsPage: vi.fn(),
 }));
 
 // ProblemsListClient now reads URL state (useSearchParams/useRouter [F3]) and
@@ -36,7 +37,7 @@ vi.mock('@/context/AuthContext', () => ({
 }));
 
 import ProblemsListPage, { generateMetadata } from './page';
-import { getProblems } from './_lib/problems-api';
+import { getProblemsPage } from './_lib/problems-api';
 
 function mockLocale(value: string | undefined) {
   vi.mocked(cookies).mockResolvedValue({
@@ -59,15 +60,18 @@ afterEach(cleanup);
 
 beforeEach(() => {
   mockLocale(undefined);
-  vi.mocked(getProblems).mockReset();
+  vi.mocked(getProblemsPage).mockReset();
 });
 
 describe('ProblemsListPage (route "/problems")', () => {
   it('renders the header and one localized link per problem', async () => {
-    vi.mocked(getProblems).mockResolvedValue([
+    vi.mocked(getProblemsPage).mockResolvedValue({ count: [
       problem({ id: 1, title_i18n: { en: 'Two Sum' } }),
       problem({ id: 2, title_i18n: { en: 'N-Queens' }, difficulty: 'HARD', status: 'PENDING_APPROVAL' }),
-    ]);
+    ].length, next: null, previous: null, results: [
+      problem({ id: 1, title_i18n: { en: 'Two Sum' } }),
+      problem({ id: 2, title_i18n: { en: 'N-Queens' }, difficulty: 'HARD', status: 'PENDING_APPROVAL' }),
+    ] });
     render(await ProblemsListPage());
 
     expect(screen.getByRole('heading', { name: 'Problems' })).toBeInTheDocument();
@@ -90,11 +94,15 @@ describe('ProblemsListPage (route "/problems")', () => {
   });
 
   it('resolves titles through the ro -> en -> "Problem ID: n" fallback chain', async () => {
-    vi.mocked(getProblems).mockResolvedValue([
+    vi.mocked(getProblemsPage).mockResolvedValue({ count: [
       problem({ id: 1, title_i18n: { en: 'English only', ro: 'Românesc' } }),
       problem({ id: 2, title_i18n: { en: 'English only' } }),
       problem({ id: 3, title_i18n: {} }),
-    ]);
+    ].length, next: null, previous: null, results: [
+      problem({ id: 1, title_i18n: { en: 'English only', ro: 'Românesc' } }),
+      problem({ id: 2, title_i18n: { en: 'English only' } }),
+      problem({ id: 3, title_i18n: {} }),
+    ] });
     mockLocale('ro');
     render(await ProblemsListPage());
 
@@ -104,7 +112,7 @@ describe('ProblemsListPage (route "/problems")', () => {
   });
 
   it('renders the localized header for Romanian visitors', async () => {
-    vi.mocked(getProblems).mockResolvedValue([]);
+    vi.mocked(getProblemsPage).mockResolvedValue({ count: [].length, next: null, previous: null, results: [] });
     mockLocale('ro');
     render(await ProblemsListPage());
 
@@ -112,7 +120,7 @@ describe('ProblemsListPage (route "/problems")', () => {
   });
 
   it('renders the empty state when the catalog has no problems', async () => {
-    vi.mocked(getProblems).mockResolvedValue([]);
+    vi.mocked(getProblemsPage).mockResolvedValue({ count: [].length, next: null, previous: null, results: [] });
     render(await ProblemsListPage());
 
     expect(screen.getByText('No problems available at the moment.')).toBeInTheDocument();
@@ -123,10 +131,13 @@ describe('ProblemsListPage (route "/problems")', () => {
     mocks.auth.isAuthenticated = true;
     mocks.auth.token = 'tok';
     mocks.auth.user = { id: 1, username: 'v', email: 'v@example.com', role: 'PROBLEM_VERIFIER' } as User;
-    vi.mocked(getProblems).mockResolvedValue([
+    vi.mocked(getProblemsPage).mockResolvedValue({ count: [
       problem({ id: 1, title_i18n: { en: 'Two Sum' } }),
       problem({ id: 2, title_i18n: { en: 'Draft One' }, status: 'DRAFT' }),
-    ]);
+    ].length, next: null, previous: null, results: [
+      problem({ id: 1, title_i18n: { en: 'Two Sum' } }),
+      problem({ id: 2, title_i18n: { en: 'Draft One' }, status: 'DRAFT' }),
+    ] });
     render(await ProblemsListPage());
 
     const items = screen.getAllByRole('row').slice(1);
@@ -143,7 +154,7 @@ describe('ProblemsListPage (route "/problems")', () => {
   it('propagates fetch failures to the error boundary (red paragraph path)', async () => {
     // page.tsx now try/catches getProblems and hands the message to the client as
     // `fetchError` rather than letting it reach the error boundary.
-    vi.mocked(getProblems).mockRejectedValue(new Error('Failed to load problems.'));
+    vi.mocked(getProblemsPage).mockRejectedValue(new Error('Failed to load problems.'));
     const element = await ProblemsListPage();
     // The client island is wrapped in <Suspense> (F3 needs useSearchParams);
     // fetchError lives on the child.

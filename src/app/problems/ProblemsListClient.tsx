@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { ProblemType } from '@/types';
+import { ProblemService } from '@/services/ApiService';
 import { createTranslator, type PublicLocale } from '../_lib/public-messages';
 import { palette, hexAlpha } from '@/theme/tokens';
 import EmptyState from '@/components/common/EmptyState';
@@ -21,9 +22,18 @@ import TableScroll from '@/components/common/TableScroll';
 //    problems, so the facet was noise (and 'rejected' never existed).
 //  - filter chrome is localized (Q3), the table scrolls horizontally on small
 //    screens (A1), and empty/error states use the shared EmptyState (A11).
+//  - paged loading (frontend wiring wave): the server hands over catalog
+//    page 1 (100 rows max — the backend paginates every list endpoint,
+//    SPEC-GAPS B4); "Load more" appends the next pages through the
+//    browser-side ApiService. Client-side filters/sort apply to the loaded
+//    rows; totalCount comes from the envelope's `count`.
 
 interface ProblemsListClientProps {
   problems: ProblemType[];
+  /** Total catalog size from the pagination envelope (null on fetch error). */
+  totalCount: number;
+  /** True when the envelope's `next` link promises more pages. */
+  hasMore: boolean;
   fetchError: string | null;
   locale: PublicLocale;
 }
@@ -44,10 +54,47 @@ type SortDir = 'asc' | 'desc';
 
 const DIFFICULTY_ORDER: Record<string, number> = { easy: 0, medium: 1, hard: 2 };
 
-export default function ProblemsListClient({ problems, fetchError, locale }: ProblemsListClientProps) {
+export default function ProblemsListClient({ problems, totalCount, hasMore, fetchError, locale }: ProblemsListClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const auth = useAuth();
+
+  // Paged loading state (frontend wiring wave): rows accumulate page by page.
+  const [rows, setRows] = useState<ProblemType[]>(problems);
+  const [moreAvailable, setMoreAvailable] = useState(hasMore);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [moreError, setMoreError] = useState<string | null>(null);
+  const nextPageRef = useRef(2);
+
+  useEffect(() => {
+    // New server render (filter change / revalidate) resets the accumulator.
+    setRows(problems);
+    setMoreAvailable(hasMore);
+    setMoreError(null);
+    nextPageRef.current = 2;
+  }, [problems, hasMore]);
+
+  const loadMore = async () => {
+    if (!moreAvailable || loadingMore) return;
+    setLoadingMore(true);
+    setMoreError(null);
+    try {
+      // Status facet filters client-side (the backend list has no ?status=
+      // query support), so pages are fetched unfiltered and appended here.
+      const response = await ProblemService.getProblems({}, { page: nextPageRef.current, pageSize: 100 });
+      setRows((prev) => {
+        const seen = new Set(prev.map((p) => p.id));
+        return [...prev, ...response.results.filter((p) => !seen.has(p.id))];
+      });
+      nextPageRef.current += 1;
+      setMoreAvailable(Boolean(response.next));
+    } catch (err) {
+      setMoreAvailable(true); // retry stays possible
+      setMoreError(err instanceof Error && err.message ? err.message : 'Failed to load more problems.');
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   // URL is the source of truth for filters [F3]; local state mirrors it so
   // typing in the search box does not thrash the router per keystroke.
@@ -95,7 +142,7 @@ export default function ProblemsListClient({ problems, fetchError, locale }: Pro
   );
 
   const filtered = useMemo(() => {
-    const rows = problems.filter((p) => {
+    const rowsFiltered = rows.filter((p) => {
       const title = p.title_i18n[locale] || p.title_i18n.en || '';
       const matchesSearch = title.toLowerCase().includes(search.toLowerCase());
       const matchesDiff = difficultyFilter
@@ -107,9 +154,9 @@ export default function ProblemsListClient({ problems, fetchError, locale }: Pro
       return matchesSearch && matchesDiff && matchesStatus;
     });
 
-    if (!sortKey) return rows;
+    if (!sortKey) return rowsFiltered;
     const dir = sortDir === 'asc' ? 1 : -1;
-    return [...rows].sort((a, b) => {
+    return [...rowsFiltered].sort((a, b) => {
       let cmp = 0;
       if (sortKey === 'title') {
         const at = (a.title_i18n[locale] || a.title_i18n.en || '').toLowerCase();
@@ -124,7 +171,7 @@ export default function ProblemsListClient({ problems, fetchError, locale }: Pro
       if (cmp === 0) cmp = a.id - b.id;
       return cmp * dir;
     });
-  }, [problems, search, difficultyFilter, statusFilter, locale, sortKey, sortDir]);
+  }, [rows, search, difficultyFilter, statusFilter, locale, sortKey, sortDir]);
 
   const hasActiveFilters = search || difficultyFilter || statusFilter;
 
@@ -279,11 +326,12 @@ export default function ProblemsListClient({ problems, fetchError, locale }: Pro
       </div>
 
       {/* Results count */}
-      {!fetchError && problems.length > 0 && (
+      {!fetchError && rows.length > 0 && (
         <div style={{ marginBottom: '0.75rem', fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
           {hasActiveFilters
-            ? t('showing_problems_info', 'Showing {{shown}} of {{total}} problem(s)', { shown: filtered.length, total: problems.length })
+            ? t('showing_problems_info', 'Showing {{shown}} of {{total}} problem(s)', { shown: filtered.length, total: rows.length })
             : `${filtered.length} ${filtered.length === 1 ? 'problem' : 'problems'}`}
+          {totalCount > rows.length ? ` · ${totalCount.toLocaleString()} in the full catalog` : ''}
         </div>
       )}
 
@@ -389,6 +437,20 @@ export default function ProblemsListClient({ problems, fetchError, locale }: Pro
               </tbody>
             </table>
           </TableScroll>
+        </div>
+      )}
+
+      {/* Paged loading (frontend wiring wave) */}
+      {!fetchError && rows.length > 0 && (moreAvailable || moreError) && (
+        <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+          {moreError && (
+            <p role="alert" style={{ color: 'var(--danger)', fontSize: '0.8rem', marginBottom: '0.5rem' }}>
+              {moreError}
+            </p>
+          )}
+          <button onClick={loadMore} disabled={loadingMore} className="btn">
+            {loadingMore ? t('loading_more', 'Loading…') : t('load_more_problems', 'Load more problems')}
+          </button>
         </div>
       )}
     </div>

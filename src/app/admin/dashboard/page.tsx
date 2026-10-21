@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
-import { AdminService } from '@/services/ApiService';
+import { AdminService, collectAllPages } from '@/services/ApiService';
 import { AdminUserType } from '@/types';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import ProtectedRoute from '@/components/common/ProtectedRoute';
@@ -37,7 +37,9 @@ export function AdminDashboardPage() {
       if (auth.token) {
         try {
           setLoading(true);
-          const response = await AdminService.getUsers();
+          const response = await collectAllPages((page) =>
+            AdminService.getUsers({ page, pageSize: 100 })
+          );
           setUsers(response);
           setError(null);
         } catch (err) {

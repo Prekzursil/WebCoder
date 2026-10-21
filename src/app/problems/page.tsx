@@ -1,23 +1,19 @@
-// Ported from frontend/webcoder_ui/src/pages/problems/ProblemsListPage.tsx
-// (CRA reference) — route "/problems" (App.tsx:34).
+// Public problems catalog (Server Component) — see ProblemsListClient for
+// the interactive island.
 //
-// SEO-critical public catalog: rendered as a Server Component that fetches
-// server-side (src/app/problems/_lib/problems-api.ts) with ISR-style
-// revalidation, plus generateMetadata for the document head.
+// Data-contract note (frontend wiring wave): list endpoints now return the
+// DRF pagination envelope {count, next, previous, results} (backend SPEC-GAPS
+// B4) instead of a bare array. The server fetches page 1 (page_size 100) via
+// getProblemsPage(); ProblemsListClient appends further pages through the
+// browser-side ApiService when the user hits "Load more".
 //
-// Data-contract note: the CRA page read `response.data` from
-// ProblemService.getProblems(); the DRF backend returns a bare JSON array
-// (backend/problems/views.py — ModelViewSet; no pagination or envelope in
-// webcoder_api/settings.py), so the port consumes the array directly —
-// docs/PORT-MAP.md §0.1, settled against backend source.
-//
-// The CRA client-side loading spinner and red error paragraph are mapped to
-// the App Router loading.tsx / error.tsx boundaries in this directory.
+// The client-side loading spinner and red error paragraph map to the App
+// Router loading.tsx / error.tsx boundaries in this directory.
 
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { createTranslator, getLocale } from '../_lib/public-i18n';
-import { getProblems } from './_lib/problems-api';
+import { getProblemsPage } from './_lib/problems-api';
 import ProblemsListClient from './ProblemsListClient';
 import ProblemsTableSkeleton from './ProblemsTableSkeleton';
 
@@ -35,11 +31,16 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ProblemsListPage() {
   const locale = await getLocale();
 
-  let problems: Awaited<ReturnType<typeof getProblems>> = [];
+  let problems: Awaited<ReturnType<typeof getProblemsPage>>['results'] = [];
+  let total = 0;
+  let hasMore = false;
   let fetchError: string | null = null;
 
   try {
-    problems = await getProblems();
+    const firstPage = await getProblemsPage(1);
+    problems = firstPage.results;
+    total = firstPage.count;
+    hasMore = Boolean(firstPage.next);
   } catch (err) {
     fetchError =
       err instanceof Error ? err.message : 'Failed to load problems.';
@@ -49,6 +50,8 @@ export default async function ProblemsListPage() {
     <Suspense fallback={<ProblemsTableSkeleton />}>
       <ProblemsListClient
         problems={problems}
+        totalCount={total}
+        hasMore={hasMore}
         fetchError={fetchError}
         locale={locale}
       />

@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
-import { ProblemService, SubmissionService } from '@/services/ApiService';
+import { ProblemService, SubmissionService, collectAllPages } from '@/services/ApiService';
+import { cursorParamFromUrl } from '@/types/api';
 import { useAuth } from '@/context/AuthContext';
 import { ProblemType, SubmissionType } from '@/types';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
@@ -16,10 +17,12 @@ import TableScroll from '@/components/common/TableScroll';
 //
 // Next.js adaptations (behavior-preserving):
 // - next/link instead of react-router's Link.
-// - ApiService responses are consumed directly: the scaffold's typed contract
-//   declares GetProblemsResponse = ProblemType[] and GetSubmissionsResponse =
-//   SubmissionType[] (src/types/api.ts:25,36), normalizing the CRA `.data` /
-//   direct-array split flagged in docs/PORT-MAP.md §0.1.
+// - ApiService responses are consumed directly; since the backend paginates
+//   every list endpoint (SPEC-GAPS B4), getSubmissions() returns the cursor
+//   envelope {next, previous, results} — the page loads the first cursor
+//   page (25 rows, newest-first) and appends more via "Load more"; the
+//   client-side sort/pager apply to the loaded rows. The problem filter
+//   dropdown collects all problem pages (bounded by collectAllPages).
 // - Dead branches removed for coverage honesty: the `if (sortKey)` wrapper
 //   (sortKey only ever holds the four select options, never ''), the nested
 //   `if (!auth.isAuthenticated)` inside the else-arm of the same condition,
@@ -29,16 +32,18 @@ import TableScroll from '@/components/common/TableScroll';
 //   renders the raw i18n key (docs/PORT-MAP.md §0.4 / §8.6 fix); every other
 //   call site keeps its English fallback default verbatim.
 
+const SUBMISSIONS_PAGE_SIZE = 25;
+
 function MySubmissionsPageContent() {
   const { t, i18n } = useTranslation();
   const auth = useAuth();
   const [submissions, setSubmissions] = useState<SubmissionType[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
 
   const [problemFilter, setProblemFilter] = useState<string>('');
   const [languageFilter, setLanguageFilter] = useState<string>('');
-  const [problemsForFilter, setProblemsForFilter] = useState<ProblemType[]>([]);
 
   const [sortKey, setSortKey] = useState<string>('submission_time');
   const [sortOrder, setSortOrder] = useState<string>('desc');
@@ -46,10 +51,23 @@ function MySubmissionsPageContent() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
 
+  // Cursor pagination state (backend returns newest-first cursor pages).
+  const nextCursorRef = useRef<string | null>(null);
+  const [moreAvailable, setMoreAvailable] = useState<boolean>(false);
+  const [loadingMore, setLoadingMore] = useState<boolean>(false);
+
+  const [problemsForFilter, setProblemsForFilter] = useState<ProblemType[]>([]);
+
   useEffect(() => {
-    ProblemService.getProblems()
-      .then((response: ProblemType[]) => setProblemsForFilter(response))
+    let cancelled = false;
+    collectAllPages((page) => ProblemService.getProblems({}, { page, pageSize: 100 }))
+      .then((problems: ProblemType[]) => {
+        if (!cancelled) setProblemsForFilter(problems);
+      })
       .catch((err) => console.error('Failed to load problems for filter', err));
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -57,6 +75,7 @@ function MySubmissionsPageContent() {
       const fetchSubmissions = async () => {
         setLoading(true);
         setError(null);
+        setLoadMoreError(null);
         const filters: { problemId?: number; language?: string } = {};
         if (problemFilter) {
           filters.problemId = parseInt(problemFilter, 10);
@@ -66,8 +85,10 @@ function MySubmissionsPageContent() {
         }
 
         try {
-          const response = await SubmissionService.getSubmissions(filters);
-          setSubmissions(response);
+          const response = await SubmissionService.getSubmissions(filters, { pageSize: SUBMISSIONS_PAGE_SIZE });
+          setSubmissions(response.results);
+          nextCursorRef.current = cursorParamFromUrl(response.next);
+          setMoreAvailable(Boolean(nextCursorRef.current));
           setCurrentPage(1); // Reset to first page on new filter/fetch
         } catch (err) {
           setError(err instanceof Error && err.message ? err.message : t('error_loading_submissions', 'Failed to load submissions.'));
@@ -82,6 +103,33 @@ function MySubmissionsPageContent() {
       setError(t('please_login_to_view_submissions', 'Please login to view submissions.'));
     }
   }, [auth.isAuthenticated, auth.user, t, problemFilter, languageFilter]);
+
+  const loadMore = async () => {
+    const cursor = nextCursorRef.current;
+    if (!cursor || loadingMore) return;
+    setLoadingMore(true);
+    setLoadMoreError(null);
+    const filters: { problemId?: number; language?: string } = {};
+    if (problemFilter) {
+      filters.problemId = parseInt(problemFilter, 10);
+    }
+    if (languageFilter.trim()) {
+      filters.language = languageFilter.trim();
+    }
+    try {
+      const response = await SubmissionService.getSubmissions(filters, { cursor, pageSize: SUBMISSIONS_PAGE_SIZE });
+      setSubmissions((prev) => {
+        const seen = new Set(prev.map((s) => s.id));
+        return [...prev, ...response.results.filter((s) => !seen.has(s.id))];
+      });
+      nextCursorRef.current = cursorParamFromUrl(response.next);
+      setMoreAvailable(Boolean(nextCursorRef.current));
+    } catch (err) {
+      setLoadMoreError(err instanceof Error && err.message ? err.message : t('error_loading_submissions', 'Failed to load submissions.'));
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   const sortedSubmissions = useMemo(() => {
     const sorted = [...submissions];
@@ -246,6 +294,18 @@ function MySubmissionsPageContent() {
               </span>
               <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
                 {t('pagination_next', 'Next')}
+              </button>
+            </div>
+          )}
+          {/* Paged loading (frontend wiring wave): the backend list is now
+              cursor-paginated; older submissions load on demand. */}
+          {(moreAvailable || loadMoreError) && (
+            <div style={{ marginTop: '15px', textAlign: 'center' }}>
+              {loadMoreError && (
+                <p role="alert" style={{ color: 'red', marginBottom: '8px' }}>{loadMoreError}</p>
+              )}
+              <button onClick={loadMore} disabled={loadingMore}>
+                {loadingMore ? t('loading_more', 'Loading…') : t('load_older_submissions', 'Load older submissions')}
               </button>
             </div>
           )}

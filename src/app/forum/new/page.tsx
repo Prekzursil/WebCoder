@@ -1,186 +1,264 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ForumService, ProblemService, collectAllPages } from '@/services/ApiService';
+import { useAuth } from '@/context/AuthContext';
+import { ProblemType } from '@/types';
 
-const CATEGORIES = [
-  { id: 'general', name: 'General Discussion', icon: '💬' },
-  { id: 'help', name: 'Help & Support', icon: '🙋' },
-  { id: 'editorial', name: 'Editorials', icon: '📝' },
-  { id: 'contest', name: 'Contests', icon: '🏆' },
-  { id: 'bugs', name: 'Bug Reports', icon: '🐛' },
-  { id: 'feature', name: 'Feature Requests', icon: '✨' },
-];
+// New-thread form wired to POST /api/v1/forum/threads/ ({title, content,
+// problem?} — creates the thread + first post atomically, backend PR #188).
+// The mock category picker is gone: the backend has no categories, only an
+// optional problem link, so the picker is now an optional problem dropdown
+// fed by the (paginated) approved-problems catalog. Requires auth — the
+// backend rejects anonymous creates with 401.
 
 export default function NewThreadPage() {
   const router = useRouter();
+  const auth = useAuth();
   const [title, setTitle] = useState('');
-  const [category, setCategory] = useState('');
+  const [problemId, setProblemId] = useState('');
   const [body, setBody] = useState('');
-  const [tags, setTags] = useState('');
+  const [problems, setProblems] = useState<ProblemType[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const isValid = title.trim().length >= 10 && category && body.trim().length >= 20;
+  // Best-effort problem dropdown (bounded: collectAllPages caps at 50 pages).
+  useEffect(() => {
+    let cancelled = false;
+    collectAllPages((page) => ProblemService.getProblems({}, { page, pageSize: 100 }))
+      .then((all) => {
+        if (!cancelled) setProblems(all);
+      })
+      .catch(() => {
+        // Dropdown stays empty — creating a GLOBAL thread still works.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const isValid = title.trim().length >= 10 && body.trim().length >= 20;
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isValid) return;
+    if (!isValid || submitting) return;
     setSubmitting(true);
-    setTimeout(() => {
-      router.push('/forum');
-    }, 800);
+    setError(null);
+    try {
+      const thread = await ForumService.createThread({
+        title: title.trim(),
+        content: body.trim(),
+        problem: problemId ? Number(problemId) : null,
+      });
+      router.push(`/forum/${thread.id}`);
+    } catch (err) {
+      setError(err instanceof Error && err.message ? err.message : 'Failed to create thread.');
+      setSubmitting(false);
+    }
   };
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem 1.5rem' }}>
       {/* Breadcrumb */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.5rem', fontSize: '0.8rem', color: '#64748b' }}>
-        <Link href="/forum" style={{ color: '#38bdf8' }}>Forum</Link>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.5rem', fontSize: '0.8rem', color: 'var(--muted)' }}>
+        <Link href="/forum" style={{ color: 'var(--accent)' }}>
+          Forum
+        </Link>
         <span>›</span>
-        <span style={{ color: '#94a3b8' }}>New Thread</span>
+        <span style={{ color: 'var(--muted)' }}>New Thread</span>
       </div>
 
       <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.03em', color: '#f1f5f9', marginBottom: '0.4rem' }}>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--foreground)', marginBottom: '0.4rem' }}>
           Create New Thread
         </h1>
-        <p style={{ color: '#64748b', fontSize: '0.875rem' }}>
+        <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>
           Share a question, insight, or discussion with the community.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          {/* Category */}
-          <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Category <span style={{ color: '#f87171' }}>*</span>
-            </label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.5rem' }}>
-              {CATEGORIES.map(cat => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setCategory(cat.id)}
-                  style={{
-                    padding: '0.75rem 1rem',
-                    borderRadius: '8px',
-                    border: `1px solid ${category === cat.id ? '#38bdf8' : 'rgba(255,255,255,0.08)'}`,
-                    background: category === cat.id ? 'rgba(56,189,248,0.1)' : '#1e293b',
-                    color: category === cat.id ? '#38bdf8' : '#94a3b8',
-                    cursor: 'pointer',
-                    fontSize: '0.8rem',
-                    fontWeight: 600,
-                    textAlign: 'left',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    transition: 'all 150ms ease',
-                  }}
-                >
-                  <span>{cat.icon}</span>
-                  <span>{cat.name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Title */}
-          <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Title <span style={{ color: '#f87171' }}>*</span>
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              placeholder="Be specific and descriptive (min. 10 characters)"
-              style={{
-                width: '100%',
-                background: '#1e293b',
-                border: `1px solid ${title.length > 0 && title.length < 10 ? 'rgba(248,113,113,0.4)' : 'rgba(255,255,255,0.08)'}`,
-                borderRadius: '8px', color: '#f1f5f9',
-                padding: '10px 14px', fontSize: '0.9rem', outline: 'none',
-              }}
-            />
-            {title.length > 0 && title.length < 10 && (
-              <p style={{ fontSize: '0.72rem', color: '#f87171', marginTop: '4px' }}>Title must be at least 10 characters.</p>
-            )}
-          </div>
-
-          {/* Body */}
-          <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Content <span style={{ color: '#f87171' }}>*</span>
-            </label>
-            <textarea
-              value={body}
-              onChange={e => setBody(e.target.value)}
-              placeholder="Describe your question or topic in detail. Use ``` for code blocks."
-              rows={10}
-              style={{
-                width: '100%',
-                background: '#1e293b',
-                border: `1px solid ${body.length > 0 && body.length < 20 ? 'rgba(248,113,113,0.4)' : 'rgba(255,255,255,0.08)'}`,
-                borderRadius: '8px', color: '#f1f5f9',
-                padding: '12px 14px', fontSize: '0.875rem', outline: 'none',
-                resize: 'vertical', lineHeight: 1.7,
-                fontFamily: 'DM Sans, system-ui, sans-serif',
-              }}
-            />
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
-              {body.length > 0 && body.length < 20 && (
-                <p style={{ fontSize: '0.72rem', color: '#f87171' }}>Content must be at least 20 characters.</p>
-              )}
-              <span style={{ fontSize: '0.72rem', color: '#475569', marginLeft: 'auto' }}>{body.length} chars</span>
-            </div>
-          </div>
-
-          {/* Tags */}
-          <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Tags <span style={{ color: '#475569' }}>(optional)</span>
-            </label>
-            <input
-              type="text"
-              value={tags}
-              onChange={e => setTags(e.target.value)}
-              placeholder="e.g. python, dp, graphs (comma-separated)"
-              style={{
-                width: '100%',
-                background: '#1e293b',
-                border: '1px solid rgba(255,255,255,0.08)',
-                borderRadius: '8px', color: '#f1f5f9',
-                padding: '10px 14px', fontSize: '0.875rem', outline: 'none',
-              }}
-            />
-          </div>
-
-          {/* Actions */}
-          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', paddingTop: '0.5rem' }}>
-            <Link href="/forum" style={{
-              padding: '10px 20px', borderRadius: '8px', fontSize: '0.875rem', fontWeight: 600,
-              background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
-              color: '#94a3b8', textDecoration: 'none', display: 'inline-flex', alignItems: 'center',
-            }}>Cancel</Link>
-            <button
-              type="submit"
-              disabled={!isValid || submitting}
-              style={{
-                padding: '10px 24px', borderRadius: '8px', fontSize: '0.875rem', fontWeight: 700,
-                background: isValid && !submitting ? '#38bdf8' : 'rgba(56,189,248,0.3)',
-                border: 'none',
-                color: isValid && !submitting ? '#0f172a' : '#64748b',
-                cursor: isValid && !submitting ? 'pointer' : 'not-allowed',
-                transition: 'all 150ms ease',
-              }}
-            >
-              {submitting ? 'Posting…' : 'Post Thread'}
-            </button>
-          </div>
+      {!auth.isAuthenticated ? (
+        <div
+          style={{
+            padding: '2rem',
+            textAlign: 'center',
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: '12px',
+            color: 'var(--muted)',
+          }}
+        >
+          <p style={{ marginBottom: '1rem' }}>
+            <Link href="/login" style={{ color: 'var(--accent)' }}>
+              Log in
+            </Link>{' '}
+            to start a thread.
+          </p>
         </div>
-      </form>
+      ) : (
+        <form onSubmit={handleSubmit}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            {/* Optional problem link */}
+            <div>
+              <label
+                htmlFor="thread-problem"
+                style={{
+                  display: 'block',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  color: 'var(--muted)',
+                  marginBottom: '0.5rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                }}
+              >
+                Linked problem <span style={{ color: 'var(--text-tertiary)' }}>(optional)</span>
+              </label>
+              <select
+                id="thread-problem"
+                value={problemId}
+                onChange={(e) => setProblemId(e.target.value)}
+                style={{
+                  width: '100%',
+                  background: 'var(--surface)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  color: 'var(--foreground)',
+                  padding: '10px 14px',
+                  fontSize: '0.9rem',
+                }}
+              >
+                <option value="">General thread (no problem)</option>
+                {problems.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    #{p.id} — {p.title_i18n?.en ?? `Problem ${p.id}`}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Title */}
+            <div>
+              <label
+                htmlFor="thread-title"
+                style={{
+                  display: 'block',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  color: 'var(--muted)',
+                  marginBottom: '0.5rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                }}
+              >
+                Title <span style={{ color: 'var(--danger)' }}>*</span>
+              </label>
+              <input
+                id="thread-title"
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Be specific and descriptive (min. 10 characters)"
+                style={{
+                  width: '100%',
+                  background: 'var(--surface)',
+                  border: `1px solid ${title.length > 0 && title.length < 10 ? 'rgba(248,113,113,0.4)' : 'var(--border)'}`,
+                  borderRadius: '8px',
+                  color: 'var(--foreground)',
+                  padding: '10px 14px',
+                  fontSize: '0.9rem',
+                  outline: 'none',
+                }}
+              />
+              {title.length > 0 && title.length < 10 && (
+                <p style={{ fontSize: '0.72rem', color: 'var(--danger)', marginTop: '4px' }}>
+                  Title must be at least 10 characters.
+                </p>
+              )}
+            </div>
+
+            {/* Body */}
+            <div>
+              <label
+                htmlFor="thread-body"
+                style={{
+                  display: 'block',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  color: 'var(--muted)',
+                  marginBottom: '0.5rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                }}
+              >
+                Content <span style={{ color: 'var(--danger)' }}>*</span>
+              </label>
+              <textarea
+                id="thread-body"
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                placeholder="Describe your question or topic in detail."
+                rows={10}
+                style={{
+                  width: '100%',
+                  background: 'var(--surface)',
+                  border: `1px solid ${body.length > 0 && body.length < 20 ? 'rgba(248,113,113,0.4)' : 'var(--border)'}`,
+                  borderRadius: '8px',
+                  color: 'var(--foreground)',
+                  padding: '12px 14px',
+                  fontSize: '0.875rem',
+                  outline: 'none',
+                  resize: 'vertical',
+                  lineHeight: 1.7,
+                }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
+                {body.length > 0 && body.length < 20 && (
+                  <p style={{ fontSize: '0.72rem', color: 'var(--danger)' }}>Content must be at least 20 characters.</p>
+                )}
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', marginLeft: 'auto' }}>{body.length} chars</span>
+              </div>
+            </div>
+
+            {error && (
+              <p role="alert" style={{ color: 'var(--danger)', fontSize: '0.85rem' }}>
+                {error}
+              </p>
+            )}
+
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', paddingTop: '0.5rem' }}>
+              <Link
+                href="/forum"
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  background: 'rgba(255,255,255,0.06)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--muted)',
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                }}
+              >
+                Cancel
+              </Link>
+              <button
+                type="submit"
+                disabled={!isValid || submitting}
+                className="btn btn--primary"
+                style={{ opacity: isValid && !submitting ? 1 : 0.5 }}
+              >
+                {submitting ? 'Posting…' : 'Post Thread'}
+              </button>
+            </div>
+          </div>
+        </form>
+      )}
     </div>
   );
 }

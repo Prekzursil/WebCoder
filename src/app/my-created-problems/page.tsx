@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import ProtectedRoute from '@/components/common/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
-import { ProblemService } from '@/services/ApiService';
+import { ProblemService, collectAllPages } from '@/services/ApiService';
 import { useAuth } from '@/context/AuthContext';
 import { ProblemType } from '@/types';
 
@@ -40,8 +40,11 @@ export function MyCreatedProblemsPage() {
   useEffect(() => {
     if (auth.isAuthenticated && auth.user?.id && auth.token) {
       setLoading(true);
-      ProblemService.getProblems({ authorId: auth.user.id })
-        .then((problems: ProblemType[]) => {
+      // The backend list ignores ?authorId= (its queryset scopes by role),
+      // so collect pages and keep only this user's rows here.
+      collectAllPages((page) => ProblemService.getProblems({}, { page, pageSize: 100 }))
+        .then((all: ProblemType[]) => {
+          const problems = all.filter((p) => p.author?.id === auth.user?.id);
           setMyProblems(problems);
           setError(null);
           setLoading(false);
