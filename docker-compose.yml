@@ -55,7 +55,9 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     environment:
-      DJANGO_SETTINGS_MODULE: webcoder_api.settings
+      # Prod deploys flip the whole profile via env (settings_prod: DEBUG=False,
+      # secure transport defaults, deny-all hosts/CORS unless set):
+      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-webcoder_api.settings}
       # DEV DEFAULT ONLY — set SECRET_KEY in .env for anything exposed.
       SECRET_KEY: ${SECRET_KEY:-django-insecure-compose-dev-only-key}
       DB_NAME: ${POSTGRES_DB:-webcoder_db}
@@ -106,7 +108,9 @@ services:
       dockerfile: Dockerfile
     command: ["celery", "-A", "webcoder_api", "worker", "--loglevel=info", "--concurrency=2"]
     environment:
-      DJANGO_SETTINGS_MODULE: webcoder_api.settings
+      # Prod deploys flip the whole profile via env (settings_prod: DEBUG=False,
+      # secure transport defaults, deny-all hosts/CORS unless set):
+      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-webcoder_api.settings}
       SECRET_KEY: ${SECRET_KEY:-django-insecure-compose-dev-only-key}
       DB_NAME: ${POSTGRES_DB:-webcoder_db}
       DB_USER: ${POSTGRES_USER:-webcoder_user}
