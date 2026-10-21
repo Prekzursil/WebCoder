@@ -18,7 +18,13 @@ import { PaginatedResponse } from '@/types/api';
 import { apiUrl } from '@/lib/api-config';
 
 async function fetchJson<T>(path: string): Promise<T> {
-  const response = await fetch(apiUrl(path), { next: { revalidate: 60 } });
+  // Real-backend e2e mode [Q13]: the suite seeds/unseeds problems around
+  // each run and cannot tolerate the 60s ISR window — disable the cache
+  // there (E2E_API_BASE is set on the dev server by playwright.config).
+  const cacheOpts = process.env.E2E_API_BASE
+    ? ({ cache: 'no-store' } as RequestInit)
+    : ({ next: { revalidate: 60 } } as RequestInit);
+  const response = await fetch(apiUrl(path), cacheOpts);
   if (!response.ok) {
     const errorData: { detail?: string } = await response.json().catch(() => ({}));
     throw new Error(errorData.detail || response.statusText);

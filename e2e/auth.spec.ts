@@ -2,6 +2,7 @@
 // + src/context/AuthContext.tsx). The login POST goes browser -> mock API.
 
 import { test, expect } from '@playwright/test';
+import { isRealStack, ensureRealStackFixtures, E2E_ADMIN_USER, E2E_ADMIN_PASS } from './lib/realStack';
 
 test('login form rejects bad credentials with the API error', async ({
   page,
@@ -13,14 +14,22 @@ test('login form rejects bad credentials with the API error', async ({
   await page?.getByRole('button', { name: 'Login', exact: true })?.click();
 
   // Next.js injects an empty aria-live route announcer that also carries
-  // role=alert — filter to the MUI error alert by its text.
-  const errorAlert = page?.getByRole('alert')?.filter({ hasText: 'Invalid credentials.' });
+  // role=alert — filter to the MUI error alert by its text. The mock API
+  // says "Invalid credentials."; real dj-rest-auth surfaces
+  // non_field_errors ("Unable to log in with provided credentials.") —
+  // apiFetch extracts both since the Q13 real-stack mode.
+  const errorAlert = page
+    ?.getByRole('alert')
+    ?.filter({ hasText: isRealStack ? 'Unable to log in with provided credentials.' : 'Invalid credentials.' });
   await expect(errorAlert)?.toBeVisible();
 });
 
 test('successful login persists tokens and shows the authenticated navbar', async ({
   page,
 }) => {
+  // Real mode: the fixture user is seeded idempotently by the shared
+  // helper (registration is a no-op when the account already exists).
+  if (isRealStack) await ensureRealStackFixtures();
   await page?.goto('/login');
 
   await page?.fill('#login-username', 'e2e_tester');
@@ -40,32 +49,49 @@ test('successful login persists tokens and shows the authenticated navbar', asyn
   const refreshToken = await page?.evaluate(() =>
     localStorage.getItem('refreshToken')
   );
-  expect(accessToken)?.toBe('e2e-access-token');
-  expect(refreshToken)?.toBe('e2e-refresh-token');
+  if (isRealStack) {
+    // Real stack: actual JWTs (header.payload.signature), seeded by
+    // e2e/lib/realStack.ts before the suite runs.
+    expect(accessToken).toMatch(/^ey[^.]+\.[^.]+\./);
+    expect(refreshToken).toMatch(/^ey[^.]+\.[^.]+\./);
+  } else {
+    expect(accessToken)?.toBe('e2e-access-token');
+    expect(refreshToken)?.toBe('e2e-refresh-token');
+  }
 });
 
 test('hydrated admin session derives role-gated navbar links', async ({
   page,
 }) => {
-  // Seed localStorage before any app script runs — exercises the
-  // AuthContext hydration path (token + stored user, no /users/me/ call).
-  await page?.addInitScript(() => {
-    localStorage.setItem('accessToken', 'e2e-access-token');
-    localStorage.setItem('refreshToken', 'e2e-refresh-token');
-    localStorage.setItem(
-      'user',
-      JSON.stringify({
-        id: 2,
-        username: 'admin_e2e',
-        email: 'admin@e2e.local',
-        role: 'ADMIN',
-      })
-    );
-  });
-
-  await page?.goto('/');
-
-  await expect(page?.getByText('admin_e2e', { exact: true }))?.toBeVisible();
+  if (isRealStack) {
+    // Real stack: a fake token is (correctly) rejected — any authorized
+    // API call 401s and the app clears the stale session. Log in for real
+    // as the stack admin and derive the gated links from a live session.
+    await page?.goto('/login');
+    await page?.fill('#login-username', E2E_ADMIN_USER);
+    await page?.fill('#login-password', E2E_ADMIN_PASS);
+    await page?.getByRole('button', { name: 'Login', exact: true })?.click();
+    await expect(page)?.toHaveURL(/\/$/);
+    await expect(page?.getByText(E2E_ADMIN_USER, { exact: true }))?.toBeVisible();
+  } else {
+    // Mock mode: seed localStorage before any app script runs — exercises
+    // the AuthContext hydration path (token + stored user, no /users/me/).
+    await page?.addInitScript(() => {
+      localStorage.setItem('accessToken', 'e2e-access-token');
+      localStorage.setItem('refreshToken', 'e2e-refresh-token');
+      localStorage.setItem(
+        'user',
+        JSON.stringify({
+          id: 2,
+          username: 'admin_e2e',
+          email: 'admin@e2e.local',
+          role: 'ADMIN',
+        })
+      );
+    });
+    await page?.goto('/');
+    await expect(page?.getByText('admin_e2e', { exact: true }))?.toBeVisible();
+  }
 
   // A8: account + role links now live in the avatar dropdown menu.
   await page?.getByRole('button', { name: 'Account menu' })?.click();

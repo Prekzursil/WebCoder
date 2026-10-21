@@ -104,7 +104,10 @@ const refreshAccessToken = (): Promise<boolean> => {
 const authenticatedFetch = async (url: string, options: RequestInit): Promise<Response> => {
   const token = localStorage.getItem('accessToken');
   const headers = new Headers(options.headers || {});
-  if (token) {
+  // An explicitly provided Authorization header wins (e.g. the login flow
+  // fetching /users/me/ with the token it JUST received, before any state
+  // has been persisted — [Q13]).
+  if (token && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${token}`);
   }
   if (options.body) {
@@ -131,7 +134,13 @@ const apiFetch = async <T>(url: string, options: RequestInit = {}): Promise<T> =
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || response.statusText);
+    // [Q13] Real Django responses carry errors as `detail` (auth), as
+    // `non_field_errors: [..]` (dj-rest-auth login/registration), or as a
+    // {field: [messages]} map (serializer validation). Surfacing only
+    // `detail` turned every real login failure into a bare "Bad Request".
+    throw new Error(
+      extractErrorMessage(errorData) || response.statusText
+    );
   }
 
   if (response.status === 204) {
@@ -140,6 +149,24 @@ const apiFetch = async <T>(url: string, options: RequestInit = {}): Promise<T> =
 
   return response.json() as Promise<T>;
 };
+
+/**
+ * Human-readable message from a DRF error body: detail > non_field_errors >
+ * first field-error value. Empty string when nothing recognizable.
+ */
+function extractErrorMessage(errorData: unknown): string {
+  if (typeof errorData !== 'object' || errorData === null) return '';
+  const data = errorData as Record<string, unknown>;
+  if (typeof data.detail === 'string') return data.detail;
+  const nonField = data.non_field_errors;
+  if (Array.isArray(nonField) && nonField.length > 0) return String(nonField[0]);
+  for (const value of Object.values(data)) {
+    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string') {
+      return value[0];
+    }
+  }
+  return '';
+}
 
 // =================================
 // Pagination helpers (SPEC-GAPS B4)
@@ -192,6 +219,10 @@ export const AuthService = {
     register: (userData: Record<string, unknown>) => apiFetch<RegisterResponse>('/users/register/', { method: 'POST', body: JSON.stringify(userData) }),
     login: (credentials: Record<string, unknown>) => apiFetch<LoginResponse>('/auth/login/', { method: 'POST', body: JSON.stringify(credentials) }),
     getMe: () => apiFetch<User>('/users/me/'),
+    // [Q13] /users/me/ with an explicit token — the login flow needs the
+    // full profile (id, role) before tokens reach localStorage/state.
+    getMeWithToken: (token: string) =>
+      apiFetch<User>('/users/me/', { headers: { Authorization: `Bearer ${token}` } }),
     getUser: (userId: number | string) => apiFetch<User>(`/users/${userId}/`),
     changePassword: (passwordData: Record<string, unknown>) => apiFetch<{ detail?: string }>('/users/password/change/', { method: 'POST', body: JSON.stringify(passwordData) }),
 };
