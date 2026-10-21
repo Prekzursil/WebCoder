@@ -66,11 +66,9 @@ services:
       # Prod judge path: submissions run inside the sandboxed judge-runner
       # container via `docker exec` (submissions/judge_utils/backend.py).
       JUDGE_BACKEND: container
-      # NOTE: not yet wired — webcoder_api/celery.py hardcodes the
-      # filesystem broker after config_from_object, so setting
-      # CELERY_BROKER_URL=redis://redis:6379/0 here would be a lie today.
-      # Follow-up: honour CELERY_BROKER_URL in celery.py, then set it here
-      # and add a dedicated celery-worker service.
+      # Celery over redis (webcoder_api/celery.py honours CELERY_BROKER_URL;
+      # filesystem:// remains the local-dev default when this is unset).
+      CELERY_BROKER_URL: redis://redis:6379/0
     volumes:
       # Shared with judge-runner: the backend writes submission files here,
       # the judge-runner compiles/executes them at the same path.
@@ -83,6 +81,37 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      judge-runner:
+        condition: service_started
+    restart: unless-stopped
+
+  # Celery worker — consumes submission/judging tasks from redis. Needs the
+  # same judge mounts as the backend: judging runs here (tasks.py), writing
+  # submission files to judge-sandbox and driving judge containers via the
+  # docker socket.
+  celery-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: ["celery", "-A", "webcoder_api", "worker", "--loglevel=info", "--concurrency=2"]
+    environment:
+      DJANGO_SETTINGS_MODULE: webcoder_api.settings
+      SECRET_KEY: ${SECRET_KEY:-django-insecure-compose-dev-only-key}
+      DB_NAME: ${POSTGRES_DB:-webcoder_db}
+      DB_USER: ${POSTGRES_USER:-webcoder_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-webcoder_dev_password}
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      JUDGE_BACKEND: container
+      CELERY_BROKER_URL: redis://redis:6379/0
+    volumes:
+      - judge-sandbox:/srv/judge
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       postgres:
         condition: service_healthy

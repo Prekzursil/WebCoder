@@ -266,13 +266,20 @@ DJ_REST_AUTH = {
 }
 
 # Celery Configuration Options
-CELERY_BROKER_URL = "filesystem://"
-CELERY_BROKER_FOLDER_MAIN = os.path.join(BASE_DIR, "..", "celery_broker")
-CELERY_BROKER_FOLDER_PROCESSED = os.path.join(BASE_DIR, "..", "celery_broker_processed")
-CELERY_BROKER_FOLDER_SENT = os.path.join(BASE_DIR, "..", "celery_broker_sent")
-os.makedirs(CELERY_BROKER_FOLDER_MAIN, exist_ok=True)
-os.makedirs(CELERY_BROKER_FOLDER_PROCESSED, exist_ok=True)
-os.makedirs(CELERY_BROKER_FOLDER_SENT, exist_ok=True)
+# Set CELERY_BROKER_URL (e.g. redis://redis:6379/0 in docker-compose) to use a
+# real broker. The filesystem:// default is local-dev only; its directories are
+# created lazily below and must live somewhere the process user can write.
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "filesystem://")
+if CELERY_BROKER_URL == "filesystem://":
+    _celery_broker_root = os.environ.get(
+        "CELERY_BROKER_ROOT", os.path.join(BASE_DIR, "..")
+    )
+    CELERY_BROKER_FOLDER_MAIN = os.path.join(_celery_broker_root, "celery_broker")
+    CELERY_BROKER_FOLDER_PROCESSED = os.path.join(_celery_broker_root, "celery_broker_processed")
+    CELERY_BROKER_FOLDER_SENT = os.path.join(_celery_broker_root, "celery_broker_sent")
+    os.makedirs(CELERY_BROKER_FOLDER_MAIN, exist_ok=True)
+    os.makedirs(CELERY_BROKER_FOLDER_PROCESSED, exist_ok=True)
+    os.makedirs(CELERY_BROKER_FOLDER_SENT, exist_ok=True)
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
