@@ -22,15 +22,21 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 # Define the base directory of the Django project
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Configure the filesystem broker with absolute paths
-app.conf.update(
-    broker_url="filesystem://",
-    broker_transport_options={
-        "data_folder_in": str(BASE_DIR.parent / "celery_broker"),
-        "data_folder_out": str(BASE_DIR.parent / "celery_broker_processed"),
-        "data_folder_processed": str(BASE_DIR.parent / "celery_broker_sent"),
-    },
-)
+# Broker selection: settings.CELERY_BROKER_URL (already read by
+# config_from_object above) decides the transport. redis:// and friends need
+# nothing further; the filesystem:// local-dev default additionally needs
+# absolute folder options, applied here only in that case.
+from django.conf import settings  # noqa: E402  (requires DJANGO_SETTINGS_MODULE, set in __init__)
+
+if settings.CELERY_BROKER_URL == "filesystem://":
+    app.conf.update(
+        broker_url="filesystem://",
+        broker_transport_options={
+            "data_folder_in": str(BASE_DIR.parent / "celery_broker"),
+            "data_folder_out": str(BASE_DIR.parent / "celery_broker_processed"),
+            "data_folder_processed": str(BASE_DIR.parent / "celery_broker_sent"),
+        },
+    )
 
 # Load task modules from all registered Django app configs.
 app.autodiscover_tasks()
