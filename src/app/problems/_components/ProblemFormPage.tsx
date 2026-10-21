@@ -302,7 +302,7 @@ export default function ProblemFormPage() {
           </div>
         </div>
 
-        <button type="submit" disabled={isSubmitting} style={{ marginTop: '20px', padding: '10px 20px', fontSize: '1.1em', background: 'var(--accent)', color: '#0f172a', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.7 : 1 }}>{isEditMode ? t('save_changes_button', 'Save Changes') : t('create_problem_button', 'Create Problem')}</button>
+        <button type="submit" disabled={isSubmitting} style={{ marginTop: '20px', padding: '10px 20px', fontSize: '1.1em', background: 'var(--accent)', color: 'var(--on-accent)', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.7 : 1 }}>{isEditMode ? t('save_changes_button', 'Save Changes') : t('create_problem_button', 'Create Problem')}</button>
       </form>
     </div>
   );

@@ -16,6 +16,7 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('../_lib/problems-api', () => ({
   getProblemDetail: vi.fn(),
+  getProblems: vi.fn(),
 }));
 
 vi.mock('./SubmitSolutionForm', () => ({
@@ -30,7 +31,7 @@ vi.mock('./SubmitSolutionForm', () => ({
 }));
 
 import ProblemDetailPage, { generateMetadata } from './page';
-import { getProblemDetail } from '../_lib/problems-api';
+import { getProblemDetail, getProblems } from '../_lib/problems-api';
 
 function mockLocale(value: string | undefined) {
   vi.mocked(cookies).mockResolvedValue({
@@ -70,6 +71,7 @@ afterEach(cleanup);
 beforeEach(() => {
   mockLocale(undefined);
   vi.mocked(getProblemDetail).mockReset();
+  vi.mocked(getProblems).mockReset();
   vi.mocked(notFound).mockClear();
 });
 
@@ -188,7 +190,45 @@ describe('ProblemDetailPage (route "/problems/:problemId")', () => {
 
     render(await ProblemDetailPage(pageProps()));
 
-    expect(screen.getByText('Failed to load problem details.')).toBeInTheDocument();
+    // The card renders the generic label plus the raw API message, and a way
+    // back to the catalog (dead-end fix).
+    expect(screen.getByText(/Failed to load problem details\./)).toBeInTheDocument();
+    expect(screen.getByText(/Failed to load problem\./)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Back to Problems' })).toHaveAttribute('href', '/problems');
+  });
+
+  it('renders prev/next neighbors from the catalog ids (A18)', async () => {
+    vi.mocked(getProblemDetail).mockResolvedValue(problem({}));
+    vi.mocked(getProblems).mockResolvedValue([
+      problem({ id: 5 }),
+      problem({ id: 7 }),
+      problem({ id: 9 }),
+    ] as ProblemType[]);
+    render(await ProblemDetailPage(pageProps()));
+
+    expect(screen.getByRole('link', { name: /Previous problem/ })).toHaveAttribute('href', '/problems/5');
+    expect(screen.getByRole('link', { name: /Next problem/ })).toHaveAttribute('href', '/problems/9');
+  });
+
+  it('hides the prev/next pager when the catalog fetch fails', async () => {
+    vi.mocked(getProblemDetail).mockResolvedValue(problem({}));
+    vi.mocked(getProblems).mockRejectedValue(new Error('catalog down'));
+    render(await ProblemDetailPage(pageProps()));
+
+    expect(screen.queryByRole('link', { name: /Previous problem/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Next problem/ })).not.toBeInTheDocument();
+  });
+
+  it('offers a copy-link share affordance and sample copy buttons (A18/A7)', async () => {
+    vi.mocked(getProblemDetail).mockResolvedValue(
+      problem({ test_cases: [testCase({ is_sample: true, input_data: '1 2', expected_output_data: '3' })] })
+    );
+    vi.mocked(getProblems).mockResolvedValue([problem({})] as ProblemType[]);
+    render(await ProblemDetailPage(pageProps()));
+
+    expect(screen.getByRole('button', { name: 'Copy link' })).toBeInTheDocument();
+    // One copy button on the sample header.
+    expect(screen.getByRole('button', { name: 'Copy' })).toBeInTheDocument();
   });
 });
 

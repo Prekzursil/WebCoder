@@ -38,25 +38,25 @@ const MOCK_RECENT = [
 ];
 
 const verdictConfig: Record<string, { color: string; bg: string }> = {
-  AC:  { color: '#4ade80', bg: 'rgba(74,222,128,0.12)' },
-  WA:  { color: '#f87171', bg: 'rgba(248,113,113,0.12)' },
-  TLE: { color: '#fbbf24', bg: 'rgba(251,191,36,0.12)' },
-  MLE: { color: '#a78bfa', bg: 'rgba(167,139,250,0.12)' },
-  CE:  { color: '#fb923c', bg: 'rgba(251,146,60,0.12)' },
+  AC:  { color: 'var(--success)', bg: 'rgba(74,222,128,0.12)' },
+  WA:  { color: 'var(--danger)', bg: 'rgba(248,113,113,0.12)' },
+  TLE: { color: 'var(--warn)', bg: 'rgba(251,191,36,0.12)' },
+  MLE: { color: 'var(--violet)', bg: 'rgba(167,139,250,0.12)' },
+  CE:  { color: 'var(--orange)', bg: 'rgba(251,146,60,0.12)' },
 };
 
 function StatCard({ label, value, accent, sub }: { label: string; value: string | number; accent?: string; sub?: string }) {
   return (
     <div style={{
-      background: '#1e293b',
+      background: 'var(--surface)',
       border: '1px solid rgba(255,255,255,0.06)',
       borderRadius: '10px',
       padding: '1rem 1.25rem',
       flex: '1 1 120px',
     }}>
-      <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.4rem' }}>{label}</div>
-      <div style={{ fontSize: '1.5rem', fontWeight: 800, color: accent ?? '#f1f5f9', letterSpacing: '-0.03em' }}>{value}</div>
-      {sub && <div style={{ fontSize: '0.72rem', color: '#475569', marginTop: '2px' }}>{sub}</div>}
+      <div style={{ fontSize: '0.65rem', color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.4rem' }}>{label}</div>
+      <div style={{ fontSize: '1.5rem', fontWeight: 800, color: accent ?? 'var(--foreground)', letterSpacing: '-0.03em' }}>{value}</div>
+      {sub && <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>{sub}</div>}
     </div>
   );
 }
@@ -69,7 +69,7 @@ function ProfileOverview({ user }: { user: User }) {
     <div style={{ marginBottom: '2rem' }}>
       {/* Hero banner */}
       <div style={{
-        background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+        background: 'linear-gradient(135deg, var(--surface) 0%, var(--background) 100%)',
         border: '1px solid rgba(255,255,255,0.06)',
         borderRadius: '16px',
         padding: '2rem',
@@ -95,30 +95,30 @@ function ProfileOverview({ user }: { user: User }) {
 
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
-              <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#f1f5f9', letterSpacing: '-0.02em' }}>
+              <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--foreground)', letterSpacing: '-0.02em' }}>
                 {user.username}
               </h1>
               <span style={{
                 padding: '2px 10px', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 700,
-                color: user.role === 'ADMIN' ? '#f87171' : user.role === 'PROBLEM_CREATOR' ? '#fbbf24' : user.role === 'PROBLEM_VERIFIER' ? '#a78bfa' : '#38bdf8',
+                color: user.role === 'ADMIN' ? 'var(--danger)' : user.role === 'PROBLEM_CREATOR' ? 'var(--warn)' : user.role === 'PROBLEM_VERIFIER' ? 'var(--violet)' : 'var(--accent)',
                 background: user.role === 'ADMIN' ? 'rgba(248,113,113,0.1)' : user.role === 'PROBLEM_CREATOR' ? 'rgba(251,191,36,0.1)' : user.role === 'PROBLEM_VERIFIER' ? 'rgba(167,139,250,0.1)' : 'rgba(56,189,248,0.1)',
                 border: `1px solid ${user.role === 'ADMIN' ? 'rgba(248,113,113,0.25)' : user.role === 'PROBLEM_CREATOR' ? 'rgba(251,191,36,0.25)' : user.role === 'PROBLEM_VERIFIER' ? 'rgba(167,139,250,0.25)' : 'rgba(56,189,248,0.25)'}`,
               }}>{user.role.replace('_', ' ')}</span>
             </div>
-            <div style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '1rem' }}>{user.email}</div>
+            <div style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '1rem' }}>{user.email}</div>
 
             <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fbbf24' }}>#{MOCK_STATS.rank}</div>
-                <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Global Rank</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--warn)' }}>#{MOCK_STATS.rank}</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>Global Rank</div>
               </div>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#38bdf8' }}>{MOCK_STATS.score.toLocaleString()}</div>
-                <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Score</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--accent)' }}>{MOCK_STATS.score.toLocaleString()}</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>Score</div>
               </div>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#4ade80' }}>{MOCK_STATS.streak}</div>
-                <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Day Streak 🔥</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--success)' }}>{MOCK_STATS.streak}</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>Day Streak 🔥</div>
               </div>
             </div>
           </div>
@@ -127,32 +127,32 @@ function ProfileOverview({ user }: { user: User }) {
 
       {/* Stats row */}
       <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-        <StatCard label="Problems Solved" value={MOCK_STATS.solved} accent="#4ade80" sub={`of ${MOCK_STATS.attempted} attempted`} />
-        <StatCard label="Acceptance Rate" value={`${MOCK_STATS.acceptanceRate}%`} accent="#38bdf8" />
+        <StatCard label="Problems Solved" value={MOCK_STATS.solved} accent="var(--success)" sub={`of ${MOCK_STATS.attempted} attempted`} />
+        <StatCard label="Acceptance Rate" value={`${MOCK_STATS.acceptanceRate}%`} accent="var(--accent)" />
         <StatCard label="Total Submissions" value={MOCK_STATS.submissions} />
       </div>
 
       {/* Difficulty breakdown */}
       <div style={{
-        background: '#1e293b',
+        background: 'var(--surface)',
         border: '1px solid rgba(255,255,255,0.06)',
         borderRadius: '12px',
         padding: '1.25rem 1.5rem',
         marginBottom: '1.5rem',
       }}>
-        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '1rem' }}>
+        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '1rem' }}>
           Solved by Difficulty
         </div>
         <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
           {[
-            { label: 'Easy', count: MOCK_STATS.easyCount, total: 30, color: '#4ade80' },
-            { label: 'Medium', count: MOCK_STATS.mediumCount, total: 40, color: '#fbbf24' },
-            { label: 'Hard', count: MOCK_STATS.hardCount, total: 20, color: '#f87171' },
+            { label: 'Easy', count: MOCK_STATS.easyCount, total: 30, color: 'var(--success)' },
+            { label: 'Medium', count: MOCK_STATS.mediumCount, total: 40, color: 'var(--warn)' },
+            { label: 'Hard', count: MOCK_STATS.hardCount, total: 20, color: 'var(--danger)' },
           ].map(d => (
             <div key={d.label} style={{ flex: '1 1 120px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                 <span style={{ fontSize: '0.78rem', color: d.color, fontWeight: 600 }}>{d.label}</span>
-                <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 700 }}>{d.count}<span style={{ color: '#475569', fontWeight: 400 }}>/{d.total}</span></span>
+                <span style={{ fontSize: '0.78rem', color: 'var(--muted)', fontWeight: 700 }}>{d.count}<span style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>/{d.total}</span></span>
               </div>
               <div style={{ height: '6px', background: 'rgba(255,255,255,0.06)', borderRadius: '999px', overflow: 'hidden' }}>
                 <div style={{ height: '100%', width: `${(d.count / d.total) * 100}%`, background: d.color, borderRadius: '999px', transition: 'width 600ms ease' }} />
@@ -164,7 +164,7 @@ function ProfileOverview({ user }: { user: User }) {
 
       {/* Recent submissions */}
       <div style={{
-        background: '#1e293b',
+        background: 'var(--surface)',
         border: '1px solid rgba(255,255,255,0.06)',
         borderRadius: '12px',
         overflow: 'hidden',
@@ -174,14 +174,14 @@ function ProfileOverview({ user }: { user: User }) {
           borderBottom: '1px solid rgba(255,255,255,0.06)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
-          <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             Recent Submissions
           </span>
-          <Link href="/submission-history" style={{ fontSize: '0.75rem', color: '#38bdf8', textDecoration: 'none' }}>View all →</Link>
+          <Link href="/submission-history" style={{ fontSize: '0.75rem', color: 'var(--accent)', textDecoration: 'none' }}>View all →</Link>
         </div>
         <div>
           {MOCK_RECENT.map(s => {
-            const vcfg = verdictConfig[s.verdict] ?? { color: '#94a3b8', bg: 'rgba(148,163,184,0.1)' };
+            const vcfg = verdictConfig[s.verdict] ?? { color: 'var(--muted)', bg: 'rgba(148,163,184,0.1)' };
             return (
               <div key={s.id} style={{
                 padding: '0.875rem 1.5rem',
@@ -192,11 +192,11 @@ function ProfileOverview({ user }: { user: User }) {
                   padding: '2px 8px', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 700,
                   color: vcfg.color, background: vcfg.bg, minWidth: '36px', textAlign: 'center',
                 }}>{s.verdict}</span>
-                <Link href={`/submissions/${s.id}`} style={{ color: '#f1f5f9', fontSize: '0.875rem', fontWeight: 500, flex: 1, minWidth: '120px' }}>
+                <Link href={`/submissions/${s.id}`} style={{ color: 'var(--foreground)', fontSize: '0.875rem', fontWeight: 500, flex: 1, minWidth: '120px' }}>
                   {s.problemTitle}
                 </Link>
-                <span style={{ fontSize: '0.72rem', color: '#475569', fontFamily: 'monospace' }}>{s.language}</span>
-                <span style={{ fontSize: '0.72rem', color: '#334155', marginLeft: 'auto' }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', fontFamily: 'monospace' }}>{s.language}</span>
+                <span style={{ fontSize: '0.72rem', color: 'var(--surface-2)', marginLeft: 'auto' }}>
                   {new Date(s.time).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </span>
               </div>
@@ -289,8 +289,8 @@ export function UserProfilePage() {
           <button key={tab} onClick={() => setActiveTab(tab)} style={{
             padding: '8px 20px', borderRadius: '7px', fontSize: '0.85rem', fontWeight: 600,
             border: 'none', cursor: 'pointer', transition: 'all 150ms ease',
-            background: activeTab === tab ? '#38bdf8' : 'transparent',
-            color: activeTab === tab ? '#0f172a' : '#64748b',
+            background: activeTab === tab ? 'var(--accent)' : 'transparent',
+            color: activeTab === tab ? 'var(--on-accent)' : 'var(--muted)',
             textTransform: 'capitalize',
           }}>{tab}</button>
         ))}
@@ -302,13 +302,13 @@ export function UserProfilePage() {
         <div style={{ maxWidth: '600px' }}>
           {/* User info card */}
           <div style={{
-            background: '#1e293b',
+            background: 'var(--surface)',
             border: '1px solid rgba(255,255,255,0.06)',
             borderRadius: '12px',
             padding: '1.5rem',
             marginBottom: '1.5rem',
           }}>
-            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '1rem' }}>
+            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '1rem' }}>
               Account Info
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -318,8 +318,8 @@ export function UserProfilePage() {
                 { label: 'Role', value: profileUser.role.replace('_', ' ') },
               ].map(item => (
                 <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                  <span style={{ fontSize: '0.85rem', color: '#64748b' }}>{item.label}</span>
-                  <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#f1f5f9' }}>{item.value}</span>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>{item.label}</span>
+                  <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--foreground)' }}>{item.value}</span>
                 </div>
               ))}
             </div>
@@ -327,13 +327,13 @@ export function UserProfilePage() {
 
           {/* Connected accounts */}
           <div style={{
-            background: '#1e293b',
+            background: 'var(--surface)',
             border: '1px solid rgba(255,255,255,0.06)',
             borderRadius: '12px',
             padding: '1.5rem',
             marginBottom: '1.5rem',
           }}>
-            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '1rem' }}>
+            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '1rem' }}>
               {t('connected_accounts_header', 'Connected Accounts')}
             </div>
             <Box sx={{ display: 'flex', gap: 2 }}>
@@ -348,12 +348,12 @@ export function UserProfilePage() {
 
           {/* Change password */}
           <div style={{
-            background: '#1e293b',
+            background: 'var(--surface)',
             border: '1px solid rgba(255,255,255,0.06)',
             borderRadius: '12px',
             padding: '1.5rem',
           }}>
-            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '1rem' }}>
+            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '1rem' }}>
               {t('change_password_header', 'Change Password')}
             </div>
             {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}

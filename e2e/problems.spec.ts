@@ -19,12 +19,14 @@ test('catalog lists mocked problems with difficulty and status', async ({
   const twoSumRow = page?.getByRole('row').filter({ hasText: 'Two Sum' });
   await expect(twoSumRow)?.toBeVisible();
   await expect(twoSumRow)?.toContainText('EASY');
-  await expect(twoSumRow)?.toContainText('APPROVED');
 
   const reverseRow = page?.getByRole('row').filter({ hasText: 'Reverse String' });
   await expect(reverseRow)?.toBeVisible();
   await expect(reverseRow)?.toContainText('MEDIUM');
-  await expect(reverseRow)?.toContainText('APPROVED');
+
+  // F7: anonymous visitors only ever see APPROVED problems, so the status
+  // column/facet is hidden from the public catalog entirely.
+  await expect(twoSumRow)?.not.toContainText('APPROVED');
 });
 
 test('catalog items link to the problem detail page', async ({ page }) => {

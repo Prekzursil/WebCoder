@@ -61,29 +61,29 @@ describe('getProblems', () => {
     });
   });
 
-  // getProblems() degrades gracefully (`.catch(() => [])` in problems-api.ts) so the
-  // catalog page renders an empty list instead of crashing when the backend is down.
-  // It therefore RESOLVES on every error path; only getProblemDetail still rejects.
-  it('resolves to [] when the API responds with a detail body', async () => {
+  // [SPEC-GAPS F2] The `.catch(() => [])` is gone: a down backend must surface
+  // as the page's error state, not masquerade as an empty catalog. getProblems
+  // now REJECTS on every error path, exactly like getProblemDetail.
+  it('rejects with Error(detail) when the API responds with a detail body', async () => {
     mockFetch(async () => jsonResponse({ detail: 'Service unavailable' }, { status: 503 }));
-    await expect(getProblems()).resolves.toEqual([]);
+    await expect(getProblems()).rejects.toThrow('Service unavailable');
   });
 
-  it('resolves to [] when the error body has no detail', async () => {
+  it('rejects with Error(statusText) when the error body has no detail', async () => {
     mockFetch(async () => jsonResponse({}, { status: 500, statusText: 'Internal Server Error' }));
-    await expect(getProblems()).resolves.toEqual([]);
+    await expect(getProblems()).rejects.toThrow('Internal Server Error');
   });
 
-  it('resolves to [] when the error body is not JSON (json() rejects)', async () => {
+  it('rejects with Error(statusText) when the error body is not JSON (json() rejects)', async () => {
     mockFetch(async () => new Response('not-json', { status: 502, statusText: 'Bad Gateway' }));
-    await expect(getProblems()).resolves.toEqual([]);
+    await expect(getProblems()).rejects.toThrow('Bad Gateway');
   });
 
   it('propagates network failures', async () => {
     mockFetch(async () => {
       throw new TypeError('Failed to fetch');
     });
-    await expect(getProblems()).resolves.toEqual([]);
+    await expect(getProblems()).rejects.toThrow('Failed to fetch');
   });
 });
 

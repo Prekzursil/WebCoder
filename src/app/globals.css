@@ -1,14 +1,32 @@
+/* Values in :root mirror src/theme/tokens.ts 1:1 (enforced by
+   src/theme/tokens.test.ts). Change tokens.ts first, then this block. */
 :root {
+  color-scheme: dark; /* [SPEC-GAPS A5] native selects/scrollbars/autofill render dark */
   --background: #0f172a;
   --foreground: #f1f5f9;
   --surface: #1e293b;
   --surface-2: #334155;
   --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.12);
+  --body: #cbd5e1;
+  --muted: #94a3b8;
+  --text-tertiary: #8b9cb6;
   --accent: #38bdf8;
   --accent-hover: #7dd3fc;
-  --muted: #64748b;
+  --on-accent: #0f172a;
   --danger: #f87171;
   --success: #4ade80;
+  --warn: #fbbf24;
+  --violet: #a78bfa;
+  --orange: #fb923c;
+  --pink: #f472b6;
+  --blue: #3b82f6;
+  --brand-gradient: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+  --font-sans: 'DM Sans', 'Manrope', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
 }
 
 html,
@@ -20,7 +38,7 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: 'DM Sans', 'Manrope', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -36,6 +54,42 @@ a {
   text-decoration: none;
 }
 
+code,
+pre {
+  font-family: var(--font-mono);
+}
+
+/* Focus visibility for every native control at once — inline-styled links and
+   buttons had no focus indicator at all. [SPEC-GAPS A10/Q8] */
+a:focus-visible,
+button:focus-visible,
+th[tabindex]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Skip-to-content link — visually hidden until keyboard-focused. [Q11] */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 8px;
+  z-index: 200;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.skip-link:focus {
+  left: 8px;
+}
+
 /* Page wrapper — consistent max-width + padding for all inner pages */
 .page-container {
   max-width: 1280px;
@@ -47,8 +101,116 @@ a {
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
+}
+
+/* Interactive idioms — real :hover/:active pseudo-classes that inline style
+   objects cannot express. [SPEC-GAPS A10] */
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.7);
+  transition: color 150ms ease, background-color 150ms ease;
+  min-height: 44px; /* touch target floor [A1] */
+}
+
+.nav-link:hover {
+  color: var(--foreground);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.nav-link--active {
+  color: var(--accent);
+  font-weight: 600;
+  background: rgba(56, 189, 248, 0.1);
+}
+
+.nav-link--active:hover {
+  color: var(--accent-hover);
+  background: rgba(56, 189, 248, 0.14);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-strong);
+  transition: background-color 150ms ease, border-color 150ms ease,
+    color 150ms ease, transform 150ms ease;
+  min-height: 36px;
+}
+
+.btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.24);
+  color: var(--foreground);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+.btn--primary:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  color: var(--on-accent);
+}
+
+.btn--danger {
+  background: rgba(248, 113, 113, 0.08);
+  border-color: rgba(248, 113, 113, 0.3);
+  color: var(--danger);
+}
+
+.btn--danger:hover {
+  background: rgba(248, 113, 113, 0.16);
+  border-color: rgba(248, 113, 113, 0.45);
+  color: var(--danger);
+}
+
+.chip {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  transition: border-color 120ms ease, background-color 120ms ease,
+    color 120ms ease;
+}
+
+.chip:hover {
+  color: var(--foreground);
+  border-color: var(--border-strong);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Uppercase micro-label (filter group labels). */
+.micro-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 /* Tables */
@@ -83,11 +245,40 @@ tr:hover td {
   background: rgba(255, 255, 255, 0.02);
 }
 
+/* Horizontal scroll wrapper for wide tables on small screens. [SPEC-GAPS A1] */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-scroll > table {
+  min-width: 640px;
+}
+
+/* Sortable table headers. [SPEC-GAPS F3] */
+.th-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+
+.th-sort:hover {
+  color: var(--foreground);
+}
+
 /* Form elements */
 input, select, textarea {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   color: var(--foreground);
   padding: 8px 12px;
   font-size: 0.875rem;
@@ -103,6 +294,39 @@ input:focus, select:focus, textarea:focus {
 /* Buttons */
 button {
   font-family: inherit;
+}
+
+/* Loading spinner — token-driven; used by LoadingSpinner. [SPEC-GAPS A11] */
+.spinner {
+  border: 4px solid var(--surface-2);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border-left-color: var(--accent);
+  animation: wc-spin 1s ease infinite;
+}
+
+@keyframes wc-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Skeleton shimmer. [SPEC-GAPS A11] */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface) 25%,
+    var(--surface-2) 50%,
+    var(--surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: wc-shimmer 1.4s ease infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes wc-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* Scrollbar */

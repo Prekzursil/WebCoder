@@ -18,9 +18,14 @@ async function fetchJson<T>(path: string): Promise<T> {
   return (await response.json()) as T;
 }
 
-/** Public problem list (server-side; anonymous users only see APPROVED). */
+/**
+ * Public problem list (server-side; anonymous users only see APPROVED).
+ * [SPEC-GAPS F2] No `.catch(() => [])`: a down backend must surface as the
+ * page's error state, not masquerade as an empty catalog. Callers wrap in
+ * try/catch (problems/page.tsx) or the route error boundary fires.
+ */
 export function getProblems(): Promise<ProblemType[]> {
-  return fetchJson<ProblemType[]>('/problems/problems/').catch(() => []);
+  return fetchJson<ProblemType[]>('/problems/problems/');
 }
 
 /**

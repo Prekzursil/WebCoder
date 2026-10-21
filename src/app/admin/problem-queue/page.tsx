@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { ProblemType } from '@/types';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import ProtectedRoute from '@/components/common/ProtectedRoute';
+import TableScroll from '@/components/common/TableScroll';
 
 // Ported from frontend/webcoder_ui/src/pages/admin/ProblemVerificationQueuePage.tsx
 // (CRA reference). Route: /admin/problem-queue (CRA App.tsx:42) —
@@ -120,7 +121,8 @@ export function ProblemVerificationQueuePage() {
       {pendingProblems.length === 0 ? (
         <p>{t('no_problems_pending_approval', 'No problems are currently pending approval.')}</p>
       ) : (
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="card" style={{ padding: 0 }}>
+          <TableScroll>
           <table>
             <thead>
               <tr>
@@ -184,6 +186,7 @@ export function ProblemVerificationQueuePage() {
               ))}
             </tbody>
           </table>
+          </TableScroll>
         </div>
       )}
     </div>

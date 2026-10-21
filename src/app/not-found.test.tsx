@@ -28,6 +28,17 @@ describe('not-found (catch-all "*")', () => {
     ).toBeInTheDocument();
   });
 
+  it('offers onward navigation instead of a dead end (A14)', async () => {
+    mockLocale(undefined);
+    render(await NotFound());
+
+    expect(screen.getByRole('link', { name: 'Browse Problems' })).toHaveAttribute('href', '/problems');
+    expect(screen.getByRole('link', { name: 'Go Home' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'Leaderboard' })).toHaveAttribute('href', '/leaderboard');
+    expect(screen.getByRole('link', { name: 'Community Forum' })).toHaveAttribute('href', '/forum');
+    expect(screen.getByRole('link', { name: 'My Submissions' })).toHaveAttribute('href', '/my-submissions');
+  });
+
   it('renders the Romanian copy for Romanian visitors (ro values now exist)', async () => {
     mockLocale('ro');
     render(await NotFound());

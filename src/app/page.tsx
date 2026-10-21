@@ -65,7 +65,9 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
-      <main className={styles.home} aria-label="WebCoder home page">
+      {/* [Q11] the app shell in providers.tsx owns the single <main> landmark;
+          this page-level wrapper is purely presentational. */}
+      <div className={styles.home} aria-label="WebCoder home page">
         <div className={styles.badge} aria-hidden="true">
           ✦ Competitive Programming Platform
         </div>
@@ -118,7 +120,7 @@ export default async function HomePage() {
             ))}
           </div>
         </section>
-      </main>
+      </div>
     </>
   );
 }

@@ -11,12 +11,14 @@ vi.mock('@/context/AuthContext', () => ({
 vi.mock('@/services/ApiService', () => ({
   SubmissionService: {
     createSubmission: vi.fn(),
+    getSubmissionDetail: vi.fn(),
   },
 }));
 
 import SubmitSolutionForm from './SubmitSolutionForm';
 
 const createSubmissionMock = vi.mocked(SubmissionService.createSubmission);
+const getDetailMock = vi.mocked(SubmissionService.getSubmissionDetail);
 
 function mockAuth({ isAuthenticated, token }: { isAuthenticated: boolean; token: string | null }) {
   vi.mocked(useAuth).mockReturnValue({
@@ -56,6 +58,7 @@ afterEach(cleanup);
 beforeEach(() => {
   vi.mocked(useAuth).mockReset();
   createSubmissionMock.mockReset();
+  getDetailMock.mockReset();
 });
 
 describe('SubmitSolutionForm (unauthenticated visitors)', () => {
@@ -166,6 +169,66 @@ describe('SubmitSolutionForm (authenticated visitors)', () => {
     expect(
       screen.queryByRole('heading', { name: 'Confirm Submission' })
     ).not.toBeInTheDocument();
+
+    // [F14] the success state links out and polls the verdict live.
+    expect(screen.getByRole('link', { name: 'View status' })).toHaveAttribute('href', '/submissions/123');
+    expect(screen.getByText(/Polling for updates/)).toBeInTheDocument();
+  });
+
+  it('polls the fresh submission and shows the terminal verdict [F14]', async () => {
+    createSubmissionMock.mockResolvedValue({
+      id: 123,
+      problem: { id: 7, title_i18n: { en: 'Two Sum' } },
+      language: 'python3',
+      verdict: 'PENDING',
+      submission_time: '2026-09-22T10:00:00Z',
+      code: 'print(3)',
+    } as DetailedSubmissionType);
+    getDetailMock.mockResolvedValue({
+      id: 123,
+      problem: { id: 7, title_i18n: { en: 'Two Sum' } },
+      language: 'python3',
+      verdict: 'WA',
+      submission_time: '2026-09-22T10:00:00Z',
+      code: 'print(3)',
+    } as DetailedSubmissionType);
+
+    renderForm();
+    typeCode('print(3)');
+    clickSubmit();
+    confirmModal();
+
+    await waitFor(() => {
+      expect(screen.getByText('WA')).toBeInTheDocument();
+    });
+    expect(getDetailMock).toHaveBeenCalledWith('123');
+  });
+
+  it('inserts a per-language starter template [A6-interim]', () => {
+    renderForm();
+    expect(screen.getByRole('button', { name: 'Insert python3 template' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Insert python3 template' }));
+    expect(screen.getByLabelText(/Code:/i)).toHaveValue(
+      'def main():\n    pass\n\n\nif __name__ == "__main__":\n    main()\n'
+    );
+  });
+
+  it('indents with Tab instead of moving focus away [A6-interim]', () => {
+    renderForm();
+    // jsdom keeps the caret at 0 on an untouched editor, so Tab inserts the
+    // indent at the start (in a real browser the caret is wherever the user
+    // placed it — the handler inserts at selectionStart either way).
+    const editor = screen.getByLabelText(/Code:/i) as HTMLTextAreaElement;
+    fireEvent.keyDown(editor, { key: 'Tab' });
+    expect(screen.getByLabelText(/Code:/i)).toHaveValue('  ');
+  });
+
+  it('submits from the editor with Ctrl+Enter [A6-interim]', () => {
+    renderForm();
+    typeCode('print(3)');
+    const editor = screen.getByLabelText(/Code:/i);
+    fireEvent.keyDown(editor, { key: 'Enter', ctrlKey: true });
+    expect(screen.getByRole('heading', { name: 'Confirm Submission' })).toBeInTheDocument();
   });
 
   it('shows the server error message when the submission fails', async () => {

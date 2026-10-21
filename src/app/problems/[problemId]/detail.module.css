@@ -1,0 +1,47 @@
+/* Problem detail responsive layout [SPEC-GAPS A1]: two columns on wide
+   screens (statement + sticky submit sidebar), single column below 1024px —
+   statement first, submit form after, sidebar un-stuck. */
+
+.detailGrid {
+  display: grid;
+  gridTemplateColumns: 1fr 380px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.submitColumn {
+  position: sticky;
+  top: 80px;
+}
+
+.sampleGrid {
+  display: grid;
+  gridTemplateColumns: 1fr 1fr;
+  gap: 0;
+}
+
+.sampleHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+@media (max-width: 1023.98px) {
+  .detailGrid {
+    gridTemplateColumns: 1fr;
+  }
+
+  .submitColumn {
+    position: static;
+  }
+
+  .sampleGrid {
+    gridTemplateColumns: 1fr;
+  }
+
+  .sampleGrid > div:first-child {
+    borderRight: none;
+    borderBottom: 1px solid var(--border);
+  }
+}

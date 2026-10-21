@@ -1,0 +1,123 @@
+/* Footer [SPEC-GAPS A13] — same page-container width, surface tokens. */
+
+.footer {
+  margin-top: 4rem;
+  border-top: 1px solid var(--border);
+  background: var(--background);
+}
+
+.inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 2rem;
+}
+
+.topRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2.5rem;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.brandBlock {
+  max-width: 320px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+
+.brandMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  background: var(--brand-gradient);
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.tagline {
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.colTitle {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-tertiary);
+  margin-bottom: 0.6rem;
+}
+
+.colLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.link {
+  font-size: 0.85rem;
+  color: var(--muted);
+  transition: color 150ms ease;
+}
+
+.link:hover {
+  color: var(--accent);
+}
+
+.bottomRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+.copyright {
+  font-size: 0.78rem;
+  color: var(--text-tertiary);
+}
+
+.langSwitch {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.langBtn {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.langBtnActive {
+  color: var(--on-accent);
+  background: var(--accent);
+}

@@ -1,10 +1,11 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, act, cleanup } from '@testing-library/react';
+import { render, screen, act, cleanup, fireEvent } from '@testing-library/react';
 import i18n from '@/i18n';
 import type { DetailedSubmissionType, SubmissionTestResultType } from '@/types';
 import SubmissionDetailPage from './page';
 
-// Page tests for the /submissions/[submissionId] port. Mocks:
+// Page tests for the /submissions/[submissionId] port (restyled to the card
+// language in the appearance wave — same behavior matrix, new DOM):
 // - ApiService (SubmissionService.getSubmissionDetail)
 // - AuthContext.useAuth (configurable per test via mocks.auth)
 // - next/navigation (useParams — configurable via mocks.params)
@@ -94,10 +95,6 @@ const pollingBadge = () =>
   );
 
 const norm = (s: string | null | undefined) => (s ?? '').replace(/\s+/g, ' ').trim();
-const h4Text = (expected: string) => (_: string, el: Element | null) =>
-  !!el && el.tagName === 'H4' && norm(el.textContent) === expected;
-const pText = (expected: string) => (_: string, el: Element | null) =>
-  !!el && el.tagName === 'P' && norm(el.textContent) === expected;
 
 const findPre = (content: string) =>
   typeof window !== 'undefined'
@@ -117,11 +114,14 @@ beforeEach(async () => {
 afterEach(cleanup);
 
 describe('SubmissionDetailPage', () => {
-  it('requires auth: shows the error and never fetches without a token', async () => {
+  it('requires auth: shows the error with a back link and never fetches without a token', async () => {
     setAuth({ isAuthenticated: false, token: null });
     render(<SubmissionDetailPage />);
     const el = await screen.findByText('Authentication required to view submission details.');
-    expect((el as HTMLElement).style.color).toBe('var(--danger)');
+    expect(el).toBeInTheDocument();
+    // The dead-end fix: a way back, and no retry without a token.
+    expect(screen.getByRole('link', { name: 'Back to My Submissions' })).toHaveAttribute('href', '/my-submissions');
+    expect(screen.queryByRole('button', { name: 'Try Again' })).not.toBeInTheDocument();
     expect(mocks.getSubmissionDetail).not.toHaveBeenCalled();
   });
 
@@ -141,11 +141,19 @@ describe('SubmissionDetailPage', () => {
     expect(screen.queryByText('Submission not found.')).not.toBeInTheDocument();
   });
 
-  it('renders the fetch error in red when the detail request fails', async () => {
-    mocks.getSubmissionDetail.mockRejectedValue(new Error('Boom'));
+  it('renders the fetch error with back link + working retry when the detail request fails', async () => {
+    mocks.getSubmissionDetail.mockRejectedValueOnce(new Error('Boom'));
     render(<SubmissionDetailPage />);
-    const el = await screen.findByText('Boom');
-    expect((el as HTMLElement).style.color).toBe('var(--danger)');
+    expect(await screen.findByText(/Boom/)).toBeInTheDocument();
+
+    expect(screen.getByRole('link', { name: 'Back to My Submissions' })).toHaveAttribute('href', '/my-submissions');
+    const retry = screen.getByRole('button', { name: 'Try Again' });
+    mocks.getSubmissionDetail.mockRejectedValueOnce(new Error('Boom 2'));
+    await act(async () => {
+      fireEvent.click(retry);
+    });
+    expect(mocks.getSubmissionDetail).toHaveBeenCalledTimes(2);
+    expect(await screen.findByText(/Boom 2/)).toBeInTheDocument();
   });
 
   it('falls back to the default error text when the error has no message', async () => {
@@ -168,21 +176,27 @@ describe('SubmissionDetailPage', () => {
     // No polling badge for a terminal verdict.
     expect(pollingBadge()).toHaveLength(0);
 
+    // Verdict appears in the title pill and the meta cell.
+    expect(screen.getAllByText('AC', { selector: 'span' }).length).toBe(2);
+
     expect(screen.getByRole('link', { name: 'Problem One' })).toHaveAttribute('href', '/problems/7');
     expect(screen.getByText('alice')).toBeInTheDocument();
     expect(screen.getByText('python3')).toBeInTheDocument();
-    expect(screen.getByText('AC')).toBeInTheDocument();
     expect(screen.getByText('100')).toBeInTheDocument();
+    expect(screen.getByText('120 ms')).toBeInTheDocument();
+    expect(screen.getByText('2048 KB')).toBeInTheDocument();
 
-    expect(screen.getByText('Execution Time (Overall):', { exact: false })).toBeInTheDocument();
-    expect(screen.getByText('120 ms', { exact: false })).toBeInTheDocument();
-    expect(screen.getByText('Memory Used (Overall):', { exact: false })).toBeInTheDocument();
-    expect(screen.getByText('2048 KB', { exact: false })).toBeInTheDocument();
+    // Meta labels are rendered as uppercase micro-labels.
+    expect(screen.getByText('Execution Time (Overall)')).toBeInTheDocument();
+    expect(screen.getByText('Memory Used (Overall)')).toBeInTheDocument();
 
-    // Code block with the mapped syntax language (python3 -> python).
+    // Code block with the mapped syntax language (python3 -> python) + copy.
     const code = screen.getByTestId('code-block');
     expect(code).toHaveAttribute('data-language', 'python');
     expect(code).toHaveTextContent('print("hi")');
+    expect(screen.getByRole('button', { name: 'Copy code' })).toBeInTheDocument();
+    // Header back link (F20 dead-end fix).
+    expect(screen.getAllByRole('link', { name: 'Back to My Submissions' }).length).toBeGreaterThan(0);
 
     // Empty test_results -> no results header; feedback pre present.
     expect(screen.queryByText('Test Case Results')).not.toBeInTheDocument();
@@ -204,10 +218,10 @@ describe('SubmissionDetailPage', () => {
     render(<SubmissionDetailPage />);
     await screen.findByText('Submission Detail #42');
 
-    expect(screen.queryByText('User:', { exact: false })).not.toBeInTheDocument();
-    expect(screen.getByText('-')).toBeInTheDocument(); // null score
-    expect(screen.queryByText('Execution Time (Overall):', { exact: false })).not.toBeInTheDocument();
-    expect(screen.queryByText('Memory Used (Overall):', { exact: false })).not.toBeInTheDocument();
+    expect(screen.queryByText('User', { exact: false })).not.toBeInTheDocument();
+    expect(screen.getByText('—')).toBeInTheDocument(); // null score
+    expect(screen.queryByText('Execution Time (Overall)')).not.toBeInTheDocument();
+    expect(screen.queryByText('Memory Used (Overall)')).not.toBeInTheDocument();
     expect(screen.queryByText("Judge's Summary")).not.toBeInTheDocument();
     expect(screen.queryByText('Test Case Results')).not.toBeInTheDocument();
     expect(screen.getByTestId('code-block')).toHaveAttribute('data-language', 'plaintext');
@@ -220,7 +234,7 @@ describe('SubmissionDetailPage', () => {
     expect(screen.getByTestId('code-block')).toHaveAttribute('data-language', 'cpp');
   });
 
-  it('renders test-case cards with verdict-conditional outputs and truncation', async () => {
+  it('renders test-case cards with verdict pills, sample chips, and conditional outputs', async () => {
     const tr = (over: Partial<SubmissionTestResultType>): SubmissionTestResultType =>
       ({
         id: 1,
@@ -287,10 +301,15 @@ describe('SubmissionDetailPage', () => {
     render(<SubmissionDetailPage />);
     await screen.findByText('Test Case Results');
 
-    // Sample marker + order number.
-    expect(screen.getByText(h4Text('Test Case #1 (Sample) - WA'))).toBeInTheDocument();
+    // Card header: order number + sample chip + verdict pill.
+    expect(screen.getByText('Test Case #1')).toBeInTheDocument();
+    expect(screen.getByText('Sample', { selector: 'span' })).toBeInTheDocument();
+    // Verdict pills: header pill + one per test-case card (rows 1 & 6 are WA
+    // by the tr() default; the tr default on row 5 was overridden to AC).
+    expect(screen.getAllByText('WA', { selector: 'span' }).length).toBe(4); // title pill + verdict meta + 2 WA cards
+    expect(screen.getAllByText('RE', { selector: 'span' }).length).toBe(2);
     // No order -> id fallback; not a sample.
-    expect(screen.getByText(h4Text('Test Case #12 - RE'))).toBeInTheDocument();
+    expect(screen.getByText('Test Case #12')).toBeInTheDocument();
 
     // Truncation behavior.
     expect(findPre('x'.repeat(200) + '...')).toBeDefined();
@@ -303,12 +322,12 @@ describe('SubmissionDetailPage', () => {
     expect(findPre('ac-actual')).toBeUndefined();
     expect(findPre('ac-error')).toBeUndefined();
 
-    // Points + time/memory lines.
-    expect(screen.getByText(pText('Points: 10'))).toBeInTheDocument();
-    expect(screen.getByText(pText('Time: 5 ms'))).toBeInTheDocument();
-    expect(screen.getByText(pText('Memory: 512 KB'))).toBeInTheDocument();
+    // Points + time/memory meta values.
+    expect(screen.getByText('10')).toBeInTheDocument();
+    expect(screen.getByText('5 ms')).toBeInTheDocument();
+    expect(screen.getByText('512 KB')).toBeInTheDocument();
     // Null/undefined time+memory are omitted (row 2 has none).
-    expect(screen.queryByText('Points: undefined', { exact: false })).not.toBeInTheDocument();
+    expect(screen.queryByText('undefined', { exact: false })).not.toBeInTheDocument();
   });
 
   it('falls back to the English problem title under the ro locale (java11 -> java)', async () => {
@@ -425,7 +444,7 @@ describe('SubmissionDetailPage', () => {
       expect(pollingBadge()).toHaveLength(0); // catch path stops polling
       expect(screen.getByText('Note: judge exploded')).toBeInTheDocument();
       // Submission data from the previous successful fetch is still rendered.
-      expect(screen.getByText('Submission Detail #42')).toBeInTheDocument();
+      expect(screen.getByText(/Submission Detail #42/)).toBeInTheDocument();
     } finally {
       vi.useRealTimers();
     }
