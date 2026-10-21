@@ -7,10 +7,31 @@ from problems.models import Problem, TestCase
 import tempfile
 import pathlib
 
+from .judge_utils.backend import CONTAINER, get_judge_backend, judge_workspace_root
 from .judge_utils.comparison import compare_outputs
 from .judge_utils.compilation import compile_code_in_sandbox
 from .judge_utils.execution import run_code_in_sandbox
 from .judge_utils.checkers import run_custom_checker
+
+
+def _judge_workspace(prefix: str) -> tempfile.TemporaryDirectory:
+    """Create a per-run workspace visible to the judge backend.
+
+    ``JUDGE_BACKEND=container`` (production): the workspace lives under
+    ``settings.JUDGE_SANDBOX_ROOT`` (default ``/srv/judge``) — the shared
+    judge-sandbox volume mounted at the SAME path in the Celery worker and
+    the judge-runner container, so the ``docker exec`` path needs no host
+    bind-mounts (the flaw that broke the legacy per-run ``docker run`` flow
+    when the worker itself runs as a container).
+
+    ``JUDGE_BACKEND=local`` (host dev): the system temp dir, bind-mounted
+    per-run by ``docker run`` from the host.
+    """
+    if get_judge_backend() == CONTAINER:
+        root = judge_workspace_root()
+        root.mkdir(parents=True, exist_ok=True)
+        return tempfile.TemporaryDirectory(prefix=prefix, dir=str(root))
+    return tempfile.TemporaryDirectory(prefix=prefix)
 
 
 class _CeleryTask(Protocol):
@@ -44,9 +65,7 @@ def judge_submission_task(self, submission_id):
             submission.detailed_feedback = "Compiling..."
             submission.save()
 
-        temp_dir_obj = tempfile.TemporaryDirectory(
-            prefix=f"submission_{submission_id}_"
-        )
+        temp_dir_obj = _judge_workspace(f"submission_{submission_id}_")
         submission_dir = pathlib.Path(temp_dir_obj.name)
 
         compile_success, compiler_output, executable_path_str = compile_code_in_sandbox(
@@ -97,7 +116,6 @@ def judge_submission_task(self, submission_id):
                 problem.default_time_limit_ms,
                 problem.default_memory_limit_kb,
                 submission_dir,
-                submission.code,
                 problem.custom_libraries_allowed,  # Pass custom libraries here as well
             )
 
@@ -112,8 +130,8 @@ def judge_submission_task(self, submission_id):
             if tc_verdict == Submission.VerdictStatus.ACCEPTED:
                 if problem.comparison_mode == Problem.ComparisonMode.CUSTOM_CHECKER:
                     if problem.checker_code and problem.checker_language:
-                        checker_temp_dir_obj_tc = tempfile.TemporaryDirectory(
-                            prefix=f"checker_{submission_id}_tc_{tc.id}_"
+                        checker_temp_dir_obj_tc = _judge_workspace(
+                            f"checker_{submission_id}_tc_{tc.id}_"
                         )
                         checker_dir_tc = pathlib.Path(checker_temp_dir_obj_tc.name)
                         input_file, user_output_file, answer_file = (
