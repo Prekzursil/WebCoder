@@ -34,10 +34,34 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ["SECRET_KEY"]  # fail-loud: required in backend/.env or environment
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
-ALLOWED_HOSTS = []
+def _env_bool(name: str, default: str = "false") -> bool:
+    """Parse a boolean env var; absent/unset falls back to ``default``."""
+    return os.environ.get(name, default).strip().lower() in ("1", "true", "yes", "on")
+
+
+def _env_list(name: str, default: list[str] | None = None) -> list[str]:
+    """Parse a comma-separated env var into a list ("" -> []).
+
+    Empty entries and surrounding whitespace are dropped, so
+    ``ALLOWED_HOSTS="a.example, b.example"`` -> ["a.example", "b.example"]
+    and an unset/empty var -> ``default`` (or [] when no default given).
+    """
+    raw = os.environ.get(name)
+    if raw is None:
+        return list(default or [])
+    return [item.strip() for item in raw.split(",") if item.strip()]
+
+
+# SECURITY WARNING: don't run with debug turned on in production!
+# Dev-safe default True; the production profile (webcoder_api.settings_prod)
+# defaults it to False — both read the same DEBUG env var.
+DEBUG = _env_bool("DEBUG", default="true")
+
+# Comma-separated env var (e.g. ALLOWED_HOSTS=api.example.com,localhost).
+# Empty default: with DEBUG=True Django additionally allows localhost/127.0.0.1;
+# the prod profile must set this explicitly.
+ALLOWED_HOSTS = _env_list("ALLOWED_HOSTS")
 
 
 # Application definition
@@ -84,9 +108,9 @@ MIDDLEWARE = [
     "allauth.account.middleware.AccountMiddleware",
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-]
+# Comma-separated env var (e.g. CORS_ALLOWED_ORIGINS=https://app.example.com,http://localhost:3000).
+# Dev-safe default: the local Next.js dev server.
+CORS_ALLOWED_ORIGINS = _env_list("CORS_ALLOWED_ORIGINS", ["http://localhost:3000"])
 
 ROOT_URLCONF = "webcoder_api.urls"
 

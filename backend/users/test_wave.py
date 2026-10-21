@@ -816,6 +816,10 @@ class CreateAdminCommandTests(TestCase):
         self.assertTrue(user.is_superuser)
         self.assertTrue(user.is_staff)
         self.assertTrue(user.check_password("Sup3rSecret!99"))
+        # Live-stack proof (2026-10-21): role must be ADMIN too — DRF
+        # permission classes check User.role (IsProblemCreator), not just
+        # is_superuser, so a BASIC-role superuser is 403-locked.
+        self.assertEqual(user.role, User.Roles.ADMIN)
 
     def test_existing_superuser_is_updated(self):
         User.objects.create_superuser("rootadmin", "root@example.com", "First!Password1")
@@ -826,6 +830,19 @@ class CreateAdminCommandTests(TestCase):
         self.assertIn("already exists", out.getvalue())
         user = User.objects.get(username="rootadmin")
         self.assertTrue(user.check_password("Sec0nd!Password"))
+        self.assertEqual(user.role, User.Roles.ADMIN)
+
+    def test_existing_basic_role_superuser_is_healed_to_admin(self):
+        # Seed predating the fix: superuser with the BASIC default role.
+        User.objects.create_superuser(
+            "oldadmin", "old@example.com", "First!Password1"
+        )
+        User.objects.filter(username="oldadmin").update(role=User.Roles.BASIC_USER)
+        env = {"ADMIN_USER": "oldadmin", "ADMIN_EMAIL": "old@example.com", "ADMIN_PASS": "Sec0nd!Password"}
+        with mock.patch.dict(os.environ, env):
+            call_command("create_admin", stdout=StringIO())
+        user = User.objects.get(username="oldadmin")
+        self.assertEqual(user.role, User.Roles.ADMIN)
 
 
 class AddSocialAppsCommandTests(TestCase):

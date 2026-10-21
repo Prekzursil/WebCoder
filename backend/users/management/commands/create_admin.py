@@ -20,7 +20,9 @@ class Command(BaseCommand):
             return
 
         if not User.objects.filter(username=username).exists():
-            User.objects.create_superuser(username, email, password)
+            User.objects.create_superuser(
+                username, email, password, role=User.Roles.ADMIN
+            )
             self.stdout.write(
                 self.style.SUCCESS(f'Successfully created superuser "{username}"')
             )
@@ -30,6 +32,12 @@ class Command(BaseCommand):
             user.set_password(password)
             user.is_staff = True
             user.is_superuser = True
+            # Live-stack proof (2026-10-21): a superuser whose role stayed the
+            # BASIC default was permission-DENIED creating problems — DRF
+            # permission classes check User.role, not just is_superuser
+            # (users/permissions.py IsProblemCreator). Re-assert the ADMIN
+            # role on every re-run so existing seeds are healed too.
+            user.role = User.Roles.ADMIN
             user.save()
             self.stdout.write(
                 self.style.SUCCESS(
