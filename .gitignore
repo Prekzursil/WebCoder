@@ -18,3 +18,8 @@ build/
 # IDE
 .idea/
 mitm_mcp_traffic.db
+
+# Coverage artifacts
+.coverage
+htmlcov/
+ci_verify.sqlite3

@@ -252,9 +252,13 @@ class SubmissionViewTests(TestCase):
             client.force_authenticate(user=user)
         return client
 
+    def _rows(self, resp):
+        data = resp.data
+        return data["results"] if isinstance(data, dict) else data
+
     def _ids(self, resp):
         self.assertEqual(resp.status_code, 200, resp.content)
-        return {row["id"] for row in resp.data}
+        return {row["id"] for row in self._rows(resp)}
 
     def test_urls_registered(self):
         list_url = reverse(self.LIST_URL_NAME)

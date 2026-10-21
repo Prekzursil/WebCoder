@@ -154,14 +154,14 @@ class SubmissionViewSetTest(TestCase):
         self._sub(self.other)
         self.client.force_authenticate(self.user)
         resp = self.client.get("/api/v1/submissions/submissions/")
-        self.assertEqual(len(resp.json()), 1)
+        self.assertEqual(len(resp.json()["results"]), 1)
 
     def test_admin_sees_all(self):
         self._sub(self.user)
         self._sub(self.other)
         self.client.force_authenticate(self.admin)
         resp = self.client.get("/api/v1/submissions/submissions/")
-        self.assertEqual(len(resp.json()), 2)
+        self.assertEqual(len(resp.json()["results"]), 2)
 
     def test_owner_can_retrieve_own(self):
         sub = self._sub(self.user)

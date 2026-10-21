@@ -1,9 +1,21 @@
 from rest_framework import viewsets, permissions, status, generics
 from rest_framework.response import Response
+from webcoder_api.pagination import NewestFirstCursorPagination
 from .models import Submission
-from .serializers import SubmissionSerializer, SubmissionCreateSerializer
+from .serializers import (
+    SubmissionSerializer,
+    SubmissionListSerializer,
+    SubmissionCreateSerializer,
+)
 from .tasks import judge_task
 from users.permissions import IsOwnerOrAdminForSubmission
+
+
+class SubmissionCursorPagination(NewestFirstCursorPagination):
+    # Newest-first feed: cursor pagination so new submissions (constant
+    # inserts) don't shift page contents under the client. Matches the
+    # model Meta ordering (-submission_time) plus an id tiebreaker.
+    ordering = ("-submission_time", "-id")
 
 
 class SubmissionViewSet(viewsets.ReadOnlyModelViewSet):
@@ -16,6 +28,14 @@ class SubmissionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Submission.objects.all().select_related("user", "problem")
     serializer_class = SubmissionSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrAdminForSubmission]
+    pagination_class = SubmissionCursorPagination
+
+    def get_serializer_class(self):
+        # List responses use the slim serializer (no code / test_results);
+        # retrieve keeps the full detail shape.
+        if self.action == "list":
+            return SubmissionListSerializer
+        return SubmissionSerializer
 
     def get_queryset(self):
         """

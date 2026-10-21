@@ -207,31 +207,31 @@ class ProblemViewSetTest(TestCase):
         self._make(Problem.ProblemStatus.DRAFT)
         resp = self.client.get("/api/v1/problems/problems/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(resp.json()), 1)
+        self.assertEqual(len(resp.json()["results"]), 1)
 
     def test_author_sees_own_drafts(self):
         self._make(Problem.ProblemStatus.DRAFT, author=self.creator)
         self.client.force_authenticate(self.creator)
         resp = self.client.get("/api/v1/problems/problems/")
-        self.assertEqual(len(resp.json()), 1)
+        self.assertEqual(len(resp.json()["results"]), 1)
 
     def test_staff_sees_all(self):
         self._make(Problem.ProblemStatus.DRAFT)
         self.client.force_authenticate(self.staff)
         resp = self.client.get("/api/v1/problems/problems/")
-        self.assertEqual(len(resp.json()), 1)
+        self.assertEqual(len(resp.json()["results"]), 1)
 
     def test_verifier_role_sees_all(self):
         self._make(Problem.ProblemStatus.DRAFT)
         self.client.force_authenticate(self.verifier)
         resp = self.client.get("/api/v1/problems/problems/")
-        self.assertEqual(len(resp.json()), 1)
+        self.assertEqual(len(resp.json()["results"]), 1)
 
     def test_basic_user_sees_only_approved(self):
         self._make(Problem.ProblemStatus.DRAFT)
         self.client.force_authenticate(self.basic)
         resp = self.client.get("/api/v1/problems/problems/")
-        self.assertEqual(len(resp.json()), 0)
+        self.assertEqual(len(resp.json()["results"]), 0)
 
     def test_create_sets_author(self):
         self.client.force_authenticate(self.creator)
@@ -431,7 +431,7 @@ class TestCaseViewSetTest(TestCase):
         resp = self.client.get(
             f"/api/v1/problems/testcases/?problem_id={self.problem.id}"
         )
-        self.assertEqual(len(resp.json()), 1)
+        self.assertEqual(len(resp.json()["results"]), 1)
 
     def test_list_unfiltered(self):
         ProblemTestCase.objects.create(
