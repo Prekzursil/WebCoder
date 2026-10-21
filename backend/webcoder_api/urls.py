@@ -33,6 +33,10 @@ urlpatterns = [
         "api/v1/submissions/",
         include("submissions.urls", namespace="submissions_api_v1"),
     ),
+    path(
+        "api/v1/leaderboard/",
+        include("leaderboard.urls", namespace="leaderboard_api_v1"),
+    ),
     # JWT Token Authentication
     path("api/v1/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/v1/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),

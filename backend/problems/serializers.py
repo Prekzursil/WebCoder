@@ -65,6 +65,10 @@ class ProblemSerializer(serializers.ModelSerializer):
         required=False,  # Author can be set automatically based on logged-in user
         allow_null=True,
     )
+    # Catalog stats (SPEC-GAPS D-B8 add-on): annotated on the queryset in
+    # ProblemViewSet.get_queryset ("X tried / Y solved" per card).
+    submission_count = serializers.IntegerField(read_only=True)
+    solved_count = serializers.IntegerField(read_only=True)
     # test_cases = TestCaseSerializer(many=True, read_only=True) # To show test cases when retrieving a problem
 
     class Meta:
@@ -88,6 +92,8 @@ class ProblemSerializer(serializers.ModelSerializer):
             "checker_language",  # Added checker fields
             "creation_date",
             "last_modified_date",
+            "submission_count",
+            "solved_count",
             "tags",
             "tag_ids",
             # 'test_cases' # Add if you want to nest test cases in problem detail view

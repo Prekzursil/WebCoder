@@ -12,6 +12,7 @@ from .judge_utils.comparison import compare_outputs
 from .judge_utils.compilation import compile_code_in_sandbox
 from .judge_utils.execution import run_code_in_sandbox
 from .judge_utils.checkers import run_custom_checker
+from leaderboard.aggregation import update_user_entry_task
 
 
 def _judge_workspace(prefix: str) -> tempfile.TemporaryDirectory:
@@ -205,6 +206,15 @@ def judge_submission_task(self, submission_id):
             if compiler_output:
                 submission.detailed_feedback = f"Compiler Output:\n{compiler_output}\n\n{submission.detailed_feedback}"
             submission.save()
+
+            # Incremental leaderboard recompute (SPEC-GAPS D-B8): an AC on
+            # an APPROVED problem may change this user's standings. Scheduled
+            # on commit so a rolled-back transaction never emits the task;
+            # recompute is idempotent so duplicate delivery is harmless.
+            if overall_verdict == Submission.VerdictStatus.ACCEPTED:
+                transaction.on_commit(
+                    lambda: update_user_entry_task.delay(submission.user_id)
+                )
 
         final_message = f"Submission {submission_id} judged. Verdict: {overall_verdict}"
 
