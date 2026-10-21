@@ -220,19 +220,46 @@ class RunJudgedProcessContainerTests(unittest.TestCase):
 
 
 class LegacyJudgeFlowUntouchedTests(unittest.TestCase):
-    """The additive backend switch must not break the existing flow."""
+    """The judge pipeline entrypoints keep their contracts, and the pipeline
+    is now WIRED through the settings-driven backend (this used to assert
+    the opposite — that the legacy modules ignored the backend switch; the
+    container-backend IE bug (worker-local bind-mount paths) inverted that
+    contract: backend.py is now THE spawn path for compilation.py /
+    execution.py / checkers.py)."""
 
     def test_legacy_judge_entrypoints_still_importable(self):
         self.assertTrue(callable(compile_code_in_sandbox))
         self.assertTrue(callable(run_code_in_sandbox))
         self.assertTrue(callable(run_custom_checker))
 
-    def test_legacy_sources_do_not_reference_the_new_backend(self):
-        # compilation.py / execution.py / checkers.py must remain independent
-        # of the new path: no import, no setting read, no call into it.
+    def test_judge_sources_dispatch_through_the_backend(self):
+        # compilation.py / execution.py / checkers.py must build their spawns
+        # via the backend switch — no private docker-run construction left.
         pkg_dir = pathlib.Path(__file__).parent / "judge_utils"
-        for legacy in ("compilation.py", "execution.py", "checkers.py"):
-            source = (pkg_dir / legacy).read_text(encoding="utf-8")
-            self.assertNotIn("judge_utils.backend", source, legacy)
-            self.assertNotIn("JUDGE_BACKEND", source, legacy)
-            self.assertNotIn("run_judged_process", source, legacy)
+        for mod in ("compilation.py", "execution.py", "checkers.py"):
+            source = (pkg_dir / mod).read_text(encoding="utf-8")
+            self.assertIn("from .backend import", source, mod)
+            for symbol in ("build_command", "build_docker_run_command"):
+                self.assertIn(symbol, source, mod)
+
+    def test_production_path_uses_docker_exec_not_bind_mounts(self):
+        # Under JUDGE_BACKEND=container the argv must exec into the fixed
+        # judge-runner; the broken per-run bind-mount flow must not appear.
+        argv = build_command(
+            ["python", "user_code.py"],
+            backend=CONTAINER,
+            workdir="/srv/judge/submission_1",
+        )
+        self.assertEqual(argv[:2], ["docker", "exec"])
+        self.assertNotIn("-v", argv)
+        self.assertNotIn("run", argv[:2])
+
+    def test_verdict_forging_triggers_stripped_from_sources(self):
+        # SECURITY-AUDIT-judge.md J2 / SPEC-GAPS G10: the tle_trigger /
+        # mle_trigger / re_trigger substring backdoors must not exist in any
+        # production judge module (they live on only in test fixtures).
+        pkg_dir = pathlib.Path(__file__).parent / "judge_utils"
+        for mod in ("compilation.py", "execution.py", "checkers.py", "backend.py", "languages.py"):
+            source = (pkg_dir / mod).read_text(encoding="utf-8")
+            for trigger in ("tle_trigger", "mle_trigger", "re_trigger"):
+                self.assertNotIn(trigger, source, f"{mod}: {trigger}")

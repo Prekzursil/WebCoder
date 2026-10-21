@@ -1,11 +1,65 @@
+"""Run a compiled/submitted solution against one test case in the sandbox.
+
+The per-language run knowledge lives in
+:mod:`submissions.judge_utils.languages` (the registry). This module wraps
+the registry's run argv in the in-container ``timeout`` + ``/usr/bin/time``
+resource-measurement harness and executes it under the configured judge
+backend (:mod:`submissions.judge_utils.backend`):
+
+- ``JUDGE_BACKEND=container`` (production): ``docker exec`` into the hardened
+  ``webcoder-judge-runner`` container with the submission workspace on the
+  shared ``/srv/judge`` volume. No host bind-mounts, no per-run containers.
+- ``JUDGE_BACKEND=local`` (host dev): a per-run ``docker run`` bind-mounting
+  the submission workspace from the host.
+
+Verdict classification (in order):
+
+1. exit 124 — wall-clock timeout killed the program → ``TLE``;
+2. exit 137 / SIGKILL (``-9``) — the program was SIGKILLed; under the judge
+   sandbox that means the OOM killer (cgroup memory ceiling) → genuine
+   ``MLE`` (no longer mis-reported as ``RE``);
+3. measured CPU time over the limit → ``TLE``;
+4. measured peak RSS (``/usr/bin/time %M``) over the memory limit → ``MLE``;
+5. exit 0 → ``AC`` (output comparison happens in ``tasks.py``);
+6. anything else → ``RE``.
+
+The legacy verdict-forging trigger substrings (TLE/MLE/RE simulation
+markers embedded in test input or source code) were removed from this
+production path (SECURITY-AUDIT-judge.md J2 / SPEC-GAPS G10); simulated
+verdicts exist only in test fixtures via mocked process results.
+"""
+
 import pathlib
 import subprocess
-from django.conf import settings  # Import Django settings
-from ..models import Submission
 
-# Define a placeholder path for Java external libraries on the container.
-# This is where the JUDGE_JAVA_LIBS_DIR_HOST will be mounted.
+from django.conf import settings
+
+from ..models import Submission
+from .backend import (
+    CONTAINER,
+    build_command,
+    build_docker_run_command,
+    get_judge_backend,
+)
+from .languages import get_language
+
+# Placeholder path for Java external libraries inside the per-run container
+# (LOCAL backend only): JUDGE_JAVA_LIBS_DIR_HOST is mounted here.
 CONTAINER_JAVA_HOST_LIBS_MOUNT_PATH = "/app/host_java_libs"
+
+#: /usr/bin/time -f format: user_cpu sys_cpu max_rss_kb exit pct cpu wall.
+TIME_FORMAT_STRING = "%U %S %M %x %P %e"
+
+#: Exit codes that indicate the judged process was SIGKILLed (OOM killer).
+#: ``timeout --signal=SIGKILL`` reports its own kill as 124, so a raw
+#: 128+9=137 here is the kernel/cgroup OOM kill (or equivalent SIGKILL).
+OOM_EXIT_CODES = (137, -9)
+
+#: pip failure markers surfaced as a dedicated library-install error.
+PIP_ERROR_KEYWORDS = [
+    "ERROR: Could not find a version that satisfies the requirement",
+    "ERROR: No matching distribution found for",
+]
 
 
 def run_code_in_sandbox(
@@ -15,15 +69,17 @@ def run_code_in_sandbox(
     time_limit_ms: int,
     memory_limit_kb: int,
     submission_dir: pathlib.Path,
-    source_code: str,
     custom_libraries_allowed: list[str] | None = None,
 ):
     """
-    Runs code in a sandboxed environment using Docker.
+    Runs code in the judge sandbox.
     Returns: (verdict: VerdictStatus, execution_time_ms: int, memory_used_kb: int, output_data: str, error_output: str)
     """
 
-    print(f"Attempting to run for language {language} with input: {input_data[:30]}...")
+    print(
+        f"Attempting to run {language} (executable {executable_path_str}) "
+        f"with input: {input_data[:30]}..."
+    )
     if custom_libraries_allowed is None:
         custom_libraries_allowed = []
 
@@ -33,91 +89,82 @@ def run_code_in_sandbox(
     final_output = ""
     final_error = "Judge execution did not complete as expected."
 
+    spec = get_language(language)
+    if spec is None:
+        return (
+            final_verdict,
+            final_time_ms,
+            final_mem_kb,
+            final_output,
+            f"Unsupported language for execution: {language}",
+        )
+
     if time_limit_ms <= 0:
-        # Zero/negative time limit floors to one second — same rule the container
-        # timeout below applies. Without this, the CPU-time comparison at the
-        # verdict stage sees 0ms and every parsed run reads as TLE.
+        # Zero/negative time limit floors to one second — same rule the
+        # in-container timeout below applies. Without this, the CPU-time
+        # comparison at the verdict stage sees 0ms and every parsed run
+        # reads as TLE.
         time_limit_ms = 1000
-    time_limit_s = (time_limit_ms / 1000.0) if time_limit_ms > 0 else 1
-    time_format_string = "%U %S %M %x %P %e" 
-    
-    docker_image = ""
-    program_and_args_in_container: list[str] = []
-    abs_mount_path = str(submission_dir.resolve())
+    time_limit_s = time_limit_ms / 1000.0
+
+    program_and_args: list[str] = list(spec.run_command)
+    extra_volume_mounts: list[str] = []
     mount_mode = "ro"
-    network_mode = "--network"
-    network_value = "none"
-    additional_volume_mounts: list[str] = []
 
-    if language == "python3":
-        executable_path = pathlib.Path(executable_path_str)
-        docker_image = "python:3.11-slim"
-        script_to_run_in_container = "/app/" + executable_path.name
-        python_execution_command = ["python", script_to_run_in_container]
+    backend = get_judge_backend()
 
-        if custom_libraries_allowed:
-            mount_mode = "rw"
-            network_value = "bridge"
+    if language == "python3" and custom_libraries_allowed:
+        # pip-install flow. Only the LOCAL per-run backend has network
+        # egress for pip; the hardened judge-runner is network-isolated with
+        # a read-only rootfs, so there the pip step fails closed and the
+        # error is surfaced to the submitter.
+        mount_mode = "rw"
+        requirements_file_path = submission_dir / "requirements_custom.txt"
+        with open(requirements_file_path, "w") as f:
+            for lib in custom_libraries_allowed:
+                f.write(f"{lib}\n")
+        install_and_run_command = (
+            f"if [ -f requirements_custom.txt ]; then "
+            f"echo 'Attempting to install custom Python libraries...' && "
+            f"pip install --no-cache-dir -r requirements_custom.txt --user && "
+            f"echo 'Finished library installation attempt.'; "
+            f"fi && python {spec.source_filename}"
+        )
+        program_and_args = ["sh", "-c", install_and_run_command]
+
+    elif language == "java11" and custom_libraries_allowed:
+        classpath_parts = ["."]
+        if backend == CONTAINER:
             print(
-                f"Python custom libraries requested: {custom_libraries_allowed}. Network will be enabled for pip install."
+                "Warning: Java custom libraries requested, but the container "
+                "judge backend has no host mounts; running without JARs."
             )
-            requirements_file_path = submission_dir / "requirements_custom.txt"
-            with open(requirements_file_path, "w") as f:
-                for lib in custom_libraries_allowed:
-                    f.write(f"{lib}\n")
-
-            install_and_run_command = (
-                f"if [ -f /app/requirements_custom.txt ]; then "
-                f"echo 'Attempting to install custom Python libraries...' && "
-                f"pip install --no-cache-dir -r /app/requirements_custom.txt --user && "
-                f"echo 'Finished library installation attempt.'; "
-                f"fi && python /app/{executable_path.name}"
-            )
-            program_and_args_in_container = ["sh", "-c", install_and_run_command]
         else:
-            program_and_args_in_container = python_execution_command
-
-    elif language == "cpp17":
-        executable_path = pathlib.Path(executable_path_str)
-        docker_image = "gcc:latest"
-        program_to_run_in_container = "/app/" + executable_path.name
-        program_and_args_in_container = [program_to_run_in_container]
-
-    elif language == "java11":
-        docker_image = "openjdk:11-jre-slim"
-        # executable_path_str is the directory containing Main.class
-        abs_mount_path = str(
-            pathlib.Path(executable_path_str).resolve()
-        )  # Mount the directory with .class files
-
-        classpath_parts = ["/app"]  # For Main.class in the submission directory
-
-        if custom_libraries_allowed:
             host_java_libs_dir_str = settings.JUDGE_JAVA_LIBS_DIR_HOST
             if host_java_libs_dir_str:
                 host_java_libs_dir = pathlib.Path(host_java_libs_dir_str)
                 if host_java_libs_dir.exists() and host_java_libs_dir.is_dir():
                     print(
-                        f"Java custom libraries requested. Mounting from {host_java_libs_dir} to {CONTAINER_JAVA_HOST_LIBS_MOUNT_PATH}"
+                        f"Java custom libraries requested. Mounting from "
+                        f"{host_java_libs_dir} to "
+                        f"{CONTAINER_JAVA_HOST_LIBS_MOUNT_PATH}"
                     )
-                    additional_volume_mounts.extend(
+                    extra_volume_mounts.extend(
                         [
                             "-v",
-                            f"{str(host_java_libs_dir.resolve())}:{CONTAINER_JAVA_HOST_LIBS_MOUNT_PATH}:ro",
+                            f"{str(host_java_libs_dir.resolve())}:"
+                            f"{CONTAINER_JAVA_HOST_LIBS_MOUNT_PATH}:ro",
                         ]
                     )
-
-                    # Construct classpath with specified JARs
-                    # Assumes identifiers in custom_libraries_allowed are exact JAR filenames
                     for jar_filename in custom_libraries_allowed:
-                        # Basic check for potentially problematic filenames, though this is not exhaustive
-                        if (
-                            ".." in jar_filename
-                            or "/" in jar_filename
-                            or "\\" in jar_filename
-                        ):
+                        # Allowlist-style filter: JAR names must be plain
+                        # filenames (no traversal, no separators, no ``:``
+                        # classpath-separator injection).
+                        if not _is_safe_jar_name(jar_filename):
                             print(
-                                f"Warning: Skipping potentially unsafe JAR filename in custom_libraries_allowed: {jar_filename}"
+                                f"Warning: Skipping potentially unsafe JAR "
+                                f"filename in custom_libraries_allowed: "
+                                f"{jar_filename}"
                             )
                             continue
                         classpath_parts.append(
@@ -125,63 +172,59 @@ def run_code_in_sandbox(
                         )
                 elif not host_java_libs_dir.exists():
                     print(
-                        f"Warning: Java libraries requested, but JUDGE_JAVA_LIBS_DIR_HOST '{host_java_libs_dir_str}' does not exist."
+                        f"Warning: Java libraries requested, but "
+                        f"JUDGE_JAVA_LIBS_DIR_HOST '{host_java_libs_dir_str}' "
+                        f"does not exist."
                     )
-                else:  # Exists but not a directory
+                else:
                     print(
-                        f"Warning: Java libraries requested, but JUDGE_JAVA_LIBS_DIR_HOST '{host_java_libs_dir_str}' is not a directory."
+                        f"Warning: Java libraries requested, but "
+                        f"JUDGE_JAVA_LIBS_DIR_HOST '{host_java_libs_dir_str}' "
+                        f"is not a directory."
                     )
             else:
                 print(
-                    "Warning: Java libraries requested, but JUDGE_JAVA_LIBS_DIR_HOST is not configured in settings."
+                    "Warning: Java libraries requested, but "
+                    "JUDGE_JAVA_LIBS_DIR_HOST is not configured in settings."
                 )
-
-        final_classpath = ":".join(classpath_parts)
-        program_and_args_in_container = ["java", "-cp", final_classpath, "Main"]
-
-    else:
-        final_error = f"Unsupported language for execution: {language}"
-        return final_verdict, final_time_ms, final_mem_kb, final_output, final_error
+        program_and_args = ["java", "-cp", ":".join(classpath_parts), "Main"]
 
     command_to_time = [
         "/usr/bin/time",
         "-f",
-        time_format_string,
-    ] + program_and_args_in_container
-    command_for_docker = [
+        TIME_FORMAT_STRING,
+        *program_and_args,
+    ]
+    command_for_sandbox = [
         "timeout",
         "--signal=SIGKILL",
         f"{time_limit_s + 1:.2f}s",
-    ] + command_to_time
-
-    base_docker_command_args = [
-        "docker",
-        "run",
-        "--rm",
-        "-i",
-        "--user",
-        "1000:1000",
-        "--cap-drop=ALL",
-        "--security-opt=no-new-privileges",
-        "--memory",
-        f"{memory_limit_kb}k",
-        "--memory-swap",
-        f"{memory_limit_kb}k",
-        network_mode,
-        network_value,
-        "-v",
-        f"{abs_mount_path}:/app:{mount_mode}",
-        *additional_volume_mounts,
-        "-w",
-        "/app",
-        docker_image,
+        *command_to_time,
     ]
-    run_command = base_docker_command_args + command_for_docker
 
-    print(f"Executing Docker command for {language}: {' '.join(run_command)}")
+    if backend == CONTAINER:
+        run_command = build_command(
+            command_for_sandbox, backend=CONTAINER, workdir=str(submission_dir)
+        )
+    else:
+        run_command = build_docker_run_command(
+            command_for_sandbox,
+            bind_dir=str(submission_dir.resolve()),
+            docker_image=spec.docker_image,
+            memory_limit_kb=memory_limit_kb,
+            extra_volume_mounts=extra_volume_mounts,
+            mount_mode=mount_mode,
+            # Legacy local-dev pip flow: egress for `pip install`. Every
+            # other judged run (and the whole container backend) is
+            # network-isolated.
+            network="bridge" if mount_mode == "rw" else "none",
+        )
 
-    # Computed before the try block so it is always bound in the
-    # TimeoutExpired handler below (it depends only on call parameters).
+    print(f"Executing sandbox command for {language}: {' '.join(run_command)}")
+
+    # Host-side communication window: pip-install runs get a longer tail;
+    # subprocess.run kills the spawned docker client on expiry (no leaked
+    # client processes).
     process_timeout = (
         time_limit_s + 10
         if (language == "python3" and custom_libraries_allowed)
@@ -189,26 +232,20 @@ def run_code_in_sandbox(
     )
 
     try:
-        actual_time_ms = -1
-        actual_mem_kb = -1
-        stdout_data = ""
-        stderr_data = ""
-        parsed_stderr = ""
-
-        process = subprocess.Popen(
+        result = subprocess.run(
             run_command,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            input=input_data,
+            capture_output=True,
             text=True,
+            timeout=process_timeout,
         )
-        stdout_data, stderr_data = process.communicate(
-            input=input_data, timeout=process_timeout
-        )
+        stdout_data = result.stdout or ""
+        stderr_data = result.stderr or ""
+        returncode = result.returncode
 
         time_output_parsed = False
         resource_usage_line = None
-        program_actual_stderr_lines = []
+        program_actual_stderr_lines: list[str] = []
 
         if stderr_data:
             lines = stderr_data.strip().splitlines()
@@ -240,6 +277,8 @@ def run_code_in_sandbox(
             ]
         parsed_stderr = "\n".join(program_actual_stderr_lines).strip()
 
+        actual_time_ms = -1
+        actual_mem_kb = -1
         if resource_usage_line:
             try:
                 parts = resource_usage_line.split()
@@ -251,53 +290,69 @@ def run_code_in_sandbox(
                 time_output_parsed = True
             except (ValueError, IndexError) as parse_err:
                 print(
-                    f"Warning: Could not parse resource usage for {language}: '{resource_usage_line}'. Error: {parse_err}"
+                    f"Warning: Could not parse resource usage for {language}: "
+                    f"'{resource_usage_line}'. Error: {parse_err}"
                 )
 
-        final_output, final_error, final_time_ms, final_mem_kb = (
-            stdout_data,
-            parsed_stderr,
-            actual_time_ms,
-            actual_mem_kb,
-        )
+        final_output = stdout_data
+        final_error = parsed_stderr
+        final_time_ms = actual_time_ms
+        final_mem_kb = actual_mem_kb
 
-        if process.returncode == 124:
+        if returncode == 124:
             final_verdict, final_error, final_time_ms = (
                 Submission.VerdictStatus.TIME_LIMIT_EXCEEDED,
                 parsed_stderr + f"\nTimeout (>{time_limit_s}s).",
                 time_limit_ms,
             )
+        elif returncode in OOM_EXIT_CODES:
+            final_verdict = Submission.VerdictStatus.MEMORY_LIMIT_EXCEEDED
+            final_error = (
+                parsed_stderr
+                + f"\nMemory limit exceeded (exit code {returncode} — "
+                f"process was killed, typically the OOM killer)."
+            )
+            if final_mem_kb and final_mem_kb > 0:
+                final_error += f" Peak RSS: {final_mem_kb} KB."
+            final_mem_kb = memory_limit_kb if final_mem_kb <= 0 else final_mem_kb
         elif time_output_parsed and actual_time_ms > time_limit_ms:
             final_verdict, final_error = (
                 Submission.VerdictStatus.TIME_LIMIT_EXCEEDED,
                 parsed_stderr + f"\nCPU TLE ({actual_time_ms}ms > {time_limit_ms}ms).",
             )
-        elif process.returncode == 0:
+        elif (
+            time_output_parsed
+            and memory_limit_kb > 0
+            and actual_mem_kb > memory_limit_kb
+        ):
+            final_verdict = Submission.VerdictStatus.MEMORY_LIMIT_EXCEEDED
+            final_error = (
+                parsed_stderr
+                + f"\nMemory limit exceeded ({actual_mem_kb}KB > "
+                f"{memory_limit_kb}KB)."
+            )
+        elif returncode == 0:
             final_verdict = Submission.VerdictStatus.ACCEPTED
         else:
             final_verdict = Submission.VerdictStatus.RUNTIME_ERROR
-            pip_error_keywords = [
-                "ERROR: Could not find a version that satisfies the requirement",
-                "ERROR: No matching distribution found for",
-            ]
             if (
                 language == "python3"
                 and custom_libraries_allowed
-                and any(kw in stderr_data for kw in pip_error_keywords)
+                and any(kw in stderr_data for kw in PIP_ERROR_KEYWORDS)
             ):
-                final_error = f"Python Library Install Error:\n{stderr_data}\n\nProgram Stderr:\n{parsed_stderr}\nExit code: {process.returncode}."
-            else:
-                final_error = parsed_stderr + f"\nExit code: {process.returncode}."
-            if (
-                not time_output_parsed
-                and stderr_data
-                and not (
-                    language == "python3"
-                    and custom_libraries_allowed
-                    and any(kw in stderr_data for kw in pip_error_keywords)
+                final_error = (
+                    f"Python Library Install Error:\n{stderr_data}\n\n"
+                    f"Program Stderr:\n{parsed_stderr}\n"
+                    f"Exit code: {returncode}."
                 )
+            else:
+                final_error = parsed_stderr + f"\nExit code: {returncode}."
+            if not time_output_parsed and stderr_data and not (
+                language == "python3"
+                and custom_libraries_allowed
+                and any(kw in stderr_data for kw in PIP_ERROR_KEYWORDS)
             ):
-                final_error = stderr_data + f"\nExit code: {process.returncode}."
+                final_error = stderr_data + f"\nExit code: {returncode}."
 
     except subprocess.TimeoutExpired:
         final_verdict, final_error, final_time_ms, final_mem_kb = (
@@ -317,34 +372,19 @@ def run_code_in_sandbox(
             f"Execution error for {language}: {str(e)}",
         )
 
-    if (
-        "tle_trigger" in input_data.lower()
-        and final_verdict == Submission.VerdictStatus.ACCEPTED
-    ):
-        final_verdict, final_time_ms, final_output, final_error = (
-            Submission.VerdictStatus.TIME_LIMIT_EXCEEDED,
-            time_limit_ms,
-            "",
-            "Simulated TLE by trigger",
-        )
-    if (
-        "mle_trigger" in input_data.lower()
-        and final_verdict == Submission.VerdictStatus.ACCEPTED
-    ):
-        final_verdict, final_mem_kb, final_output, final_error = (
-            Submission.VerdictStatus.MEMORY_LIMIT_EXCEEDED,
-            memory_limit_kb,
-            "",
-            "Simulated MLE by trigger",
-        )
-    if (
-        "re_trigger" in source_code.lower()
-        and final_verdict == Submission.VerdictStatus.ACCEPTED
-    ):
-        final_verdict, final_output, final_error = (
-            Submission.VerdictStatus.RUNTIME_ERROR,
-            "",
-            "Simulated RE by trigger",
-        )
-
     return final_verdict, final_time_ms, final_mem_kb, final_output, final_error
+
+
+def _is_safe_jar_name(name: str) -> bool:
+    """Allowlist check for JAR filenames in custom_libraries_allowed.
+
+    Blocks path traversal (``..``, separators) and the Java classpath
+    separator ``:`` (SECURITY-AUDIT-judge.md J13 — the legacy denylist let
+    ``x.jar:.`` inject extra classpath entries).
+    """
+    return (
+        isinstance(name, str)
+        and name.endswith(".jar")
+        and all(ch.isalnum() or ch in "-_." for ch in name)
+        and ".." not in name
+    )

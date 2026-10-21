@@ -313,12 +313,23 @@ JUDGE_BOOST_HEADERS_PATH = os.environ.get(
 JUDGE_JAVA_LIBS_DIR_HOST = os.environ.get('JUDGE_JAVA_LIBS_DIR_HOST', "/opt/java_libs")
 
 # Judge execution backend (settings-driven switch, consumed by
-# submissions/judge_utils/backend.py — the ADDITIVE judge path; the legacy
-# docker-run-per-submission flow in compilation.py/execution.py ignores it):
-# - "local"    (default, dev): judged commands run directly on this host via
-#              subprocess. No Docker needed.
+# submissions/judge_utils/backend.py — THE judge spawn path; compilation.py /
+# execution.py / checkers.py build language argv from the registry
+# (judge_utils/languages.py) and dispatch through it):
+# - "local"    (default, dev): judged commands run through per-run
+#              `docker run` containers bind-mounting the submission
+#              workspace from the Docker host (worker must run on the host).
 # - "container" (prod): judged commands run inside the sandboxed judge-runner
 #              container from the repo-root docker-compose.yml via
 #              `docker exec` (network-isolated, read-only rootfs, cap_drop ALL,
-#              resource-limited).
+#              resource-limited). The submission workspace lives on the
+#              shared judge-sandbox volume (JUDGE_SANDBOX_ROOT — identical
+#              path inside the worker and the judge-runner).
 JUDGE_BACKEND = os.environ.get('JUDGE_BACKEND', 'local')
+
+# Mount point of the shared judge-sandbox volume (docker-compose.yml mounts
+# `judge-sandbox:/srv/judge` on both the celery-worker/backend and the
+# judge-runner). Under JUDGE_BACKEND=container the per-submission workspace
+# is created under this root so `docker exec` reaches it at the same path
+# with no host bind-mounts.
+JUDGE_SANDBOX_ROOT = os.environ.get('JUDGE_SANDBOX_ROOT', '/srv/judge')

@@ -143,7 +143,10 @@ class CompileCodeInSandboxTest(TestCase):
         self.assertTrue(ok)
 
     def test_java_success(self):
+        seen_argv: list[list[str]] = []
+
         def fake_run(cmd, *a, **k):
+            seen_argv.append(cmd)
             (self.dir / "Main.class").write_text("bytecode")
             return _fake_completed(returncode=0)
 
@@ -151,7 +154,47 @@ class CompileCodeInSandboxTest(TestCase):
             ok, out, path = compile_code_in_sandbox("class Main{}", "java11", self.dir)
         self.assertTrue(ok)
         self.assertIn("successful", out)
-        self.assertEqual(path, str(self.dir))
+        # java11 must compile with --release 11 (SPEC drift fix: the
+        # judge-runner toolchain is OpenJDK 21; without --release the id
+        # "java11" would be a lie).
+        self.assertIn("--release", seen_argv[0])
+        self.assertIn("11", seen_argv[0])
+        # Registry contract: the executable is the produced artifact.
+        self.assertEqual(path, str(self.dir / "Main.class"))
+
+    def test_c11_success(self):
+        def fake_run(cmd, *a, **k):
+            (self.dir / "user_program").write_text("bin")
+            return _fake_completed(returncode=0)
+
+        with mock.patch.object(compilation.subprocess, "run", side_effect=fake_run):
+            ok, out, path = compile_code_in_sandbox("int main(){}", "c11", self.dir)
+        self.assertTrue(ok)
+        self.assertIn("successful", out)
+        assert path is not None
+        self.assertTrue(path.endswith("user_program"))
+
+    def test_c11_uses_gcc_with_c11_standard(self):
+        seen_argv: list[list[str]] = []
+
+        def fake_run(cmd, *a, **k):
+            seen_argv.append(cmd)
+            (self.dir / "user_program").write_text("bin")
+            return _fake_completed(returncode=0)
+
+        with mock.patch.object(compilation.subprocess, "run", side_effect=fake_run):
+            compile_code_in_sandbox("int main(){}", "c11", self.dir)
+        argv = seen_argv[0]
+        self.assertIn("gcc", argv)
+        self.assertIn("-std=c11", argv)
+        self.assertIn("user_code.c", argv)
+
+    def test_nodejs_no_compilation(self):
+        ok, out, path = compile_code_in_sandbox("console.log(1)", "nodejs20", self.dir)
+        self.assertTrue(ok)
+        self.assertIn("no compilation", out)
+        assert path is not None
+        self.assertTrue(str(path).endswith("user_code.js"))
 
     def test_java_failure(self):
         with mock.patch.object(
@@ -195,3 +238,83 @@ class CompileCodeInSandboxTest(TestCase):
         self.assertFalse(ok)
         self.assertIsNone(path)
         self.assertIn("Unsupported language", out)
+
+    # --- Backend dispatch ----------------------------------------------
+    def test_container_backend_execs_into_judge_runner(self):
+        from django.test import override_settings
+
+        seen_argv: list[list[str]] = []
+
+        def fake_run(cmd, *a, **k):
+            seen_argv.append(cmd)
+            (self.dir / "user_program").write_text("bin")
+            return _fake_completed(returncode=0)
+
+        with override_settings(JUDGE_BACKEND="container"):
+            with mock.patch.object(
+                compilation.subprocess, "run", side_effect=fake_run
+            ):
+                ok, _out, _path = compile_code_in_sandbox(
+                    "int main(){}", "cpp17", self.dir
+                )
+        self.assertTrue(ok)
+        argv = seen_argv[0]
+        # Production path: docker exec into the fixed judge-runner container,
+        # working dir = the submission workspace on the shared volume. No
+        # per-run `docker run`, no bind-mounts.
+        self.assertEqual(argv[:2], ["docker", "exec"])
+        self.assertIn("webcoder-judge-runner", argv)
+        self.assertIn(str(self.dir), argv)
+        self.assertNotIn("run", argv[:2])
+        self.assertNotIn("-v", argv)
+        # In-container compile deadline wraps the compiler.
+        self.assertIn("timeout", argv)
+        self.assertIn("g++", argv)
+
+    def test_local_backend_uses_per_run_docker_run(self):
+        # Default settings backend is "local": per-run docker run with a
+        # bind-mount and the registry image.
+        seen_argv: list[list[str]] = []
+
+        def fake_run(cmd, *a, **k):
+            seen_argv.append(cmd)
+            (self.dir / "user_program").write_text("bin")
+            return _fake_completed(returncode=0)
+
+        with mock.patch.object(compilation.subprocess, "run", side_effect=fake_run):
+            ok, _out, _path = compile_code_in_sandbox("int main(){}", "cpp17", self.dir)
+        self.assertTrue(ok)
+        argv = seen_argv[0]
+        self.assertEqual(argv[:3], ["docker", "run", "--rm"])
+        self.assertIn("gcc:latest", argv)
+        self.assertIn(
+            f"{self.dir.resolve()}:/app:ro", argv
+        )
+
+    def test_container_backend_boost_warns_and_compiles_without_mount(self):
+        from django.test import override_settings
+
+        boost = self.dir / "boost"
+        boost.mkdir()
+        seen_argv: list[list[str]] = []
+
+        def fake_run(cmd, *a, **k):
+            seen_argv.append(cmd)
+            (self.dir / "user_program").write_text("bin")
+            return _fake_completed(returncode=0)
+
+        with override_settings(
+            JUDGE_BACKEND="container", JUDGE_BOOST_HEADERS_PATH=str(boost)
+        ):
+            with mock.patch.object(
+                compilation.subprocess, "run", side_effect=fake_run
+            ):
+                ok, _out, _path = compile_code_in_sandbox(
+                    "int main(){}", "cpp17", self.dir, ["boost_headers"]
+                )
+        self.assertTrue(ok)
+        # No host bind-mounts are possible on the exec path.
+        self.assertNotIn("-v", seen_argv[0])
+        self.assertNotIn(
+            f"-I{compilation.CONTAINER_BOOST_INCLUDE_PATH}", seen_argv[0]
+        )

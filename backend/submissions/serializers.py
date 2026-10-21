@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from django.core.exceptions import ObjectDoesNotExist
 from .models import Submission, SubmissionTestResult # Import SubmissionTestResult
-from users.serializers import UserSerializer 
+from users.serializers import UserSerializer
 from problems.models import Problem, TestCase # Import TestCase for SubmissionTestResultSerializer
+from .judge_utils.languages import SUPPORTED_LANGUAGE_IDS, get_language
 
 class SubmissionTestResultSerializer(serializers.ModelSerializer):
     # test_case_id = serializers.ReadOnlyField(source='test_case.id') # Simple ID
@@ -77,7 +78,41 @@ class SubmissionCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Submission
-        fields = ['problem', 'language', 'code'] 
+        fields = ['problem', 'language', 'code']
+
+    def validate(self, attrs):
+        """Submit-time language validation + Problem.allowed_languages
+        enforcement (SPEC-GAPS G10 / SECURITY-AUDIT-judge.md §0).
+
+        - ``language`` must be a judge-supported registry id (unknown ids
+          used to fall through to the judge's unsupported-language
+          INTERNAL_ERROR branch);
+        - when the problem declares ``allowed_languages`` (non-empty), the
+          submission's language must be one of them.
+        """
+        language = attrs.get("language")
+        if get_language(language) is None:
+            raise serializers.ValidationError(
+                {
+                    "language": (
+                        f"Unsupported language '{language}'. "
+                        f"Supported languages: {', '.join(SUPPORTED_LANGUAGE_IDS)}."
+                    )
+                }
+            )
+        problem = attrs.get("problem")
+        if problem is not None:
+            allowed = problem.allowed_languages or []
+            if allowed and language not in allowed:
+                raise serializers.ValidationError(
+                    {
+                        "language": (
+                            f"Language '{language}' is not allowed for this "
+                            f"problem. Allowed: {', '.join(map(str, allowed))}."
+                        )
+                    }
+                )
+        return attrs
 
     def create(self, validated_data):
         # User is set in the view (e.g., self.perform_create)

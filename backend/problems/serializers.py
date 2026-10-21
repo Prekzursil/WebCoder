@@ -94,6 +94,33 @@ class ProblemSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["author", "verifier", "creation_date", "last_modified_date"]
 
+    def validate_allowed_languages(self, value):
+        """Every declared allowed language must be a judge-registry id.
+
+        The list is enforced at submission time
+        (submissions.serializers.SubmissionCreateSerializer), so entries the
+        judge could never accept would silently block every submission for
+        the problem — reject them at authoring time instead. An empty list
+        means "no restriction" and stays valid.
+        """
+        from submissions.judge_utils.languages import (
+            SUPPORTED_LANGUAGE_IDS,
+            get_language,
+        )
+
+        if not value:
+            return value
+        unknown = [
+            lang for lang in value if get_language(str(lang)) is None
+        ]
+        if unknown:
+            raise serializers.ValidationError(
+                f"Unknown language ids in allowed_languages: "
+                f"{', '.join(map(str, unknown))}. Supported languages: "
+                f"{', '.join(SUPPORTED_LANGUAGE_IDS)}."
+            )
+        return value
+
     def create(self, validated_data):
         # If author_id is not provided in request, set current user as author
         if (

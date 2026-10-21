@@ -54,6 +54,7 @@ from .serializers import (
     SubmissionSerializer,
     SubmissionTestResultSerializer,
 )
+from . import tasks as tasks_module
 from .tasks import judge_submission_task
 
 V = Submission.VerdictStatus
@@ -110,27 +111,18 @@ def make_test_case(problem, order=1, inp="1 2\n", expected="3\n", points=10):
     )
 
 
-class _FakeProcess:
-    """Stands in for subprocess.Popen in judge_utils execution paths."""
-
-    def __init__(self, stdout="", stderr="", returncode=0, communicate_exc=None):
-        self._stdout = stdout
-        self._stderr = stderr
-        self._returncode = returncode
-        self._communicate_exc = communicate_exc
-        self.returncode = None
-        self.communicate_kwargs = None
-
-    def communicate(self, input=None, timeout=None):
-        self.communicate_kwargs = {"input": input, "timeout": timeout}
-        if self._communicate_exc is not None:
-            raise self._communicate_exc
-        self.returncode = self._returncode
-        return self._stdout, self._stderr
-
-
 def _run_result(returncode=0, stdout="", stderr=""):
     return SimpleNamespace(returncode=returncode, stdout=stdout, stderr=stderr)
+
+
+class _null_context:
+    """contextlib.null_context stand-in (no extra imports needed)."""
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
 
 
 # ---------------------------------------------------------------------------
@@ -489,16 +481,18 @@ class CompilationTests(unittest.TestCase):
             "--cap-drop=ALL", "--security-opt=no-new-privileges",
             "--network", "none", "-w", "/app", "gcc:latest",
             "g++", "user_code.cpp", "-o", "user_program",
+            "-std=c++17",
         ):
             self.assertIn(expected, argv)
-        self.assertIn("Compilation successful", out)
+        self.assertIn("compilation successful", out)
 
     def test_cpp17_compile_failure(self):
         result, _ = self._compile_cpp(mock_result=_run_result(1, "", "err: x"))
         ok, out, path = result
         self.assertFalse(ok)
         self.assertIsNone(path)
-        self.assertIn("failed (return code 1)", out)
+        self.assertIn("compilation failed", out)
+        self.assertIn("err: x", out)
 
     def test_cpp17_timeout(self):
         result, _ = self._compile_cpp(
@@ -573,16 +567,18 @@ class CompilationTests(unittest.TestCase):
         result, argv = self._compile_java(mock_result=_run_result(0, "", ""))
         ok, out, path = result
         self.assertTrue(ok)
-        self.assertEqual(path, str(self.dir))
+        self.assertEqual(path, str(self.dir / "Main.class"))
         self.assertIn("javac", argv)
         self.assertIn("openjdk:11-jdk-slim", argv)
+        # java11 drift fix: always compile with --release 11.
+        self.assertIn("--release", argv)
 
     def test_java11_compile_failure(self):
         result, _ = self._compile_java(mock_result=_run_result(2, "", "bad"))
         ok, out, path = result
         self.assertFalse(ok)
         self.assertIsNone(path)
-        self.assertIn("failed (return code 2)", out)
+        self.assertIn("compilation failed", out)
 
     def test_java11_timeout(self):
         result, _ = self._compile_java(
@@ -609,7 +605,7 @@ class CompilationTests(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# judge_utils.execution (subprocess.Popen mocked)
+# judge_utils.execution (subprocess.run mocked)
 # ---------------------------------------------------------------------------
 
 
@@ -619,22 +615,32 @@ class ExecutionTests(unittest.TestCase):
         self.addCleanup(tmp.cleanup)
         self.dir = pathlib.Path(tmp.name)
 
-    def _run(self, process=None, popen_exc=None, **kwargs):
+    def _run(self, run_result=None, run_exc=None, **kwargs):
+        """Run run_code_in_sandbox with subprocess.run mocked.
+
+        Default backend is the settings default ("local": per-run docker
+        run); pass _backend="container" to exercise the exec path.
+        """
         kwargs.setdefault("language", "python3")
         kwargs.setdefault("input_data", "1\n")
         kwargs.setdefault("time_limit_ms", 1000)
         kwargs.setdefault("memory_limit_kb", 262144)
-        kwargs.setdefault("source_code", "print(3)")
         kwargs.setdefault("libs", None)
+        backend = kwargs.pop("_backend", None)
         if kwargs["language"] == "java11":
             executable = str(self.dir)
         else:
             executable = str(self.dir / "user_code.py")
-        with patch(
-            "submissions.judge_utils.execution.subprocess.Popen",
-            side_effect=popen_exc,
-            return_value=process,
-        ) as mock_popen:
+        ctx = (
+            override_settings(JUDGE_BACKEND=backend)
+            if backend
+            else _null_context()
+        )
+        with ctx, patch(
+            "submissions.judge_utils.execution.subprocess.run",
+            side_effect=run_exc,
+            return_value=run_result,
+        ) as mock_run:
             result = run_code_in_sandbox(
                 executable,
                 kwargs["language"],
@@ -642,17 +648,19 @@ class ExecutionTests(unittest.TestCase):
                 kwargs["time_limit_ms"],
                 kwargs["memory_limit_kb"],
                 self.dir,
-                kwargs["source_code"],
                 kwargs["libs"],
             )
         argv = None
-        if mock_popen.call_count:
-            argv = mock_popen.call_args[0][0]
-        return result, argv, process
+        run_kwargs = None
+        if mock_run.call_count:
+            argv = mock_run.call_args[0][0]
+            run_kwargs = mock_run.call_args[1]
+        return result, argv, run_kwargs
 
     def test_python3_accepted(self):
-        proc = _FakeProcess(stdout="3\n", stderr=RESOURCE_LINE, returncode=0)
-        (verdict, t_ms, mem_kb, out, err), argv, proc = self._run(process=proc)
+        (verdict, t_ms, mem_kb, out, err), argv, run_kwargs = self._run(
+            run_result=_run_result(0, "3\n", RESOURCE_LINE)
+        )
         self.assertEqual(verdict, AC)
         self.assertEqual(t_ms, 30)
         self.assertEqual(mem_kb, 5120)
@@ -666,7 +674,10 @@ class ExecutionTests(unittest.TestCase):
             ["--network", "none"],
             [argv[i:i + 2] for i in range(len(argv) - 1)],
         )
-        self.assertEqual(proc.communicate_kwargs, {"input": "1\n", "timeout": 4.0})
+        self.assertEqual(
+            run_kwargs,
+            {"input": "1\n", "capture_output": True, "text": True, "timeout": 4.0},
+        )
 
     def test_python3_custom_libs_flow(self):
         stderr = "\n".join(
@@ -683,9 +694,8 @@ class ExecutionTests(unittest.TestCase):
                 RESOURCE_LINE,
             ]
         )
-        proc = _FakeProcess(stdout="9\n", stderr=stderr, returncode=0)
-        (verdict, t_ms, mem_kb, out, err), argv, proc = self._run(
-            process=proc, libs=["numpy"]
+        (verdict, t_ms, mem_kb, out, err), argv, run_kwargs = self._run(
+            run_result=_run_result(0, "9\n", stderr), libs=["numpy"]
         )
         self.assertEqual(verdict, AC)
         self.assertIn("my program stderr", err)
@@ -702,111 +712,166 @@ class ExecutionTests(unittest.TestCase):
         )
         self.assertIn("sh", argv)
         self.assertIn("-c", argv)
-        self.assertEqual(proc.communicate_kwargs["timeout"], 11.0)
+        self.assertEqual(run_kwargs["timeout"], 11.0)
 
     def test_python3_libs_pip_failure(self):
-        proc = _FakeProcess(
-            stderr="ERROR: Could not find a version that satisfies the "
-                   "requirement numpy (from versions: none)\n",
-            returncode=1,
+        stderr = (
+            "ERROR: Could not find a version that satisfies the "
+            "requirement numpy (from versions: none)\n"
         )
         (verdict, t_ms, mem_kb, out, err), _, _ = self._run(
-            process=proc, libs=["numpy"]
+            run_result=_run_result(1, "", stderr), libs=["numpy"]
         )
         self.assertEqual(verdict, RE)
         self.assertTrue(err.startswith("Python Library Install Error"))
         self.assertIn("Exit code: 1.", err)
 
     def test_runtime_error_without_resource_line(self):
-        proc = _FakeProcess(
-            stderr="Traceback (most recent call last):\nRuntimeError: boom\n",
-            returncode=1,
+        proc_stderr = "Traceback (most recent call last):\nRuntimeError: boom\n"
+        (verdict, t_ms, mem_kb, out, err), _, _ = self._run(
+            run_result=_run_result(1, "", proc_stderr)
         )
-        (verdict, t_ms, mem_kb, out, err), _, _ = self._run(process=proc)
         self.assertEqual(verdict, RE)
         self.assertIn("RuntimeError: boom", err)
         self.assertIn("Exit code: 1.", err)
 
     def test_runtime_error_with_resource_line(self):
-        proc = _FakeProcess(stderr="prog error\n" + RESOURCE_LINE, returncode=1)
-        (verdict, t_ms, mem_kb, out, err), _, _ = self._run(process=proc)
+        (verdict, t_ms, mem_kb, out, err), _, _ = self._run(
+            run_result=_run_result(1, "", "prog error\n" + RESOURCE_LINE)
+        )
         self.assertEqual(verdict, RE)
         self.assertEqual(t_ms, 30)
         self.assertIn("Exit code: 1.", err)
 
     def test_cpp17_accepted(self):
-        proc = _FakeProcess(stdout="7\n", stderr=RESOURCE_LINE, returncode=0)
         (verdict, t_ms, mem_kb, out, err), argv, _ = self._run(
-            process=proc, language="cpp17"
+            run_result=_run_result(0, "7\n", RESOURCE_LINE), language="cpp17"
         )
         self.assertEqual(verdict, AC)
         self.assertIn("gcc:latest", argv)
-        self.assertIn("/app/user_code.py", argv)
+        # Registry run argv references the compiled binary relative to the
+        # workspace (-w /app), not the legacy absolute /app/... paths.
+        self.assertIn("./user_program", argv)
+
+    def test_c11_runs_compiled_binary(self):
+        (verdict, t_ms, mem_kb, out, err), argv, _ = self._run(
+            run_result=_run_result(0, "7\n", RESOURCE_LINE), language="c11"
+        )
+        self.assertEqual(verdict, AC)
+        self.assertIn("gcc:latest", argv)
+        self.assertIn("./user_program", argv)
+
+    def test_nodejs20_runs_source(self):
+        (verdict, t_ms, mem_kb, out, err), argv, _ = self._run(
+            run_result=_run_result(0, "7\n", RESOURCE_LINE), language="nodejs20"
+        )
+        self.assertEqual(verdict, AC)
+        self.assertIn("node", argv)
+        self.assertIn("user_code.js", argv)
 
     def test_exit_code_124_is_tle(self):
-        proc = _FakeProcess(stderr="", returncode=124)
-        (verdict, t_ms, mem_kb, out, err), _, _ = self._run(process=proc)
+        (verdict, t_ms, mem_kb, out, err), _, _ = self._run(
+            run_result=_run_result(124, "", "")
+        )
         self.assertEqual(verdict, TLE)
         self.assertEqual(t_ms, 1000)
         self.assertIn("Timeout (>", err)
 
-    def test_cpu_time_over_limit_is_tle(self):
-        proc = _FakeProcess(
-            stderr="5.00 5.00 5120 0 90.0% 10.00", returncode=0
+    def test_exit_code_137_is_genuine_mle(self):
+        # OOM kill under the sandbox memory ceiling -> exit 137 -> MLE
+        # (previously fell into RE; audit J2 / SPEC-GAPS G10).
+        (verdict, t_ms, mem_kb, out, err), _, _ = self._run(
+            run_result=_run_result(137, "", RESOURCE_LINE)
         )
-        (verdict, t_ms, mem_kb, out, err), _, _ = self._run(process=proc)
+        self.assertEqual(verdict, MLE)
+        self.assertIn("exit code 137", err)
+        self.assertIn("OOM", err)
+        self.assertEqual(mem_kb, 5120)
+
+    def test_exit_negative_9_is_mle(self):
+        (verdict, t_ms, mem_kb, out, err), _, _ = self._run(
+            run_result=_run_result(-9, "", "")
+        )
+        self.assertEqual(verdict, MLE)
+        self.assertEqual(mem_kb, 262144)
+
+    def test_measured_rss_over_limit_is_mle(self):
+        res = "0.01 0.02 %d 0 90.0%% 0.03" % (262144 + 1)
+        (verdict, t_ms, mem_kb, out, err), _, _ = self._run(
+            run_result=_run_result(0, "out", res)
+        )
+        self.assertEqual(verdict, MLE)
+        self.assertIn("Memory limit exceeded", err)
+
+    def test_cpu_time_over_limit_is_tle(self):
+        (verdict, t_ms, mem_kb, out, err), _, _ = self._run(
+            run_result=_run_result(0, "", "5.00 5.00 5120 0 90.0% 10.00")
+        )
         self.assertEqual(verdict, TLE)
         self.assertIn("CPU TLE", err)
 
     def test_resource_line_parse_failure(self):
-        proc = _FakeProcess(stderr="xx 0.02 5120 0 90.0% 0.03", returncode=0)
-        (verdict, t_ms, mem_kb, out, err), _, _ = self._run(process=proc)
+        (verdict, t_ms, mem_kb, out, err), _, _ = self._run(
+            run_result=_run_result(0, "", "xx 0.02 5120 0 90.0% 0.03")
+        )
         self.assertEqual(verdict, AC)
         self.assertEqual(t_ms, -1)
 
     def test_empty_stderr(self):
-        proc = _FakeProcess(stdout="out", stderr="", returncode=0)
-        (verdict, t_ms, mem_kb, out, err), _, _ = self._run(process=proc)
+        (verdict, t_ms, mem_kb, out, err), _, _ = self._run(
+            run_result=_run_result(0, "out", "")
+        )
         self.assertEqual(verdict, AC)
         self.assertEqual(err, "")
 
     def test_whitespace_stderr_skips_line_parsing(self):
-        proc = _FakeProcess(stdout="out", stderr="   ", returncode=0)
-        (verdict, t_ms, mem_kb, out, err), _, _ = self._run(process=proc)
+        (verdict, t_ms, mem_kb, out, err), _, _ = self._run(
+            run_result=_run_result(0, "out", "   ")
+        )
         self.assertEqual(verdict, AC)
         self.assertEqual(err, "")
 
     def test_stderr_without_resource_line(self):
-        proc = _FakeProcess(stdout="out", stderr="just a warning", returncode=0)
-        (verdict, t_ms, mem_kb, out, err), _, _ = self._run(process=proc)
+        (verdict, t_ms, mem_kb, out, err), _, _ = self._run(
+            run_result=_run_result(0, "out", "just a warning")
+        )
         self.assertEqual(verdict, AC)
         self.assertEqual(err, "just a warning")
 
-    def test_java11_plain_run(self):
-        proc = _FakeProcess(stdout="5\n", stderr=RESOURCE_LINE, returncode=0)
-        (verdict, t_ms, mem_kb, out, err), argv, _ = self._run(
-            process=proc, language="java11"
+    def test_container_backend_execs_judge_runner(self):
+        (verdict, *_), argv, run_kwargs = self._run(
+            run_result=_run_result(0, "5\n", RESOURCE_LINE),
+            _backend="container",
         )
         self.assertEqual(verdict, AC)
-        self.assertIn("openjdk:11-jre-slim", argv)
-        self.assertEqual(argv[-4:], ["java", "-cp", "/app", "Main"])
+        self.assertEqual(argv[:2], ["docker", "exec"])
+        self.assertIn("webcoder-judge-runner", argv)
+        self.assertEqual(argv[argv.index("-w") + 1], str(self.dir))
+        self.assertNotIn("-v", argv)
+        self.assertNotIn("--memory", argv)
+        self.assertIn("/usr/bin/time", argv)
+
+    def test_java11_plain_run(self):
+        (verdict, t_ms, mem_kb, out, err), argv, _ = self._run(
+            run_result=_run_result(0, "5\n", RESOURCE_LINE), language="java11"
+        )
+        self.assertEqual(verdict, AC)
+        self.assertIn("openjdk:11-jdk-slim", argv)
+        self.assertEqual(argv[-4:], ["java", "-cp", ".", "Main"])
 
     def test_java11_libs_mounted_and_filtered(self):
         libs_tmp = tempfile.TemporaryDirectory(prefix="wc_javalibs_")
         self.addCleanup(libs_tmp.cleanup)
         (pathlib.Path(libs_tmp.name) / "ok.jar").write_text("")
-        proc = _FakeProcess(stdout="5\n", stderr=RESOURCE_LINE, returncode=0)
         with override_settings(JUDGE_JAVA_LIBS_DIR_HOST=libs_tmp.name):
             (verdict, _, _, _, _), argv, _ = self._run(
-                process=proc,
+                run_result=_run_result(0, "5\n", RESOURCE_LINE),
                 language="java11",
-                libs=["ok.jar", "../evil.jar", "a/b.jar", "c\\d.jar"],
+                libs=["ok.jar", "../evil.jar", "a/b.jar", "c\\d.jar", "x:.jar"],
             )
         self.assertEqual(verdict, AC)
         cp = argv[argv.index("-cp") + 1]
-        self.assertEqual(
-            cp, "/app:%s/ok.jar" % CONTAINER_JAVA_HOST_LIBS_MOUNT_PATH
-        )
+        self.assertEqual(cp, ".:%s/ok.jar" % CONTAINER_JAVA_HOST_LIBS_MOUNT_PATH)
         mount = "%s:%s:ro" % (
             str(pathlib.Path(libs_tmp.name).resolve()),
             CONTAINER_JAVA_HOST_LIBS_MOUNT_PATH,
@@ -814,35 +879,38 @@ class ExecutionTests(unittest.TestCase):
         self.assertIn(mount, argv)
 
     def test_java11_libs_dir_missing(self):
-        proc = _FakeProcess(stdout="", stderr=RESOURCE_LINE, returncode=0)
         with override_settings(
             JUDGE_JAVA_LIBS_DIR_HOST=str(self.dir / "no_such_libs")
         ):
             (verdict, _, _, _, _), argv, _ = self._run(
-                process=proc, language="java11", libs=["ok.jar"]
+                run_result=_run_result(0, "", RESOURCE_LINE),
+                language="java11",
+                libs=["ok.jar"],
             )
         self.assertEqual(verdict, AC)
-        self.assertEqual(argv[argv.index("-cp") + 1], "/app")
+        self.assertEqual(argv[argv.index("-cp") + 1], ".")
 
     def test_java11_libs_dir_not_a_directory(self):
         libs_file = self.dir / "libs_file"
         libs_file.write_text("")
-        proc = _FakeProcess(stdout="", stderr=RESOURCE_LINE, returncode=0)
         with override_settings(JUDGE_JAVA_LIBS_DIR_HOST=str(libs_file)):
             (verdict, _, _, _, _), argv, _ = self._run(
-                process=proc, language="java11", libs=["ok.jar"]
+                run_result=_run_result(0, "", RESOURCE_LINE),
+                language="java11",
+                libs=["ok.jar"],
             )
         self.assertEqual(verdict, AC)
-        self.assertEqual(argv[argv.index("-cp") + 1], "/app")
+        self.assertEqual(argv[argv.index("-cp") + 1], ".")
 
     def test_java11_libs_not_configured(self):
-        proc = _FakeProcess(stdout="", stderr=RESOURCE_LINE, returncode=0)
         with override_settings(JUDGE_JAVA_LIBS_DIR_HOST=""):
             (verdict, _, _, _, _), argv, _ = self._run(
-                process=proc, language="java11", libs=["ok.jar"]
+                run_result=_run_result(0, "", RESOURCE_LINE),
+                language="java11",
+                libs=["ok.jar"],
             )
         self.assertEqual(verdict, AC)
-        self.assertEqual(argv[argv.index("-cp") + 1], "/app")
+        self.assertEqual(argv[argv.index("-cp") + 1], ".")
 
     def test_unsupported_language(self):
         (verdict, t_ms, mem_kb, out, err), _, _ = self._run(language="cobol")
@@ -850,10 +918,9 @@ class ExecutionTests(unittest.TestCase):
         self.assertIn("Unsupported language for execution: cobol", err)
 
     def test_communicate_timeout(self):
-        proc = _FakeProcess(
-            communicate_exc=subprocess.TimeoutExpired(cmd="docker", timeout=4)
+        (verdict, t_ms, mem_kb, out, err), _, _ = self._run(
+            run_exc=subprocess.TimeoutExpired(cmd="docker", timeout=4)
         )
-        (verdict, t_ms, mem_kb, out, err), _, _ = self._run(process=proc)
         self.assertEqual(verdict, TLE)
         self.assertEqual(t_ms, 4000)
         self.assertEqual(mem_kb, 262144)
@@ -861,56 +928,40 @@ class ExecutionTests(unittest.TestCase):
 
     def test_docker_not_found(self):
         (verdict, _, _, out, err), _, _ = self._run(
-            popen_exc=FileNotFoundError("docker")
+            run_exc=FileNotFoundError("docker")
         )
         self.assertEqual(verdict, IE)
         self.assertIn("Docker command not found", err)
 
     def test_generic_execution_error(self):
         (verdict, _, _, out, err), _, _ = self._run(
-            popen_exc=OSError("spawn failed")
+            run_exc=OSError("spawn failed")
         )
         self.assertEqual(verdict, IE)
         self.assertIn("Execution error for python3", err)
 
-    def test_tle_trigger(self):
-        proc = _FakeProcess(stdout="3\n", stderr=RESOURCE_LINE, returncode=0)
-        (verdict, t_ms, mem_kb, out, err), _, _ = self._run(
-            process=proc, input_data="please TLE_TRIGGER\n"
-        )
-        self.assertEqual(verdict, TLE)
-        self.assertEqual(t_ms, 1000)
-        self.assertEqual(out, "")
-
-    def test_mle_trigger(self):
-        proc = _FakeProcess(stdout="3\n", stderr=RESOURCE_LINE, returncode=0)
-        (verdict, t_ms, mem_kb, out, err), _, _ = self._run(
-            process=proc, input_data="mle_trigger"
-        )
-        self.assertEqual(verdict, MLE)
-        self.assertEqual(mem_kb, 262144)
-        self.assertEqual(out, "")
-
-    def test_re_trigger(self):
-        proc = _FakeProcess(stdout="3\n", stderr=RESOURCE_LINE, returncode=0)
-        (verdict, t_ms, mem_kb, out, err), _, _ = self._run(
-            process=proc, source_code="x = re_trigger_value"
-        )
-        self.assertEqual(verdict, RE)
-        self.assertIn("Simulated RE by trigger", err)
+    def test_trigger_strings_do_not_forge_verdicts(self):
+        # SECURITY-AUDIT-judge J2 / SPEC-GAPS G10: the tle_trigger/mle_trigger/
+        # re_trigger backdoors are stripped; inputs containing them must not
+        # alter an otherwise-accepted run.
+        for bad_input in ("please TLE_TRIGGER\n", "mle_trigger", "re_trigger"):
+            (verdict, t_ms, mem_kb, out, err), _, _ = self._run(
+                run_result=_run_result(0, "3\n", RESOURCE_LINE),
+                input_data=bad_input,
+            )
+            self.assertEqual(verdict, AC, bad_input)
+            self.assertEqual(out, "3\n")
+            self.assertNotIn("Simulated", err)
 
     def test_zero_time_limit_uses_one_second(self):
-        proc = _FakeProcess(stdout="", stderr=RESOURCE_LINE, returncode=0)
-        (verdict, _, _, _, _), argv, proc = self._run(
-            process=proc, time_limit_ms=0
+        (verdict, _, _, _, _), argv, run_kwargs = self._run(
+            run_result=_run_result(0, "", RESOURCE_LINE), time_limit_ms=0
         )
         self.assertEqual(verdict, AC)
         self.assertIn("2.00s", argv)
-        self.assertEqual(proc.communicate_kwargs["timeout"], 4.0)
+        self.assertEqual(run_kwargs["timeout"], 4.0)
 
-
-# ---------------------------------------------------------------------------
-# judge_utils.checkers (subprocess.run + Popen mocked)
+# judge_utils.checkers (subprocess.run mocked)
 # ---------------------------------------------------------------------------
 
 
@@ -925,20 +976,32 @@ class CheckerTests(unittest.TestCase):
         self.user_out_path = self.dir / "user_output.txt"
         self.ans_path = self.dir / "answer.txt"
 
-    def _checker(self, process=None, popen_exc=None, run_result=None,
-                 run_side_effect=None, language="python3",
-                 checker_code="print('ok')"):
-        with patch(
+    def _checker(self, run_result=None, run_side_effect=None,
+                 compile_result=None, compile_side_effect=None,
+                 language="python3", checker_code="print('ok')",
+                 backend=None):
+        ctx = (
+            override_settings(JUDGE_BACKEND=backend)
+            if backend
+            else _null_context()
+        )
+        # NOTE: checkers.subprocess and compilation.subprocess are the same
+        # module, so the compile step is patched at its call site in the
+        # checkers namespace (run_compile_step) — not via a second
+        # subprocess.run patch that would stack on the same attribute.
+        with ctx, patch(
             "submissions.judge_utils.checkers.subprocess.run"
         ) as mock_run, patch(
-            "submissions.judge_utils.checkers.subprocess.Popen",
-            side_effect=popen_exc,
-            return_value=process,
-        ) as mock_popen:
+            "submissions.judge_utils.checkers.run_compile_step"
+        ) as mock_compile:
             if run_side_effect is not None:
                 mock_run.side_effect = run_side_effect
             else:
                 mock_run.return_value = run_result
+            if compile_side_effect is not None:
+                mock_compile.side_effect = compile_side_effect
+            else:
+                mock_compile.return_value = compile_result
             result = run_custom_checker(
                 checker_code,
                 language,
@@ -948,13 +1011,17 @@ class CheckerTests(unittest.TestCase):
                 self.dir,
             )
         argv = None
-        if mock_popen.call_count:
-            argv = mock_popen.call_args[0][0]
-        return result, argv, mock_run
+        if mock_run.call_count:
+            argv = mock_run.call_args[0][0]
+        compile_argv = None
+        if mock_compile.call_count:
+            compile_argv = mock_compile.call_args[0][0]
+        return result, argv, compile_argv
 
     def test_python_checker_accepted_with_resources(self):
-        proc = _FakeProcess(stdout="OK", stderr=RESOURCE_LINE, returncode=0)
-        (verdict, msg), argv, _ = self._checker(process=proc)
+        (verdict, msg), argv, _ = self._checker(
+            run_result=_run_result(0, "OK", RESOURCE_LINE)
+        )
         self.assertEqual(verdict, AC)
         self.assertIn("OK", msg)
         self.assertIn("Checker Resources", msg)
@@ -962,74 +1029,74 @@ class CheckerTests(unittest.TestCase):
         self.assertEqual(
             argv[-5:],
             [
-                "python", "/app/checker.py",
-                "/app/input.txt", "/app/user_output.txt", "/app/answer.txt",
+                "python", "checker.py",
+                "input.txt", "user_output.txt", "answer.txt",
             ],
         )
         self.assertEqual((self.dir / "checker.py").read_text(), "print('ok')")
 
     def test_python_checker_times_out(self):
-        proc = _FakeProcess(returncode=124)
-        (verdict, msg), _, _ = self._checker(process=proc)
+        (verdict, msg), _, _ = self._checker(
+            run_result=_run_result(124, "", "")
+        )
         self.assertEqual(verdict, IE)
         self.assertIn("Checker timed out", msg)
 
     def test_python_checker_signals_wrong_answer(self):
-        proc = _FakeProcess(returncode=5)
-        (verdict, msg), _, _ = self._checker(process=proc)
+        (verdict, msg), _, _ = self._checker(
+            run_result=_run_result(5, "", "")
+        )
         self.assertEqual(verdict, WA)
         self.assertIn("code 5", msg)
 
     def test_python_checker_communicate_timeout(self):
-        proc = _FakeProcess(
-            communicate_exc=subprocess.TimeoutExpired(cmd="docker", timeout=13)
+        (verdict, msg), _, _ = self._checker(
+            run_side_effect=subprocess.TimeoutExpired(cmd="docker", timeout=13)
         )
-        (verdict, msg), _, _ = self._checker(process=proc)
         self.assertEqual(verdict, IE)
         self.assertIn("Checker communication timeout", msg)
 
     def test_python_checker_docker_missing(self):
         (verdict, msg), _, _ = self._checker(
-            popen_exc=FileNotFoundError("docker")
+            run_side_effect=FileNotFoundError("docker")
         )
         self.assertEqual(verdict, IE)
         self.assertIn("Docker/checker cmd not found", msg)
 
     def test_python_checker_generic_error(self):
-        (verdict, msg), _, _ = self._checker(popen_exc=ValueError("bad"))
+        (verdict, msg), _, _ = self._checker(
+            run_side_effect=ValueError("bad")
+        )
         self.assertEqual(verdict, IE)
         self.assertIn("Checker run error", msg)
 
     def test_checker_plain_stderr_no_resource_line(self):
-        proc = _FakeProcess(stdout="", stderr="note", returncode=0)
-        (verdict, msg), _, _ = self._checker(process=proc)
+        (verdict, msg), _, _ = self._checker(
+            run_result=_run_result(0, "", "note")
+        )
         self.assertEqual(verdict, AC)
         self.assertIn("note", msg)
         self.assertNotIn("Checker Resources", msg)
 
     def test_checker_empty_stderr(self):
-        proc = _FakeProcess(stdout="", stderr="", returncode=0)
-        (verdict, msg), _, _ = self._checker(process=proc)
+        (verdict, msg), _, _ = self._checker(
+            run_result=_run_result(0, "", "")
+        )
         self.assertEqual(verdict, AC)
 
     def test_cpp_checker_success(self):
-        (self.dir / "checker_program").write_text("")
-        proc = _FakeProcess(stdout="", stderr=RESOURCE_LINE, returncode=0)
-        (verdict, msg), argv, mock_run = self._checker(
-            process=proc,
-            run_result=_run_result(0, "", ""),
+        (verdict, msg), argv, _ = self._checker(
+            run_result=_run_result(0, "", RESOURCE_LINE),
+            compile_result=(True, "compile ok"),
             language="cpp17",
         )
         self.assertEqual(verdict, AC)
-        compile_argv = mock_run.call_args[0][0]
-        for expected in ("g++", "checker.cpp", "-o", "checker_program"):
-            self.assertIn(expected, compile_argv)
-        self.assertIn("/app/checker_program", argv)
+        self.assertIn("./checker_program", argv)
         self.assertIn("gcc:latest", argv)
 
     def test_cpp_checker_compile_failure(self):
         (verdict, msg), _, _ = self._checker(
-            run_result=_run_result(1, "", "syntax error"),
+            compile_result=(False, "STDOUT:\n\nSTDERR:\nsyntax error"),
             language="cpp17",
         )
         self.assertEqual(verdict, IE)
@@ -1038,19 +1105,33 @@ class CheckerTests(unittest.TestCase):
 
     def test_cpp_checker_compile_exception(self):
         (verdict, msg), _, _ = self._checker(
-            run_side_effect=OSError("docker down"),
+            compile_side_effect=OSError("docker down"),
             language="cpp17",
         )
         self.assertEqual(verdict, IE)
-        self.assertIn("Checker compile error", msg)
+        self.assertIn("Checker compile failed", msg)
 
     def test_unsupported_checker_language(self):
         (verdict, msg), _, _ = self._checker(language="ruby")
         self.assertEqual(verdict, IE)
         self.assertIn("Unsupported checker language: ruby", msg)
 
+    def test_java_rejected_as_checker_language(self):
+        (verdict, msg), _, _ = self._checker(language="java11")
+        self.assertEqual(verdict, IE)
+        self.assertIn("Unsupported checker language: java11", msg)
 
-# ---------------------------------------------------------------------------
+    def test_container_backend_execs_checker(self):
+        (verdict, msg), argv, _ = self._checker(
+            run_result=_run_result(0, "OK", RESOURCE_LINE),
+            backend="container",
+        )
+        self.assertEqual(verdict, AC)
+        self.assertEqual(argv[:2], ["docker", "exec"])
+        self.assertIn("webcoder-judge-runner", argv)
+        self.assertNotIn("-v", argv)
+        self.assertIn("checker.py", argv)
+
 # tasks.judge_submission_task (sandbox helpers mocked, compare_outputs real)
 # ---------------------------------------------------------------------------
 
@@ -1290,3 +1371,177 @@ class JudgeSubmissionTaskTests(TestCase):
         self.assertEqual(
             message, "Judge internal error for sub %d." % submission_id
         )
+
+
+# ---------------------------------------------------------------------------
+# Submit-time language validation + Problem.allowed_languages enforcement
+# (SPEC-GAPS G10 / SECURITY-AUDIT-judge.md §0)
+# ---------------------------------------------------------------------------
+
+
+class SubmissionLanguageValidationTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = make_user("langval")
+        cls.problem = make_problem(cls.user)
+        cls.restricted = make_problem(cls.user, allowed_languages=["cpp17"])
+
+    def _ser(self, problem, language):
+        return SubmissionCreateSerializer(
+            data={"problem": problem.id, "language": language, "code": "x"}
+        )
+
+    def test_unknown_language_rejected(self):
+        ser = self._ser(self.problem, "cobol")
+        self.assertFalse(ser.is_valid())
+        self.assertIn("Unsupported language 'cobol'", str(ser.errors["language"]))
+
+    def test_all_registry_languages_accepted(self):
+        from .judge_utils.languages import SUPPORTED_LANGUAGE_IDS
+
+        for lang in SUPPORTED_LANGUAGE_IDS:
+            ser = self._ser(self.problem, lang)
+            self.assertTrue(ser.is_valid(), (lang, ser.errors))
+
+    def test_allowed_languages_enforced(self):
+        ser = self._ser(self.restricted, "python3")
+        self.assertFalse(ser.is_valid())
+        self.assertIn(
+            "not allowed for this problem", str(ser.errors["language"])
+        )
+        # A listed language passes.
+        ser_ok = self._ser(self.restricted, "cpp17")
+        self.assertTrue(ser_ok.is_valid(), ser_ok.errors)
+
+    def test_empty_allowed_languages_means_unrestricted(self):
+        # Default problems have allowed_languages == [] -> any registry lang.
+        self.assertEqual(self.problem.allowed_languages, [])
+        ser = self._ser(self.problem, "nodejs20")
+        self.assertTrue(ser.is_valid(), ser.errors)
+
+    def test_api_create_rejects_disallowed_language(self):
+        client = APIClient()
+        client.force_authenticate(user=self.user)
+        with patch("submissions.views.judge_task"):
+            resp = client.post(
+                reverse("submissions_api_v1:submission_create"),
+                {
+                    "problem": self.restricted.id,
+                    "language": "python3",
+                    "code": "print(1)",
+                },
+                format="json",
+            )
+        self.assertEqual(resp.status_code, 400, resp.content)
+        self.assertIn("language", resp.data)
+        # Nothing was created nor judged.
+        self.assertFalse(
+            Submission.objects.filter(
+                user=self.user, problem=self.restricted
+            ).exists()
+        )
+
+
+class ProblemAllowedLanguagesValidationTests(TestCase):
+    def test_unknown_allowed_language_rejected_at_authoring(self):
+        from problems.serializers import ProblemSerializer
+
+        author = make_user("probauthor")
+        ser = ProblemSerializer(
+            data={
+                "title_i18n": {"en": "T"},
+                "statement_i18n": {"en": "S"},
+                "allowed_languages": ["python3", "cobol"],
+            },
+            context={"request": SimpleNamespace(user=author)},
+        )
+        self.assertFalse(ser.is_valid())
+        self.assertIn("allowed_languages", ser.errors)
+        self.assertIn("cobol", str(ser.errors["allowed_languages"]))
+
+    def test_registry_languages_accepted_at_authoring(self):
+        from problems.serializers import ProblemSerializer
+
+        author = make_user("probauthor2")
+        ser = ProblemSerializer(
+            data={
+                "title_i18n": {"en": "T"},
+                "statement_i18n": {"en": "S"},
+                "allowed_languages": ["python3", "c11", "nodejs20"],
+            },
+            context={"request": SimpleNamespace(user=author)},
+        )
+        self.assertTrue(ser.is_valid(), ser.errors)
+
+    def test_empty_allowed_languages_list_valid(self):
+        from problems.serializers import ProblemSerializer
+
+        author = make_user("probauthor3")
+        ser = ProblemSerializer(
+            data={
+                "title_i18n": {"en": "T"},
+                "statement_i18n": {"en": "S"},
+                "allowed_languages": [],
+            },
+            context={"request": SimpleNamespace(user=author)},
+        )
+        self.assertTrue(ser.is_valid(), ser.errors)
+
+
+class JudgeWorkspaceTests(TestCase):
+    """tasks.py workspaces land under the shared volume in container mode."""
+
+    def setUp(self):
+        self.user = make_user("wsuser")
+        self.problem = make_problem(self.user)
+        self.submission = make_submission(self.user, self.problem)
+
+    def test_container_workspace_created_under_sandbox_root(self):
+        # Use a real temp dir as the sandbox root so the test does not try to
+        # mkdir /srv/judge on the host running the suite.
+        sandbox = tempfile.TemporaryDirectory(prefix="wc_sandbox_")
+        self.addCleanup(sandbox.cleanup)
+        seen_dirs: dict = {}
+
+        def fake_tempdir(prefix="", dir=None):  # noqa: A002
+            seen_dirs["prefix"] = prefix
+            seen_dirs["dir"] = dir
+            return tempfile.TemporaryDirectory(prefix=prefix, dir=dir)
+
+        with (
+            override_settings(
+                JUDGE_BACKEND="container", JUDGE_SANDBOX_ROOT=sandbox.name
+            ),
+            patch(
+                "submissions.tasks.compile_code_in_sandbox",
+                return_value=(False, "stop here", None),
+            ),
+            patch.object(tasks_module.tempfile, "TemporaryDirectory", fake_tempdir),
+        ):
+            judge_submission_task.apply(args=[self.submission.id]).get()
+        self.assertEqual(pathlib.Path(seen_dirs["dir"]), pathlib.Path(sandbox.name))
+        self.assertTrue(seen_dirs["prefix"].startswith("submission_"))
+
+    def test_local_workspace_uses_default_tempdir(self):
+        seen_dirs: dict = {}
+
+        def fake_tempdir(prefix="", dir=None):  # noqa: A002
+            seen_dirs["dir"] = dir
+            return tempfile.TemporaryDirectory(prefix=prefix, dir=dir)
+
+        with (
+            patch(
+                "submissions.tasks.compile_code_in_sandbox",
+                return_value=(False, "stop here", None),
+            ),
+            patch.object(tasks_module.tempfile, "TemporaryDirectory", fake_tempdir),
+        ):
+            judge_submission_task.apply(args=[self.submission.id]).get()
+        self.assertIsNone(seen_dirs["dir"])
+
+    def test_validate_without_problem_skips_allowed_check(self):
+        # Defensive arm: validate() called with no problem in attrs (the
+        # create serializer always requires it, so this is direct-call only).
+        ser = SubmissionCreateSerializer()
+        attrs = ser.validate({"language": "python3"})
+        self.assertEqual(attrs, {"language": "python3"})
