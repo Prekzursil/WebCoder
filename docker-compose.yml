@@ -69,6 +69,12 @@ services:
       # Celery over redis (webcoder_api/celery.py honours CELERY_BROKER_URL;
       # filesystem:// remains the local-dev default when this is unset).
       CELERY_BROKER_URL: redis://redis:6379/0
+    # The service runs as non-root uid 1000 (backend/Dockerfile USER), but
+    # the host-mounted docker.sock is root:root 0660 (Docker Desktop bind;
+    # there is no docker group to join). Supplementary gid 0 grants the
+    # socket's group bits without running the service as root.
+    group_add:
+      - "0"
     volumes:
       # Shared with judge-runner: the backend writes submission files here,
       # the judge-runner compiles/executes them at the same path.
@@ -109,6 +115,10 @@ services:
       DB_PORT: "5432"
       JUDGE_BACKEND: container
       CELERY_BROKER_URL: redis://redis:6379/0
+    # Non-root uid 1000 + docker.sock root:root 0660: supplementary gid 0
+    # for socket access (see the backend service note above).
+    group_add:
+      - "0"
     volumes:
       - judge-sandbox:/srv/judge
       - /var/run/docker.sock:/var/run/docker.sock
