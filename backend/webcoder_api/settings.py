@@ -92,6 +92,7 @@ INSTALLED_APPS = [
     "problems.apps.ProblemsConfig",
     "submissions.apps.SubmissionsConfig",
     "leaderboard",
+    "notifications",
 ]
 
 SITE_ID = 1

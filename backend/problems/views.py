@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -9,6 +9,8 @@ from .serializers import (
     ProblemDetailSerializer,
     TestCaseSerializer,
 )
+from notifications.models import Notification
+from notifications.services import notify
 from users.models import User
 from users.permissions import (
     IsProblemCreator,
@@ -147,6 +149,15 @@ class ProblemViewSet(viewsets.ModelViewSet):
                 "feedback", None
             )  # Optional approval feedback
             problem.save()
+            transaction.on_commit(
+                lambda: notify(
+                    problem.author,
+                    Notification.Verb.PROBLEM_APPROVED,
+                    actor=request.user,
+                    target=problem,
+                    data={"feedback": problem.verifier_feedback},
+                )
+            )
             return Response({"status": "problem approved"}, status=status.HTTP_200_OK)
         return Response(
             {"status": f"problem cannot be approved from state {problem.status}"},
@@ -168,6 +179,15 @@ class ProblemViewSet(viewsets.ModelViewSet):
             problem.verifier = request.user
             problem.verifier_feedback = feedback
             problem.save()
+            transaction.on_commit(
+                lambda: notify(
+                    problem.author,
+                    Notification.Verb.PROBLEM_REJECTED,
+                    actor=request.user,
+                    target=problem,
+                    data={"feedback": problem.verifier_feedback},
+                )
+            )
             return Response(
                 {"status": "problem rejected and marked as private"},
                 status=status.HTTP_200_OK,
