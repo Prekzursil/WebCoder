@@ -50,18 +50,27 @@ const api = vi.hoisted(() => ({
   deleteTestCase: vi.fn(),
 }));
 
-vi.mock('@/services/ApiService', () => ({
-  ProblemService: {
-    getTags: api.getTags,
-    getProblemDetail: api.getProblemDetail,
-    createProblem: api.createProblem,
-    updateProblem: api.updateProblem,
-  },
-  TestCaseService: {
-    createTestCase: api.createTestCase,
-    deleteTestCase: api.deleteTestCase,
-  },
-}));
+vi.mock('@/services/ApiService', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/services/ApiService')>();
+  return {
+    ...actual,
+    // single-page passthrough — the tests provide one page of envelope data
+    collectAllPages: async (fetchPage: (page: number) => Promise<{ results: unknown[] }>) => {
+      const response = await fetchPage(1);
+      return response.results;
+    },
+    ProblemService: {
+      getTags: api.getTags,
+      getProblemDetail: api.getProblemDetail,
+      createProblem: api.createProblem,
+      updateProblem: api.updateProblem,
+    },
+    TestCaseService: {
+      createTestCase: api.createTestCase,
+      deleteTestCase: api.deleteTestCase,
+    },
+  };
+});
 
 const toasts = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
 vi.mock('react-hot-toast', () => ({
@@ -121,7 +130,7 @@ beforeEach(() => {
   authState.token = 'token-1';
   authState.refreshToken = 'refresh-1';
   authState.user = { id: 7, username: 'creator', email: 'creator@example.com', role: 'PROBLEM_CREATOR' };
-  api.getTags.mockResolvedValue([]);
+  api.getTags.mockResolvedValue({ count: 0, next: null, previous: null, results: [] });
   api.createProblem.mockResolvedValue(createdProblem);
   api.updateProblem.mockResolvedValue({} as unknown as ProblemType);
 });
@@ -138,7 +147,7 @@ afterEach(() => {
 
 describe('ProblemFormPage (create mode)', () => {
   it('renders the create form and loads tags into checkboxes', async () => {
-    api.getTags.mockResolvedValue(TAGS);
+    api.getTags.mockResolvedValue({ count: TAGS.length, next: null, previous: null, results: TAGS });
     render(<ProblemFormPage />);
 
     expect(await screen.findByText('Create New Problem')).toBeInTheDocument();
@@ -159,7 +168,7 @@ describe('ProblemFormPage (create mode)', () => {
   });
 
   it('toggles selected tags into the payload', async () => {
-    api.getTags.mockResolvedValue(TAGS);
+    api.getTags.mockResolvedValue({ count: TAGS.length, next: null, previous: null, results: TAGS });
     render(<ProblemFormPage />);
     await screen.findByText('Create New Problem');
 
@@ -376,7 +385,7 @@ describe('ProblemFormPage (edit mode)', () => {
       () => new Promise<ProblemType>((res) => { resolveDetail = res; })
     );
     // Tag checkboxes render from getTags(); problem.tags only preselects ids.
-    api.getTags.mockResolvedValue([{ id: 3, name_i18n: { en: 'Greedy' }, slug: 'greedy' }]);
+    api.getTags.mockResolvedValue({ count: 1, next: null, previous: null, results: [{ id: 3, name_i18n: { en: 'Greedy' }, slug: 'greedy' }] });
     render(<ProblemFormPage />);
 
     expect(screen.getByText('Loading...')).toBeInTheDocument();

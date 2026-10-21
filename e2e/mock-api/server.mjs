@@ -7,10 +7,11 @@
 // (http://localhost:8901), so BOTH server-side and browser-side fetches hit
 // these canned responses — no real backend, no page.route interception.
 //
-// Contract mirrored from the port notes (docs/PORT-MAP.md §0.1): DRF list
-// endpoints return BARE JSON ARRAYS (no envelope, no pagination) and auth
-// login returns { access, refresh, user } (ApiService.ts:52, login page
-// response.access/response.refresh/response.user check).
+// Contract mirrored from the backend's pagination wave (SPEC-GAPS B4): list
+// endpoints return the DRF envelope {count, next, previous, results}
+// (submissions/notifications/forum posts use the cursor variant without
+// `count`), and auth login returns { access, refresh, user } (ApiService
+// login page response.access/response.refresh/response.user check).
 
 import { createServer } from 'node:http';
 
@@ -61,6 +62,83 @@ const MOCK_PROBLEMS = [
   },
 ];
 
+// DRF envelope builders (SPEC-GAPS B4).
+const paged = (results, next = null) => ({ count: results.length, next, previous: null, results });
+const cursorPaged = (results, next = null) => ({ next, previous: null, results });
+
+const MOCK_TAGS = [
+  { id: 1, name_i18n: { en: 'Arrays' }, slug: 'arrays' },
+  { id: 2, name_i18n: { en: 'Dynamic Programming' }, slug: 'dp' },
+];
+
+const MOCK_THREADS = [
+  {
+    id: 1,
+    title: 'Welcome to the WebCoder forum',
+    problem: null,
+    author: 'admin_e2e',
+    post_count: 2,
+    is_pinned: true,
+    is_locked: false,
+    last_activity: '2026-10-20T10:00:00Z',
+    created_at: '2026-10-18T09:00:00Z',
+  },
+  {
+    id: 2,
+    title: 'Two Sum approaches discussion',
+    problem: { id: 1, title_i18n: { en: 'Two Sum' } },
+    author: 'e2e_tester',
+    post_count: 1,
+    is_pinned: false,
+    is_locked: false,
+    last_activity: '2026-10-19T12:00:00Z',
+    created_at: '2026-10-19T11:30:00Z',
+  },
+];
+
+const MOCK_POSTS = [
+  {
+    id: 1,
+    thread_id: 1,
+    author: 'admin_e2e',
+    content: 'Welcome! Read the guidelines before posting.',
+    parent_id: null,
+    is_edited: false,
+    upvotes: 5,
+    is_hidden: false,
+    hidden_reason: '',
+    created_at: '2026-10-18T09:00:00Z',
+  },
+];
+
+const MOCK_LEADERBOARD = [
+  { rank: 1, username: 'admin_e2e', solved_count: 10, total_points: 500, success_rate: 0.8333, last_solved_at: '2026-10-20T00:00:00Z' },
+  { rank: 2, username: 'e2e_tester', solved_count: 4, total_points: 200, success_rate: 0.6667, last_solved_at: '2026-10-19T00:00:00Z' },
+];
+
+const MOCK_NOTIFICATIONS = [
+  {
+    id: 1,
+    verb: 'SUBMISSION_JUDGED',
+    actor: null,
+    target_type: 'submission',
+    target_id: 11,
+    data: { verdict: 'AC', problem_id: 1, submission_id: 11 },
+    read_at: null,
+    created_at: '2026-10-20T08:00:00Z',
+  },
+  {
+    id: 2,
+    verb: 'THREAD_REPLY',
+    actor: 'admin_e2e',
+    target_type: 'thread',
+    target_id: 1,
+    data: { post_id: 1, title: 'Welcome to the WebCoder forum' },
+    read_at: '2026-10-19T00:00:00Z',
+    created_at: '2026-10-19T09:00:00Z',
+  },
+];
+
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET,POST,PATCH,DELETE,OPTIONS',
@@ -89,7 +167,12 @@ const server = createServer((req, res) => {
   }
 
   if (req.method === 'GET' && path === '/api/v1/problems/problems/') {
-    json(res, 200, MOCK_PROBLEMS);
+    json(res, 200, paged(MOCK_PROBLEMS));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/api/v1/problems/tags/') {
+    json(res, 200, paged(MOCK_TAGS));
     return;
   }
 
@@ -135,6 +218,67 @@ const server = createServer((req, res) => {
     // Authorization header distinguishes the admin session (see auth.spec.ts).
     const auth = req.headers.authorization ?? '';
     json(res, 200, auth.includes('admin') ? MOCK_ADMIN : MOCK_USER);
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/api/v1/leaderboard/') {
+    json(res, 200, paged(MOCK_LEADERBOARD));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/api/v1/leaderboard/me/') {
+    const auth = req.headers.authorization ?? '';
+    if (!auth) {
+      json(res, 401, { detail: 'Authentication credentials were not provided.' });
+      return;
+    }
+    json(res, 200, {
+      rank: 2,
+      username: 'e2e_tester',
+      solved_count: 4,
+      total_points: 200,
+      success_rate: 0.6667,
+      total_submissions: 6,
+      ac_submissions: 4,
+      last_solved_at: '2026-10-19T00:00:00Z',
+    });
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/api/v1/forum/threads/') {
+    json(res, 200, paged(MOCK_THREADS));
+    return;
+  }
+
+  const threadDetail = path.match(/^\/api\/v1\/forum\/threads\/(\d+)\/$/);
+  if (req.method === 'GET' && threadDetail) {
+    const thread = MOCK_THREADS.find((t) => t.id === Number(threadDetail[1]));
+    if (thread) {
+      json(res, 200, thread);
+    } else {
+      json(res, 404, { detail: 'Not found.' });
+    }
+    return;
+  }
+
+  const threadPosts = path.match(/^\/api\/v1\/forum\/threads\/(\d+)\/posts\/$/);
+  if (req.method === 'GET' && threadPosts) {
+    json(res, 200, cursorPaged(MOCK_POSTS.filter((p) => p.thread_id === Number(threadPosts[1]))));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/api/v1/notifications/') {
+    const auth = req.headers.authorization ?? '';
+    if (!auth) {
+      json(res, 401, { detail: 'Authentication credentials were not provided.' });
+      return;
+    }
+    json(res, 200, cursorPaged(MOCK_NOTIFICATIONS));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/api/v1/notifications/unread-count/') {
+    json(res, 200, { count: MOCK_NOTIFICATIONS.filter((n) => n.read_at === null).length });
     return;
   }
 

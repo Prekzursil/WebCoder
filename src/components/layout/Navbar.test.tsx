@@ -30,6 +30,16 @@ vi.mock('@/context/AuthContext', () => ({
   useAuth: () => mocks.auth,
 }));
 
+// [F10] The navbar polls GET /notifications/unread-count/ for the bell
+// badge — mock the service so no real fetch happens under jsdom.
+const notifications = vi.hoisted(() => ({
+  getUnreadCount: vi.fn().mockResolvedValue({ count: 0 }),
+}));
+
+vi.mock('@/services/ApiService', () => ({
+  NotificationService: { getUnreadCount: notifications.getUnreadCount },
+}));
+
 vi.mock('next/navigation', () => ({
   usePathname: () => mocks.pathname,
   useRouter: () => ({
@@ -61,6 +71,7 @@ beforeEach(async () => {
   vi.clearAllMocks();
   mocks.pathname = '/';
   setAuth(false, null);
+  notifications.getUnreadCount.mockResolvedValue({ count: 0 });
   await i18n.changeLanguage('en');
 });
 
@@ -228,5 +239,28 @@ describe('session actions', () => {
     fireEvent.click(screen.getAllByRole('button', { name: 'en' })[0]);
     await waitFor(() => expect(i18n.language).toBe('en'));
     expect(screen.getByRole('link', { name: 'Home' })).toBeInTheDocument();
+  });
+});
+
+describe('unread badge [F10]', () => {
+  it('renders the real unread count on the bell when authenticated', async () => {
+    setAuth(true, mkUser('BASIC_USER'));
+    notifications.getUnreadCount.mockResolvedValue({ count: 3 });
+    render(<Navbar />);
+
+    const bell = screen.getByRole('link', { name: 'Notifications' });
+    await waitFor(() => expect(within(bell).getByText('3')).toBeInTheDocument());
+    expect(notifications.getUnreadCount).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides the badge at zero and never polls when anonymous', () => {
+    setAuth(true, mkUser('BASIC_USER'));
+    render(<Navbar />);
+    const bell = screen.getByRole('link', { name: 'Notifications' });
+    expect(within(bell).queryByText(/\d+/)).not.toBeInTheDocument();
+
+    setAuth(false, null);
+    render(<Navbar />);
+    expect(notifications.getUnreadCount).toHaveBeenCalledTimes(1); // only the authenticated render polled
   });
 });

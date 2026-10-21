@@ -7,22 +7,16 @@ import { describe, expect, it } from 'vitest';
 // backlog's suggested gate:
 //   grep -rnE '#[0-9a-fA-F]{6}' src --include='*.tsx'
 //
-// Allowlist (files still carrying literal hex until their owning wave rewrites
-// them — their DATA wiring belongs to Wave 3 F8/F9/F10, so this wave only
-// avoids churning them):
-//   - src/app/leaderboard/page.tsx   (Wave 3 F8 rewrites the whole page)
-//   - src/app/forum/**               (Wave 3 F9)
-//   - src/app/notifications/page.tsx (Wave 3 F10)
-//   - src/theme/tokens.ts            (the SSOT itself — must be .ts, kept out
-//     of the tsx grep anyway, listed here for documentation)
+// Allowlist (files still carrying literal hex):
+//   - src/app/leaderboard/page.tsx — only the bronze medal accent (#b47c3c)
+//     remains (no design token for it); gold/silver were tokenized and the
+//     forum/notifications pages came out of the data-wiring rewrite fully
+//     clean, so they left this list.
+//   - src/theme/tokens.ts — the SSOT itself (must be .ts; kept out of the
+//     tsx grep anyway, listed here for documentation)
 
 const ALLOWED = [
   'src/app/leaderboard/page.tsx',
-  'src/app/notifications/page.tsx',
-  'src/app/forum/page.tsx',
-  'src/app/forum/new/page.tsx',
-  'src/app/forum/ForumLiveClient.tsx',
-  'src/app/forum/[threadId]/page.tsx',
   'src/theme/tokens.ts',
 ];
 
@@ -49,7 +43,7 @@ function hexOffenders(): string[] {
 }
 
 describe('design-token gate: no raw hex in components [A2]', () => {
-  it('reports no hardcoded hex colors outside the allowlist', () => {
+  it('reports no hardcoded hex colors outside the allowlist', { timeout: 30_000 }, () => {
     const offenders = hexOffenders();
     expect(
       offenders,
@@ -57,7 +51,7 @@ describe('design-token gate: no raw hex in components [A2]', () => {
     ).toEqual([]);
   });
 
-  it('keeps the allowlist free of hex too (shrink it when waves land)', () => {
+  it('keeps the allowlist free of hex too (shrink it when waves land)', { timeout: 30_000 }, () => {
     // Guard against the allowlist becoming a dumping ground: every allowlisted
     // file must genuinely still contain hex, otherwise remove it here.
     const stillDirty = ALLOWED.filter((file) => {

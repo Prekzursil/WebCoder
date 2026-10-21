@@ -4,7 +4,7 @@ import React, { useState, FormEvent, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { ProblemService, TestCaseService } from '@/services/ApiService';
+import { ProblemService, TestCaseService, collectAllPages } from '@/services/ApiService';
 import { useAuth } from '@/context/AuthContext';
 import { ProblemType, TagType, TestCaseType, TestCaseUIManaged } from '@/types';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
@@ -63,7 +63,8 @@ export default function ProblemFormPage() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   useEffect(() => {
-    ProblemService.getTags()
+    // Tags list is paginated now (SPEC-GAPS B4); collect pages (bounded).
+    collectAllPages((page) => ProblemService.getTags({ page, pageSize: 100 }))
       .then((tags: TagType[]) => setAvailableTags(tags))
       .catch((err) => console.error('Failed to fetch tags', err));
 

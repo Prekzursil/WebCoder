@@ -44,18 +44,27 @@ const api = vi.hoisted(() => ({
   updateProblem: vi.fn(),
 }));
 
-vi.mock('@/services/ApiService', () => ({
-  ProblemService: {
-    getTags: api.getTags,
-    getProblemDetail: api.getProblemDetail,
-    createProblem: api.createProblem,
-    updateProblem: api.updateProblem,
-  },
-  TestCaseService: {
-    createTestCase: vi.fn(),
-    deleteTestCase: vi.fn(),
-  },
-}));
+vi.mock('@/services/ApiService', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/services/ApiService')>();
+  return {
+    ...actual,
+    // single-page passthrough — these tests provide one page of envelope data
+    collectAllPages: async (fetchPage: (page: number) => Promise<{ results: unknown[] }>) => {
+      const response = await fetchPage(1);
+      return response.results;
+    },
+    ProblemService: {
+      getTags: api.getTags,
+      getProblemDetail: api.getProblemDetail,
+      createProblem: api.createProblem,
+      updateProblem: api.updateProblem,
+    },
+    TestCaseService: {
+      createTestCase: vi.fn(),
+      deleteTestCase: vi.fn(),
+    },
+  };
+});
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -64,7 +73,7 @@ beforeEach(() => {
   authState.token = 'token-1';
   authState.refreshToken = 'refresh-1';
   authState.user = { id: 7, username: 'creator', email: 'creator@example.com', role: 'PROBLEM_CREATOR' };
-  api.getTags.mockResolvedValue([]);
+  api.getTags.mockResolvedValue({ count: 0, next: null, previous: null, results: [] });
 });
 
 // vitest runs with globals: false, so @testing-library auto-cleanup never

@@ -11,14 +11,26 @@
 
 import {
   AdminStatsResponse,
+  ApiNotification,
   CreateSubmissionResponse,
+  CursorPaginatedResponse,
+  cursorParamFromUrl,
+  ForumPost,
+  ForumReport,
+  ForumThread,
   GetAdminUsersResponse,
+  GetForumPostsResponse,
+  GetForumThreadsResponse,
+  GetLeaderboardResponse,
+  GetNotificationsResponse,
   GetProblemDetailResponse,
   GetProblemsResponse,
   GetSubmissionDetailResponse,
   GetSubmissionsResponse,
   GetTagsResponse,
   LoginResponse,
+  MyLeaderboardEntry,
+  PaginatedResponse,
   RegisterResponse,
   UpdateProblemResponse,
 } from '@/types/api';
@@ -129,6 +141,53 @@ const apiFetch = async <T>(url: string, options: RequestInit = {}): Promise<T> =
   return response.json() as Promise<T>;
 };
 
+// =================================
+// Pagination helpers (SPEC-GAPS B4)
+// =================================
+
+/** Hard ceiling for collectAllPages: 50 pages x max_page_size (100) = 5000
+ * rows. Bounded so a "collect everything" caller can never loop a hostile
+ * next-chain forever; the cap is documented at every call site. */
+const COLLECT_ALL_MAX_PAGES = 50;
+
+/**
+ * Follow a page-number paginated endpoint's `next` links until exhausted or
+ * the COLLECT_ALL_MAX_PAGES ceiling is hit. Use only for small bounded lists
+ * (filter dropdowns, tag pickers, admin user tables); anything user-facing
+ * and unbounded should page through the envelope instead.
+ */
+export async function collectAllPages<T>(
+  fetchPage: (page: number) => Promise<PaginatedResponse<T>>
+): Promise<T[]> {
+  const out: T[] = [];
+  for (let page = 1; page <= COLLECT_ALL_MAX_PAGES; page += 1) {
+    const response = await fetchPage(page);
+    out.push(...response.results);
+    if (!response.next) break;
+  }
+  return out;
+}
+
+/**
+ * Follow a cursor-paginated endpoint's `next` links until exhausted or the
+ * COLLECT_ALL_MAX_PAGES ceiling is hit. The cursor is re-extracted from the
+ * absolute next URL because apiFetch addresses endpoints relative to the
+ * API base.
+ */
+export async function collectAllCursorPages<T>(
+  fetchPage: (cursor: string | null) => Promise<CursorPaginatedResponse<T>>
+): Promise<T[]> {
+  const out: T[] = [];
+  let cursor: string | null = null;
+  for (let i = 0; i < COLLECT_ALL_MAX_PAGES; i += 1) {
+    const response = await fetchPage(cursor);
+    out.push(...response.results);
+    cursor = cursorParamFromUrl(response.next);
+    if (!cursor) break;
+  }
+  return out;
+}
+
 export const AuthService = {
     register: (userData: Record<string, unknown>) => apiFetch<RegisterResponse>('/users/register/', { method: 'POST', body: JSON.stringify(userData) }),
     login: (credentials: Record<string, unknown>) => apiFetch<LoginResponse>('/auth/login/', { method: 'POST', body: JSON.stringify(credentials) }),
@@ -138,11 +197,17 @@ export const AuthService = {
 };
 
 export const ProblemService = {
-    getProblems: (filters: { status?: string, authorId?: number | string } = {}) => {
+    getProblems: (
+        filters: { status?: string, authorId?: number | string } = {},
+        page: { page?: number, pageSize?: number } = {}
+    ) => {
         const params = new URLSearchParams();
         if (filters.status !== undefined) params.set('status', filters.status);
         if (filters.authorId !== undefined) params.set('authorId', String(filters.authorId));
-        return apiFetch<GetProblemsResponse>(`/problems/problems/?${params.toString()}`);
+        if (page.page !== undefined) params.set('page', String(page.page));
+        if (page.pageSize !== undefined) params.set('page_size', String(page.pageSize));
+        const qs = params.toString();
+        return apiFetch<GetProblemsResponse>(`/problems/problems/${qs ? `?${qs}` : ''}`);
     },
     getProblemDetail: (id: number | string) => apiFetch<GetProblemDetailResponse>(`/problems/problems/${id}/`),
     createProblem: (problemData: Record<string, unknown>) => apiFetch<GetProblemDetailResponse>('/problems/problems/', { method: 'POST', body: JSON.stringify(problemData) }),
@@ -153,17 +218,29 @@ export const ProblemService = {
     approveProblem: (id: number | string, feedbackData: { feedback?: string }) => apiFetch<GetProblemDetailResponse>(`/problems/problems/${id}/approve/`, { method: 'POST', body: JSON.stringify(feedbackData) }),
     rejectProblem: (id: number | string, feedbackData: { feedback: string }) => apiFetch<GetProblemDetailResponse>(`/problems/problems/${id}/reject/`, { method: 'POST', body: JSON.stringify(feedbackData) }),
 
-    getTags: () => apiFetch<GetTagsResponse>('/problems/tags/'),
+    getTags: (page: { page?: number, pageSize?: number } = {}) => {
+        const params = new URLSearchParams();
+        if (page.page !== undefined) params.set('page', String(page.page));
+        if (page.pageSize !== undefined) params.set('page_size', String(page.pageSize));
+        const qs = params.toString();
+        return apiFetch<GetTagsResponse>(`/problems/tags/${qs ? `?${qs}` : ''}`);
+    },
 };
 
 export const SubmissionService = {
     createSubmission: (submissionData: Record<string, unknown>) => apiFetch<CreateSubmissionResponse>('/submissions/submit/', { method: 'POST', body: JSON.stringify(submissionData) }),
-    getSubmissions: (filters: { problemId?: number, userId?: number, language?: string } = {}) => {
+    getSubmissions: (
+        filters: { problemId?: number, userId?: number, language?: string } = {},
+        page: { cursor?: string | null, pageSize?: number } = {}
+    ) => {
         const params = new URLSearchParams();
         if (filters.problemId !== undefined) params.set('problemId', String(filters.problemId));
         if (filters.userId !== undefined) params.set('userId', String(filters.userId));
         if (filters.language !== undefined) params.set('language', filters.language);
-        return apiFetch<GetSubmissionsResponse>(`/submissions/submissions/?${params.toString()}`);
+        if (page.cursor) params.set('cursor', page.cursor);
+        if (page.pageSize !== undefined) params.set('page_size', String(page.pageSize));
+        const qs = params.toString();
+        return apiFetch<GetSubmissionsResponse>(`/submissions/submissions/${qs ? `?${qs}` : ''}`);
     },
     getSubmissionDetail: (id: number | string) => apiFetch<GetSubmissionDetailResponse>(`/submissions/submissions/${id}/`),
 };
@@ -175,7 +252,90 @@ export const TestCaseService = {
 };
 
 export const AdminService = {
-    getUsers: () => apiFetch<GetAdminUsersResponse>(`/users/admin/manage/`),
+    getUsers: (page: { page?: number, pageSize?: number } = {}) => {
+        const params = new URLSearchParams();
+        if (page.page !== undefined) params.set('page', String(page.page));
+        if (page.pageSize !== undefined) params.set('page_size', String(page.pageSize));
+        const qs = params.toString();
+        return apiFetch<GetAdminUsersResponse>(`/users/admin/manage/${qs ? `?${qs}` : ''}`);
+    },
     updateUser: (userId: number | string, userData: { role?: string, is_active?: boolean }) => apiFetch<{ detail?: string }>(`/users/admin/manage/${userId}/`, { method: 'PATCH', body: JSON.stringify(userData) }),
     getStats: () => apiFetch<AdminStatsResponse>('/users/admin/stats/'),
+};
+
+// =================================
+// Leaderboard Service (backend/leaderboard)
+// =================================
+
+export const LeaderboardService = {
+    /** Public standings, window-ranked, 50 rows/page. */
+    getLeaderboard: (page: { page?: number, pageSize?: number } = {}) => {
+        const params = new URLSearchParams();
+        if (page.page !== undefined) params.set('page', String(page.page));
+        if (page.pageSize !== undefined) params.set('page_size', String(page.pageSize));
+        const qs = params.toString();
+        return apiFetch<GetLeaderboardResponse>(`/leaderboard/${qs ? `?${qs}` : ''}`);
+    },
+    /** The caller's own rank + stats (authenticated). */
+    getMyEntry: () => apiFetch<MyLeaderboardEntry>('/leaderboard/me/'),
+};
+
+// =================================
+// Forum Service (backend/forum)
+// =================================
+
+export const ForumService = {
+    /** Public thread list, ordered pinned-then-last-activity, 20/page. */
+    getThreads: (params: { page?: number, pageSize?: number, problemId?: number | string } = {}) => {
+        const search = new URLSearchParams();
+        if (params.page !== undefined) search.set('page', String(params.page));
+        if (params.pageSize !== undefined) search.set('page_size', String(params.pageSize));
+        if (params.problemId !== undefined) search.set('problem_id', String(params.problemId));
+        const qs = search.toString();
+        return apiFetch<GetForumThreadsResponse>(`/forum/threads/${qs ? `?${qs}` : ''}`);
+    },
+    getThread: (threadId: number | string) => apiFetch<ForumThread>(`/forum/threads/${threadId}/`),
+    /** Creates the thread + its first post atomically ({title, content, problem?}). */
+    createThread: (data: { title: string, content: string, problem?: number | null }) =>
+        apiFetch<ForumThread>('/forum/threads/', { method: 'POST', body: JSON.stringify(data) }),
+    /** Posts inside a thread, oldest-first cursor pagination. */
+    getPosts: (threadId: number | string, page: { cursor?: string | null, pageSize?: number } = {}) => {
+        const params = new URLSearchParams();
+        if (page.cursor) params.set('cursor', page.cursor);
+        if (page.pageSize !== undefined) params.set('page_size', String(page.pageSize));
+        const qs = params.toString();
+        return apiFetch<GetForumPostsResponse>(`/forum/threads/${threadId}/posts/${qs ? `?${qs}` : ''}`);
+    },
+    /** Reply to a thread ({content, parent?} — parent must be in the same thread). */
+    createPost: (threadId: number | string, data: { content: string, parent?: number | null }) =>
+        apiFetch<ForumPost>(`/forum/threads/${threadId}/posts/`, { method: 'POST', body: JSON.stringify(data) }),
+    getPost: (postId: number | string) => apiFetch<ForumPost>(`/forum/posts/${postId}/`),
+    updatePost: (postId: number | string, data: { content: string }) =>
+        apiFetch<ForumPost>(`/forum/posts/${postId}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+    /** Vote: 1 = up, -1 = down, 0 = remove the vote. Returns the new net score. */
+    votePost: (postId: number | string, value: 1 | -1 | 0) =>
+        apiFetch<{ upvotes: number }>(`/forum/posts/${postId}/vote/`, { method: 'POST', body: JSON.stringify({ value }) }),
+    /** Report a post (duplicate reporter+post → 409). */
+    reportPost: (postId: number | string, data: { reason: string, details?: string }) =>
+        apiFetch<ForumReport>(`/forum/reports/`, { method: 'POST', body: JSON.stringify({ post: postId, ...data }) }),
+};
+
+// =================================
+// Notification Service (backend/notifications)
+// =================================
+
+export const NotificationService = {
+    /** The caller's own notifications, newest-first cursor pagination. */
+    getNotifications: (params: { cursor?: string | null, unreadOnly?: boolean, pageSize?: number } = {}) => {
+        const search = new URLSearchParams();
+        if (params.cursor) search.set('cursor', params.cursor);
+        if (params.unreadOnly) search.set('unread', 'true');
+        if (params.pageSize !== undefined) search.set('page_size', String(params.pageSize));
+        const qs = search.toString();
+        return apiFetch<GetNotificationsResponse>(`/notifications/${qs ? `?${qs}` : ''}`);
+    },
+    getNotification: (id: number | string) => apiFetch<ApiNotification>(`/notifications/${id}/`),
+    markRead: (id: number | string) => apiFetch<ApiNotification>(`/notifications/${id}/mark-read/`, { method: 'POST' }),
+    markAllRead: () => apiFetch<{ marked: number }>('/notifications/mark-all-read/', { method: 'POST' }),
+    getUnreadCount: () => apiFetch<{ count: number }>('/notifications/unread-count/'),
 };

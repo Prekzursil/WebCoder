@@ -27,9 +27,18 @@ vi.mock('next/link', () => ({
   default: ({ href, children }: { href: string; children: ReactNode }) => <a href={href}>{children}</a>,
 }));
 
-vi.mock('@/services/ApiService', () => ({
-  ProblemService: { getProblems: vi.fn(), approveProblem: vi.fn(), rejectProblem: vi.fn() },
-}));
+vi.mock('@/services/ApiService', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/services/ApiService')>();
+  return {
+    ...actual,
+    // single-page passthrough — the tests provide one page of envelope data
+    collectAllPages: async (fetchPage: (page: number) => Promise<{ results: unknown[] }>) => {
+      const response = await fetchPage(1);
+      return response.results;
+    },
+    ProblemService: { getProblems: vi.fn(), approveProblem: vi.fn(), rejectProblem: vi.fn() },
+  };
+});
 
 vi.mock('@/context/AuthContext', () => ({ useAuth: vi.fn() }));
 
@@ -80,7 +89,7 @@ describe('ProblemVerificationQueuePage (/admin/problem-queue)', () => {
     vi.clearAllMocks();
     await i18n.changeLanguage('en');
     vi.mocked(useAuth).mockReturnValue(authed());
-    vi.mocked(ProblemService.getProblems).mockResolvedValue([problemA, problemB]);
+    vi.mocked(ProblemService.getProblems).mockResolvedValue({ count: 2, next: null, previous: null, results: [problemA, problemB] });
     vi.mocked(ProblemService.approveProblem).mockResolvedValue({ ...problemA });
     vi.mocked(ProblemService.rejectProblem).mockResolvedValue({ ...problemA });
   });
@@ -129,7 +138,7 @@ describe('ProblemVerificationQueuePage (/admin/problem-queue)', () => {
   });
 
   it('renders the empty state when nothing is pending approval', async () => {
-    vi.mocked(ProblemService.getProblems).mockResolvedValue([]);
+    vi.mocked(ProblemService.getProblems).mockResolvedValue({ count: 0, next: null, previous: null, results: [] });
     render(<ProblemVerificationQueuePageRoute />);
     expect(await screen.findByText('No problems are currently pending approval.')).toBeInTheDocument();
     expect(screen.queryByRole('table')).not.toBeInTheDocument();

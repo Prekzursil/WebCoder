@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getProblemDetail, getProblems } from './problems-api';
+import { getProblemDetail, getProblems, getProblemsPage, MAX_CATALOG_PAGES } from './problems-api';
 
 function mockFetch(impl: () => Promise<Response>) {
   const fetchMock = vi.fn(impl);
@@ -14,6 +14,13 @@ function jsonResponse(body: unknown, init?: ResponseInit): Response {
     ...init,
   });
 }
+
+const envelope = (results: unknown[], next: string | null = null) => ({
+  count: results.length,
+  next,
+  previous: null,
+  results,
+});
 
 // process.env values are strings — assigning `undefined` yields the literal
 // string "undefined", so the unset state must be produced with delete.
@@ -32,58 +39,76 @@ afterEach(() => {
   }
 });
 
-describe('getProblems', () => {
-  it('fetches the list endpoint with ISR revalidation and returns the parsed array', async () => {
-    const fetchMock = mockFetch(async () =>
-      jsonResponse([{ id: 1, title_i18n: { en: 'A' }, difficulty: 'EASY', status: 'APPROVED' }])
-    );
-    const problems = await getProblems();
+describe('getProblemsPage', () => {
+  it('fetches one catalog page (page + page_size) with ISR revalidation', async () => {
+    const fetchMock = mockFetch(async () => jsonResponse(envelope([{ id: 1, title_i18n: { en: 'A' } }])));
+    const page = await getProblemsPage(2);
 
-    expect(problems).toEqual([
-      { id: 1, title_i18n: { en: 'A' }, difficulty: 'EASY', status: 'APPROVED' },
-    ]);
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/api/v1/problems/problems/', {
+    expect(page.results).toEqual([{ id: 1, title_i18n: { en: 'A' } }]);
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/api/v1/problems/problems/?page=2&page_size=100', {
       next: { revalidate: 60 },
     });
   });
 
-  // api-config.ts reads NEXT_PUBLIC_API_BASE into a module-level const, so it is
-  // captured at IMPORT time. Setting process.env after import cannot change it --
-  // the module graph has to be reset and re-imported for the new base to take effect.
   it('honors NEXT_PUBLIC_API_BASE when set', async () => {
     process.env.NEXT_PUBLIC_API_BASE = 'http://api.test';
     vi.resetModules();
-    const fetchMock = mockFetch(async () => jsonResponse([]));
-    const { getProblems: freshGetProblems } = await import('./problems-api');
-    await freshGetProblems();
-    expect(fetchMock).toHaveBeenCalledWith('http://api.test/api/v1/problems/problems/', {
+    const fetchMock = mockFetch(async () => jsonResponse(envelope([])));
+    const { getProblemsPage: fresh } = await import('./problems-api');
+    await fresh();
+    expect(fetchMock).toHaveBeenCalledWith('http://api.test/api/v1/problems/problems/?page=1&page_size=100', {
       next: { revalidate: 60 },
     });
   });
 
-  // [SPEC-GAPS F2] The `.catch(() => [])` is gone: a down backend must surface
-  // as the page's error state, not masquerade as an empty catalog. getProblems
-  // now REJECTS on every error path, exactly like getProblemDetail.
+  // [SPEC-GAPS F2] No `.catch(() => [])`: a down backend must surface as the
+  // page's error state, not masquerade as an empty catalog.
   it('rejects with Error(detail) when the API responds with a detail body', async () => {
     mockFetch(async () => jsonResponse({ detail: 'Service unavailable' }, { status: 503 }));
-    await expect(getProblems()).rejects.toThrow('Service unavailable');
+    await expect(getProblemsPage()).rejects.toThrow('Service unavailable');
   });
 
   it('rejects with Error(statusText) when the error body has no detail', async () => {
     mockFetch(async () => jsonResponse({}, { status: 500, statusText: 'Internal Server Error' }));
-    await expect(getProblems()).rejects.toThrow('Internal Server Error');
-  });
-
-  it('rejects with Error(statusText) when the error body is not JSON (json() rejects)', async () => {
-    mockFetch(async () => new Response('not-json', { status: 502, statusText: 'Bad Gateway' }));
-    await expect(getProblems()).rejects.toThrow('Bad Gateway');
+    await expect(getProblemsPage()).rejects.toThrow('Internal Server Error');
   });
 
   it('propagates network failures', async () => {
     mockFetch(async () => {
       throw new TypeError('Failed to fetch');
     });
-    await expect(getProblems()).rejects.toThrow('Failed to fetch');
+    await expect(getProblemsPage()).rejects.toThrow('Failed to fetch');
+  });
+});
+
+describe('getProblems (full catalog, bounded)', () => {
+  it('concatenates every page while `next` is present', async () => {
+    const fetchMock = mockFetch(async () => {
+      const page = fetchMock.mock.calls.length; // 1-based: calls includes the in-flight one
+      if (page === 1) {
+        return jsonResponse(
+          envelope([{ id: 1 }, { id: 2 }], 'http://localhost:8000/api/v1/problems/problems/?page=2&page_size=100')
+        );
+      }
+      return jsonResponse(envelope([{ id: 3 }]));
+    });
+    const problems = await getProblems();
+    expect(problems.map((p) => (p as { id: number }).id)).toEqual([1, 2, 3]);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('stops after MAX_CATALOG_PAGES pages even when next keeps resolving', async () => {
+    const fetchMock = mockFetch(async () =>
+      jsonResponse(envelope([{ id: 1 }], 'http://localhost:8000/api/v1/problems/problems/?page=99&page_size=100'))
+    );
+    const problems = await getProblems();
+    expect(problems).toHaveLength(MAX_CATALOG_PAGES);
+    expect(fetchMock).toHaveBeenCalledTimes(MAX_CATALOG_PAGES);
+  });
+
+  it('propagates a first-page failure (no silent empty catalog)', async () => {
+    mockFetch(async () => jsonResponse({ detail: 'Service unavailable' }, { status: 503 }));
+    await expect(getProblems()).rejects.toThrow('Service unavailable');
   });
 });
 

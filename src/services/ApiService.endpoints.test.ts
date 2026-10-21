@@ -5,7 +5,13 @@ import {
   SubmissionService,
   TestCaseService,
   AdminService,
+  LeaderboardService,
+  ForumService,
+  NotificationService,
+  collectAllPages,
+  collectAllCursorPages,
 } from './ApiService';
+import { cursorParamFromUrl } from '@/types/api';
 
 // Endpoint matrix for the service layer: every exported method's route,
 // HTTP verb and serialized body, plus the apiFetch branches not exercised by
@@ -87,8 +93,8 @@ describe('AuthService endpoints', () => {
 describe('ProblemService endpoints', () => {
   it('getProblems serializes every filter combination into the query string', async () => {
     fetchMock.mockImplementation(okJson([]));
-    await ProblemService.getProblems(); // no filters -> empty params
-    expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/problems/problems/?`);
+    await ProblemService.getProblems(); // no filters -> no query string
+    expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/problems/problems/`);
     fetchMock.mockClear();
     await ProblemService.getProblems({ status: 'PENDING' }); // status only
     expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/problems/problems/?status=PENDING`);
@@ -98,6 +104,10 @@ describe('ProblemService endpoints', () => {
     fetchMock.mockClear();
     await ProblemService.getProblems({ status: 'APPROVED', authorId: 'me' }); // both, string id
     expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/problems/problems/?status=APPROVED&authorId=me`);
+    fetchMock.mockClear();
+    // pagination params (SPEC-GAPS B4)
+    await ProblemService.getProblems({}, { page: 2, pageSize: 100 });
+    expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/problems/problems/?page=2&page_size=100`);
   });
 
   it('getProblemDetail GETs the detail route', async () => {
@@ -152,10 +162,13 @@ describe('ProblemService endpoints', () => {
     );
   });
 
-  it('getTags GETs /problems/tags/', async () => {
+  it('getTags GETs /problems/tags/ with pagination params', async () => {
     fetchMock.mockImplementation(okJson([]));
     await ProblemService.getTags();
     expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/problems/tags/`);
+    fetchMock.mockClear();
+    await ProblemService.getTags({ page: 3, pageSize: 50 });
+    expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/problems/tags/?page=3&page_size=50`);
   });
 });
 
@@ -172,7 +185,7 @@ describe('SubmissionService endpoints', () => {
   it('getSubmissions serializes problemId/userId filters', async () => {
     fetchMock.mockImplementation(okJson([]));
     await SubmissionService.getSubmissions();
-    expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/submissions/submissions/?`);
+    expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/submissions/submissions/`);
     fetchMock.mockClear();
     await SubmissionService.getSubmissions({ problemId: 2 });
     expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/submissions/submissions/?problemId=2`);
@@ -182,6 +195,10 @@ describe('SubmissionService endpoints', () => {
     fetchMock.mockClear();
     await SubmissionService.getSubmissions({ problemId: 2, userId: 8 });
     expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/submissions/submissions/?problemId=2&userId=8`);
+    fetchMock.mockClear();
+    // cursor pagination params (SPEC-GAPS B4)
+    await SubmissionService.getSubmissions({}, { cursor: 'cj0x', pageSize: 25 });
+    expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/submissions/submissions/?cursor=cj0x&page_size=25`);
   });
 
   it('getSubmissionDetail GETs the detail route', async () => {
@@ -232,6 +249,133 @@ describe('AdminService endpoints', () => {
     fetchMock.mockClear();
     await AdminService.getStats();
     expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/users/admin/stats/`);
+  });
+});
+
+describe('LeaderboardService endpoints', () => {
+  it('lists standings with page params and GETs the me card', async () => {
+    fetchMock.mockImplementation(okJson({ count: 0, next: null, previous: null, results: [] }));
+    await LeaderboardService.getLeaderboard();
+    expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/leaderboard/`);
+    fetchMock.mockClear();
+    await LeaderboardService.getLeaderboard({ page: 2, pageSize: 50 });
+    expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/leaderboard/?page=2&page_size=50`);
+    fetchMock.mockClear();
+    await LeaderboardService.getMyEntry();
+    expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/leaderboard/me/`);
+    expect(fetchMock.mock.calls[0][1]?.method).toBeUndefined(); // GET
+  });
+});
+
+describe('ForumService endpoints', () => {
+  it('lists threads with page/problem params', async () => {
+    fetchMock.mockImplementation(okJson({ count: 0, next: null, previous: null, results: [] }));
+    await ForumService.getThreads({ page: 2, pageSize: 20, problemId: 7 });
+    expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/forum/threads/?page=2&page_size=20&problem_id=7`);
+  });
+
+  it('retrieves and creates threads', async () => {
+    fetchMock.mockImplementation(okJson({}));
+    await ForumService.getThread(5);
+    expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/forum/threads/5/`);
+    fetchMock.mockClear();
+    await ForumService.createThread({ title: 'T', content: 'C', problem: 3 });
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${BASE}/forum/threads/`,
+      expect.objectContaining({ method: 'POST', body: JSON.stringify({ title: 'T', content: 'C', problem: 3 }) })
+    );
+  });
+
+  it('lists posts with cursor params and replies to a thread', async () => {
+    fetchMock.mockImplementation(okJson({ next: null, previous: null, results: [] }));
+    await ForumService.getPosts(9, { cursor: 'abc', pageSize: 25 });
+    expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/forum/threads/9/posts/?cursor=abc&page_size=25`);
+    fetchMock.mockClear();
+    await ForumService.createPost(9, { content: 'reply' });
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${BASE}/forum/threads/9/posts/`,
+      expect.objectContaining({ method: 'POST', body: JSON.stringify({ content: 'reply' }) })
+    );
+  });
+
+  it('votes, updates and reports posts', async () => {
+    fetchMock.mockImplementation(okJson({}));
+    await ForumService.votePost(11, 0);
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${BASE}/forum/posts/11/vote/`,
+      expect.objectContaining({ method: 'POST', body: JSON.stringify({ value: 0 }) })
+    );
+    fetchMock.mockClear();
+    await ForumService.updatePost(11, { content: 'edited' });
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${BASE}/forum/posts/11/`,
+      expect.objectContaining({ method: 'PATCH', body: JSON.stringify({ content: 'edited' }) })
+    );
+    fetchMock.mockClear();
+    await ForumService.reportPost(11, { reason: 'spam' });
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${BASE}/forum/reports/`,
+      expect.objectContaining({ method: 'POST', body: JSON.stringify({ post: 11, reason: 'spam' }) })
+    );
+  });
+});
+
+describe('NotificationService endpoints', () => {
+  it('lists with unread/cursor params, marks read, counts unread', async () => {
+    fetchMock.mockImplementation(okJson({ next: null, previous: null, results: [] }));
+    await NotificationService.getNotifications({ unreadOnly: true, pageSize: 25 });
+    expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/notifications/?unread=true&page_size=25`);
+    fetchMock.mockClear();
+    await NotificationService.getNotifications({ cursor: 'cur' });
+    expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/notifications/?cursor=cur`);
+    fetchMock.mockClear();
+    await NotificationService.markRead(4);
+    expect(fetchMock).toHaveBeenCalledWith(`${BASE}/notifications/4/mark-read/`, expect.objectContaining({ method: 'POST' }));
+    fetchMock.mockClear();
+    await NotificationService.markAllRead();
+    expect(fetchMock).toHaveBeenCalledWith(`${BASE}/notifications/mark-all-read/`, expect.objectContaining({ method: 'POST' }));
+    fetchMock.mockClear();
+    await NotificationService.getUnreadCount();
+    expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/notifications/unread-count/`);
+  });
+});
+
+describe('pagination helpers', () => {
+  it('collectAllPages follows next links and stops when exhausted', async () => {
+    const pages = [
+      { count: 3, next: `${BASE}/x/?page=2`, previous: null, results: [1, 2] },
+      { count: 3, next: null, previous: null, results: [3] },
+    ];
+    const fetchPage = vi.fn(async (page: number) => pages[page - 1]);
+    const out = await collectAllPages(fetchPage);
+    expect(out).toEqual([1, 2, 3]);
+    expect(fetchPage).toHaveBeenCalledTimes(2);
+  });
+
+  it('collectAllPages stops at the COLLECT_ALL_MAX_PAGES ceiling', async () => {
+    // next never resolves to null -> the loop must stop at 50 pages.
+    const fetchPage = vi.fn(async () => ({ count: 1, next: 'http://x/?page=2', previous: null, results: [1] }));
+    const out = await collectAllPages(fetchPage);
+    expect(out).toHaveLength(50);
+    expect(fetchPage).toHaveBeenCalledTimes(50);
+  });
+
+  it('collectAllCursorPages extracts the cursor from absolute next URLs', async () => {
+    const pages = [
+      { next: `${BASE}/submissions/submissions/?cursor=cj0x`, previous: null, results: ['a'] },
+      { next: null, previous: null, results: ['b'] },
+    ];
+    const fetchPage = vi.fn(async (cursor: string | null) => (cursor === null ? pages[0] : pages[1]));
+    const out = await collectAllCursorPages(fetchPage);
+    expect(out).toEqual(['a', 'b']);
+    expect(fetchPage).toHaveBeenNthCalledWith(1, null);
+    expect(fetchPage).toHaveBeenNthCalledWith(2, 'cj0x');
+  });
+
+  it('cursorParamFromUrl returns null for missing or malformed URLs', () => {
+    expect(cursorParamFromUrl(null)).toBeNull();
+    expect(cursorParamFromUrl(undefined)).toBeNull();
+    expect(cursorParamFromUrl('not-a-url')).toBeNull();
   });
 });
 

@@ -24,9 +24,18 @@ vi.mock('react-hot-toast', () => ({
   default: { success: vi.fn(), error: vi.fn() },
 }));
 
-vi.mock('@/services/ApiService', () => ({
-  AdminService: { getUsers: vi.fn(), updateUser: vi.fn(), getStats: vi.fn() },
-}));
+vi.mock('@/services/ApiService', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/services/ApiService')>();
+  return {
+    ...actual,
+    // single-page passthrough — the tests provide one page of envelope data
+    collectAllPages: async (fetchPage: (page: number) => Promise<{ results: unknown[] }>) => {
+      const response = await fetchPage(1);
+      return response.results;
+    },
+    AdminService: { getUsers: vi.fn(), updateUser: vi.fn(), getStats: vi.fn() },
+  };
+});
 
 vi.mock('@/context/AuthContext', () => ({ useAuth: vi.fn() }));
 
@@ -70,7 +79,7 @@ describe('AdminDashboardPage (/admin/dashboard)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useAuth).mockReturnValue(authed());
-    vi.mocked(AdminService.getUsers).mockResolvedValue([me, other]);
+    vi.mocked(AdminService.getUsers).mockResolvedValue({ count: 2, next: null, previous: null, results: [me, other] });
     vi.mocked(AdminService.getStats).mockResolvedValue({ user_count: 42, problem_count: 7, submission_count: 100 });
     vi.mocked(AdminService.updateUser).mockResolvedValue({});
   });

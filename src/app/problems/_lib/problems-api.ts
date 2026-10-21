@@ -5,8 +5,16 @@
 //
 // `next: { revalidate: 60 }` caches responses for ISR-style freshness on the
 // SEO-critical catalog routes.
+//
+// Pagination note (frontend wiring wave, backend SPEC-GAPS B4): list
+// endpoints now return the DRF envelope {count, next, previous, results}
+// instead of a bare array. getProblemsPage() exposes that envelope for the
+// catalog's paged loading; getProblems() follows `next` links (bounded by
+// MAX_CATALOG_PAGES) for the callers that legitimately want the whole
+// catalog (sitemap, problem-detail prev/next pager).
 
 import { ProblemType } from '@/types';
+import { PaginatedResponse } from '@/types/api';
 import { apiUrl } from '@/lib/api-config';
 
 async function fetchJson<T>(path: string): Promise<T> {
@@ -18,14 +26,34 @@ async function fetchJson<T>(path: string): Promise<T> {
   return (await response.json()) as T;
 }
 
+/** Server-side fetch cap for full-catalog consumers: 5 x 100 = 500 problems. */
+export const MAX_CATALOG_PAGES = 5;
+const CATALOG_PAGE_SIZE = 100;
+
 /**
- * Public problem list (server-side; anonymous users only see APPROVED).
- * [SPEC-GAPS F2] No `.catch(() => [])`: a down backend must surface as the
- * page's error state, not masquerade as an empty catalog. Callers wrap in
- * try/catch (problems/page.tsx) or the route error boundary fires.
+ * One page of the public problem catalog (server-side; anonymous users only
+ * see APPROVED). [SPEC-GAPS F2] No `.catch(() => [])`: a down backend must
+ * surface as the page's error state, not masquerade as an empty catalog.
  */
-export function getProblems(): Promise<ProblemType[]> {
-  return fetchJson<ProblemType[]>('/problems/problems/');
+export function getProblemsPage(page = 1): Promise<PaginatedResponse<ProblemType>> {
+  return fetchJson<PaginatedResponse<ProblemType>>(
+    `/problems/problems/?page=${page}&page_size=${CATALOG_PAGE_SIZE}`
+  );
+}
+
+/**
+ * Full catalog (sitemap + problem-detail prev/next neighbors): follows the
+ * envelope's `next` links up to MAX_CATALOG_PAGES pages. Bounded on purpose
+ * — an unbounded follow could loop a hostile next-chain forever.
+ */
+export async function getProblems(): Promise<ProblemType[]> {
+  const out: ProblemType[] = [];
+  for (let page = 1; page <= MAX_CATALOG_PAGES; page += 1) {
+    const response = await getProblemsPage(page);
+    out.push(...response.results);
+    if (!response.next) break;
+  }
+  return out;
 }
 
 /**
