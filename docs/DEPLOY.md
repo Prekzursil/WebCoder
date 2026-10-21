@@ -4,7 +4,7 @@ The product is merged to `main` (merge commit `165459fb`, CRA removal `7189d57d`
 Two supported paths; pick ONE. Neither is executed yet — this is the runbook.
 
 ## Path A — Vercel (frontend) + any Django host
-1. `cd frontend/web && vercel login` (owner action — agents never create accounts/tokens)
+1. From the repo root (Next.js app lives here since the #167 restructure): `vercel login` (owner action — agents never create accounts/tokens)
 2. `vercel link` → set project env `NEXT_PUBLIC_API_BASE=https://<your-django-origin>`
 3. `vercel deploy --prod` → URL
 Backend must be publicly reachable with CORS for the Vercel origin
@@ -14,7 +14,7 @@ Backend must be publicly reachable with CORS for the Vercel origin
 ```
 cp backend/.env.example backend/.env   # fill SECRET_KEY, DB_PASSWORD (+ optionally JUDGE_BACKEND=container)
 docker compose up -d                   # postgres + redis + backend + judge-runner
-cd frontend/web && NEXT_PUBLIC_API_BASE=http://<host>:8000 npm run build && npm start
+NEXT_PUBLIC_API_BASE=http://<host>:8000 npm run build && npm start   # from the repo root (Next.js app since #167)
 ```
 Notes:
 - `JUDGE_BACKEND=container` routes judged code through the sandboxed judge-runner
