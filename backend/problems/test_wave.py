@@ -420,8 +420,12 @@ class ProblemVisibilityTests(DjangoTestCase):
         self.pending = make_problem(author=self.creator, status=Problem.ProblemStatus.PENDING_APPROVAL)
         self.private = make_problem(author=self.creator, status=Problem.ProblemStatus.PRIVATE)
 
+    def rows(self, response):
+        data = response.data
+        return data["results"] if isinstance(data, dict) else data
+
     def ids(self, response):
-        return {row["id"] for row in response.data}
+        return {row["id"] for row in self.rows(response)}
 
     def test_anonymous_sees_only_approved(self):
         response = self.client.get(reverse(PROBLEM_LIST))
@@ -453,13 +457,13 @@ class ProblemVisibilityTests(DjangoTestCase):
         admin = make_user("vis-admin", role=User.Roles.ADMIN)
         self.client.force_authenticate(admin)
         response = self.client.get(reverse(PROBLEM_LIST))
-        self.assertEqual(len(response.data), 4)
+        self.assertEqual(len(self.rows(response)), 4)
 
     def test_verifier_role_sees_everything(self):
         verifier = make_user("vis-verifier", role=User.Roles.PROBLEM_VERIFIER)
         self.client.force_authenticate(verifier)
         response = self.client.get(reverse(PROBLEM_LIST))
-        self.assertEqual(len(response.data), 4)
+        self.assertEqual(len(self.rows(response)), 4)
 
     def test_anonymous_retrieve_approved_uses_detail_serializer(self):
         make_testcase(self.approved, is_sample=True)
@@ -709,6 +713,10 @@ class TestCaseViewSetAPITests(DjangoTestCase):
     """Cover TestCaseViewSet get_queryset / perform_create / perform_update /
     perform_destroy branches (views.py:108-145)."""
 
+    def rows(self, response):
+        data = response.data
+        return data["results"] if isinstance(data, dict) else data
+
     def setUp(self):
         self.client = APIClient()
         self.author = make_user("tcv-author", role=User.Roles.PROBLEM_CREATOR)
@@ -735,7 +743,7 @@ class TestCaseViewSetAPITests(DjangoTestCase):
         self.client.force_authenticate(self.basic)
         response = self.client.get(reverse(TESTCASE_LIST))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(self.rows(response)), 2)
 
     def test_list_with_problem_id_param_filters(self):
         make_testcase(self.other_problem, order=0)
@@ -743,7 +751,7 @@ class TestCaseViewSetAPITests(DjangoTestCase):
         response = self.client.get(reverse(TESTCASE_LIST), {"problem_id": self.problem.id})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            {row["id"] for row in response.data}, {self.tc_sample.id, self.tc_hidden.id}
+            {row["id"] for row in self.rows(response)}, {self.tc_sample.id, self.tc_hidden.id}
         )
 
     def test_detail_hides_non_sample_output_for_basic_user(self):

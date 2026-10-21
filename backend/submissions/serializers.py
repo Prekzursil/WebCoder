@@ -73,6 +73,25 @@ class SubmissionSerializer(serializers.ModelSerializer):
         # This is usually handled automatically by DRF if 'test_results' is in fields.
         return representation
 
+
+class SubmissionListSerializer(SubmissionSerializer):
+    """Slim serializer for the LIST action (SPEC-GAPS D-B4 item 5).
+
+    Omits ``code`` and ``test_results`` so list fetches (e.g. /my-submissions)
+    stop pulling every submission's full source code + per-test rows. The
+    list shape stays a strict subset of the retrieve shape (same field names).
+    """
+
+    test_results = None  # type: ignore[assignment]  # drop the nested rows
+
+    class Meta(SubmissionSerializer.Meta):
+        fields = [
+            f
+            for f in SubmissionSerializer.Meta.fields
+            if f not in ("code", "test_results")
+        ]
+
+
 class SubmissionCreateSerializer(serializers.ModelSerializer):
     problem = serializers.PrimaryKeyRelatedField(queryset=Problem.objects.all())
 

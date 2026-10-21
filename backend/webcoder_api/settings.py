@@ -235,7 +235,13 @@ REST_FRAMEWORK = {
     # 'DEFAULT_PERMISSION_CLASSES': [
     #     'rest_framework.permissions.IsAuthenticated', # Default to require authentication
     # ],
-    # You can add other DRF settings here, like pagination, renderers, parsers etc.
+    # Pagination (SPEC-GAPS D-B4): every router-registered list endpoint
+    # (problems/, tags/, testcases/, submissions/, users/, users/admin/manage/)
+    # returns {count, next, previous, results} instead of an unbounded array.
+    # Newest-first feeds (submissions, later notifications/forum posts)
+    # override to cursor pagination in their viewsets.
+    "DEFAULT_PAGINATION_CLASS": "webcoder_api.pagination.StandardPageNumberPagination",
+    "PAGE_SIZE": 20,
 }
 
 # Simple JWT settings (optional, for customization)
