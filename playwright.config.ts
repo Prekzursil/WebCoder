@@ -8,9 +8,10 @@
 // server is started with NEXT_PUBLIC_API_BASE=http://localhost:8901 so BOTH
 // server-component fetches and browser fetches hit the mock.
 //
-// Browser: channel 'chrome' uses the installed Google Chrome — no browser
-// download needed (host RAM is tight; cached ms-playwright builds did not
-// match playwright 1.63).
+// Browser: bundled chromium by default (CI installs it via
+// `npx playwright install chromium`). On hosts without a matching
+// browser build, set PLAYWRIGHT_CHROME_CHANNEL=chrome to use the
+// installed Google Chrome instead.
 
 import { defineConfig, devices } from '@playwright/test';
 
@@ -36,7 +37,10 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'], channel: 'chrome' },
+      use: {
+        ...devices?.['Desktop Chrome'],
+        channel: process.env.PLAYWRIGHT_CHROME_CHANNEL || undefined,
+      },
     },
   ],
   webServer: [

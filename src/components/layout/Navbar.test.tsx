@@ -38,8 +38,8 @@ function setAuth(authenticated: boolean, user: User | null = null) {
   mocks.auth.token = authenticated ? 'tok' : null;
 }
 
-const ACTIVE_COLOR = 'rgb(0, 98, 204)'; // #0062cc
-const INACTIVE_COLOR = 'rgb(51, 51, 51)'; // #333
+const ACTIVE_COLOR = 'rgb(56, 189, 248)'; // #38bdf8 (accent)
+const INACTIVE_COLOR = 'rgba(255, 255, 255, 0.7)'; // muted on dark
 
 beforeEach(async () => {
   vi.clearAllMocks();
@@ -64,7 +64,7 @@ describe('Navbar link matrix by role', () => {
     expect(screen.queryByRole('link', { name: 'Verification Queue' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Admin Dashboard' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Logout' })).not.toBeInTheDocument();
-    expect(screen.queryByText(/Welcome,/)).not.toBeInTheDocument();
+    expect(screen.queryByText('tester')).not.toBeInTheDocument();
   });
 
   it('shows the BASIC_USER session links but no privileged links', () => {
@@ -76,14 +76,14 @@ describe('Navbar link matrix by role', () => {
     expect(screen.queryByRole('link', { name: 'My Problems' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Verification Queue' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Admin Dashboard' })).not.toBeInTheDocument();
-    expect(screen.getByText('Welcome, tester!')).toBeInTheDocument();
+    expect(screen.getByText('tester')).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Login' })).not.toBeInTheDocument();
   });
 
   it('falls back to "User" in the welcome when authenticated without a user object', () => {
     setAuth(true, null);
     render(<Navbar />);
-    expect(screen.getByText('Welcome, User!')).toBeInTheDocument();
+    expect(screen.getByText('User')).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Create Problem' })).not.toBeInTheDocument();
   });
 
@@ -125,8 +125,8 @@ describe('active link styling', () => {
     // 700 in computed style, which toHaveStyle({ fontWeight: 'bold' }) rejects.
     const homeLink = screen.getByRole('link', { name: 'Home' }) as HTMLElement;
     const problemsLink = screen.getByRole('link', { name: 'Problems' }) as HTMLElement;
-    expect(homeLink.style.fontWeight).toBe('bold');
-    expect(problemsLink.style.fontWeight).toBe('normal');
+    expect(homeLink.style.fontWeight).toBe('600');
+    expect(problemsLink.style.fontWeight).toBe('400');
   });
 
   it('marks Problems active on the exact /problems path', () => {
@@ -162,10 +162,10 @@ describe('session actions', () => {
   it('switches language via the EN/RO buttons', async () => {
     setAuth(false, null);
     render(<Navbar />);
-    fireEvent.click(screen.getByRole('button', { name: 'RO' }));
+    fireEvent.click(screen.getByRole('button', { name: 'ro' }));
     await waitFor(() => expect(i18n.language).toBe('ro'));
     expect(screen.getByRole('link', { name: 'Acasă' })).toBeInTheDocument(); // nav_home in ro
-    fireEvent.click(screen.getByRole('button', { name: 'EN' }));
+    fireEvent.click(screen.getByRole('button', { name: 'en' }));
     await waitFor(() => expect(i18n.language).toBe('en'));
     expect(screen.getByRole('link', { name: 'Home' })).toBeInTheDocument();
   });

@@ -234,17 +234,17 @@ export default function ProblemFormPage() {
   const sectionStyle: React.CSSProperties = {
     marginBottom: '25px',
     paddingBottom: '15px',
-    borderBottom: '1px solid #eee',
+    borderBottom: '1px solid var(--border)',
   };
   const fieldStyle: React.CSSProperties = { marginBottom: '10px' };
-  const labelStyle: React.CSSProperties = { display: 'block', marginBottom: '3px', fontWeight: 'bold' };
-  const inputStyle: React.CSSProperties = { width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ccc' };
+  const labelStyle: React.CSSProperties = { display: 'block', marginBottom: '3px', fontWeight: 'bold', color: 'var(--foreground)' };
+  const inputStyle: React.CSSProperties = { width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--foreground)' };
   const textAreaStyle: React.CSSProperties = { ...inputStyle, minHeight: '100px' };
   const checkboxLabelStyle: React.CSSProperties = { marginLeft: '5px', fontWeight: 'normal' };
   const checkboxContainerStyle: React.CSSProperties = { marginRight: '15px', display: 'inline-block' };
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
+    <div className="page-container" style={{ maxWidth: '800px' }}>
       <h2>{isEditMode ? t('edit_problem_header', 'Edit Problem') : t('create_problem_header', 'Create New Problem')}</h2>
       <SubmissionStatusDisplay status={formMessage} error={formError} />
 
@@ -284,29 +284,25 @@ export default function ProblemFormPage() {
         <div style={sectionStyle}>
           <h3>{t('problem_form_test_cases_header', 'Test Cases')}</h3>
           {testCases.map((tc: TestCaseUIManaged, index: number) => (
-            // Every TestCaseUIManaged entering state carries local_id
-            // (prefill, edit-mode create, and local add all set it), so the
-            // CRA `local_id || id || index` key fallbacks were dead and are
-            // dropped.
-            <div key={tc.local_id} style={{ border: '1px solid #eee', padding: '10px', marginBottom: '10px', backgroundColor: tc.is_sample ? '#f0f8ff' : 'transparent' }}>
+            <div key={tc.local_id} className="card" style={{ marginBottom: '10px', background: tc.is_sample ? 'rgba(56,189,248,0.06)' : 'var(--surface)' }}>
               <h4>{t('test_case_label', 'Test Case')} {index + 1} {tc.is_sample && `(${t('sample_label', 'Sample')})`}</h4>
               <p><strong>{t('points_label', 'Points')}:</strong> {tc.points}</p>
-              <div><label style={labelStyle}>{t('test_case_input_label', 'Input')}:</label><pre style={{ backgroundColor: '#f9f9f9', padding: '5px', whiteSpace: 'pre-wrap', border: '1px solid #ddd' }}>{tc.input_data}</pre></div>
-              <div><label style={labelStyle}>{t('test_case_output_label', 'Output')}:</label><pre style={{ backgroundColor: '#f9f9f9', padding: '5px', whiteSpace: 'pre-wrap', border: '1px solid #ddd' }}>{tc.expected_output_data}</pre></div>
-              <button type="button" onClick={() => handleRemoveTestCase(tc)} style={{ marginTop: '5px', padding: '5px 10px' }}>{t('remove_test_case_button', 'Remove')}</button>
+              <div><label style={labelStyle}>{t('test_case_input_label', 'Input')}:</label><pre style={{ background: 'var(--surface-2)', padding: '5px', whiteSpace: 'pre-wrap', border: '1px solid var(--border)', borderRadius: '6px' }}>{tc.input_data}</pre></div>
+              <div><label style={labelStyle}>{t('test_case_output_label', 'Output')}:</label><pre style={{ background: 'var(--surface-2)', padding: '5px', whiteSpace: 'pre-wrap', border: '1px solid var(--border)', borderRadius: '6px' }}>{tc.expected_output_data}</pre></div>
+              <button type="button" onClick={() => handleRemoveTestCase(tc)} style={{ marginTop: '5px', padding: '5px 10px', background: 'rgba(248,113,113,0.15)', color: 'var(--danger)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '6px', cursor: 'pointer' }}>{t('remove_test_case_button', 'Remove')}</button>
             </div>
           ))}
-          <div style={{ marginTop: '15px', border: '1px dashed #ccc', padding: '15px' }}>
+          <div style={{ marginTop: '15px', border: '1px dashed var(--border)', padding: '15px', borderRadius: '8px' }}>
             <h4>{t('add_new_test_case_header', 'Add New Test Case')}</h4>
             <div style={fieldStyle}><label htmlFor="new_tc_input" style={labelStyle}>{t('input_data_label', 'Input Data')}:</label><textarea id="new_tc_input" value={newTestCaseInput} onChange={(e) => setNewTestCaseInput(e.target.value)} rows={3} style={textAreaStyle} /></div>
             <div style={fieldStyle}><label htmlFor="new_tc_output" style={labelStyle}>{t('expected_output_label', 'Expected Output Data')}:</label><textarea id="new_tc_output" value={newTestCaseOutput} onChange={(e) => setNewTestCaseOutput(e.target.value)} rows={3} style={textAreaStyle} /></div>
             <div style={fieldStyle}><label htmlFor="new_tc_points" style={labelStyle}>{t('points_label', 'Points')}:</label><input type="number" id="new_tc_points" value={newTestCasePoints} onChange={(e) => setNewTestCasePoints(parseInt(e.target.value, 10) || 0)} style={inputStyle} /></div>
             <div style={fieldStyle}><label htmlFor="new_tc_is_sample" style={labelStyle}>{t('is_sample_label', 'Is Sample?')}:</label><input type="checkbox" id="new_tc_is_sample" checked={newTestCaseIsSample} onChange={(e) => setNewTestCaseIsSample(e.target.checked)} style={{ marginLeft: '5px' }} /></div>
-            <button type="button" onClick={handleAddTestCase} style={{ marginTop: '10px', padding: '8px 15px' }}>{t('add_test_case_button', 'Add Test Case')}</button>
+            <button type="button" onClick={handleAddTestCase} style={{ marginTop: '10px', padding: '8px 15px', background: 'rgba(56,189,248,0.15)', color: 'var(--accent)', border: '1px solid rgba(56,189,248,0.3)', borderRadius: '6px', cursor: 'pointer' }}>{t('add_test_case_button', 'Add Test Case')}</button>
           </div>
         </div>
 
-        <button type="submit" disabled={isSubmitting} style={{ marginTop: '20px', padding: '10px 20px', fontSize: '1.1em' }}>{isEditMode ? t('save_changes_button', 'Save Changes') : t('create_problem_button', 'Create Problem')}</button>
+        <button type="submit" disabled={isSubmitting} style={{ marginTop: '20px', padding: '10px 20px', fontSize: '1.1em', background: 'var(--accent)', color: '#0f172a', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.7 : 1 }}>{isEditMode ? t('save_changes_button', 'Save Changes') : t('create_problem_button', 'Create Problem')}</button>
       </form>
     </div>
   );

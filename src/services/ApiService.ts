@@ -1,7 +1,8 @@
 // Ported from frontend/webcoder_ui/src/services/ApiService.ts (CRA reference).
-// Next.js adaptation: the API base URL comes from NEXT_PUBLIC_API_BASE
-// (default http://localhost:8000). The /api/v1 prefix is preserved from the
-// reference — every endpoint path below is relative to it.
+// Next.js adaptation: the API base URL comes from the centralized
+// src/lib/api-config.ts module (which reads NEXT_PUBLIC_API_BASE).
+// The /api/v1 prefix is preserved from the reference — every endpoint path
+// below is relative to it.
 //
 // NEW (not in the CRA reference): apiFetch wraps every request with a
 // refresh-token flow — on a 401 it POSTs the simplejwt refresh endpoint
@@ -22,8 +23,9 @@ import {
   UpdateProblemResponse,
 } from '@/types/api';
 import { TestCaseType, User } from '@/types';
+import { API_V1_URL } from '@/lib/api-config';
 
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:8000'}/api/v1`;
+const API_BASE_URL = API_V1_URL;
 
 // simplejwt refresh endpoint (backend/webcoder_api/urls.py: api/v1/token/refresh/).
 const REFRESH_ENDPOINT = '/token/refresh/';
@@ -76,13 +78,7 @@ const refreshAccessToken = (): Promise<boolean> => {
       }
     })();
     refreshInFlight = attempt;
-    // Free the slot once the attempt settles. The reset must live OUTSIDE the
-    // async body: on the no-refresh-token path the body completes
-    // synchronously, so an in-body `finally` would clear the slot BEFORE the
-    // `refreshInFlight = attempt` assignment lands — that assignment would
-    // then pin the settled promise in the slot forever, silently disabling
-    // all future refreshes. The identity guard keeps a concurrent newer
-    // attempt from being clobbered.
+    // Free the slot once the attempt settles.
     const clear = () => {
       if (refreshInFlight === attempt) {
         refreshInFlight = null;
@@ -113,15 +109,10 @@ const apiFetch = async <T>(url: string, options: RequestInit = {}): Promise<T> =
   let response = await authenticatedFetch(url, options);
 
   if (response.status === 401) {
-    // One refresh attempt, then exactly one retry of the ORIGINAL request.
-    // The retried response is never fed back into this branch, so a 401 on
-    // the retry surfaces as a normal error — no retry loop is possible.
     const refreshed = await refreshAccessToken();
     if (refreshed) {
       response = await authenticatedFetch(url, options);
     } else {
-      // Refresh failed (expired/blacklisted refresh token, network error, or
-      // none stored): the session is dead — let AuthContext log the user out.
       unauthorizedHandler?.();
     }
   }
@@ -167,10 +158,11 @@ export const ProblemService = {
 
 export const SubmissionService = {
     createSubmission: (submissionData: Record<string, unknown>) => apiFetch<CreateSubmissionResponse>('/submissions/submit/', { method: 'POST', body: JSON.stringify(submissionData) }),
-    getSubmissions: (filters: { problemId?: number, userId?: number } = {}) => {
+    getSubmissions: (filters: { problemId?: number, userId?: number, language?: string } = {}) => {
         const params = new URLSearchParams();
         if (filters.problemId !== undefined) params.set('problemId', String(filters.problemId));
         if (filters.userId !== undefined) params.set('userId', String(filters.userId));
+        if (filters.language !== undefined) params.set('language', filters.language);
         return apiFetch<GetSubmissionsResponse>(`/submissions/submissions/?${params.toString()}`);
     },
     getSubmissionDetail: (id: number | string) => apiFetch<GetSubmissionDetailResponse>(`/submissions/submissions/${id}/`),

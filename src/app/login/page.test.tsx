@@ -193,10 +193,13 @@ describe('LoginPage', () => {
     unmount();
   });
 
-  it('builds social-login URLs from NEXT_PUBLIC_API_BASE when set', () => {
+  it('builds social-login URLs from NEXT_PUBLIC_API_BASE when set', async () => {
     vi.stubEnv('NEXT_PUBLIC_API_BASE', 'https://api.webcoder.example');
-    renderLogin();
-
+    // API_BASE_URL is a module-level const in api-config.ts, captured at import
+    // time, so vi.stubEnv alone cannot change it. Reset the graph and re-import.
+    vi.resetModules();
+    const { default: FreshLoginPage } = await import('./page');
+    render(<FreshLoginPage />);
     expect(screen.getByRole('link', { name: 'Google' })).toHaveAttribute(
       'href',
       'https://api.webcoder.example/accounts/google/login/'

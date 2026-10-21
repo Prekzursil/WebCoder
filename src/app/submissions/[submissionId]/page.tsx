@@ -9,9 +9,6 @@ import { useAuth } from '@/context/AuthContext';
 import { DetailedSubmissionType, SubmissionTestResultType } from '@/types';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-// The style must be imported from the dist/cjs path, NOT dist/esm — the cjs
-// build is the one that resolves cleanly under the Next/jest-style module
-// transformers used by this workspace (task brief; PORT-MAP §6.11).
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 
 // Ported from frontend/webcoder_ui/src/pages/submissions/SubmissionDetailPage.tsx
@@ -90,14 +87,14 @@ function SubmissionDetailPage() {
   }, [isPolling, submissionId, auth.token, t]);
 
   if (loading && !submission) return <LoadingSpinner />;
-  if (error && !submission) return <p style={{ color: 'red' }}>{error}</p>;
+  if (error && !submission) return <p style={{ color: 'var(--danger)' }}>{error}</p>;
   if (!submission) return <p>{t('submission_not_found', 'Submission not found.')}</p>;
 
   const problemTitle =
     submission.problem.title_i18n[i18n.language] || submission.problem.title_i18n.en || `ID: ${submission.problem.id}`;
 
   const renderTestResult = (result: SubmissionTestResultType) => (
-    <div key={result.id} style={{ border: '1px solid #ddd', padding: '10px', marginBottom: '10px', borderRadius: '4px' }}>
+    <div key={result.id} className="card" style={{ marginBottom: '10px' }}>
       <h4>
         {t('test_case_label', 'Test Case')} #{result.test_case_details?.order ?? result.test_case_details?.id}
         {result.test_case_details?.is_sample && ` (${t('sample_label', 'Sample')})`}
@@ -124,12 +121,13 @@ function SubmissionDetailPage() {
           </p>
           <pre
             style={{
-              backgroundColor: '#f0f0f0',
+              background: 'var(--surface-2)',
               padding: '5px',
               maxHeight: '100px',
               overflowY: 'auto',
               whiteSpace: 'pre-wrap',
               wordWrap: 'break-word',
+              borderRadius: '6px',
             }}
           >
             {result.actual_output.substring(0, 200)}
@@ -144,12 +142,13 @@ function SubmissionDetailPage() {
           </p>
           <pre
             style={{
-              backgroundColor: '#f0f0f0',
+              background: 'var(--surface-2)',
               padding: '5px',
               maxHeight: '100px',
               overflowY: 'auto',
               whiteSpace: 'pre-wrap',
               wordWrap: 'break-word',
+              borderRadius: '6px',
             }}
           >
             {result.error_output.substring(0, 200)}
@@ -161,53 +160,55 @@ function SubmissionDetailPage() {
   );
 
   return (
-    <div>
+    <div className="page-container">
       <h2>
         {t('submission_detail_header', 'Submission Detail')} #{submission.id}
         {isPolling &&
           submission &&
           (submission.verdict === 'PENDING' || submission.verdict === 'COMPILING' || submission.verdict === 'RUNNING') && (
-            <span style={{ fontSize: '0.8em', marginLeft: '10px' }}>({t('polling_status', 'Polling for updates...')})</span>
+            <span style={{ fontSize: '0.8em', marginLeft: '10px', color: 'var(--muted)' }}>({t('polling_status', 'Polling for updates...')})</span>
           )}
       </h2>
       {error && (
-        <p style={{ color: 'orange', fontStyle: 'italic' }}>Note: {error}</p>
+        <p style={{ color: 'var(--accent)', fontStyle: 'italic' }}>Note: {error}</p>
       )}
-      <p>
-        <strong>{t('problem_label', 'Problem')}:</strong>{' '}
-        <Link href={`/problems/${submission.problem.id}`}>{problemTitle}</Link>
-      </p>
-      {submission.user && (
+      <div className="card" style={{ marginBottom: '1.5rem' }}>
         <p>
-          <strong>{t('user_label', 'User')}:</strong> {submission.user.username}
+          <strong>{t('problem_label', 'Problem')}:</strong>{' '}
+          <Link href={`/problems/${submission.problem.id}`}>{problemTitle}</Link>
         </p>
-      )}
-      <p>
-        <strong>{t('language_label', 'Language')}:</strong> {submission.language}
-      </p>
-      <p>
-        <strong>{t('verdict_label', 'Verdict')}:</strong> {t(`verdict_${submission.verdict}`, submission.verdict)}
-      </p>
-      <p>
-        <strong>{t('score_label', 'Score')}:</strong> {submission.score ?? '-'}
-      </p>
-      <p>
-        <strong>{t('submission_time_label', 'Submission Time')}:</strong>{' '}
-        {new Date(submission.submission_time).toLocaleString(i18n.language)}
-      </p>
-      {submission.execution_time_ms !== null && (
+        {submission.user && (
+          <p>
+            <strong>{t('user_label', 'User')}:</strong> {submission.user.username}
+          </p>
+        )}
         <p>
-          <strong>{t('execution_time_label', 'Execution Time (Overall)')}:</strong> {submission.execution_time_ms} ms
+          <strong>{t('language_label', 'Language')}:</strong> {submission.language}
         </p>
-      )}
-      {submission.memory_used_kb !== null && (
         <p>
-          <strong>{t('memory_used_label', 'Memory Used (Overall)')}:</strong> {submission.memory_used_kb} KB
+          <strong>{t('verdict_label', 'Verdict')}:</strong> {t(`verdict_${submission.verdict}`, submission.verdict)}
         </p>
-      )}
+        <p>
+          <strong>{t('score_label', 'Score')}:</strong> {submission.score ?? '-'}
+        </p>
+        <p>
+          <strong>{t('submission_time_label', 'Submission Time')}:</strong>{' '}
+          {new Date(submission.submission_time).toLocaleString(i18n.language)}
+        </p>
+        {submission.execution_time_ms !== null && (
+          <p>
+            <strong>{t('execution_time_label', 'Execution Time (Overall)')}:</strong> {submission.execution_time_ms} ms
+          </p>
+        )}
+        {submission.memory_used_kb !== null && (
+          <p>
+            <strong>{t('memory_used_label', 'Memory Used (Overall)')}:</strong> {submission.memory_used_kb} KB
+          </p>
+        )}
+      </div>
 
       <h3>{t('submitted_code_header', 'Submitted Code')}</h3>
-      <div style={{ fontSize: '0.9em', maxWidth: '100%', overflowX: 'auto' }}>
+      <div style={{ fontSize: '0.9em', maxWidth: '100%', overflowX: 'auto', marginBottom: '1.5rem' }}>
         <SyntaxHighlighter language={getSyntaxHighlighterLanguage(submission.language)} style={vscDarkPlus} showLineNumbers>
           {submission.code}
         </SyntaxHighlighter>
@@ -225,11 +226,12 @@ function SubmissionDetailPage() {
           <h3>{t('judge_feedback_header', "Judge's Summary")}</h3>
           <pre
             style={{
-              backgroundColor: '#eee',
+              background: 'var(--surface)',
               padding: '10px',
-              border: '1px solid #ccc',
+              border: '1px solid var(--border)',
               whiteSpace: 'pre-wrap',
               wordWrap: 'break-word',
+              borderRadius: '8px',
             }}
           >
             {submission.detailed_feedback}

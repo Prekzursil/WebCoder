@@ -52,9 +52,13 @@ describe('ProblemsListPage (route "/problems")', () => {
     expect(screen.getByRole('link', { name: 'N-Queens' }).getAttribute('href')).toBe('/problems/2');
 
     // Difficulty/status labels have no dictionary entries — raw values, same as CRA.
-    const items = screen.getAllByRole('listitem');
-    expect(items[0].textContent).toBe('Two Sum - EASY (APPROVED)');
-    expect(items[1].textContent).toBe('N-Queens - HARD (PENDING_APPROVAL)');
+    // ProblemsListClient renders a <table>; row 0 is the header row.
+    const items = screen.getAllByRole('row').slice(1);
+    expect(items[0].textContent).toContain('Two Sum');
+    expect(items[0].textContent).toContain('EASY');
+    expect(items[0].textContent).toContain('APPROVED');
+    expect(items[1].textContent).toContain('N-Queens');
+    expect(items[1].textContent).toContain('HARD');
   });
 
   it('resolves titles through the ro -> en -> "Problem ID: n" fallback chain', async () => {
@@ -68,7 +72,7 @@ describe('ProblemsListPage (route "/problems")', () => {
 
     expect(screen.getByRole('link', { name: 'Românesc' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'English only' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Problem ID: 3' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Problem #3' })).toBeInTheDocument();
   });
 
   it('renders the localized header for Romanian visitors', async () => {
@@ -88,8 +92,11 @@ describe('ProblemsListPage (route "/problems")', () => {
   });
 
   it('propagates fetch failures to the error boundary (red paragraph path)', async () => {
+    // page.tsx now try/catches getProblems and hands the message to the client as
+    // `fetchError` rather than letting it reach the error boundary.
     vi.mocked(getProblems).mockRejectedValue(new Error('Failed to load problems.'));
-    await expect(ProblemsListPage()).rejects.toThrow('Failed to load problems.');
+    const element = await ProblemsListPage();
+    expect(element.props.fetchError).toBe('Failed to load problems.');
   });
 
   it('exposes catalog metadata', async () => {

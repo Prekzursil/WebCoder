@@ -138,7 +138,9 @@ describe('MyCreatedProblemsPage (/my-created-problems)', () => {
 
     const error = await screen.findByText('Network down');
     expect(error).toBeInTheDocument();
-    expect(error).toHaveStyle({ color: 'rgb(255, 0, 0)' });
+    // colour now comes from the theme token var(--danger) (#f87171); jsdom does
+    // not resolve CSS custom properties, so assert the inline style verbatim.
+    expect((error as HTMLElement).style.color).toBe('var(--danger)');
   });
 
   it('falls back to the generic message when the failure has none', async () => {

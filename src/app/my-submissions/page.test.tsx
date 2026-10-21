@@ -80,7 +80,7 @@ function setAuth(over: Partial<typeof mocks.auth> = {}) {
 beforeEach(async () => {
   vi.clearAllMocks();
   setAuth();
-  localStorage.clear();
+  if (typeof window !== 'undefined') localStorage.clear();
   await i18n.changeLanguage('en');
   mocks.getProblems.mockResolvedValue([]);
   mocks.getSubmissions.mockResolvedValue([]);

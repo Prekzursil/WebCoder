@@ -71,46 +71,53 @@ export function MyCreatedProblemsPage() {
   };
 
   if (loading) return <LoadingSpinner />;
-  if (error) return <p style={{ color: 'red' }}>{error}</p>;
+  if (error) return <p style={{ color: 'var(--danger)' }}>{error}</p>;
 
   return (
-    <div>
+    <div className="page-container">
       <h2>{t('my_created_problems_header', 'My Created Problems')}</h2>
       {myProblems.length === 0 ? (
         <p>{t('no_problems_created_yet', 'You have not created any problems yet.')}</p>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>{t('problem_title_th', 'Title')}</th>
-              <th>{t('problem_status_th', 'Status')}</th>
-              <th>{t('problem_difficulty_th', 'Difficulty')}</th>
-              <th>{t('actions_th', 'Actions')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {myProblems.map((problem) => (
-              <tr key={problem.id}>
-                <td><Link href={`/problems/${problem.id}`}>{problem.title_i18n[i18n.language] || problem.title_i18n.en}</Link></td>
-                <td>{problem.status}</td>
-                <td>{problem.difficulty}</td>
-                <td>
-                  {(problem.status === 'DRAFT' || problem.status === 'PRIVATE') && (
-                    <Link href={`/problems/${problem.id}/edit`} style={{ marginRight: '10px' }}>{t('edit_button', 'Edit')}</Link>
-                  )}
-                  {problem.status === 'DRAFT' && (
-                    <button onClick={() => handleSubmitForApproval(problem.id)}>{t('submit_for_approval_button', 'Submit for Approval')}</button>
-                  )}
-                  {problem.status === 'PRIVATE' && problem.verifier_feedback && (
-                    <p style={{ color: 'orange', fontSize: '0.9em', marginTop: '5px' }}>
-                      <em>{t('verifier_feedback_label', 'Feedback')}: {problem.verifier_feedback}</em>
-                    </p>
-                  )}
-                </td>
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <table>
+            <thead>
+              <tr>
+                <th>{t('problem_title_th', 'Title')}</th>
+                <th>{t('problem_status_th', 'Status')}</th>
+                <th>{t('problem_difficulty_th', 'Difficulty')}</th>
+                <th>{t('actions_th', 'Actions')}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {myProblems.map((problem) => (
+                <tr key={problem.id}>
+                  <td><Link href={`/problems/${problem.id}`}>{problem.title_i18n[i18n.language] || problem.title_i18n.en}</Link></td>
+                  <td>{problem.status}</td>
+                  <td>{problem.difficulty}</td>
+                  <td>
+                    {(problem.status === 'DRAFT' || problem.status === 'PRIVATE') && (
+                      <Link href={`/problems/${problem.id}/edit`} style={{ marginRight: '10px', color: 'var(--accent)' }}>{t('edit_button', 'Edit')}</Link>
+                    )}
+                    {problem.status === 'DRAFT' && (
+                      <button
+                        onClick={() => handleSubmitForApproval(problem.id)}
+                        style={{ background: 'rgba(56,189,248,0.15)', color: 'var(--accent)', border: '1px solid rgba(56,189,248,0.3)', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}
+                      >
+                        {t('submit_for_approval_button', 'Submit for Approval')}
+                      </button>
+                    )}
+                    {problem.status === 'PRIVATE' && problem.verifier_feedback && (
+                      <p style={{ color: 'var(--accent-hover)', fontSize: '0.9em', marginTop: '5px' }}>
+                        <em>{t('verifier_feedback_label', 'Feedback')}: {problem.verifier_feedback}</em>
+                      </p>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

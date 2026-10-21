@@ -76,7 +76,7 @@ export function AdminDashboardPage() {
   };
 
   return (
-    <div>
+    <div className="page-container">
       <h2>{t('admin_dashboard_header', 'Admin Dashboard')}</h2>
 
       <section>
@@ -84,56 +84,57 @@ export function AdminDashboardPage() {
         <SiteStats />
       </section>
 
-      <section>
+      <section style={{ marginTop: '2rem' }}>
         <h3>{t('user_management_title', 'User Management')}</h3>
         {loading && <LoadingSpinner />}
-        {error && <p style={{ color: 'red' }}>{error}</p>}
+        {error && <p style={{ color: 'var(--danger)' }}>{error}</p>}
         {!loading && !error && (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '2px solid #333' }}>
-                <th style={{ textAlign: 'left', padding: '8px' }}>ID</th>
-                <th style={{ textAlign: 'left', padding: '8px' }}>{t('username', 'Username')}</th>
-                <th style={{ textAlign: 'left', padding: '8px' }}>{t('email', 'Email')}</th>
-                <th style={{ textAlign: 'left', padding: '8px' }}>{t('role', 'Role')}</th>
-                <th style={{ textAlign: 'left', padding: '8px' }}>{t('status', 'Status')}</th>
-                <th style={{ textAlign: 'left', padding: '8px' }}>{t('date_joined', 'Date Joined')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map(user => (
-                <tr key={user.id} style={{ borderBottom: '1px solid #ddd' }}>
-                  <td style={{ padding: '8px' }}>{user.id}</td>
-                  <td style={{ padding: '8px' }}>{user.username}</td>
-                  <td style={{ padding: '8px' }}>{user.email}</td>
-                  <td style={{ padding: '8px' }}>
-                    <select
-                      value={user.role}
-                      onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                      disabled={user.id === auth.user?.id} // Prevent admin from changing their own role
-                    >
-                      <option value="ADMIN">ADMIN</option>
-                      <option value="PROBLEM_VERIFIER">PROBLEM_VERIFIER</option>
-                      <option value="PROBLEM_CREATOR">PROBLEM_CREATOR</option>
-                      <option value="BASIC_USER">BASIC_USER</option>
-                    </select>
-                  </td>
-                  <td style={{ padding: '8px' }}>
-                    <select
-                      value={user.is_active ? 'Active' : 'Inactive'}
-                      onChange={(e) => handleStatusChange(user.id, e.target.value === 'Active')}
-                      disabled={user.id === auth.user?.id} // Prevent admin from deactivating themselves
-                      style={{ backgroundColor: user.is_active ? '#d4edda' : '#f8d7da' }}
-                    >
-                      <option value="Active">Active</option>
-                      <option value="Inactive">Inactive</option>
-                    </select>
-                  </td>
-                  <td style={{ padding: '8px' }}>{new Date(user.date_joined).toLocaleDateString()}</td>
+          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>{t('username', 'Username')}</th>
+                  <th>{t('email', 'Email')}</th>
+                  <th>{t('role', 'Role')}</th>
+                  <th>{t('status', 'Status')}</th>
+                  <th>{t('date_joined', 'Date Joined')}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {users.map(user => (
+                  <tr key={user.id}>
+                    <td>{user.id}</td>
+                    <td>{user.username}</td>
+                    <td>{user.email}</td>
+                    <td>
+                      <select
+                        value={user.role}
+                        onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                        disabled={user.id === auth.user?.id}
+                      >
+                        <option value="ADMIN">ADMIN</option>
+                        <option value="PROBLEM_VERIFIER">PROBLEM_VERIFIER</option>
+                        <option value="PROBLEM_CREATOR">PROBLEM_CREATOR</option>
+                        <option value="BASIC_USER">BASIC_USER</option>
+                      </select>
+                    </td>
+                    <td>
+                      <select
+                        value={user.is_active ? 'Active' : 'Inactive'}
+                        onChange={(e) => handleStatusChange(user.id, e.target.value === 'Active')}
+                        disabled={user.id === auth.user?.id}
+                      >
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                      </select>
+                    </td>
+                    <td>{new Date(user.date_joined).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </div>

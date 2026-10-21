@@ -107,65 +107,84 @@ export function ProblemVerificationQueuePage() {
   };
 
   if (loading) return <LoadingSpinner />;
-  if (error) return <p style={{ color: 'red' }}>{error}</p>;
+  if (error) return <p style={{ color: 'var(--danger)' }}>{error}</p>;
   if (!auth.user || !['ADMIN', 'PROBLEM_VERIFIER'].includes(auth.user.role)) {
     return <p>{t('unauthorized_access', 'You are not authorized to view this page.')}</p>;
   }
 
   return (
-    <div>
+    <div className="page-container">
       <h2>{t('problem_verification_queue_header', 'Problem Verification Queue')}</h2>
-      {actionMessage && <p style={{ color: 'green' }}>{actionMessage}</p>}
-      {actionError && <p style={{ color: 'red' }}>{actionError}</p>}
+      {actionMessage && <p style={{ color: 'var(--success)', marginBottom: '1rem' }}>{actionMessage}</p>}
+      {actionError && <p style={{ color: 'var(--danger)', marginBottom: '1rem' }}>{actionError}</p>}
       {pendingProblems.length === 0 ? (
         <p>{t('no_problems_pending_approval', 'No problems are currently pending approval.')}</p>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>{t('problem_id_th', 'ID')}</th>
-              <th>{t('problem_title_th', 'Title')}</th>
-              <th>{t('problem_author_th', 'Author')}</th>
-              <th>{t('problem_difficulty_th', 'Difficulty')}</th>
-              <th>{t('verifier_feedback_th', 'Feedback (for rejection)')}</th>
-              <th>{t('actions_th', 'Actions')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pendingProblems.map(problem => (
-              <tr key={problem.id}>
-                <td>{problem.id}</td>
-                <td>
-                  <Link href={`/problems/${problem.id}/edit`}>
-                    {problem.title_i18n[i18n.language] || problem.title_i18n.en}
-                  </Link>
-                </td>
-                <td>{problem.author?.username || t('unknown_author', 'Unknown')}</td>
-                <td>{problem.difficulty}</td>
-                <td>
-                  <textarea
-                    value={feedbackMap[problem.id] || ''}
-                    onChange={(e) => handleFeedbackChange(problem.id, e.target.value)}
-                    rows={2}
-                    style={{ width: '90%' }}
-                    placeholder={t('feedback_placeholder_rejection', 'Required for rejection')}
-                  />
-                </td>
-                <td>
-                  <button
-                    onClick={() => handleApproveProblem(problem.id)}
-                    style={{ marginRight: '5px', backgroundColor: 'lightgreen' }}
-                  >
-                    {t('approve_button', 'Approve')}
-                  </button>
-                  <button onClick={() => handleRejectProblem(problem.id)} style={{ backgroundColor: 'lightcoral' }}>
-                    {t('reject_button', 'Reject')}
-                  </button>
-                </td>
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <table>
+            <thead>
+              <tr>
+                <th>{t('problem_id_th', 'ID')}</th>
+                <th>{t('problem_title_th', 'Title')}</th>
+                <th>{t('problem_author_th', 'Author')}</th>
+                <th>{t('problem_difficulty_th', 'Difficulty')}</th>
+                <th>{t('verifier_feedback_th', 'Feedback (for rejection)')}</th>
+                <th>{t('actions_th', 'Actions')}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {pendingProblems.map(problem => (
+                <tr key={problem.id}>
+                  <td>{problem.id}</td>
+                  <td>
+                    <Link href={`/problems/${problem.id}/edit`}>
+                      {problem.title_i18n[i18n.language] || problem.title_i18n.en}
+                    </Link>
+                  </td>
+                  <td>{problem.author?.username || t('unknown_author', 'Unknown')}</td>
+                  <td>{problem.difficulty}</td>
+                  <td>
+                    <textarea
+                      value={feedbackMap[problem.id] || ''}
+                      onChange={(e) => handleFeedbackChange(problem.id, e.target.value)}
+                      rows={2}
+                      style={{ width: '90%' }}
+                      placeholder={t('feedback_placeholder_rejection', 'Required for rejection')}
+                    />
+                  </td>
+                  <td style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <button
+                      onClick={() => handleApproveProblem(problem.id)}
+                      style={{
+                        background: 'rgba(74,222,128,0.15)',
+                        color: 'var(--success)',
+                        border: '1px solid rgba(74,222,128,0.3)',
+                        borderRadius: '6px',
+                        padding: '4px 12px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {t('approve_button', 'Approve')}
+                    </button>
+                    <button
+                      onClick={() => handleRejectProblem(problem.id)}
+                      style={{
+                        background: 'rgba(248,113,113,0.15)',
+                        color: 'var(--danger)',
+                        border: '1px solid rgba(248,113,113,0.3)',
+                        borderRadius: '6px',
+                        padding: '4px 12px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {t('reject_button', 'Reject')}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
