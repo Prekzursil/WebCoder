@@ -131,8 +131,13 @@ def test_urlpatterns_wiring():
 
     assert len(project_urls.urlpatterns) == 13
     assert reverse("token_obtain_pair") == "/api/v1/token/"
-    assert reverse("token_refresh") == "/api/v1/token/refresh/"
-    assert reverse("token_verify") == "/api/v1/token/verify/"
+    # Assert the frontend-facing simplejwt ROUTES resolve (not reverse names):
+    # with dj-rest-auth's USE_JWT mode active its /auth/token/* routes register
+    # the same reverse names, so reverse("token_refresh") is ambiguous.
+    from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
+
+    assert resolve("/api/v1/token/refresh/").func.view_class is TokenRefreshView
+    assert resolve("/api/v1/token/verify/").func.view_class is TokenVerifyView
     assert reverse("admin:index") == "/admin/"
     root_match = resolve("/")
     assert root_match.func.view_class is RedirectView
