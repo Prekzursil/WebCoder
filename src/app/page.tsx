@@ -17,47 +17,27 @@ export const metadata: Metadata = {
   },
 };
 
-const faqSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: [
-    {
+// The FAQ lives in the shared dictionary ([Q4]): the visible <details> UI
+// and the JSON-LD FAQPage schema are both derived from the same per-locale
+// entries, so SSR markup and visible copy can never drift apart.
+function buildFaqSchema(t: ReturnType<typeof createTranslator>) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: ([1, 2, 3, 4] as const).map((n) => ({
       '@type': 'Question',
-      name: 'What programming languages does WebCoder support?',
+      name: t(`faq_q${n}`, ''),
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'WebCoder supports Python 3, C++17, and Java 11 for solution submissions.',
+        text: t(`faq_a${n}`, ''),
       },
-    },
-    {
-      '@type': 'Question',
-      name: 'Is WebCoder free to use?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Yes, WebCoder is completely free. Register an account and start solving problems immediately.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: 'How does the online judge work?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'You submit your solution code, and our judge compiles and runs it against hidden test cases. You receive a verdict (Accepted, Wrong Answer, Time Limit Exceeded, etc.) within seconds.',
-      },
-    },
-    {
-      '@type': 'Question',
-      name: 'Can I create my own problems on WebCoder?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'Yes. Users with the Problem Creator role can author problems, add test cases, and submit them for review by our verification team.',
-      },
-    },
-  ],
-};
+    })),
+  };
+}
 
 export default async function HomePage() {
   const t = createTranslator(await getLocale());
+  const faqSchema = buildFaqSchema(t);
 
   return (
     <>
@@ -69,7 +49,7 @@ export default async function HomePage() {
           this page-level wrapper is purely presentational. */}
       <div className={styles.home} aria-label="WebCoder home page">
         <div className={styles.badge} aria-hidden="true">
-          ✦ Competitive Programming Platform
+          {t('home_badge', '✦ Competitive Programming Platform')}
         </div>
         <h1 className={styles.title}>{t('welcome_message', 'Welcome to WebCoder')}</h1>
         <p className={styles.subtitle}>
@@ -90,21 +70,21 @@ export default async function HomePage() {
         <div className={styles.stats} aria-label="Platform statistics">
           <div className={styles.statItem}>
             <span className={styles.statValue}>100+</span>
-            <span className={styles.statLabel}>Problems</span>
+            <span className={styles.statLabel}>{t('home_stat_problems', 'Problems')}</span>
           </div>
           <div className={styles.statItem}>
             <span className={styles.statValue}>5+</span>
-            <span className={styles.statLabel}>Languages</span>
+            <span className={styles.statLabel}>{t('home_stat_languages', 'Languages')}</span>
           </div>
           <div className={styles.statItem}>
             <span className={styles.statValue}>24/7</span>
-            <span className={styles.statLabel}>Judge</span>
+            <span className={styles.statLabel}>{t('home_stat_judge', 'Judge')}</span>
           </div>
         </div>
 
         <section aria-labelledby="faq-heading" style={{ marginTop: '4rem', maxWidth: '720px', margin: '4rem auto 0' }}>
           <h2 id="faq-heading" style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem', color: 'var(--foreground)' }}>
-            Frequently Asked Questions
+            {t('faq_heading', 'Frequently Asked Questions')}
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {faqSchema.mainEntity.map((item, i) => (

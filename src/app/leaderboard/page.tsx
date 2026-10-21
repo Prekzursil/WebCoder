@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { LeaderboardService } from '@/services/ApiService';
 import { MyLeaderboardEntry } from '@/types/api';
 import { useAuth } from '@/context/AuthContext';
@@ -39,6 +40,7 @@ type SortKey = 'rank' | 'total_points' | 'solved_count' | 'success_rate';
 const percent = (rate: number): number => Math.round(rate * 1000) / 10;
 
 export default function LeaderboardPage() {
+  const { t } = useTranslation();
   const auth = useAuth();
   const [rows, setRows] = useState<Row[]>([]);
   const [nextCursorPage, setNextCursorPage] = useState<number | null>(1);
@@ -62,11 +64,13 @@ export default function LeaderboardPage() {
       setTotalCount(response.count);
       setNextCursorPage(response.next ? 2 : null);
     } catch (err) {
-      setError(err instanceof Error && err.message ? err.message : 'Failed to load leaderboard.');
+      setError(err instanceof Error && err.message ? err.message : t('leaderboard_load_error', 'Failed to load leaderboard.'));
     } finally {
       setLoading(false);
     }
-  }, []);
+    // t is stable between language switches; listed so the error message
+    // re-localizes on locale change.
+  }, [t]);
 
   useEffect(() => {
     loadFirstPage();
@@ -107,7 +111,7 @@ export default function LeaderboardPage() {
       });
       setNextCursorPage(response.next ? nextCursorPage + 1 : null);
     } catch (err) {
-      setError(err instanceof Error && err.message ? err.message : 'Failed to load more entries.');
+      setError(err instanceof Error && err.message ? err.message : t('leaderboard_load_more_error', 'Failed to load more entries.'));
     } finally {
       setLoadingMore(false);
     }
@@ -139,14 +143,14 @@ export default function LeaderboardPage() {
   return (
     <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem 1.5rem' }}>
       <PageHeader
-        title="Leaderboard"
-        subtitle="Top competitive programmers ranked by total score."
+        title={t('leaderboard_header', 'Leaderboard')}
+        subtitle={t('leaderboard_subtitle', 'Top competitive programmers ranked by total score.')}
       />
 
       {/* Loading / error states keep the page usable when the API fails */}
       {loading ? (
         <div role="status" style={{ padding: '3rem', textAlign: 'center', color: 'var(--muted)' }}>
-          Loading leaderboard…
+          {t('leaderboard_loading', 'Loading leaderboard…')}
         </div>
       ) : error && rows.length === 0 ? (
         <div
@@ -160,10 +164,10 @@ export default function LeaderboardPage() {
             marginBottom: '1.5rem',
           }}
         >
-          Could not load leaderboard: {error}
+          {t('could_not_load_leaderboard', 'Could not load leaderboard: ')}{error}
           <div style={{ marginTop: '0.75rem' }}>
             <button onClick={loadFirstPage} className="btn">
-              Retry
+              {t('retry_button', 'Retry')}
             </button>
           </div>
         </div>
@@ -185,33 +189,33 @@ export default function LeaderboardPage() {
               }}
             >
               <div>
-                <div className="micro-label" style={{ color: 'var(--muted)' }}>Your rank</div>
+                <div className="micro-label" style={{ color: 'var(--muted)' }}>{t('leaderboard_your_rank', 'Your rank')}</div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--accent)' }}>#{myEntry.rank}</div>
               </div>
               <div>
-                <div className="micro-label" style={{ color: 'var(--muted)' }}>Points</div>
+                <div className="micro-label" style={{ color: 'var(--muted)' }}>{t('leaderboard_points', 'Points')}</div>
                 <div style={{ fontSize: '1.1rem', fontWeight: 700, color: palette.warn }}>
                   {myEntry.total_points.toLocaleString()}
                 </div>
               </div>
               <div>
-                <div className="micro-label" style={{ color: 'var(--muted)' }}>Solved</div>
+                <div className="micro-label" style={{ color: 'var(--muted)' }}>{t('leaderboard_solved', 'Solved')}</div>
                 <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--success)' }}>{myEntry.solved_count}</div>
               </div>
               <div>
-                <div className="micro-label" style={{ color: 'var(--muted)' }}>Submissions</div>
+                <div className="micro-label" style={{ color: 'var(--muted)' }}>{t('leaderboard_submissions', 'Submissions')}</div>
                 <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--foreground)' }}>
                   {myEntry.total_submissions}
                 </div>
               </div>
               <div style={{ marginLeft: 'auto', fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>
-                Success rate {percent(myEntry.success_rate)}%
+                {t('leaderboard_success_rate', 'Success rate')} {percent(myEntry.success_rate)}%
               </div>
             </div>
           )}
           {auth.isAuthenticated && !myEntry && myEntryError && (
             <p style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', marginBottom: '1rem' }}>
-              Your rank card is unavailable right now.
+              {t('leaderboard_rank_card_unavailable', 'Your rank card is unavailable right now.')}
             </p>
           )}
 
@@ -273,10 +277,10 @@ export default function LeaderboardPage() {
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
                       <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
-                        <span style={{ color: 'var(--success)', fontWeight: 600 }}>{entry.solved_count}</span> solved
+                        <span style={{ color: 'var(--success)', fontWeight: 600 }}>{entry.solved_count}</span> {t('leaderboard_solved_short', 'solved')}
                       </span>
                       <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
-                        <span style={{ color: 'var(--accent)', fontWeight: 600 }}>{percent(entry.success_rate)}%</span> rate
+                        <span style={{ color: 'var(--accent)', fontWeight: 600 }}>{percent(entry.success_rate)}%</span> {t('leaderboard_rate_short', 'rate')}
                       </span>
                     </div>
                   </div>
@@ -289,8 +293,8 @@ export default function LeaderboardPage() {
           <div style={{ marginBottom: '1rem' }}>
             <input
               type="text"
-              placeholder="Search by username…"
-              aria-label="Search by username"
+              placeholder={t('leaderboard_search_placeholder', 'Search by username…')}
+              aria-label={t('leaderboard_search_label', 'Search by username')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="input"
@@ -322,11 +326,11 @@ export default function LeaderboardPage() {
                 <tr style={{ borderBottom: '1px solid var(--border)' }}>
                   {(
                     [
-                      { key: 'rank', label: 'Rank' },
-                      { key: null, label: 'User' },
-                      { key: 'total_points', label: 'Score' },
-                      { key: 'solved_count', label: 'Solved' },
-                      { key: null, label: 'Success Rate' },
+                      { key: 'rank', label: t('leaderboard_th_rank', 'Rank') },
+                      { key: null, label: t('leaderboard_th_user', 'User') },
+                      { key: 'total_points', label: t('leaderboard_th_score', 'Score') },
+                      { key: 'solved_count', label: t('leaderboard_th_solved', 'Solved') },
+                      { key: null, label: t('leaderboard_th_success_rate', 'Success Rate') },
                     ] as { key: SortKey | null; label: string }[]
                   ).map(({ key, label }) => (
                     <th
@@ -364,7 +368,7 @@ export default function LeaderboardPage() {
                         fontSize: '0.9rem',
                       }}
                     >
-                      No users found.
+                      {t('leaderboard_no_users', 'No users found.')}
                     </td>
                   </tr>
                 ) : (
@@ -478,26 +482,26 @@ export default function LeaderboardPage() {
           {nextCursorPage !== null && (
             <div style={{ textAlign: 'center', marginTop: '1rem' }}>
               <button onClick={loadMore} disabled={loadingMore} className="btn">
-                {loadingMore ? 'Loading…' : 'Load more'}
+                {loadingMore ? t('loading_more', 'Loading…') : t('load_more_button', 'Load more')}
               </button>
             </div>
           )}
           {error && rows.length > 0 && (
             <p role="alert" style={{ marginTop: '0.75rem', color: 'var(--danger)', fontSize: '0.8rem', textAlign: 'center' }}>
-              Could not load more entries: {error}
+              {t('could_not_load_more_entries', 'Could not load more entries: ')}{error}
             </p>
           )}
           {totalCount !== null && (
             <p style={{ marginTop: '1rem', fontSize: '0.75rem', color: 'var(--text-tertiary)', textAlign: 'center' }}>
-              Showing {rows.length} of {totalCount.toLocaleString()} ranked users. Rankings based on accepted
-              submissions over approved problems.
+              {t('leaderboard_showing_info', 'Showing {{shown}} of {{total}} ranked users.', { shown: rows.length, total: totalCount.toLocaleString() })}{' '}
+              {t('leaderboard_ranking_note', 'Rankings based on accepted submissions over approved problems.')}
             </p>
           )}
         </>
       )}
 
       {rows.length === 0 && !loading && !error && (
-        <EmptyState title="No ranked users yet." description="Solve an approved problem to appear on the leaderboard." />
+        <EmptyState title={t('leaderboard_empty_title', 'No ranked users yet.')} description={t('leaderboard_empty_description', 'Solve an approved problem to appear on the leaderboard.')} />
       )}
     </div>
   );

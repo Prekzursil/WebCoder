@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
 import { ForumService } from '@/services/ApiService';
 import { ForumThread } from '@/types/api';
 import { palette, hexAlpha } from '@/theme/tokens';
@@ -17,20 +18,22 @@ import PageHeader from '@/components/common/PageHeader';
 // Problem-linked / General filter. Search/sort stay client-side over the
 // loaded rows; "Load more" follows the envelope's `next` link.
 
-function timeAgo(dateStr: string): string {
+// [Q2] relative-time formatter localized through the injected translator.
+function timeAgo(dateStr: string, t: ReturnType<typeof useTranslation>['t']): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 60) return t('time_min_ago', '{{count}}m ago', { count: mins });
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) return t('time_hour_ago', '{{count}}h ago', { count: hrs });
   const days = Math.floor(hrs / 24);
-  return `${days}d ago`;
+  return t('time_day_ago', '{{count}}d ago', { count: days });
 }
 
 type CategoryFilter = 'all' | 'problem' | 'general';
 type SortBy = 'activity' | 'newest';
 
 export default function ForumPage() {
+  const { t } = useTranslation();
   const [threads, setThreads] = useState<ForumThread[]>([]);
   const [nextPage, setNextPage] = useState<number | null>(1);
   const [totalCount, setTotalCount] = useState<number | null>(null);
@@ -51,11 +54,13 @@ export default function ForumPage() {
       setTotalCount(response.count);
       setNextPage(response.next ? 2 : null);
     } catch (err) {
-      setError(err instanceof Error && err.message ? err.message : 'Failed to load threads.');
+      setError(err instanceof Error && err.message ? err.message : t('forum_load_error', 'Failed to load threads.'));
     } finally {
       setLoading(false);
     }
-  }, []);
+    // t is stable between language switches; listed so the error message
+    // re-localizes on locale change.
+  }, [t]);
 
   useEffect(() => {
     loadFirstPage();
@@ -72,7 +77,7 @@ export default function ForumPage() {
       });
       setNextPage(response.next ? nextPage + 1 : null);
     } catch (err) {
-      setError(err instanceof Error && err.message ? err.message : 'Failed to load more threads.');
+      setError(err instanceof Error && err.message ? err.message : t('forum_load_more_error', 'Failed to load more threads.'));
     } finally {
       setLoadingMore(false);
     }
@@ -102,14 +107,14 @@ export default function ForumPage() {
     });
 
   const categoryChips: { key: CategoryFilter; label: string; icon: string }[] = [
-    { key: 'all', label: 'All', icon: '🌐' },
-    { key: 'problem', label: 'Problem threads', icon: '🧩' },
-    { key: 'general', label: 'General', icon: '💬' },
+    { key: 'all', label: t('forum_filter_all', 'All'), icon: '🌐' },
+    { key: 'problem', label: t('forum_filter_problem', 'Problem threads'), icon: '🧩' },
+    { key: 'general', label: t('forum_filter_general', 'General'), icon: '💬' },
   ];
 
   return (
     <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem 1.5rem' }}>
-      <PageHeader title="Community Forum" subtitle="Discuss problems, share solutions, and connect with the community." />
+      <PageHeader title={t('forum_header', 'Community Forum')} subtitle={t('forum_subtitle', 'Discuss problems, share solutions, and connect with the community.')} />
 
       {/* Toolbar */}
       <div
@@ -149,8 +154,8 @@ export default function ForumPage() {
         })}
         <input
           type="text"
-          placeholder="Search threads…"
-          aria-label="Search threads"
+          placeholder={t('forum_search_placeholder', 'Search threads…')}
+          aria-label={t('forum_search_label', 'Search threads')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           style={{
@@ -184,7 +189,7 @@ export default function ForumPage() {
                 textTransform: 'capitalize',
               }}
             >
-              {s}
+              {s === 'activity' ? t('forum_sort_activity', 'activity') : t('forum_sort_newest', 'newest')}
             </button>
           ))}
         </div>
@@ -193,14 +198,14 @@ export default function ForumPage() {
           className="btn btn--primary"
           style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}
         >
-          + New Thread
+          {t('forum_new_thread', '+ New Thread')}
         </Link>
       </div>
 
       {/* States */}
       {loading ? (
         <div role="status" style={{ padding: '3rem', textAlign: 'center', color: 'var(--muted)' }}>
-          Loading threads…
+          {t('forum_loading', 'Loading threads…')}
         </div>
       ) : error && threads.length === 0 ? (
         <div
@@ -213,21 +218,21 @@ export default function ForumPage() {
             color: 'var(--danger)',
           }}
         >
-          Could not load threads: {error}
+          {t('could_not_load_threads', 'Could not load threads: ')}{error}
           <div style={{ marginTop: '0.75rem' }}>
             <button onClick={loadFirstPage} className="btn">
-              Retry
+              {t('retry_button', 'Retry')}
             </button>
           </div>
         </div>
       ) : filtered.length === 0 ? (
         <EmptyState
-          title={threads.length === 0 ? 'No threads yet.' : 'No threads match your filters.'}
-          description="Start the conversation — create the first thread."
+          title={threads.length === 0 ? t('forum_no_threads', 'No threads yet.') : t('forum_no_threads_match', 'No threads match your filters.')}
+          description={t('forum_empty_description', 'Start the conversation — create the first thread.')}
           action={
             threads.length === 0 ? (
               <Link href="/forum/new" className="btn btn--primary">
-                + New Thread
+                {t('forum_new_thread', '+ New Thread')}
               </Link>
             ) : undefined
           }
@@ -266,7 +271,7 @@ export default function ForumPage() {
                           letterSpacing: '0.05em',
                         }}
                       >
-                        📌 Pinned
+                        {t('forum_pinned', '📌 Pinned')}
                       </span>
                     )}
                     {thread.is_locked && (
@@ -283,7 +288,7 @@ export default function ForumPage() {
                           letterSpacing: '0.05em',
                         }}
                       >
-                        🔒 Locked
+                        {t('forum_locked', '🔒 Locked')}
                       </span>
                     )}
                     {thread.problem ? (
@@ -300,7 +305,7 @@ export default function ForumPage() {
                           textDecoration: 'none',
                         }}
                       >
-                        🧩 {thread.problem.title_i18n?.en ?? `Problem #${thread.problem.id}`}
+                        🧩 {thread.problem.title_i18n?.en ?? t('forum_problem_link', 'Problem #{{id}}', { id: thread.problem.id })}
                       </Link>
                     ) : (
                       <span
@@ -314,7 +319,7 @@ export default function ForumPage() {
                           border: '1px solid rgba(100,116,139,0.15)',
                         }}
                       >
-                        💬 General
+                        {t('forum_general_chip', '💬 General')}
                       </span>
                     )}
                   </div>
@@ -352,12 +357,12 @@ export default function ForumPage() {
                         {(thread.author ?? '?')[0].toUpperCase()}
                       </div>
                       <span style={{ fontSize: '0.78rem', color: 'var(--muted)', fontWeight: 500 }}>
-                        {thread.author ?? 'unknown'}
+                        {thread.author ?? t('forum_unknown_author', 'unknown')}
                       </span>
                     </div>
                     <span style={{ color: 'var(--border)', fontSize: '0.75rem' }}>·</span>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
-                      Active {timeAgo(thread.last_activity)}
+                      {t('forum_active_ago', 'Active {{when}}', { when: timeAgo(thread.last_activity, t) })}
                     </span>
                   </div>
                 </div>
@@ -374,10 +379,10 @@ export default function ForumPage() {
                   }}
                 >
                   <div style={{ fontSize: '0.75rem', color: 'var(--muted)', textAlign: 'right' }}>
-                    <span style={{ color: 'var(--muted)', fontWeight: 600 }}>{thread.post_count}</span> posts
+                    <span style={{ color: 'var(--muted)', fontWeight: 600 }}>{thread.post_count}</span> {t('forum_posts_label', 'posts')}
                   </div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', textAlign: 'right' }}>
-                    created {timeAgo(thread.created_at)}
+                    {t('forum_created_ago', 'created {{when}}', { when: timeAgo(thread.created_at, t) })}
                   </div>
                 </div>
               </div>
@@ -388,18 +393,18 @@ export default function ForumPage() {
           {nextPage !== null && (
             <div style={{ textAlign: 'center', marginTop: '1rem' }}>
               <button onClick={loadMore} disabled={loadingMore} className="btn">
-                {loadingMore ? 'Loading…' : 'Load more'}
+                {loadingMore ? t('loading_more', 'Loading…') : t('load_more_button', 'Load more')}
               </button>
             </div>
           )}
           {error && threads.length > 0 && (
             <p role="alert" style={{ marginTop: '0.75rem', color: 'var(--danger)', fontSize: '0.8rem', textAlign: 'center' }}>
-              Could not load more threads: {error}
+              {t('could_not_load_more_threads', 'Could not load more threads: ')}{error}
             </p>
           )}
           {totalCount !== null && (
             <p style={{ marginTop: '1rem', fontSize: '0.75rem', color: 'var(--text-tertiary)', textAlign: 'center' }}>
-              Showing {threads.length} of {totalCount.toLocaleString()} threads.
+              {t('forum_showing_info', 'Showing {{shown}} of {{total}} threads.', { shown: threads.length, total: totalCount.toLocaleString() })}
             </p>
           )}
         </>

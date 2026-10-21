@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { ForumService } from '@/services/ApiService';
 import { ForumPost, ForumThread, cursorParamFromUrl } from '@/types/api';
 import { useAuth } from '@/context/AuthContext';
@@ -18,20 +19,22 @@ import { palette, hexAlpha } from '@/theme/tokens';
 // chips are gone — an unknown or deleted thread now renders a proper
 // not-found state with a link back to the forum index.
 
-function timeAgo(dateStr: string): string {
+// [Q2] relative-time formatter localized through the injected translator.
+function timeAgo(dateStr: string, t: ReturnType<typeof useTranslation>['t']): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 60) return t('time_min_ago', '{{count}}m ago', { count: mins });
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) return t('time_hour_ago', '{{count}}h ago', { count: hrs });
   const days = Math.floor(hrs / 24);
-  return `${days}d ago`;
+  return t('time_day_ago', '{{count}}d ago', { count: days });
 }
 
 const REPORT_REASONS = ['spam', 'abuse', 'off_topic', 'inappropriate', 'other'] as const;
 
 export default function ForumThreadPage() {
   const { threadId } = useParams<{ threadId: string }>();
+  const { t } = useTranslation();
   const auth = useAuth();
 
   const [thread, setThread] = useState<ForumThread | null>(null);
@@ -58,15 +61,15 @@ export default function ForumThreadPage() {
     setError(null);
     setNotFound(false);
     try {
-      const [t, firstPosts] = await Promise.all([
+      const [threadData, firstPosts] = await Promise.all([
         ForumService.getThread(threadId),
         ForumService.getPosts(threadId, { pageSize: 25 }),
       ]);
-      setThread(t);
+      setThread(threadData);
       setPosts(firstPosts.results);
       setNextCursor(cursorParamFromUrl(firstPosts.next));
     } catch (err) {
-      const message = err instanceof Error && err.message ? err.message : 'Failed to load thread.';
+      const message = err instanceof Error && err.message ? err.message : t('forum_thread_load_error', 'Failed to load thread.');
       // apiFetch throws Error(detail || statusText); a missing thread is a
       // 404 detail ("Not found.") — treat any 404-shaped message as not-found.
       if (/not found|404/i.test(message)) {
@@ -77,7 +80,9 @@ export default function ForumThreadPage() {
     } finally {
       setLoading(false);
     }
-  }, [threadId]);
+    // t is stable between language switches; listed so the error message
+    // re-localizes on locale change.
+  }, [threadId, t]);
 
   useEffect(() => {
     loadThread();
@@ -94,7 +99,7 @@ export default function ForumThreadPage() {
       });
       setNextCursor(cursorParamFromUrl(response.next));
     } catch (err) {
-      setError(err instanceof Error && err.message ? err.message : 'Failed to load more posts.');
+      setError(err instanceof Error && err.message ? err.message : t('forum_posts_load_error', 'Failed to load more posts.'));
     } finally {
       setLoadingMore(false);
     }
@@ -111,7 +116,7 @@ export default function ForumThreadPage() {
       setReplyText('');
       setThread((t) => (t ? { ...t, post_count: t.post_count + 1 } : t));
     } catch (err) {
-      setReplyError(err instanceof Error && err.message ? err.message : 'Failed to post reply.');
+      setReplyError(err instanceof Error && err.message ? err.message : t('forum_reply_error', 'Failed to post reply.'));
     } finally {
       setSubmitting(false);
     }
@@ -142,11 +147,11 @@ export default function ForumThreadPage() {
     setReportMessage(null);
     try {
       await ForumService.reportPost(postId, { reason: reportReason, details: reportDetails.trim() || undefined });
-      setReportMessage('Report submitted. A moderator will review it.');
+      setReportMessage(t('forum_report_success', 'Report submitted. A moderator will review it.'));
       setReporting(null);
       setReportDetails('');
     } catch (err) {
-      setReportError(err instanceof Error && err.message ? err.message : 'Failed to report post.');
+      setReportError(err instanceof Error && err.message ? err.message : t('forum_report_error', 'Failed to report post.'));
     }
   };
 
@@ -154,7 +159,7 @@ export default function ForumThreadPage() {
     return (
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem 1.5rem' }}>
         <div role="status" style={{ padding: '3rem', textAlign: 'center', color: 'var(--muted)' }}>
-          Loading thread…
+          {t('forum_thread_loading', 'Loading thread…')}
         </div>
       </div>
     );
@@ -174,9 +179,9 @@ export default function ForumThreadPage() {
           }}
         >
           <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>🔍</div>
-          <p style={{ marginBottom: '1rem' }}>This thread does not exist or was removed.</p>
+          <p style={{ marginBottom: '1rem' }}>{t('forum_thread_not_found', 'This thread does not exist or was removed.')}</p>
           <Link href="/forum" className="btn">
-            ← Back to Forum
+            {t('forum_back_to_forum', '← Back to Forum')}
           </Link>
         </div>
       </div>
@@ -196,11 +201,11 @@ export default function ForumThreadPage() {
             color: 'var(--danger)',
           }}
         >
-          Could not load thread: {error}
+          {t('could_not_load_thread', 'Could not load thread: ')}{error}
         </div>
         <div style={{ marginTop: '0.75rem' }}>
           <button onClick={loadThread} className="btn">
-            Retry
+            {t('retry_button', 'Retry')}
           </button>
         </div>
       </div>
@@ -217,7 +222,7 @@ export default function ForumThreadPage() {
           Forum
         </Link>
         <span>›</span>
-        <span style={{ color: 'var(--muted)' }}>{thread.problem ? 'Problem threads' : 'General'}</span>
+        <span style={{ color: 'var(--muted)' }}>{thread.problem ? t('forum_filter_problem', 'Problem threads') : t('forum_filter_general', 'General')}</span>
         <span>›</span>
         <span style={{ color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '300px' }}>
           {thread.title}
@@ -248,7 +253,7 @@ export default function ForumThreadPage() {
                 textTransform: 'uppercase',
               }}
             >
-              📌 Pinned
+              {t('forum_pinned', '📌 Pinned')}
             </span>
           )}
           {thread.is_locked && (
@@ -264,7 +269,7 @@ export default function ForumThreadPage() {
                 textTransform: 'uppercase',
               }}
             >
-              🔒 Locked
+              {t('forum_locked', '🔒 Locked')}
             </span>
           )}
           {thread.problem ? (
@@ -281,7 +286,7 @@ export default function ForumThreadPage() {
                 textDecoration: 'none',
               }}
             >
-              🧩 {thread.problem.title_i18n?.en ?? `Problem #${thread.problem.id}`}
+              🧩 {thread.problem.title_i18n?.en ?? t('forum_problem_link', 'Problem #{{id}}', { id: thread.problem.id })}
             </Link>
           ) : (
             <span
@@ -295,7 +300,7 @@ export default function ForumThreadPage() {
                 borderRadius: '4px',
               }}
             >
-              💬 General
+              {t('forum_general_chip', '💬 General')}
             </span>
           )}
         </div>
@@ -313,10 +318,10 @@ export default function ForumThreadPage() {
         </h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>
-            started by <strong style={{ color: 'var(--muted)' }}>{thread.author ?? 'unknown'}</strong>{' '}
-            {timeAgo(thread.created_at)}
+            {t('forum_started_by', 'started by')} <strong style={{ color: 'var(--muted)' }}>{thread.author ?? t('forum_unknown_author', 'unknown')}</strong>{' '}
+            {timeAgo(thread.created_at, t)}
           </span>
-          <span style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>{thread.post_count} posts</span>
+          <span style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>{t('forum_posts_count', '{{count}} posts', { count: thread.post_count })}</span>
         </div>
       </div>
 
@@ -337,7 +342,7 @@ export default function ForumThreadPage() {
         </p>
       )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
-        {posts.length === 0 && <p style={{ color: 'var(--muted)', textAlign: 'center', padding: '2rem' }}>No posts yet.</p>}
+        {posts.length === 0 && <p style={{ color: 'var(--muted)', textAlign: 'center', padding: '2rem' }}>{t('forum_no_posts', 'No posts yet.')}</p>}
         {posts.map((post, idx) => {
           const myVote = votes[post.id] ?? 0;
           return (
@@ -356,8 +361,8 @@ export default function ForumThreadPage() {
                   <button
                     onClick={() => handleVote(post.id, 1)}
                     disabled={!auth.isAuthenticated || voteBusy === post.id}
-                    aria-label="Upvote post"
-                    title={auth.isAuthenticated ? 'Upvote' : 'Login to vote'}
+                    aria-label={t('forum_upvote_label', 'Upvote post')}
+                    title={auth.isAuthenticated ? t('forum_upvote', 'Upvote') : t('forum_login_to_vote', 'Login to vote')}
                     style={{
                       background: myVote === 1 ? 'rgba(56,189,248,0.18)' : 'rgba(56,189,248,0.08)',
                       border: '1px solid rgba(56,189,248,0.2)',
@@ -374,8 +379,8 @@ export default function ForumThreadPage() {
                   <button
                     onClick={() => handleVote(post.id, -1)}
                     disabled={!auth.isAuthenticated || voteBusy === post.id}
-                    aria-label="Downvote post"
-                    title={auth.isAuthenticated ? 'Downvote' : 'Login to vote'}
+                    aria-label={t('forum_downvote_label', 'Downvote post')}
+                    title={auth.isAuthenticated ? t('forum_downvote', 'Downvote') : t('forum_login_to_vote', 'Login to vote')}
                     style={{
                       background: myVote === -1 ? 'rgba(248,113,113,0.18)' : 'rgba(248,113,113,0.08)',
                       border: '1px solid rgba(248,113,113,0.2)',
@@ -411,7 +416,7 @@ export default function ForumThreadPage() {
                       {(post.author ?? '?')[0].toUpperCase()}
                     </div>
                     <span style={{ fontWeight: 700, color: 'var(--foreground)', fontSize: '0.875rem' }}>
-                      {post.author ?? 'unknown'}
+                      {post.author ?? t('forum_unknown_author', 'unknown')}
                     </span>
                     {idx === 0 && (
                       <span
@@ -428,10 +433,10 @@ export default function ForumThreadPage() {
                       </span>
                     )}
                     {post.is_edited && (
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>(edited)</span>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>{t('forum_edited', '(edited)')}</span>
                     )}
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginLeft: 'auto' }}>
-                      {idx === 0 ? 'Posted' : 'Replied'} {timeAgo(post.created_at)}
+                      {idx === 0 ? t('forum_posted', 'Posted') : t('forum_replied', 'Replied')} {timeAgo(post.created_at, t)}
                     </span>
                   </div>
 
@@ -452,13 +457,13 @@ export default function ForumThreadPage() {
                           padding: '4px 0',
                         }}
                       >
-                        ⚑ Report
+                        {t('forum_report', '⚑ Report')}
                       </button>
                     )}
                     {reporting === post.id && (
                       <span style={{ display: 'inline-flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
                         <select
-                          aria-label="Report reason"
+                          aria-label={t('forum_report_reason_label', 'Report reason')}
                           value={reportReason}
                           onChange={(e) => setReportReason(e.target.value)}
                           style={{
@@ -472,13 +477,13 @@ export default function ForumThreadPage() {
                         >
                           {REPORT_REASONS.map((r) => (
                             <option key={r} value={r}>
-                              {r}
+                              {t(`report_reason_${r}`, r)}
                             </option>
                           ))}
                         </select>
                         <input
-                          aria-label="Report details"
-                          placeholder="details (optional)"
+                          aria-label={t('forum_report_details_label', 'Report details')}
+                          placeholder={t('forum_report_details_placeholder', 'details (optional)')}
                           value={reportDetails}
                           onChange={(e) => setReportDetails(e.target.value)}
                           style={{
@@ -492,7 +497,7 @@ export default function ForumThreadPage() {
                           }}
                         />
                         <button onClick={() => submitReport(post.id)} className="btn" style={{ padding: '3px 10px', fontSize: '0.75rem' }}>
-                          Send
+                          {t('forum_send', 'Send')}
                         </button>
                       </span>
                     )}
@@ -508,7 +513,7 @@ export default function ForumThreadPage() {
       {nextCursor && (
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <button onClick={loadMorePosts} disabled={loadingMore} className="btn">
-            {loadingMore ? 'Loading…' : 'Load older posts'}
+            {loadingMore ? t('loading_more', 'Loading…') : t('forum_load_older', 'Load older posts')}
           </button>
         </div>
       )}
@@ -525,13 +530,13 @@ export default function ForumThreadPage() {
             }}
           >
             <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--foreground)', marginBottom: '1rem' }}>
-              Post a Reply
+              {t('forum_post_reply_header', 'Post a Reply')}
             </h3>
             <form onSubmit={handleReply}>
               <textarea
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
-                placeholder="Write your reply…"
+                placeholder={t('forum_reply_placeholder', 'Write your reply…')}
                 rows={6}
                 style={{
                   width: '100%',
@@ -566,7 +571,7 @@ export default function ForumThreadPage() {
                     cursor: 'pointer',
                   }}
                 >
-                  Clear
+                  {t('forum_clear', 'Clear')}
                 </button>
                 <button
                   type="submit"
@@ -574,7 +579,7 @@ export default function ForumThreadPage() {
                   className="btn btn--primary"
                   style={{ opacity: replyText.trim() && !submitting ? 1 : 0.5 }}
                 >
-                  {submitting ? 'Posting…' : 'Post Reply'}
+                  {submitting ? t('forum_posting', 'Posting…') : t('forum_post_reply', 'Post Reply')}
                 </button>
               </div>
             </form>
@@ -592,9 +597,9 @@ export default function ForumThreadPage() {
             }}
           >
             <Link href="/login" style={{ color: 'var(--accent)' }}>
-              Log in
+              {t('log_in_button', 'Log in')}
             </Link>{' '}
-            to join the discussion.
+            {t('forum_login_to_join_suffix', 'to join the discussion.')}
           </div>
         )
       ) : (
@@ -609,7 +614,7 @@ export default function ForumThreadPage() {
             fontSize: '0.875rem',
           }}
         >
-          🔒 This thread is locked. No new replies can be posted.
+          {t('forum_thread_locked_notice', '🔒 This thread is locked. No new replies can be posted.')}
         </div>
       )}
     </div>
