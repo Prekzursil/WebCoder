@@ -18,6 +18,10 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      // Generated e2e artifacts (report bundles + failure traces contain
+      // bundled vendor JS that must not be linted).
+      "playwright-report/**",
+      "test-results/**",
     ],
   },
 ];

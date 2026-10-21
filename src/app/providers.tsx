@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { AuthProvider } from '@/context/AuthContext';
@@ -125,7 +125,27 @@ const darkTheme = createTheme({
 });
 
 export default function Providers({ children }: { children: ReactNode }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+
+  useEffect(() => {
+    // [Q5/Q12] i18n initializes pinned to 'en' (SSR/hydration safety), which
+    // disables detector-based lookup for the first render — so a visitor who
+    // previously picked Romanian got English client chrome back on every
+    // reload while server pages honored the cookie. Re-apply the cached
+    // choice (cookie — the same source getLocale reads server-side) AFTER
+    // hydration; a post-mount changeLanguage re-renders like any state flip.
+    const match = document.cookie.split('; ').find((row) => row.startsWith('i18nextLng='));
+    const cached = match?.split('=')[1];
+    if (cached && (cached === 'en' || cached === 'ro')) {
+      // [Q5] keep <html lang> in sync on re-application too — SSR renders
+      // lang="en" (layout.tsx) and only the switcher updated it before.
+      document.documentElement.lang = cached;
+      if (cached !== i18n.language) {
+        i18n.changeLanguage(cached);
+      }
+    }
+  }, [i18n]);
+
   return (
     <AppRouterCacheProvider options={{ key: 'mui' }}>
       <ThemeProvider theme={darkTheme}>
