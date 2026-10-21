@@ -16,7 +16,9 @@
 
 export type PublicLocale = 'en' | 'ro';
 
-const MESSAGES: Record<PublicLocale, Record<string, string>> = {
+// Exported for the i18n parity test ([Q1]) — pure serializable data, safe
+// for any client/server import.
+export const MESSAGES: Record<PublicLocale, Record<string, string>> = {
   en: {
     // Parity with the shared resources (src/i18n.ts en block) for every key
     // the public server pages render.
@@ -78,6 +80,28 @@ const MESSAGES: Record<PublicLocale, Record<string, string>> = {
     not_found_code: '404',
     not_found_browse_problems: 'Browse Problems',
     not_found_go_home: 'Go Home',
+    // Problem detail metadata line (parity with src/i18n.ts) [Q1]
+    problem_form_allowed_languages: 'Allowed Languages',
+    // Catalog pager (ProblemsListClient's translator reads MESSAGES) [Q1]
+    loading_more: 'Loading…',
+    load_more_problems: 'Load more problems',
+    // Home page literals [Q4] — badge, stat labels and the FAQ (heading +
+    // Q&A pairs). The FAQ <details> UI and the JSON-LD FAQPage schema are
+    // both derived from these entries so visible copy and structured data
+    // stay identical per locale.
+    home_badge: '✦ Competitive Programming Platform',
+    home_stat_problems: 'Problems',
+    home_stat_languages: 'Languages',
+    home_stat_judge: 'Judge',
+    faq_heading: 'Frequently Asked Questions',
+    faq_q1: 'What programming languages does WebCoder support?',
+    faq_a1: 'WebCoder supports Python 3, C++17, and Java 11 for solution submissions.',
+    faq_q2: 'Is WebCoder free to use?',
+    faq_a2: 'Yes, WebCoder is completely free. Register an account and start solving problems immediately.',
+    faq_q3: 'How does the online judge work?',
+    faq_a3: 'You submit your solution code, and our judge compiles and runs it against hidden test cases. You receive a verdict (Accepted, Wrong Answer, Time Limit Exceeded, etc.) within seconds.',
+    faq_q4: 'Can I create my own problems on WebCoder?',
+    faq_a4: 'Yes. Users with the Problem Creator role can author problems, add test cases, and submit them for review by our verification team.',
   },
   ro: {
     // Parity with the shared resources (src/i18n.ts ro block).
@@ -139,6 +163,26 @@ const MESSAGES: Record<PublicLocale, Record<string, string>> = {
     not_found_code: '404',
     not_found_browse_problems: 'Vezi Problemele',
     not_found_go_home: 'Mergi la Pagina Principală',
+    // Problem detail metadata line (parity with src/i18n.ts) [Q1]
+    problem_form_allowed_languages: 'Limbaje permise',
+    // Catalog pager (ProblemsListClient's translator reads MESSAGES) [Q1]
+    loading_more: 'Se încarcă…',
+    load_more_problems: 'Încarcă mai multe probleme',
+    // Home page literals [Q4] — see the en block note: FAQ UI + JSON-LD
+    // schema both render from these entries.
+    home_badge: '✦ Platformă de Programare Competitivă',
+    home_stat_problems: 'Probleme',
+    home_stat_languages: 'Limbaje',
+    home_stat_judge: 'Evaluator',
+    faq_heading: 'Întrebări Frecvente',
+    faq_q1: 'Ce limbaje de programare susține WebCoder?',
+    faq_a1: 'WebCoder suportă Python 3, C++17 și Java 11 pentru trimiterea soluțiilor.',
+    faq_q2: 'WebCoder este gratuit?',
+    faq_a2: 'Da, WebCoder este complet gratuit. Creează un cont și începe să rezolvi probleme imediat.',
+    faq_q3: 'Cum funcționează evaluatorul online?',
+    faq_a3: 'Trimiți codul soluției, iar evaluatorul nostru îl compilează și îl rulează pe teste ascunse. Primești un verdict (Acceptată, Răspuns Greșit, Limită de Timp Depășită etc.) în câteva secunde.',
+    faq_q4: 'Pot să îmi creez propriile probleme pe WebCoder?',
+    faq_a4: 'Da. Utilizatorii cu rolul de Creator de Probleme pot crea probleme, adăuga teste și le pot trimite spre verificare echipei noastre.',
   },
 };
 

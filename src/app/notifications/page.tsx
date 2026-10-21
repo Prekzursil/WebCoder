@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
 import { NotificationService } from '@/services/ApiService';
 import { ApiNotification, NotificationVerb, cursorParamFromUrl } from '@/types/api';
 import { useAuth } from '@/context/AuthContext';
@@ -22,12 +23,14 @@ import PageHeader from '@/components/common/PageHeader';
 
 type DisplayType = 'reply' | 'verdict' | 'approved' | 'rejected' | 'system';
 
-const TYPE_META: Record<DisplayType, { icon: string; color: string; label: string }> = {
-  reply: { icon: '💬', color: palette.accent, label: 'Reply' },
-  verdict: { icon: '⚡', color: palette.warn, label: 'Verdict' },
-  approved: { icon: '✓', color: palette.success, label: 'Approved' },
-  rejected: { icon: '✕', color: palette.danger, label: 'Rejected' },
-  system: { icon: '🔔', color: palette.muted, label: 'System' },
+// [Q2] labels are translated at render time via useTranslation — the map
+// keeps icon/color per display type plus a t-friendly label key.
+const TYPE_META: Record<DisplayType, { icon: string; color: string; labelKey: string; fallback: string }> = {
+  reply: { icon: '💬', color: palette.accent, labelKey: 'notification_type_reply', fallback: 'Reply' },
+  verdict: { icon: '⚡', color: palette.warn, labelKey: 'notification_type_verdict', fallback: 'Verdict' },
+  approved: { icon: '✓', color: palette.success, labelKey: 'notification_type_approved', fallback: 'Approved' },
+  rejected: { icon: '✕', color: palette.danger, labelKey: 'notification_type_rejected', fallback: 'Rejected' },
+  system: { icon: '🔔', color: palette.muted, labelKey: 'notification_type_system', fallback: 'System' },
 };
 
 const VERB_TO_TYPE: Record<NotificationVerb, DisplayType> = {
@@ -38,15 +41,17 @@ const VERB_TO_TYPE: Record<NotificationVerb, DisplayType> = {
   SYSTEM: 'system',
 };
 
-function timeAgo(dateStr: string): string {
+// [Q2] relative-time formatter localized through the injected translator
+// (time_just_now / time_min_ago / time_hour_ago / time_day_ago keys).
+function timeAgo(dateStr: string, t: ReturnType<typeof useTranslation>['t']): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return t('time_just_now', 'just now');
+  if (mins < 60) return t('time_min_ago', '{{count}}m ago', { count: mins });
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) return t('time_hour_ago', '{{count}}h ago', { count: hrs });
   const days = Math.floor(hrs / 24);
-  return `${days}d ago`;
+  return t('time_day_ago', '{{count}}d ago', { count: days });
 }
 
 const str = (n: ApiNotification, key: string): string | undefined => {
@@ -68,46 +73,63 @@ function targetHref(n: ApiNotification): string | null {
   return null;
 }
 
-/** Derive title/body from verb + data payload (backend emissions). */
-function describe(n: ApiNotification): { title: string; body: string } {
-  const who = n.actor ?? 'Someone';
+/** Derive title/body from verb + data payload (backend emissions). [Q2] localized. */
+function describe(n: ApiNotification, t: ReturnType<typeof useTranslation>['t']): { title: string; body: string } {
+  const who = n.actor ?? t('notification_someone', 'Someone');
   switch (n.verb) {
     case 'THREAD_REPLY': {
       const title = str(n, 'title');
       return {
-        title: `${who} replied to your thread${title ? ` "${title}"` : ''}`,
-        body: str(n, 'post_id') ? `Reply #${str(n, 'post_id')} in your thread.` : 'New reply in your thread.',
+        title: `${t('notification_reply_title', '{{who}} replied to your thread', { who })}${title ? ` "${title}"` : ''}`,
+        body: str(n, 'post_id')
+          ? t('notification_reply_numbered_body', 'Reply #{{id}} in your thread.', { id: str(n, 'post_id') as string })
+          : t('notification_reply_body', 'New reply in your thread.'),
       };
     }
     case 'SUBMISSION_JUDGED': {
       const verdict = str(n, 'verdict') ?? 'judged';
       const problemId = num(n, 'problem_id');
+      // Localized optional segments keep the sentence natural per locale.
+      let submission = '';
+      const submissionId = num(n, 'submission_id');
+      if (submissionId !== undefined) {
+        submission += t('notification_judged_submission_id', ' #{{id}}', { id: submissionId });
+      }
+      if (problemId !== undefined) {
+        submission += t('notification_judged_problem', ' on problem #{{id}}', { id: problemId });
+      }
       return {
-        title: `Submission ${verdict}`,
-        body: `Your submission${num(n, 'submission_id') ? ` #${num(n, 'submission_id')}` : ''}${
-          problemId ? ` on problem #${problemId}` : ''
-        } was judged ${verdict}.`,
+        title: t('notification_judged_title', 'Submission {{verdict}}', { verdict }),
+        body: t('notification_judged_body', 'Your submission{{submission}} was judged {{verdict}}.', {
+          submission,
+          verdict,
+        }),
       };
     }
     case 'PROBLEM_APPROVED':
       return {
-        title: `${who} approved your problem`,
-        body: str(n, 'feedback') ? `Feedback: ${str(n, 'feedback')}` : 'Your problem is now visible in the catalog.',
+        title: t('notification_approved_title', '{{who}} approved your problem', { who }),
+        body: str(n, 'feedback')
+          ? `${t('notification_feedback_prefix', 'Feedback: ')}${str(n, 'feedback')}`
+          : t('notification_approved_body', 'Your problem is now visible in the catalog.'),
       };
     case 'PROBLEM_REJECTED':
       return {
-        title: `${who} rejected your problem`,
-        body: str(n, 'feedback') ? `Feedback: ${str(n, 'feedback')}` : 'Your problem was sent back as private.',
+        title: t('notification_rejected_title', '{{who}} rejected your problem', { who }),
+        body: str(n, 'feedback')
+          ? `${t('notification_feedback_prefix', 'Feedback: ')}${str(n, 'feedback')}`
+          : t('notification_rejected_body', 'Your problem was sent back as private.'),
       };
     case 'SYSTEM':
     default:
-      return { title: 'System notification', body: str(n, 'message') ?? '' };
+      return { title: t('notification_system_title', 'System notification'), body: str(n, 'message') ?? '' };
   }
 }
 
 type FilterType = 'all' | DisplayType;
 
 export default function NotificationsPage() {
+  const { t } = useTranslation();
   const auth = useAuth();
   const [notifications, setNotifications] = useState<ApiNotification[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -126,12 +148,12 @@ export default function NotificationsPage() {
         setNotifications(response.results);
         setNextCursor(cursorParamFromUrl(response.next));
       } catch (err) {
-        setError(err instanceof Error && err.message ? err.message : 'Failed to load notifications.');
+        setError(err instanceof Error && err.message ? err.message : t('notifications_load_error', 'Failed to load notifications.'));
       } finally {
         setLoading(false);
       }
     },
-    []
+    [t]
   );
 
   useEffect(() => {
@@ -159,7 +181,7 @@ export default function NotificationsPage() {
       });
       setNextCursor(cursorParamFromUrl(response.next));
     } catch (err) {
-      setError(err instanceof Error && err.message ? err.message : 'Failed to load more notifications.');
+      setError(err instanceof Error && err.message ? err.message : t('notifications_load_more_error', 'Failed to load more notifications.'));
     } finally {
       setLoadingMore(false);
     }
@@ -181,7 +203,7 @@ export default function NotificationsPage() {
       await NotificationService.markAllRead();
       setNotifications((prev) => prev.map((n) => ({ ...n, read_at: n.read_at ?? new Date().toISOString() })));
     } catch (err) {
-      setError(err instanceof Error && err.message ? err.message : 'Failed to mark all read.');
+      setError(err instanceof Error && err.message ? err.message : t('notifications_mark_all_error', 'Failed to mark all read.'));
     }
   };
 
@@ -190,25 +212,25 @@ export default function NotificationsPage() {
   const filtered = notifications.filter((n) => filter === 'all' || VERB_TO_TYPE[n.verb] === filter);
 
   const filterTypes: { key: FilterType; label: string }[] = [
-    { key: 'all', label: 'All' },
-    { key: 'reply', label: 'Replies' },
-    { key: 'verdict', label: 'Verdicts' },
-    { key: 'approved', label: 'Approvals' },
-    { key: 'rejected', label: 'Rejections' },
-    { key: 'system', label: 'System' },
+    { key: 'all', label: t('notification_filter_all', 'All') },
+    { key: 'reply', label: t('notification_filter_reply', 'Replies') },
+    { key: 'verdict', label: t('notification_filter_verdict', 'Verdicts') },
+    { key: 'approved', label: t('notification_filter_approved', 'Approvals') },
+    { key: 'rejected', label: t('notification_filter_rejected', 'Rejections') },
+    { key: 'system', label: t('notification_filter_system', 'System') },
   ];
 
   if (!auth.isAuthenticated) {
     return (
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem 1.5rem' }}>
-        <PageHeader title="Notifications" subtitle="Stay up to date with replies, verdicts, and community activity." />
+        <PageHeader title={t('notifications_header', 'Notifications')} subtitle={t('notifications_subtitle_public', 'Stay up to date with replies, verdicts, and community activity.')} />
         <EmptyState
-          title="Log in to see your notifications."
-          description="Replies to your threads, submission verdicts and problem approvals land here."
+          title={t('notifications_login_title', 'Log in to see your notifications.')}
+          description={t('notifications_login_description', 'Replies to your threads, submission verdicts and problem approvals land here.')}
           icon="🔔"
           action={
             <Link href="/login" className="btn btn--primary">
-              Log in
+              {t('log_in_button', 'Log in')}
             </Link>
           }
         />
@@ -229,7 +251,7 @@ export default function NotificationsPage() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <PageHeader title="Notifications" subtitle="Replies, verdicts, and community activity." />
+          <PageHeader title={t('notifications_header', 'Notifications')} subtitle={t('notifications_subtitle_auth', 'Replies, verdicts, and community activity.')} />
           {unreadCount > 0 && (
             <span
               style={{
@@ -244,7 +266,7 @@ export default function NotificationsPage() {
                 whiteSpace: 'nowrap',
               }}
             >
-              {unreadCount} new
+              {t('notifications_new_count', '{{count}} new', { count: unreadCount })}
             </span>
           )}
         </div>
@@ -259,7 +281,7 @@ export default function NotificationsPage() {
                 : undefined
             }
           >
-            Unread only
+            {t('notifications_unread_only', 'Unread only')}
           </button>
           {unreadCount > 0 && (
             <button
@@ -275,7 +297,7 @@ export default function NotificationsPage() {
                 cursor: 'pointer',
               }}
             >
-              Mark all read
+              {t('notifications_mark_all_read', 'Mark all read')}
             </button>
           )}
         </div>
@@ -331,7 +353,7 @@ export default function NotificationsPage() {
       {/* States */}
       {loading ? (
         <div role="status" style={{ padding: '3rem', textAlign: 'center', color: 'var(--muted)' }}>
-          Loading notifications…
+          {t('notifications_loading', 'Loading notifications…')}
         </div>
       ) : error && notifications.length === 0 ? (
         <div
@@ -344,17 +366,17 @@ export default function NotificationsPage() {
             color: 'var(--danger)',
           }}
         >
-          Could not load notifications: {error}
+          {t('could_not_load_notifications', 'Could not load notifications: ')}{error}
           <div style={{ marginTop: '0.75rem' }}>
             <button onClick={() => load(showUnreadOnly)} className="btn">
-              Retry
+              {t('retry_button', 'Retry')}
             </button>
           </div>
         </div>
       ) : filtered.length === 0 ? (
         <EmptyState
-          title={showUnreadOnly ? 'No unread notifications.' : 'No notifications here.'}
-          description="Replies to your threads and submission verdicts will show up here."
+          title={showUnreadOnly ? t('notifications_empty_unread', 'No unread notifications.') : t('notifications_empty', 'No notifications here.')}
+          description={t('notifications_empty_description', 'Replies to your threads and submission verdicts will show up here.')}
           icon="🎉"
         />
       ) : (
@@ -368,7 +390,7 @@ export default function NotificationsPage() {
             {filtered.map((notif) => {
               const meta = TYPE_META[VERB_TO_TYPE[notif.verb]];
               const isRead = notif.read_at !== null;
-              const { title, body } = describe(notif);
+              const { title, body } = describe(notif, t);
               const href = targetHref(notif);
               return (
                 <div
@@ -444,9 +466,9 @@ export default function NotificationsPage() {
                           borderRadius: '4px',
                         }}
                       >
-                        {meta.label}
+                        {t(meta.labelKey, meta.fallback)}
                       </span>
-                      <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>{timeAgo(notif.created_at)}</span>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>{timeAgo(notif.created_at, t)}</span>
                     </div>
                     {href ? (
                       <Link href={href} onClick={() => !isRead && markRead(notif.id)} style={{ textDecoration: 'none' }}>
@@ -494,7 +516,7 @@ export default function NotificationsPage() {
                     {!isRead && (
                       <button
                         onClick={() => markRead(notif.id)}
-                        title="Mark as read"
+                        title={t('notification_mark_read', 'Mark as read')}
                         style={{
                           background: 'rgba(56,189,248,0.08)',
                           border: '1px solid rgba(56,189,248,0.2)',
@@ -507,7 +529,7 @@ export default function NotificationsPage() {
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        ✓ Read
+                        {t('notification_read_button', '✓ Read')}
                       </button>
                     )}
                   </div>
@@ -520,7 +542,7 @@ export default function NotificationsPage() {
           {nextCursor && (
             <div style={{ textAlign: 'center', marginTop: '1rem' }}>
               <button onClick={loadMore} disabled={loadingMore} className="btn">
-                {loadingMore ? 'Loading…' : 'Load more'}
+                {loadingMore ? t('loading_more', 'Loading…') : t('load_more_button', 'Load more')}
               </button>
             </div>
           )}
