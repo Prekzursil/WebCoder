@@ -13,6 +13,7 @@ import { AuthService, ProblemService, setUnauthorizedHandler } from '@/services/
 const API_BASE = 'http://localhost:8000/api/v1';
 const REFRESH_URL = `${API_BASE}/auth/token/refresh/`;
 const ME_URL = `${API_BASE}/users/me/`;
+const LOGOUT_URL = `${API_BASE}/auth/logout/`;
 
 const storedUser = { id: 1, username: 'alice', email: 'alice@example.com', role: 'ADMIN' } as const;
 
@@ -79,6 +80,38 @@ describe('AuthContext <-> ApiService session-expiry wiring (cookie model)', () =
 
     expect(screen.getByTestId('auth-state')).toHaveTextContent('anon');
     expect(localStorage.getItem('user')).toBeNull();
+  });
+
+  it('POSTs the backend logout at most ONCE per session (no re-entrant loop)', async () => {
+    // Regression: with dead cookies, logout()'s POST /auth/logout/ 401s ->
+    // apiFetch's refresh fails -> the unauthorized handler calls logout()
+    // again -> another POST... unbounded. The provider must post once per
+    // live session and stop (this loop exhausted the CI worker's heap).
+    const fetchMock = vi.fn(async (input: unknown) => {
+      if (String(input) === REFRESH_URL) {
+        return jsonResponse({ detail: 'expired' }, { status: 401, statusText: 'Unauthorized' });
+      }
+      return unauthorized();
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    seedSession();
+    render(
+      <AuthProvider>
+        <AuthStateProbe />
+      </AuthProvider>
+    );
+    await screen.findByText('anon');
+
+    const logoutPosts = () =>
+      fetchMock.mock.calls.filter(([input]) => String(input) === LOGOUT_URL).length;
+    await vi.waitFor(() => expect(logoutPosts()).toBe(1));
+    // Give any (buggy) re-entrant loop room to fire more posts — none may.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
+    expect(logoutPosts()).toBe(1);
+    expect(screen.getByTestId('auth-state')).toHaveTextContent('anon');
   });
 
   it('keeps the session when the refresh succeeds and retries with cookies', async () => {

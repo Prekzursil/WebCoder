@@ -1,6 +1,14 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  ReactNode,
+} from 'react';
 import { AuthService, setUnauthorizedHandler } from '@/services/ApiService';
 import { User } from '@/types';
 
@@ -24,11 +32,18 @@ const USER_STORAGE_KEY = 'user';
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  // One backend-logout POST per live session. Without the guard, a session
+  // expiry loops: logout() POSTs /auth/logout/ → that 401s (cookies already
+  // dead) → apiFetch's refresh fails → the unauthorized handler calls
+  // logout() again → POST again … (unbounded; exhausted the CI worker heap
+  // before the guard existed).
+  const logoutPostedRef = useRef(false);
 
   // Stable across renders — logout fires the backend logout (blacklisting
   // the refresh cookie) when a session existed, then clears local state.
   const logout = useCallback(() => {
-    if (user) {
+    if (user && !logoutPostedRef.current) {
+      logoutPostedRef.current = true;
       // Fire-and-forget: blacklisting happens in the background; local
       // state clears immediately either way.
       AuthService.logout().catch(() => undefined);
@@ -86,6 +101,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const login = useCallback((userData: User) => {
+    logoutPostedRef.current = false; // a fresh session may log out again
     setUser(userData);
     if (typeof window !== 'undefined') {
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
