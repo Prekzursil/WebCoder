@@ -19,7 +19,7 @@ import {
   E2E_USER_PASS,
 } from './lib/realStack';
 
-test.skip(!isRealStack, `real-stack mode only — set E2E_API_BASE (live stack expected at ${REAL_API_BASE || 'http://127.0.0.1:8010'})`);
+test.skip(!isRealStack, `real-stack mode only — set E2E_API_BASE to the API origin with the SAME hostname as the dev server (http://localhost:8010; cookies are SameSite=Lax)`);
 
 let seeded: { twoSumId: number; reverseId: number };
 
@@ -28,7 +28,7 @@ test.beforeAll(async () => {
 });
 
 
-test('real login issues JWTs and shows the authenticated navbar', async ({ page }) => {
+test('real login issues JWTs and shows the authenticated navbar', async ({ page, context }) => {
   await page?.goto('/login');
 
   await page?.fill('#login-username', E2E_USER);
@@ -38,12 +38,22 @@ test('real login issues JWTs and shows the authenticated navbar', async ({ page 
   await expect(page)?.toHaveURL(/\/$/);
   await expect(page?.getByText(E2E_USER, { exact: true }))?.toBeVisible();
 
-  // Real access/refresh JWTs (header.payload.signature) persisted by
-  // AuthContext — not the mock constants.
-  const accessToken = await page?.evaluate(() => localStorage.getItem('accessToken'));
-  const refreshToken = await page?.evaluate(() => localStorage.getItem('refreshToken'));
-  expect(accessToken).toMatch(/^ey[^.]+\.[^.]+\./);
-  expect(refreshToken).toMatch(/^ey[^.]+\.[^.]+\./);
+  // [SP1] cookie auth: real access/refresh JWTs (header.payload.signature)
+  // live in the httpOnly wc_access/wc_refresh cookies — never in
+  // JS-readable storage.
+  const cookies = (await context?.cookies()) ?? [];
+  const accessCookie = cookies.find((c) => c.name === 'wc_access');
+  const refreshCookie = cookies.find((c) => c.name === 'wc_refresh');
+  expect(accessCookie?.value).toMatch(/^ey[^.]+\.[^.]+\./);
+  expect(refreshCookie?.value).toMatch(/^ey[^.]+\.[^.]+\./);
+  expect(accessCookie?.httpOnly).toBe(true);
+  expect(refreshCookie?.httpOnly).toBe(true);
+  const leaked = await page?.evaluate(() => ({
+    access: localStorage.getItem('accessToken'),
+    refresh: localStorage.getItem('refreshToken'),
+  }));
+  expect(leaked?.access).toBeNull();
+  expect(leaked?.refresh).toBeNull();
 });
 
 test('real catalog lists the API-seeded problems with difficulty and status', async ({ page }) => {

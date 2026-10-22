@@ -19,11 +19,16 @@ const APP_PORT = 3311;
 const MOCK_API_PORT = 8901;
 
 // Real-backend e2e mode [Q13]: set E2E_API_BASE to a live Django API (e.g.
-// the local compose stack at http://127.0.0.1:8010 — RUNBOOK Mode A) and the
+// the local compose stack at http://localhost:8010 — RUNBOOK Mode A) and the
 // suite runs against it with the mock API DISABLED (no mock server is
 // started; NEXT_PUBLIC_API_BASE points at the real backend, so server
 // components AND browser fetches hit Django). Unset (CI default) keeps the
 // hermetic mock mode byte-for-byte identical to before.
+//
+// [SP1] Use the SAME hostname as the dev server (localhost, not 127.0.0.1):
+// the auth session cookies are SameSite=Lax, and localhost vs 127.0.0.1 are
+// DIFFERENT sites — with 127.0.0.1 the browser would silently stop sending
+// the cookies on every API fetch and all authenticated specs would fail.
 //
 // The real stack must allow the dev-server origin in CORS_ALLOWED_ORIGINS
 // (see docs/RUNBOOK.md § e2e) and, for the seeded fixtures, expose the

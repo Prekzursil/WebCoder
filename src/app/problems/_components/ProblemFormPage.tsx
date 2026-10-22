@@ -68,9 +68,9 @@ export default function ProblemFormPage() {
       .then((tags: TagType[]) => setAvailableTags(tags))
       .catch((err) => console.error('Failed to fetch tags', err));
 
-    // isEditMode === Boolean(problemId), so `problemId && auth.token` is
-    // equivalent to the CRA `isEditMode && problemId && auth.token` guard.
-    if (problemId && auth.token) {
+    // isEditMode === Boolean(problemId), so `problemId && auth.isAuthenticated` is
+    // equivalent to the CRA `isEditMode && problemId && auth.isAuthenticated` guard.
+    if (problemId && auth.isAuthenticated) {
       setIsLoadingData(true);
       ProblemService.getProblemDetail(problemId)
         .then((data: ProblemType) => {
@@ -102,7 +102,7 @@ export default function ProblemFormPage() {
         })
         .finally(() => setIsLoadingData(false));
     }
-  }, [problemId, auth.token, t]);
+  }, [problemId, auth.isAuthenticated, t]);
 
   const handleTagChange = (tagId: number) => {
     setSelectedTagIds((prev) =>
@@ -115,7 +115,7 @@ export default function ProblemFormPage() {
       toast.error(t('test_case_input_output_required', 'Test case input and output cannot be empty.'));
       return;
     }
-    if (!auth.token) {
+    if (!auth.isAuthenticated) {
       setFormError(t('error_auth_required', 'Authentication required.'));
       return;
     }
@@ -156,7 +156,7 @@ export default function ProblemFormPage() {
   };
 
   const handleRemoveTestCase = async (tcToRemove: TestCaseUIManaged) => {
-    if (!auth.token) {
+    if (!auth.isAuthenticated) {
       setFormError(t('error_auth_required', 'Authentication required.'));
       return;
     }
@@ -180,7 +180,7 @@ export default function ProblemFormPage() {
     event.preventDefault();
     setFormError(null);
     setFormMessage(null);
-    if (!auth.token) {
+    if (!auth.isAuthenticated) {
       setFormError(t('error_auth_required_problem_form', 'Authentication required.'));
       return;
     }

@@ -21,7 +21,6 @@ import React, { useState, FormEvent, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { AuthService } from '@/services/ApiService';
-import type { LoginResponse } from '@/types/api';
 import { useAuth } from '@/context/AuthContext';
 import {
   Container,
@@ -59,11 +58,12 @@ function CompleteRegistrationForm() {
     setError(null);
     setIsSubmitting(true);
     try {
-      const response = (await AuthService.register({ email, username })) as unknown as
-        | LoginResponse
-        | undefined;
-      if (response && response.access && response.refresh && response.user) {
-        auth.login(response.access, response.refresh, response.user);
+      // [SP1] cookie auth: /users/register/ creates the account (no tokens
+      // in the response); the user is signed in through the returned
+      // profile. Social sign-in flows that need cookies use /auth/login/.
+      const response = await AuthService.register({ email, username });
+      if (response && response.user) {
+        auth.login(response.user);
         router.push('/');
       } else {
         setError(t('registration_completion_failed', 'Failed to complete registration.'));

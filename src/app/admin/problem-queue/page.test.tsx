@@ -69,8 +69,6 @@ type AuthShape = ReturnType<typeof useAuth>;
 
 const authed = (overrides: Partial<AuthShape> = {}): AuthShape => ({
   isAuthenticated: true,
-  token: 'token-1',
-  refreshToken: null,
   user: verifier,
   login: vi.fn(),
   logout: vi.fn(),
@@ -96,7 +94,7 @@ describe('ProblemVerificationQueuePage (/admin/problem-queue)', () => {
 
   it('renders nothing and redirects to / for a role outside ADMIN/PROBLEM_VERIFIER (route guard)', () => {
     vi.mocked(useAuth).mockReturnValue(
-      authed({ user: { ...verifier, role: 'BASIC_USER' }, token: null, isAuthenticated: false })
+      authed({ user: { ...verifier, role: 'BASIC_USER' }, isAuthenticated: false })
     );
     const { container } = render(<ProblemVerificationQueuePageRoute />);
     expect(container).toBeEmptyDOMElement();
@@ -104,18 +102,17 @@ describe('ProblemVerificationQueuePage (/admin/problem-queue)', () => {
   });
 
   it('renders the authentication-required error when not authenticated', async () => {
-    vi.mocked(useAuth).mockReturnValue(authed({ isAuthenticated: false, token: null }));
+    vi.mocked(useAuth).mockReturnValue(authed({ isAuthenticated: false }));
     render(<ProblemVerificationQueuePage />);
     expect(await screen.findByText('Authentication required.')).toBeInTheDocument();
     expect(ProblemService.getProblems).not.toHaveBeenCalled();
   });
 
-  it('keeps the spinner and never fetches when authenticated without a token', async () => {
-    vi.mocked(useAuth).mockReturnValue(authed({ token: null }));
+  it('shows the auth-required error and never fetches when signed out', async () => {
+    vi.mocked(useAuth).mockReturnValue(authed({ isAuthenticated: false }));
     render(<ProblemVerificationQueuePageRoute />);
-    await Promise.resolve(); // let the effect run
+    await screen.findByText('Authentication required.');
     expect(ProblemService.getProblems).not.toHaveBeenCalled();
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
   });
 
   it('renders the pending queue with localized titles, authors, difficulties, and edit links', async () => {
@@ -238,21 +235,16 @@ describe('ProblemVerificationQueuePage (/admin/problem-queue)', () => {
     expect(await screen.findByText('nope')).toBeInTheDocument();
   });
 
-  it('requires authentication for approve/reject actions when the token disappears (rerender)', async () => {
+  it('switches to the auth-required state when the session disappears (rerender), blocking all actions', async () => {
     const { rerender } = render(<ProblemVerificationQueuePageRoute />);
     await rowFor('Two Sum');
-    vi.mocked(useAuth).mockReturnValue(authed({ token: null }));
+    vi.mocked(useAuth).mockReturnValue(authed({ isAuthenticated: false }));
     rerender(<ProblemVerificationQueuePageRoute />);
-    const rowAfter = await rowFor('Two Sum');
-    // Reject first: its token check precedes the feedback check, so this
-    // exercises the reject-handler auth branch even with empty feedback.
-    fireEvent.click(within(rowAfter).getByRole('button', { name: 'Reject' }));
-    expect(await screen.findByText('Authentication required for this action.')).toBeInTheDocument();
+    // The queue is replaced by the auth-required message; with no rows
+    // rendered there is no control left through which an action could fire.
+    expect(await screen.findByText('Authentication required.')).toBeInTheDocument();
+    expect(screen.queryByRole('row')).not.toBeInTheDocument();
     expect(ProblemService.rejectProblem).not.toHaveBeenCalled();
-    fireEvent.click(within(rowAfter).getByRole('button', { name: 'Approve' }));
-    await waitFor(() =>
-      expect(screen.getAllByText('Authentication required for this action.').length).toBeGreaterThan(0)
-    );
     expect(ProblemService.approveProblem).not.toHaveBeenCalled();
   });
 

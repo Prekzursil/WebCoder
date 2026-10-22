@@ -1,44 +1,58 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  ReactNode,
+} from 'react';
 import { AuthService, setUnauthorizedHandler } from '@/services/ApiService';
 import { User } from '@/types';
 
-// Ported from frontend/webcoder_ui/src/context/AuthContext.tsx (CRA reference).
-// Next.js adaptation: auth state hydrates from localStorage after mount
-// instead of during initial render, because this component is also
-// server-rendered during App Router SSR where localStorage is undefined.
-//
-// NEW (not in the CRA reference): the provider registers its logout() with
-// ApiService so a failed token refresh (401 -> refresh fails) clears React
-// auth state, not just localStorage.
+// [SP1] httpOnly-cookie auth state. No tokens live in the browser's JS:
+// the wc_access/wc_refresh cookies are httpOnly, so this context tracks
+// ONLY the user profile. `isAuthenticated === !!user`, hydrated on mount
+// via GET /users/me/ (which transparently refreshes expired cookies through
+// ApiService). A cached `user` snapshot in localStorage keeps the first
+// paint free of a logged-out flash; it is never a source of truth.
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  token: string | null;
-  refreshToken: string | null;
   user: User | null;
-  login: (access: string, refresh: string, userData: User) => void;
+  login: (userData: User) => void;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [token, setToken] = useState<string | null>(null);
-  const [refreshToken, setRefreshToken] = useState<string | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+const USER_STORAGE_KEY = 'user';
 
-  // Stable across renders — logout touches only localStorage and the state
-  // setters, never component-scoped data.
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  // One backend-logout POST per live session. Without the guard, a session
+  // expiry loops: logout() POSTs /auth/logout/ → that 401s (cookies already
+  // dead) → apiFetch's refresh fails → the unauthorized handler calls
+  // logout() again → POST again … (unbounded; exhausted the CI worker heap
+  // before the guard existed).
+  const logoutPostedRef = useRef(false);
+
+  // Stable across renders — logout fires the backend logout (blacklisting
+  // the refresh cookie) when a session existed, then clears local state.
   const logout = useCallback(() => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-    setToken(null);
-    setRefreshToken(null);
+    if (user && !logoutPostedRef.current) {
+      logoutPostedRef.current = true;
+      // Fire-and-forget: blacklisting happens in the background; local
+      // state clears immediately either way.
+      AuthService.logout().catch(() => undefined);
+    }
     setUser(null);
-  }, []);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(USER_STORAGE_KEY);
+    }
+  }, [user]);
 
   // Session-expiry wiring: ApiService invokes the registered handler when a
   // token refresh fails. Injected via setter (not an import of ApiService's
@@ -49,49 +63,53 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return () => setUnauthorizedHandler(null);
   }, [logout]);
 
-  // Hydrate persisted auth state on the client after mount.
+  // Hydrate the session from cookies after mount: the cached user snapshot
+  // paints instantly, then GET /users/me/ confirms it against the backend
+  // (200 → refresh snapshot; failure incl. failed refresh → clear).
   useEffect(() => {
-    setToken(localStorage.getItem('accessToken'));
-    setRefreshToken(localStorage.getItem('refreshToken'));
-    const storedUser = localStorage.getItem('user');
+    let cancelled = false;
+    const storedUser =
+      typeof window !== 'undefined' ? localStorage.getItem(USER_STORAGE_KEY) : null;
     if (storedUser) {
       try {
         setUser(JSON.parse(storedUser) as User);
       } catch {
-        localStorage.removeItem('user');
+        localStorage.removeItem(USER_STORAGE_KEY);
       }
+    }
+    (async () => {
+      try {
+        const me = await AuthService.getMe();
+        if (!cancelled && me) {
+          setUser(me);
+          localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(me));
+        }
+      } catch {
+        // Anonymous or expired session: drop the optimistic snapshot. The
+        // window guard keeps a LATE-settling promise (e.g. a test
+        // environment torn down before the fetch settles) from dispatching
+        // React state into a destroyed DOM.
+        if (!cancelled && typeof window !== 'undefined') {
+          setUser(null);
+          localStorage.removeItem(USER_STORAGE_KEY);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const login = useCallback((userData: User) => {
+    logoutPostedRef.current = false; // a fresh session may log out again
+    setUser(userData);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
     }
   }, []);
 
-  useEffect(() => {
-    const fetchUserOnLoad = async () => {
-      if (token && !user) {
-        try {
-          const fetchedUser = await AuthService.getMe();
-          if (fetchedUser) {
-            setUser(fetchedUser);
-            localStorage.setItem('user', JSON.stringify(fetchedUser));
-          }
-        } catch {
-          logout();
-        }
-      }
-    };
-    fetchUserOnLoad();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
-
-  const login = (access: string, refresh: string, userData: User) => {
-    localStorage.setItem('accessToken', access);
-    localStorage.setItem('refreshToken', refresh);
-    localStorage.setItem('user', JSON.stringify(userData));
-    setToken(access);
-    setRefreshToken(refresh);
-    setUser(userData);
-  };
-
   return (
-    <AuthContext.Provider value={{ isAuthenticated: !!token, token, refreshToken, user, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated: !!user, user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

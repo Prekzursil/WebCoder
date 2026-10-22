@@ -46,9 +46,12 @@ export function cursorParamFromUrl(url: string | null | undefined): string | nul
 // Auth Service
 // =================================
 
+// [SP1] cookie auth: the login response carries the user profile; the
+// JWTs live in httpOnly cookies the browser attaches automatically. The
+// access token stays in the body during the migration window but is no
+// longer consumed.
 export interface LoginResponse {
-    access: string;
-    refresh: string;
+    access?: string;
     user: User;
 }
 

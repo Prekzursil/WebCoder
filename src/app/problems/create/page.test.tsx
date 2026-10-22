@@ -4,7 +4,6 @@ import CreateProblemPage from './page';
 
 const authState = vi.hoisted(() => ({
   isAuthenticated: true,
-  token: 'token-1' as string | null,
   refreshToken: 'refresh-1' as string | null,
   user: {
     id: 7,
@@ -70,7 +69,6 @@ beforeEach(() => {
   vi.clearAllMocks();
   nav.params.mockReturnValue({});
   authState.isAuthenticated = true;
-  authState.token = 'token-1';
   authState.refreshToken = 'refresh-1';
   authState.user = { id: 7, username: 'creator', email: 'creator@example.com', role: 'PROBLEM_CREATOR' };
   api.getTags.mockResolvedValue({ count: 0, next: null, previous: null, results: [] });

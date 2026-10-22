@@ -16,7 +16,6 @@ const mocks = vi.hoisted(() => ({
   auth: {
     isAuthenticated: true,
     token: 'test-access-token' as string | null,
-    refreshToken: 'test-refresh-token' as string | null,
     user: {
       id: 1,
       username: 'tester',
@@ -87,7 +86,6 @@ const submission = (id: number, over: Partial<SubmissionType> = {}): SubmissionT
 function setAuth(over: Partial<typeof mocks.auth> = {}) {
   mocks.auth.isAuthenticated = true;
   mocks.auth.token = 'test-access-token';
-  mocks.auth.refreshToken = 'test-refresh-token';
   mocks.auth.user = { id: 1, username: 'tester', email: 'tester@example.com', role: 'BASIC_USER' };
   Object.assign(mocks.auth, over);
 }
@@ -106,7 +104,7 @@ afterEach(cleanup);
 
 describe('MySubmissionsPage', () => {
   it('redirects anonymous visitors via ProtectedRoute (no content, no fetch)', async () => {
-    setAuth({ isAuthenticated: false, token: null, user: null });
+    setAuth({ isAuthenticated: false, user: null });
     render(<MySubmissionsPage />);
     await act(async () => {});
     expect(mocks.replace).toHaveBeenCalledWith('/login');
@@ -116,7 +114,7 @@ describe('MySubmissionsPage', () => {
 
   it('shows the inline login prompt when unauthenticated inside the guard', async () => {
     // Belt-and-braces branch: user passes ProtectedRoute but isAuthenticated is false.
-    setAuth({ isAuthenticated: false, token: null });
+    setAuth({ isAuthenticated: false });
     render(<MySubmissionsPage />);
     expect(await screen.findByText('Please login to view submissions.')).toBeInTheDocument();
     const loginLink = screen.getByRole('link', { name: 'Login' });

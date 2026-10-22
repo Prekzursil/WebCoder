@@ -18,8 +18,6 @@ vi.mock('./_lib/problems-api', () => ({
 const mocks = vi.hoisted(() => ({
   auth: {
     isAuthenticated: false,
-    token: null as string | null,
-    refreshToken: null as string | null,
     user: null as User | null,
     login: vi.fn(),
     logout: vi.fn(),
@@ -129,8 +127,7 @@ describe('ProblemsListPage (route "/problems")', () => {
 
   it('shows the status column and facet for privileged roles (F7)', async () => {
     mocks.auth.isAuthenticated = true;
-    mocks.auth.token = 'tok';
-    mocks.auth.user = { id: 1, username: 'v', email: 'v@example.com', role: 'PROBLEM_VERIFIER' } as User;
+        mocks.auth.user = { id: 1, username: 'v', email: 'v@example.com', role: 'PROBLEM_VERIFIER' } as User;
     vi.mocked(getProblemsPage).mockResolvedValue({ count: [
       problem({ id: 1, title_i18n: { en: 'Two Sum' } }),
       problem({ id: 2, title_i18n: { en: 'Draft One' }, status: 'DRAFT' }),
@@ -147,7 +144,6 @@ describe('ProblemsListPage (route "/problems")', () => {
     expect(screen.getByRole('button', { name: 'pending_approval' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'rejected' })).not.toBeInTheDocument();
     mocks.auth.isAuthenticated = false;
-    mocks.auth.token = null;
     mocks.auth.user = null;
   });
 

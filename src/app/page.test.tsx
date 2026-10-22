@@ -28,8 +28,6 @@ afterEach(cleanup);
 beforeEach(() => {
   vi.mocked(useAuth).mockReturnValue({
     isAuthenticated: false,
-    token: null,
-    refreshToken: null,
     user: null,
     login: vi.fn(),
     logout: vi.fn(),

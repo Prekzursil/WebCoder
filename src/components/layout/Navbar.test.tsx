@@ -15,8 +15,6 @@ import Navbar from './Navbar';
 const mocks = vi.hoisted(() => ({
   auth: {
     isAuthenticated: false,
-    token: null as string | null,
-    refreshToken: null as string | null,
     user: null as User | null,
     login: vi.fn(),
     logout: vi.fn(),
@@ -58,7 +56,6 @@ const mkUser = (role: User['role']): User => ({ id: 1, username: 'tester', email
 function setAuth(authenticated: boolean, user: User | null = null) {
   mocks.auth.isAuthenticated = authenticated;
   mocks.auth.user = user;
-  mocks.auth.token = authenticated ? 'tok' : null;
 }
 
 /** The avatar dropdown must be open for its links to exist in the DOM. */

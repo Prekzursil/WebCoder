@@ -5,8 +5,6 @@ import EditProblemPage from './page';
 
 const authState = vi.hoisted(() => ({
   isAuthenticated: true,
-  token: 'token-1' as string | null,
-  refreshToken: 'refresh-1' as string | null,
   user: {
     id: 7,
     username: 'verifier',
@@ -78,8 +76,6 @@ beforeEach(() => {
   vi.clearAllMocks();
   nav.params.mockReturnValue({ problemId: '12' });
   authState.isAuthenticated = true;
-  authState.token = 'token-1';
-  authState.refreshToken = 'refresh-1';
   authState.user = { id: 7, username: 'verifier', email: 'verifier@example.com', role: 'PROBLEM_VERIFIER' };
   api.getTags.mockResolvedValue({ count: 0, next: null, previous: null, results: [] });
   api.getProblemDetail.mockResolvedValue(DETAIL);

@@ -33,8 +33,9 @@ test('login form rejects bad credentials with the API error', async ({
   await expect(errorAlert)?.toBeVisible();
 });
 
-test('successful login persists tokens and shows the authenticated navbar', async ({
+test('successful login sets httpOnly session cookies and shows the authenticated navbar', async ({
   page,
+  context,
 }) => {
   // Real mode: the fixture user is seeded idempotently by the shared
   // helper (registration is a no-op when the account already exists).
@@ -51,31 +52,39 @@ test('successful login persists tokens and shows the authenticated navbar', asyn
   // `{auth.user?.username || 'User'}`), pinned by Navbar.test.tsx.
   await expect(page?.getByText('e2e_tester', { exact: true }))?.toBeVisible();
 
-  // AuthContext persists both tokens + user snapshot in localStorage.
-  const accessToken = await page?.evaluate(() =>
-    localStorage.getItem('accessToken')
-  );
-  const refreshToken = await page?.evaluate(() =>
-    localStorage.getItem('refreshToken')
-  );
+  // [SP1] cookie auth: the session lives in httpOnly wc_access/wc_refresh
+  // cookies (readable via the browser context, never via JS/localStorage).
+  const cookies = (await context?.cookies()) ?? [];
+  const names = new Set(cookies.map((c) => c.name));
+  expect(names).toContain('wc_access');
+  expect(names).toContain('wc_refresh');
+  const accessCookie = cookies.find((c) => c.name === 'wc_access');
+  const refreshCookie = cookies.find((c) => c.name === 'wc_refresh');
+  expect(accessCookie?.httpOnly).toBe(true);
+  expect(refreshCookie?.httpOnly).toBe(true);
   if (isRealStack) {
-    // Real stack: actual JWTs (header.payload.signature), seeded by
-    // e2e/lib/realStack.ts before the suite runs.
-    expect(accessToken).toMatch(/^ey[^.]+\.[^.]+\./);
-    expect(refreshToken).toMatch(/^ey[^.]+\.[^.]+\./);
+    // Real stack: actual JWTs (header.payload.signature) in both cookies.
+    expect(accessCookie?.value).toMatch(/^ey[^.]+\.[^.]+\./);
+    expect(refreshCookie?.value).toMatch(/^ey[^.]+\.[^.]+\./);
   } else {
-    expect(accessToken)?.toBe('e2e-access-token');
-    expect(refreshToken)?.toBe('e2e-refresh-token');
+    expect(accessCookie?.value).toBe('e2e-access-token');
   }
+  // No tokens in JS-readable storage — that was the whole point of SP1.
+  const leaked = await page?.evaluate(() => ({
+    access: localStorage.getItem('accessToken'),
+    refresh: localStorage.getItem('refreshToken'),
+  }));
+  expect(leaked?.access).toBeNull();
+  expect(leaked?.refresh).toBeNull();
 });
 
 test('hydrated admin session derives role-gated navbar links', async ({
   page,
+  context,
 }) => {
   if (isRealStack) {
-    // Real stack: a fake token is (correctly) rejected — any authorized
-    // API call 401s and the app clears the stale session. Log in for real
-    // as the stack admin and derive the gated links from a live session.
+    // Real stack: log in for real as the stack admin and derive the gated
+    // links from a live session.
     await page?.goto('/login');
     await page?.fill('#login-username', E2E_ADMIN_USER);
     await page?.fill('#login-password', E2E_ADMIN_PASS);
@@ -83,11 +92,15 @@ test('hydrated admin session derives role-gated navbar links', async ({
     await expect(page)?.toHaveURL(/\/$/);
     await expect(page?.getByText(E2E_ADMIN_USER, { exact: true }))?.toBeVisible();
   } else {
-    // Mock mode: seed localStorage before any app script runs — exercises
-    // the AuthContext hydration path (token + stored user, no /users/me/).
+    // Mock mode: seed the session cookie + stored user snapshot before any
+    // app script runs — exercises the AuthContext hydration path (cookie
+    // session confirmed via /users/me/, optimistic user snapshot paints
+    // meanwhile). The mock API is same-site (localhost), so the Lax cookie
+    // flows on fetches.
+    await context?.addCookies([
+      { name: 'wc_access', value: 'e2e-admin-access', domain: 'localhost', path: '/' },
+    ]);
     await page?.addInitScript(() => {
-      localStorage.setItem('accessToken', 'e2e-access-token');
-      localStorage.setItem('refreshToken', 'e2e-refresh-token');
       localStorage.setItem(
         'user',
         JSON.stringify({

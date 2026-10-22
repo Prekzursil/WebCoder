@@ -20,11 +20,9 @@ import SubmitSolutionForm from './SubmitSolutionForm';
 const createSubmissionMock = vi.mocked(SubmissionService.createSubmission);
 const getDetailMock = vi.mocked(SubmissionService.getSubmissionDetail);
 
-function mockAuth({ isAuthenticated, token }: { isAuthenticated: boolean; token: string | null }) {
+function mockAuth({ isAuthenticated }: { isAuthenticated: boolean }) {
   vi.mocked(useAuth).mockReturnValue({
     isAuthenticated,
-    token,
-    refreshToken: token,
     user: null,
     login: vi.fn(),
     logout: vi.fn(),
@@ -62,8 +60,8 @@ beforeEach(() => {
 });
 
 describe('SubmitSolutionForm (unauthenticated visitors)', () => {
-  it('renders the login prompt instead of the form', () => {
-    mockAuth({ isAuthenticated: false, token: null });
+  it('renders the login prompt instead of the form (render-level gate [SP1])', () => {
+    mockAuth({ isAuthenticated: false });
     renderForm();
 
     const loginLink = screen.getByRole('link', { name: 'login' });
@@ -72,12 +70,16 @@ describe('SubmitSolutionForm (unauthenticated visitors)', () => {
     // <link>login</link> + " to submit a solution.").
     expect(screen.getByText(/to submit a solution/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Submit' })).not.toBeInTheDocument();
+    expect(createSubmissionMock).not.toHaveBeenCalled();
+    expect(
+      screen.queryByRole('heading', { name: 'Confirm Submission' })
+    ).not.toBeInTheDocument();
   });
 });
 
 describe('SubmitSolutionForm (authenticated visitors)', () => {
   beforeEach(() => {
-    mockAuth({ isAuthenticated: true, token: 'access-token' });
+    mockAuth({ isAuthenticated: true });
   });
 
   it('renders the editor with the first allowed language preselected', () => {
@@ -257,22 +259,6 @@ describe('SubmitSolutionForm (authenticated visitors)', () => {
     });
   });
 
-  it('guards against a missing auth token at confirm time', async () => {
-    mockAuth({ isAuthenticated: true, token: null });
-    renderForm();
-    typeCode('print(3)');
-    clickSubmit();
-
-    confirmModal();
-
-    await waitFor(() => {
-      expect(screen.getByText('Authentication required to submit.')).toBeInTheDocument();
-    });
-    expect(createSubmissionMock).not.toHaveBeenCalled();
-    expect(
-      screen.queryByRole('heading', { name: 'Confirm Submission' })
-    ).not.toBeInTheDocument();
-  });
 
   it('guards against an empty language selection at confirm time', () => {
     renderForm();

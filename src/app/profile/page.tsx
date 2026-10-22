@@ -241,7 +241,7 @@ export function UserProfilePage() {
       setError(t('passwords_do_not_match', 'Passwords do not match.'));
       return;
     }
-    if (!auth.token) {
+    if (!auth.isAuthenticated) {
       setError(t('must_be_logged_in', 'You must be logged in to change your password.'));
       return;
     }
