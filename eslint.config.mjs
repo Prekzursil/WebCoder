@@ -22,6 +22,10 @@ const eslintConfig = [
       // bundled vendor JS that must not be linted).
       "playwright-report/**",
       "test-results/**",
+      // Linked git worktrees (parallel agent waves) are full repo copies —
+      // including, in some, a Python .venv and coverage HTML — none of which
+      // belongs to this tree's lint surface.
+      "wt-*/**",
     ],
   },
 ];
