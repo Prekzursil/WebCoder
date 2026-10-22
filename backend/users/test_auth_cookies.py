@@ -18,7 +18,7 @@ dj-rest-auth/simplejwt views (no mocks):
 """
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 
 LOGIN = "/api/v1/auth/login/"
@@ -110,6 +110,40 @@ class CookieAuthFlowTest(TestCase):
             HTTP_X_CSRFTOKEN=csrf_token,
         )
         self.assertEqual(response.status_code, 200)
+
+    def test_browser_origin_header_must_be_csrf_trusted(self):
+        # Browsers ALWAYS send Origin on cross-origin unsafe methods, and
+        # Django's CSRF check validates it against CSRF_TRUSTED_ORIGINS —
+        # without the frontend origin configured, every cookie-authenticated
+        # SPA POST 403s with "Origin checking failed" even with a valid
+        # X-CSRFToken (found live on the redeployed stack).
+        client = APIClient(enforce_csrf_checks=True)
+        self._login(client)
+        client.get(CSRF)
+        token = client.cookies["csrftoken"].value
+
+        with override_settings(CSRF_TRUSTED_ORIGINS=[]):
+            response = client.post(
+                PASSWORD_CHANGE,
+                {"old_password": "BobPass-2026!x", "new_password1": "NewPass-2026!y",
+                 "new_password2": "NewPass-2026!y"},
+                format="json",
+                HTTP_X_CSRFTOKEN=token,
+                HTTP_ORIGIN="http://localhost:3000",
+            )
+            self.assertEqual(response.status_code, 403)
+            self.assertIn("Origin checking failed", str(response.data))
+
+        with override_settings(CSRF_TRUSTED_ORIGINS=["http://localhost:3000"]):
+            response = client.post(
+                PASSWORD_CHANGE,
+                {"old_password": "BobPass-2026!x", "new_password1": "NewPass-2026!y",
+                 "new_password2": "NewPass-2026!y"},
+                format="json",
+                HTTP_X_CSRFTOKEN=token,
+                HTTP_ORIGIN="http://localhost:3000",
+            )
+            self.assertEqual(response.status_code, 200)
 
     def test_refresh_with_empty_body_rotates_and_blacklists(self):
         self._login()

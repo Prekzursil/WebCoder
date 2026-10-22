@@ -119,6 +119,12 @@ CORS_ALLOWED_ORIGINS = _env_list("CORS_ALLOWED_ORIGINS", ["http://localhost:3000
 # Allow-Credentials CORS response the frontend's `credentials: 'include'`
 # requests need to carry the wc_access/wc_refresh cookies.
 CORS_ALLOW_CREDENTIALS = True
+# Django's CSRF check additionally validates the Origin header against
+# CSRF_TRUSTED_ORIGINS (scheme included) on unsafe methods — browsers always
+# send Origin, so the cookie-JWT CSRF enforcement (JWT_AUTH_COOKIE_USE_CSRF)
+# 403s without the frontend origin here. Defaults to the CORS allowlist
+# (same scheme://host format); override via env for split deployments.
+CSRF_TRUSTED_ORIGINS = _env_list("CSRF_TRUSTED_ORIGINS", CORS_ALLOWED_ORIGINS)
 
 ROOT_URLCONF = "webcoder_api.urls"
 
