@@ -70,8 +70,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(me));
         }
       } catch {
-        // Anonymous or expired session: drop the optimistic snapshot.
-        if (!cancelled) {
+        // Anonymous or expired session: drop the optimistic snapshot. The
+        // window guard keeps a LATE-settling promise (e.g. a test
+        // environment torn down before the fetch settles) from dispatching
+        // React state into a destroyed DOM.
+        if (!cancelled && typeof window !== 'undefined') {
           setUser(null);
           localStorage.removeItem(USER_STORAGE_KEY);
         }
