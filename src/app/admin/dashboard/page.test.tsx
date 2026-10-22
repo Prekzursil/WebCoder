@@ -67,8 +67,6 @@ type AuthShape = ReturnType<typeof useAuth>;
 
 const authed = (overrides: Partial<AuthShape> = {}): AuthShape => ({
   isAuthenticated: true,
-  token: 'token-1',
-  refreshToken: null,
   user: me,
   login: vi.fn(),
   logout: vi.fn(),
@@ -86,7 +84,7 @@ describe('AdminDashboardPage (/admin/dashboard)', () => {
 
   it('renders nothing and redirects to / for a non-admin role (route guard)', () => {
     vi.mocked(useAuth).mockReturnValue(
-      authed({ user: { ...me, role: 'BASIC_USER' }, token: null, isAuthenticated: false })
+      authed({ user: { ...me, role: 'BASIC_USER' }, isAuthenticated: false })
     );
     const { container } = render(<AdminDashboardPageRoute />);
     expect(container).toBeEmptyDOMElement();
@@ -197,8 +195,8 @@ describe('AdminDashboardPage (/admin/dashboard)', () => {
     expect(await screen.findByText('Failed to fetch users.')).toBeInTheDocument();
   });
 
-  it('never fetches users and keeps showing the spinner without a token', async () => {
-    vi.mocked(useAuth).mockReturnValue(authed({ token: null }));
+  it('never fetches users and keeps showing the spinner when signed out', async () => {
+    vi.mocked(useAuth).mockReturnValue(authed({ isAuthenticated: false }));
     render(<AdminDashboardPageRoute />);
     await Promise.resolve(); // let the effect run
     expect(AdminService.getUsers).not.toHaveBeenCalled();
@@ -214,10 +212,10 @@ describe('AdminDashboardPage (/admin/dashboard)', () => {
     expect(within(rows[2]).getAllByRole('combobox')[1]).toBeEnabled();
   });
 
-  it('silently ignores role and status changes when the token disappears (rerender)', async () => {
+  it('silently ignores role and status changes when the session disappears (rerender)', async () => {
     const { rerender } = render(<AdminDashboardPageRoute />);
     await screen.findByText('bob');
-    vi.mocked(useAuth).mockReturnValue(authed({ token: null }));
+    vi.mocked(useAuth).mockReturnValue(authed({ isAuthenticated: false }));
     rerender(<AdminDashboardPageRoute />);
     const rows = screen.getAllByRole('row');
     fireEvent.change(within(rows[2]).getAllByRole('combobox')[0], { target: { value: 'ADMIN' } });

@@ -30,8 +30,6 @@ vi.mock('@/services/ApiService', async (importOriginal) => {
 const mocks = vi.hoisted(() => ({
   auth: {
     isAuthenticated: true,
-    token: 'tok' as string | null,
-    refreshToken: null as string | null,
     user: { id: 1, username: 'bob', email: 'b@x.com', role: 'BASIC_USER' } as User | null,
     login: vi.fn(),
     logout: vi.fn(),

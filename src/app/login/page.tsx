@@ -51,14 +51,14 @@ const LoginPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       const response = await AuthService.login({ username, password });
-      if (response && response.access && response.refresh && response.user) {
-        // [Q13] dj-rest-auth's login payload carries no role/id (only pk +
-        // username/email/names), which left real-stack admins without any
-        // role-gated UI until re-login on another device. /users/me/ with
-        // the fresh token returns the full profile (id, role) — prefer it,
-        // falling back to the login payload if the extra round-trip fails.
-        const me = await AuthService.getMeWithToken(response.access).catch(() => null);
-        auth.login(response.access, response.refresh, (me ?? response.user) as typeof response.user);
+      if (response && response.user) {
+        // [SP1] cookie auth: login set the httpOnly wc_access/wc_refresh
+        // cookies; no tokens are stored client-side. [Q13] dj-rest-auth's
+        // login payload carries no role/id (only pk + username/email), so
+        // /users/me/ (cookie-authenticated now) returns the full profile —
+        // prefer it, falling back to the login payload.
+        const me = await AuthService.getMe().catch(() => null);
+        auth.login((me ?? response.user) as typeof response.user);
         router.push('/');
       } else {
         setError(t('login_failed_no_token', 'Login failed: No token received.'));

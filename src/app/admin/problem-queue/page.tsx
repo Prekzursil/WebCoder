@@ -26,7 +26,7 @@ import TableScroll from '@/components/common/TableScroll';
 //   :85) — removed.
 // - The CRA effect dependency array included fetchPendingProblems, which is
 //   recreated on every render — an unbounded refetch loop. Dropped (deps are
-//   auth.isAuthenticated, auth.token, t), matching the reference's intent;
+//   auth.isAuthenticated, t), matching the reference's intent;
 //   approve/reject still refetch explicitly.
 
 const errorMessage = (err: unknown, fallback: string): string =>
@@ -43,7 +43,7 @@ export function ProblemVerificationQueuePage() {
   const [feedbackMap, setFeedbackMap] = useState<{ [problemId: number]: string }>({});
 
   const fetchPendingProblems = async () => {
-    if (auth.isAuthenticated && auth.token) {
+    if (auth.isAuthenticated) {
       setLoading(true);
       try {
         // The backend list never honored ?status= (its queryset scopes by
@@ -69,10 +69,10 @@ export function ProblemVerificationQueuePage() {
   useEffect(() => {
     fetchPendingProblems();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth.isAuthenticated, auth.token, t]);
+  }, [auth.isAuthenticated, t]);
 
   const handleApproveProblem = async (problemId: number) => {
-    if (!auth.token) {
+    if (!auth.isAuthenticated) {
       setActionError(t('error_auth_required_action', 'Authentication required for this action.'));
       return;
     }
@@ -89,7 +89,7 @@ export function ProblemVerificationQueuePage() {
   };
 
   const handleRejectProblem = async (problemId: number) => {
-    if (!auth.token) {
+    if (!auth.isAuthenticated) {
       setActionError(t('error_auth_required_action', 'Authentication required for this action.'));
       return;
     }

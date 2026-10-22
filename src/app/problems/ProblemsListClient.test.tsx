@@ -10,8 +10,6 @@ import ProblemsListClient from './ProblemsListClient';
 const mocks = vi.hoisted(() => ({
   auth: {
     isAuthenticated: false,
-    token: null as string | null,
-    refreshToken: null as string | null,
     user: null as User | null,
     login: vi.fn(),
     logout: vi.fn(),
@@ -58,7 +56,6 @@ beforeEach(() => {
   mocks.params = new URLSearchParams();
   mocks.auth.isAuthenticated = false;
   mocks.auth.user = null;
-  mocks.auth.token = null;
 });
 
 afterEach(cleanup);
@@ -149,8 +146,7 @@ describe('ProblemsListClient status facet gating [F7]', () => {
 
   it('shows the status facet only to creator/verifier/admin roles', () => {
     mocks.auth.isAuthenticated = true;
-    mocks.auth.token = 'tok';
-    mocks.auth.user = { id: 1, username: 'v', email: 'v@example.com', role: 'PROBLEM_CREATOR' };
+        mocks.auth.user = { id: 1, username: 'v', email: 'v@example.com', role: 'PROBLEM_CREATOR' };
     render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
     expect(screen.getByText('Status:')).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: /Status/ })).toBeInTheDocument();

@@ -4,10 +4,14 @@
 // The /api/v1 prefix is preserved from the reference — every endpoint path
 // below is relative to it.
 //
-// NEW (not in the CRA reference): apiFetch wraps every request with a
-// refresh-token flow — on a 401 it POSTs the simplejwt refresh endpoint
-// once, retries the original request once, and reports refresh failures to
-// AuthContext via the registered unauthorized handler. See apiFetch below.
+// [SP1] httpOnly-cookie auth: every request is sent with
+// `credentials: 'include'` and NO Authorization header / localStorage token.
+// The backend authenticates via the wc_access httpOnly cookie; on 401 the
+// wrapper POSTs the dj-rest-auth cookie refresh endpoint once (EMPTY body —
+// the server reads the wc_refresh cookie), retries the original request
+// once, and reports refresh failures to AuthContext via the registered
+// unauthorized handler. Unsafe methods additionally carry the X-CSRFToken
+// double-submit header (seeded via GET /auth/csrf/).
 
 import {
   AdminStatsResponse,
@@ -39,12 +43,14 @@ import { API_V1_URL } from '@/lib/api-config';
 
 const API_BASE_URL = API_V1_URL;
 
-// simplejwt refresh endpoint (backend/webcoder_api/urls.py: api/v1/token/refresh/).
-const REFRESH_ENDPOINT = '/token/refresh/';
+// dj-rest-auth cookie-aware refresh endpoint: an EMPTY-body POST; the
+// server reads the wc_refresh httpOnly cookie, rotates it, and re-sets the
+// wc_access cookie.
+const REFRESH_ENDPOINT = '/auth/token/refresh/';
+const CSRF_ENDPOINT = '/auth/csrf/';
+const LOGOUT_ENDPOINT = '/auth/logout/';
 
-// NOTE (hardening follow-up, deliberately out of scope here): tokens remain
-// in localStorage exactly as in the CRA reference. Migrating them to
-// httpOnly cookies is tracked as a separate hardening item.
+const UNSAFE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
 type UnauthorizedHandler = () => void;
 
@@ -65,25 +71,13 @@ let refreshInFlight: Promise<boolean> | null = null;
 const refreshAccessToken = (): Promise<boolean> => {
   if (!refreshInFlight) {
     const attempt = (async () => {
-      const storedRefresh = localStorage.getItem('refreshToken');
-      if (!storedRefresh) {
-        return false;
-      }
       try {
         const response = await fetch(`${API_BASE_URL}${REFRESH_ENDPOINT}`, {
           method: 'POST',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ refresh: storedRefresh }),
         });
-        if (!response.ok) {
-          return false;
-        }
-        const data: { access?: string } = await response.json().catch(() => ({}));
-        if (!data.access) {
-          return false;
-        }
-        localStorage.setItem('accessToken', data.access);
-        return true;
+        return response.ok;
       } catch {
         // A network failure during refresh behaves like a failed refresh.
         return false;
@@ -101,21 +95,60 @@ const refreshAccessToken = (): Promise<boolean> => {
   return refreshInFlight;
 };
 
-const authenticatedFetch = async (url: string, options: RequestInit): Promise<Response> => {
-  const token = localStorage.getItem('accessToken');
-  const headers = new Headers(options.headers || {});
-  // An explicitly provided Authorization header wins (e.g. the login flow
-  // fetching /users/me/ with the token it JUST received, before any state
-  // has been persisted — [Q13]).
-  if (token && !headers.has('Authorization')) {
-    headers.set('Authorization', `Bearer ${token}`);
+// ---------- CSRF double-submit header (cookie-auth unsafe methods) ------
+
+function readCsrfCookie(): string | null {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie
+    .split(';')
+    .map((part) => part.trim())
+    .find((part) => part.startsWith('csrftoken='));
+  return match ? decodeURIComponent(match.slice('csrftoken='.length)) : null;
+}
+
+let csrfSeedInFlight: Promise<string | null> | null = null;
+
+const ensureCsrfToken = (): Promise<string | null> => {
+  const fromCookie = readCsrfCookie();
+  if (fromCookie) return Promise.resolve(fromCookie);
+  if (!csrfSeedInFlight) {
+    csrfSeedInFlight = (async () => {
+      try {
+        // GET /auth/csrf/ makes Django set the csrftoken cookie; any
+        // failure (e.g. a mock backend without the endpoint) just means
+        // "no header available" — the request proceeds without it.
+        await fetch(`${API_BASE_URL}${CSRF_ENDPOINT}`, { credentials: 'include' });
+      } catch {
+        /* best-effort */
+      }
+      return readCsrfCookie();
+    })();
+    const clear = () => {
+      csrfSeedInFlight = null;
+    };
+    csrfSeedInFlight.then(clear, clear);
   }
+  return csrfSeedInFlight;
+};
+
+const authenticatedFetch = async (url: string, options: RequestInit): Promise<Response> => {
+  const headers = new Headers(options.headers || {});
   if (options.body) {
     headers.set('Content-Type', 'application/json');
+  }
+  // Cookie-authenticated unsafe methods require the double-submit CSRF
+  // header (backend JWT_AUTH_COOKIE_USE_CSRF).
+  const method = (options.method || 'GET').toUpperCase();
+  if (UNSAFE_METHODS.has(method)) {
+    const csrfToken = await ensureCsrfToken();
+    if (csrfToken && !headers.has('X-CSRFToken')) {
+      headers.set('X-CSRFToken', csrfToken);
+    }
   }
 
   return fetch(`${API_BASE_URL}${url}`, {
     ...options,
+    credentials: 'include',
     headers,
   });
 };
@@ -219,12 +252,11 @@ export const AuthService = {
     register: (userData: Record<string, unknown>) => apiFetch<RegisterResponse>('/users/register/', { method: 'POST', body: JSON.stringify(userData) }),
     login: (credentials: Record<string, unknown>) => apiFetch<LoginResponse>('/auth/login/', { method: 'POST', body: JSON.stringify(credentials) }),
     getMe: () => apiFetch<User>('/users/me/'),
-    // [Q13] /users/me/ with an explicit token — the login flow needs the
-    // full profile (id, role) before tokens reach localStorage/state.
-    getMeWithToken: (token: string) =>
-      apiFetch<User>('/users/me/', { headers: { Authorization: `Bearer ${token}` } }),
     getUser: (userId: number | string) => apiFetch<User>(`/users/${userId}/`),
     changePassword: (passwordData: Record<string, unknown>) => apiFetch<{ detail?: string }>('/users/password/change/', { method: 'POST', body: JSON.stringify(passwordData) }),
+    // [SP1] Cookie-mode logout: dj-rest-auth blacklists the rotated refresh
+    // cookie and clears wc_access/wc_refresh. Fire-and-forget safe.
+    logout: () => apiFetch<{ detail?: string }>(LOGOUT_ENDPOINT, { method: 'POST' }),
 };
 
 export const ProblemService = {

@@ -38,7 +38,7 @@ export function MyCreatedProblemsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (auth.isAuthenticated && auth.user?.id && auth.token) {
+    if (auth.isAuthenticated && auth.user?.id) {
       setLoading(true);
       // The backend list ignores ?authorId= (its queryset scopes by role),
       // so collect pages and keep only this user's rows here.
@@ -57,10 +57,10 @@ export function MyCreatedProblemsPage() {
       setError(t('error_auth_required', 'Authentication required.'));
       setLoading(false);
     }
-  }, [auth.isAuthenticated, auth.user, auth.token, t]);
+  }, [auth.isAuthenticated, auth.user, t]);
 
   const handleSubmitForApproval = async (problemId: number) => {
-    if (!auth.token) {
+    if (!auth.isAuthenticated) {
       toast.error(t('error_auth_required_action', 'Authentication required for this action.'));
       return;
     }

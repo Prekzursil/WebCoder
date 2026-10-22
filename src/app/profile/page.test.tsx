@@ -39,8 +39,6 @@ type AuthShape = ReturnType<typeof useAuth>;
 
 const authed = (overrides: Partial<AuthShape> = {}): AuthShape => ({
   isAuthenticated: true,
-  token: 'token-1',
-  refreshToken: 'refresh-1',
   user: adminUser,
   login: vi.fn(),
   logout: vi.fn(),
@@ -80,7 +78,7 @@ describe('UserProfilePage (/profile)', () => {
   });
 
   it('renders nothing and redirects to /login when there is no user (route guard)', () => {
-    vi.mocked(useAuth).mockReturnValue(authed({ user: null, token: null, isAuthenticated: false }));
+    vi.mocked(useAuth).mockReturnValue(authed({ user: null, isAuthenticated: false }));
     const { container } = render(<UserProfilePageRoute />);
     expect(container).toBeEmptyDOMElement();
     expect(replaceMock).toHaveBeenCalledWith('/login');
@@ -155,8 +153,8 @@ describe('UserProfilePage (/profile)', () => {
     expect(AuthService.changePassword).not.toHaveBeenCalled();
   });
 
-  it('blocks submission when there is no auth token', async () => {
-    vi.mocked(useAuth).mockReturnValue(authed({ token: null }));
+  it('blocks submission when signed out', async () => {
+    vi.mocked(useAuth).mockReturnValue(authed({ isAuthenticated: false }));
     render(<UserProfilePageRoute />);
     await openSettings();
     await screen.findByText('admin');

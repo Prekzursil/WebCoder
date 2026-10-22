@@ -25,8 +25,6 @@ vi.mock('@/services/ApiService', () => ({
 const mocks = vi.hoisted(() => ({
   auth: {
     isAuthenticated: false,
-    token: null as string | null,
-    refreshToken: null as string | null,
     user: null as User | null,
     login: vi.fn(),
     logout: vi.fn(),
@@ -57,7 +55,6 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.auth.isAuthenticated = false;
   mocks.auth.user = null;
-  mocks.auth.token = null;
   api.getMyEntry.mockReset();
 });
 

@@ -4,12 +4,10 @@ import type { ProblemType, TagType } from '@/types';
 import ProblemFormPage from './ProblemFormPage';
 
 // Shared mutable auth state: useAuth() returns this object, so tests can flip
-// fields (e.g. null the token) between render and interaction, exactly like a
+// fields (e.g. flip isAuthenticated) between render and interaction, exactly like a
 // logout happening mid-session.
 const authState = vi.hoisted(() => ({
   isAuthenticated: true,
-  token: 'token-1' as string | null,
-  refreshToken: 'refresh-1' as string | null,
   user: {
     id: 7,
     username: 'creator',
@@ -127,8 +125,6 @@ beforeEach(() => {
   vi.clearAllMocks();
   nav.params.mockReturnValue({});
   authState.isAuthenticated = true;
-  authState.token = 'token-1';
-  authState.refreshToken = 'refresh-1';
   authState.user = { id: 7, username: 'creator', email: 'creator@example.com', role: 'PROBLEM_CREATOR' };
   api.getTags.mockResolvedValue({ count: 0, next: null, previous: null, results: [] });
   api.createProblem.mockResolvedValue(createdProblem);
@@ -344,7 +340,8 @@ describe('ProblemFormPage (create mode)', () => {
   });
 
   it('blocks submit with an auth error when there is no token', async () => {
-    authState.token = null;
+    authState.isAuthenticated = false;
+    authState.user = null;
     render(<ProblemFormPage />);
     await screen.findByText('Create New Problem');
     submitForm();
@@ -440,8 +437,9 @@ describe('ProblemFormPage (edit mode)', () => {
     expect(screen.getByText('Edit Problem')).toBeInTheDocument();
   });
 
-  it('does not fetch the problem when authenticated without a token', async () => {
-    authState.token = null;
+  it('does not fetch the problem when signed out', async () => {
+    authState.isAuthenticated = false;
+    authState.user = null;
     render(<ProblemFormPage />);
 
     expect(await screen.findByText('Edit Problem')).toBeInTheDocument();
@@ -563,8 +561,9 @@ describe('ProblemFormPage (test case input validation and auth)', () => {
     expect(screen.queryByText(/Test Case \d/)).not.toBeInTheDocument();
   });
 
-  it('rejects adding a test case without a token', async () => {
-    authState.token = null;
+  it('rejects adding a test case when signed out', async () => {
+    authState.isAuthenticated = false;
+    authState.user = null;
     render(<ProblemFormPage />);
     await screen.findByText('Create New Problem');
 
@@ -593,7 +592,7 @@ describe('ProblemFormPage (test case input validation and auth)', () => {
     expect(api.createTestCase).toHaveBeenCalledWith(expect.objectContaining({ points: 0 }));
   });
 
-  it('removes a local test case without calling the API, and blocks removal without a token', async () => {
+  it('removes a local test case without calling the API, and blocks removal when signed out', async () => {
     render(<ProblemFormPage />);
     await screen.findByText('Create New Problem');
 
@@ -603,13 +602,16 @@ describe('ProblemFormPage (test case input validation and auth)', () => {
     await screen.findByText('Test Case 1');
 
     // Token disappears between add and remove (logout mid-session).
-    authState.token = null;
+    authState.isAuthenticated = false;
+    authState.user = null;
     fireEvent.click(screen.getByRole('button', { name: 'Remove' }));
     expect(await screen.findByText('Authentication required.')).toBeInTheDocument();
     expect(api.deleteTestCase).not.toHaveBeenCalled();
     expect(screen.getByText('local-in')).toBeInTheDocument();
 
-    authState.token = 'token-1';
+    // Session restored: local removal proceeds without an API call.
+    authState.isAuthenticated = true;
+    authState.user = { id: 7, username: 'creator', email: 'creator@example.com', role: 'PROBLEM_CREATOR' };
     fireEvent.click(screen.getByRole('button', { name: 'Remove' }));
     await waitFor(() => expect(screen.queryByText('local-in')).not.toBeInTheDocument());
     expect(api.deleteTestCase).not.toHaveBeenCalled();

@@ -139,23 +139,54 @@ const MOCK_NOTIFICATIONS = [
   },
 ];
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET,POST,PATCH,DELETE,OPTIONS',
-  'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-};
+// Cookie-auth contract (SP1): the frontend sends `credentials: 'include'`
+// and NO Authorization header, so CORS must echo the origin and allow
+// credentials (a literal '*' origin is rejected by credentialed requests).
+function corsHeaders(req) {
+  return {
+    'Access-Control-Allow-Origin': req.headers.origin ?? '*',
+    Vary: 'Origin',
+    'Access-Control-Allow-Credentials': 'true',
+    'Access-Control-Allow-Methods': 'GET,POST,PATCH,DELETE,OPTIONS',
+    'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-CSRFToken',
+  };
+}
 
-function json(res, status, body) {
-  res.writeHead(status, { 'Content-Type': 'application/json', ...CORS_HEADERS });
+function json(res, status, body, extraHeaders = {}) {
+  res.writeHead(status, {
+    'Content-Type': 'application/json',
+    ...(res._corsHeaders ?? {}),
+    ...extraHeaders,
+  });
   res.end(JSON.stringify(body));
 }
 
+// Session model mirrors the backend: httpOnly wc_access/wc_refresh cookies
+// gate the authenticated endpoints (admin session keyed by cookie value).
+function cookieValue(req, name) {
+  const raw = req.headers.cookie ?? '';
+  const match = raw.split(';').map((c) => c.trim()).find((c) => c.startsWith(`${name}=`));
+  return match ? match.slice(name.length + 1) : null;
+}
+
+function sessionUser(req) {
+  const access = cookieValue(req, 'wc_access');
+  if (!access) return null;
+  return access.includes('admin') ? MOCK_ADMIN : MOCK_USER;
+}
+
+const AUTH_COOKIES = (value) => [
+  `wc_access=${value}; Path=/; HttpOnly; SameSite=Lax`,
+  `wc_refresh=e2e-refresh-${value}; Path=/; HttpOnly; SameSite=Lax`,
+];
+
 const server = createServer((req, res) => {
   const path = new URL(req.url, `http://${HOST}:${PORT}`).pathname;
+  res._corsHeaders = corsHeaders(req);
 
   // CORS preflight (browser POST with Content-Type: application/json triggers it)
   if (req.method === 'OPTIONS') {
-    res.writeHead(204, CORS_HEADERS);
+    res.writeHead(204, corsHeaders(req));
     res.end();
     return;
   }
@@ -205,19 +236,57 @@ const server = createServer((req, res) => {
         return;
       }
       const isAdmin = creds.username === 'admin_e2e';
-      json(res, 200, {
-        access: 'e2e-access-token',
-        refresh: 'e2e-refresh-token',
-        user: isAdmin ? MOCK_ADMIN : MOCK_USER,
-      });
+      const cookieValueToken = isAdmin ? 'e2e-admin-access' : 'e2e-access-token';
+      // Cookie-auth contract (SP1): httpOnly session cookies + user body;
+      // the refresh token never appears in the body.
+      json(
+        res,
+        200,
+        {
+          user: isAdmin ? MOCK_ADMIN : MOCK_USER,
+        },
+        { 'Set-Cookie': AUTH_COOKIES(cookieValueToken) }
+      );
+    });
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/api/v1/auth/token/refresh/') {
+    // dj-rest-auth cookie refresh: empty body, wc_refresh cookie in play.
+    if (!cookieValue(req, 'wc_refresh')) {
+      json(res, 401, { detail: 'No valid refresh token found.' });
+      return;
+    }
+    json(res, 200, { access: 'e2e-rotated-access' }, { 'Set-Cookie': AUTH_COOKIES('e2e-access-token')[0] });
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/api/v1/auth/csrf/') {
+    json(res, 200, { detail: 'CSRF cookie set' }, {
+      'Set-Cookie': 'csrftoken=e2e-csrf-token; Path=/; SameSite=Lax',
+    });
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/api/v1/auth/logout/') {
+    json(res, 200, { detail: 'Logged out.' }, {
+      'Set-Cookie': [
+        'wc_access=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',
+        'wc_refresh=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',
+      ],
     });
     return;
   }
 
   if (req.method === 'GET' && path === '/api/v1/users/me/') {
-    // Authorization header distinguishes the admin session (see auth.spec.ts).
-    const auth = req.headers.authorization ?? '';
-    json(res, 200, auth.includes('admin') ? MOCK_ADMIN : MOCK_USER);
+    // Cookie session distinguishes admin/user; anonymous gets 401 (the
+    // AuthContext hydration relies on that truth).
+    const user = sessionUser(req);
+    if (!user) {
+      json(res, 401, { detail: 'Authentication credentials were not provided.' });
+      return;
+    }
+    json(res, 200, user);
     return;
   }
 
@@ -227,8 +296,7 @@ const server = createServer((req, res) => {
   }
 
   if (req.method === 'GET' && path === '/api/v1/leaderboard/me/') {
-    const auth = req.headers.authorization ?? '';
-    if (!auth) {
+    if (!sessionUser(req)) {
       json(res, 401, { detail: 'Authentication credentials were not provided.' });
       return;
     }
@@ -268,8 +336,7 @@ const server = createServer((req, res) => {
   }
 
   if (req.method === 'GET' && path === '/api/v1/notifications/') {
-    const auth = req.headers.authorization ?? '';
-    if (!auth) {
+    if (!sessionUser(req)) {
       json(res, 401, { detail: 'Authentication credentials were not provided.' });
       return;
     }

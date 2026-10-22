@@ -97,7 +97,7 @@ export default function SubmitSolutionForm({
   }, [lastSubmissionId, polledVerdict]);
 
   const handleActualSubmit = async () => {
-    if (!auth.token || !problemId) {
+    if (!auth.isAuthenticated || !problemId) {
       setSubmissionError(
         t('error_not_logged_in_or_no_problem', 'Authentication required to submit.')
       );

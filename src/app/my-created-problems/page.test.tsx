@@ -4,12 +4,10 @@ import type { ProblemType } from '@/types';
 import MyCreatedProblemsRoute, { MyCreatedProblemsPage } from './page';
 
 // Shared mutable auth state: useAuth() returns this object, so tests can flip
-// fields (e.g. null the token) between render and interaction, exactly like a
+// fields (e.g. flip isAuthenticated) between render and interaction, exactly like a
 // logout happening mid-session.
 const authState = vi.hoisted(() => ({
   isAuthenticated: true,
-  token: 'token-1' as string | null,
-  refreshToken: 'refresh-1' as string | null,
   user: {
     id: 7,
     username: 'creator',
@@ -85,8 +83,6 @@ const PROBLEMS: ProblemType[] = [
 beforeEach(() => {
   vi.clearAllMocks();
   authState.isAuthenticated = true;
-  authState.token = 'token-1';
-  authState.refreshToken = 'refresh-1';
   authState.user = { id: 7, username: 'creator', email: 'creator@example.com', role: 'PROBLEM_CREATOR' };
   api.getProblems.mockResolvedValue({ count: 0, next: null, previous: null, results: [] });
 });
@@ -165,7 +161,6 @@ describe('MyCreatedProblemsPage (/my-created-problems)', () => {
 
   it('shows an auth error without fetching when unauthenticated', async () => {
     authState.isAuthenticated = false;
-    authState.token = null;
     render(<MyCreatedProblemsRoute />);
 
     expect(await screen.findByText('Authentication required.')).toBeInTheDocument();
@@ -183,11 +178,13 @@ describe('MyCreatedProblemsPage (/my-created-problems)', () => {
     expect(api.getProblems).not.toHaveBeenCalled();
   });
 
-  it('does not fetch when authenticated without a token', async () => {
-    authState.token = null;
-    render(<MyCreatedProblemsRoute />);
+  it('renders nothing through the guarded route when fully signed out', async () => {
+    authState.isAuthenticated = false;
+    authState.user = null;
+    const { container } = render(<MyCreatedProblemsRoute />);
 
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    // ProtectedRoute null-renders without a user; no fetch ever fires.
+    expect(container).toBeEmptyDOMElement();
     await new Promise((r) => setTimeout(r, 0));
     expect(api.getProblems).not.toHaveBeenCalled();
   });
@@ -233,12 +230,12 @@ describe('MyCreatedProblemsPage (/my-created-problems)', () => {
     );
   });
 
-  it('blocks the submit action with a toast when the token disappeared', async () => {
+  it('blocks the submit action with a toast when the session disappeared', async () => {
     api.getProblems.mockResolvedValue({ count: 1, next: null, previous: null, results: [PROBLEMS[0]] });
     render(<MyCreatedProblemsRoute />);
     await screen.findByText('Two Sum');
 
-    authState.token = null;
+    authState.isAuthenticated = false;
     fireEvent.click(screen.getByRole('button', { name: 'Submit for Approval' }));
 
     await waitFor(() =>

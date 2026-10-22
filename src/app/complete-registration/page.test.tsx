@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act, waitFor, cleanup } from '@testing-library/react';
 import type React from 'react';
 import { AuthService } from '@/services/ApiService';
-import type { LoginResponse } from '@/types/api';
+import type { RegisterResponse } from '@/types/api';
 import type { User } from '@/types';
 import CompleteRegistrationPage from './page';
 
@@ -16,8 +16,6 @@ import CompleteRegistrationPage from './page';
 const { authMock, routerMock, searchParamsMock } = vi.hoisted(() => ({
   authMock: {
     isAuthenticated: false,
-    token: null,
-    refreshToken: null,
     user: null,
     login: vi.fn(),
     logout: vi.fn(),
@@ -62,10 +60,11 @@ const validUser: User = {
   email: 'oauth-user@example.com',
   role: 'BASIC_USER',
 };
-const tokenResponse: LoginResponse = {
-  access: 'access-token',
-  refresh: 'refresh-token',
+// [SP1] /users/register/ returns the created profile (no tokens —
+// sessions are httpOnly cookies).
+const registerResponse: RegisterResponse = {
   user: validUser,
+  message: 'User registered successfully.',
 };
 
 const registerMock = vi.mocked(AuthService.register);
@@ -117,7 +116,7 @@ describe('CompleteRegistrationPage', () => {
 
   it('completes registration: logs the user in via context and navigates home', async () => {
     renderCompleteRegistration();
-    registerMock.mockResolvedValueOnce(tokenResponse as unknown as never);
+    registerMock.mockResolvedValueOnce(registerResponse as unknown as never);
 
     fireEvent.change(screen.getByLabelText(/^Username/), { target: { value: 'chosen-name' } });
     submitForm();
@@ -127,17 +126,17 @@ describe('CompleteRegistrationPage', () => {
       email: 'oauth-user@example.com',
       username: 'chosen-name',
     });
-    expect(authMock.login).toHaveBeenCalledWith('access-token', 'refresh-token', validUser);
+    expect(authMock.login).toHaveBeenCalledWith(validUser);
     expect(routerMock.push).toHaveBeenCalledWith('/');
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('shows a spinner and disables the submit button while submitting', async () => {
     renderCompleteRegistration();
-    let resolveRegister!: (value: LoginResponse) => void;
+    let resolveRegister!: (value: RegisterResponse) => void;
     registerMock.mockImplementationOnce(
       () =>
-        new Promise<LoginResponse>((resolve) => {
+        new Promise<RegisterResponse>((resolve) => {
           resolveRegister = resolve;
         }) as unknown as Promise<never>
     );
@@ -151,7 +150,7 @@ describe('CompleteRegistrationPage', () => {
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
 
     await act(async () => {
-      resolveRegister(tokenResponse);
+      resolveRegister(registerResponse);
     });
 
     await waitFor(() => expect(routerMock.push).toHaveBeenCalledWith('/'));
@@ -160,9 +159,7 @@ describe('CompleteRegistrationPage', () => {
 
   it.each([
     ['response is undefined', undefined],
-    ['response has no access token', {}],
-    ['response has no refresh token', { access: 'a' }],
-    ['response has no user', { access: 'a', refresh: 'r' }],
+    ['response has no user', { message: 'created' }],
   ])('shows the completion error when %s', async (_label, partialResponse) => {
     const { unmount } = renderCompleteRegistration();
     registerMock.mockResolvedValueOnce(partialResponse as unknown as never);

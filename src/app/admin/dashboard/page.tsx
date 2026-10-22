@@ -34,7 +34,7 @@ export function AdminDashboardPage() {
 
   useEffect(() => {
     const fetchUsers = async () => {
-      if (auth.token) {
+      if (auth.isAuthenticated) {
         try {
           setLoading(true);
           const response = await collectAllPages((page) =>
@@ -51,10 +51,10 @@ export function AdminDashboardPage() {
     };
 
     fetchUsers();
-  }, [auth.token, t]);
+  }, [auth.isAuthenticated, t]);
 
   const handleRoleChange = async (userId: number, newRole: string) => {
-    if (auth.token) {
+    if (auth.isAuthenticated) {
       try {
         await AdminService.updateUser(userId, { role: newRole });
         setUsers(users.map(user => (user.id === userId ? { ...user, role: newRole as AdminUserType['role'] } : user)));
@@ -66,7 +66,7 @@ export function AdminDashboardPage() {
   };
 
   const handleStatusChange = async (userId: number, isActive: boolean) => {
-    if (auth.token) {
+    if (auth.isAuthenticated) {
       try {
         await AdminService.updateUser(userId, { is_active: isActive });
         setUsers(users.map(user => (user.id === userId ? { ...user, is_active: isActive } : user)));

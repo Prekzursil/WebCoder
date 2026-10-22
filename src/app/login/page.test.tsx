@@ -14,8 +14,6 @@ import LoginPage from './page';
 const { authMock, routerMock } = vi.hoisted(() => ({
   authMock: {
     isAuthenticated: false,
-    token: null,
-    refreshToken: null,
     user: null,
     login: vi.fn(),
     logout: vi.fn(),
@@ -45,20 +43,22 @@ vi.mock('@/services/ApiService', () => ({
   AuthService: {
     login: vi.fn(),
     register: vi.fn(),
+    // [SP1] the login flow enriches the stored user via the
+    // cookie-authenticated /users/me/ round-trip.
     getMe: vi.fn(),
-    // [Q13] the login flow enriches the stored user via /users/me/ with
-    // the just-received token before any state persistence happens.
-    getMeWithToken: vi.fn(),
     getUser: vi.fn(),
     changePassword: vi.fn(),
+    logout: vi.fn(),
   },
 }));
 
 const validUser: User = { id: 7, username: 'porter', email: 'porter@example.com', role: 'BASIC_USER' };
-const fullLogin: LoginResponse = { access: 'access-token', refresh: 'refresh-token', user: validUser };
+// [SP1] cookie login response: user profile + httpOnly cookies (not in the
+// body); access stays during the migration window but is not consumed.
+const fullLogin: LoginResponse = { access: 'access-token', user: validUser };
 
 const loginMock = vi.mocked(AuthService.login);
-const getMeWithTokenMock = vi.mocked(AuthService.getMeWithToken);
+const getMeMock = vi.mocked(AuthService.getMe);
 
 function renderLogin() {
   return render(<LoginPage />);
@@ -77,7 +77,7 @@ beforeEach(() => {
   vi.unstubAllEnvs();
   // Default: /users/me/ echoes the login user (individual tests override
   // to assert the [Q13] enrichment path).
-  getMeWithTokenMock.mockResolvedValue(validUser);
+  getMeMock.mockResolvedValue(validUser);
 });
 
 // vitest runs with globals: false, so @testing-library/react's automatic
@@ -127,7 +127,7 @@ describe('LoginPage', () => {
 
     await waitFor(() => expect(authMock.login).toHaveBeenCalled());
     expect(loginMock).toHaveBeenCalledWith({ username: 'Ada', password: 's3cret' });
-    expect(authMock.login).toHaveBeenCalledWith('access-token', 'refresh-token', validUser);
+    expect(authMock.login).toHaveBeenCalledWith(validUser);
     expect(routerMock.push).toHaveBeenCalledWith('/');
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
@@ -138,14 +138,13 @@ describe('LoginPage', () => {
     const bareUser = { pk: 7, username: 'porter', email: 'porter@example.com' } as unknown as typeof fullLogin.user;
     loginMock.mockResolvedValueOnce({ ...fullLogin, user: bareUser });
     const enriched: User = { ...validUser, role: 'ADMIN' };
-    getMeWithTokenMock.mockResolvedValueOnce(enriched);
+    getMeMock.mockResolvedValueOnce(enriched);
 
     submitCredentials('Ada', 's3cret');
 
     await waitFor(() => expect(authMock.login).toHaveBeenCalled());
     // The full /users/me/ profile wins over the bare login payload.
-    expect(getMeWithTokenMock).toHaveBeenCalledWith('access-token');
-    expect(authMock.login).toHaveBeenCalledWith('access-token', 'refresh-token', enriched);
+    expect(authMock.login).toHaveBeenCalledWith(enriched);
     expect(routerMock.push).toHaveBeenCalledWith('/');
   });
 
@@ -153,12 +152,12 @@ describe('LoginPage', () => {
     renderLogin();
     const bareUser = { pk: 7, username: 'porter', email: 'porter@example.com' } as unknown as typeof fullLogin.user;
     loginMock.mockResolvedValueOnce({ ...fullLogin, user: bareUser });
-    getMeWithTokenMock.mockRejectedValueOnce(new Error('boom'));
+    getMeMock.mockRejectedValueOnce(new Error('boom'));
 
     submitCredentials('Ada', 's3cret');
 
     await waitFor(() => expect(authMock.login).toHaveBeenCalled());
-    expect(authMock.login).toHaveBeenCalledWith('access-token', 'refresh-token', bareUser);
+    expect(authMock.login).toHaveBeenCalledWith(bareUser);
     expect(routerMock.push).toHaveBeenCalledWith('/');
   });
 
@@ -189,9 +188,7 @@ describe('LoginPage', () => {
 
   it.each([
     ['response is undefined', undefined],
-    ['response has no access token', {}],
-    ['response has no refresh token', { access: 'a' }],
-    ['response has no user', { access: 'a', refresh: 'r' }],
+    ['response has no user', { access: 'a' }],
   ])('shows the no-token error when %s', async (_label, partialResponse) => {
     const { unmount } = renderLogin();
     loginMock.mockResolvedValueOnce(partialResponse as unknown as LoginResponse);

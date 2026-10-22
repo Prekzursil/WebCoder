@@ -18,8 +18,6 @@ describe('HomeSignUpButton', () => {
   it('renders a Sign Up link to /register for anonymous visitors', () => {
     vi.mocked(useAuth).mockReturnValue({
       isAuthenticated: false,
-      token: null,
-      refreshToken: null,
       user: null,
       login: vi.fn(),
       logout: vi.fn(),
@@ -34,8 +32,6 @@ describe('HomeSignUpButton', () => {
   it('renders the server-provided localized label', () => {
     vi.mocked(useAuth).mockReturnValue({
       isAuthenticated: false,
-      token: null,
-      refreshToken: null,
       user: null,
       login: vi.fn(),
       logout: vi.fn(),
@@ -48,8 +44,6 @@ describe('HomeSignUpButton', () => {
   it('renders nothing when the user is authenticated', () => {
     vi.mocked(useAuth).mockReturnValue({
       isAuthenticated: true,
-      token: 'access-token',
-      refreshToken: 'refresh-token',
       user: {
         id: 1,
         username: 'alice',

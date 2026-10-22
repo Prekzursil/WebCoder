@@ -94,20 +94,20 @@ function SubmissionDetailPage() {
   }, [t]);
 
   useEffect(() => {
-    if (submissionId && auth.token) {
+    if (submissionId && auth.isAuthenticated) {
       setLoading(true);
       setError(null);
       fetchDetails(submissionId).finally(() => setLoading(false));
-    } else if (!auth.token) {
+    } else if (!auth.isAuthenticated) {
       setError(t('error_auth_required_submission', 'Authentication required to view submission details.'));
       setLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [submissionId, auth.token, t]);
+  }, [submissionId, auth.isAuthenticated, t]);
 
   useEffect(() => {
     let intervalId: ReturnType<typeof setInterval> | undefined = undefined;
-    if (isPolling && submissionId && auth.token) {
+    if (isPolling && submissionId && auth.isAuthenticated) {
       intervalId = setInterval(() => {
         fetchDetails(submissionId);
       }, 3000);
@@ -116,7 +116,7 @@ function SubmissionDetailPage() {
       if (intervalId) clearInterval(intervalId);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPolling, submissionId, auth.token, t]);
+  }, [isPolling, submissionId, auth.isAuthenticated, t]);
 
   const microLabel: React.CSSProperties = {
     fontSize: '0.65rem',
@@ -158,7 +158,7 @@ function SubmissionDetailPage() {
             <Link href="/my-submissions" className="btn">
               {t('back_to_my_submissions', 'Back to My Submissions')}
             </Link>
-            {submissionId && auth.token && (
+            {submissionId && auth.isAuthenticated && (
               <button
                 type="button"
                 className="btn"

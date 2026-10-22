@@ -16,7 +16,7 @@ import { cursorParamFromUrl } from '@/types/api';
 // Endpoint matrix for the service layer: every exported method's route,
 // HTTP verb and serialized body, plus the apiFetch branches not exercised by
 // the refresh-flow tests in ApiService.test.ts (invalid-JSON error bodies,
-// the Bearer header, the NEXT_PUBLIC_API_BASE override). All responses are
+// credential mode, the NEXT_PUBLIC_API_BASE override). All responses are
 // 200/2xx so the refresh wrapper is a pass-through. Mocks use per-call
 // factories: a single shared Response object cannot have its body read twice.
 
@@ -385,12 +385,13 @@ describe('apiFetch error branches not covered by the refresh tests', () => {
     await expect(ProblemService.getTags()).rejects.toThrow('Bad Gateway');
   });
 
-  it('attaches the stored access token as a Bearer header', async () => {
-    localStorage.setItem('accessToken', 'jwt-123');
+  it('sends cookie credentials and no auth headers on plain GETs [SP1]', async () => {
     fetchMock.mockImplementation(okJson({}));
     await ProblemService.getTags();
-    const headers = fetchMock.mock.calls[0][1].headers as Headers;
-    expect(headers.get('Authorization')).toBe('Bearer jwt-123');
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    const headers = init.headers as Headers;
+    expect(init.credentials).toBe('include');
+    expect(headers.get('Authorization')).toBeNull(); // cookie auth, not Bearer
     expect(headers.get('Content-Type')).toBeNull(); // no body
   });
 });

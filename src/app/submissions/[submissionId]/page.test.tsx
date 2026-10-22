@@ -18,7 +18,6 @@ const mocks = vi.hoisted(() => ({
   auth: {
     isAuthenticated: true,
     token: 'test-access-token' as string | null,
-    refreshToken: 'test-refresh-token' as string | null,
     user: {
       id: 1,
       username: 'tester',
@@ -84,7 +83,6 @@ const baseDetail = (over: Partial<DetailedSubmissionType> = {}): DetailedSubmiss
 function setAuth(over: Partial<typeof mocks.auth> = {}) {
   mocks.auth.isAuthenticated = true;
   mocks.auth.token = 'test-access-token';
-  mocks.auth.refreshToken = 'test-refresh-token';
   mocks.auth.user = { id: 1, username: 'tester', email: 'tester@example.com', role: 'BASIC_USER' };
   Object.assign(mocks.auth, over);
 }
@@ -114,18 +112,18 @@ beforeEach(async () => {
 afterEach(cleanup);
 
 describe('SubmissionDetailPage', () => {
-  it('requires auth: shows the error with a back link and never fetches without a token', async () => {
-    setAuth({ isAuthenticated: false, token: null });
+  it('requires auth: shows the error with a back link and never fetches when signed out', async () => {
+    setAuth({ isAuthenticated: false });
     render(<SubmissionDetailPage />);
     const el = await screen.findByText('Authentication required to view submission details.');
     expect(el).toBeInTheDocument();
-    // The dead-end fix: a way back, and no retry without a token.
+    // The dead-end fix: a way back, and no retry when signed out.
     expect(screen.getByRole('link', { name: 'Back to My Submissions' })).toHaveAttribute('href', '/my-submissions');
     expect(screen.queryByRole('button', { name: 'Try Again' })).not.toBeInTheDocument();
     expect(mocks.getSubmissionDetail).not.toHaveBeenCalled();
   });
 
-  it('keeps showing the spinner when the route param is missing but a token exists', async () => {
+  it('keeps showing the spinner when the route param is missing but signed in', async () => {
     mocks.params = {};
     render(<SubmissionDetailPage />);
     await act(async () => {});
