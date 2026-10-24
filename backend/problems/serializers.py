@@ -1,6 +1,13 @@
 from django.contrib.auth import get_user_model  # Import get_user_model
 from rest_framework import serializers
-from .models import ProblemEditorial, ProblemRating, Tag, Problem, TestCase
+from .models import (
+    CurriculumNode,
+    ProblemEditorial,
+    ProblemRating,
+    Tag,
+    Problem,
+    TestCase,
+)
 from users.serializers import UserSerializer  # To represent author/verifier
 
 
@@ -82,6 +89,7 @@ class ProblemSerializer(serializers.ModelSerializer):
             "verifier",
             "status",
             "difficulty",
+            "difficulty_source",
             "default_time_limit_ms",
             "default_memory_limit_kb",
             "allowed_languages",
@@ -192,3 +200,38 @@ class ProblemDetailSerializer(ProblemSerializer):
 
 
 # settings import moved to the top
+
+
+class CurriculumNodeSerializer(serializers.ModelSerializer):
+    """Curriculum tree node (competitive roadmap EDU-9).
+
+    ``problem_count`` counts APPROVED problems only — the public catalog's
+    honesty rule — and ``children`` nests chapters (and later topics) under
+    their grade, giving the browse axis its tree in one request.
+    """
+
+    problem_count = serializers.SerializerMethodField()
+    children = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CurriculumNode
+        fields = [
+            "id",
+            "parent",
+            "kind",
+            "name_i18n",
+            "slug",
+            "version",
+            "order",
+            "problem_count",
+            "children",
+        ]
+
+    def get_problem_count(self, obj):
+        return obj.problems.filter(status=Problem.ProblemStatus.APPROVED).count()
+
+    def get_children(self, obj):
+        return [
+            CurriculumNodeSerializer(child, context=self.context).data
+            for child in obj.children.all()
+        ]
