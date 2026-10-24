@@ -21,6 +21,11 @@ export default defineConfig({
     // runs deterministic on such hosts; the whole suite still finishes in
     // about a minute on CI.
     maxWorkers: 2,
+    // Heavier pages (profile fires three parallel fetches, the problem
+    // detail mounts CodeMirror + five panels) can exceed the 5s default
+    // on RAM-constrained hosts under full-suite load — same rationale as
+    // the worker cap above.
+    testTimeout: 15000,
   },
   resolve: {
     alias: {

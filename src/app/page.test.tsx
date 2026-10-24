@@ -7,6 +7,13 @@ vi.mock('next/headers', () => ({
   cookies: vi.fn(),
 }));
 
+vi.mock('./problems/_lib/problems-api', () => ({
+  getProblems: vi.fn().mockResolvedValue([
+    { id: 1, title_i18n: { en: 'Two Sum' }, difficulty: 'EASY' },
+    { id: 2, title_i18n: { en: 'N-Queens' }, difficulty: 'HARD' },
+  ]),
+}));
+
 vi.mock('@/context/AuthContext', () => ({
   useAuth: vi.fn(),
 }));

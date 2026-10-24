@@ -19,6 +19,7 @@ import ProblemStatsPanel from './ProblemStatsPanel';
 import ScratchPanel from './ScratchPanel';
 import CopyButton from '@/components/common/CopyButton';
 import StatementMarkdown from '@/components/common/StatementMarkdown';
+import BookmarkButton from './BookmarkButton';
 import { ProblemType } from '@/types';
 import Link from 'next/link';
 import { palette, hexAlpha } from '@/theme/tokens';
@@ -227,6 +228,7 @@ export default async function ProblemDetailPage({ params }: ProblemDetailPagePro
                   }}>
                     {t(`difficulty_${diffKey}`, problem.difficulty)}
                   </span>
+                  <BookmarkButton problemId={problemId} />
                   {problem.status && (
                     <span style={{
                       padding: '2px 10px', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 600,

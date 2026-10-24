@@ -256,6 +256,41 @@ const server = createServer((req, res) => {
     return;
   }
 
+  // FE-3: profile statistics, GDPR endpoints, bookmarks.
+  if (req.method === 'GET' && path === '/api/v1/users/me/statistics/') {
+    json(res, 200, {
+      solved: 5, attempted: 8, total_submissions: 20, acceptance_rate: 0.625,
+      per_difficulty: { EASY: { solved: 4, attempted: 6 }, MEDIUM: { solved: 1, attempted: 2 }, HARD: { solved: 0, attempted: 0 } },
+      per_language: { python3: 15, cpp17: 5 },
+      active_dates_90d: [new Date().toISOString().slice(0, 10)],
+      current_streak: 1, max_streak: 3, total_active_days: 4,
+      ladder: { points: 7, level: 1, next_level_points: 10, progress: 0.7 },
+      badges: ['first_ac'],
+    });
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/api/v1/users/me/solved-ids/') {
+    json(res, 200, { solved: [1], attempted: [2] });
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/api/v1/users/me/export/') {
+    json(res, 200, { profile: { username: 'e2e' }, submissions: [] });
+    return;
+  }
+
+  const bookmarkMatch = path.match(/^\/api\/v1\/problems\/problems\/(\d+)\/bookmark\/$/);
+  if (bookmarkMatch && (req.method === 'POST' || req.method === 'DELETE')) {
+    json(res, 200, { problem: Number(bookmarkMatch[1]), starred: req.method === 'POST', star_count: 1 });
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/api/v1/problems/problems/bookmarked/') {
+    json(res, 200, { starred_ids: [1] });
+    return;
+  }
+
   if (req.method === 'POST' && path === '/api/v1/scratch/') {
     json(res, 200, { id: 1, status: 'OK', output: '42\n', error: '' });
     return;

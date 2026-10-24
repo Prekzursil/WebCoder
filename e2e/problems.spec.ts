@@ -117,3 +117,17 @@ test('catalog curriculum axis drills into a chapter [EDU-9]', async ({ page }) =
     await expect(page?.getByRole('button', { name: /Elementary algorithms/i }))?.toBeVisible();
   }
 });
+
+test('terms and privacy pages render their sections [LEG-1]', async ({ page }) => {
+  await page?.goto('/terms');
+  await expect(page?.getByRole('heading', { name: 'Terms of Service' }))?.toBeVisible();
+  await expect(page?.getByRole('heading', { name: 'Your content' }))?.toBeVisible();
+  await page?.goto('/privacy');
+  await expect(page?.getByRole('heading', { name: 'Privacy Policy' }))?.toBeVisible();
+  await expect(page?.getByRole('heading', { name: 'Your rights' }))?.toBeVisible();
+});
+
+test('home shows the problem of the day [UXP-5a]', async ({ page }) => {
+  await page?.goto('/');
+  await expect(page?.getByText('Problem of the day'))?.toBeVisible();
+});

@@ -2,6 +2,7 @@
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { getProblems } from './problems/_lib/problems-api';
 import { createTranslator, getLocale } from './_lib/public-i18n';
 import HomeSignUpButton from './HomeSignUpButton';
 import styles from './home.module.css';
@@ -39,6 +40,31 @@ export default async function HomePage() {
   const t = createTranslator(await getLocale());
   const faqSchema = buildFaqSchema(t);
 
+  // [roadmap UXP-5a] Problem of the day: a deterministic pick over the
+  // APPROVED pool — hash(utc date) % count, difficulty-rotating by weekday.
+  // Best-effort: no catalog, no strip.
+  let dailyProblem: { id: number; title: string; difficulty: string } | null = null;
+  try {
+    const catalog = await getProblems();
+    if (catalog.length > 0) {
+      const dayKey = new Date().toISOString().slice(0, 10);
+      let hash = 0;
+      for (const ch of dayKey) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+      const rotation = ['EASY', 'MEDIUM', 'HARD'];
+      const wantDifficulty = rotation[new Date().getUTCDay() % rotation.length];
+      const pool = catalog.filter((p) => p.difficulty === wantDifficulty);
+      const source = pool.length > 0 ? pool : catalog;
+      const pick = source[hash % source.length];
+      dailyProblem = {
+        id: pick.id,
+        title: pick.title_i18n?.en ?? `#${pick.id}`,
+        difficulty: pick.difficulty ?? 'MEDIUM',
+      };
+    }
+  } catch {
+    // No daily strip without the catalog.
+  }
+
   return (
     <>
       <script
@@ -67,6 +93,16 @@ export default async function HomePage() {
           </Link>
           <HomeSignUpButton label={t('sign_up_button', 'Sign Up')} />
         </div>
+      {dailyProblem && (
+        <div className={styles.dailyStrip}>
+          <span className={styles.dailyLabel}>{t('daily_problem_label', 'Problem of the day')}</span>
+          <a href={`/problems/${dailyProblem.id}`} className={styles.dailyLink}>
+            {dailyProblem.title}
+          </a>
+          <span className={styles.dailyDifficulty}>{dailyProblem.difficulty}</span>
+        </div>
+      )}
+
         <div className={styles.stats} aria-label="Platform statistics">
           <div className={styles.statItem}>
             <span className={styles.statValue}>100+</span>
