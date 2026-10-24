@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import CurriculumNode, Tag, Problem, TestCase
+from .bookmarks import ProblemStar
 
 
 class TagAdmin(admin.ModelAdmin):
@@ -119,3 +120,9 @@ class CurriculumNodeAdmin(admin.ModelAdmin):
 
 
 admin.site.register(CurriculumNode, CurriculumNodeAdmin)
+
+
+@admin.register(ProblemStar)
+class ProblemStarAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "problem", "created_at")
+    search_fields = ("user__username",)
