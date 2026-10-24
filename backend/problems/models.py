@@ -1,3 +1,4 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
@@ -113,6 +114,23 @@ class Problem(models.Model):
         help_text=_("List of custom library identifiers allowed."),
     )
 
+    # Progressive hints ladder (competitive roadmap EDT-2): ordered text
+    # steps revealed one-by-one in the UI — the pedagogical middle ground
+    # between silence and a full editorial. Keyed per locale to mirror
+    # statement_i18n's RO/EN discipline.
+    hints_ro = models.JSONField(
+        _("hints (Romanian)"),
+        default=list,
+        blank=True,
+        help_text=_("Ordered Romanian hint steps; each entry is one reveal."),
+    )
+    hints_en = models.JSONField(
+        _("hints (English)"),
+        default=list,
+        blank=True,
+        help_text=_("Ordered English hint steps; each entry is one reveal."),
+    )
+
     creation_date = models.DateTimeField(_("creation date"), auto_now_add=True)
     last_modified_date = models.DateTimeField(_("last modified date"), auto_now=True)
 
@@ -224,3 +242,96 @@ class TestCase(models.Model):
         verbose_name = _("test case")
         verbose_name_plural = _("test cases")
         ordering = ["problem", "order"]
+
+
+class ProblemEditorial(models.Model):
+    """Per-problem editorial (competitive roadmap EDT-1 / SPEC-GAPS X2).
+
+    Markdown body mirroring the statement's RO/EN discipline, author credit,
+    and a publish policy that gates who may read it:
+
+    - ``PUBLIC``    — everyone who can see the problem.
+    - ``AFTER_AC``  — only after the requester's own accepted submission on
+                      the problem (problem author/verifier/admin bypass —
+                      they need it to review the content).
+    - ``MANUAL``    — author/verifier/admin only (held back for a contest,
+                      or while polishing).
+    """
+
+    class PublishPolicy(models.TextChoices):
+        PUBLIC = "PUBLIC", _("Public")
+        AFTER_AC = "AFTER_AC", _("After solving (first AC)")
+        MANUAL = "MANUAL", _("Manual (staff only)")
+
+    problem = models.OneToOneField(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name="editorial",
+        verbose_name=_("problem"),
+    )
+    content_ro = models.TextField(_("editorial content (Romanian)"), blank=True)
+    content_en = models.TextField(_("editorial content (English)"), blank=True)
+    publish_policy = models.CharField(
+        _("publish policy"),
+        max_length=10,
+        choices=PublishPolicy.choices,
+        default=PublishPolicy.AFTER_AC,
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET(get_sentinel_user),
+        null=True,
+        blank=True,
+        related_name="authored_editorials",
+        verbose_name=_("author"),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("problem editorial")
+        verbose_name_plural = _("problem editorials")
+
+    def __str__(self):
+        return f"Editorial for {self.problem_id} ({self.publish_policy})"
+
+
+class ProblemRating(models.Model):
+    """Three-level satisfaction vote on a problem (competitive roadmap UXP-7).
+
+    Gives verifiers a quality signal beyond solve rates: 1 = poor,
+    2 = fine, 3 = great. One vote per user, re-voting overwrites.
+    """
+
+    RATING_MIN = 1
+    RATING_MAX = 3
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="problem_ratings",
+        verbose_name=_("user"),
+    )
+    problem = models.ForeignKey(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name="ratings",
+        verbose_name=_("problem"),
+    )
+    rating = models.PositiveSmallIntegerField(
+        _("rating"),
+        validators=[MinValueValidator(RATING_MIN), MaxValueValidator(RATING_MAX)],
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("problem rating")
+        verbose_name_plural = _("problem ratings")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "problem"], name="unique_user_problem_rating"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user_id} rated problem {self.problem_id}: {self.rating}"

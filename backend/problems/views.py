@@ -2,11 +2,12 @@ from django.db import models, transaction
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Tag, Problem, TestCase
+from .models import ProblemEditorial, ProblemRating, Tag, Problem, TestCase
 from .serializers import (
     TagSerializer,
     ProblemSerializer,
     ProblemDetailSerializer,
+    ProblemEditorialSerializer,
     TestCaseSerializer,
 )
 from notifications.models import Notification
@@ -17,6 +18,47 @@ from users.permissions import (
     IsProblemVerifier,
     ProblemObjectPermissions,
 )
+
+
+def editorial_visible_to(editorial, user):
+    """Publish-policy gate for editorials (competitive roadmap EDT-1).
+
+    - PUBLIC: anyone (who can see the problem — the viewset queryset already
+      scopes that).
+    - AFTER_AC: the requester has an AC submission on the problem, or is the
+      problem's author / a verifier / an admin (staff need it to review).
+    - MANUAL: author / verifier / admin only.
+    Anonymous users never pass AFTER_AC or MANUAL.
+    """
+    if user is None or not getattr(user, "is_authenticated", False):
+        return editorial.publish_policy == ProblemEditorial.PublishPolicy.PUBLIC
+
+    is_staff = user.is_staff or user.role in [
+        User.Roles.ADMIN,
+        User.Roles.PROBLEM_VERIFIER,
+    ]
+    if is_staff or editorial.problem.author_id == user.id:
+        return True
+    if editorial.publish_policy == ProblemEditorial.PublishPolicy.PUBLIC:
+        return True
+    if editorial.publish_policy == ProblemEditorial.PublishPolicy.AFTER_AC:
+        from submissions.models import Submission
+
+        return Submission.objects.filter(
+            user=user,
+            problem_id=editorial.problem_id,
+            verdict=Submission.VerdictStatus.ACCEPTED,
+        ).exists()
+    return False
+
+
+def user_can_manage_editorial(user, problem):
+    """Editorial write access: the problem's author, a verifier, or an admin."""
+    if not (user and user.is_authenticated):
+        return False
+    if user.is_staff or user.role in [User.Roles.ADMIN, User.Roles.PROBLEM_VERIFIER]:
+        return True
+    return problem.author_id == user.id
 
 
 class TagViewSet(viewsets.ModelViewSet):
@@ -62,6 +104,13 @@ class ProblemViewSet(viewsets.ModelViewSet):
             self.permission_classes = [
                 permissions.AllowAny
             ]  # Queryset handles visibility
+        elif self.action in ["editorial", "statistics"]:
+            # Read-shaped actions: the queryset already scopes problem
+            # visibility; the editorial action additionally enforces the
+            # publish-policy gate inside.
+            self.permission_classes = [permissions.AllowAny]
+        elif self.action == "rate":
+            self.permission_classes = [permissions.IsAuthenticated]
         else:
             self.permission_classes = [
                 permissions.IsAdminUser
@@ -195,6 +244,133 @@ class ProblemViewSet(viewsets.ModelViewSet):
         return Response(
             {"status": f"problem cannot be rejected from state {problem.status}"},
             status=status.HTTP_400_BAD_REQUEST,
+        )
+
+
+    @action(detail=True, methods=["get", "put", "patch"], url_path="editorial")
+    def editorial(self, request, pk=None):
+        """Read (gated by publish policy) or write (author/verifier/admin).
+
+        GET returns the editorial, 403 with a locked reason when the policy
+        hides it, or 404 when none exists. PUT/PATCH create-or-update
+        (editorials ride the problem's own visibility: the writer must
+        already be able to see the problem).
+        """
+        problem = self.get_object()
+        editorial = getattr(problem, "editorial", None)
+
+        if request.method in ("PUT", "PATCH"):
+            if not user_can_manage_editorial(request.user, problem):
+                return Response(
+                    {
+                        "detail": (
+                            "Only the problem author, verifiers or admins "
+                            "may edit the editorial."
+                        )
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+            serializer = ProblemEditorialSerializer(
+                editorial,
+                data=request.data,
+                partial=request.method == "PATCH",
+                context={"request": request},
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save(
+                problem=problem,
+                author=(editorial.author if editorial else request.user),
+            )
+            return Response(serializer.data)
+
+        if editorial is None:
+            return Response(
+                {"detail": "No editorial for this problem."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        if not editorial_visible_to(editorial, request.user):
+            return Response(
+                {
+                    "detail": "This editorial is locked by its publish policy.",
+                    "publish_policy": editorial.publish_policy,
+                    "locked": True,
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        return Response(
+            ProblemEditorialSerializer(editorial, context={"request": request}).data
+        )
+
+    @action(detail=True, methods=["get"], url_path="statistics")
+    def statistics(self, request, pk=None):
+        """Per-problem statistics (competitive roadmap UXP-7 / X9 core).
+
+        tried, solved (distinct AC users), acceptance rate, verdict
+        distribution, per-language submission counts, and the satisfaction
+        vote aggregate. Readable by anyone who can see the problem.
+        """
+        from submissions.models import Submission
+
+        problem = self.get_object()
+        subs = Submission.objects.filter(problem=problem)
+        tried = subs.count()
+        verdict_distribution = {
+            row["verdict"]: row["n"] for row in subs.values("verdict").annotate(n=models.Count("id"))
+        }
+        solved = (
+            subs.filter(verdict=Submission.VerdictStatus.ACCEPTED)
+            .values("user_id")
+            .distinct()
+            .count()
+        )
+        language_counts = {
+            row["language"]: row["n"]
+            for row in subs.values("language").annotate(n=models.Count("id"))
+        }
+        ratings = problem.ratings.aggregate(
+            avg=models.Avg("rating"), count=models.Count("id")
+        )
+        return Response(
+            {
+                "problem": problem.id,
+                "tried": tried,
+                "solved": solved,
+                "acceptance_rate": round(solved / tried, 4) if tried else None,
+                "verdict_distribution": verdict_distribution,
+                "language_counts": language_counts,
+                "rating_avg": round(ratings["avg"], 2)
+                if ratings["avg"] is not None
+                else None,
+                "rating_count": ratings["count"],
+            }
+        )
+
+    @action(detail=True, methods=["post"], url_path="rate")
+    def rate(self, request, pk=None):
+        """Three-level satisfaction vote (1=poor, 2=fine, 3=great); re-vote overwrites."""
+        problem = self.get_object()
+        rating_value = request.data.get("rating")
+        if isinstance(rating_value, str) and rating_value in ("1", "2", "3"):
+            rating_value = int(rating_value)
+        if rating_value not in (1, 2, 3):
+            return Response(
+                {"rating": "Rating must be 1, 2 or 3."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        ProblemRating.objects.update_or_create(
+            user=request.user, problem=problem, defaults={"rating": rating_value}
+        )
+        aggregate = problem.ratings.aggregate(
+            avg=models.Avg("rating"), count=models.Count("id")
+        )
+        return Response(
+            {
+                "rating_avg": round(aggregate["avg"], 2)
+                if aggregate["avg"] is not None
+                else None,
+                "rating_count": aggregate["count"],
+                "your_rating": rating_value,
+            }
         )
 
 
