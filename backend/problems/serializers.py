@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model  # Import get_user_model
 from rest_framework import serializers
-from .models import Tag, Problem, TestCase
+from .models import ProblemEditorial, ProblemRating, Tag, Problem, TestCase
 from users.serializers import UserSerializer  # To represent author/verifier
 
 
@@ -90,6 +90,8 @@ class ProblemSerializer(serializers.ModelSerializer):
             "float_comparison_epsilon",
             "checker_code",
             "checker_language",  # Added checker fields
+            "hints_ro",
+            "hints_en",
             "creation_date",
             "last_modified_date",
             "submission_count",
@@ -138,11 +140,55 @@ class ProblemSerializer(serializers.ModelSerializer):
 
 
 # More detailed serializer for Problem including its test cases for specific views
+class ProblemEditorialSerializer(serializers.ModelSerializer):
+    author = UserSerializer(read_only=True)
+
+    class Meta:
+        model = ProblemEditorial
+        fields = [
+            "problem",
+            "content_ro",
+            "content_en",
+            "publish_policy",
+            "author",
+            "created_at",
+            "updated_at",
+        ]
+        # problem comes from the URL path, not the payload.
+        read_only_fields = ["problem", "author", "created_at", "updated_at"]
+
+
 class ProblemDetailSerializer(ProblemSerializer):
     test_cases = TestCaseSerializer(many=True, read_only=True)
+    # Editorial presence/lock state (competitive roadmap EDT-1): the problem
+    # page renders an Editorial tab from these two flags without needing the
+    # (possibly gated) content itself — locked editorial state is honest UI.
+    has_editorial = serializers.SerializerMethodField()
+    editorial_locked = serializers.SerializerMethodField()
 
     class Meta(ProblemSerializer.Meta):
-        fields = ProblemSerializer.Meta.fields + ["test_cases"]
+        fields = ProblemSerializer.Meta.fields + [
+            "test_cases",
+            "has_editorial",
+            "editorial_locked",
+        ]
+
+    def _editorial(self, obj):
+        # Reverse OneToOne: a missing editorial raises RelatedObjectDoesNotExist
+        # (an AttributeError subclass), so getattr returns None cleanly.
+        return getattr(obj, "editorial", None)
+
+    def get_has_editorial(self, obj):
+        return self._editorial(obj) is not None
+
+    def get_editorial_locked(self, obj):
+        from .views import editorial_visible_to
+
+        editorial = self._editorial(obj)
+        if editorial is None:
+            return False
+        user = self.context.get("request").user if self.context.get("request") else None
+        return not editorial_visible_to(editorial, user)
 
 
 # settings import moved to the top
