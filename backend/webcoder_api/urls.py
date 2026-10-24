@@ -49,6 +49,9 @@ urlpatterns = [
         include("notifications.urls", namespace="notifications_api_v1"),
     ),
     path("api/v1/forum/", include("forum.urls", namespace="forum_api_v1")),
+    # Custom invocation / scratch run (competitive roadmap X7/JDG-6) —
+    # throttled + audit-logged raw judge execution.
+    path("api/v1/scratch/", include("scratch.urls", namespace="scratch_api_v1")),
     # JWT Token Authentication
     path("api/v1/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/v1/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),

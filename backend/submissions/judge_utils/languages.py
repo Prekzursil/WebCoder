@@ -67,6 +67,13 @@ class LanguageSpec:
     #: non-Java languages. Kept as data so tests can pin the drift fix
     #: (java11 must compile with --release 11 even under a JDK 21 toolchain).
     java_release: str | None = None
+    #: CPU-time multiplier applied to the problem's default limit for this
+    #: language (competitive roadmap J5): interpreted/JVM/Node runtimes need
+    #: more than C/C++ for the same algorithm. 1.0 = no adjustment.
+    time_multiplier: float = 1.0
+    #: Memory floor in KB for runtimes with large fixed overheads (JVM,
+    #: Node, Mono): the effective limit is max(problem limit, floor).
+    memory_floor_kb: int = 0
 
     def compile_argv(
         self,
@@ -128,6 +135,7 @@ _PYTHON3 = LanguageSpec(
     compile_artifact=None,
     run_command=("python", "user_code.py"),
     docker_image="python:3.11-slim",
+    time_multiplier=3.0,
 )
 
 _CPP17 = LanguageSpec(
@@ -179,6 +187,8 @@ _JAVA11 = LanguageSpec(
     run_command=("java", "-cp", ".", "Main"),
     docker_image="openjdk:11-jdk-slim",
     java_release="11",
+    time_multiplier=2.0,
+    memory_floor_kb=524288,
 )
 
 _NODEJS20 = LanguageSpec(
@@ -189,6 +199,8 @@ _NODEJS20 = LanguageSpec(
     compile_artifact=None,
     run_command=("node", "user_code.js"),
     docker_image="node:20-slim",
+    time_multiplier=2.0,
+    memory_floor_kb=524288,
 )
 
 #: All supported languages, keyed by submission-side language id.
@@ -204,3 +216,31 @@ SUPPORTED_LANGUAGE_IDS: tuple[str, ...] = tuple(sorted(LANGUAGES))
 def get_language(language_id: str) -> LanguageSpec | None:
     """Return the spec for *language_id*, or ``None`` when unsupported."""
     return LANGUAGES.get(language_id)
+
+
+def effective_limits(
+    default_time_ms: int,
+    default_memory_kb: int,
+    language_id: str,
+    limit_overrides: dict | None = None,
+) -> tuple[int, int]:
+    """Resolve the effective (time_ms, memory_kb) for one language (J5).
+
+    Layers, most specific first:
+    1. ``Problem.limit_overrides[language_id]`` — explicit author override.
+    2. Language registry multipliers/floors — the default-time multiplier
+       for the language, and the memory floor for heavy runtimes.
+    """
+    spec = LANGUAGES.get(language_id)
+    multiplier = spec.time_multiplier if spec else 1.0
+    floor_kb = spec.memory_floor_kb if spec else 0
+    time_ms = int(default_time_ms * multiplier)
+    memory_kb = max(default_memory_kb, floor_kb)
+
+    overrides = (limit_overrides or {}).get(language_id)
+    if isinstance(overrides, dict):
+        if "time_ms" in overrides and overrides["time_ms"]:
+            time_ms = int(overrides["time_ms"])
+        if "memory_kb" in overrides and overrides["memory_kb"]:
+            memory_kb = int(overrides["memory_kb"])
+    return time_ms, memory_kb

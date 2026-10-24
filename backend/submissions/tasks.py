@@ -11,12 +11,14 @@ import tempfile
 import pathlib
 
 from .judge_utils.backend import CONTAINER, get_judge_backend, judge_workspace_root
-from .judge_utils.comparison import compare_outputs
+from .judge_utils.comparison import compare_outputs_detailed
 from .judge_utils.compilation import compile_code_in_sandbox
+from .judge_utils.languages import effective_limits
 from .judge_utils.custom_libs import install_custom_libs
 from .judge_utils.execution import run_code_in_sandbox
 from .judge_utils.checkers import run_custom_checker
 from leaderboard.aggregation import update_user_entry_task
+from problems.scoring import aggregate_score
 from notifications.models import Notification
 from notifications.services import notify
 
@@ -148,8 +150,23 @@ def judge_submission_task(self, submission_id):
                     temp_dir_obj.cleanup()
                 return f"Submission {submission_id}: library install failed."
 
+        # J5: per-language effective limits — registry multipliers/floors,
+        # explicit Problem.limit_overrides win over both.
+        eff_time_ms, eff_mem_kb = effective_limits(
+            problem.default_time_limit_ms,
+            problem.default_memory_limit_kb,
+            submission.language,
+            problem.limit_overrides,
+        )
+
+        # RO-4: FILES-mode problems exchange data through working-directory
+        # files instead of stdin/stdout.
+        io_files = None
+        if problem.io_mode == Problem.IOMode.FILES:
+            io_files = (problem.io_input_filename, problem.io_output_filename)
+
         overall_verdict = Submission.VerdictStatus.ACCEPTED
-        total_score = 0
+        scored_results: list[tuple[TestCase, bool]] = []
         max_time_ms_overall = 0
         max_memory_kb_overall = 0
 
@@ -164,14 +181,19 @@ def judge_submission_task(self, submission_id):
                 )
                 break
 
+            if io_files:
+                (submission_dir / io_files[0]).write_text(
+                    tc.input_data, encoding="utf-8"
+                )
             tc_verdict, tc_time, tc_mem, tc_output, tc_error = run_code_in_sandbox(
                 executable_path_str,
                 submission.language,
                 tc.input_data,
-                problem.default_time_limit_ms,
-                problem.default_memory_limit_kb,
+                eff_time_ms,
+                eff_mem_kb,
                 submission_dir,
                 problem.custom_libraries_allowed,  # Pass custom libraries here as well
+                io_files=io_files,
             )
 
             max_time_ms_overall = max(
@@ -220,14 +242,20 @@ def judge_submission_task(self, submission_id):
                             tc_error + "\n" if tc_error else ""
                         ) + "Error: Custom checker selected but no checker code/lang."
                 else:
-                    outputs_match = compare_outputs(
+                    outputs_match, mismatch_hint = compare_outputs_detailed(
                         tc_output,
                         tc.expected_output_data,
                         problem.comparison_mode,
                         problem.float_comparison_epsilon,
+                        problem.case_insensitive,
                     )
                     if not outputs_match:
                         final_tc_verdict = Submission.VerdictStatus.WRONG_ANSWER
+                        if mismatch_hint:
+                            tc_error = (
+                                (tc_error + "\n" if tc_error else "")
+                                + mismatch_hint
+                            )
 
             SubmissionTestResult.objects.create(
                 submission=submission,
@@ -239,11 +267,13 @@ def judge_submission_task(self, submission_id):
                 error_output=tc_error[:10000],
             )
 
-            if final_tc_verdict == Submission.VerdictStatus.ACCEPTED:
-                total_score += tc.points
-            else:
+            scored_results.append((tc, final_tc_verdict == Submission.VerdictStatus.ACCEPTED))
+            if final_tc_verdict != Submission.VerdictStatus.ACCEPTED:
                 if overall_verdict == Submission.VerdictStatus.ACCEPTED:
                     overall_verdict = final_tc_verdict
+
+        # J6: scoring-mode aggregation (partial per test / binary / subtasks)
+        total_score, max_score = aggregate_score(problem.scoring_mode, scored_results)
 
         with transaction.atomic():
             submission = Submission.objects.select_for_update().get(id=submission_id)
@@ -255,7 +285,10 @@ def judge_submission_task(self, submission_id):
                 overall_verdict, overall_verdict
             )
             submission.detailed_feedback = (
-                f"Overall Verdict: {verdict_label}. Score: {total_score}."
+                f"Overall Verdict: {verdict_label}. "
+                f"Score: {total_score}"
+                + (f"/{max_score}" if max_score else "")
+                + "."
             )
             if compiler_output:
                 submission.detailed_feedback = f"Compiler Output:\n{compiler_output}\n\n{submission.detailed_feedback}"

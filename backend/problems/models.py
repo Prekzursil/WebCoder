@@ -122,6 +122,87 @@ class Problem(models.Model):
         _("default memory limit (KB)"), default=262144
     )  # 256 MB
 
+    # Per-language limit overrides (competitive roadmap J5): maps a language
+    # id to {"time_ms": ..., "memory_kb": ...}; an explicit author override
+    # beats the registry's language multipliers (see
+    # judge_utils.languages.effective_limits).
+    limit_overrides = models.JSONField(
+        _("per-language limit overrides"),
+        default=dict,
+        blank=True,
+        help_text=_(
+            "Optional map of language id -> {time_ms, memory_kb} overrides."
+        ),
+    )
+
+    class ScoringMode(models.TextChoices):
+        """How test-case results aggregate into the submission score (J6).
+
+        - PARTIAL_PER_TEST (default): sum of passed test points (current).
+        - BINARY: all tests pass -> full score, else 0.
+        - SUBTASKS: tests grouped by TestCase.subtask; a group's points are
+          awarded only when EVERY member passes (the DMOJ rule — matches how
+          Romanian olympiad problems are written).
+        """
+
+        PARTIAL_PER_TEST = "PARTIAL_PER_TEST", _("Partial (per test)")
+        BINARY = "BINARY", _("Binary (all or nothing)")
+        SUBTASKS = "SUBTASKS", _("Subtask groups")
+
+    scoring_mode = models.CharField(
+        _("scoring mode"),
+        max_length=20,
+        choices=ScoringMode.choices,
+        default=ScoringMode.PARTIAL_PER_TEST,
+    )
+    # Cached denominator for "score / full_score" display; kept in sync by
+    # TestCase save/delete signals (problems/apps.py) so the UI never
+    # recomputes per request.
+    full_score = models.PositiveIntegerField(
+        _("full score"),
+        default=0,
+        help_text=_("Cached total score across tests/subtasks."),
+    )
+
+    class IOMode(models.TextChoices):
+        """Input/output convention (competitive roadmap RO-4).
+
+        STDIO: the classic judge — input on stdin, output on stdout.
+        FILES: olympiad convention — the program reads <input file> and
+        writes <output file> in its working directory (the pbinfo/infoarena
+        ``.in``/``.out`` default).
+        """
+
+        STDIO = "STDIO", _("Standard input/output")
+        FILES = "FILES", _("Files (.in/.out)")
+
+    io_mode = models.CharField(
+        _("I/O mode"),
+        max_length=6,
+        choices=IOMode.choices,
+        default=IOMode.STDIO,
+    )
+    io_input_filename = models.CharField(
+        _("input filename (FILES mode)"),
+        max_length=64,
+        default="input.txt",
+        blank=True,
+    )
+    io_output_filename = models.CharField(
+        _("output filename (FILES mode)"),
+        max_length=64,
+        default="output.txt",
+        blank=True,
+    )
+
+    # Case-insensitive matching for the text comparison modes (J8): lets
+    # "yes"/"YES" style answers match without a custom checker.
+    case_insensitive = models.BooleanField(
+        _("case-insensitive comparison"),
+        default=False,
+        help_text=_("Lowercase both outputs before text comparison modes."),
+    )
+
     # JSONField to store list of allowed language identifiers, e.g., ["python3", "cpp17"]
     allowed_languages = models.JSONField(
         _("allowed languages"),
@@ -170,6 +251,10 @@ class Problem(models.Model):
             _("Line-by-Line Exact Match (Ignore Line Whitespace & Empty Lines)"),
         )
         FLOAT_PRECISE = "FLOAT_PRECISE", _("Floating Point (Precise up to Epsilon)")
+        TOKEN = (
+            "TOKEN",
+            _("Token-based (whitespace-insensitive)"),
+        )
         CUSTOM_CHECKER = "CUSTOM_CHECKER", _("Use Custom Checker Program")
 
     comparison_mode = models.CharField(
@@ -249,6 +334,16 @@ class TestCase(models.Model):
         _("points"),
         default=10,
         help_text=_("Points awarded for passing this test case."),
+    )
+    # Subtask group key (J6): tests sharing a non-empty key form one group
+    # whose points are awarded only when every member passes. All members
+    # of a group should carry the same points value.
+    subtask = models.CharField(
+        _("subtask group"),
+        max_length=64,
+        blank=True,
+        default="",
+        help_text=_("Group key; tests in one group pass or fail together."),
     )
     order = models.PositiveIntegerField(
         _("order"), default=0, help_text=_("Order of execution for the test case.")

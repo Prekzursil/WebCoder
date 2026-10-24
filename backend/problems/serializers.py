@@ -27,6 +27,7 @@ class TestCaseSerializer(serializers.ModelSerializer):
             "expected_output_data",
             "is_sample",
             "points",
+            "subtask",
             "order",
         ]
 

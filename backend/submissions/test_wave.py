@@ -1242,7 +1242,7 @@ class JudgeSubmissionTaskTests(TestCase):
             "submissions.tasks.run_code_in_sandbox",
             return_value=(WA, 30, 100, "3\n", "partial mismatch"),
         ), patch(
-            "submissions.tasks.compare_outputs"
+            "submissions.tasks.compare_outputs_detailed"
         ) as mock_compare:
             self._apply(self.submission.id)
         self.assertFalse(mock_compare.called)
