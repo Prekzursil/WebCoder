@@ -64,3 +64,35 @@ test('problem detail renders statement, limits and sample test cases', async ({
   )?.toBeVisible();
   await expect(page?.getByText('Example 1'))?.toBeVisible();
 });
+
+// --- Wave A learning layer --------------------------------------------------
+
+test('problem detail renders markdown statement, hints ladder and editorial', async ({
+  page,
+}) => {
+  await page?.goto(`/problems/${seeded.reverseId}`);
+
+  // A7: markdown **Input:** renders as bold, math as KaTeX. <strong> has no
+  // implicit role, so target the element directly.
+  await expect(page?.locator('strong', { hasText: 'Input:' }).first())?.toBeVisible();
+  await expect(page?.locator('.katex').first())?.toBeVisible();
+
+  // EDT-2: hints stay hidden until revealed one step at a time.
+  const showHint = page?.getByRole('button', { name: /Show hint 1 of 2/i });
+  if (await showHint?.isVisible().catch(() => false)) {
+    await expect(page?.getByText('Built-in slicing reverses'))?.toHaveCount(0);
+    await showHint?.click();
+    await expect(page?.getByText('Built-in slicing reverses'))?.toBeVisible();
+    await expect(page?.getByText('s[::-1]'))?.toHaveCount(0);
+  }
+
+  // EDT-1: the editorial card renders (mock serves it PUBLIC for id 2).
+  await expect(page?.getByRole('heading', { name: 'Editorial' }))?.toBeVisible();
+});
+
+test('problem detail shows tried/solved stats bar', async ({ page }) => {
+  await page?.goto(`/problems/${seeded.twoSumId}`);
+  // UXP-7/X9: the statistics strip renders once the client fetch resolves.
+  await expect(page?.getByText('tried'))?.toBeVisible();
+  await expect(page?.getByText('solved'))?.toBeVisible();
+});

@@ -39,6 +39,12 @@ export interface ProblemType {
   tags?: TagType[];
   verifier_feedback?: string | null;
   author?: {id: number; username: string};
+  // Wave A learning layer (EDT-1/EDT-2) + provenance (CNT-3)
+  hints_ro?: string[];
+  hints_en?: string[];
+  has_editorial?: boolean;
+  editorial_locked?: boolean;
+  difficulty_source?: string;
 }
 
 export interface SubmissionType {

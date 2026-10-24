@@ -19,6 +19,27 @@ vi.mock('../_lib/problems-api', () => ({
   getProblems: vi.fn(),
 }));
 
+vi.mock('./HintsPanel', () => ({
+  default: ({ hints }: { hints: string[] }) =>
+    hints.length ? <div data-testid="hints-panel">{hints.join('|')}</div> : null,
+}));
+
+vi.mock('./EditorialPanel', () => ({
+  default: ({ hasEditorial }: { hasEditorial: boolean }) =>
+    hasEditorial ? <div data-testid="editorial-panel" /> : null,
+}));
+
+vi.mock('./ProblemStatsPanel', () => ({
+  default: ({ problemId }: { problemId: string }) => (
+    <div data-testid="problem-stats-panel" data-problem-id={problemId} />
+  ),
+}));
+
+vi.mock('./ScratchPanel', () => ({
+  default: ({ allowedLanguages }: { allowedLanguages: string[] }) =>
+    allowedLanguages.length ? <div data-testid="scratch-panel" /> : null,
+}));
+
 vi.mock('./SubmitSolutionForm', () => ({
   default: (props: { problemId: string; allowedLanguages: string[]; problemTitle: string }) => (
     <div
