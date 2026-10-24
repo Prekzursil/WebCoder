@@ -40,6 +40,10 @@ vi.mock('./ScratchPanel', () => ({
     allowedLanguages.length ? <div data-testid="scratch-panel" /> : null,
 }));
 
+vi.mock('./BookmarkButton', () => ({
+  default: () => <div data-testid="bookmark-button" />,
+}));
+
 vi.mock('./SubmitSolutionForm', () => ({
   default: (props: { problemId: string; allowedLanguages: string[]; problemTitle: string }) => (
     <div

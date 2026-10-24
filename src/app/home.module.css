@@ -136,3 +136,45 @@
   letter-spacing: 0.06em;
   font-weight: 500;
 }
+
+/* [UXP-5a] Problem of the day strip */
+.dailyStrip {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  max-width: var(--page-width, 1120px);
+  margin: 0 auto 1.25rem;
+  padding: 0.65rem 1rem;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 0.85rem;
+}
+
+.dailyLabel {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+}
+
+.dailyLink {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.dailyLink:hover {
+  text-decoration: underline;
+}
+
+.dailyDifficulty {
+  margin-left: auto;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--violet);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}

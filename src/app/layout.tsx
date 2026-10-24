@@ -26,6 +26,11 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: siteUrl,
+    // [OPS-4/Q5] hreflang RO/EN — the bilingual moat, machine-readable.
+    languages: {
+      en: siteUrl,
+      ro: siteUrl,
+    },
   },
 };
 

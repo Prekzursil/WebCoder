@@ -2,9 +2,10 @@
 
 import React, { useState, FormEvent, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AuthService } from '@/services/ApiService';
+import { AuthService, SubmissionService } from '@/services/ApiService';
 import { useAuth } from '@/context/AuthContext';
 import ProtectedRoute from '@/components/common/ProtectedRoute';
+import ConfirmationModal from '@/components/common/ConfirmationModal';
 import { Box, TextField, Button, Alert, CircularProgress,  } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
 import GitHubIcon from '@mui/icons-material/GitHub';
@@ -15,27 +16,38 @@ import Link from 'next/link';
 const errorMessage = (err: unknown, fallback: string): string =>
   err instanceof Error && err.message ? err.message : fallback;
 
-// Mock stats for profile display
-const MOCK_STATS = {
-  solved: 47,
-  attempted: 63,
-  submissions: 128,
-  acceptanceRate: 73,
-  streak: 12,
-  rank: 24,
-  score: 3480,
-  easyCount: 22,
-  mediumCount: 19,
-  hardCount: 6,
-};
+// [B5/RAT-4/5/6] Live statistics payload from /users/me/statistics/ —
+// the profile overview renders exclusively from this (mocks deleted).
+interface StatisticsPayload {
+  solved: number;
+  attempted: number;
+  total_submissions: number;
+  acceptance_rate: number | null;
+  per_difficulty: Record<string, { solved: number; attempted: number }>;
+  per_language: Record<string, number>;
+  active_dates_90d: string[];
+  current_streak: number;
+  max_streak: number;
+  total_active_days: number;
+  ladder: { points: number; level: number; next_level_points: number; progress: number };
+  badges: string[];
+}
 
-const MOCK_RECENT = [
-  { id: 1042, problemTitle: 'Binary Tree Traversal', verdict: 'AC', language: 'python3', time: '2026-09-28T14:32:00Z' },
-  { id: 1041, problemTitle: 'Graph Shortest Path', verdict: 'WA', language: 'cpp17', time: '2026-09-28T11:15:00Z' },
-  { id: 1040, problemTitle: 'Two Sum', verdict: 'AC', language: 'python3', time: '2026-09-27T20:05:00Z' },
-  { id: 1039, problemTitle: 'Merge Sort', verdict: 'TLE', language: 'java11', time: '2026-09-27T16:44:00Z' },
-  { id: 1038, problemTitle: 'Palindrome Check', verdict: 'AC', language: 'python3', time: '2026-09-26T09:30:00Z' },
-];
+interface RecentSubmission {
+  id: number;
+  problem: { id: number; title_i18n: Record<string, string> };
+  language: string;
+  verdict: string;
+  submission_time: string;
+}
+
+const BADGE_LABELS: Record<string, string> = {
+  first_ac: 'First AC',
+  solved_10: '10 solved',
+  solved_50: '50 solved',
+  streak_7: '7-day streak',
+  polyglot_3: 'Polyglot (3 languages)',
+};
 
 const verdictConfig: Record<string, { color: string; bg: string }> = {
   AC:  { color: 'var(--success)', bg: 'rgba(74,222,128,0.12)' },
@@ -61,9 +73,120 @@ function StatCard({ label, value, accent, sub }: { label: string; value: string 
   );
 }
 
+// [LEG-1/X5] Export-your-data + delete-your-account, wired to the GDPR
+// endpoints from the account-control backend PR.
+function AccountControlCard({ onAccountDeleted }: { onAccountDeleted: () => Promise<void> }) {
+  const { t } = useTranslation();
+  const [busy, setBusy] = useState<'export' | 'delete' | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const doExport = async () => {
+    setBusy('export');
+    setNotice(null);
+    try {
+      const dump = await AuthService.exportAccount() as unknown as Record<string, unknown>;
+      const blob = new Blob([JSON.stringify(dump, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = 'webcoder-account-export.json';
+      anchor.click();
+      URL.revokeObjectURL(url);
+      setNotice(t('gdpr_export_done', 'Your data export downloaded.'));
+    } catch (err) {
+      setNotice(errorMessage(err, t('gdpr_export_failed', 'Export failed.')));
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const doDelete = async () => {
+    setBusy('delete');
+    setNotice(null);
+    try {
+      await AuthService.deleteAccount();
+      setConfirmOpen(false);
+      await onAccountDeleted();
+    } catch (err) {
+      setNotice(errorMessage(err, t('gdpr_delete_failed', 'Deletion failed.')));
+      setBusy(null);
+    }
+  };
+
+  return (
+    <div style={{
+      background: 'var(--surface)',
+      border: '1px solid rgba(255,255,255,0.06)',
+      borderRadius: '12px',
+      padding: '1.5rem',
+      marginBottom: '1.5rem',
+    }}>
+      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.75rem' }}>
+        {t('gdpr_card_header', 'Your data (GDPR)')}
+      </div>
+      <div style={{ fontSize: '0.82rem', color: 'var(--muted)', marginBottom: '1rem', lineHeight: 1.6 }}>
+        {t('gdpr_card_body', 'Download everything we store about you, or deactivate your account. Deletion anonymizes your identity immediately and purges personal side content within 30 days.')}
+      </div>
+      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <Button variant="outlined" onClick={doExport} disabled={busy !== null}>
+          {busy === 'export' ? <CircularProgress size={18} /> : t('gdpr_export_button', 'Export my data')}
+        </Button>
+        <Button variant="outlined" color="error" onClick={() => setConfirmOpen(true)} disabled={busy !== null}>
+          {t('gdpr_delete_button', 'Delete my account')}
+        </Button>
+      </div>
+      {notice && <Alert severity="info" style={{ marginTop: '0.75rem' }}>{notice}</Alert>}
+      <ConfirmationModal
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={doDelete}
+        title={t('gdpr_delete_confirm_title', 'Delete account?')}
+        message={t('gdpr_delete_confirm_body', 'This deactivates your account and anonymizes your data. This cannot be undone.')}
+      />
+    </div>
+  );
+}
+
 function ProfileOverview({ user }: { user: User }) {
+  const { t } = useTranslation();
   const initials = user.username.slice(0, 2).toUpperCase();
   const hue = (user.username.charCodeAt(0) * 37) % 360;
+
+  // [B5] Live statistics; the overview degrades to an honest loading state
+  // instead of fabricated numbers.
+  const [stats, setStats] = useState<StatisticsPayload | null>(null);
+  const [recent, setRecent] = useState<RecentSubmission[] | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    AuthService.getMyStatistics()
+      .then((data) => {
+        if (!cancelled) setStats(data);
+      })
+      .catch(() => {
+        // Statistics stay null → the loading cards render.
+      });
+    SubmissionService.getSubmissions({}, { pageSize: 5 })
+      .then((page) => {
+        if (!cancelled) setRecent(page.results.slice(0, 5));
+      })
+      .catch(() => {
+        if (!cancelled) setRecent([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const activeDates = new Set(stats?.active_dates_90d ?? []);
+  const heatmapCells: { date: string; active: boolean }[] = [];
+  const today = new Date();
+  for (let i = 89; i >= 0; i -= 1) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const iso = d.toISOString().slice(0, 10);
+    heatmapCells.push({ date: iso, active: activeDates.has(iso) });
+  }
 
   return (
     <div style={{ marginBottom: '2rem' }}>
@@ -109,16 +232,25 @@ function ProfileOverview({ user }: { user: User }) {
 
             <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--warn)' }}>#{MOCK_STATS.rank}</div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>Global Rank</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--warn)' }}>
+                  {stats ? `Lv ${stats.ladder.level}` : '—'}
+                </div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>{t('profile_ladder_level', 'Practice level')}</div>
               </div>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--accent)' }}>{MOCK_STATS.score.toLocaleString()}</div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>Score</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--accent)' }}>
+                  {stats ? stats.ladder.points.toLocaleString() : '—'}
+                </div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>{t('profile_ladder_points', 'Ladder points')}</div>
               </div>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--success)' }}>{MOCK_STATS.streak}</div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>Day Streak 🔥</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--success)' }}>
+                  {stats ? stats.current_streak : '—'}
+                </div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>
+                  {t('profile_streak', 'Day streak')}
+                  {stats ? ` · ${t('profile_max_streak', 'best')} ${stats.max_streak}` : ''}
+                </div>
               </div>
             </div>
           </div>
@@ -127,9 +259,10 @@ function ProfileOverview({ user }: { user: User }) {
 
       {/* Stats row */}
       <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-        <StatCard label="Problems Solved" value={MOCK_STATS.solved} accent="var(--success)" sub={`of ${MOCK_STATS.attempted} attempted`} />
-        <StatCard label="Acceptance Rate" value={`${MOCK_STATS.acceptanceRate}%`} accent="var(--accent)" />
-        <StatCard label="Total Submissions" value={MOCK_STATS.submissions} />
+        <StatCard label={t('profile_solved', 'Problems Solved')} value={stats?.solved ?? '—'} accent="var(--success)" sub={stats ? t('profile_of_attempted', 'of {{n}} attempted', { n: stats.attempted }) : undefined} />
+        <StatCard label={t('profile_acceptance', 'Acceptance Rate')} value={stats?.acceptance_rate != null ? `${Math.round(stats.acceptance_rate * 100)}%` : '—'} accent="var(--accent)" />
+        <StatCard label={t('profile_total_submissions', 'Total Submissions')} value={stats?.total_submissions ?? '—'} />
+        <StatCard label={t('profile_active_days', 'Active days')} value={stats?.total_active_days ?? '—'} accent="var(--violet)" sub={stats ? t('profile_last_90d', 'last 90 days') : undefined} />
       </div>
 
       {/* Difficulty breakdown */}
@@ -145,9 +278,9 @@ function ProfileOverview({ user }: { user: User }) {
         </div>
         <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
           {[
-            { label: 'Easy', count: MOCK_STATS.easyCount, total: 30, color: 'var(--success)' },
-            { label: 'Medium', count: MOCK_STATS.mediumCount, total: 40, color: 'var(--warn)' },
-            { label: 'Hard', count: MOCK_STATS.hardCount, total: 20, color: 'var(--danger)' },
+            { label: t('difficulty_easy', 'Easy'), count: stats?.per_difficulty?.EASY?.solved ?? 0, total: Math.max(stats?.per_difficulty?.EASY?.attempted ?? 1, 1), color: 'var(--success)' },
+            { label: t('difficulty_medium', 'Medium'), count: stats?.per_difficulty?.MEDIUM?.solved ?? 0, total: Math.max(stats?.per_difficulty?.MEDIUM?.attempted ?? 1, 1), color: 'var(--warn)' },
+            { label: t('difficulty_hard', 'Hard'), count: stats?.per_difficulty?.HARD?.solved ?? 0, total: Math.max(stats?.per_difficulty?.HARD?.attempted ?? 1, 1), color: 'var(--danger)' },
           ].map(d => (
             <div key={d.label} style={{ flex: '1 1 120px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
@@ -161,6 +294,70 @@ function ProfileOverview({ user }: { user: User }) {
           ))}
         </div>
       </div>
+
+      {/* Practice ladder (RAT-4) + badges (RAT-5) */}
+      {stats && (
+        <div style={{
+          background: 'var(--surface)',
+          border: '1px solid rgba(255,255,255,0.06)',
+          borderRadius: '12px',
+          padding: '1.25rem 1.5rem',
+          marginBottom: '1.5rem',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              {t('profile_ladder_header', 'Practice ladder')}
+            </span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+              {stats.ladder.points} / {stats.ladder.next_level_points} → {t('profile_next_level', 'level {{n}}', { n: stats.ladder.level + 1 })}
+            </span>
+          </div>
+          <div role="progressbar" aria-valuenow={Math.round(stats.ladder.progress * 100)} aria-valuemin={0} aria-valuemax={100} aria-label={t('profile_ladder_header', 'Practice ladder')} style={{ height: '8px', background: 'rgba(255,255,255,0.06)', borderRadius: '999px', overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${Math.round(stats.ladder.progress * 100)}%`, background: 'linear-gradient(90deg, var(--accent), var(--violet))', borderRadius: '999px' }} />
+          </div>
+          {stats.badges.length > 0 && (
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '0.85rem' }}>
+              {stats.badges.map((badge) => (
+                <span key={badge} style={{
+                  padding: '3px 10px', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 700,
+                  color: 'var(--warn)', background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.25)',
+                }}>
+                  {t(`badge_${badge}`, BADGE_LABELS[badge] ?? badge)}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 90-day activity heatmap (RAT-6) */}
+      {stats && (
+        <div style={{
+          background: 'var(--surface)',
+          border: '1px solid rgba(255,255,255,0.06)',
+          borderRadius: '12px',
+          padding: '1.25rem 1.5rem',
+          marginBottom: '1.5rem',
+        }}>
+          <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.85rem' }}>
+            {t('profile_heatmap_header', 'Activity — last 90 days')}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(30, 1fr)', gap: '3px' }} role="img" aria-label={t('profile_heatmap_header', 'Activity — last 90 days')}>
+            {heatmapCells.map((cell) => (
+              <span
+                key={cell.date}
+                title={cell.date}
+                style={{
+                  aspectRatio: '1 / 1',
+                  borderRadius: '2px',
+                  background: cell.active ? 'var(--success)' : 'rgba(255,255,255,0.06)',
+                  opacity: cell.active ? 0.85 : 1,
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Recent submissions */}
       <div style={{
@@ -180,7 +377,15 @@ function ProfileOverview({ user }: { user: User }) {
           <Link href="/submission-history" style={{ fontSize: '0.75rem', color: 'var(--accent)', textDecoration: 'none' }}>View all →</Link>
         </div>
         <div>
-          {MOCK_RECENT.map(s => {
+          {recent === null ? (
+            <div style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>
+              {t('profile_recent_loading', 'Loading recent submissions…')}
+            </div>
+          ) : recent.length === 0 ? (
+            <div style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>
+              {t('profile_recent_empty', 'No submissions yet — solve your first problem from the /start trio.')}
+            </div>
+          ) : recent.map(s => {
             const vcfg = verdictConfig[s.verdict] ?? { color: 'var(--muted)', bg: 'rgba(148,163,184,0.1)' };
             return (
               <div key={s.id} style={{
@@ -193,11 +398,11 @@ function ProfileOverview({ user }: { user: User }) {
                   color: vcfg.color, background: vcfg.bg, minWidth: '36px', textAlign: 'center',
                 }}>{s.verdict}</span>
                 <Link href={`/submissions/${s.id}`} style={{ color: 'var(--foreground)', fontSize: '0.875rem', fontWeight: 500, flex: 1, minWidth: '120px' }}>
-                  {s.problemTitle}
+                  {s.problem?.title_i18n?.en ?? `#${s.problem?.id ?? ''}`}
                 </Link>
                 <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', fontFamily: 'monospace' }}>{s.language}</span>
                 <span style={{ fontSize: '0.72rem', color: 'var(--surface-2)', marginLeft: 'auto' }}>
-                  {new Date(s.time).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  {new Date(s.submission_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </span>
               </div>
             );
@@ -300,6 +505,9 @@ export function UserProfilePage() {
 
       {activeTab === 'settings' && (
         <div style={{ maxWidth: '600px' }}>
+          {/* GDPR account control (roadmap LEG-1/X5) */}
+          <AccountControlCard onAccountDeleted={async () => { await auth.logout(); window.location.href = '/'; }} />
+
           {/* User info card */}
           <div style={{
             background: 'var(--surface)',

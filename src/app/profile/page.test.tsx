@@ -1,9 +1,17 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, act, cleanup } from '@testing-library/react';
 import UserProfilePageRoute from './page';
-import { AuthService } from '@/services/ApiService';
+import { AuthService, SubmissionService } from '@/services/ApiService';
 import { useAuth } from '@/context/AuthContext';
 import type { User } from '@/types';
+
+// The profile page now fires three parallel fetches (me + statistics +
+// recents); under full-suite jsdom load the heavier tests need more than
+// the 5s default.
+vi.setConfig({ testTimeout: 15000 });
+
+const statsMock = vi.mocked(AuthService.getMyStatistics);
+const subsMock = vi.mocked(SubmissionService.getSubmissions);
 
 // next/navigation hooks only exist inside a live Next.js app context;
 // ProtectedRoute uses useRouter, so it is mocked (same pattern as the
@@ -23,7 +31,14 @@ vi.mock('next/navigation', () => ({
 }));
 
 vi.mock('@/services/ApiService', () => ({
-  AuthService: { getMe: vi.fn(), changePassword: vi.fn() },
+  AuthService: {
+    getMe: vi.fn(),
+    changePassword: vi.fn(),
+    getMyStatistics: vi.fn(),
+    exportAccount: vi.fn(),
+    deleteAccount: vi.fn(),
+  },
+  SubmissionService: { getSubmissions: vi.fn() },
 }));
 
 vi.mock('@/context/AuthContext', () => ({ useAuth: vi.fn() }));
@@ -71,6 +86,20 @@ describe('UserProfilePage (/profile)', () => {
     vi.mocked(useAuth).mockReturnValue(authed());
     vi.mocked(AuthService.getMe).mockResolvedValue(adminUser);
     vi.mocked(AuthService.changePassword).mockResolvedValue({});
+    statsMock.mockResolvedValue({
+      solved: 5, attempted: 8, total_submissions: 20, acceptance_rate: 0.625,
+      per_difficulty: { EASY: { solved: 4, attempted: 6 }, MEDIUM: { solved: 1, attempted: 2 }, HARD: { solved: 0, attempted: 0 } },
+      per_language: { python3: 15 },
+      active_dates_90d: [], current_streak: 2, max_streak: 5, total_active_days: 6,
+      ladder: { points: 7, level: 1, next_level_points: 10, progress: 0.7 },
+      badges: ['first_ac', 'streak_7'],
+    });
+    subsMock.mockResolvedValue({
+      next: null, previous: null,
+      results: [
+        { id: 31, problem: { id: 1, title_i18n: { en: 'Two Sum' } }, language: 'python3', verdict: 'AC', submission_time: '2026-10-01T10:00:00Z' },
+      ],
+    } as never);
   });
 
   afterEach(() => {
@@ -235,5 +264,66 @@ describe('UserProfilePage (/profile)', () => {
       expect(document.querySelector('form button[type="submit"]')).toBeEnabled()
     );
     expect(await screen.findByText('Password changed successfully.')).toBeInTheDocument();
+  });
+});
+
+
+describe('ProfileOverview live statistics [B5/RAT-4/5/6]', () => {
+  beforeEach(() => {
+    statsMock.mockResolvedValue({
+      solved: 5, attempted: 8, total_submissions: 20, acceptance_rate: 0.625,
+      per_difficulty: { EASY: { solved: 4, attempted: 6 }, MEDIUM: { solved: 1, attempted: 2 }, HARD: { solved: 0, attempted: 0 } },
+      per_language: { python3: 15 },
+      active_dates_90d: [], current_streak: 2, max_streak: 5, total_active_days: 6,
+      ladder: { points: 7, level: 1, next_level_points: 10, progress: 0.7 },
+      badges: ['first_ac', 'streak_7'],
+    });
+    subsMock.mockResolvedValue({
+      next: null, previous: null,
+      results: [
+        { id: 31, problem: { id: 1, title_i18n: { en: 'Two Sum' } }, language: 'python3', verdict: 'AC', submission_time: '2026-10-01T10:00:00Z' },
+      ],
+    } as never);
+  });
+
+  it('renders ladder, badges, streak pairing and real recents from the API', async () => {
+    vi.mocked(useAuth).mockReturnValue(authed());
+    vi.mocked(AuthService.getMe).mockResolvedValue(basicUser);
+    render(<UserProfilePageRoute />);
+    await waitFor(() => {
+      expect(screen.getByText('Lv 1')).toBeInTheDocument();
+    });
+    expect(screen.getByText('7')).toBeInTheDocument(); // ladder points
+    expect(screen.getByText(/best 5/)).toBeInTheDocument(); // max-streak pairing
+    expect(screen.getByText('First AC')).toBeInTheDocument();
+    expect(screen.getByText('7-day streak')).toBeInTheDocument();
+    expect(screen.getByText(/Two Sum/)).toBeInTheDocument(); // real recent row
+    // Fabricated constants are gone.
+    expect(screen.queryByText('#24')).not.toBeInTheDocument();
+    expect(screen.queryByText('3,480')).not.toBeInTheDocument();
+  });
+
+  it('degrades honestly when statistics fail to load', async () => {
+    vi.mocked(useAuth).mockReturnValue(authed());
+    vi.mocked(AuthService.getMe).mockResolvedValue(basicUser);
+    statsMock.mockRejectedValue(new Error('down'));
+    render(<UserProfilePageRoute />);
+    await waitFor(() => {
+      expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(3);
+    });
+  });
+
+  it('offers GDPR export from the settings tab [LEG-1]', async () => {
+    vi.mocked(useAuth).mockReturnValue(authed());
+    vi.mocked(AuthService.getMe).mockResolvedValue(basicUser);
+    render(<UserProfilePageRoute />);
+    // Overview is the default tab — wait for it, then switch.
+    await waitFor(() => {
+      expect(screen.getByText('Lv 1')).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'settings' }));
+    expect(screen.getByText('Account Info')).toBeInTheDocument();
+    expect(screen.getByText('Your data (GDPR)')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Export my data/i })).toBeInTheDocument();
   });
 });

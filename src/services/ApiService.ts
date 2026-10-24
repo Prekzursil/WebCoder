@@ -252,6 +252,30 @@ export const AuthService = {
     register: (userData: Record<string, unknown>) => apiFetch<RegisterResponse>('/users/register/', { method: 'POST', body: JSON.stringify(userData) }),
     login: (credentials: Record<string, unknown>) => apiFetch<LoginResponse>('/auth/login/', { method: 'POST', body: JSON.stringify(credentials) }),
     getMe: () => apiFetch<User>('/users/me/'),
+    // [B5/RAT-4/5/6] Practice statistics + derivations for the profile page.
+    getMyStatistics: () =>
+        apiFetch<{
+            solved: number;
+            attempted: number;
+            total_submissions: number;
+            acceptance_rate: number | null;
+            per_difficulty: Record<string, { solved: number; attempted: number }>;
+            per_language: Record<string, number>;
+            active_dates_90d: string[];
+            current_streak: number;
+            max_streak: number;
+            total_active_days: number;
+            ladder: { points: number; level: number; next_level_points: number; progress: number };
+            badges: string[];
+        }>('/users/me/statistics/'),
+    // [LEG-1/X5] GDPR account control.
+    exportAccount: () =>
+        apiFetch<{ detail?: string }>('/users/me/export/', { method: 'POST' }),
+    deleteAccount: () =>
+        apiFetch<{ detail: string }>('/users/me/delete/', {
+            method: 'POST',
+            body: JSON.stringify({ confirm: 'DELETE' }),
+        }),
     getUser: (userId: number | string) => apiFetch<User>(`/users/${userId}/`),
     changePassword: (passwordData: Record<string, unknown>) => apiFetch<{ detail?: string }>('/users/password/change/', { method: 'POST', body: JSON.stringify(passwordData) }),
     // [SP1] Cookie-mode logout: dj-rest-auth blacklists the rotated refresh
@@ -280,6 +304,15 @@ export const ProblemService = {
     submitForApproval: (id: number | string) => apiFetch<GetProblemDetailResponse>(`/problems/problems/${id}/submit-for-approval/`, { method: 'POST' }),
     approveProblem: (id: number | string, feedbackData: { feedback?: string }) => apiFetch<GetProblemDetailResponse>(`/problems/problems/${id}/approve/`, { method: 'POST', body: JSON.stringify(feedbackData) }),
     rejectProblem: (id: number | string, feedbackData: { feedback: string }) => apiFetch<GetProblemDetailResponse>(`/problems/problems/${id}/reject/`, { method: 'POST', body: JSON.stringify(feedbackData) }),
+
+    // [UXP-6] Private bookmarks: toggle + starred-id set.
+    setBookmark: (id: number | string, starred: boolean) =>
+        apiFetch<{ problem: number; starred: boolean; star_count: number }>(
+            `/problems/problems/${id}/bookmark/`,
+            { method: starred ? 'POST' : 'DELETE' }
+        ),
+    getBookmarkedIds: () =>
+        apiFetch<{ starred_ids: number[] }>('/problems/problems/bookmarked/'),
 
     getTags: (page: { page?: number, pageSize?: number } = {}) => {
         const params = new URLSearchParams();

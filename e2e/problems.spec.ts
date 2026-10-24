@@ -96,3 +96,17 @@ test('problem detail shows tried/solved stats bar', async ({ page }) => {
   await expect(page?.getByText('tried'))?.toBeVisible();
   await expect(page?.getByText('solved'))?.toBeVisible();
 });
+
+test('terms and privacy pages render their sections [LEG-1]', async ({ page }) => {
+  await page?.goto('/terms');
+  await expect(page?.getByRole('heading', { name: 'Terms of Service' }))?.toBeVisible();
+  await expect(page?.getByRole('heading', { name: 'Your content' }))?.toBeVisible();
+  await page?.goto('/privacy');
+  await expect(page?.getByRole('heading', { name: 'Privacy Policy' }))?.toBeVisible();
+  await expect(page?.getByRole('heading', { name: 'Your rights' }))?.toBeVisible();
+});
+
+test('home shows the problem of the day [UXP-5a]', async ({ page }) => {
+  await page?.goto('/');
+  await expect(page?.getByText('Problem of the day'))?.toBeVisible();
+});

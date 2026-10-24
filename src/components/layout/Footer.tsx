@@ -13,6 +13,12 @@ const Footer: React.FC = () => {
   const { i18n, t } = useTranslation();
   const auth = useAuth();
 
+  // [LEG-1] Legal row: terms + privacy ride beside the platform links.
+  const legalLinks = [
+    { href: '/terms', label: t('footer_terms', 'Terms') },
+    { href: '/privacy', label: t('footer_privacy', 'Privacy') },
+  ];
+
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
     if (typeof document !== 'undefined') {
@@ -61,6 +67,7 @@ const Footer: React.FC = () => {
           </div>
           {column(t('footer_platform', 'Platform'), platformLinks)}
           {column(t('footer_account', 'Account'), accountLinks)}
+          {column(t('footer_legal', 'Legal'), legalLinks)}
         </div>
 
         <div className={styles.bottomRow}>
