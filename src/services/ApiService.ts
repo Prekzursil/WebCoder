@@ -288,6 +288,64 @@ export const ProblemService = {
         const qs = params.toString();
         return apiFetch<GetTagsResponse>(`/problems/tags/${qs ? `?${qs}` : ''}`);
     },
+
+    // [roadmap EDT-1] Editorial with its lock state intact: 403 + locked
+    // (publish policy) and 404 (none) are UI states, not error toasts, so
+    // this bypasses apiFetch's message-only error and throws typed markers.
+    getEditorial: async (id: number | string) => {
+        const response = await authenticatedFetch(`/problems/problems/${id}/editorial/`, { method: 'GET' });
+        if (response.status === 403) {
+            const body = (await response.json().catch(() => ({}))) as { detail?: string; locked?: boolean; publish_policy?: string };
+            const err = new Error(body.detail ?? 'editorial locked') as Error & {
+                responseLocked: boolean;
+                policy?: string;
+            };
+            err.responseLocked = Boolean(body.locked);
+            err.policy = body.publish_policy;
+            throw err;
+        }
+        if (response.status === 404) {
+            const err = new Error('no editorial') as Error & { notFound: boolean };
+            err.notFound = true;
+            throw err;
+        }
+        if (!response.ok) {
+            throw new Error(response.statusText);
+        }
+        return (await response.json()) as { content_ro: string; content_en: string; publish_policy: string };
+    },
+
+    // [roadmap UXP-7/X9] Per-problem statistics + satisfaction vote.
+    getStatistics: (id: number | string) =>
+        apiFetch<{
+            problem: number;
+            tried: number;
+            solved: number;
+            acceptance_rate: number | null;
+            verdict_distribution: Record<string, number>;
+            language_counts: Record<string, number>;
+            rating_avg: number | null;
+            rating_count: number;
+        }>(`/problems/problems/${id}/statistics/`),
+    rate: (id: number | string, rating: 1 | 2 | 3) =>
+        apiFetch<{ rating_avg: number | null; rating_count: number; your_rating: number }>(
+            `/problems/problems/${id}/rate/`,
+            { method: 'POST', body: JSON.stringify({ rating }) }
+        ),
+};
+
+// [roadmap JDG-6/X7] Custom invocation — run code on user input without a
+// submission. The endpoint owns its strict 'scratch' throttle.
+export const ScratchService = {
+    run: (payload: { language: string; code: string; input?: string }) =>
+        apiFetch<{
+            id: number;
+            status: string;
+            output: string;
+            error: string;
+            time_ms?: number;
+            memory_kb?: number;
+        }>('/scratch/', { method: 'POST', body: JSON.stringify(payload) }),
 };
 
 export const SubmissionService = {

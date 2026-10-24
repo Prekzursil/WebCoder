@@ -48,6 +48,8 @@ export const MESSAGES: Record<PublicLocale, Record<string, string>> = {
     submit_solution_header: 'Submit Solution',
     // Catalog filter chrome [Q3 / F3]
     problems_load_error: 'Could not load problems: ',
+    editorial_header: 'Editorial',
+    scratch_header: 'Custom Test',
     problems_search_placeholder: 'Search problems…',
     status_label: 'Status',
     all_option: 'All',
@@ -131,6 +133,8 @@ export const MESSAGES: Record<PublicLocale, Record<string, string>> = {
     submit_solution_header: 'Trimite o Soluție',
     // Catalog filter chrome [Q3 / F3]
     problems_load_error: 'Nu s-au putut încărca problemele: ',
+    editorial_header: 'Editorial',
+    scratch_header: 'Test personalizat',
     problems_search_placeholder: 'Caută probleme…',
     status_label: 'Status',
     all_option: 'Toate',

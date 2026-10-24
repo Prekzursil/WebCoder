@@ -21,13 +21,14 @@
 // and the editor is styled to the card language with the mono font token.
 // (The full CodeMirror 6 editor remains A6 for a follow-up.)
 
-import React, { useState, FormEvent, KeyboardEvent, useEffect } from 'react';
+import React, { useState, FormEvent, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { SubmissionService } from '@/services/ApiService';
 import { useAuth } from '@/context/AuthContext';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 import SubmissionStatusDisplay from '@/components/common/SubmissionStatusDisplay';
+import CodeEditor from './CodeEditor';
 import { palette, hexAlpha } from '@/theme/tokens';
 
 interface SubmitSolutionFormProps {
@@ -147,26 +148,6 @@ export default function SubmitSolutionForm({
     setIsModalOpen(true);
   };
 
-  // [A6-interim] Tab indents; Ctrl/Cmd+Enter submits from the editor.
-  const handleEditorKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-      handleSubmitClick();
-      return;
-    }
-    if (e.key === 'Tab' && !e.shiftKey && !e.ctrlKey && !e.altKey) {
-      e.preventDefault();
-      const el = e.currentTarget;
-      const { selectionStart, selectionEnd, value } = el;
-      const next = `${value.slice(0, selectionStart)}  ${value.slice(selectionEnd)}`;
-      setCode(next);
-      // Move the caret after the inserted indent on the next paint.
-      requestAnimationFrame(() => {
-        el.selectionStart = el.selectionEnd = selectionStart + 2;
-      });
-    }
-  };
-
   const insertTemplate = () => {
     const tpl = STARTER_TEMPLATES[selectedLanguage];
     if (tpl) setCode(tpl);
@@ -234,29 +215,26 @@ export default function SubmitSolutionForm({
               </button>
             )}
           </div>
-          <textarea
+          <div
             id="code-editor"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            onKeyDown={handleEditorKeyDown}
-            rows={15}
-            spellCheck={false}
+            data-testid="submit-code-editor"
             style={{
-              width: '100%',
               marginTop: '6px',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '13px',
-              lineHeight: 1.6,
-              padding: '12px',
-              background: 'rgba(255,255,255,0.03)',
               border: '1px solid var(--border)',
               borderRadius: 'var(--radius-md)',
-              color: 'var(--foreground)',
-              resize: 'vertical',
+              overflow: 'hidden',
+              background: 'rgba(255,255,255,0.02)',
             }}
-            placeholder={t('code_placeholder', 'Paste your code here...')}
-            required
-          />
+          >
+            <CodeEditor
+              value={code}
+              onChange={(value) => setCode(value)}
+              language={selectedLanguage}
+              onModEnter={handleSubmitClick}
+              ariaLabel={t('code_editor_label', 'Code')}
+              height="360px"
+            />
+          </div>
         </div>
         <SubmissionStatusDisplay status={submissionStatus} error={submissionError} />
         {/* [F14] success state: link out + live verdict */}

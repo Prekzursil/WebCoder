@@ -56,9 +56,21 @@ const MOCK_PROBLEMS = [
   },
   {
     id: 2,
-    title_i18n: { en: 'Reverse String' },
+    title_i18n: { en: 'Reverse String', ro: 'Inversarea unui șir' },
     difficulty: 'MEDIUM',
     status: 'APPROVED',
+    // Wave A learning-layer fixtures: markdown+math statement (A7), hints
+    // (EDT-2) and an editorial (EDT-1) the /problems/2 page renders.
+    statement_i18n: {
+      en: 'Read string $s$ with $1 \\le |s| \\le 10^5$ and print it reversed.\n\n**Input:** the string $s$.\n\n**Output:** the reversed string.',
+      ro: 'Citește șirul $s$ cu $1 \\le |s| \\le 10^5$ și afișează-l invers.\n\n**Input:** șirul $s$.\n\n**Output:** șirul inversat.',
+    },
+    default_time_limit_ms: 1000,
+    default_memory_limit_kb: 262144,
+    allowed_languages: ['PYTHON', 'CPP'],
+    hints_en: ['Built-in slicing reverses in one step.', 's[::-1]'],
+    hints_ro: ['Slicing-ul integrat inversează într-un pas.', 's[::-1]'],
+    has_editorial: true,
   },
 ];
 
@@ -204,6 +216,48 @@ const server = createServer((req, res) => {
 
   if (req.method === 'GET' && path === '/api/v1/problems/tags/') {
     json(res, 200, paged(MOCK_TAGS));
+    return;
+  }
+
+  // Wave A learning layer: per-problem statistics + editorial gate + rate.
+  const statsMatch = path.match(/^\/api\/v1\/problems\/problems\/(\d+)\/statistics\/$/);
+  if (req.method === 'GET' && statsMatch) {
+    json(res, 200, {
+      problem: Number(statsMatch[1]),
+      tried: 12,
+      solved: 6,
+      acceptance_rate: 0.5,
+      verdict_distribution: { AC: 6, WA: 6 },
+      language_counts: { python3: 8, cpp17: 4 },
+      rating_avg: 2.7,
+      rating_count: 3,
+    });
+    return;
+  }
+
+  const rateMatch = path.match(/^\/api\/v1\/problems\/problems\/(\d+)\/rate\/$/);
+  if (req.method === 'POST' && rateMatch) {
+    json(res, 200, { rating_avg: 3, rating_count: 1, your_rating: 3 });
+    return;
+  }
+
+  const editorialMatch = path.match(/^\/api\/v1\/problems\/problems\/(\d+)\/editorial\/$/);
+  if (req.method === 'GET' && editorialMatch) {
+    // Problem 2 carries an editorial in the mock catalog; the others 404.
+    if (Number(editorialMatch[1]) === 2) {
+      json(res, 200, {
+        content_en: 'Greedy: sort and sweep.',
+        content_ro: 'Greedy: sortează și parcurge.',
+        publish_policy: 'PUBLIC',
+      });
+    } else {
+      json(res, 404, { detail: 'No editorial for this problem.' });
+    }
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/api/v1/scratch/') {
+    json(res, 200, { id: 1, status: 'OK', output: '42\n', error: '' });
     return;
   }
 

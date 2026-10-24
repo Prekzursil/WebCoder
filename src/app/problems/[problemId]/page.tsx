@@ -13,7 +13,12 @@ import { notFound } from 'next/navigation';
 import { createTranslator, getLocale, PublicLocale } from '../../_lib/public-i18n';
 import { getProblemDetail, getProblems } from '../_lib/problems-api';
 import SubmitSolutionForm from './SubmitSolutionForm';
+import HintsPanel from './HintsPanel';
+import EditoralPanelPlaceholder from './EditorialPanel';
+import ProblemStatsPanel from './ProblemStatsPanel';
+import ScratchPanel from './ScratchPanel';
 import CopyButton from '@/components/common/CopyButton';
+import StatementMarkdown from '@/components/common/StatementMarkdown';
 import { ProblemType } from '@/types';
 import Link from 'next/link';
 import { palette, hexAlpha } from '@/theme/tokens';
@@ -280,20 +285,36 @@ export default async function ProblemDetailPage({ params }: ProblemDetailPagePro
             </div>
           </div>
 
+          {/* Catalog honesty [UXP-7/X9]: tried/solved/AC% + satisfaction */}
+          <ProblemStatsPanel problemId={problemId} />
+
           {/* Problem statement */}
           <div style={card}>
             {sectionHeader('var(--accent)', t('problem_statement_header', 'Problem Statement'))}
-            <div style={{
-              fontSize: '0.9rem', color: 'var(--body)', lineHeight: 1.8,
-              whiteSpace: 'pre-wrap', fontFamily: 'inherit',
-            }}>
-              {problemStatement || (
-                <span style={{ color: 'var(--text-tertiary)', fontStyle: 'italic' }}>
-                  {t('empty_statement', 'No statement available.')}
-                </span>
-              )}
-            </div>
+            {problemStatement ? (
+              <StatementMarkdown markdown={problemStatement} />
+            ) : (
+              <div style={{ color: 'var(--text-tertiary)', fontStyle: 'italic' }}>
+                {t('empty_statement', 'No statement available.')}
+              </div>
+            )}
           </div>
+
+          {/* Hints ladder [EDT-2] + editorial [EDT-1] */}
+          {(() => {
+            const hints = (locale === 'ro' ? problem.hints_ro : problem.hints_en) ?? [];
+            return hints.length > 0 ? <HintsPanel hints={hints} /> : null;
+          })()}
+          {problem.has_editorial && (
+            <div style={card}>
+              {sectionHeader('var(--success)', t('editorial_header', 'Editorial'))}
+              <EditoralPanelPlaceholder
+                problemId={problemId}
+                hasEditorial={Boolean(problem.has_editorial)}
+                locale={locale}
+              />
+            </div>
+          )}
 
           {/* Sample test cases */}
           {sampleTestCases.length > 0 && (
@@ -413,6 +434,12 @@ export default async function ProblemDetailPage({ params }: ProblemDetailPagePro
               allowedLanguages={problem.allowed_languages || []}
               problemTitle={problemTitle}
             />
+          </div>
+
+          {/* Custom test [X7]: run on your own input, no submission spent */}
+          <div style={card}>
+            {sectionHeader(palette.violet, t('scratch_header', 'Custom Test'))}
+            <ScratchPanel allowedLanguages={problem.allowed_languages || []} />
           </div>
 
           {/* Quick links */}
