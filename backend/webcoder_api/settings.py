@@ -94,6 +94,7 @@ INSTALLED_APPS = [
     "leaderboard",
     "notifications",
     "forum",
+    "scratch",
 ]
 
 SITE_ID = 1
@@ -290,6 +291,9 @@ REST_FRAMEWORK = {
         "user": os.environ.get("THROTTLE_USER_RATE", "240/min"),
         "auth": os.environ.get("THROTTLE_AUTH_RATE", "10/min"),
         "submit": os.environ.get("THROTTLE_SUBMIT_RATE", "20/hour"),
+        # Scratch runs (X7): raw judge execution, so its own strict scope —
+        # the judge-DoS surface SP4 flagged.
+        "scratch": os.environ.get("THROTTLE_SCRATCH_RATE", "20/hour"),
         # dj-rest-auth's vendor LoginView/RegisterView ship throttle_scope
         # 'dj_rest_auth'; give it the same credential-stuffing cap as 'auth'.
         "dj_rest_auth": os.environ.get("THROTTLE_AUTH_RATE", "10/min"),

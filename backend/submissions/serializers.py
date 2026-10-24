@@ -41,24 +41,30 @@ class SubmissionTestResultSerializer(serializers.ModelSerializer):
 
 class SubmissionSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-    problem_id = serializers.IntegerField(write_only=True, source='problem.id', required=False) 
+    problem_id = serializers.IntegerField(write_only=True, source='problem.id', required=False)
     # 'problem' field will be used for read, populated by to_representation or nested serializer
-    
+    # J6: the denominator next to score, so the UI renders "30/100" with a
+    # PARTIAL state instead of a bare number.
+    max_score = serializers.SerializerMethodField()
+
     test_results = SubmissionTestResultSerializer(many=True, read_only=True) # Nested serializer for test results
 
     class Meta:
         model = Submission
         fields = [
-            'id', 'user', 'problem', 'problem_id', 'language', 'code', 
-            'submission_time', 'verdict', 'execution_time_ms', 
-            'memory_used_kb', 'score', 'detailed_feedback',
+            'id', 'user', 'problem', 'problem_id', 'language', 'code',
+            'submission_time', 'verdict', 'execution_time_ms',
+            'memory_used_kb', 'score', 'max_score', 'detailed_feedback',
             'test_results' # Add the new field
         ]
         read_only_fields = [
-            'id', 'user', 'problem', 'submission_time', 'verdict', 
-            'execution_time_ms', 'memory_used_kb', 'score', 'detailed_feedback',
+            'id', 'user', 'problem', 'submission_time', 'verdict',
+            'execution_time_ms', 'memory_used_kb', 'score', 'max_score', 'detailed_feedback',
             'test_results'
         ]
+
+    def get_max_score(self, obj):
+        return obj.problem.full_score if obj.problem_id else 0
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)

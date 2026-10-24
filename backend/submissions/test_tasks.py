@@ -118,7 +118,9 @@ class JudgeSubmissionTaskTest(TestCase):
                 f"{TASKS}.run_code_in_sandbox",
                 return_value=(Submission.VerdictStatus.ACCEPTED, 5, 100, "out", ""),
             ),
-            mock.patch(f"{TASKS}.compare_outputs", return_value=True),
+            mock.patch(
+                f"{TASKS}.compare_outputs_detailed", return_value=(True, None)
+            ),
         ):
             _call(sub.id)
         sub.refresh_from_db()
@@ -140,7 +142,9 @@ class JudgeSubmissionTaskTest(TestCase):
                 f"{TASKS}.run_code_in_sandbox",
                 return_value=(Submission.VerdictStatus.ACCEPTED, 5, 100, "out", ""),
             ),
-            mock.patch(f"{TASKS}.compare_outputs", return_value=True),
+            mock.patch(
+                f"{TASKS}.compare_outputs_detailed", return_value=(True, None)
+            ),
         ):
             _call(sub.id)
         install_mock.assert_not_called()
@@ -189,7 +193,9 @@ class JudgeSubmissionTaskTest(TestCase):
                 f"{TASKS}.run_code_in_sandbox",
                 return_value=(Submission.VerdictStatus.ACCEPTED, 5, 100, "out", ""),
             ),
-            mock.patch(f"{TASKS}.compare_outputs", return_value=True),
+            mock.patch(
+                f"{TASKS}.compare_outputs_detailed", return_value=(True, None)
+            ),
         ):
             _call(sub.id)
         sub.refresh_from_db()
@@ -206,7 +212,9 @@ class JudgeSubmissionTaskTest(TestCase):
                 f"{TASKS}.run_code_in_sandbox",
                 return_value=(Submission.VerdictStatus.ACCEPTED, 5, 100, "out", ""),
             ),
-            mock.patch(f"{TASKS}.compare_outputs", return_value=True),
+            mock.patch(
+                f"{TASKS}.compare_outputs_detailed", return_value=(True, None)
+            ),
         ):
             msg = _call(sub.id)
         sub.refresh_from_db()
@@ -225,7 +233,10 @@ class JudgeSubmissionTaskTest(TestCase):
                 f"{TASKS}.run_code_in_sandbox",
                 return_value=(Submission.VerdictStatus.ACCEPTED, 5, 100, "bad", ""),
             ),
-            mock.patch(f"{TASKS}.compare_outputs", return_value=False),
+            mock.patch(
+                f"{TASKS}.compare_outputs_detailed",
+                return_value=(False, "outputs differ (exact comparison)"),
+            ),
         ):
             _call(sub.id)
         sub.refresh_from_db()
@@ -396,7 +407,9 @@ class JudgeSubmissionTaskTest(TestCase):
                 f"{TASKS}.run_code_in_sandbox",
                 return_value=(Submission.VerdictStatus.ACCEPTED, 5, 100, "out", ""),
             ),
-            mock.patch(f"{TASKS}.compare_outputs", return_value=True),
+            mock.patch(
+                f"{TASKS}.compare_outputs_detailed", return_value=(True, None)
+            ),
         ):
             _call(sub.id)
         sub.refresh_from_db()

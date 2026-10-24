@@ -129,7 +129,7 @@ def test_urlpatterns_wiring():
     from django.views.generic import RedirectView
     from webcoder_api import urls as project_urls
 
-    assert len(project_urls.urlpatterns) == 20  # + leaderboard, notifications, forum, auth/csrf (SP1), healthz/readyz/metrics (X3)
+    assert len(project_urls.urlpatterns) == 21  # + leaderboard, notifications, forum, auth/csrf (SP1), healthz/readyz/metrics (X3), scratch (X7)
     assert reverse("token_obtain_pair") == "/api/v1/token/"
     # Assert the frontend-facing simplejwt ROUTES resolve (not reverse names):
     # with dj-rest-auth's USE_JWT mode active its /auth/token/* routes register
@@ -149,6 +149,7 @@ def test_urlpatterns_wiring():
         "leaderboard_api_v1",
         "notifications_api_v1",
         "forum_api_v1",
+        "scratch_api_v1",
     ):
         assert ns in namespaces
 

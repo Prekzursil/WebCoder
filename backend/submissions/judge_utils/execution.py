@@ -73,10 +73,20 @@ def run_code_in_sandbox(
     memory_limit_kb: int,
     submission_dir: pathlib.Path,
     custom_libraries_allowed: list[str] | None = None,
+    io_files: tuple[str, str] | None = None,
 ):
-    """
-    Runs code in the judge sandbox.
+    """Runs code in the judge sandbox.
+
     Returns: (verdict: VerdictStatus, execution_time_ms: int, memory_used_kb: int, output_data: str, error_output: str)
+
+    ``io_files`` (competitive roadmap RO-4): ``(input_filename,
+    output_filename)`` for FILES-mode problems — the program reads its input
+    from and writes its output to files in the working directory instead of
+    stdin/stdout. The caller pre-writes the input file into
+    ``submission_dir``; this function pipes nothing on stdin, mounts the
+    submission dir read-write (the program must create the output file), and
+    reads the output file back as the run's output. A missing output file
+    maps to RUNTIME_ERROR with an explicit message.
     """
 
     print(
@@ -112,7 +122,9 @@ def run_code_in_sandbox(
 
     program_and_args: list[str] = list(spec.run_command)
     extra_volume_mounts: list[str] = []
-    mount_mode = "ro"
+    # RO-4: FILES-mode programs write their output file into the working
+    # directory, so the submission mount must be writable for them.
+    mount_mode = "rw" if io_files else "ro"
     # E1/J3: judged runs NEVER get network egress or a writable submission
     # mount — the python3 custom-libs pip install now happens in a separate
     # one-shot container (judge_utils/custom_libs.install_custom_libs,
@@ -227,7 +239,9 @@ def run_code_in_sandbox(
     try:
         result = subprocess.run(
             run_command,
-            input=input_data,
+            # RO-4: FILES-mode programs take no stdin — their input waits in
+            # the working-directory file the caller wrote.
+            input="" if io_files else input_data,
             capture_output=True,
             text=True,
             timeout=process_timeout,
