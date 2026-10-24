@@ -4,9 +4,10 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { ProblemType } from '@/types';
-import { ProblemService } from '@/services/ApiService';
+import { ProblemType, TagType } from '@/types';
+import { AuthService, ProblemService } from '@/services/ApiService';
 import { createTranslator, type PublicLocale } from '../_lib/public-messages';
+import type { CurriculumGrade } from './_lib/problems-api';
 import { palette, hexAlpha } from '@/theme/tokens';
 import EmptyState from '@/components/common/EmptyState';
 import PageHeader from '@/components/common/PageHeader';
@@ -36,6 +37,9 @@ interface ProblemsListClientProps {
   hasMore: boolean;
   fetchError: string | null;
   locale: PublicLocale;
+  /** [roadmap EDU-9] Curriculum tree for the second browse axis (null when
+   * the endpoint is unavailable — the axis simply hides). */
+  curriculum?: CurriculumGrade[] | null;
 }
 
 const difficultyColor: Record<string, string> = {
@@ -54,7 +58,7 @@ type SortDir = 'asc' | 'desc';
 
 const DIFFICULTY_ORDER: Record<string, number> = { easy: 0, medium: 1, hard: 2 };
 
-export default function ProblemsListClient({ problems, totalCount, hasMore, fetchError, locale }: ProblemsListClientProps) {
+export default function ProblemsListClient({ problems, totalCount, hasMore, fetchError, locale, curriculum }: ProblemsListClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const auth = useAuth();
@@ -73,6 +77,57 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
     setMoreError(null);
     nextPageRef.current = 2;
   }, [problems, hasMore]);
+
+  // [F4] Tag facet data: all tags (bounded collect — the picker needs the
+  // full vocabulary, tags are a small set by nature).
+  const [allTags, setAllTags] = useState<TagType[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    ProblemService.getTags({ pageSize: 100 })
+      .then(async (first) => {
+        const tags = [...first.results];
+        // Follow up to 5 pages of tags (bounded like every collect).
+        let next = first.next;
+        for (let i = 0; next && i < 5; i += 1) {
+          const response = await fetch(next);
+          if (!response.ok) break;
+          const data = (await response.json()) as typeof first;
+          tags.push(...data.results);
+          next = data.next;
+        }
+        if (!cancelled) setAllTags(tags);
+      })
+      .catch(() => {
+        // No tag facet without tags — the rest of the catalog works.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // [F5] Solved/attempted sets for the indicator column (authenticated only).
+  const [solvedIds, setSolvedIds] = useState<Set<number> | null>(null);
+  const [attemptedIds, setAttemptedIds] = useState<Set<number>>(new Set());
+  const [hideSolved, setHideSolved] = useState(false);
+  useEffect(() => {
+    if (!auth.isAuthenticated) {
+      setSolvedIds(null);
+      return;
+    }
+    let cancelled = false;
+    AuthService.getSolvedIds()
+      .then((data) => {
+        if (cancelled) return;
+        setSolvedIds(new Set(data.solved));
+        setAttemptedIds(new Set(data.attempted));
+      })
+      .catch(() => {
+        if (!cancelled) setSolvedIds(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [auth.isAuthenticated]);
 
   const loadMore = async () => {
     if (!moreAvailable || loadingMore) return;
@@ -101,10 +156,17 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
   const urlSearch = searchParams.get('q') ?? '';
   const urlDifficulty = searchParams.get('difficulty') ?? '';
   const urlStatus = searchParams.get('status') ?? '';
+  const urlTags = searchParams.get('tags') ?? '';
+  // [EDU-9] chapter drill-down runs through the server (?curriculum=),
+  // so the client only needs the current value (not local state).
+  const urlCurriculum = searchParams.get('curriculum') ?? '';
 
   const [search, setSearch] = useState(urlSearch);
   const [difficultyFilter, setDifficultyFilter] = useState(urlDifficulty);
   const [statusFilter, setStatusFilter] = useState(urlStatus);
+  const [tagFilter, setTagFilter] = useState<Set<number>>(
+    () => new Set(urlTags.split(',').filter(Boolean).map(Number))
+  );
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>('asc');
 
@@ -114,10 +176,11 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
     setSearch(urlSearch);
     setDifficultyFilter(urlDifficulty);
     setStatusFilter(urlStatus);
-  }, [urlSearch, urlDifficulty, urlStatus]);
+    setTagFilter(new Set(urlTags.split(',').filter(Boolean).map(Number)));
+  }, [urlSearch, urlDifficulty, urlStatus, urlTags]);
 
   // Push filter changes into the URL (replace, no scroll jump). [F3]
-  const syncUrl = (next: { q?: string; difficulty?: string; status?: string }) => {
+  const syncUrl = (next: { q?: string; difficulty?: string; status?: string; tags?: string; curriculum?: string }) => {
     const params = new URLSearchParams(searchParams.toString());
     const setOrDelete = (name: string, value: string | undefined) => {
       if (value) params.set(name, value);
@@ -126,6 +189,8 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
     setOrDelete('q', next.q !== undefined ? next.q : urlSearch || undefined);
     setOrDelete('difficulty', next.difficulty !== undefined ? next.difficulty : urlDifficulty || undefined);
     setOrDelete('status', next.status !== undefined ? next.status : urlStatus || undefined);
+    setOrDelete('tags', next.tags !== undefined ? next.tags : urlTags || undefined);
+    setOrDelete('curriculum', next.curriculum !== undefined ? next.curriculum : urlCurriculum || undefined);
     const qs = params.toString();
     router.replace(qs ? `/problems?${qs}` : '/problems', { scroll: false });
   };
@@ -151,7 +216,15 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
       const matchesStatus = statusFilter
         ? p.status?.toLowerCase() === statusFilter
         : true;
-      return matchesSearch && matchesDiff && matchesStatus;
+      // [F4] multi-tag AND facet
+      const matchesTags = tagFilter.size === 0
+        ? true
+        : Array.from(tagFilter).every((tagId) =>
+            p.tags?.some((tag) => tag.id === tagId)
+          );
+      // [F5] optional "hide solved"
+      const matchesHideSolved = hideSolved && solvedIds ? !solvedIds.has(p.id) : true;
+      return matchesSearch && matchesDiff && matchesStatus && matchesTags && matchesHideSolved;
     });
 
     if (!sortKey) return rowsFiltered;
@@ -171,14 +244,15 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
       if (cmp === 0) cmp = a.id - b.id;
       return cmp * dir;
     });
-  }, [rows, search, difficultyFilter, statusFilter, locale, sortKey, sortDir]);
+  }, [rows, search, difficultyFilter, statusFilter, tagFilter, hideSolved, solvedIds, locale, sortKey, sortDir]);
 
-  const hasActiveFilters = search || difficultyFilter || statusFilter;
+  const hasActiveFilters = search || difficultyFilter || statusFilter || tagFilter.size > 0;
 
   const clearFilters = () => {
     setSearch('');
     setDifficultyFilter('');
     setStatusFilter('');
+    setTagFilter(new Set());
     router.replace('/problems', { scroll: false });
   };
 
@@ -219,6 +293,27 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
         title={t('problem_list_header', 'Problems')}
         subtitle={t('problems_page_description', 'Browse the public competitive programming problem catalog.')}
       />
+
+      {/* [roadmap ONB-1] first-run path: the /start trio */}
+      <Link
+        href="/start"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          padding: '0.65rem 1rem',
+          marginBottom: '1.25rem',
+          borderRadius: 'var(--radius-md)',
+          background: hexAlpha(palette.accent, 0.06),
+          border: `1px solid ${hexAlpha(palette.accent, 0.2)}`,
+          color: 'var(--accent)',
+          fontSize: '0.85rem',
+          fontWeight: 600,
+          textDecoration: 'none',
+        }}
+      >
+        {t('start_here_banner', 'New here? Start with three classic problems →')}
+      </Link>
 
       {/* Filter bar */}
       <div style={{
@@ -325,7 +420,133 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
             {t('clear_filters_button', '✕ Clear')}
           </button>
         )}
+
+        {/* [F5] hide-solved toggle for signed-in solvers */}
+        {auth.isAuthenticated && solvedIds && solvedIds.size > 0 && (
+          <button
+            onClick={() => setHideSolved((v) => !v)}
+            className="chip"
+            aria-pressed={hideSolved}
+            style={hideSolved ? {
+              borderColor: 'var(--success)',
+              color: 'var(--success)',
+              background: hexAlpha(palette.success, 0.1),
+            } : undefined}
+          >
+            {t('hide_solved_toggle', 'Hide solved')}
+          </button>
+        )}
       </div>
+
+      {/* [roadmap EDU-9] Curriculum browse axis: grade chips; chapter chips
+          appear under the active grade. ?curriculum=<nodeId> refilters
+          server-side (the backend supports ?curriculum_node= natively). */}
+      {curriculum && curriculum.length > 0 && (
+        <div style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius-lg)',
+          padding: '0.85rem 1.25rem',
+          marginBottom: '1.25rem',
+        }}>
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <span className="micro-label" style={{ color: 'var(--muted)' }}>
+              {t('curriculum_label', 'Curriculum')}:
+            </span>
+            <button
+              onClick={() => syncUrl({ curriculum: '' })}
+              className="chip"
+              aria-pressed={!urlCurriculum}
+              style={!urlCurriculum ? {
+                borderColor: 'var(--accent)',
+                color: 'var(--accent)',
+                background: hexAlpha(palette.accent, 0.12),
+              } : undefined}
+            >
+              {t('all_option', 'All')}
+            </button>
+            {curriculum.map((grade) => {
+              const childrenActive = grade.children.some((c) => String(c.id) === urlCurriculum);
+              const gradeActive = String(grade.id) === urlCurriculum || childrenActive;
+              return (
+                <span key={grade.id} style={{ display: 'inline-flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <button
+                    onClick={() => syncUrl({ curriculum: String(grade.id) })}
+                    className="chip"
+                    aria-pressed={gradeActive}
+                    style={gradeActive ? {
+                      borderColor: 'var(--violet)',
+                      color: 'var(--violet)',
+                      background: hexAlpha(palette.violet, 0.1),
+                    } : undefined}
+                  >
+                    {grade.name_i18n[locale] || grade.name_i18n.en || grade.slug}
+                  </button>
+                  {(childrenActive || String(grade.id) === urlCurriculum) && grade.children.map((chapter) => {
+                    const active = String(chapter.id) === urlCurriculum;
+                    return (
+                      <button
+                        key={chapter.id}
+                        onClick={() => syncUrl({ curriculum: active ? String(grade.id) : String(chapter.id) })}
+                        className="chip"
+                        aria-pressed={active}
+                        style={active ? {
+                          borderColor: 'var(--violet)',
+                          color: 'var(--violet)',
+                          background: hexAlpha(palette.violet, 0.14),
+                        } : undefined}
+                      >
+                        {chapter.name_i18n[locale] || chapter.name_i18n.en || chapter.slug}
+                        <span aria-hidden="true" style={{ opacity: 0.6, marginLeft: '4px' }}>{chapter.problem_count}</span>
+                      </button>
+                    );
+                  })}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* [F4] Tag facet */}
+      {allTags.length > 0 && (
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+          <span className="micro-label" style={{ color: 'var(--muted)' }}>
+            {t('tags_label', 'Tags')}:
+          </span>
+          <button
+            onClick={() => { setTagFilter(new Set()); syncUrl({ tags: '' }); }}
+            className="chip"
+            aria-pressed={tagFilter.size === 0}
+          >
+            {t('all_option', 'All')}
+          </button>
+          {allTags.slice(0, 12).map((tag) => {
+            const active = tagFilter.has(tag.id);
+            return (
+              <button
+                key={tag.id}
+                onClick={() => {
+                  const next = new Set(tagFilter);
+                  if (active) next.delete(tag.id);
+                  else next.add(tag.id);
+                  setTagFilter(next);
+                  syncUrl({ tags: Array.from(next).join(',') });
+                }}
+                className="chip"
+                aria-pressed={active}
+                style={active ? {
+                  borderColor: 'var(--violet)',
+                  color: 'var(--violet)',
+                  background: hexAlpha(palette.violet, 0.1),
+                } : undefined}
+              >
+                {tag.name_i18n[locale] || tag.name_i18n.en || tag.slug}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Results count */}
       {!fetchError && rows.length > 0 && (
@@ -377,7 +598,12 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                  <th style={{ padding: '12px 20px', width: '60px' }}>#</th>
+                  {solvedIds && (
+                    <th scope="col" style={{ padding: '12px 20px', width: '44px' }} aria-label={t('solved_column_th', 'Solved')}>
+                      <span aria-hidden="true">&#10003;</span>
+                    </th>
+                  )}
+                  <th scope="col" style={{ padding: '12px 20px', width: '60px' }}>#</th>
                   {sortableTh('title', t('problem_title_th', 'Title'))}
                   {sortableTh('difficulty', t('problem_difficulty_th', 'Difficulty'))}
                   {showStatusFacet && sortableTh('status', t('problem_status_th', 'Status'))}
@@ -389,6 +615,29 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
                   const diffColor = difficultyColor[diff] ?? palette.muted;
                   return (
                     <tr key={problem.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                      {solvedIds && (
+                        <td style={{ padding: '14px 20px' }}>
+                          <span
+                            aria-label={
+                              solvedIds.has(problem.id)
+                                ? t('solved_aria', 'Solved')
+                                : attemptedIds.has(problem.id)
+                                  ? t('attempted_aria', 'Attempted')
+                                  : t('not_attempted_aria', 'Not attempted')
+                            }
+                            style={{
+                              color: solvedIds.has(problem.id)
+                                ? palette.success
+                                : attemptedIds.has(problem.id)
+                                  ? palette.warn
+                                  : 'var(--text-tertiary)',
+                              fontSize: '0.9rem',
+                            }}
+                          >
+                            {solvedIds.has(problem.id) ? '✓' : attemptedIds.has(problem.id) ? '•' : ''}
+                          </span>
+                        </td>
+                      )}
                       <td style={{ padding: '14px 20px', color: 'var(--text-tertiary)', fontSize: '0.8rem' }}>
                         {problem.id}
                       </td>
