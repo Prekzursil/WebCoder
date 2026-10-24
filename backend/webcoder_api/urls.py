@@ -24,10 +24,16 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 from users import views as users_views
+from webcoder_api import observability
 
 urlpatterns = [
     path("", RedirectView.as_view(url="/api/v1/problems/", permanent=False)),
     path("admin/", admin.site.urls),
+    # Observability probes (round-2 X3): /healthz touches nothing (liveness),
+    # /readyz pings db+cache+broker (readiness). Unauthenticated by design —
+    # they leak no data beyond up/down per component.
+    path("healthz", observability.healthz, name="healthz"),
+    path("readyz", observability.readyz, name="readyz"),
     path("api/v1/users/", include("users.urls", namespace="users_api_v1")),
     path("api/v1/problems/", include("problems.urls", namespace="problems_api_v1")),
     path(
@@ -54,6 +60,12 @@ urlpatterns = [
     # Mounted ahead of the dj_rest_auth include; 'csrf/' collides with no
     # vendor route.
     path("api/v1/auth/csrf/", users_views.CSRFCookieView.as_view(), name="auth_csrf"),
+    # Operator metrics snapshot (round-2 X3c): admin-only JSON.
+    path(
+        "api/v1/admin/metrics/",
+        observability.MetricsView.as_view(),
+        name="admin_metrics",
+    ),
     path("api/v1/auth/google/", include("users.api.oauth.google.urls")),
     path("api/v1/auth/github/", include("users.api.oauth.github.urls")),
     path("accounts/", include("allauth.urls")),

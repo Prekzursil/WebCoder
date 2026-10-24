@@ -378,6 +378,47 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
 
+# Beat schedule (round-2 X3 / D-B11 leftover): nightly maintenance for the
+# local stack. The compose celery-beat container drives it; without beat
+# running, every task here stays safe to invoke manually.
+from celery.schedules import crontab  # noqa: E402
+
+CELERY_BEAT_SCHEDULE = {
+    "leaderboard-nightly-recompute": {
+        "task": "leaderboard.aggregation.recompute_all_leaderboards_task",
+        "schedule": crontab(hour=3, minute=0),
+    },
+    "notifications-purge": {
+        "task": "notifications.tasks.purge_old_notifications",
+        "schedule": crontab(hour=4, minute=0),
+    },
+    "submission-test-output-retention": {
+        "task": "submissions.tasks.prune_old_test_outputs",
+        "schedule": crontab(hour=5, minute=0),
+    },
+}
+
+# Structured logging (round-2 X3d): LOG_JSON=1 swaps the console formatter
+# for one JSON object per line (webcoder_api.observability.JsonFormatter) so
+# `docker compose logs` output is machine-parseable. Default stays human.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "json": {"()": "webcoder_api.jsonlog.JsonFormatter"},
+        "standard": {"format": "{levelname}:{name}:{message}", "style": "{"},
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": (
+                "json" if os.environ.get("LOG_JSON", "") == "1" else "standard"
+            ),
+        },
+    },
+    "root": {"handlers": ["console"], "level": "INFO"},
+}
+
 # Custom Judge Settings
 # Path on the host machine where Boost headers are located.
 # This path will be mounted into the Docker container for C++ compilation

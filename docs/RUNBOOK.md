@@ -163,6 +163,64 @@ State at risk: the `pgdata` named volume (users, problems, testcases, submission
    ```
    Acceptance: a dump from the dev data round-trips into a fresh postgres container with matching `/users/admin/stats/` counts.
 
+## Observability (probes, metrics, logs)
+
+- `GET /healthz` — liveness only (touches nothing; safe when the DB is down).
+- `GET /readyz` — readiness: pings database, cache, broker (redis broker only;
+  the filesystem dev broker reports `skipped`). 503 with per-component detail.
+- `GET /api/v1/admin/metrics/` — admin-only JSON snapshot: user/problem counts,
+  submission verdict distribution, judge queue depth (PENDING/COMPILING/RUNNING),
+  24h judge-duration stats.
+- Compose wires the backend container healthcheck to `/healthz`.
+- Logs: `LOG_JSON=1` (set in compose) emits one JSON object per line via
+  `webcoder_api.jsonlog.JsonFormatter` — `docker compose logs backend` is
+  machine-parseable.
+- Maintenance (celery-beat, from `settings.CELERY_BEAT_SCHEDULE`): 03:00
+  leaderboard full recompute, 04:00 notification purge (90d), 05:00 per-test
+  output retention (blank `actual_output`/`error_output` older than 90d;
+  verdicts/times always kept). Each task is safe to run manually via
+  `docker compose exec celery-beat celery -A webcoder_api call <task>`.
+
+## Backups (running by default)
+
+- The default compose stack includes a `db-backup` service
+  (prodrigestivill/postgres-backup-local:16): daily `pg_dump -Fc` into the
+  `pgbackups` volume with 7-day / 4-week / 6-month retention. Off-host copy
+  remains an operator decision (object storage credentials are NOT configured
+  locally).
+- Trigger a backup immediately (without waiting for the schedule):
+  `docker compose exec db-backup sh -c 'PGPASSWORD=$POSTGRES_PASSWORD pg_dump -h $POSTGRES_HOST -U $POSTGRES_USER -Fc $POSTGRES_DB /backups/manual.dump'`
+- List artifacts: `docker compose exec db-backup ls -lh /backups`
+- Restore + verify:
+  `docker compose exec -T postgres pg_restore -U webcoder_user --clean --if-exists -d webcoder_db < <dump file>`
+  then verify via `GET /api/v1/users/admin/stats/` row counts (SP6 procedure).
+
+## Socket-proxy (the default docker access path)
+
+- The backend and celery-worker no longer mount `/var/run/docker.sock`; they
+  reach the daemon through the `socket-proxy` service
+  (`DOCKER_HOST=tcp://socket-proxy:2375`) which grants ONLY
+  containers/exec POST + ping/version — the judge's `docker exec` path.
+  Everything else (image pull, container create, volumes, daemon config)
+  answers 403 from the proxy.
+- Acceptance smoke (run from the compose root):
+  - `docker compose exec backend docker ps` → lists webcoder-judge-runner
+  - `docker compose exec backend docker run --rm hello-world` → 403
+  - judged submission still returns AC (load smoke `--judge`, below)
+- Escape hatch: `docker-compose.raw-socket.yml` restores the raw socket
+  (needed only for the custom-libs pip flow) at the documented root-equivalent
+  risk.
+
+## Load / uptime story (local stack)
+
+- `python scripts/load_smoke.py --base http://127.0.0.1:8010 --users 10
+  --requests 30` — concurrent catalog + probe reads; prints p50/p95/max,
+  throughput, error count (non-zero exit on errors). Add `--judge` for one
+  real submit→verdict round-trip through the whole pipeline.
+- Uptime: the compose healthcheck (backend `/healthz`, 30s) plus container
+  `restart: unless-stopped` give self-healing; external uptime monitoring is
+  out of scope for the local stack (production is not deployed).
+
 ## Known caveats (tracked in SPEC-GAPS)
 
 1. ~~Celery filesystem broker / no worker service~~ **shipped** — compose wires `CELERY_BROKER_URL=redis://redis:6379/0` and runs `celery-worker` (G5 closed).

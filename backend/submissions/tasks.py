@@ -1,6 +1,9 @@
 from typing import Any, Protocol, cast
 
+from datetime import timedelta
+
 from celery import shared_task
+from django.utils import timezone
 from django.db import transaction
 from .models import Submission, SubmissionTestResult  # Import SubmissionTestResult
 from problems.models import Problem, TestCase
@@ -16,6 +19,10 @@ from .judge_utils.checkers import run_custom_checker
 from leaderboard.aggregation import update_user_entry_task
 from notifications.models import Notification
 from notifications.services import notify
+
+#: Per-test captured outputs older than this many days are blanked by
+#: :func:`prune_old_test_outputs` (storage hygiene, round-2 X3e).
+RETENTION_DAYS = 90
 
 
 def _judge_workspace(prefix: str) -> tempfile.TemporaryDirectory:
@@ -295,3 +302,20 @@ def judge_submission_task(self, submission_id):
 # At runtime ``judge_submission_task`` is a bound Celery Task that provides
 # these methods; the cast restores that interface for the type checker.
 judge_task: _CeleryTask = cast(_CeleryTask, judge_submission_task)
+
+
+@shared_task
+def prune_old_test_outputs():
+    """Storage hygiene (round-2 X3e): null per-test captured outputs older
+    than RETENTION_DAYS. Verdicts, times and memory stay (they are small and
+    load-bearing for history/stats); only the bulky ``actual_output`` /
+    ``error_output`` blobs are dropped. Submission rows are never deleted.
+    Daily beat scheduling lives in settings.CELERY_BEAT_SCHEDULE.
+    """
+    cutoff = timezone.now() - timedelta(days=RETENTION_DAYS)
+    updated = SubmissionTestResult.objects.filter(
+        submission__submission_time__lt=cutoff
+    ).exclude(actual_output="", error_output="").update(
+        actual_output="", error_output=""
+    )
+    return updated

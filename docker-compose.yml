@@ -7,6 +7,15 @@
 #                  filesystem broker — see webcoder_api/celery.py)
 #   backend      - Django API; judges submissions through judge-runner when
 #                  JUDGE_BACKEND=container (see submissions/judge_utils/backend.py)
+#   socket-proxy - FILTERING Docker API proxy: the default way backend and
+#                  celery-worker reach the daemon (raw docker.sock is no
+#                  longer mounted; docker-compose.raw-socket.yml is the
+#                  escape hatch for the custom-libs pip path)
+#   celery-beat  - cron driver for the nightly maintenance schedule
+#                  (settings.CELERY_BEAT_SCHEDULE: leaderboard recompute,
+#                  notification purge, test-output retention)
+#   db-backup    - daily pg_dump of the postgres volume with 7d/4w/6m
+#                  retention (SP6 execution: backups run by default)
 #   judge-runner - SANDBOXED judge container executing untrusted user code:
 #                  network-isolated, read-only rootfs, all caps dropped,
 #                  no-new-privileges, memory/CPU/PID limited
@@ -77,30 +86,43 @@ services:
       # Shared throttle cache (SPEC-GAPS SP4): rate-limit counters shared
       # across gunicorn/celery processes instead of per-process LocMem.
       REDIS_URL: redis://redis:6379/1
-    # The service runs as non-root uid 1000 (backend/Dockerfile USER), but
-    # the host-mounted docker.sock is root:root 0660 (Docker Desktop bind;
-    # there is no docker group to join). Supplementary gid 0 grants the
-    # socket's group bits without running the service as root.
-    group_add:
-      - "0"
+      # Structured logs (round-2 X3d): one JSON object per log line.
+      LOG_JSON: "1"
+      # Socket-proxy DEFAULT (round-2 ops / SP3): judge docker calls go
+      # through the filtering proxy instead of a raw root-equivalent
+      # docker.sock mount. The judge path needs exactly CONTAINERS+EXEC+POST
+      # (+PING/VERSION for the client handshake); everything else the proxy
+      # denies with 403.
+      DOCKER_HOST: tcp://socket-proxy:2375
     volumes:
       # Shared with judge-runner: the backend writes submission files here,
       # the judge-runner compiles/executes them at the same path.
       - judge-sandbox:/srv/judge
-      # Docker socket: lets the backend `docker exec` into judge-runner.
-      # SECURITY TRADEOFF: socket access is root-equivalent on the host.
-      # Acceptable while backend+judge live on one compose host; for a
-      # multi-node/hardened deployment replace with a socket proxy
-      # (e.g. tecnativa/docker-socket-proxy) exposing only the exec API.
-      - /var/run/docker.sock:/var/run/docker.sock
+      # NOTE: no /var/run/docker.sock mount — DOCKER_HOST above points at
+      # the socket-proxy service (legacy raw-socket escape hatch for the
+      # custom-libs pip path: docker-compose.raw-socket.yml).
     ports:
       - "8000:8000"
+    healthcheck:
+      # Liveness probe (round-2 X3b): the process answers HTTP while up.
+      # Deliberately /healthz (touches nothing) — dependency health is
+      # /readyz, which orchestrators should use before routing traffic.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - default
+      - docker-sock
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
       judge-runner:
+        condition: service_started
+      socket-proxy:
         condition: service_started
     restart: unless-stopped
 
@@ -127,13 +149,14 @@ services:
       JUDGE_SANDBOX_VOLUME: webcoder_judge-sandbox
       CELERY_BROKER_URL: redis://redis:6379/0
       REDIS_URL: redis://redis:6379/1
-    # Non-root uid 1000 + docker.sock root:root 0660: supplementary gid 0
-    # for socket access (see the backend service note above).
-    group_add:
-      - "0"
+      LOG_JSON: "1"
+      # Socket-proxy DEFAULT — see the backend service note.
+      DOCKER_HOST: tcp://socket-proxy:2375
     volumes:
       - judge-sandbox:/srv/judge
-      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - default
+      - docker-sock
     depends_on:
       postgres:
         condition: service_healthy
@@ -141,6 +164,90 @@ services:
         condition: service_healthy
       judge-runner:
         condition: service_started
+      socket-proxy:
+        condition: service_started
+    restart: unless-stopped
+
+  # Celery beat — drives settings.CELERY_BEAT_SCHEDULE (nightly leaderboard
+  # recompute, notification purge, submission test-output retention).
+  celery-beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: ["celery", "-A", "webcoder_api", "beat", "--loglevel=info", "--schedule-file", "/tmp/celerybeat-schedule"]
+    environment:
+      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-webcoder_api.settings}
+      SECRET_KEY: ${SECRET_KEY:-django-insecure-compose-dev-only-key}
+      DB_NAME: ${POSTGRES_DB:-webcoder_db}
+      DB_USER: ${POSTGRES_USER:-webcoder_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-webcoder_dev_password}
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      CELERY_BROKER_URL: redis://redis:6379/0
+      REDIS_URL: redis://redis:6379/1
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Daily postgres backups (SP6 execution: the local stack backs itself up
+  # by default). pg_dump -Fc daily with 7-day / 4-week / 6-month retention
+  # on the pgbackups volume; restore procedure + off-host copy policy live
+  # in docs/RUNBOOK.md (backups section).
+  db-backup:
+    image: prodrigestivill/postgres-backup-local:16
+    restart: unless-stopped
+    volumes:
+      - pgbackups:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-webcoder_db}
+      POSTGRES_USER: ${POSTGRES_USER:-webcoder_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-webcoder_dev_password}
+      PGDUMP_EXTRA_OPTS: "-Fc"
+      BACKUP_KEEP_DAYS: 7
+      BACKUP_KEEP_WEEKS: 4
+      BACKUP_KEEP_MONTHS: 6
+
+  # Filtering Docker API proxy (SP3, now the DEFAULT): exposes only the
+  # endpoints the judge needs (containers/exec POST + ping/version); image
+  # builds/pulls, container create, volumes, networks, daemon config all
+  # answer 403. Reachable only inside the compose network.
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy:0.3.0
+    environment:
+      CONTAINERS: 1
+      EXEC: 1
+      POST: 1
+      PING: 1
+      VERSION: 1
+      # Everything else denied (the proxy defaults to 0; the dangerous ones
+      # listed explicitly for auditability):
+      IMAGES: 0
+      SOCKETS: 0
+      TASKS: 0
+      NETWORKS: 0
+      VOLUMES: 0
+      BUILD: 0
+      COMMIT: 0
+      CONFIGS: 0
+      SECRETS: 0
+      SWARM: 0
+      SYSTEM: 0
+      INFO: 0
+      DISTRIBUTION: 0
+      SESSION: 0
+      PLUGINS: 0
+      AUTH: 0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - docker-sock
     restart: unless-stopped
 
   # ------------------------------------------------------------------
@@ -203,9 +310,17 @@ services:
   #     - backend
   # ------------------------------------------------------------------
 
+networks:
+  # Proxy-only network: the socket-proxy is reachable ONLY from inside the
+  # compose network, never published to the host.
+  docker-sock:
+    internal: true
+
 volumes:
   pgdata:
   redisdata:
   # Submission workspace shared between backend (writer) and judge-runner
   # (executor). NOT mounted into postgres/redis.
   judge-sandbox:
+  # Daily pg_dump artifacts (db-backup service, SP6).
+  pgbackups:
