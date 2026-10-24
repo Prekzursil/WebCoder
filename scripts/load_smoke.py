@@ -66,8 +66,16 @@ def http(
     if data is not None:
         body = json.dumps(data).encode("utf-8")
         req.add_header("Content-Type", "application/json")
+        # Double-submit CSRF (SP1 cookie-JWT): unsafe methods must echo the
+        # csrftoken cookie value in the header.
+        if jar is not None:
+            token = next((c.value for c in jar if c.name == "csrftoken"), None)
+            if token:
+                req.add_header("X-CSRFToken", token)
     opener = urllib.request.build_opener(
-        urllib.request.HTTPCookieProcessor(jar) if jar else urllib.request.HTTPHandler()
+        urllib.request.HTTPCookieProcessor(jar)
+        if jar is not None  # NB: an EMPTY CookieJar is falsy (__len__ == 0) —
+        else urllib.request.HTTPHandler()  # test with `is not None`, never truthiness.
     )
     start = time.perf_counter()
     try:
@@ -100,19 +108,31 @@ def percentiles(latencies: list[float]) -> str:
 
 
 def read_load(base: str, users: int, requests_per_user: int) -> list[float]:
+    """Concurrent anonymous reads.
+
+    The stack throttles anonymous clients (SP4: 60/min per IP), so under
+    sustained load a 429 is the CORRECT answer, not an outage: the script
+    counts throttled responses separately and fails only on real errors
+    (5xx / transport failures). A run with zero 429s and zero errors means
+    the stack served everything; a run with 429s and zero errors proves the
+    limiter held under load.
+    """
     latencies: list[float] = []
     errors: list[str] = []
+    throttled = 0
     lock = threading.Lock()
     start = time.perf_counter()
 
     def worker(worker_id: int) -> None:
+        nonlocal throttled
         local_lat: list[float] = []
         local_err: list[str] = []
+        local_throttled = 0
         for _ in range(requests_per_user):
             roll = random.random()
             if roll < 0.75:
                 status, _payload, elapsed = http(
-                    f"{base}/api/v1/problems/?page=1&page_size=20"
+                    f"{base}/api/v1/problems/problems/?page=1&page_size=20"
                 )
             elif roll < 0.9:
                 status, _payload, elapsed = http(f"{base}/healthz")
@@ -120,11 +140,17 @@ def read_load(base: str, users: int, requests_per_user: int) -> list[float]:
                 status, _payload, elapsed = http(f"{base}/readyz")
             if status == 200:
                 local_lat.append(elapsed)
+            elif status == 429:
+                local_throttled += 1
+                # Respect Retry-After (default 60s is longer than the smoke;
+                # pace down instead of hammering the limiter).
+                time.sleep(1.0)
             else:
                 local_err.append(f"w{worker_id}: status={status}")
         with lock:
             latencies.extend(local_lat)
             errors.extend(local_err)
+            throttled += local_throttled
 
     threads = [threading.Thread(target=worker, args=(i,)) for i in range(users)]
     for t in threads:
@@ -135,8 +161,8 @@ def read_load(base: str, users: int, requests_per_user: int) -> list[float]:
 
     ok = len(latencies)
     total = users * requests_per_user
-    print(f"[read]      {percentiles(latencies)} errors={len(errors)}")
-    print(f"[read]      throughput={ok / wall:.1f} req/s over {wall:.1f}s ({total} requests, {users} users)")
+    print(f"[read]      {percentiles(latencies)} throttled={throttled} errors={len(errors)}")
+    print(f"[read]      throughput={ok / wall:.1f} ok req/s over {wall:.1f}s ({total} requests, {users} users)")
     for err in errors[:5]:
         print("[read]      error:", err)
     if errors:
@@ -155,7 +181,7 @@ def judge_roundtrip(base: str, username: str, password: str) -> None:
         print(f"[judge]     login failed: {status} {payload}")
         sys.exit(1)
 
-    status, payload, _ = http(f"{base}/api/v1/problems/?page_size=50", jar=jar)
+    status, payload, _ = http(f"{base}/api/v1/problems/problems/?page_size=50", jar=jar)
     if status != 200:
         print(f"[judge]     catalog fetch failed: {status}")
         sys.exit(1)
@@ -180,7 +206,7 @@ def judge_roundtrip(base: str, username: str, password: str) -> None:
     verdict = None
     for _ in range(120):  # up to 120s
         time.sleep(1)
-        status, payload, _ = http(f"{base}/api/v1/submissions/{submission_id}/", jar=jar)
+        status, payload, _ = http(f"{base}/api/v1/submissions/submissions/{submission_id}/", jar=jar)
         if status == 200:
             verdict = payload.get("verdict")
             if verdict in TERMINAL_VERDICTS:
