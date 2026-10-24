@@ -36,5 +36,16 @@ class User(AbstractUser):
     # bio = models.TextField(max_length=500, blank=True)
     # country = models.CharField(max_length=100, blank=True)
 
+    # GDPR account control (round-2 LEG-1/X5): set when the account is
+    # soft-deleted; the purge_deleted_users beat task removes user-authored
+    # side content once this timestamp passes (submissions/leaderboard stay,
+    # anonymized). Null on active accounts and after the purge ran.
+    scheduled_purge_at = models.DateTimeField(
+        _("scheduled purge at"),
+        null=True,
+        blank=True,
+        help_text=_("When purging this deleted account's side content is due."),
+    )
+
     def __str__(self):
         return self.username

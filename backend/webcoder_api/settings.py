@@ -400,6 +400,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "submissions.tasks.prune_old_test_outputs",
         "schedule": crontab(hour=5, minute=0),
     },
+    "deleted-users-purge": {
+        "task": "users.tasks.purge_deleted_users_task",
+        "schedule": crontab(hour=6, minute=0),
+    },
 }
 
 # Structured logging (round-2 X3d): LOG_JSON=1 swaps the console formatter

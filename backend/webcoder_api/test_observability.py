@@ -228,6 +228,7 @@ class TestBeatSchedule:
             "leaderboard-nightly-recompute",
             "notifications-purge",
             "submission-test-output-retention",
+            "deleted-users-purge",
         }
         assert (
             CELERY_BEAT_SCHEDULE["leaderboard-nightly-recompute"]["task"]

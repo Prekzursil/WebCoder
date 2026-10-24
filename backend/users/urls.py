@@ -7,6 +7,11 @@ from .views import (
     AdminUserViewSet,
     AdminStatsView,
     UserViewSet,
+    UserStatisticsView,
+    UserSolvedIdsView,
+    AccountExportView,
+    AccountDeleteView,
+    ActivationMetricsView,
 )
 
 app_name = "users"
@@ -21,6 +26,19 @@ urlpatterns = [
     path("me/", UserMeView.as_view(), name="user_me"),
     path("password/change/", PasswordChangeView.as_view(), name="password_change"),
     path("admin/stats/", AdminStatsView.as_view(), name="admin_stats"),
+    path(
+        "admin/activation/",
+        ActivationMetricsView.as_view(),
+        name="admin_activation",
+    ),
+    path(
+        "me/statistics/",
+        UserStatisticsView.as_view(),
+        name="user_statistics",
+    ),
+    path("me/solved-ids/", UserSolvedIdsView.as_view(), name="user_solved_ids"),
+    path("me/export/", AccountExportView.as_view(), name="account_export"),
+    path("me/delete/", AccountDeleteView.as_view(), name="account_delete"),
     # Include the router URLs for admin user management
     path("", include(router.urls)),
 ]
