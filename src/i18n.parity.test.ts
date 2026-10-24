@@ -116,6 +116,15 @@ describe('i18n parity sweep [Q1]', () => {
       expect(enSet.has(`verdict_${v}`), `verdict_${v} in en`).toBe(true);
       expect(roSet.has(`verdict_${v}`), `verdict_${v} in ro`).toBe(true);
     }
+    // [roadmap ONB-1] /start step strip renders start_step_${key}_${part}
+    // through a template literal.
+    for (const step of ['pick', 'code', 'judged']) {
+      for (const part of ['label', 'title', 'body']) {
+        const key = `start_step_${step}_${part}`;
+        expect(enSet.has(key), `${key} in en`).toBe(true);
+        expect(roSet.has(key), `${key} in ro`).toBe(true);
+      }
+    }
   });
 
   it('public server dictionary (MESSAGES) has en/ro parity and mirrors i18n resources', () => {

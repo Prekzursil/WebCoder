@@ -252,6 +252,9 @@ export const AuthService = {
     register: (userData: Record<string, unknown>) => apiFetch<RegisterResponse>('/users/register/', { method: 'POST', body: JSON.stringify(userData) }),
     login: (credentials: Record<string, unknown>) => apiFetch<LoginResponse>('/auth/login/', { method: 'POST', body: JSON.stringify(credentials) }),
     getMe: () => apiFetch<User>('/users/me/'),
+    // [F5] Solved/attempted problem-id sets for the catalog indicator column.
+    getSolvedIds: () =>
+        apiFetch<{ solved: number[]; attempted: number[] }>('/users/me/solved-ids/'),
     // [B5/RAT-4/5/6] Practice statistics + derivations for the profile page.
     getMyStatistics: () =>
         apiFetch<{
@@ -285,12 +288,13 @@ export const AuthService = {
 
 export const ProblemService = {
     getProblems: (
-        filters: { status?: string, authorId?: number | string } = {},
+        filters: { status?: string, authorId?: number | string, curriculumNode?: number | string } = {},
         page: { page?: number, pageSize?: number } = {}
     ) => {
         const params = new URLSearchParams();
         if (filters.status !== undefined) params.set('status', filters.status);
         if (filters.authorId !== undefined) params.set('authorId', String(filters.authorId));
+        if (filters.curriculumNode !== undefined) params.set('curriculum_node', String(filters.curriculumNode));
         if (page.page !== undefined) params.set('page', String(page.page));
         if (page.pageSize !== undefined) params.set('page_size', String(page.pageSize));
         const qs = params.toString();
@@ -365,6 +369,33 @@ export const ProblemService = {
             `/problems/problems/${id}/rate/`,
             { method: 'POST', body: JSON.stringify({ rating }) }
         ),
+
+    // [roadmap ONB-1] First-run trio: one easy APPROVED problem per paradigm
+    // (curriculum chapter), in tree order — the /start page's data source.
+    getStarterProblems: () =>
+        apiFetch<GetProblemDetailResponse[]>('/problems/problems/starters/'),
+
+    // [roadmap EDU-9] Curriculum tree (grades with nested chapters + APPROVED
+    // problem counts) for the catalog's second browse axis.
+    getCurriculum: () =>
+        apiFetch<
+            PaginatedResponse<{
+                id: number;
+                kind: string;
+                name_i18n: Record<string, string>;
+                slug: string;
+                order: number;
+                problem_count: number;
+                children: {
+                    id: number;
+                    kind: string;
+                    name_i18n: Record<string, string>;
+                    slug: string;
+                    order: number;
+                    problem_count: number;
+                }[];
+            }>
+        >('/problems/curriculum/'),
 };
 
 // [roadmap JDG-6/X7] Custom invocation — run code on user input without a

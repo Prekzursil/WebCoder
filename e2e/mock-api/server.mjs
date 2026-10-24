@@ -296,6 +296,33 @@ const server = createServer((req, res) => {
     return;
   }
 
+  // Wave A: curriculum tree (EDU-9) + starter trio (ONB-1) + solved ids (F5).
+  if (req.method === 'GET' && path === '/api/v1/problems/curriculum/') {
+    json(res, 200, paged([
+      {
+        id: 10, kind: 'GRADE', slug: 'g9', order: 10,
+        name_i18n: { en: 'Grade 9', ro: 'Clasa a IX-a' }, problem_count: 2,
+        children: [
+          { id: 11, kind: 'CHAPTER', slug: 'g9-elementary', order: 1,
+            name_i18n: { en: 'Elementary algorithms', ro: 'Algoritmi elementari' }, problem_count: 1 },
+          { id: 12, kind: 'CHAPTER', slug: 'g9-loops', order: 2,
+            name_i18n: { en: 'Loops', ro: 'Structuri repetitive' }, problem_count: 1 },
+        ],
+      },
+    ]));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/api/v1/problems/problems/starters/') {
+    json(res, 200, [MOCK_PROBLEMS[0], MOCK_PROBLEMS[1]]);
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/api/v1/users/me/solved-ids/') {
+    json(res, 200, { solved: [1], attempted: [2] });
+    return;
+  }
+
   const detail = path.match(/^\/api\/v1\/problems\/problems\/(\d+)\/$/);
   if (req.method === 'GET' && detail) {
     const problem = MOCK_PROBLEMS.find((p) => p.id === Number(detail[1]));
