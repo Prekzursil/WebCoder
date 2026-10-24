@@ -2,6 +2,7 @@ from django.db import models, transaction
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from .bookmarks import ProblemStar
 from .models import (
     CurriculumNode,
     ProblemEditorial,
@@ -112,7 +113,9 @@ class ProblemViewSet(viewsets.ModelViewSet):
             self.permission_classes = [
                 permissions.AllowAny
             ]  # Queryset handles visibility
-        elif self.action in ["editorial", "statistics", "starters"]:
+        elif self.action == "bookmark":
+            self.permission_classes = [permissions.IsAuthenticated]
+        elif self.action in ["editorial", "statistics", "starters", "bookmarked"]:
             # Read-shaped actions: the queryset already scopes problem
             # visibility; the editorial action additionally enforces the
             # publish-policy gate inside.
@@ -434,6 +437,32 @@ class ProblemViewSet(viewsets.ModelViewSet):
         )
         data = sorted(qs, key=lambda p: picked_ids.index(p.id))
         return Response(ProblemSerializer(data, many=True, context={"request": request}).data)
+
+    @action(detail=True, methods=["post", "delete"], url_path="bookmark")
+    def bookmark(self, request, pk=None):
+        """Toggle (POST) or remove (DELETE) the requester's star (UXP-6).
+
+        POST is idempotent-create (starring twice keeps one row); DELETE is
+        idempotent too. Returns the problem's total star count.
+        """
+        problem = self.get_object()
+        if request.method == "DELETE":
+            ProblemStar.objects.filter(user=request.user, problem=problem).delete()
+        else:
+            ProblemStar.objects.get_or_create(user=request.user, problem=problem)
+        return Response({"problem": problem.id, "starred": request.method == "POST",
+                         "star_count": problem.stars.count()})
+
+    @action(detail=False, methods=["get"], url_path="bookmarked")
+    def bookmarked(self, request):
+        """The requester's starred problem ids (UXP-6) — cheap id set for
+        the catalog's star column."""
+        if not request.user.is_authenticated:
+            return Response({"starred_ids": []})
+        ids = ProblemStar.objects.filter(user=request.user).values_list(
+            "problem_id", flat=True
+        )
+        return Response({"starred_ids": list(ids)})
 
 
 class CurriculumViewSet(viewsets.ReadOnlyModelViewSet):
