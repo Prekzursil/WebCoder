@@ -86,15 +86,22 @@ def _streaks(submission_dates):
 
 def user_statistics(user) -> dict:
     """The full /users/me/statistics/ payload for one user."""
-    subs = Submission.objects.filter(user=user)
+    # Submission.Meta.ordering (["-submission_time"]) leaks into
+    # values().distinct(): Django appends the ordered column to the SELECT,
+    # so DISTINCT stops deduping (same problem AC'd at two different
+    # microsecond timestamps counts twice — found on the live stack).
+    # .order_by() clears it before every distinct-aggregation here.
+    subs = Submission.objects.filter(user=user).order_by()
     attempted = subs.values("problem_id").distinct().count()
-    solved_rows = (
+    # One row per DISTINCT problem (a problem AC'd in several languages is
+    # still one solve): (problem_id, problem__difficulty) are functionally
+    # dependent, so this distinct is exactly the per-problem dedup.
+    solved_rows = list(
         subs.filter(verdict=Submission.VerdictStatus.ACCEPTED)
-        .values("problem_id", "problem__difficulty", "language")
+        .values("problem_id", "problem__difficulty")
         .distinct()
     )
-    solved_rows = list(solved_rows)
-    solved = len({row["problem_id"] for row in solved_rows})
+    solved = len(solved_rows)
 
     per_difficulty = {}
     for level_name in ("EASY", "MEDIUM", "HARD"):
@@ -134,9 +141,14 @@ def user_statistics(user) -> dict:
         LADDER_WEIGHTS.get(row["problem__difficulty"], 1) for row in solved_rows
     )
 
-    languages_with_ac = len(
-        {row["language"] for row in solved_rows}
-    )
+    # Polyglot counts DISTINCT AC languages (a separate dimension from the
+    # per-problem rows above).
+    languages_with_ac = (
+        subs.filter(verdict=Submission.VerdictStatus.ACCEPTED)
+        .values("language")
+        .distinct()
+        .count()
+    )  # subs is already .order_by()-cleared above
     badges = []
     if solved >= 1:
         badges.append("first_ac")
