@@ -1,0 +1,51 @@
+# WebCoder — RAW docker-socket ESCAPE HATCH (not the default).
+#
+# The default compose stack reaches the Docker daemon through the filtering
+# socket-proxy (CONTAINERS/EXEC/POST/PING/VERSION only). Under that default
+# the python3 custom-libs pip install — which needs `docker run` (container
+# create + images) — fails CLOSED by design (network isolation, RUNBOOK).
+#
+# Operators who explicitly need the custom-libs pip path on a single-host
+# deployment can restore the legacy raw socket with:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.raw-socket.yml up -d
+#
+# SECURITY TRADEOFF: the raw socket mount is root-equivalent on the host.
+# Use only where that tradeoff has been accepted (see SECURITY-AUDIT-judge
+# J5 and docs/RUNBOOK.md).
+services:
+  backend:
+    environment:
+      DOCKER_HOST: ""
+    volumes: !override
+      - judge-sandbox:/srv/judge
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks: !override
+      - default
+    group_add:
+      - "0"
+    depends_on: !override
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      judge-runner:
+        condition: service_started
+
+  celery-worker:
+    environment:
+      DOCKER_HOST: ""
+    volumes: !override
+      - judge-sandbox:/srv/judge
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks: !override
+      - default
+    group_add:
+      - "0"
+    depends_on: !override
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      judge-runner:
+        condition: service_started
