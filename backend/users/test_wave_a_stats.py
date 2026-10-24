@@ -309,3 +309,21 @@ class TestCoverageCompletions:
         )
         result = purge_deleted_users_task.run()
         assert "purged 1" in result
+
+
+class TestMultiLanguageDedup:
+    """Live-validation regression: AC-ing one problem in three languages is
+    ONE solve, one ladder weight, one per-difficulty count — not three."""
+
+    def test_same_problem_multiple_languages_counts_once(self):
+        user = User.objects.create_user(username="dedup-u", password="pw-12345678")
+        problem = make_problem(Problem.DifficultyLevel.EASY, "Dedup")
+        for language in ("python3", "cpp17", "c11"):
+            make_sub(user, problem, Submission.VerdictStatus.ACCEPTED, language=language)
+        payload = user_statistics(user)
+        assert payload["solved"] == 1
+        assert payload["per_difficulty"]["EASY"]["solved"] == 1
+        assert payload["ladder"]["points"] == 1
+        # Polyglot still sees all three languages.
+        assert "polyglot_3" in payload["badges"]
+        assert payload["per_language"] == {"python3": 1, "cpp17": 1, "c11": 1}
