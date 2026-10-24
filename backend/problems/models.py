@@ -91,6 +91,29 @@ class Problem(models.Model):
         choices=DifficultyLevel.choices,
         default=DifficultyLevel.MEDIUM,
     )
+
+    class DifficultySource(models.TextChoices):
+        """Where the difficulty label came from (competitive roadmap CNT-3).
+
+        SEED problems shipped with the starter pack; AUTHOR was assigned by a
+        human at creation time; CALIBRATED was recomputed from real AC rates
+        by ``calibrate_difficulty`` once enough attempts exist. RAT-4 ladder
+        weights and RAT-7 tag bars consume this to know which labels can be
+        trusted before community calibration exists.
+        """
+
+        SEED = "SEED", _("Starter pack")
+        AUTHOR = "AUTHOR", _("Author-assigned")
+        CALIBRATED = "CALIBRATED", _("Calibrated from AC rate")
+
+    difficulty_source = models.CharField(
+        _("difficulty source"),
+        max_length=12,
+        choices=DifficultySource.choices,
+        default=DifficultySource.AUTHOR,
+        help_text=_("Provenance of the difficulty label (seed/author/calibrated)."),
+    )
+
     # Default time/memory limits in ms/KB. Can be overridden per language if needed via a JSONField.
     default_time_limit_ms = models.IntegerField(
         _("default time limit (ms)"), default=1000
@@ -335,3 +358,70 @@ class ProblemRating(models.Model):
 
     def __str__(self):
         return f"{self.user_id} rated problem {self.problem_id}: {self.rating}"
+
+
+class CurriculumNode(models.Model):
+    """Versioned curriculum taxonomy (competitive roadmap EDU-9 / RO-1).
+
+    A tree of GRADE → CHAPTER (→ TOPIC) nodes mirroring the Romanian national
+    informatics programme, so a new programme edition adds a ``version``
+    rather than a migration. Problems reference nodes via M2M; the catalog
+    gains a second browse axis beside flat tags — the axis Romanian teachers
+    actually navigate by (pbinfo's spine). Round-2 slice D.6: v1 ships
+    grades 9–10 only.
+    """
+
+    class NodeKind(models.TextChoices):
+        GRADE = "GRADE", _("Grade")
+        CHAPTER = "CHAPTER", _("Chapter")
+        TOPIC = "TOPIC", _("Topic")
+
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="children",
+        verbose_name=_("parent node"),
+    )
+    kind = models.CharField(
+        _("node kind"), max_length=10, choices=NodeKind.choices
+    )
+    name_i18n = models.JSONField(
+        _("name (i18n)"),
+        help_text=_("Node name per locale, e.g. {'en': 'Loops', 'ro': 'Structuri repetitive'}"),
+    )
+    slug = models.SlugField(
+        _("slug"),
+        max_length=120,
+        unique=True,
+        help_text=_("Stable URL identifier, e.g. 'g9-loops'."),
+    )
+    # A programme edition (e.g. the 2025–2026 public-consultation drafts).
+    # The default tree ships version 'v1'.
+    version = models.CharField(
+        _("taxonomy version"),
+        max_length=40,
+        default="v1",
+        help_text=_("Programme edition this node belongs to."),
+    )
+    order = models.PositiveIntegerField(
+        _("order"), default=0, help_text=_("Sibling order within a parent.")
+    )
+    problems = models.ManyToManyField(
+        Problem,
+        blank=True,
+        related_name="curriculum_nodes",
+        verbose_name=_("problems"),
+    )
+
+    class Meta:
+        verbose_name = _("curriculum node")
+        verbose_name_plural = _("curriculum nodes")
+        ordering = ["version", "order", "id"]
+        indexes = [models.Index(fields=["version", "kind"])]
+
+    def __str__(self):
+        if isinstance(self.name_i18n, dict):
+            return f"{self.slug} ({self.name_i18n.get('en', '')})"
+        return self.slug

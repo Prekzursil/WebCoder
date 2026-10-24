@@ -2,8 +2,16 @@ from django.db import models, transaction
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import ProblemEditorial, ProblemRating, Tag, Problem, TestCase
+from .models import (
+    CurriculumNode,
+    ProblemEditorial,
+    ProblemRating,
+    Tag,
+    Problem,
+    TestCase,
+)
 from .serializers import (
+    CurriculumNodeSerializer,
     TagSerializer,
     ProblemSerializer,
     ProblemDetailSerializer,
@@ -104,7 +112,7 @@ class ProblemViewSet(viewsets.ModelViewSet):
             self.permission_classes = [
                 permissions.AllowAny
             ]  # Queryset handles visibility
-        elif self.action in ["editorial", "statistics"]:
+        elif self.action in ["editorial", "statistics", "starters"]:
             # Read-shaped actions: the queryset already scopes problem
             # visibility; the editorial action additionally enforces the
             # publish-policy gate inside.
@@ -156,6 +164,12 @@ class ProblemViewSet(viewsets.ModelViewSet):
         else:
             # Anonymous users only see APPROVED problems
             qs = Problem.objects.filter(status=Problem.ProblemStatus.APPROVED)
+        # Curriculum browse axis (competitive roadmap EDU-9): filter by the
+        # chapter/grade node the catalog is drilling into. Exact node match
+        # v1 — the tree itself provides the drill-down ids.
+        node_id = self.request.query_params.get("curriculum_node")
+        if node_id:
+            qs = qs.filter(curriculum_nodes__id=node_id)
         # Catalog stats add-on (SPEC-GAPS D-B8): "X tried / Y solved" per
         # problem card. distinct=True keeps counts exact under the author
         # branch's .distinct().
@@ -372,6 +386,73 @@ class ProblemViewSet(viewsets.ModelViewSet):
                 "your_rating": rating_value,
             }
         )
+
+    @action(detail=False, methods=["get"], url_path="starters")
+    def starters(self, request):
+        """Guided first-run trio (competitive roadmap ONB-1): one easy
+        APPROVED problem per paradigm (curriculum chapter), in tree order —
+        the /start page's data source. Falls back to the easiest APPROVED
+        problems by creation order when no curriculum links exist yet.
+        """
+        picked_ids = []
+        chapters = CurriculumNode.objects.filter(
+            kind=CurriculumNode.NodeKind.CHAPTER, parent__isnull=False
+        ).select_related("parent").order_by("parent__order", "parent__id", "order", "id")
+        for chapter in chapters:
+            candidate = (
+                chapter.problems.filter(
+                    status=Problem.ProblemStatus.APPROVED,
+                    difficulty=Problem.DifficultyLevel.EASY,
+                )
+                .order_by("id")
+                .first()
+            )
+            if candidate is not None:
+                picked_ids.append(candidate.id)
+            if len(picked_ids) == 3:
+                break
+        if len(picked_ids) < 3:
+            fallback = (
+                Problem.objects.filter(
+                    status=Problem.ProblemStatus.APPROVED,
+                    difficulty=Problem.DifficultyLevel.EASY,
+                )
+                .exclude(id__in=picked_ids)
+                .order_by("id")
+            )
+            for problem in fallback:
+                picked_ids.append(problem.id)
+                if len(picked_ids) == 3:
+                    break
+        qs = Problem.objects.filter(id__in=picked_ids).annotate(
+            submission_count=models.Count("submissions"),
+            solved_count=models.Count(
+                "submissions",
+                filter=models.Q(submissions__verdict="AC"),
+                distinct=True,
+            ),
+        )
+        data = sorted(qs, key=lambda p: picked_ids.index(p.id))
+        return Response(ProblemSerializer(data, many=True, context={"request": request}).data)
+
+
+class CurriculumViewSet(viewsets.ReadOnlyModelViewSet):
+    """Read-only curriculum tree (competitive roadmap EDU-9 / RO-1).
+
+    GET /api/v1/curriculum/ — the full versioned tree (grades with nested
+    chapters) and per-node APPROVED problem counts; the pbinfo-style browse
+    spine. GET /api/v1/curriculum/{id}/ — one node.
+    """
+
+    serializer_class = CurriculumNodeSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        # List returns the tree roots (grades with nested chapters); any
+        # node — a chapter — is retrievable directly for drill-down links.
+        if self.action == "retrieve":
+            return CurriculumNode.objects.all()
+        return CurriculumNode.objects.filter(parent__isnull=True)
 
 
 class TestCaseViewSet(viewsets.ModelViewSet):

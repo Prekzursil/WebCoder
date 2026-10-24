@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Tag, Problem, TestCase
+from .models import CurriculumNode, Tag, Problem, TestCase
 
 
 class TagAdmin(admin.ModelAdmin):
@@ -107,3 +107,15 @@ class ProblemAdmin(admin.ModelAdmin):
 admin.site.register(Tag, TagAdmin)
 admin.site.register(Problem, ProblemAdmin)
 # admin.site.register(TestCase, TestCaseAdmin) # Uncomment if standalone TestCase admin is desired
+
+
+class CurriculumNodeAdmin(admin.ModelAdmin):
+    """Curriculum tree admin (EDU-9): ordered, searchable by slug."""
+
+    list_display = ("id", "slug", "kind", "version", "order", "parent")
+    list_filter = ("kind", "version")
+    search_fields = ("slug", "name_i18n")
+    ordering = ("version", "order", "id")
+
+
+admin.site.register(CurriculumNode, CurriculumNodeAdmin)
