@@ -2,6 +2,7 @@ from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.github.views import GitHubOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from dj_rest_auth.registration.views import SocialLoginView
+from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import generics, permissions, status, viewsets
@@ -14,6 +15,8 @@ from .serializers import (
     PasswordChangeSerializer,
     AdminUserSerializer,
 )
+from submissions.models import Submission
+
 from .models import User
 from problems.models import Problem
 from submissions.models import Submission
@@ -168,3 +171,99 @@ class AdminStatsView(APIView):
             "submission_count": submission_count,
         }
         return Response(stats)
+
+
+# ---------------------------------------------------------------------------
+# Wave A: statistics/gamification (B5/RAT-4/5/6), solved-ids (F5 backend),
+# GDPR account control (LEG-1/X5) and owner analytics (ANA-1).
+
+
+class UserStatisticsView(generics.RetrieveAPIView):
+    """GET /api/v1/users/me/statistics/ — practice stats + derivations."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def retrieve(self, request, *args, **kwargs):
+        from .statistics import user_statistics
+
+        return Response(user_statistics(request.user))
+
+
+class UserSolvedIdsView(APIView):
+    """GET /api/v1/users/me/solved-ids/ — the catalog's solved/attempted
+    indicator column (F5): two id arrays, cheap to intersect client-side."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        subs = Submission.objects.filter(user=request.user)
+        solved = list(
+            subs.filter(verdict=Submission.VerdictStatus.ACCEPTED)
+            .values_list("problem_id", flat=True)
+            .distinct()
+        )
+        attempted = list(subs.values_list("problem_id", flat=True).distinct())
+        return Response(
+            {
+                "solved": solved,
+                "attempted": [pid for pid in attempted if pid not in set(solved)],
+            }
+        )
+
+
+class AccountExportView(APIView):
+    """POST /api/v1/users/me/export/ — GDPR data dump (JSON attachment)."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        from .account import export_as_attachment
+
+        filename, body = export_as_attachment(request.user)
+        response = HttpResponse(
+            body, content_type="application/json", headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+        )
+        return response
+
+
+class AccountDeleteView(APIView):
+    """POST /api/v1/users/me/delete/ — GDPR soft delete + scheduled purge.
+
+    Body ``{"confirm": "DELETE"}`` guards accidents. The session is left
+    standing; the frontend logs out on 200.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        from .account import soft_delete_account
+
+        if request.data.get("confirm") != "DELETE":
+            return Response(
+                {"detail": 'Body must be {"confirm": "DELETE"}.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        soft_delete_account(request.user)
+        return Response(
+            {
+                "detail": (
+                    "Account deactivated and anonymized; personal side "
+                    "content will be purged within 30 days."
+                )
+            }
+        )
+
+
+class ActivationMetricsView(APIView):
+    """GET /api/v1/users/admin/activation/ — ANA-1 owner analytics.
+
+    Admin-only: funnel + D1/D7 + submission volume derivations over
+    existing models (cookie-light by construction).
+    """
+
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        from .analytics import activation_snapshot
+
+        return Response(activation_snapshot())
