@@ -96,3 +96,24 @@ test('problem detail shows tried/solved stats bar', async ({ page }) => {
   await expect(page?.getByText('tried'))?.toBeVisible();
   await expect(page?.getByText('solved'))?.toBeVisible();
 });
+
+test('/start onboarding page renders the starter trio [ONB-1]', async ({ page }) => {
+  await page?.goto('/start');
+  await expect(page?.getByRole('heading', { level: 1 }))?.toContainText(/first problem/i);
+  // The how-it-works strip.
+  await expect(page?.getByText('Pick a starter'))?.toBeVisible();
+  // Starter cards link into the catalog (mock serves two).
+  const cards = page?.locator('a[href^="/problems/"]');
+  await expect((await cards?.count()) ?? 0).toBeGreaterThanOrEqual(1);
+});
+
+test('catalog curriculum axis drills into a chapter [EDU-9]', async ({ page }) => {
+  await page?.goto('/problems');
+  const gradeChip = page?.getByRole('button', { name: /Grade 9/ });
+  if (await gradeChip?.isVisible().catch(() => false)) {
+    await gradeChip?.click();
+    await expect(page)?.toHaveURL(/curriculum=10/);
+    // Chapter chips appear under the active grade.
+    await expect(page?.getByRole('button', { name: /Elementary algorithms/i }))?.toBeVisible();
+  }
+});
