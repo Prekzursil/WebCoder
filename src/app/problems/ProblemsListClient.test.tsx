@@ -36,6 +36,21 @@ vi.mock('@/context/AuthContext', () => ({
   useAuth: () => mocks.auth,
 }));
 
+const apiMocks = vi.hoisted(() => ({
+  getTags: vi.fn(),
+  getSolvedIds: vi.fn(),
+}));
+
+vi.mock('@/services/ApiService', () => ({
+  ProblemService: {
+    getTags: apiMocks.getTags,
+    getProblems: vi.fn(),
+  },
+  AuthService: {
+    getSolvedIds: apiMocks.getSolvedIds,
+  },
+}));
+
 const problem = (partial: Partial<ProblemType>): ProblemType =>
   ({
     id: 1,
@@ -46,9 +61,9 @@ const problem = (partial: Partial<ProblemType>): ProblemType =>
   }) as ProblemType;
 
 const CATALOG: ProblemType[] = [
-  problem({ id: 3, title_i18n: { en: 'Binary Search' }, difficulty: 'MEDIUM' }),
-  problem({ id: 1, title_i18n: { en: 'Two Sum' }, difficulty: 'EASY' }),
-  problem({ id: 2, title_i18n: { en: 'Aho-Corasick' }, difficulty: 'HARD' }),
+  problem({ id: 3, title_i18n: { en: 'Binary Search' }, difficulty: 'MEDIUM', tags: [{ id: 2, name_i18n: { en: 'Sorting' }, slug: 'sorting' }] }),
+  problem({ id: 1, title_i18n: { en: 'Two Sum' }, difficulty: 'EASY', tags: [{ id: 1, name_i18n: { en: 'Arrays' }, slug: 'arrays' }] }),
+  problem({ id: 2, title_i18n: { en: 'Aho-Corasick' }, difficulty: 'HARD', tags: [{ id: 2, name_i18n: { en: 'Sorting' }, slug: 'sorting' }] }),
 ];
 
 beforeEach(() => {
@@ -56,6 +71,14 @@ beforeEach(() => {
   mocks.params = new URLSearchParams();
   mocks.auth.isAuthenticated = false;
   mocks.auth.user = null;
+  apiMocks.getTags.mockResolvedValue({
+    count: 0, next: null, previous: null,
+    results: [
+      { id: 1, name_i18n: { en: 'Arrays' }, slug: 'arrays' },
+      { id: 2, name_i18n: { en: 'Sorting' }, slug: 'sorting' },
+    ],
+  });
+  apiMocks.getSolvedIds.mockResolvedValue({ solved: [], attempted: [] });
 });
 
 afterEach(cleanup);
@@ -155,5 +178,74 @@ describe('ProblemsListClient status facet gating [F7]', () => {
       expect(screen.getByRole('button', { name: choice })).toBeInTheDocument();
     }
     expect(screen.queryByRole('button', { name: 'rejected' })).not.toBeInTheDocument();
+  });
+});
+
+
+describe('Wave A: tag facet [F4] + solved indicators [F5] + curriculum axis [EDU-9]', () => {
+  it('filters by a selected tag chip', async () => {
+    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
+    const arraysChip = await screen.findByRole('button', { name: 'Arrays' });
+    fireEvent.click(arraysChip);
+    expect(screen.getByRole('link', { name: 'Two Sum' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Aho-Corasick' })).not.toBeInTheDocument();
+  });
+
+  it('renders the solved indicator column for authenticated solvers', async () => {
+    mocks.auth.isAuthenticated = true;
+    apiMocks.getSolvedIds.mockResolvedValue({ solved: [1], attempted: [3] });
+    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
+    // "Solved" labels: the column header + the one solved row.
+    const solvedMarks = await screen.findAllByLabelText('Solved');
+    expect(solvedMarks).toHaveLength(2);
+    expect(screen.getByLabelText('Attempted')).toBeInTheDocument();
+    expect(screen.getByLabelText('Not attempted')).toBeInTheDocument();
+  });
+
+  it('hides solved rows when the hide-solved toggle is on', async () => {
+    mocks.auth.isAuthenticated = true;
+    apiMocks.getSolvedIds.mockResolvedValue({ solved: [1], attempted: [] });
+    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
+    const toggle = await screen.findByRole('button', { name: 'Hide solved' });
+    fireEvent.click(toggle);
+    expect(screen.queryByRole('link', { name: 'Two Sum' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Aho-Corasick' })).toBeInTheDocument();
+  });
+
+  it('renders curriculum grade chips and drills into chapters via the URL', async () => {
+    const curriculum = [
+      {
+        id: 10, kind: 'GRADE', slug: 'g9', order: 10,
+        name_i18n: { en: 'Grade 9', ro: 'Clasa a IX-a' }, problem_count: 2,
+        children: [
+          { id: 11, kind: 'CHAPTER', slug: 'g9-elementary', order: 1,
+            name_i18n: { en: 'Elementary algorithms', ro: 'Algoritmi elementari' }, problem_count: 1 },
+        ],
+      },
+    ];
+    mocks.params = new URLSearchParams('curriculum=10');
+    render(
+      <ProblemsListClient
+        problems={CATALOG}
+        fetchError={null}
+        locale="en"
+        totalCount={3}
+        hasMore={false}
+        curriculum={curriculum}
+      />
+    );
+    expect(screen.getByRole('button', { name: /Grade 9/ })).toBeInTheDocument();
+    // Chapter chips appear under the active grade.
+    const chapter = await screen.findByRole('button', { name: /Elementary algorithms/i });
+    fireEvent.click(chapter);
+    expect(mocks.replace).toHaveBeenCalledWith(
+      expect.stringContaining('curriculum=11'),
+      expect.anything()
+    );
+  });
+
+  it('links first-run visitors to /start [ONB-1]', () => {
+    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
+    expect(screen.getByRole('link', { name: /Start with three classic problems/i })).toHaveAttribute('href', '/start');
   });
 });

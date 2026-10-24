@@ -41,10 +41,43 @@ const CATALOG_PAGE_SIZE = 100;
  * see APPROVED). [SPEC-GAPS F2] No `.catch(() => [])`: a down backend must
  * surface as the page's error state, not masquerade as an empty catalog.
  */
-export function getProblemsPage(page = 1): Promise<PaginatedResponse<ProblemType>> {
+export function getProblemsPage(
+  page = 1,
+  filters: { curriculumNode?: number | string } = {}
+): Promise<PaginatedResponse<ProblemType>> {
+  const nodeQs = filters.curriculumNode ? `&curriculum_node=${filters.curriculumNode}` : '';
   return fetchJson<PaginatedResponse<ProblemType>>(
-    `/problems/problems/?page=${page}&page_size=${CATALOG_PAGE_SIZE}`
+    `/problems/problems/?page=${page}&page_size=${CATALOG_PAGE_SIZE}${nodeQs}`
   );
+}
+
+export interface CurriculumChapter {
+  id: number;
+  kind: string;
+  name_i18n: Record<string, string>;
+  slug: string;
+  order: number;
+  problem_count: number;
+}
+
+export interface CurriculumGrade {
+  id: number;
+  kind: string;
+  name_i18n: Record<string, string>;
+  slug: string;
+  order: number;
+  problem_count: number;
+  children: CurriculumChapter[];
+}
+
+/** [roadmap EDU-9] Curriculum tree (grades -> chapters + APPROVED counts). */
+export function getCurriculum(): Promise<PaginatedResponse<CurriculumGrade>> {
+  return fetchJson<PaginatedResponse<CurriculumGrade>>('/problems/curriculum/');
+}
+
+/** [roadmap ONB-1] First-run trio: one easy problem per paradigm. */
+export function getStarterProblems(): Promise<ProblemType[]> {
+  return fetchJson<ProblemType[]>('/problems/problems/starters/');
 }
 
 /**
