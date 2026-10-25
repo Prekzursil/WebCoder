@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.core.exceptions import ObjectDoesNotExist
 from .models import Submission, SubmissionTestResult # Import SubmissionTestResult
 from users.serializers import UserSerializer
+from contests.models import Contest
 from problems.models import Problem, TestCase # Import TestCase for SubmissionTestResultSerializer
 from .judge_utils.custom_libs import is_allowed_requirement
 from .judge_utils.languages import SUPPORTED_LANGUAGE_IDS, get_language
@@ -55,12 +56,12 @@ class SubmissionSerializer(serializers.ModelSerializer):
             'id', 'user', 'problem', 'problem_id', 'language', 'code',
             'submission_time', 'verdict', 'execution_time_ms',
             'memory_used_kb', 'score', 'max_score', 'detailed_feedback',
-            'test_results' # Add the new field
+            'contest', 'test_results' # Add test results + contest (read-only id)
         ]
         read_only_fields = [
             'id', 'user', 'problem', 'submission_time', 'verdict',
             'execution_time_ms', 'memory_used_kb', 'score', 'max_score', 'detailed_feedback',
-            'test_results'
+            'contest', 'test_results'
         ]
 
     def get_max_score(self, obj):
@@ -101,20 +102,22 @@ class SubmissionListSerializer(SubmissionSerializer):
 
 class SubmissionCreateSerializer(serializers.ModelSerializer):
     problem = serializers.PrimaryKeyRelatedField(queryset=Problem.objects.all())
+    # Contest-bound submit (CON-1): optional; validated by
+    # contests.gating.check_contest_submission (registered + window open +
+    # problem on the board + cooldown). Write-only: reads expose the id via
+    # SubmissionSerializer.contest.
+    contest = serializers.PrimaryKeyRelatedField(
+        queryset=Contest.objects.all(), required=False, allow_null=True, write_only=True
+    )
 
     class Meta:
         model = Submission
-        fields = ['problem', 'language', 'code']
+        fields = ['problem', 'language', 'code', 'contest']
 
     def validate(self, attrs):
-        """Submit-time language validation + Problem.allowed_languages
-        enforcement (SPEC-GAPS G10 / SECURITY-AUDIT-judge.md §0).
-
-        - ``language`` must be a judge-supported registry id (unknown ids
-          used to fall through to the judge's unsupported-language
-          INTERNAL_ERROR branch);
-        - when the problem declares ``allowed_languages`` (non-empty), the
-          submission's language must be one of them.
+        """Submit-time validation: language registry + allowed_languages
+        (SPEC-GAPS G10) and, for contest-bound submissions, the CON-1 gate
+        (registered + window open + board membership + cooldown).
         """
         language = attrs.get("language")
         if get_language(language) is None:
@@ -152,6 +155,17 @@ class SubmissionCreateSerializer(serializers.ModelSerializer):
                             )
                         }
                     )
+        # Contest gate (CON-1): registered + window open + board membership
+        # + the OPR-4 in-contest cooldown.
+        contest = attrs.get("contest")
+        if contest is not None and problem is not None:
+            from contests.gating import check_contest_submission
+
+            ok, error = check_contest_submission(
+                contest, self.context.get("request").user, problem.id
+            )
+            if not ok:
+                raise serializers.ValidationError({"contest": error})
         return attrs
 
     def create(self, validated_data):

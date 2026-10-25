@@ -1,0 +1,379 @@
+"""Contest API (competitive roadmap Wave B: CON-1/2/3/6 + round-2 PRF-1).
+
+Endpoints under /api/v1/contests/:
+
+- ``GET/POST /``                list (visibility-scoped) / create (ADMIN)
+- ``GET/PATCH/DELETE /{id}/``   detail / manage (organizer)
+- ``POST /{id}/register/``      self-registration (PRIVATE needs access_code)
+- ``POST /{id}/start/``         windowed: start the personal clock (CON-6)
+- ``GET /{id}/problems/``       board labels + points (statements open at start)
+- ``GET /{id}/standings/``      format-ranked, freeze-aware materialized board
+- ``POST /{id}/unfreeze/``      deliberate unfreeze (CON-3, organizer)
+- ``POST /{id}/disqualify/``    integrity DQ of one participation (SAF-2)
+"""
+
+from django.db import transaction
+from django.db.models import Count
+from django.utils import timezone
+from rest_framework import permissions, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from webcoder_api.pagination import StandardPageNumberPagination
+
+from users.models import User
+from users.permissions import IsAdminUser
+
+from .formats import rank_contest
+from .models import Contest, ContestParticipation, ContestProblem, ContestScore
+from .serializers import (
+    ContestDetailSerializer,
+    ContestProblemSerializer,
+    ContestSerializer,
+    RegistrationSerializer,
+)
+
+
+def can_manage_contest(user, contest) -> bool:
+    """Organizer check: creator, ADMIN role, or superuser."""
+    if not (user and user.is_authenticated):
+        return False
+    return (
+        contest.created_by_id == user.id
+        or user.role == User.Roles.ADMIN
+        or user.is_superuser
+    )
+
+
+def _fetch_contest(pk):
+    """Fetch by pk bypassing the list queryset — detail actions govern
+    visibility with can_view_contest (PRIVATE id probing stays a 404)."""
+    from contests.models import Contest as _C
+    return _C.objects.filter(pk=pk).first()
+
+
+def can_view_contest(user, contest) -> bool:
+    """PUBLIC contests are listed for everyone; PRIVATE for organizers and
+    participants only."""
+    if contest.visibility == Contest.Visibility.PUBLIC:
+        return True
+    if can_manage_contest(user, contest):
+        return True
+    if not (user and user.is_authenticated):
+        return False
+    return ContestParticipation.objects.filter(
+        contest=contest, user=user
+    ).exists()
+
+
+class ContestPagination(StandardPageNumberPagination):
+    page_size = 20
+
+
+class ContestViewSet(viewsets.ModelViewSet):
+    """Contest CRUD + registration + standings surface."""
+
+    pagination_class = ContestPagination
+
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return ContestDetailSerializer
+        return ContestSerializer
+
+    def get_permissions(self):
+        # NOTE: action-level permission_classes would be shadowed by this
+        # override (DRF sets them as view attributes), so the action sets
+        # live HERE instead: public reads, participant actions, staff CRUD.
+        if self.action in ("list", "retrieve", "standings", "problems"):
+            return [permissions.AllowAny()]
+        if self.action in ("register", "start", "unfreeze", "disqualify"):
+            # Organizer-only actions check can_manage_contest() inside.
+            return [permissions.IsAuthenticated()]
+        return [permissions.IsAuthenticated(), IsAdminUser()]
+
+    def get_queryset(self):
+        qs = (
+            Contest.objects.all()
+            .select_related("created_by")
+            .annotate(
+                problem_count=Count("contest_problems", distinct=True),
+                participant_count=Count("participations", distinct=True),
+            )
+        )
+        state = self.request.query_params.get("state", "").upper()
+        if state in ("UPCOMING", "RUNNING", "FINISHED"):
+            now = timezone.now()
+            if state == "UPCOMING":
+                qs = qs.filter(start_at__gt=now)
+            elif state == "RUNNING":
+                qs = qs.filter(start_at__lte=now, end_at__gt=now)
+            else:
+                qs = qs.filter(end_at__lte=now)
+        user = self.request.user
+        if user and user.is_authenticated and (
+            user.role == User.Roles.ADMIN or user.is_superuser
+        ):
+            return qs.order_by("-start_at", "-id")  # staff see PRIVATE too
+        visible = Contest.objects.filter(visibility=Contest.Visibility.PUBLIC)
+        if user and user.is_authenticated:
+            mine = Contest.objects.filter(created_by=user)
+            visible = (
+                visible
+                | Contest.objects.filter(participations__user=user)
+                | mine
+            ).distinct()
+        # pk__in-subquery + aggregations drop the Meta ordering in some
+        # combinations — pin it explicitly so pagination stays consistent.
+        return qs.filter(pk__in=visible.values_list("pk", flat=True)).order_by(
+            "-start_at", "-id"
+        )
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+    def retrieve(self, request, *args, **kwargs):
+        contest = _fetch_contest(self.kwargs.get("pk"))
+        if contest is None or not can_view_contest(request.user, contest):
+            return Response(
+                {"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+        serializer = self.get_serializer(contest)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=["post"])
+    def register(self, request, pk=None):
+        # Bypass the visibility-scoped queryset: joining a PRIVATE contest
+        # is exactly how you become allowed to see it — the access code is
+        # the gate (404 only when the id itself doesn't exist).
+        contest = _fetch_contest(pk)
+        if contest is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        state = contest.state()
+        # Windowed contests accept late joiners until the window closes;
+        # fixed-time contests close registration at start.
+        if state == Contest.State.FINISHED or (
+            state == Contest.State.RUNNING and not contest.is_window
+        ):
+            return Response(
+                {"detail": "Registration closed — the contest already started."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        serializer = RegistrationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        if contest.visibility == Contest.Visibility.PRIVATE:
+            code = serializer.validated_data.get("access_code") or ""
+            if code != contest.access_code:
+                return Response(
+                    {"detail": "Invalid access code."}, status=status.HTTP_403_FORBIDDEN
+                )
+        participation, created = ContestParticipation.objects.get_or_create(
+            contest=contest, user=request.user
+        )
+        if not created:
+            return Response(
+                {"detail": "Already registered."}, status=status.HTTP_409_CONFLICT
+            )
+        return Response(
+            {"contest": contest.id, "user": request.user.id, "virtual_start": None},
+            status=status.HTTP_201_CREATED,
+        )
+
+    @action(detail=True, methods=["post"])
+    def start(self, request, pk=None):
+        """Windowed contests (CON-6): start (or resume reporting) the caller's
+        personal clock. Sets ``virtual_start`` once; idempotent afterwards."""
+        contest = self.get_object()
+        if not contest.is_window:
+            return Response(
+                {"detail": "This contest has no personal timers."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        now = timezone.now()
+        if not (contest.start_at <= now < contest.end_at):
+            return Response(
+                {"detail": "The contest window is not open."}, status=status.HTTP_400_BAD_REQUEST
+            )
+        participation = ContestParticipation.objects.filter(
+            contest=contest, user=request.user
+        ).first()
+        if participation is None:
+            return Response(
+                {"detail": "Register before starting."}, status=status.HTTP_400_BAD_REQUEST
+            )
+        if participation.virtual_start is not None:
+            return Response(
+                {
+                    "detail": "Personal clock already running.",
+                    "virtual_start": participation.virtual_start,
+                    "effective_end": participation.effective_end(),
+                },
+                status=status.HTTP_200_OK,
+            )
+        with transaction.atomic():
+            participation = ContestParticipation.objects.select_for_update().get(
+                pk=participation.pk
+            )
+            if participation.virtual_start is None:
+                participation.virtual_start = now
+                participation.save(update_fields=["virtual_start"])
+        return Response(
+            {
+                "virtual_start": participation.virtual_start,
+                "effective_end": participation.effective_end(),
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+    @action(detail=True, methods=["get"])
+    def problems(self, request, pk=None):
+        """Board problems. Statements (this list) stay sealed until start_at;
+        PRIVATE contests additionally require participant/organizer."""
+        contest = _fetch_contest(pk)
+        if contest is None or not can_view_contest(request.user, contest):
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        now = timezone.now()
+        if now < contest.start_at and not can_manage_contest(request.user, contest):
+            return Response(
+                {"detail": "Problems are sealed until the contest starts."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        problems = contest.contest_problems.select_related("problem").all()
+        return Response(ContestProblemSerializer(problems, many=True).data)
+
+    @action(detail=True, methods=["get"])
+    def standings(self, request, pk=None):
+        """Format-ranked board over materialized rows (PRF-1).
+
+        Non-organizers read the freeze-filtered aggregates while a freeze is
+        in effect (CON-3); organizers always see the live board.
+        """
+        contest = _fetch_contest(pk)
+        if contest is None or not can_view_contest(request.user, contest):
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        now = timezone.now()
+        live = can_manage_contest(request.user, contest)
+        frozen = (not live) and contest.freeze_at is not None
+
+        score_rows = (
+            ContestScore.objects.filter(
+                participation__contest=contest,
+                participation__is_disqualified=False,
+            )
+            .select_related("participation__user", "contest_problem")
+        )
+
+        participations = {}
+        problem_meta = {
+            cp.id: {"label": cp.label, "points": cp.points}
+            for cp in contest.contest_problems.all()
+        }
+        for row in score_rows:
+            part = row.participation
+            entry = participations.get(part.id)
+            if entry is None:
+                entry = participations[part.id] = {
+                    "user": part.user,
+                    "user_id": part.user_id,
+                    "start": part.effective_start(),
+                    "rows": [],
+                }
+            entry["rows"].append(
+                {
+                    "label": row.contest_problem.label,
+                    "points_max": row.contest_problem.points,
+                    "best": row.best_score_frozen if frozen else row.best_score,
+                    "attempts": row.attempts_frozen if frozen else row.attempts,
+                    "wrong": row.wrong_before_ac_frozen if frozen else row.wrong_before_ac,
+                    "first_ac_at": row.first_ac_at_frozen if frozen else row.first_ac_at,
+                    "last_improvement": (
+                        row.last_improvement_frozen if frozen else row.last_improvement
+                    ),
+                }
+            )
+
+        ranking_input = list(participations.values())
+        for entry in ranking_input:
+            # Every board problem gets a row so unsolved columns render.
+            seen = {r["label"] for r in entry["rows"]}
+            for meta in problem_meta.values():
+                if meta["label"] not in seen:
+                    entry["rows"].append(
+                        {
+                            "label": meta["label"],
+                            "points_max": meta["points"],
+                            "best": 0,
+                            "attempts": 0,
+                            "wrong": 0,
+                            "first_ac_at": None,
+                            "last_improvement": None,
+                        }
+                    )
+        standings = rank_contest(contest, ranking_input)
+
+        results = []
+        by_user = {entry["user_id"]: entry for entry in ranking_input}
+        for position, standing in enumerate(standings, start=1):
+            entry = by_user[standing.user_id]
+            results.append(
+                {
+                    "rank": position,
+                    "user": {"id": entry["user"].id, "username": entry["user"].username},
+                    "score": standing.total_score,
+                    "solved": standing.solved,
+                    "penalty_minutes": (
+                        None if standing.penalty_minutes == float("inf") else round(
+                            standing.penalty_minutes, 2
+                        )
+                    ),
+                    "problems": sorted(entry["rows"], key=lambda r: r["label"]),
+                }
+            )
+        paginator = ContestPagination()
+        page = paginator.paginate_queryset(results, request)
+        data = paginator.get_paginated_response(page).data
+        data["format"] = contest.format
+        data["frozen"] = frozen
+        return Response(data)
+
+    @action(detail=True, methods=["post"])
+    def unfreeze(self, request, pk=None):
+        """CON-3: deliberate unfreeze — organizer action, clears freeze_at."""
+        contest = self.get_object()
+        if not can_manage_contest(request.user, contest):
+            return Response(
+                {"detail": "Organizer only."}, status=status.HTTP_403_FORBIDDEN
+            )
+        contest.freeze_at = None
+        contest.save(update_fields=["freeze_at", "updated_at"])
+        return Response({"detail": "Scoreboard unfrozen.", "freeze_at": None})
+
+    @action(detail=True, methods=["post"])
+    def disqualify(self, request, pk=None):
+        """Round-2 SAF-2: organizer DQs one participation (reason recorded)."""
+        contest = self.get_object()
+        if not can_manage_contest(request.user, contest):
+            return Response(
+                {"detail": "Organizer only."}, status=status.HTTP_403_FORBIDDEN
+            )
+        user_id = request.data.get("user")
+        reason = (request.data.get("reason") or "").strip()
+        if not user_id:
+            return Response(
+                {"detail": "user (id) is required."}, status=status.HTTP_400_BAD_REQUEST
+            )
+        participation = ContestParticipation.objects.filter(
+            contest=contest, user_id=user_id
+        ).first()
+        if participation is None:
+            return Response(
+                {"detail": "No such participation."}, status=status.HTTP_404_NOT_FOUND
+            )
+        participation.is_disqualified = True
+        participation.disqualification_reason = reason
+        participation.save(update_fields=["is_disqualified", "disqualification_reason"])
+        return Response(
+            {
+                "detail": "Participation disqualified.",
+                "user": participation.user_id,
+                "reason": participation.disqualification_reason,
+            }
+        )

@@ -96,6 +96,9 @@ class IsOwnerOrAdminForUser(permissions.BasePermission):
 class IsOwnerOrAdminForSubmission(permissions.BasePermission):
     """
     Allows access only to the owner of the submission or an admin.
+
+    Contest organizers (CON-1/CON-3) may additionally READ submissions made
+    inside contests they created — the organizer's live-monitoring view.
     """
 
     def has_object_permission(self, request, view, obj):
@@ -104,4 +107,11 @@ class IsOwnerOrAdminForSubmission(permissions.BasePermission):
 
         is_admin = request.user.role == User.Roles.ADMIN or request.user.is_superuser
 
-        return obj.user == request.user or is_admin
+        if obj.user == request.user or is_admin:
+            return True
+
+        return (
+            request.method in permissions.SAFE_METHODS
+            and getattr(obj, "contest", None) is not None
+            and obj.contest.created_by_id == request.user.id
+        )

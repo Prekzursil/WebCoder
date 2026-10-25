@@ -86,6 +86,35 @@ class TagViewSet(viewsets.ModelViewSet):
         return super().get_permissions()  # Default is IsAuthenticatedOrReadOnly
 
 
+def _guard_contest_pin(problem: Problem, user) -> None:
+    """CON-1: raise ValidationError when ``problem`` is on the board of a
+    contest that has not finished and ``user`` is not an admin — statements,
+    tests and checkers must stay frozen for the contest's lifetime."""
+    is_admin = user.is_staff or (
+        hasattr(user, "role") and user.role == User.Roles.ADMIN
+    )
+    if is_admin:
+        return
+    from django.utils import timezone as _tz
+
+    from contests.models import ContestProblem
+
+    pinned = ContestProblem.objects.filter(
+        problem=problem, contest__end_at__gt=_tz.now()
+    ).exists()
+    if pinned:
+        from rest_framework.exceptions import ValidationError
+
+        raise ValidationError(
+            {
+                "detail": (
+                    "This problem is part of an upcoming or running contest "
+                    "and cannot be edited until that contest ends."
+                )
+            }
+        )
+
+
 class ProblemViewSet(viewsets.ModelViewSet):
     queryset = Problem.objects.all()  # Default queryset
     serializer_class = ProblemSerializer
@@ -139,6 +168,16 @@ class ProblemViewSet(viewsets.ModelViewSet):
             serializer.save(author=self.request.user)
         else:
             serializer.save()  # Or raise an error if anonymous users cannot create problems
+
+    def perform_update(self, serializer):
+        """CON-1: pin problem edits while the problem sits on the board of a
+        contest that has not finished yet (upcoming or running) — mid-contest
+        statement/test changes would silently invalidate live standings.
+        Admins bypass; after end_at the problem reverts to normal editing
+        (archive/upsolving mode).
+        """
+        _guard_contest_pin(serializer.instance, self.request.user)
+        serializer.save()
 
     def get_queryset(self):
         # By default, show only APPROVED problems to non-staff/non-authors
@@ -512,6 +551,7 @@ class TestCaseViewSet(viewsets.ModelViewSet):
                 self.request,
                 message="You do not have permission to add test cases to this problem.",
             )
+        _guard_contest_pin(problem, self.request.user)
         serializer.save()
 
     def perform_update(self, serializer):
@@ -524,6 +564,7 @@ class TestCaseViewSet(viewsets.ModelViewSet):
                 self.request,
                 message="You do not have permission to update test cases for this problem.",
             )
+        _guard_contest_pin(problem, self.request.user)
         serializer.save()
 
     def perform_destroy(self, instance):
@@ -536,6 +577,7 @@ class TestCaseViewSet(viewsets.ModelViewSet):
                 self.request,
                 message="You do not have permission to delete test cases for this problem.",
             )
+        _guard_contest_pin(problem, self.request.user)
         instance.delete()
 
 
