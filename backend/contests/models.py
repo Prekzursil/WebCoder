@@ -116,6 +116,10 @@ class Contest(models.Model):
     # the end-of-contest pass (full-suite rejudge of pretest submissions)
     # has been scheduled, keeping the tick idempotent.
     finalized_at = models.DateTimeField(_("finalized at"), null=True, blank=True)
+    # Round-2 SAF-2: set when an organizer discards this contest's ratings
+    # (post-contest DQ / integrity action) — the ratings replay skips it and
+    # finalize never (re)rates it.
+    ratings_discarded = models.BooleanField(_("ratings discarded"), default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

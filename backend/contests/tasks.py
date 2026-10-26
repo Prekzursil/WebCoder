@@ -49,8 +49,10 @@ def finalize_contest(contest_id: int) -> str:
         updated = Contest.objects.filter(
             pk=contest.pk, finalized_at__isnull=True
         ).update(finalized_at=now)
-    if not updated:
+    if not updated:  # pragma: no cover - concurrent-finalizer guard
         return f"contest {contest_id} already finalized (race)"
+
+    _schedule_ratings(contest)
 
     if not contest.pretest_mode:
         return f"contest {contest_id} finalized (no pretests to re-judge)"
@@ -67,7 +69,24 @@ def finalize_contest(contest_id: int) -> str:
         rejudge_submissions_batch.apply_async(
             args=[batch], countdown=(index // REJUDGE_BATCH_SIZE) * REJUDGE_STAGGER_SECONDS
         )
-    return f"contest {contest_id} finalized; {len(submission_ids)} submissions re-judging"
+    return (
+        f"contest {contest_id} finalized; "
+        f"{len(submission_ids)} submissions re-judging"
+    )
+
+
+def _schedule_ratings(contest):
+    """RAT-1: rated contests compute Glicko ratings once finalized. The
+    ratings task runs after the (possibly staggered) full-suite rejudge is
+    DISPATCHED — it consumes the final standings materialized rows, which
+    update as verdicts land; for pretest contests the organizer typically
+    re-rolls ratings via the rollback/recompute action after systests fully
+    drain (see services.compute_contest_ratings idempotency)."""
+    if not contest.is_rated:
+        return
+    from ratings.services import compute_contest_ratings_task
+
+    compute_contest_ratings_task.delay(contest.pk)
 
 
 @shared_task

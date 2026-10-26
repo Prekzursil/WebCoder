@@ -527,3 +527,12 @@ class LaneMetricsTests(ContestOpsBase):
         lanes = response.json()["submissions"]["queue_depth_lanes"]
         self.assertEqual(lanes["contest"], 1)
         self.assertEqual(lanes["practice"], 1)
+
+
+class ModelEdgeTests(ContestOpsBase):
+    def test_clarification_str(self):
+        contest = self.mk_contest()
+        clarification = Clarification.objects.create(
+            contest=contest, asker=self.alice, question="q?"
+        )
+        self.assertIn("clarification", str(clarification))
