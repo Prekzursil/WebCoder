@@ -96,6 +96,7 @@ INSTALLED_APPS = [
     "forum",
     "scratch",
     "contests",
+    "ratings",
 ]
 
 SITE_ID = 1
