@@ -18,6 +18,7 @@ from .judge_utils.custom_libs import install_custom_libs
 from .judge_utils.execution import run_code_in_sandbox
 from .judge_utils.checkers import run_custom_checker
 from leaderboard.aggregation import update_user_entry_task
+from contests.scoring import record_verdict_task
 from problems.scoring import aggregate_score
 from notifications.models import Notification
 from notifications.services import notify
@@ -115,6 +116,12 @@ def judge_submission_task(self, submission_id):
                 submission.verdict = Submission.VerdictStatus.COMPILE_ERROR
                 submission.detailed_feedback = compiler_output
                 submission.save()
+                if submission.contest_id:
+                    # CE still counts as an attempt on the contest board
+                    # (penalty-free in the ICPC/AtCoder math — scoring.py).
+                    transaction.on_commit(
+                        lambda: record_verdict_task.delay(submission.id)
+                    )
                 _notify_judged(submission, submission.verdict)
                 # temp_dir_obj is always created (above) before compilation, so
                 # the falsey arm of this guard is unreachable here. Reasoned,
@@ -301,6 +308,13 @@ def judge_submission_task(self, submission_id):
             if overall_verdict == Submission.VerdictStatus.ACCEPTED:
                 transaction.on_commit(
                     lambda: update_user_entry_task.delay(submission.user_id)
+                )
+            # Contest standings materialization (round-2 PRF-1): every
+            # terminal verdict on a contest-bound submission folds into its
+            # ContestScore row so scoreboard reads stay pure selects.
+            if submission.contest_id:
+                transaction.on_commit(
+                    lambda: record_verdict_task.delay(submission.id)
                 )
             _notify_judged(submission, overall_verdict)
 

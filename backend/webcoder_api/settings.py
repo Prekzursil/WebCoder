@@ -95,6 +95,7 @@ INSTALLED_APPS = [
     "notifications",
     "forum",
     "scratch",
+    "contests",
 ]
 
 SITE_ID = 1
@@ -482,3 +483,10 @@ JUDGE_SANDBOX_VOLUME = os.environ.get('JUDGE_SANDBOX_VOLUME', '')
 # 'judge-build' (and optionally JUDGE_PYPI_INDEX_URL) to enable pip.
 JUDGE_PIP_NETWORK = os.environ.get('JUDGE_PIP_NETWORK', 'none')
 JUDGE_PYPI_INDEX_URL = os.environ.get('JUDGE_PYPI_INDEX_URL', '')
+
+# In-contest submission cooldown in seconds (round-2 OPR-4): rate-limits a
+# single participant's contest submissions (anti-brute-force pacing). 0
+# disables. Consumed by contests.gating.
+CONTEST_SUBMIT_COOLDOWN_SECONDS = int(
+    os.environ.get("CONTEST_SUBMIT_COOLDOWN_SECONDS", "30")
+)

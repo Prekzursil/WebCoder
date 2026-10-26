@@ -134,7 +134,10 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: ["celery", "-A", "webcoder_api", "worker", "--loglevel=info", "--concurrency=2"]
+    # OPR-4 priority lanes: contest-bound judge tasks dispatch to the
+    # dedicated judge-contest queue so live contests never queue behind a
+    # practice/scratch burst (and vice versa).
+    command: ["celery", "-A", "webcoder_api", "worker", "--loglevel=info", "--concurrency=2", "-Q", "celery,judge-contest"]
     environment:
       # Prod deploys flip the whole profile via env (settings_prod: DEBUG=False,
       # secure transport defaults, deny-all hosts/CORS unless set):

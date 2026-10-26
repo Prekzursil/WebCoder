@@ -37,6 +37,19 @@ class Submission(models.Model):
         related_name="submissions",
         verbose_name=_("problem"),
     )
+    # Contest-bound submissions (competitive roadmap CON-1): set when the
+    # submission was made through a contest's gated submit path; null for
+    # ordinary practice submissions and for post-contest upsolving (which
+    # deliberately goes through the problem page — CON-5 archive behaviour).
+    # SET_NULL keeps the submission readable if the contest row is removed.
+    contest = models.ForeignKey(
+        "contests.Contest",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="submissions",
+        verbose_name=_("contest"),
+    )
     language = models.CharField(
         _("language"),
         max_length=50,  # e.g., "python3.11", "cpp17-gcc9.4", "java11"

@@ -49,6 +49,8 @@ urlpatterns = [
         include("notifications.urls", namespace="notifications_api_v1"),
     ),
     path("api/v1/forum/", include("forum.urls", namespace="forum_api_v1")),
+    # Contests (competitive roadmap Wave B: CON-1/2/3/6 + PRF-1).
+    path("api/v1/contests/", include("contests.urls", namespace="contests_api_v1")),
     # Custom invocation / scratch run (competitive roadmap X7/JDG-6) —
     # throttled + audit-logged raw judge execution.
     path("api/v1/scratch/", include("scratch.urls", namespace="scratch_api_v1")),
