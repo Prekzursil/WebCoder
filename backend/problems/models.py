@@ -274,6 +274,79 @@ class Problem(models.Model):
         ),
     )
 
+    # ------------------------------------------------------------------
+    # Source attribution (content wave): provenance for imported problems.
+    # Own-authored problems leave these blank; anything imported from an
+    # external catalog carries its source so the problem page can render
+    # "Source: <competition/site, year> · Author(s): <names>" and the
+    # licensing basis is auditable.
+    # ------------------------------------------------------------------
+    class LicenseStatus(models.TextChoices):
+        """Licensing bucket of the imported content (binding house rules).
+
+        - OWN            - the platform owner's own content (full rights).
+        - LICENSED       - explicit permissive license at the source.
+        - PUBLIC_EXAM    - public competition/exam-origin task (community
+                           corpus: RO olympiad rounds, admitere, IOI/CEOI,
+                           USACO-style openly published sets).
+        - TRIVIAL        - de-minimis statement with no original expression.
+        - REFERENCE_ONLY - metadata-only row; no public statement copy.
+        """
+
+        OWN = "own", _("Own content")
+        LICENSED = "licensed", _("Licensed")
+        PUBLIC_EXAM = "public-exam", _("Public competition/exam origin")
+        TRIVIAL = "trivial", _("Trivial (de-minimis)")
+        REFERENCE_ONLY = "reference-only", _("Reference only (metadata)")
+
+    source_name = models.CharField(
+        _("source name"),
+        max_length=255,
+        blank=True,
+        default="",
+        help_text=_(
+            "Human-readable origin, e.g. 'ONI 2014, Clasa a IX-a' or 'pbinfo.ro'."
+        ),
+    )
+    source_url = models.URLField(
+        _("source URL"),
+        blank=True,
+        default="",
+        help_text=_("Canonical URL of the original problem page."),
+    )
+    source_authors = models.JSONField(
+        _("source authors"),
+        default=list,
+        blank=True,
+        help_text=_("Original author name(s), e.g. ['Constantin Galatan']."),
+    )
+    license_status = models.CharField(
+        _("license status"),
+        max_length=20,
+        blank=True,
+        default="",
+        choices=LicenseStatus.choices,
+        help_text=_("Licensing bucket governing how this content may be used."),
+    )
+    license_basis = models.CharField(
+        _("license basis"),
+        max_length=500,
+        blank=True,
+        default="",
+        help_text=_("Why this license status holds (rule, license URL, note)."),
+    )
+    alt_sources = models.JSONField(
+        _("alternative sources"),
+        default=list,
+        blank=True,
+        help_text=_(
+            "Mirror records of dedupe-merged duplicates: "
+            "[{source, sourceId, sourceUrl, title}, ...]. The canonical "
+            "source lives in source_name/source_url; these document the "
+            "same classic task appearing on other judges."
+        ),
+    )
+
     # For custom checker program (optional)
     checker_code = models.TextField(
         _("checker code"),
@@ -305,6 +378,23 @@ class Problem(models.Model):
                 "en", self.title_i18n.get("ro", f"Problem {self.id}")
             )
         return f"Problem {self.id}"
+
+    @property
+    def source_line(self):
+        """One-line attribution for the problem page.
+
+        Renders as ``Source: <name> · Author(s): <names>`` with the pieces
+        that exist; empty string for own-authored problems with no source.
+        """
+        parts = []
+        if self.source_name:
+            parts.append(f"Source: {self.source_name}")
+        authors = [
+            a for a in (self.source_authors or []) if isinstance(a, str) and a.strip()
+        ]
+        if authors:
+            parts.append(f"Author(s): {', '.join(authors)}")
+        return " · ".join(parts)
 
     class Meta:
         verbose_name = _("problem")
@@ -529,3 +619,74 @@ class CurriculumNode(models.Model):
         if isinstance(self.name_i18n, dict):
             return f"{self.slug} ({self.name_i18n.get('en', '')})"
         return self.slug
+
+
+class CatalogEntry(models.Model):
+    """Internal catalog ledger for harvested problem metadata (content wave).
+
+    One row per deduped catalog cluster. Full-import buckets (own /
+    licensed / public-exam / trivial) additionally create a public
+    :class:`Problem` and link it back here; ``reference-only`` rows are
+    recorded *only* here — the statement never becomes platform content and
+    stays in the private offline archive.
+
+    The ledger is the dedupe backbone: authored/imported problems are
+    matched against ``sample_fingerprint`` and cluster members so the
+    platform never grows two copies of the same task.
+    """
+
+    cluster_id = models.CharField(
+        _("cluster id"), max_length=32, unique=True, db_index=True
+    )
+    source = models.CharField(_("source site"), max_length=32)
+    source_id = models.CharField(_("source problem id"), max_length=64)
+    source_url = models.URLField(_("source URL"), blank=True, default="")
+    title = models.CharField(_("title"), max_length=512)
+    languages = models.JSONField(_("statement languages"), default=list, blank=True)
+    tags = models.JSONField(_("source tags"), default=list, blank=True)
+    difficulty_proxy = models.JSONField(
+        _("difficulty proxy"), default=dict, blank=True
+    )
+    sample_fingerprint = models.CharField(
+        _("sample fingerprint"),
+        max_length=64,
+        blank=True,
+        default="",
+        db_index=True,
+        help_text=_("Hash of sample I/O used for cross-site dedupe."),
+    )
+    license_status = models.CharField(
+        _("license status"),
+        max_length=20,
+        choices=Problem.LicenseStatus.choices,
+        default=Problem.LicenseStatus.REFERENCE_ONLY,
+    )
+    archived = models.BooleanField(
+        _("statement archived"),
+        default=False,
+        help_text=_("Whether the offline archive holds the statement text."),
+    )
+    imported_problem = models.ForeignKey(
+        Problem,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="catalog_entries",
+        verbose_name=_("imported problem"),
+    )
+    attribution = models.CharField(
+        _("attribution"), max_length=500, blank=True, default=""
+    )
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("catalog entry")
+        verbose_name_plural = _("catalog entries")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["source", "source_id"], name="unique_source_problem"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.source}:{self.source_id} ({self.license_status})"

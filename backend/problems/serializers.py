@@ -77,6 +77,10 @@ class ProblemSerializer(serializers.ModelSerializer):
     # ProblemViewSet.get_queryset ("X tried / Y solved" per card).
     submission_count = serializers.IntegerField(read_only=True)
     solved_count = serializers.IntegerField(read_only=True)
+    # Source attribution (content wave): the composed one-line credit the
+    # problem page renders; the raw fields below stay writable so the
+    # import pipeline (and admins) can set them.
+    source_line = serializers.SerializerMethodField()
     # test_cases = TestCaseSerializer(many=True, read_only=True) # To show test cases when retrieving a problem
 
     class Meta:
@@ -101,6 +105,13 @@ class ProblemSerializer(serializers.ModelSerializer):
             "checker_language",  # Added checker fields
             "hints_ro",
             "hints_en",
+            "source_name",
+            "source_url",
+            "source_authors",
+            "license_status",
+            "license_basis",
+            "alt_sources",
+            "source_line",
             "creation_date",
             "last_modified_date",
             "submission_count",
@@ -110,6 +121,105 @@ class ProblemSerializer(serializers.ModelSerializer):
             # 'test_cases' # Add if you want to nest test cases in problem detail view
         ]
         read_only_fields = ["author", "verifier", "creation_date", "last_modified_date"]
+        # Explicit null normalizes to the empty list inside the validators
+        # below (both fields are list-shaped with list defaults).
+        extra_kwargs = {
+            "source_authors": {"allow_null": True},
+            "alt_sources": {"allow_null": True},
+        }
+
+    def get_source_line(self, obj):
+        return obj.source_line
+
+    def validate_source_authors(self, value):
+        """Authors are stored as a list of plain name strings."""
+        if value is None:
+            return []
+        if not isinstance(value, list) or not all(
+            isinstance(a, str) for a in value
+        ):
+            raise serializers.ValidationError(
+                "source_authors must be a list of author name strings."
+            )
+        return [a.strip() for a in value if a.strip()]
+
+    def validate_alt_sources(self, value):
+        """Alt sources are mirror records for dedupe-merged duplicates.
+
+        Each entry: {"source", "sourceId", "sourceUrl", "title"} with plain
+        string values (extra keys are dropped, title/sourceUrl optional).
+        """
+        if value is None:
+            return []
+        if not isinstance(value, list):
+            raise serializers.ValidationError(
+                "alt_sources must be a list of mirror-source records."
+            )
+        cleaned = []
+        for item in value:
+            if not isinstance(item, dict) or not isinstance(
+                item.get("source"), str
+            ) or not isinstance(item.get("sourceId"), str):
+                raise serializers.ValidationError(
+                    "each alt source needs string 'source' and 'sourceId'."
+                )
+            cleaned.append(
+                {
+                    "source": item["source"],
+                    "sourceId": item["sourceId"],
+                    "sourceUrl": str(item.get("sourceUrl", "")),
+                    "title": str(item.get("title", ""))[:512],
+                }
+            )
+        return cleaned
+
+    def validate(self, attrs):
+        """Attribution completeness (content wave licensing rules).
+
+        Any imported, non-own problem must carry its source: license_status
+        in {LICENSED, PUBLIC_EXAM, TRIVIAL} without a source_name (and
+        license_basis) is rejected — attribution alone is what makes the
+        import lawful under the house rules. Own content and original
+        authoring (blank license_status) are exempt.
+        """
+        attrs = super().validate(attrs)
+        license_status = attrs.get(
+            "license_status",
+            getattr(self.instance, "license_status", "") if self.instance else "",
+        )
+        imported_non_own = license_status in (
+            Problem.LicenseStatus.LICENSED,
+            Problem.LicenseStatus.PUBLIC_EXAM,
+            Problem.LicenseStatus.TRIVIAL,
+        )
+        if imported_non_own:
+            source_name = attrs.get(
+                "source_name",
+                getattr(self.instance, "source_name", "") if self.instance else "",
+            )
+            license_basis = attrs.get(
+                "license_basis",
+                getattr(self.instance, "license_basis", "") if self.instance else "",
+            )
+            if not source_name:
+                raise serializers.ValidationError(
+                    {
+                        "source_name": (
+                            "Imported non-own problems require a source name "
+                            "(attribution is mandatory)."
+                        )
+                    }
+                )
+            if not license_basis:
+                raise serializers.ValidationError(
+                    {
+                        "license_basis": (
+                            "Imported non-own problems require the licensing "
+                            "basis to be recorded."
+                        )
+                    }
+                )
+        return attrs
 
     def validate_allowed_languages(self, value):
         """Every declared allowed language must be a judge-registry id.
