@@ -348,6 +348,15 @@ class TestCase(models.Model):
     order = models.PositiveIntegerField(
         _("order"), default=0, help_text=_("Order of execution for the test case.")
     )
+    # Pretest flag (competitive roadmap CON-8): in a pretest-mode contest the
+    # judge runs ONLY tests with this flag while the contest runs; the
+    # end-of-contest pass re-judges every contest submission on the full
+    # suite. Absent any flagged test the full suite runs (author opt-in).
+    is_pretest = models.BooleanField(
+        _("pretest"),
+        default=False,
+        help_text=_("Runs as part of the contest pretest subset."),
+    )
 
     # For large data, consider FileField:
     # input_file = models.FileField(upload_to='test_cases/inputs/', null=True, blank=True)

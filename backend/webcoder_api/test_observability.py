@@ -229,6 +229,7 @@ class TestBeatSchedule:
             "notifications-purge",
             "submission-test-output-retention",
             "deleted-users-purge",
+            "contest-tick",  # Wave B CON-8/OPR-4: end-of-contest finalize
         }
         assert (
             CELERY_BEAT_SCHEDULE["leaderboard-nightly-recompute"]["task"]

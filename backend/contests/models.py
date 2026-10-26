@@ -112,6 +112,11 @@ class Contest(models.Model):
         _("editorial delay (minutes)"), default=0
     )
 
+    # Set once by the finalize beat task when the contest ends: marks that
+    # the end-of-contest pass (full-suite rejudge of pretest submissions)
+    # has been scheduled, keeping the tick idempotent.
+    finalized_at = models.DateTimeField(_("finalized at"), null=True, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -292,3 +297,73 @@ class ContestScore(models.Model):
 
     def __str__(self):
         return f"score {self.participation_id}/{self.contest_problem_id}"
+
+
+#: Organizer canned answers (CON-4, .campion precedent): rendered as
+#: one-click buttons in the jury UI; the API stays free-text.
+CLARIFICATION_CANNED_ANSWERS = [
+    "Yes",
+    "No",
+    "No comment",
+    "Read the statement again",
+]
+
+
+class Clarification(models.Model):
+    """Participant→jury question (CON-4).
+
+    Private by default (asker + organizers); ``is_broadcast`` publishes the
+    Q&A pair to every participant via a notification. Moderation basics
+    (round-2 SAF-1): organizers can hide an abusive question — hidden rows
+    disappear from participant lists while staying auditable.
+    """
+
+    contest = models.ForeignKey(
+        Contest, on_delete=models.CASCADE, related_name="clarifications"
+    )
+    problem = models.ForeignKey(
+        "problems.Problem",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="clarifications",
+        verbose_name=_("problem"),
+        help_text=_("Optional: the question is about this board problem."),
+    )
+    asker = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="asked_clarifications",
+    )
+    question = models.TextField(_("question"), max_length=2000)
+    answer = models.TextField(_("answer"), blank=True)
+    answered_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="answered_clarifications",
+    )
+    answered_at = models.DateTimeField(_("answered at"), null=True, blank=True)
+    is_broadcast = models.BooleanField(
+        _("broadcast"), default=False, help_text=_("Publish to all participants.")
+    )
+    is_hidden = models.BooleanField(_("hidden"), default=False)
+    hidden_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="hidden_clarifications",
+    )
+    hidden_reason = models.CharField(_("hidden reason"), max_length=200, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("clarification")
+        verbose_name_plural = _("clarifications")
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["contest", "-created_at"])]
+
+    def __str__(self):
+        return f"clarification #{self.id} on contest {self.contest_id}"
