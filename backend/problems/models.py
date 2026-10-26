@@ -317,6 +317,11 @@ class TestCase(models.Model):
     Model representing a test case for a problem.
     """
 
+    # Zero-warnings policy: the class name makes pytest's collector think
+    # this Django model is a test class (PytestCollectionWarning). The
+    # flag is pytest's documented opt-out for non-test "Test*" classes.
+    __test__ = False
+
     problem = models.ForeignKey(
         Problem,
         related_name="test_cases",

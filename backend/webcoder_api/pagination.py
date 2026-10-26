@@ -22,6 +22,21 @@ class StandardPageNumberPagination(PageNumberPagination):
     page_size_query_param = "page_size"
     max_page_size = 100
 
+    def paginate_queryset(self, queryset, request, view=None):
+        # Zero-warnings policy: Django's paginator raises
+        # UnorderedObjectListWarning for unordered querysets (page order
+        # would be undefined). Rather than patching every viewset that
+        # forgets Meta.ordering, the page-number paginator itself applies
+        # a deterministic primary-key order as the floor. Querysets that
+        # already carry an ordering (e.g. Problem's -creation_date) and
+        # already-ranked plain lists (contest standings) pass through
+        # untouched.
+        if hasattr(queryset, "order_by") and not getattr(
+            queryset, "ordered", False
+        ):
+            queryset = queryset.order_by("pk")
+        return super().paginate_queryset(queryset, request, view=view)
+
 
 class NewestFirstCursorPagination(CursorPagination):
     page_size = 25
