@@ -1012,7 +1012,10 @@ class CheckerTests(unittest.TestCase):
         compile_argv = None
         if mock_compile.call_count:
             compile_argv = mock_compile.call_args[0][0]
-        return result, argv, compile_argv
+        # Protocol v2 returns (verdict, fraction, msg); these legacy
+        # cases predate partial awards, so the helper sheds the fraction.
+        verdict, _fraction, msg = result
+        return (verdict, msg), argv, compile_argv
 
     def test_python_checker_accepted_with_resources(self):
         (verdict, msg), argv, _ = self._checker(
@@ -1040,10 +1043,19 @@ class CheckerTests(unittest.TestCase):
 
     def test_python_checker_signals_wrong_answer(self):
         (verdict, msg), _, _ = self._checker(
-            run_result=_run_result(5, "", "")
+            run_result=_run_result(1, "", "")
         )
         self.assertEqual(verdict, WA)
-        self.assertIn("code 5", msg)
+        self.assertIn("code 1", msg)
+
+    def test_python_checker_unexpected_exit_is_ie(self):
+        # Protocol v2 (J7): exits outside testlib's 0/1/2/7 are checker
+        # crashes, judged IE — never a silent WA.
+        (verdict, msg), _, _ = self._checker(
+            run_result=_run_result(5, "", "")
+        )
+        self.assertEqual(verdict, IE)
+        self.assertIn("unexpected code 5", msg)
 
     def test_python_checker_communicate_timeout(self):
         (verdict, msg), _, _ = self._checker(
@@ -1105,7 +1117,7 @@ class CheckerTests(unittest.TestCase):
             language="cpp17",
         )
         self.assertEqual(verdict, IE)
-        self.assertIn("Checker compile failed", msg)
+        self.assertIn("Checker compile error", msg)
 
     def test_unsupported_checker_language(self):
         (verdict, msg), _, _ = self._checker(language="ruby")
@@ -1261,6 +1273,8 @@ class JudgeSubmissionTaskTests(TestCase):
         submission = make_submission(self.user, problem)
         make_test_case(problem, order=1, expected="3\n", points=4)
         make_test_case(problem, order=2, expected="4\n", points=6)
+        from submissions.judge_utils.languages import get_language
+
         with patch(
             "submissions.tasks.compile_code_in_sandbox",
             return_value=(True, "ok", "fake-exe"),
@@ -1268,8 +1282,14 @@ class JudgeSubmissionTaskTests(TestCase):
             "submissions.tasks.run_code_in_sandbox",
             side_effect=[(AC, 10, 100, "o1", ""), (AC, 10, 100, "o2", "warn")],
         ), patch(
-            "submissions.tasks.run_custom_checker",
-            side_effect=[(AC, "fine"), (WA, "nope")],
+            "submissions.tasks.compile_checker",
+            return_value=(True, "ready", get_language("python3")),
+        ), patch(
+            "submissions.tasks.run_prepared_checker",
+            side_effect=[
+                (AC, None, "fine"),
+                (WA, None, "nope"),
+            ],
         ) as mock_checker:
             message = self._apply(submission.id)
         self.assertIn("judged", message)
