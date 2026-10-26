@@ -1,6 +1,7 @@
-"""Wave A judge-package tests (competitive roadmap J5/J6/J8/RO-4/X7):
-per-language limits, scoring modes + cached full_score, token/case-insensitive
-comparison with diff hints, file-I/O mode, and the scratch endpoint.
+"""Wave A judge-package tests (competitive roadmap J5/J6/J7/J8/RO-4/X7):
+per-language limits, scoring modes + cached full_score, checker protocol v2
+(compile-once + partial POINTS), token/case-insensitive comparison with diff
+hints, file-I/O mode, and the scratch endpoint.
 """
 
 from unittest import mock
@@ -410,3 +411,195 @@ class ScratchModelTest(TestCase):
             user=user, language="python3", source_code="print(1)"
         )
         self.assertIn("python3", str(run))
+
+
+class CheckerProtocolV2TaskTest(TestCase):
+    """J7 through the judge task: compile-once + partial-point scoring."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="cu", password="p")
+        self.problem = Problem.objects.create(
+            title_i18n={"en": "CP2"},
+            statement_i18n={"en": "S"},
+            comparison_mode=CM.CUSTOM_CHECKER,
+            checker_code="print('POINTS 0.5')",
+            checker_language="python3",
+        )
+        for i in range(3):
+            ProblemTestCase.objects.create(
+                problem=self.problem,
+                input_data=f"in{i}",
+                expected_output_data="out",
+                points=10,
+                order=i,
+            )
+
+    def _sub(self):
+        return Submission.objects.create(
+            user=self.user, problem=self.problem, language="python3", code="print(1)"
+        )
+
+    def _checker_run(self, fraction=0.5):
+        """(compile_mock, run_mock) with a scripted checker verdict."""
+        from submissions.judge_utils import checkers as checkers_mod
+
+        compile_mock = mock.patch(
+            f"{TASKS}.compile_checker",
+            return_value=(True, "ready", checkers_mod.get_language("python3")),
+        )
+        run_mock = mock.patch(
+            f"{TASKS}.run_prepared_checker",
+            return_value=(
+                Submission.VerdictStatus.ACCEPTED,
+                fraction,
+                f"Checker awarded {fraction:.0%}",
+            ),
+        )
+        return compile_mock, run_mock
+
+    def test_checker_compiles_once_across_tests(self):
+        sub = self._sub()
+        compile_mock, run_mock = self._checker_run()
+        with (
+            mock.patch(
+                f"{TASKS}.compile_code_in_sandbox",
+                return_value=(True, "ok", "/tmp/exe"),
+            ),
+            mock.patch(
+                f"{TASKS}.run_code_in_sandbox",
+                return_value=(Submission.VerdictStatus.ACCEPTED, 5, 512, "out", ""),
+            ),
+            compile_mock as c,
+            run_mock as r,
+        ):
+            _call(sub.id)
+        self.assertEqual(c.call_count, 1)  # compiled ONCE, not per test
+        self.assertEqual(r.call_count, 3)  # executed per test
+
+    def test_partial_fraction_scales_partial_per_test_score(self):
+        sub = self._sub()
+        compile_mock, run_mock = self._checker_run(fraction=0.5)
+        with (
+            mock.patch(
+                f"{TASKS}.compile_code_in_sandbox",
+                return_value=(True, "ok", "/tmp/exe"),
+            ),
+            mock.patch(
+                f"{TASKS}.run_code_in_sandbox",
+                return_value=(Submission.VerdictStatus.ACCEPTED, 5, 512, "out", ""),
+            ),
+            compile_mock,
+            run_mock,
+        ):
+            _call(sub.id)
+        sub.refresh_from_db()
+        # 3 tests x 10 points x 0.5 = 15 of 30; verdict stays AC (J6 UI
+        # renders the PARTIAL state from score < max_score).
+        self.assertEqual(sub.verdict, Submission.VerdictStatus.ACCEPTED)
+        self.assertEqual(sub.score, 15)
+
+    def test_checker_compile_failure_fails_submission_fast(self):
+        sub = self._sub()
+        with (
+            mock.patch(
+                f"{TASKS}.compile_code_in_sandbox",
+                return_value=(True, "ok", "/tmp/exe"),
+            ),
+            mock.patch(
+                f"{TASKS}.compile_checker",
+                return_value=(False, "Checker compile failed.\nsyntax", None),
+            ),
+        ):
+            _call(sub.id)
+        sub.refresh_from_db()
+        self.assertEqual(sub.verdict, Submission.VerdictStatus.INTERNAL_ERROR)
+        self.assertIn("syntax", sub.detailed_feedback)
+        # No test rows were produced — the failure precedes the loop.
+        self.assertEqual(
+            SubmissionTestResult.objects.filter(submission=sub).count(), 0
+        )
+
+    def test_missing_checker_code_yields_per_test_ie(self):
+        self.problem.checker_code = ""
+        self.problem.save()
+        sub = self._sub()
+        with (
+            mock.patch(
+                f"{TASKS}.compile_code_in_sandbox",
+                return_value=(True, "ok", "/tmp/exe"),
+            ),
+            mock.patch(
+                f"{TASKS}.run_code_in_sandbox",
+                return_value=(Submission.VerdictStatus.ACCEPTED, 5, 512, "out", ""),
+            ),
+            mock.patch(f"{TASKS}.compile_checker") as c,
+        ):
+            _call(sub.id)
+        sub.refresh_from_db()
+        self.assertEqual(sub.verdict, Submission.VerdictStatus.INTERNAL_ERROR)
+        c.assert_not_called()  # nothing to compile without checker source
+        self.assertEqual(
+            SubmissionTestResult.objects.filter(submission=sub).count(), 3
+        )
+
+
+class AggregateScoreFractionTest(TestCase):
+    """J7 fractions through aggregate_score (all three modes)."""
+
+    def setUp(self):
+        self.problem = Problem.objects.create(
+            title_i18n={"en": "F"},
+            statement_i18n={"en": "S"},
+        )
+        self.t1 = ProblemTestCase.objects.create(
+            problem=self.problem, input_data="a", expected_output_data="b",
+            points=10, order=0,
+        )
+        self.t2 = ProblemTestCase.objects.create(
+            problem=self.problem, input_data="a", expected_output_data="b",
+            points=10, order=1,
+        )
+
+    def test_partial_credit_sums_fractions(self):
+        score, full = aggregate_score(
+            self.problem.scoring_mode,
+            [(self.t1, True, 0.5), (self.t2, True)],
+        )
+        self.assertEqual((score, full), (15, 20))
+
+    def test_failed_test_ignores_fraction(self):
+        score, _ = aggregate_score(
+            self.problem.scoring_mode,
+            [(self.t1, False, 0.9), (self.t2, True)],
+        )
+        self.assertEqual(score, 10)
+
+    def test_binary_requires_full_credit_each_test(self):
+        self.problem.scoring_mode = Problem.ScoringMode.BINARY
+        self.problem.save()
+        score, full = aggregate_score(
+            Problem.ScoringMode.BINARY, [(self.t1, True, 0.5), (self.t2, True)]
+        )
+        self.assertEqual((score, full), (0, 20))
+        score, _ = aggregate_score(
+            Problem.ScoringMode.BINARY, [(self.t1, True, 1.0), (self.t2, True)]
+        )
+        self.assertEqual(score, 20)
+
+    def test_subtasks_group_needs_full_credit_members(self):
+        self.problem.scoring_mode = Problem.ScoringMode.SUBTASKS
+        self.problem.save()
+        self.t1.subtask = "g1"
+        self.t1.save()
+        self.t2.subtask = "g1"
+        self.t2.save()
+        score, full = aggregate_score(
+            Problem.ScoringMode.SUBTASKS,
+            [(self.t1, True, 0.5), (self.t2, True)],
+        )
+        self.assertEqual((score, full), (0, 10))
+        score, _ = aggregate_score(
+            Problem.ScoringMode.SUBTASKS,
+            [(self.t1, True, 1.0), (self.t2, True)],
+        )
+        self.assertEqual(score, 10)

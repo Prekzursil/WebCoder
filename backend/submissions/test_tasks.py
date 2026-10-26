@@ -11,6 +11,7 @@ from django.test import TestCase
 from problems.models import Problem, TestCase as ProblemTestCase
 from submissions.models import Submission, SubmissionTestResult
 from submissions.tasks import judge_submission_task
+from submissions.judge_utils.languages import get_language
 from users.models import User
 
 TASKS = "submissions.tasks"
@@ -296,8 +297,16 @@ class JudgeSubmissionTaskTest(TestCase):
                 return_value=(Submission.VerdictStatus.ACCEPTED, 5, 100, "out", "e"),
             ),
             mock.patch(
-                f"{TASKS}.run_custom_checker",
-                return_value=(Submission.VerdictStatus.ACCEPTED, "checker ok"),
+                f"{TASKS}.compile_checker",
+                return_value=(True, "ready", get_language("python3")),
+            ),
+            mock.patch(
+                f"{TASKS}.run_prepared_checker",
+                return_value=(
+                    Submission.VerdictStatus.ACCEPTED,
+                    None,
+                    "checker ok",
+                ),
             ),
         ):
             _call(sub.id)
@@ -343,8 +352,16 @@ class JudgeSubmissionTaskTest(TestCase):
                 return_value=(Submission.VerdictStatus.ACCEPTED, 5, 100, "out", ""),
             ),
             mock.patch(
-                f"{TASKS}.run_custom_checker",
-                return_value=(Submission.VerdictStatus.WRONG_ANSWER, "nope"),
+                f"{TASKS}.compile_checker",
+                return_value=(True, "ready", get_language("python3")),
+            ),
+            mock.patch(
+                f"{TASKS}.run_prepared_checker",
+                return_value=(
+                    Submission.VerdictStatus.WRONG_ANSWER,
+                    None,
+                    "nope",
+                ),
             ),
         ):
             _call(sub.id)

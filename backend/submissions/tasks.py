@@ -16,7 +16,13 @@ from .judge_utils.compilation import compile_code_in_sandbox
 from .judge_utils.languages import effective_limits
 from .judge_utils.custom_libs import install_custom_libs
 from .judge_utils.execution import run_code_in_sandbox
-from .judge_utils.checkers import run_custom_checker
+from .judge_utils.checkers import (
+    CHECKER_ANSWER_FILE,
+    CHECKER_INPUT_FILE,
+    CHECKER_USER_OUTPUT_FILE,
+    compile_checker,
+    run_prepared_checker,
+)
 from leaderboard.aggregation import update_user_entry_task
 from contests.scoring import record_verdict_task
 from problems.scoring import aggregate_score
@@ -87,6 +93,9 @@ class _CeleryTask(Protocol):
 @shared_task(bind=True)
 def judge_submission_task(self, submission_id):
     temp_dir_obj = None
+    # J7: the per-submission checker workspace (None until/unless a
+    # custom-checker problem compiles one); cleaned in finally.
+    checker_workspace_obj = None
     try:
         # Initial transaction to fetch problem and mark submission as COMPILING
         with transaction.atomic():
@@ -186,6 +195,38 @@ def judge_submission_task(self, submission_id):
             problem.limit_overrides,
         )
 
+        # J7 (checker protocol v2): compile the custom checker ONCE per
+        # submission, outside the per-test loop. The workspace persists
+        # across tests; per test only the three evidence files change.
+        checker_dir = None
+        checker_spec = None
+        if problem.comparison_mode == Problem.ComparisonMode.CUSTOM_CHECKER:
+            if problem.checker_code and problem.checker_language:
+                checker_workspace_obj = _judge_workspace(
+                    f"checker_{submission_id}_"
+                )
+                checker_dir = pathlib.Path(checker_workspace_obj.name)
+                checker_ok, checker_msg, checker_spec = compile_checker(
+                    problem.checker_code,
+                    problem.checker_language,
+                    checker_dir,
+                )
+                if not checker_ok:
+                    with transaction.atomic():
+                        submission = Submission.objects.select_for_update().get(
+                            id=submission_id
+                        )
+                        submission.verdict = Submission.VerdictStatus.INTERNAL_ERROR
+                        submission.detailed_feedback = checker_msg
+                        submission.save()
+                        _notify_judged(submission, submission.verdict)
+                    if temp_dir_obj:
+                        temp_dir_obj.cleanup()
+                    checker_workspace_obj.cleanup()
+                    return f"Submission {submission_id}: checker compile failed."
+            # Missing checker code/lang defers to the per-test IE branch
+            # below (same verdict, plus a per-test audit row).
+
         # RO-4: FILES-mode problems exchange data through working-directory
         # files instead of stdin/stdout.
         io_files = None
@@ -196,6 +237,9 @@ def judge_submission_task(self, submission_id):
         scored_results: list[tuple[TestCase, bool]] = []
         max_time_ms_overall = 0
         max_memory_kb_overall = 0
+        # J7: partial checker award for the current test (reset each
+        # iteration; rides into scored_results as a third element).
+        checker_fraction = None
 
         for i, tc in enumerate(test_cases):
             if executable_path_str is None:
@@ -233,36 +277,27 @@ def judge_submission_task(self, submission_id):
             final_tc_verdict = tc_verdict
             if tc_verdict == Submission.VerdictStatus.ACCEPTED:
                 if problem.comparison_mode == Problem.ComparisonMode.CUSTOM_CHECKER:
-                    if problem.checker_code and problem.checker_language:
-                        checker_temp_dir_obj_tc = _judge_workspace(
-                            f"checker_{submission_id}_tc_{tc.id}_"
-                        )
-                        checker_dir_tc = pathlib.Path(checker_temp_dir_obj_tc.name)
-                        input_file, user_output_file, answer_file = (
-                            checker_dir_tc / "input.txt",
-                            checker_dir_tc / "user_output.txt",
-                            checker_dir_tc / "answer.txt",
-                        )
-                        with open(input_file, "w") as f:
+                    if checker_spec is not None and checker_dir is not None:
+                        # J7: evidence files into the shared checker
+                        # workspace; the artifact was compiled once above.
+                        with open(checker_dir / CHECKER_INPUT_FILE, "w") as f:
                             f.write(tc.input_data)
-                        with open(user_output_file, "w") as f:
+                        with open(
+                            checker_dir / CHECKER_USER_OUTPUT_FILE, "w"
+                        ) as f:
                             f.write(tc_output)
-                        with open(answer_file, "w") as f:
+                        with open(checker_dir / CHECKER_ANSWER_FILE, "w") as f:
                             f.write(tc.expected_output_data)
 
-                        checker_verdict_from_custom, checker_msg = run_custom_checker(
-                            problem.checker_code,
-                            problem.checker_language,
-                            input_file,
-                            user_output_file,
-                            answer_file,
-                            checker_dir_tc,
-                        )
+                        (
+                            checker_verdict_from_custom,
+                            checker_fraction,
+                            checker_msg,
+                        ) = run_prepared_checker(checker_spec, checker_dir)
                         final_tc_verdict = checker_verdict_from_custom
                         tc_error = (
                             tc_error + "\n" if tc_error else ""
                         ) + f"Custom Checker Feedback:\n{checker_msg}"
-                        checker_temp_dir_obj_tc.cleanup()
                     else:
                         final_tc_verdict = Submission.VerdictStatus.INTERNAL_ERROR
                         tc_error = (
@@ -294,7 +329,18 @@ def judge_submission_task(self, submission_id):
                 error_output=tc_error[:10000],
             )
 
-            scored_results.append((tc, final_tc_verdict == Submission.VerdictStatus.ACCEPTED))
+            scored_results.append(
+                (
+                    tc,
+                    final_tc_verdict == Submission.VerdictStatus.ACCEPTED,
+                    # J7: a partial checker award only credits points when
+                    # the test's verdict is AC; cleared for the next test.
+                    checker_fraction
+                    if final_tc_verdict == Submission.VerdictStatus.ACCEPTED
+                    else None,
+                )
+            )
+            checker_fraction = None
             if final_tc_verdict != Submission.VerdictStatus.ACCEPTED:
                 if overall_verdict == Submission.VerdictStatus.ACCEPTED:
                     overall_verdict = final_tc_verdict
@@ -362,6 +408,8 @@ def judge_submission_task(self, submission_id):
     finally:
         if temp_dir_obj:
             temp_dir_obj.cleanup()
+        if checker_workspace_obj is not None:
+            checker_workspace_obj.cleanup()
     return final_message
 
 

@@ -50,23 +50,62 @@ def recompute_full_score(sender, instance, **kwargs):
     )
 
 
-def aggregate_score(scoring_mode, test_results):
-    """Aggregate ``(test_case, passed)`` pairs into (score, full_score).
+def _normalized(test_results):
+    """(tc, passed, fraction) triples from 2- or 3-tuples.
 
-    ``test_results`` is an iterable of (TestCase, passed: bool) in execution
-    order.
+    ``fraction`` (checker protocol v2 / J7) is None for plain outcomes
+    and a 0..1 float for exit-7 partial awards; it only ever credits
+    points, never flips ``passed``.
     """
-    ordered = list(test_results)
-    full = full_score_for([tc for tc, _ in ordered])
+    out = []
+    for entry in test_results:
+        tc, ok = entry[0], entry[1]
+        fraction = entry[2] if len(entry) > 2 else None
+        if not ok:
+            fraction = None  # a failed test never carries partial credit
+        elif fraction is not None:
+            fraction = min(max(fraction, 0.0), 1.0)
+        out.append((tc, ok, fraction))
+    return out
+
+
+def _full_pass(ok, fraction):
+    """A test fully passes only when accepted at full credit (J7: a
+    partial award must not satisfy BINARY/SUBTASKS all-pass rules)."""
+    return ok and (fraction is None or fraction >= 1.0)
+
+
+def _credit(tc, ok, fraction):
+    """Points credited by one test under PARTIAL_PER_TEST semantics."""
+    if fraction is not None:
+        return tc.points * fraction
+    return tc.points if ok else 0
+
+
+def aggregate_score(scoring_mode, test_results):
+    """Aggregate per-test outcomes into (score, full_score).
+
+    ``test_results`` is an iterable of ``(TestCase, passed)`` pairs or
+    ``(TestCase, passed, fraction)`` triples (checker protocol v2 / J7:
+    ``fraction`` scales the test's points under PARTIAL_PER_TEST) in
+    execution order.
+    """
+    ordered = _normalized(test_results)
+    full = full_score_for([tc for tc, _, _ in ordered])
     if scoring_mode == Problem.ScoringMode.BINARY:
-        return (full if ordered and all(ok for _, ok in ordered) else 0), full
+        all_full = ordered and all(_full_pass(ok, f) for _, ok, f in ordered)
+        return (full if all_full else 0), full
     if scoring_mode == Problem.ScoringMode.SUBTASKS:
-        ungrouped, groups = group_tests([tc for tc, _ in ordered])
-        passed = {id(tc): ok for tc, ok in ordered}
-        score = sum(tc.points for tc in ungrouped if passed[id(tc)])
+        ungrouped, groups = group_tests([tc for tc, _, _ in ordered])
+        outcome = {id(tc): (ok, f) for tc, ok, f in ordered}
+        # Ungrouped tests score individually (partial credit allowed);
+        # a subtask group is all-or-nothing at FULL credit per member.
+        score = sum(
+            _credit(tc, *outcome[id(tc)]) for tc in ungrouped
+        )
         for members in groups.values():
-            if all(passed[id(tc)] for tc in members):
+            if all(_full_pass(*outcome[id(tc)]) for tc in members):
                 score += members[0].points
         return score, full
     # PARTIAL_PER_TEST (default)
-    return sum(tc.points for tc, ok in ordered if ok), full
+    return sum(_credit(tc, ok, f) for tc, ok, f in ordered), full
