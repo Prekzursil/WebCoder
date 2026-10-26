@@ -177,7 +177,10 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: ["celery", "-A", "webcoder_api", "beat", "--loglevel=info", "--schedule-file", "/tmp/celerybeat-schedule"]
+    # NB: celery 5.x renamed the flag — '--schedule-file' (the SPEC-GAPS
+    # D-B11 wording) is rejected by click with exit 2, which crash-looped
+    # the beat container on the live stack; the flag is '--schedule'.
+    command: ["celery", "-A", "webcoder_api", "beat", "--loglevel=info", "--schedule", "/tmp/celerybeat-schedule"]
     environment:
       DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-webcoder_api.settings}
       SECRET_KEY: ${SECRET_KEY:-django-insecure-compose-dev-only-key}
