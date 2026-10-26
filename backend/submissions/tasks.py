@@ -94,9 +94,29 @@ def judge_submission_task(self, submission_id):
             if submission.verdict != Submission.VerdictStatus.PENDING:
                 return f"Submission {submission_id} not PENDING."
             problem = submission.problem
-            test_cases = TestCase.objects.filter(problem=problem).order_by("order")
+            test_cases = list(
+                TestCase.objects.filter(problem=problem).order_by("order")
+            )
+            # CON-8 pretests: while a pretest-mode contest is live, judge the
+            # pretest-flagged subset only (fallback: the full suite when the
+            # author flagged none). Decided by submission_time — the window
+            # the submission was made in — so a queue backlog crossing end_at
+            # cannot leak full-suite verdicts mid-contest.
+            pretest_run = False
+            if submission.contest_id:
+                contest = submission.contest
+                if (
+                    contest.pretest_mode
+                    and contest.start_at <= submission.submission_time < contest.end_at
+                ):
+                    pretests = [tc for tc in test_cases if tc.is_pretest]
+                    if pretests:
+                        test_cases = pretests
+                        pretest_run = True
             submission.verdict = Submission.VerdictStatus.COMPILING
-            submission.detailed_feedback = "Compiling..."
+            submission.detailed_feedback = (
+                "Compiling (pretest run)…" if pretest_run else "Compiling..."
+            )
             submission.save()
 
         temp_dir_obj = _judge_workspace(f"submission_{submission_id}_")
@@ -292,8 +312,9 @@ def judge_submission_task(self, submission_id):
                 overall_verdict, overall_verdict
             )
             submission.detailed_feedback = (
-                f"Overall Verdict: {verdict_label}. "
-                f"Score: {total_score}"
+                ("[Pretest run] " if pretest_run else "")
+                + f"Overall Verdict: {verdict_label}. "
+                + f"Score: {total_score}"
                 + (f"/{max_score}" if max_score else "")
                 + "."
             )

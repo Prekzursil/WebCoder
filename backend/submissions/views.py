@@ -1,4 +1,5 @@
 from rest_framework import viewsets, permissions, status, generics
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from webcoder_api.pagination import NewestFirstCursorPagination
@@ -9,7 +10,7 @@ from .serializers import (
     SubmissionCreateSerializer,
 )
 from .tasks import judge_task
-from users.permissions import IsOwnerOrAdminForSubmission
+from users.permissions import IsAdminUser, IsOwnerOrAdminForSubmission
 
 
 class SubmissionCursorPagination(NewestFirstCursorPagination):
@@ -24,6 +25,7 @@ class SubmissionViewSet(viewsets.ReadOnlyModelViewSet):
     API endpoint for listing and retrieving submissions.
     - Users can see their own submissions.
     - Admins can see all submissions.
+    - Admins can rejudge (JDG-12): reset to PENDING and re-dispatch.
     """
 
     queryset = Submission.objects.all().select_related("user", "problem")
@@ -80,6 +82,40 @@ class SubmissionViewSet(viewsets.ReadOnlyModelViewSet):
         if language:
             qs = qs.filter(language=language)
         return qs
+
+    @action(
+        detail=True,
+        methods=["post"],
+        permission_classes=[permissions.IsAuthenticated, IsAdminUser],
+    )
+    def rejudge(self, request, pk=None):
+        """JDG-12: reset a submission to PENDING and re-dispatch judging.
+
+        Per-test rows are deleted (replaced by the fresh run); the verdict
+        cycles back through PENDING ("WJ" in UI terms) until the judge
+        commits. Contest-bound submissions re-dispatch on the judge-contest
+        lane. Idempotent: a submission already in flight is rejected.
+        """
+        submission = self.get_object()
+        if submission.verdict in (
+            Submission.VerdictStatus.PENDING,
+            Submission.VerdictStatus.COMPILING,
+            Submission.VerdictStatus.RUNNING,
+        ):
+            return Response(
+                {"detail": "Submission is already being judged."},
+                status=status.HTTP_409_CONFLICT,
+            )
+        submission.test_results.all().delete()
+        submission.verdict = Submission.VerdictStatus.PENDING
+        submission.score = None
+        submission.detailed_feedback = "Rejudge requested."
+        submission.save(update_fields=["verdict", "score", "detailed_feedback"])
+        if submission.contest_id:
+            judge_task.apply_async(args=[submission.id], queue="judge-contest")
+        else:
+            judge_task.delay(submission.id)
+        return Response({"detail": "Rejudge dispatched.", "id": submission.id})
 
 
 class SubmissionCreateView(generics.CreateAPIView):

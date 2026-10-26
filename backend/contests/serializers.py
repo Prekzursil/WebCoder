@@ -6,7 +6,13 @@ from rest_framework import serializers
 from problems.models import Problem
 from users.models import User
 
-from .models import Contest, ContestParticipation, ContestProblem
+from .models import (
+    CLARIFICATION_CANNED_ANSWERS,
+    Clarification,
+    Contest,
+    ContestParticipation,
+    ContestProblem,
+)
 
 
 class ContestProblemSerializer(serializers.ModelSerializer):
@@ -153,3 +159,75 @@ class RegistrationSerializer(serializers.Serializer):
     """POST /contests/{id}/register/ body: PRIVATE contests need the code."""
 
     access_code = serializers.CharField(required=False, allow_blank=True, trim_whitespace=True)
+
+
+class ClarificationSerializer(serializers.ModelSerializer):
+    asker_username = serializers.CharField(source="asker.username", read_only=True)
+    answered_by_username = serializers.CharField(
+        source="answered_by.username", read_only=True, allow_null=True
+    )
+    problem_id = serializers.PrimaryKeyRelatedField(
+        source="problem",
+        queryset=Problem.objects.all(),
+        required=False,
+        allow_null=True,
+    )
+
+    class Meta:
+        model = Clarification
+        fields = [
+            "id",
+            "contest",
+            "problem_id",
+            "asker",
+            "asker_username",
+            "question",
+            "answer",
+            "answered_by",
+            "answered_by_username",
+            "answered_at",
+            "is_broadcast",
+            "is_hidden",
+            "created_at",
+        ]
+        read_only_fields = [
+            "id",
+            "asker",
+            "answer",
+            "answered_by",
+            "answered_at",
+            "is_broadcast",
+            "is_hidden",
+            "created_at",
+        ]
+
+
+class ClarificationCreateSerializer(serializers.Serializer):
+    """POST /contests/{id}/clarifications/ — participant question."""
+
+    problem = serializers.PrimaryKeyRelatedField(
+        queryset=Problem.objects.all(), required=False, allow_null=True
+    )
+    question = serializers.CharField(max_length=2000)
+
+
+class ClarificationAnswerSerializer(serializers.Serializer):
+    """POST /contests/clarifications/{id}/answer/ — jury reply.
+
+    ``canned`` accepts one of CLARIFICATION_CANNED_ANSWERS and is expanded
+    server-side (the UI offers them as one-click buttons, .campion style).
+    """
+
+    answer = serializers.CharField(max_length=2000, required=False, allow_blank=True)
+    canned = serializers.ChoiceField(
+        choices=[(c, c) for c in CLARIFICATION_CANNED_ANSWERS],
+        required=False,
+    )
+    broadcast = serializers.BooleanField(default=False)
+
+    def validate(self, attrs):
+        if not (attrs.get("answer") or attrs.get("canned")):
+            raise serializers.ValidationError(
+                {"detail": "Provide answer text or a canned choice."}
+            )
+        return attrs

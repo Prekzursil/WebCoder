@@ -295,6 +295,9 @@ REST_FRAMEWORK = {
         # Scratch runs (X7): raw judge execution, so its own strict scope —
         # the judge-DoS surface SP4 flagged.
         "scratch": os.environ.get("THROTTLE_SCRATCH_RATE", "20/hour"),
+        # Contest clarifications (CON-4): participants get a bounded question
+        # budget so the jury queue cannot be flooded mid-contest.
+        "clarification": os.environ.get("THROTTLE_CLARIFICATION_RATE", "10/hour"),
         # dj-rest-auth's vendor LoginView/RegisterView ship throttle_scope
         # 'dj_rest_auth'; give it the same credential-stuffing cap as 'auth'.
         "dj_rest_auth": os.environ.get("THROTTLE_AUTH_RATE", "10/min"),
@@ -404,6 +407,13 @@ CELERY_BEAT_SCHEDULE = {
     "deleted-users-purge": {
         "task": "users.tasks.purge_deleted_users_task",
         "schedule": crontab(hour=6, minute=0),
+    },
+    # Contest lifecycle (Wave B CON-8/OPR-4): finalize contests the minute
+    # they end — schedules the staggered end-of-contest full-suite rejudge
+    # for pretest contests. Idempotent via Contest.finalized_at.
+    "contest-tick": {
+        "task": "contests.tasks.contest_tick",
+        "schedule": crontab(),
     },
 }
 

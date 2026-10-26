@@ -17,6 +17,7 @@ from django.db.models import Count
 from django.utils import timezone
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.response import Response
 from webcoder_api.pagination import StandardPageNumberPagination
 
@@ -24,8 +25,18 @@ from users.models import User
 from users.permissions import IsAdminUser
 
 from .formats import rank_contest
-from .models import Contest, ContestParticipation, ContestProblem, ContestScore
+from .models import (
+    CLARIFICATION_CANNED_ANSWERS,
+    Clarification,
+    Contest,
+    ContestParticipation,
+    ContestProblem,
+    ContestScore,
+)
 from .serializers import (
+    ClarificationAnswerSerializer,
+    ClarificationCreateSerializer,
+    ClarificationSerializer,
     ContestDetailSerializer,
     ContestProblemSerializer,
     ContestSerializer,
@@ -85,7 +96,15 @@ class ContestViewSet(viewsets.ModelViewSet):
         # live HERE instead: public reads, participant actions, staff CRUD.
         if self.action in ("list", "retrieve", "standings", "problems"):
             return [permissions.AllowAny()]
-        if self.action in ("register", "start", "unfreeze", "disqualify"):
+        if self.action in (
+            "register",
+            "start",
+            "unfreeze",
+            "disqualify",
+            "clarifications",
+            "clarification_answer",
+            "clarification_hide",
+        ):
             # Organizer-only actions check can_manage_contest() inside.
             return [permissions.IsAuthenticated()]
         return [permissions.IsAuthenticated(), IsAdminUser()]
@@ -377,3 +396,145 @@ class ContestViewSet(viewsets.ModelViewSet):
                 "reason": participation.disqualification_reason,
             }
         )
+
+
+    # ------------------------------------------------------------------
+    # Clarifications (CON-4) + moderation basics (round-2 SAF-1)
+    # ------------------------------------------------------------------
+
+    @action(detail=True, methods=["get", "post"])
+    def clarifications(self, request, pk=None):
+        """Participant view: own questions + broadcasts (+ jury everything).
+
+        GET ?include_hidden=1 (organizer) also lists hidden rows; POST asks
+        a new question (participants only, must be registered).
+        """
+        contest = _fetch_contest(pk)
+        if contest is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        is_organizer = can_manage_contest(request.user, contest)
+
+        if request.method == "POST":
+            # CON-4 question budget: bounded per user so the jury queue
+            # cannot be flooded mid-contest (SP4 scoped-throttle pattern).
+            self.throttle_classes = [ScopedRateThrottle]
+            self.throttle_scope = "clarification"
+            if is_organizer:
+                return Response(
+                    {"detail": "Organizers answer; participants ask."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            participation = ContestParticipation.objects.filter(
+                contest=contest, user=request.user
+            ).first()
+            if participation is None:
+                return Response(
+                    {"detail": "Only participants can ask questions."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+            if contest.state() != Contest.State.RUNNING:
+                return Response(
+                    {"detail": "The contest is not running."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            serializer = ClarificationCreateSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            clarification = Clarification.objects.create(
+                contest=contest,
+                asker=request.user,
+                problem=serializer.validated_data.get("problem"),
+                question=serializer.validated_data["question"],
+            )
+            return Response(
+                ClarificationSerializer(clarification).data,
+                status=status.HTTP_201_CREATED,
+            )
+
+        qs = Clarification.objects.filter(contest=contest).select_related(
+            "asker", "answered_by", "problem"
+        )
+        if is_organizer:
+            if request.query_params.get("include_hidden", "") not in ("1", "true"):
+                qs = qs.exclude(is_hidden=True)
+            data = ClarificationSerializer(qs, many=True).data
+            return Response(
+                {"results": data, "canned_answers": CLARIFICATION_CANNED_ANSWERS}
+            )
+        # Participants: own + broadcast, never hidden.
+        from django.db.models import Q
+
+        qs = qs.filter(Q(asker=request.user) | Q(is_broadcast=True)).exclude(
+            is_hidden=True
+        )
+        return Response({"results": ClarificationSerializer(qs, many=True).data})
+
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path=r"clarifications/(?P<clarification_id>[0-9]+)/answer",
+    )
+    def clarification_answer(self, request, clarification_id=None):
+        """Jury answers a clarification; broadcasts notify every participant."""
+        clarification = Clarification.objects.select_related("contest").filter(
+            pk=clarification_id
+        ).first()
+        if clarification is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        if not can_manage_contest(request.user, clarification.contest):
+            return Response(
+                {"detail": "Organizer only."}, status=status.HTTP_403_FORBIDDEN
+            )
+        serializer = ClarificationAnswerSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        answer = serializer.validated_data.get("answer") or serializer.validated_data[
+            "canned"
+        ]
+        broadcast = serializer.validated_data.get("broadcast", False)
+        clarification.answer = answer
+        clarification.is_broadcast = broadcast
+        clarification.answered_by = request.user
+        clarification.answered_at = timezone.now()
+        clarification.save()
+
+        if broadcast:
+            from notifications.services import notify
+
+            for participation in clarification.contest.participations.filter(
+                is_disqualified=False
+            ).select_related("user"):
+                notify(
+                    participation.user,
+                    "SYSTEM",
+                    actor=request.user,
+                    target=clarification.contest,
+                    data={
+                        "kind": "clarification_broadcast",
+                        "clarification_id": clarification.id,
+                        "contest_id": clarification.contest_id,
+                        "question": clarification.question[:200],
+                        "answer": answer[:200],
+                    },
+                )
+        return Response(ClarificationSerializer(clarification).data)
+
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path=r"clarifications/(?P<clarification_id>[0-9]+)/hide",
+    )
+    def clarification_hide(self, request, clarification_id=None):
+        """Moderation (SAF-1): organizer hides an abusive question."""
+        clarification = Clarification.objects.filter(pk=clarification_id).first()
+        if clarification is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        if not can_manage_contest(request.user, clarification.contest):
+            return Response(
+                {"detail": "Organizer only."}, status=status.HTTP_403_FORBIDDEN
+            )
+        clarification.is_hidden = True
+        clarification.hidden_by = request.user
+        clarification.hidden_reason = (request.data.get("reason") or "").strip()
+        clarification.save(
+            update_fields=["is_hidden", "hidden_by", "hidden_reason"]
+        )
+        return Response({"detail": "Clarification hidden.", "id": clarification.id})

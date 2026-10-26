@@ -30,7 +30,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.utils import timezone
 from rest_framework.views import APIView
@@ -146,6 +146,18 @@ class MetricsView(APIView):
         queue_depth = {
             verdict: verdict_counts.get(verdict, 0) for verdict in _IN_FLIGHT_VERDICTS
         }
+        # OPR-4 lane split: contest-bound in-flight verdicts travel the
+        # judge-contest queue — operators watch this number during a live
+        # contest (alert threshold guidance lives in RUNBOOK).
+        in_flight = Q(verdict__in=_IN_FLIGHT_VERDICTS)
+        queue_depth_lanes = {
+            "contest": Submission.objects.filter(
+                in_flight, contest__isnull=False
+            ).count(),
+            "practice": Submission.objects.filter(
+                in_flight, contest__isnull=True
+            ).count(),
+        }
 
         judged_recent = Submission.objects.filter(
             submission_time__gte=since,
@@ -168,6 +180,7 @@ class MetricsView(APIView):
                 "total": Submission.objects.count(),
                 "verdicts": verdict_counts,
                 "queue_depth": queue_depth,
+                "queue_depth_lanes": queue_depth_lanes,
             },
             "judge": {
                 "last_24h": duration_stats,
