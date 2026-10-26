@@ -225,5 +225,5 @@ State at risk: the `pgdata` named volume (users, problems, testcases, submission
 
 1. ~~Celery filesystem broker / no worker service~~ **shipped** — compose wires `CELERY_BROKER_URL=redis://redis:6379/0` and runs `celery-worker` (G5 closed).
 2. Compose has **no frontend service** (placeholder; G6) — the Next app runs on the host or Vercel (DEPLOY.md).
-3. ~~Backend container mounts docker.sock~~ — default compose still does (single-host dev); the hardened `docker-compose.socket-proxy.yml` variant replaces it for production-leaning hosts (see §socket-proxy; SP3/G12).
+3. ~~Backend container mounts docker.sock~~ **shipped** — the default compose reaches the daemon through the `socket-proxy` service (`DOCKER_HOST=tcp://socket-proxy:2375`, containers/exec POST only; see §socket-proxy; SP3/G12). `docker-compose.raw-socket.yml` is the documented escape hatch for the custom-libs pip flow.
 4. ~~DEBUG=True / ALLOWED_HOSTS=[] / CORS localhost-only~~ **shipped** — the trio is env-driven (`DEBUG`/`ALLOWED_HOSTS`/`CORS_ALLOWED_ORIGINS`) and `webcoder_api.settings_prod` is the production profile (see the section above; SP2/G8).
