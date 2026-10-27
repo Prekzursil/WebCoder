@@ -176,6 +176,14 @@ const resources = {
       "contest_create_problems": "Problem IDs (comma-separated, in board order)",
       "contest_create_submit": "Create contest",
       "contest_create_error": "Could not create the contest.",
+      "assignment_quiz": "Quiz",
+      "assignment_quiz_closed": "closed",
+      "assignment_quiz_submit": "Submit answers",
+      "assignment_quiz_score": "Score",
+      "assignment_files": "Files",
+      "assignment_upload": "Upload",
+      "assignment_no_files": "No files uploaded yet.",
+      "exam_mode_banner": "Exam mode is ON — the site is locked to your exam until",
 
       "contest_participant": "Participant",
 
@@ -997,6 +1005,14 @@ const resources = {
       "contest_create_problems": "ID-uri probleme (separate prin virgulă, în ordinea problemei)",
       "contest_create_submit": "Creează concursul",
       "contest_create_error": "Nu am putut crea concursul.",
+      "assignment_quiz": "Grile",
+      "assignment_quiz_closed": "închis",
+      "assignment_quiz_submit": "Trimite răspunsurile",
+      "assignment_quiz_score": "Punctaj",
+      "assignment_files": "Fișiere",
+      "assignment_upload": "Încarcă",
+      "assignment_no_files": "Niciun fișier încărcat încă.",
+      "exam_mode_banner": "Modul examen este ACTIV — site-ul este blocat pe examenul tău până la",
 
       "contest_participant": "Participant",
 

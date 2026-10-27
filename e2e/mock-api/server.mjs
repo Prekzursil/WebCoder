@@ -214,6 +214,10 @@ const MOCK_ASSIGNMENT = {
   due_at: '2999-01-01T00:00:00Z',
   late_until: null,
   is_exam: false,
+  kind: 'PROBLEMS',
+  quiz_shuffle: true,
+  file_extensions: '',
+  max_file_mb: 10,
   state: 'OPEN',
   solved_count: 1,
   assignment_problems: [
@@ -222,6 +226,39 @@ const MOCK_ASSIGNMENT = {
 };
 
 const MOCK_MY_ASSIGNMENTS = { results: [MOCK_ASSIGNMENT] };
+
+// Wave C (EDU-7/8): a quiz teme with one shuffled grilă + a FILES teme.
+const MOCK_QUIZ_ASSIGNMENT = {
+  ...MOCK_ASSIGNMENT,
+  id: 4,
+  kind: 'QUIZ',
+  quiz_shuffle: true,
+  assignment_problems: [],
+};
+const MOCK_QUIZ_SHEET = {
+  assignment: 4,
+  kind: 'QUIZ',
+  shuffle: true,
+  state: 'OPEN',
+  items: [
+    {
+      item_id: 71,
+      order: 0,
+      question_i18n: { en: 'What is 7 % 3?', ro: 'Cât este 7 % 3?' },
+      variants_en: ['2', '2.33', '1', '3'],
+      variants_ro: ['2', '2,33', '1', '3'],
+      correct_index: null,
+    },
+  ],
+};
+const MOCK_FILES_ASSIGNMENT = {
+  ...MOCK_ASSIGNMENT,
+  id: 5,
+  kind: 'FILES',
+  file_extensions: 'pdf,zip',
+  max_file_mb: 10,
+  assignment_problems: [],
+};
 
 const MOCK_THREADS = [
   {
@@ -678,6 +715,71 @@ const server = createServer((req, res) => {
       return;
     }
     json(res, 200, MOCK_MY_CLASSES);
+    return;
+  }
+
+  const assignmentDetail = path.match(/^\/api\/v1\/classroom\/assignments\/(\d+)\/$/);
+  if (req.method === 'GET' && assignmentDetail) {
+    const id = Number(assignmentDetail[1]);
+    if (id === 4) json(res, 200, MOCK_QUIZ_ASSIGNMENT);
+    else if (id === 5) json(res, 200, MOCK_FILES_ASSIGNMENT);
+    else json(res, 200, MOCK_ASSIGNMENT);
+    return;
+  }
+
+  const quizSheet = path.match(/^\/api\/v1\/classroom\/assignments\/(\d+)\/quiz\/$/);
+  if (req.method === 'GET' && quizSheet) {
+    json(res, 200, MOCK_QUIZ_SHEET);
+    return;
+  }
+
+  const quizSubmit = path.match(
+    /^\/api\/v1\/classroom\/assignments\/(\d+)\/quiz\/submit\/$/
+  );
+  if (req.method === 'POST' && quizSubmit) {
+    if (!sessionUser(req)) {
+      json(res, 401, { detail: 'Authentication credentials were not provided.' });
+      return;
+    }
+    json(res, 201, {
+      id: 77,
+      score: 1,
+      correct_count: 1,
+      total_count: 1,
+      submitted_at: '2026-11-01T10:00:00Z',
+    });
+    return;
+  }
+
+  const deliverables = path.match(
+    /^\/api\/v1\/classroom\/assignments\/(\d+)\/deliverables\/$/
+  );
+  if (deliverables) {
+    if (!sessionUser(req)) {
+      json(res, 401, { detail: 'Authentication credentials were not provided.' });
+      return;
+    }
+    if (req.method === 'POST') {
+      json(res, 201, { id: 9, original_filename: 'tema.pdf' });
+      return;
+    }
+    json(res, 200, {
+      assignment: 5,
+      results: [
+        {
+          id: 9,
+          student: { id: sessionUser(req).id, username: sessionUser(req).username },
+          original_filename: 'tema.pdf',
+          file: '/media/fake.pdf',
+          uploaded_at: '2026-11-01T10:00:00Z',
+        },
+      ],
+    });
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/api/v1/classroom/exam-mode/') {
+    json(res, 200, { active: false, assignment: null });
     return;
   }
 

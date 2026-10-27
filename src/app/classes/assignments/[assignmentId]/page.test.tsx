@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, cleanup, waitFor } from '@testing-library/react';
+import { render, screen, cleanup, waitFor, fireEvent } from '@testing-library/react';
 import AssignmentDetailPage from './page';
 import type { User } from '@/types';
 
@@ -10,6 +10,10 @@ import type { User } from '@/types';
 const api = vi.hoisted(() => ({
   getAssignment: vi.fn(),
   getGrid: vi.fn(),
+  getQuizSheet: vi.fn(),
+  submitQuiz: vi.fn(),
+  getDeliverables: vi.fn(),
+  uploadDeliverable: vi.fn(),
   exportCsvUrl: (id: number | string) => `/api/v1/classroom/assignments/${id}/export/`,
 }));
 
@@ -44,6 +48,10 @@ const ASSIGNMENT = {
   due_at: '2999-01-01T00:00:00Z',
   late_until: null,
   is_exam: false,
+  kind: 'PROBLEMS',
+  quiz_shuffle: true,
+  file_extensions: '',
+  max_file_mb: 10,
   state: 'OPEN',
   assignment_problems: [
     { id: 11, problem: 101, problem_title: { en: 'Sum Two', ro: 'Suma a două' }, problem_difficulty: 'EASY', order: 0, label: 'A', points: 100 },
@@ -104,3 +112,118 @@ describe('AssignmentDetailPage', () => {
   });
 });
 
+
+// ---------------------------------------------------------------------------
+// Wave C (EDU-7/8): quiz sheets + file deliverables on the temă page.
+// ---------------------------------------------------------------------------
+
+const QUIZ_SHEET = {
+  assignment: 3,
+  kind: 'QUIZ' as const,
+  shuffle: true,
+  state: 'OPEN',
+  items: [
+    {
+      item_id: 71,
+      order: 0,
+      question_i18n: { en: '2+2?', ro: 'Cât e 2+2?' },
+      variants_en: ['3', '4', '5', '6'],
+      variants_ro: ['3', '4', '5', '6'],
+      correct_index: null,
+    },
+  ],
+};
+
+describe('AssignmentDetailPage quiz + files (Wave C)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    api.getGrid.mockRejectedValue(new Error('forbidden'));
+    mocks.auth.user = {
+      id: 10,
+      username: 'alice',
+      email: 'a@x.com',
+      role: 'BASIC',
+    } as User;
+  });
+
+  it('renders the shuffled quiz sheet and submits the answers', async () => {
+    api.getAssignment.mockResolvedValue({
+      ...ASSIGNMENT,
+      kind: 'QUIZ',
+      assignment_problems: [],
+    });
+    api.getQuizSheet.mockResolvedValue(QUIZ_SHEET);
+    api.submitQuiz.mockResolvedValue({
+      id: 1,
+      score: 1,
+      correct_count: 1,
+      total_count: 1,
+      submitted_at: '2026-11-01T10:00:00Z',
+    });
+    render(<AssignmentDetailPage />);
+
+    expect(await screen.findByTestId('quiz-section')).toBeInTheDocument();
+    expect(screen.getByText(/2\+2\?/)).toBeInTheDocument();
+    expect(screen.queryByText('4', { exact: true })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('4', { exact: true }));
+    fireEvent.click(screen.getByTestId('quiz-submit'));
+    await waitFor(() => expect(api.submitQuiz).toHaveBeenCalledWith('3', { '71': 1 }));
+    expect(await screen.findByTestId('quiz-result')).toHaveTextContent('100%');
+  });
+
+  it('closes the sheet when the quiz window is over', async () => {
+    api.getAssignment.mockResolvedValue({
+      ...ASSIGNMENT,
+      kind: 'QUIZ',
+      assignment_problems: [],
+    });
+    api.getQuizSheet.mockResolvedValue({ ...QUIZ_SHEET, state: 'CLOSED' });
+    render(<AssignmentDetailPage />);
+
+    await screen.findByTestId('quiz-section');
+    expect(screen.getByText(/closed/i)).toBeInTheDocument();
+    expect(screen.queryByTestId('quiz-submit')).not.toBeInTheDocument();
+  });
+
+  it('uploads a deliverable and lists it', async () => {
+    api.getAssignment.mockResolvedValue({
+      ...ASSIGNMENT,
+      kind: 'FILES',
+      assignment_problems: [],
+      file_extensions: 'pdf,zip',
+    });
+    api.getDeliverables.mockResolvedValue({
+      assignment: 3,
+      results: [],
+    });
+    api.uploadDeliverable.mockResolvedValue({ id: 9, original_filename: 'tema.pdf' });
+    render(<AssignmentDetailPage />);
+
+    expect(await screen.findByTestId('files-section')).toBeInTheDocument();
+    const input = screen.getByLabelText(/upload/i) as HTMLInputElement;
+    fireEvent.change(input, {
+      target: { files: [new File(['%PDF fake'], 'tema.pdf')] },
+    });
+    await waitFor(() => expect(api.uploadDeliverable).toHaveBeenCalled());
+    api.getDeliverables.mockResolvedValue({
+      assignment: 3,
+      results: [
+        {
+          id: 9,
+          student: { id: 10, username: 'alice' },
+          original_filename: 'tema.pdf',
+          file: '/media/x.pdf',
+          uploaded_at: '2026-11-01T10:00:00Z',
+        },
+      ],
+    });
+    // Re-fires the list fetch through the same handler chain.
+    fireEvent.change(input, {
+      target: { files: [new File(['%PDF fake 2'], 'tema2.pdf')] },
+    });
+    await waitFor(() =>
+      expect(api.uploadDeliverable).toHaveBeenCalledTimes(2)
+    );
+  });
+});
