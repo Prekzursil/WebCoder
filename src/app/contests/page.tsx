@@ -12,6 +12,10 @@ import PageHeader from '@/components/common/PageHeader';
 
 type StateFilter = '' | 'UPCOMING' | 'RUNNING' | 'FINISHED';
 
+/** CON-10: the contest calendar feed. Build-time constant (NEXT_PUBLIC_API_BASE
+ * is inlined at compile time) — not a user-influenced URL. */
+const CALENDAR_ICS_URL = `${API_BASE_URL}/api/v1/contests/calendar.ics`;
+
 /** CON-10: countdown to the next start, ticking once per second. */
 function useCountdown(target: string | null): string | null {
     const [now, setNow] = useState(() => Date.now());
@@ -137,7 +141,7 @@ export default function ContestsPage() {
                     </button>
                 ))}
                 <a
-                    href={`${API_BASE_URL}/api/v1/contests/calendar.ics`}
+                    href={CALENDAR_ICS_URL}
                     style={{ marginLeft: 'auto', color: palette.accent, fontWeight: 600 }}
                     data-testid="contests-ics-link"
                 >
