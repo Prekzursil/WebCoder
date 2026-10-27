@@ -38,6 +38,7 @@ test.describe('classroom surface (mock api)', () => {
 
 test.describe('classroom depth (Wave C: EDU-7/8 quiz + files teme, mock api)', () => {
   test('quiz temă: answer the grile and see the graded score', async ({ page }) => {
+    await login(page);
     await page.goto('/classes/assignments/4');
 
     await expect(page.getByTestId('quiz-section')).toBeVisible();
@@ -49,6 +50,7 @@ test.describe('classroom depth (Wave C: EDU-7/8 quiz + files teme, mock api)', (
   });
 
   test('files temă: upload control and policy line render', async ({ page }) => {
+    await login(page);
     await page.goto('/classes/assignments/5');
 
     await expect(page.getByTestId('files-section')).toBeVisible();
