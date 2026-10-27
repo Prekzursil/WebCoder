@@ -84,7 +84,7 @@ export interface User {
   id: number;
   username: string;
   email: string;
-  role: 'BASIC_USER' | 'PROBLEM_CREATOR' | 'PROBLEM_VERIFIER' | 'ADMIN';
+  role: 'BASIC_USER' | 'PROBLEM_CREATOR' | 'PROBLEM_VERIFIER' | 'TEACHER' | 'ADMIN';
 }
 
 export interface AdminUserType extends User {

@@ -96,6 +96,7 @@ const Navbar: React.FC = () => {
   ];
 
   const accountLinks: NavLinkItem[] = [
+    { href: '/classes', label: t('nav_classes', 'My classes') },
     { href: '/profile', label: t('nav_profile', 'Profile') },
     { href: '/my-submissions', label: t('nav_my_submissions', 'My Submissions') },
     { href: '/submission-history', label: t('nav_submission_history', 'History') },

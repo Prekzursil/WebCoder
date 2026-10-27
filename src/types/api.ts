@@ -321,3 +321,77 @@ export interface MyRating {
     contests_count?: number;
     band: RatingBand;
 }
+
+// =================================
+// Classroom (backend classroom app, Wave B EDU-1/2/3/5/6)
+// =================================
+
+export interface ClassRoom {
+    id: number;
+    name: string;
+    school: string;
+    join_code?: string;
+    is_open: boolean;
+    created_at: string;
+    teacher_username: string;
+    member_count: number;
+    assignment_count: number;
+    is_owner: boolean;
+}
+
+export interface ClassMembershipRow {
+    id: number;
+    username: string;
+    joined_at: string;
+}
+
+export interface MyClassRow {
+    membership_id: number;
+    joined_at: string;
+    classroom: ClassRoom;
+    open_assignments: number;
+}
+
+export interface ClassroomAssignment {
+    id: number;
+    classroom: number;
+    classroom_name: string;
+    title_i18n: LocalizedText;
+    description: string;
+    available_from: string;
+    due_at: string;
+    late_until: string | null;
+    is_exam: boolean;
+    state: 'SCHEDULED' | 'OPEN' | 'CLOSED';
+    solved_count?: number;
+    assignment_problems?: {
+        id: number;
+        problem: number;
+        problem_title: LocalizedText;
+        problem_difficulty: string;
+        order: number;
+        label: string;
+        points: number;
+    }[];
+}
+
+export interface GridCell {
+    best_score: number;
+    attempts: number;
+    last_attempt_at: string;
+    verdict: string;
+    late: boolean;
+}
+
+export interface AssignmentGrid {
+    assignment_id: number;
+    students: { id: number; username: string }[];
+    problems: {
+        id: number;
+        problem_id: number;
+        label: string;
+        points: number;
+        title_i18n: LocalizedText;
+    }[];
+    cells: Record<string, GridCell>;
+}

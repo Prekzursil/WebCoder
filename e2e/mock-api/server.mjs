@@ -156,6 +156,48 @@ const MOCK_RATINGS = [
 ];
 
 
+const MOCK_CLASSROOM = {
+  id: 5,
+  name: 'IX-A',
+  school: 'Liceul X',
+  is_open: true,
+  created_at: '2026-10-01T00:00:00Z',
+  teacher_username: 'e2e_teacher',
+  member_count: 1,
+  assignment_count: 1,
+  is_owner: false,
+};
+
+const MOCK_MY_CLASSES = {
+  results: [
+    {
+      membership_id: 9,
+      joined_at: '2026-10-02T00:00:00Z',
+      classroom: MOCK_CLASSROOM,
+      open_assignments: 1,
+    },
+  ],
+};
+
+const MOCK_ASSIGNMENT = {
+  id: 3,
+  classroom: 5,
+  classroom_name: 'IX-A',
+  title_i18n: { en: 'Tema 1 — loops', ro: 'Tema 1 — bucle' },
+  description: '',
+  available_from: '2026-10-20T00:00:00Z',
+  due_at: '2999-01-01T00:00:00Z',
+  late_until: null,
+  is_exam: false,
+  state: 'OPEN',
+  solved_count: 1,
+  assignment_problems: [
+    { id: 11, problem: 1, problem_title: { en: 'Two Sum' }, problem_difficulty: 'EASY', order: 0, label: 'A', points: 100 },
+  ],
+};
+
+const MOCK_MY_ASSIGNMENTS = { results: [MOCK_ASSIGNMENT] };
+
 const MOCK_THREADS = [
   {
     id: 1,
@@ -558,6 +600,24 @@ const server = createServer((req, res) => {
       contests_count: 2,
       band: { min: 1400, name_en: 'Specialist', name_ro: 'Specialist', color: '#0000ff' },
     });
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/api/v1/classroom/classes/my-classes/') {
+    if (!sessionUser(req)) {
+      json(res, 401, { detail: 'Authentication credentials were not provided.' });
+      return;
+    }
+    json(res, 200, MOCK_MY_CLASSES);
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/api/v1/classroom/assignments/my-assignments/') {
+    if (!sessionUser(req)) {
+      json(res, 401, { detail: 'Authentication credentials were not provided.' });
+      return;
+    }
+    json(res, 200, MOCK_MY_ASSIGNMENTS);
     return;
   }
 
