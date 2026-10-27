@@ -1,9 +1,8 @@
-
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# See https://help.github.com/articles/ignoring-files/ for more information about ignoring files.
 # debug
 # dependencies
 # env files (can opt-in for committing if needed)
@@ -14,10 +13,14 @@
 # testing
 # typescript
 # vercel
+# python (django backend — single-branch union, 2026-10)
 *.pem
+*.pyc
 *.tsbuildinfo
 .DS_Store
+.coverage
 .env*
+.idea/
 .next
 .pnp.*
 .pnpm-debug.log*
@@ -29,10 +32,17 @@
 /coverage
 /node_modules
 /out/
+**/site-packages/
+__pycache__/
+backend/venv/
+ci_verify.sqlite3
+htmlcov/
+mitm_mcp_traffic.db
 next-env.d.ts
 node_modules/
 npm-debug.log*
 playwright-report/
 test-results/
+venv/
 yarn-debug.log*
 yarn-error.log*

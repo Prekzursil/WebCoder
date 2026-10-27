@@ -19,5 +19,5 @@ name: "webcoder CodeQL config"
 #                                  build-tooling false positives.
 paths-ignore:
   - backend/venv
-  - frontend/webcoder_ui/config
-  - frontend/webcoder_ui/scripts
+  # (frontend/webcoder_ui ignores removed 2026-10-27 — that directory no longer
+  # exists on the unified single branch; the Next.js app lives at the repo root.)

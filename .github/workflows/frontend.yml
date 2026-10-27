@@ -1,15 +1,36 @@
 name: Frontend CI (Next.js)
 
+# Single-branch (2026-10-27): the Next.js app lives at the repo root. Triggers on
+# frontend-source paths only; backend/** changes are gated by django.yml. The lint
+# step enforces the zero-warnings policy (--max-warnings 0): a warning is a failure.
 on:
   push:
-    branches: ["main", "wave/nextjs-migration"]
+    branches: ["main"]
     paths:
-      - "./**"
+      - "src/**"
+      - "e2e/**"
+      - "public/**"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+      - "next.config.ts"
+      - "vitest.config.ts"
+      - "playwright.config.ts"
+      - "eslint.config.mjs"
       - ".github/workflows/frontend.yml"
   pull_request:
-    branches: ["main", "wave/nextjs-migration"]
+    branches: ["main"]
     paths:
-      - "./**"
+      - "src/**"
+      - "e2e/**"
+      - "public/**"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+      - "next.config.ts"
+      - "vitest.config.ts"
+      - "playwright.config.ts"
+      - "eslint.config.mjs"
       - ".github/workflows/frontend.yml"
 
 permissions:
@@ -35,6 +56,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Lint (zero warnings policy)
+        run: npx eslint --max-warnings 0
 
       - name: Build
         run: npm run build

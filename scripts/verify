@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Single-branch verify (2026-10-27): Next.js lives at the repo root, Django under backend/.
+# Runs BOTH suites from one checkout — mirrors the CI gates (django.yml + frontend.yml).
+set -euo pipefail
+
+python -m pip install --upgrade pip setuptools wheel
+pip install -r backend/deps.txt
+
+DJANGO_SETTINGS_MODULE=webcoder_api.settings_ci python backend/manage.py check
+(
+  cd backend
+  DJANGO_SETTINGS_MODULE=webcoder_api.settings_ci python -m pytest -q
+)
+
+# Frontend (repo root since the unification; previously frontend/webcoder_ui on the old layout)
+if [[ -f package.json ]]; then
+  npm ci
+  npm run lint                    # zero-warnings policy: warnings are failures (eslint --max-warnings=0 semantics via config)
+  npm run test                    # vitest run
+  npm run build                   # next build
+fi
