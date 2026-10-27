@@ -35,6 +35,10 @@ interface SubmitSolutionFormProps {
   problemId: string;
   allowedLanguages: string[];
   problemTitle: string;
+  /** CON-1: set when arriving from a running contest (?contest=N) — the
+   * backend gates (registered + window open) and the judge-contest lane
+   * both key off the submission's contest. */
+  contestId?: number | null;
 }
 
 // [A6-interim] Minimal runnable starter per supported judge language
@@ -47,12 +51,13 @@ const STARTER_TEMPLATES: Record<string, string> = {
     'import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        sc.close();\n    }\n}\n',
 };
 
-const TERMINAL_VERDICTS = new Set(['AC', 'WA', 'TLE', 'MLE', 'CE', 'RE', 'IE']);
+const TERMINAL_VERDICTS = new Set(['AC', 'WA', 'TLE', 'MLE', 'OLE', 'CE', 'RE', 'IE']);
 
 export default function SubmitSolutionForm({
   problemId,
   allowedLanguages,
   problemTitle,
+  contestId,
 }: SubmitSolutionFormProps) {
   const { t } = useTranslation();
   const auth = useAuth();
@@ -119,6 +124,7 @@ export default function SubmitSolutionForm({
         problem: parseInt(problemId, 10),
         language: selectedLanguage,
         code,
+        ...(contestId ? { contest: contestId } : {}),
       });
       setSubmissionStatus(
         t(

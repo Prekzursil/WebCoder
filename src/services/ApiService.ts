@@ -16,13 +16,16 @@
 import {
   AdminStatsResponse,
   ApiNotification,
+  Clarification,
+  Contest,
+  ContestProblemRow,
   CreateSubmissionResponse,
   CursorPaginatedResponse,
-  cursorParamFromUrl,
   ForumPost,
   ForumReport,
   ForumThread,
   GetAdminUsersResponse,
+  GetContestsResponse,
   GetForumPostsResponse,
   GetForumThreadsResponse,
   GetLeaderboardResponse,
@@ -34,9 +37,15 @@ import {
   GetTagsResponse,
   LoginResponse,
   MyLeaderboardEntry,
+  MyRating,
   PaginatedResponse,
+  RatingBand,
+  RatingChangeRow,
+  RatingLadderRow,
   RegisterResponse,
+  StandingsResponse,
   UpdateProblemResponse,
+  cursorParamFromUrl,
 } from '@/types/api';
 import { TestCaseType, User } from '@/types';
 import { API_V1_URL } from '@/lib/api-config';
@@ -523,4 +532,75 @@ export const NotificationService = {
     markRead: (id: number | string) => apiFetch<ApiNotification>(`/notifications/${id}/mark-read/`, { method: 'POST' }),
     markAllRead: () => apiFetch<{ marked: number }>('/notifications/mark-all-read/', { method: 'POST' }),
     getUnreadCount: () => apiFetch<{ count: number }>('/notifications/unread-count/'),
+};
+
+// =================================
+// Contests (backend contests app, Wave B CON-1..10 + RAT)
+// =================================
+
+export const ContestService = {
+    getContests: (
+        filters: { state?: 'UPCOMING' | 'RUNNING' | 'FINISHED' } = {},
+        page: { page?: number; pageSize?: number } = {}
+    ) => {
+        const params = new URLSearchParams();
+        if (filters.state) params.set('state', filters.state);
+        if (page.page !== undefined) params.set('page', String(page.page));
+        if (page.pageSize !== undefined) params.set('page_size', String(page.pageSize));
+        const qs = params.toString();
+        return apiFetch<GetContestsResponse>(`/contests/contests/${qs ? `?${qs}` : ''}`);
+    },
+    getContest: (id: number | string) => apiFetch<Contest>(`/contests/contests/${id}/`),
+    register: (id: number | string, accessCode?: string) =>
+        apiFetch<{ contest: number; user: number }>(`/contests/contests/${id}/register/`, {
+            method: 'POST',
+            body: JSON.stringify(accessCode ? { access_code: accessCode } : {}),
+        }),
+    startPersonalClock: (id: number | string) =>
+        apiFetch<{ virtual_start: string; effective_end: string }>(`/contests/contests/${id}/start/`, {
+            method: 'POST',
+        }),
+    getProblems: (id: number | string) =>
+        apiFetch<ContestProblemRow[]>(`/contests/contests/${id}/problems/`),
+    getStandings: (id: number | string, page = 1) =>
+        apiFetch<StandingsResponse>(`/contests/contests/${id}/standings/?page=${page}`),
+    unfreeze: (id: number | string) =>
+        apiFetch<{ detail: string }>(`/contests/contests/${id}/unfreeze/`, { method: 'POST' }),
+    getClarifications: (id: number | string) =>
+        apiFetch<{ results: Clarification[]; canned_answers?: string[] }>(
+            `/contests/contests/${id}/clarifications/`
+        ),
+    askClarification: (id: number | string, question: string, problemId?: number | null) =>
+        apiFetch<Clarification>(`/contests/contests/${id}/clarifications/`, {
+            method: 'POST',
+            body: JSON.stringify({ question, problem: problemId ?? null }),
+        }),
+    answerClarification: (
+        id: number | string,
+        clarificationId: number,
+        answer: string,
+        broadcast: boolean
+    ) =>
+        apiFetch<Clarification>(
+            `/contests/contests/${id}/clarifications/${clarificationId}/answer/`,
+            { method: 'POST', body: JSON.stringify({ answer, is_broadcast: broadcast }) }
+        ),
+    getRatingChanges: (id: number | string) =>
+        apiFetch<{
+            contest: number;
+            is_rated: boolean;
+            discarded: boolean;
+            changes: RatingChangeRow[];
+        }>(`/contests/contests/${id}/rating-changes/`),
+};
+
+// =================================
+// Ratings (backend ratings app, RAT-1/2/3)
+// =================================
+
+export const RatingService = {
+    getLadder: (page = 1) =>
+        apiFetch<PaginatedResponse<RatingLadderRow>>(`/ratings/ratings/?page=${page}`),
+    getColors: () => apiFetch<{ bands: RatingBand[] }>('/ratings/ratings/colors/'),
+    getMyRating: () => apiFetch<MyRating>('/ratings/ratings/me/'),
 };

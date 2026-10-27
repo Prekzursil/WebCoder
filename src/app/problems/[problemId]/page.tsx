@@ -33,6 +33,7 @@ import styles from './detail.module.css';
 
 interface ProblemDetailPageProps {
   params: Promise<{ problemId: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }
 
 function localizedTitle(problem: ProblemType, locale: PublicLocale, fallback: string): string {
@@ -77,8 +78,16 @@ const difficultyConfig: Record<string, { color: string }> = {
   hard: { color: palette.danger },
 };
 
-export default async function ProblemDetailPage({ params }: ProblemDetailPageProps) {
+export default async function ProblemDetailPage({
+  params,
+  searchParams,
+}: ProblemDetailPageProps) {
   const { problemId } = await params;
+  // CON-1: arriving from a running contest carries the contest id so the
+  // submit form routes through the contest gate + judge-contest lane.
+  const query = (await searchParams) ?? {};
+  const rawContest = Array.isArray(query.contest) ? query.contest[0] : query.contest;
+  const contestId = rawContest ? Number.parseInt(rawContest, 10) : null;
   const locale = await getLocale();
   const t = createTranslator(locale);
 
@@ -435,6 +444,7 @@ export default async function ProblemDetailPage({ params }: ProblemDetailPagePro
               problemId={problemId}
               allowedLanguages={problem.allowed_languages || []}
               problemTitle={problemTitle}
+              contestId={contestId}
             />
           </div>
 
