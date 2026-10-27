@@ -55,7 +55,7 @@ vi.mock('./SubmitSolutionForm', () => ({
   ),
 }));
 
-import ProblemDetailPage, { generateMetadata } from './page';
+import ProblemDetailPage, { generateMetadata, sourceAttribution } from './page';
 import { getProblemDetail, getProblems } from '../_lib/problems-api';
 
 function mockLocale(value: string | undefined) {
@@ -254,6 +254,80 @@ describe('ProblemDetailPage (route "/problems/:problemId")', () => {
     expect(screen.getByRole('button', { name: 'Copy link' })).toBeInTheDocument();
     // One copy button on the sample header.
     expect(screen.getByRole('button', { name: 'Copy' })).toBeInTheDocument();
+  });
+
+  it('renders the composed source line for imported problems (CNT-1)', async () => {
+    vi.mocked(getProblemDetail).mockResolvedValue(
+      problem({
+        source_line: 'Source: ONI 2014, Clasa a IX-a · Author(s): Constantin Galatan',
+      })
+    );
+    render(await ProblemDetailPage(pageProps()));
+
+    const line = screen.getByTestId('source-line');
+    expect(line).toHaveTextContent('Source: ONI 2014, Clasa a IX-a');
+    expect(line).toHaveTextContent('Author(s): Constantin Galatan');
+  });
+
+  it('linkifies the source line when the problem carries a source URL', async () => {
+    vi.mocked(getProblemDetail).mockResolvedValue(
+      problem({
+        source_line: 'Source: pbinfo.ro',
+        source_url: 'https://www.pbinfo.ro/probleme/1103/harta',
+      })
+    );
+    render(await ProblemDetailPage(pageProps()));
+
+    const link = screen.getByRole('link', { name: /pbinfo\.ro/ });
+    expect(link).toHaveAttribute('href', 'https://www.pbinfo.ro/probleme/1103/harta');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('composes the line locally when the backend sends only raw fields', async () => {
+    vi.mocked(getProblemDetail).mockResolvedValue(
+      problem({
+        source_name: 'infoarena.ro',
+        source_authors: ['Ana Pop', '', 'Bo Ion'],
+      })
+    );
+    render(await ProblemDetailPage(pageProps()));
+
+    expect(screen.getByTestId('source-line')).toHaveTextContent(
+      'Source: infoarena.ro · Author(s): Ana Pop, Bo Ion'
+    );
+  });
+
+  it('hides the source line entirely for own-authored problems', async () => {
+    vi.mocked(getProblemDetail).mockResolvedValue(problem({}));
+    render(await ProblemDetailPage(pageProps()));
+
+    expect(screen.queryByTestId('source-line')).not.toBeInTheDocument();
+  });
+});
+
+describe('sourceAttribution helper (CNT-1)', () => {
+  it('prefers the backend-composed source_line', () => {
+    expect(
+      sourceAttribution(
+        problem({
+          source_line: 'Source: X',
+          source_name: 'ignored',
+          source_authors: ['ignored'],
+        })
+      )
+    ).toBe('Source: X');
+  });
+
+  it('composes from raw fields and drops blank author entries', () => {
+    expect(
+      sourceAttribution(problem({ source_name: "DMOJ (CCO '03)", source_authors: ['A', ' ', 'B'] }))
+    ).toBe("Source: DMOJ (CCO '03) · Author(s): A, B");
+  });
+
+  it('returns an empty string when nothing is attributed', () => {
+    expect(sourceAttribution(problem({}))).toBe('');
+    expect(sourceAttribution(problem({ source_authors: ['   '] }))).toBe('');
   });
 });
 

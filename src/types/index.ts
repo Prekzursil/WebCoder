@@ -45,6 +45,15 @@ export interface ProblemType {
   has_editorial?: boolean;
   editorial_locked?: boolean;
   difficulty_source?: string;
+  // Source attribution (content wave CNT-1): imported problems carry their
+  // origin; own-authored problems leave these blank.
+  source_name?: string;
+  source_url?: string;
+  source_authors?: string[];
+  license_status?: string;
+  license_basis?: string;
+  alt_sources?: { source: string; sourceId: string; sourceUrl?: string; title?: string }[];
+  source_line?: string;
 }
 
 export interface SubmissionType {
