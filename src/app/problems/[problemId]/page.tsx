@@ -39,6 +39,21 @@ function localizedTitle(problem: ProblemType, locale: PublicLocale, fallback: st
   return problem.title_i18n[locale] || problem.title_i18n.en || fallback;
 }
 
+/**
+ * One-line source attribution for imported problems (content wave CNT-1):
+ * "Source: <competition/site, year> · Author(s): <names>". Prefers the
+ * backend-composed `source_line`; falls back to composing it locally from
+ * the raw fields. Empty for own-authored problems — the line is hidden.
+ */
+export function sourceAttribution(problem: ProblemType): string {
+  if (problem.source_line) return problem.source_line;
+  const parts: string[] = [];
+  if (problem.source_name) parts.push(`Source: ${problem.source_name}`);
+  const authors = (problem.source_authors || []).filter((a) => a && a.trim());
+  if (authors.length > 0) parts.push(`Author(s): ${authors.join(', ')}`);
+  return parts.join(' · ');
+}
+
 export async function generateMetadata({
   params,
 }: ProblemDetailPageProps): Promise<Metadata> {
@@ -240,6 +255,24 @@ export default async function ProblemDetailPage({ params }: ProblemDetailPagePro
                 <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--foreground)', letterSpacing: '-0.02em', lineHeight: 1.3 }}>
                   {problemTitle}
                 </h1>
+                {/* Source attribution (content wave CNT-1): rendered only
+                    for imported problems; own-authored ones omit the line. */}
+                {sourceAttribution(problem) && (
+                  <div data-testid="source-line" style={{ marginTop: '0.35rem', fontSize: '0.8rem', color: 'var(--muted)' }}>
+                    {problem.source_url ? (
+                      <a
+                        href={problem.source_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: 'var(--accent)', textDecoration: 'none' }}
+                      >
+                        {sourceAttribution(problem)}
+                      </a>
+                    ) : (
+                      sourceAttribution(problem)
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
