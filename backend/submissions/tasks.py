@@ -182,7 +182,11 @@ def judge_submission_task(self, submission_id):
                     )
                     submission.save()
                     _notify_judged(submission, submission.verdict)
-                if temp_dir_obj:
+                # temp_dir_obj is unconditionally created at the top of the
+                # try-block (before compilation), so the falsey arm of this
+                # guard is unreachable — same reasoned pragma as the compile
+                # cleanup above.
+                if temp_dir_obj:  # pragma: no cover
                     temp_dir_obj.cleanup()
                 return f"Submission {submission_id}: library install failed."
 
@@ -220,7 +224,10 @@ def judge_submission_task(self, submission_id):
                         submission.detailed_feedback = checker_msg
                         submission.save()
                         _notify_judged(submission, submission.verdict)
-                    if temp_dir_obj:
+                    # temp_dir_obj is unconditionally created before this
+                    # point, so the falsey arm is unreachable — reasoned
+                    # pragma mirroring the compile cleanup guard.
+                    if temp_dir_obj:  # pragma: no cover
                         temp_dir_obj.cleanup()
                     checker_workspace_obj.cleanup()
                     return f"Submission {submission_id}: checker compile failed."
@@ -313,7 +320,10 @@ def judge_submission_task(self, submission_id):
                     )
                     if not outputs_match:
                         final_tc_verdict = Submission.VerdictStatus.WRONG_ANSWER
-                        if mismatch_hint:
+                        # compare_outputs_detailed returns a non-None hint on
+                        # every mismatch path (all modes), and matching outputs
+                        # never reach this line — the falsey arm is dead.
+                        if mismatch_hint:  # pragma: no branch
                             tc_error = (
                                 (tc_error + "\n" if tc_error else "")
                                 + mismatch_hint

@@ -389,3 +389,101 @@ class ReportTest(ForumTestBase):
             {"action": "resolved"},
         )
         self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class CoverageClosureTest(ForumTestBase):
+    """Statement/branch closures for the single-branch 100% coverage gate
+    (2026-10-27): model __str__, permission matrix, problem_id thread filter,
+    moderator visibility branches, 404 arms, and VoteView scaffolding."""
+
+    def test_model_str_methods(self):
+        vote = PostVote.objects.create(
+            user=self.basic, post=self.first_post, value=1
+        )
+        report = Report.objects.create(
+            reporter=self.basic, post=self.first_post, reason="spam"
+        )
+        self.assertEqual(
+            str(self.thread), f"Thread({self.thread.id}: {self.thread.title})"
+        )
+        self.assertEqual(
+            str(self.first_post),
+            f"Post({self.first_post.id} in thread {self.thread.id})",
+        )
+        self.assertEqual(
+            str(vote), f"Vote({self.basic.id} on post {self.first_post.id}: 1)"
+        )
+        self.assertEqual(
+            str(report), f"Report({report.id}: spam on post {self.first_post.id})"
+        )
+
+    def test_author_or_moderator_permission_matrix(self):
+        from forum.permissions import IsAuthorOrModerator
+        from rest_framework.test import APIRequestFactory
+
+        factory = APIRequestFactory()
+        perm = IsAuthorOrModerator()
+        base = self.first_post
+
+        moderator_req = factory.get("/")
+        moderator_req.user = self.verifier
+        self.assertTrue(perm.has_object_permission(moderator_req, None, base))
+
+        anon_req = factory.get("/")
+        from django.contrib.auth.models import AnonymousUser
+
+        anon_req.user = AnonymousUser()
+        self.assertFalse(perm.has_object_permission(anon_req, None, base))
+
+        author_req = factory.get("/")
+        author_req.user = self.author
+        self.assertTrue(perm.has_object_permission(author_req, None, base))
+
+    def test_thread_list_filters_by_problem_id(self):
+        problem = Problem.objects.create(
+            title_i18n={"en": "P"}, statement_i18n={"en": "S"},
+            status=Problem.ProblemStatus.APPROVED,
+        )
+        Thread.objects.create(
+            title="linked", author=self.author, problem=problem, post_count=1
+        )
+        resp = self.client.get("/api/v1/forum/threads/", {"problem_id": problem.id})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        results = resp.json()["results"]
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0]["title"], "linked")
+
+    def test_moderator_sees_hidden_posts_inside_thread(self):
+        self.first_post.is_hidden = True
+        self.first_post.save(update_fields=["is_hidden"])
+        anon = self.client.get(f"/api/v1/forum/threads/{self.thread.id}/posts/")
+        self.assertNotIn("hello", str(anon.json()))
+        self.client.force_authenticate(self.verifier)
+        mod = self.client.get(f"/api/v1/forum/threads/{self.thread.id}/posts/")
+        self.assertIn("hello", str(mod.json()))
+
+    def test_post_to_missing_thread_returns_404(self):
+        self.client.force_authenticate(self.basic)
+        resp = self.client.post(
+            "/api/v1/forum/threads/999999/posts/", {"content": "x"}
+        )
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertIn("Not found", str(resp.json()))
+
+    def test_moderator_get_post_detail_uses_post_serializer(self):
+        self.client.force_authenticate(self.verifier)
+        resp = self.client.get(f"/api/v1/forum/posts/{self.first_post.id}/")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        # GET path -> PostSerializer (not PostUpdateSerializer)
+        self.assertIn("content", resp.json())
+
+    def test_vote_on_missing_post_returns_404(self):
+        self.client.force_authenticate(self.basic)
+        resp = self.client.post("/api/v1/forum/posts/999999/vote/", {"value": 1})
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_vote_view_get_queryset_scaffolding(self):
+        from forum.views import VoteView
+
+        qs = VoteView().get_queryset()
+        self.assertEqual(qs.count(), 1)

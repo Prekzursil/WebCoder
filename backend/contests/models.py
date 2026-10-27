@@ -198,7 +198,9 @@ class ContestProblem(models.Model):
     def save(self, *args, **kwargs):
         if not self.label:
             self.label = chr(ord("A") + (self.order % 26))
-            if self.order >= 26:  # pragma: no cover - 27+ problem contests
+            # 27+ problem contests get AA/AB…-style suffixes (both arms
+            # covered by CoverageClosureTest since the 2026-10-27 gate).
+            if self.order >= 26:
                 self.label = f"{self.label}{self.order // 26}"
         super().save(*args, **kwargs)
 

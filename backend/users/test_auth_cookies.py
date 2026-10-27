@@ -209,3 +209,50 @@ class CookieAuthFlowTest(TestCase):
         header_client = APIClient()
         header_client.credentials(HTTP_AUTHORIZATION="Bearer garbage.token.value")
         self.assertEqual(header_client.get(ME).status_code, 401)
+
+
+class CookieAuthenticationArmsTest(TestCase):
+    """Direct WCCookieJWTAuthentication arms for the single-branch 100%
+    gate (2026-10-27): cookie-auth disabled → None, and CSRF enforcement
+    skipped when REST_AUTH turns it off."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="cc-auth", password="pw-12345678")
+
+    def _factory(self):
+        from rest_framework.test import APIRequestFactory
+
+        return APIRequestFactory()
+
+    def test_returns_none_when_cookie_auth_disabled(self):
+        from unittest import mock
+
+        from users.authentication import WCCookieJWTAuthentication
+
+        request = self._factory().get("/")
+        with mock.patch(
+            "users.authentication.api_settings",
+            JWT_AUTH_COOKIE="",
+        ):
+            self.assertIsNone(WCCookieJWTAuthentication().authenticate(request))
+
+    def test_cookie_flow_without_csrf_flag_validates_token(self):
+        from unittest import mock
+
+        from rest_framework_simplejwt.tokens import AccessToken
+
+        from users.authentication import WCCookieJWTAuthentication
+
+        token = str(AccessToken.for_user(self.user))
+        request = self._factory().get("/")
+        request.COOKIES["test-access"] = token
+        with mock.patch(
+            "users.authentication.api_settings",
+            JWT_AUTH_COOKIE="test-access",
+            JWT_AUTH_COOKIE_USE_CSRF=False,
+        ):
+            result = WCCookieJWTAuthentication().authenticate(request)
+        self.assertIsNotNone(result)
+        assert result is not None
+        user, _validated = result
+        self.assertEqual(user.id, self.user.id)

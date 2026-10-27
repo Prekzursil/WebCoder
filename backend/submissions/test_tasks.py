@@ -4,10 +4,13 @@ The sandboxed compile/run/checker helpers are mocked; this exercises the
 orchestration logic, DB updates, verdict aggregation, and error handling.
 """
 
+from datetime import timedelta
 from unittest import mock
 
 from django.test import TestCase
+from django.utils import timezone
 
+from contests.models import Contest, ContestParticipation, ContestProblem
 from problems.models import Problem, TestCase as ProblemTestCase
 from submissions.models import Submission, SubmissionTestResult
 from submissions.tasks import judge_submission_task
@@ -431,3 +434,57 @@ class JudgeSubmissionTaskTest(TestCase):
             _call(sub.id)
         sub.refresh_from_db()
         self.assertIn("Compiler Output", sub.detailed_feedback)
+
+
+class ContestCompileErrorScheduleTest(TestCase):
+    """Single-branch 100% gate: a compile error on a CONTEST submission
+    still counts as an attempt — record_verdict_task must be scheduled via
+    transaction.on_commit (tasks.py contest CE arm)."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="cc-ce", password="p")
+        self.organizer = User.objects.create_user(username="cc-org", password="p")
+        self.problem = Problem.objects.create(
+            title_i18n={"en": "P"},
+            statement_i18n={"en": "S"},
+            comparison_mode=Problem.ComparisonMode.EXACT,
+        )
+        ProblemTestCase.objects.create(
+            problem=self.problem,
+            input_data="in",
+            expected_output_data="out",
+            points=10,
+            order=1,
+        )
+        start = timezone.now() - timedelta(minutes=10)
+        end = timezone.now() + timedelta(minutes=50)
+        self.contest = Contest.objects.create(
+            title_i18n={"en": "CC"},
+            created_by=self.organizer,
+            start_at=start,
+            end_at=end,
+            format=Contest.Format.IOI,
+        )
+        ContestProblem.objects.create(
+            contest=self.contest, problem=self.problem, order=0, points=100
+        )
+        ContestParticipation.objects.create(contest=self.contest, user=self.user)
+
+    def test_ce_in_contest_schedules_verdict_record(self):
+        sub = Submission.objects.create(
+            user=self.user,
+            problem=self.problem,
+            contest=self.contest,
+            language="cpp17",
+            code="not compiling",
+        )
+        with mock.patch(
+            f"{TASKS}.compile_code_in_sandbox",
+            return_value=(False, "syntax error", None),
+        ), mock.patch(f"{TASKS}.record_verdict_task") as record_mock:
+            with self.captureOnCommitCallbacks(execute=True):
+                msg = _call(sub.id)
+        self.assertIn("Compile Error", msg)
+        record_mock.delay.assert_called_once_with(sub.id)
+        sub.refresh_from_db()
+        self.assertEqual(sub.verdict, Submission.VerdictStatus.COMPILE_ERROR)

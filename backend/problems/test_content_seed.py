@@ -240,3 +240,77 @@ class TestDifficultyProvenanceAndCalibration:
         assert "->" not in out2.getvalue()
         problem.refresh_from_db()
         assert problem.difficulty == Problem.DifficultyLevel.MEDIUM
+
+
+class TestStartersCoverageClosure:
+    """Single-branch 100% gate: a chapter with no easy APPROVED problem
+    (candidate None arm) and the fallback trio hitting its break."""
+
+    def test_starters_skips_empty_chapter_and_falls_back(self):
+        from problems.models import CurriculumNode
+
+        root = CurriculumNode.objects.create(
+            kind=CurriculumNode.NodeKind.GRADE,
+            name_i18n={"en": "Grade 9"},
+            slug="cc-grade",
+            order=0,
+        )
+        chapter_ok = CurriculumNode.objects.create(
+            kind=CurriculumNode.NodeKind.CHAPTER,
+            parent=root,
+            name_i18n={"en": "Warmups"},
+            slug="cc-ch-ok",
+            order=0,
+        )
+        chapter_empty = CurriculumNode.objects.create(
+            kind=CurriculumNode.NodeKind.CHAPTER,
+            parent=root,
+            name_i18n={"en": "Advanced"},
+            slug="cc-ch-empty",
+            order=1,
+        )
+        linked = Problem.objects.create(
+            title_i18n={"en": "Linked Easy"},
+            statement_i18n={"en": "s"},
+            status=Problem.ProblemStatus.APPROVED,
+            difficulty=Problem.DifficultyLevel.EASY,
+        )
+        chapter_ok.problems.add(linked)
+        medium = Problem.objects.create(
+            title_i18n={"en": "Medium Only"},
+            statement_i18n={"en": "s"},
+            status=Problem.ProblemStatus.APPROVED,
+            difficulty=Problem.DifficultyLevel.MEDIUM,
+        )
+        chapter_empty.problems.add(medium)
+        loose_titles = []
+        for title in ("Loose One", "Loose Two"):
+            Problem.objects.create(
+                title_i18n={"en": title},
+                statement_i18n={"en": "s"},
+                status=Problem.ProblemStatus.APPROVED,
+                difficulty=Problem.DifficultyLevel.EASY,
+            )
+            loose_titles.append(title)
+
+        client = APIClient()
+        response = client.get("/api/v1/problems/problems/starters/")
+        assert response.status_code == 200
+        titles = [p["title_i18n"]["en"] for p in response.data]
+        assert titles == ["Linked Easy", "Loose One", "Loose Two"]
+
+    def test_curriculum_node_str_both_name_shapes(self):
+        from problems.models import CurriculumNode
+
+        dict_node = CurriculumNode.objects.create(
+            kind=CurriculumNode.NodeKind.GRADE,
+            name_i18n={"en": "Loops"},
+            slug="cc-node-dict",
+        )
+        assert str(dict_node) == "cc-node-dict (Loops)"
+        plain_node = CurriculumNode(
+            kind=CurriculumNode.NodeKind.GRADE,
+            name_i18n="plain",
+            slug="cc-node-plain",
+        )
+        assert str(plain_node) == "cc-node-plain"

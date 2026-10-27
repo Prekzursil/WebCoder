@@ -327,3 +327,47 @@ class TestMultiLanguageDedup:
         # Polyglot still sees all three languages.
         assert "polyglot_3" in payload["badges"]
         assert payload["per_language"] == {"python3": 1, "cpp17": 1, "c11": 1}
+
+
+class TestCoverageClosure:
+    """Single-branch 100% gate (2026-10-27): zero-solved badges, account
+    delete success path, and multi-user activation funnel arms."""
+
+    def test_statistics_badges_empty_without_solved(self):
+        user = User.objects.create_user(username="cc-zero", password="pw-12345678")
+        make_sub(user, make_problem(title="ccw"), Submission.VerdictStatus.WRONG_ANSWER)
+        stats = user_statistics(user)
+        assert stats["solved"] == 0
+        assert stats["badges"] == []
+
+    def test_account_delete_success_path(self):
+        user = User.objects.create_user(username="cc-del", password="pw-12345678")
+        client = APIClient()
+        client.force_authenticate(user=user)
+        response = client.post("/api/v1/users/me/delete/", {"confirm": "DELETE"})
+        assert response.status_code == 200
+        user.refresh_from_db()
+        assert not user.is_active
+
+    def test_activation_snapshot_d1_d7_arms(self):
+        now = timezone.now()
+        day = timedelta(days=1)
+
+        def joined_and_first(delta_join, delta_first, name):
+            u = User.objects.create_user(username=name, password="pw-12345678")
+            User.objects.filter(id=u.id).update(date_joined=now - delta_join)
+            make_sub(
+                u,
+                make_problem(title=f"ccan-{name}"),
+                Submission.VerdictStatus.ACCEPTED,
+                when=now - delta_first,
+            )
+            return u
+
+        joined_and_first(day, day, "cc-d1")  # day-0/1 bucket
+        joined_and_first(timedelta(days=10), timedelta(days=3), "cc-d7")  # 1<d<=7
+        joined_and_first(timedelta(days=30), timedelta(days=20), "cc-old")  # >7
+
+        snapshot = activation_snapshot()
+        assert snapshot["d1_active"] == 1
+        assert snapshot["d7_active"] == 2

@@ -227,3 +227,29 @@ class SubmitTimeAllowlistGateTest(TestCase):
             )
         self.assertEqual(response.status_code, 201)
         dispatch.delay.assert_called_once()
+
+
+class GenericInstallFailureTest(TestCase):
+    def setUp(self):
+        import pathlib
+        import tempfile
+
+        self.dir = pathlib.Path(tempfile.mkdtemp())
+
+    def test_unrecognized_failure_message(self):
+        bad = subprocess.CompletedProcess(
+            args=["docker"], returncode=1, stdout="", stderr="disk quota exceeded"
+        )
+        (success, msg), _ = self._install(["numpy"], return_value=bad)
+        self.assertFalse(success)
+        self.assertIn("Custom library installation failed", msg)
+
+    def _install(self, libs, side_effect=None, return_value=None):
+        with mock.patch.object(
+            custom_libs.subprocess,
+            "run",
+            side_effect=side_effect,
+            return_value=return_value,
+        ) as run_mock:
+            result = install_custom_libs(self.dir, libs)
+        return result, (run_mock.call_args[0][0] if run_mock.call_count else None)

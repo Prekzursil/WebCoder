@@ -291,3 +291,12 @@ class PurgeTaskTest(TestCase):
         self.assertFalse(Notification.objects.filter(pk=old_read.pk).exists())
         self.assertTrue(Notification.objects.filter(pk=fresh_read.pk).exists())
         self.assertTrue(Notification.objects.filter(pk=old_unread.pk).exists())
+
+
+class NotificationStrTest(TestCase):
+    def test_str_method(self):
+        user = User.objects.create_user(username="n-str", password="p")
+        note = notify(user, "reply")
+        self.assertIsNotNone(note)
+        assert note is not None  # for the type checker
+        self.assertEqual(str(note), f"Notification(reply -> {user.id})")

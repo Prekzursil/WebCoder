@@ -603,3 +603,18 @@ class AggregateScoreFractionTest(TestCase):
             [(self.t1, True, 1.0), (self.t2, True)],
         )
         self.assertEqual(score, 10)
+
+
+class FalsyLimitOverrideTest(TestCase):
+    """Single-branch 100% gate: a falsy time_ms/memory_kb override value is
+    ignored (falls back to registry multipliers/floors)."""
+
+    def test_zero_overrides_keep_registry_limits(self):
+        base = effective_limits(2000, 262144, "python3")
+        overridden = effective_limits(
+            2000,
+            262144,
+            "python3",
+            limit_overrides={"python3": {"time_ms": 0, "memory_kb": 0}},
+        )
+        self.assertEqual(base, overridden)

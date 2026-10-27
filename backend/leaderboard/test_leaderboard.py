@@ -268,3 +268,34 @@ class JudgeTaskHookTest(TestCase):
             with self.captureOnCommitCallbacks(execute=True):
                 self._judge(wa_run)
         task.delay.assert_not_called()
+
+
+class CoverageClosureTest(TestCase):
+    """Task wrappers, model __str__ and the zero-submission success rate
+    (single-branch 100% coverage gate, 2026-10-27)."""
+
+    def test_task_wrappers_execute_synchronously(self):
+        from leaderboard.aggregation import (
+            recompute_all_leaderboards_task,
+            update_user_entry_task,
+        )
+
+        user = User.objects.create_user(username="cc-task", password="p")
+        result = update_user_entry_task.run(user.id)  # type: ignore[attr-defined]
+        self.assertIsInstance(result, (int, LeaderboardEntry))
+        total = recompute_all_leaderboards_task.run()  # type: ignore[attr-defined]
+        self.assertIsInstance(total, int)
+
+    def test_leaderboard_entry_str(self):
+        user = User.objects.create_user(username="cc-str", password="p")
+        entry = LeaderboardEntry(user=user, total_points=42, solved_count=3)
+        self.assertEqual(
+            str(entry), f"LeaderboardEntry(user={user.id}, points=42)"
+        )
+
+    def test_success_rate_zero_without_submissions(self):
+        from leaderboard.serializers import LeaderboardEntrySerializer
+
+        user = User.objects.create_user(username="cc-rate", password="p")
+        entry = LeaderboardEntry(user=user, total_submissions=0, ac_submissions=0)
+        self.assertEqual(LeaderboardEntrySerializer().get_success_rate(entry), 0.0)

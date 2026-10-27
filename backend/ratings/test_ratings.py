@@ -395,3 +395,25 @@ class CoverageEdgeTests(RatingsServiceBase):
         self.assertIsNone(
             __import__("ratings.services", fromlist=["user_public_summary"]).user_public_summary(self.carol)
         )
+
+
+class ReplayNoUpdateArmTest(RatingsServiceBase):
+    """Single-branch 100% gate: the replay loop must also tolerate contests
+    whose recompute yields no update ("<2 finishers") — that arm must not
+    increment the replayed counter."""
+
+    def test_rollback_replays_contest_with_no_ratable_finishers(self):
+        first = self.mk_rated_contest()
+        self.seed_scores(first, {self.alice: 100, self.bob: 50})
+        compute_service(first)
+        second = self.mk_rated_contest()
+        self.seed_scores(second, {self.alice: 0, self.bob: 100})
+        compute_service(second)
+        # Rated + finished + not discarded, but nobody scored → replay says
+        # "<2 finishers", which must NOT count as an updated replay.
+        silent = self.mk_rated_contest()
+
+        message = rollback_contest_ratings(second)
+        self.assertIn("1 contests replayed", message)
+        silent.refresh_from_db()
+        self.assertFalse(silent.ratings_discarded)

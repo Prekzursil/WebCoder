@@ -1199,3 +1199,51 @@ class BranchCoverageTests(ContestBase):
         response = self.client.get(f"/api/v1/contests/{contest.id}/standings/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["results"][0]["problems"]), 2)
+
+
+class CoverageClosureTest(ContestBase):
+    """Single-branch 100% gate (2026-10-27): valid window-create arm,
+    calendar titles that are not dicts, and ContestProblem order-26 labels."""
+
+    def test_create_valid_window_contest_passes_duration_check(self):
+        self.client.force_authenticate(user=self.admin)
+        payload = {
+            "title_i18n": {"en": "Windowed"},
+            "start_at": self.now.isoformat(),
+            "end_at": (self.now + timedelta(hours=2)).isoformat(),
+            "is_window": True,
+            "per_user_duration_minutes": 60,
+        }
+        response = self.client.post("/api/v1/contests/", payload, format="json")
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertTrue(Contest.objects.get().is_window)
+
+    def test_calendar_handles_non_dict_title(self):
+        from contests.calendar import build_calendar
+
+        contest = self.mk_contest()
+        contest.title_i18n = "Plain title"
+        contest.save()
+        ics = build_calendar([contest])
+        self.assertIn("BEGIN:VEVENT", ics)
+
+    def test_contest_problem_label_after_z(self):
+        contest = self.mk_contest()
+        problem = self.mk_problem("Extra")
+        link = ContestProblem.objects.create(
+            contest=contest, problem=problem, order=26, points=100
+        )
+        self.assertEqual(link.label, "A1")
+        link27 = ContestProblem.objects.create(
+            contest=contest, problem=self.mk_problem("Extra 2"), order=27, points=100
+        )
+        self.assertEqual(link27.label, "B1")
+
+    def test_resaving_keeps_existing_label(self):
+        contest = self.mk_contest()
+        link = ContestProblem.objects.get(contest=contest)
+        self.assertEqual(link.label, "A")
+        link.points = 150
+        link.save()  # label already set — must not be regenerated
+        link.refresh_from_db()
+        self.assertEqual(link.label, "A")

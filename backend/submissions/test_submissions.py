@@ -189,3 +189,45 @@ class SubmissionViewSetTest(TestCase):
             format="json",
         )
         self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class ListFilterCoverageTest(TestCase):
+    """Single-branch 100% gate: problemId/language list filters."""
+
+    def setUp(self):
+        from rest_framework.test import APIClient
+
+        self.client = APIClient()
+        self.user = User.objects.create_user(username="cc-lf", password="p")
+        self.p1 = Problem.objects.create(
+            title_i18n={"en": "P1"}, statement_i18n={"en": "S"}
+        )
+        self.p2 = Problem.objects.create(
+            title_i18n={"en": "P2"}, statement_i18n={"en": "S"}
+        )
+
+    def _sub(self, problem, language="python3"):
+        return Submission.objects.create(
+            user=self.user, problem=problem, language=language, code="x"
+        )
+
+    def test_filter_by_problem_and_language(self):
+        self._sub(self.p1, language="python3")
+        self._sub(self.p2, language="java11")
+        self.client.force_authenticate(self.user)
+
+        by_problem = self.client.get(
+            "/api/v1/submissions/submissions/", {"problemId": self.p1.id}
+        )
+        self.assertEqual(len(by_problem.json()["results"]), 1)
+        self.assertEqual(
+            by_problem.json()["results"][0]["problem"]["id"], self.p1.id
+        )
+
+        by_language = self.client.get(
+            "/api/v1/submissions/submissions/", {"language": "java11"}
+        )
+        self.assertEqual(len(by_language.json()["results"]), 1)
+        self.assertEqual(
+            by_language.json()["results"][0]["language"], "java11"
+        )

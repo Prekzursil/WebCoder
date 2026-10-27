@@ -272,3 +272,21 @@ def test_env_loader_parses_dotenv(monkeypatch, request):
     assert os.environ["NO_VALUE"] == ""
     assert os.environ["EXISTING_KEY"] == "from_env"
     assert ns["SECRET_KEY"] == "testkey"
+
+
+def test_celery_non_filesystem_broker_skips_transport_options():
+    """The redis/AMQP arm of the broker-selection branch in celery.py:
+    reloading the module with a non-filesystem CELERY_BROKER_URL must not
+    install the filesystem transport options (single-branch 100% gate)."""
+    from django.test import override_settings
+
+    import webcoder_api.celery as celery_mod
+
+    try:
+        with override_settings(CELERY_BROKER_URL="redis://redis:6379/0"):
+            reloaded = importlib.reload(celery_mod)
+            assert reloaded.app.conf.broker_url == "redis://redis:6379/0"
+            opts = reloaded.app.conf.broker_transport_options or {}
+            assert "data_folder_in" not in opts
+    finally:
+        importlib.reload(celery_mod)
