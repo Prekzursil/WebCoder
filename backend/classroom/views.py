@@ -22,7 +22,7 @@ from django.db import transaction
 from django.http import HttpResponse
 from django.utils import timezone
 from rest_framework import permissions, status, viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 
@@ -33,11 +33,19 @@ from webcoder_api.pagination import StandardPageNumberPagination
 
 from .export import grid_csv
 from .grid import assignment_grid
-from .models import Assignment, ClassMembership, ClassRoom
+from .models import (
+    Assignment,
+    ClassMembership,
+    ClassRoom,
+    MCQItem,
+    QuizSubmission,
+    UploadedDeliverable,
+)
 from .permissions import IsTeacher, is_teacher
 from .serializers import (
     AssignmentSerializer,
     ClassMembershipSerializer,
+    MCQItemSerializer,
     ClassRoomSerializer,
     JoinClassSerializer,
 )
@@ -235,10 +243,15 @@ class AssignmentViewSet(viewsets.ModelViewSet):
                 {"detail": "Only the teacher can view the progress grid."},
                 status=status.HTTP_403_FORBIDDEN,
             )
+        if assignment.kind == Assignment.Kind.QUIZ:
+            return Response(_quiz_grid_payload(assignment))
+        if assignment.kind == Assignment.Kind.FILES:
+            return Response(_files_grid_payload(assignment))
         data = assignment_grid(assignment)
         return Response(
             {
                 "assignment_id": assignment.id,
+                "kind": Assignment.Kind.PROBLEMS,
                 "students": [
                     {"id": s.id, "username": s.username} for s in data["students"]
                 ],
@@ -336,3 +349,329 @@ class AssignmentViewSet(viewsets.ModelViewSet):
                 }
             )
         return Response({"results": results})
+
+
+# ---------------------------------------------------------------------------
+# Wave C: EDU-7 quiz/file teme + EDU-8 MCQ bank + EDU-4 exam status
+# ---------------------------------------------------------------------------
+
+class MCQItemViewSet(viewsets.ModelViewSet):
+    """EDU-8 — the Bacalaureat-style MCQ bank.
+
+    Reads are authenticated (bank browsing for teachers + students);
+    writes are TEACHER/ADMIN. Filters: discipline, grade, bacYear, chapter.
+    """
+
+    serializer_class = MCQItemSerializer
+    pagination_class = StandardPageNumberPagination
+
+    def get_permissions(self):
+        if self.action in ("list", "retrieve"):
+            return [permissions.IsAuthenticated()]
+        return [permissions.IsAuthenticated(), IsTeacher()]
+
+    def get_queryset(self):
+        qs = MCQItem.objects.all().select_related("chapter")
+        params = self.request.query_params
+        discipline = params.get("discipline")
+        if discipline:
+            qs = qs.filter(discipline__iexact=discipline)
+        grade = params.get("grade")
+        if grade:
+            qs = qs.filter(grade=grade)
+        bac_year = params.get("bacYear")
+        if bac_year:
+            qs = qs.filter(bac_year=bac_year)
+        chapter = params.get("chapter")
+        if chapter:
+            qs = qs.filter(chapter_id=chapter)
+        return qs.order_by("grade", "id")
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+
+def _quiz_payload(assignment, request):
+    """Student-facing quiz sheet: per-student shuffled variant order, no
+    correct indices; teachers additionally receive them for review."""
+    from .quiz import shuffle_order
+
+    links = list(
+        assignment.quiz_items.select_related("item").order_by("order", "id")
+    )
+    items = []
+    for link in links:
+        order = shuffle_order(assignment, request.user.id)
+        items.append(
+            {
+                "item_id": link.item_id,
+                "order": link.order,
+                "question_i18n": link.item.question_i18n,
+                "variants_en": [link.item.variants_en[i] for i in order],
+                "variants_ro": [link.item.variants_ro[i] for i in order],
+                "correct_index": (
+                    link.item.correct_index
+                    if _can_manage_classroom(request.user, assignment.classroom)
+                    else None
+                ),
+            }
+        )
+    return {
+        "assignment": assignment.id,
+        "kind": "QUIZ",
+        "shuffle": assignment.quiz_shuffle,
+        "state": assignment.state(),
+        "items": items,
+    }
+
+
+
+
+
+def _fetch_assignment_or_404(pk, user):
+    """Assignment visible to *user* (teacher of the class, member, or admin)."""
+    from django.shortcuts import get_object_or_404
+
+    assignment = get_object_or_404(
+        Assignment.objects.select_related("classroom"), pk=pk
+    )
+    is_member = ClassMembership.objects.filter(
+        classroom=assignment.classroom, student=user
+    ).exists()
+    if _can_manage_classroom(user, assignment.classroom) or is_member:
+        return assignment
+    return None
+
+
+@api_view(["GET"])
+def assignment_quiz_view(request, assignment_id):
+    """GET /assignments/{id}/quiz/ — the student's shuffled sheet (EDU-7)."""
+    if not request.user.is_authenticated:
+        return Response({"detail": "Authentication required."}, status=401)
+    assignment = _fetch_assignment_or_404(assignment_id, request.user)
+    if assignment is None:
+        return Response({"detail": "Not found."}, status=404)
+    if assignment.kind != Assignment.Kind.QUIZ:
+        return Response(
+            {"detail": "This assignment is not a quiz."}, status=400
+        )
+    return Response(_quiz_payload(assignment, request))
+
+
+@api_view(["POST"])
+def quiz_submit_view(request, assignment_id):
+    """POST /assignments/{id}/quiz/submit/ — auto-grade one attempt (EDU-8)."""
+    if not request.user.is_authenticated:
+        return Response({"detail": "Authentication required."}, status=401)
+    assignment = _fetch_assignment_or_404(assignment_id, request.user)
+    if assignment is None:
+        return Response({"detail": "Not found."}, status=404)
+    if assignment.kind != Assignment.Kind.QUIZ:
+        return Response({"detail": "This assignment is not a quiz."}, status=400)
+    if assignment.state() != Assignment.State.OPEN:
+        return Response(
+            {"detail": "The quiz window is closed (late work is not graded)."},
+            status=400,
+        )
+    answers = request.data.get("answers")
+    if not isinstance(answers, dict):
+        return Response(
+            {"answers": "Send {item_id: chosen_index}."}, status=400
+        )
+    from .quiz import grade_answers
+    from .serializers import QuizSubmissionSerializer
+
+    graded = grade_answers(assignment, request.user, answers)
+    submission = QuizSubmission.objects.create(
+        assignment=assignment, student=request.user, **graded
+    )
+    return Response(QuizSubmissionSerializer(submission).data, status=201)
+
+
+@api_view(["GET"])
+def quiz_stats_view(request, assignment_id):
+    """GET /assignments/{id}/quiz/stats/ — per-item correctness (teacher)."""
+    if not request.user.is_authenticated:
+        return Response({"detail": "Authentication required."}, status=401)
+    assignment = _fetch_assignment_or_404(assignment_id, request.user)
+    if assignment is None:
+        return Response({"detail": "Not found."}, status=404)
+    if not _can_manage_classroom(request.user, assignment.classroom):
+        return Response(
+            {"detail": "Only the teacher can view quiz statistics."}, status=403
+        )
+    from .quiz import item_stats
+
+    return Response(
+        {"assignment": assignment.id, "items": item_stats(assignment)}
+    )
+
+
+@api_view(["GET", "POST"])
+def deliverables_view(request, assignment_id):
+    """GET/POST /assignments/{id}/deliverables/ — FILES teme (EDU-7)."""
+    if not request.user.is_authenticated:
+        return Response({"detail": "Authentication required."}, status=401)
+    assignment = _fetch_assignment_or_404(assignment_id, request.user)
+    if assignment is None:
+        return Response({"detail": "Not found."}, status=404)
+    is_teacher_view = _can_manage_classroom(request.user, assignment.classroom)
+    if assignment.kind != Assignment.Kind.FILES:
+        return Response(
+            {"detail": "This assignment does not take file uploads."}, status=400
+        )
+    if request.method == "GET":
+        qs = assignment.deliverables.select_related("student").order_by(
+            "student__username", "-uploaded_at"
+        )
+        if not is_teacher_view:
+            qs = qs.filter(student=request.user)
+        return Response(
+            {
+                "assignment": assignment.id,
+                "results": [
+                    {
+                        "id": d.id,
+                        "student": {"id": d.student_id, "username": d.student.username},
+                        "original_filename": d.original_filename,
+                        "file": request.build_absolute_uri(d.file.url),
+                        "uploaded_at": d.uploaded_at,
+                    }
+                    for d in qs
+                ],
+            }
+        )
+    # POST: policy-validated upload (member only, OPEN window).
+    if is_teacher_view:
+        return Response(
+            {"detail": "Teachers cannot submit deliverables."}, status=403
+        )
+    if assignment.state() != Assignment.State.OPEN:
+        return Response(
+            {"detail": "The upload window is closed (late work is ignored)."},
+            status=400,
+        )
+    upload = request.FILES.get("file")
+    if upload is None:
+        return Response({"file": "Attach a file under the 'file' key."}, status=400)
+    allowed = [
+        ext.strip().lower().lstrip(".")
+        for ext in assignment.file_extensions.split(",")
+        if ext.strip()
+    ]
+    name = upload.name or ""
+    if allowed and not name.lower().endswith(tuple(f".{e}" for e in allowed)):
+        return Response(
+            {"file": f"Allowed extensions: {', '.join(allowed)}."}, status=400
+        )
+    if upload.size > assignment.max_file_mb * 1024 * 1024:
+        return Response(
+            {"file": f"Files may be at most {assignment.max_file_mb} MB."}, status=400
+        )
+    deliverable = UploadedDeliverable.objects.create(
+        assignment=assignment,
+        student=request.user,
+        file=upload,
+        original_filename=name,
+    )
+    return Response(
+        {
+            "id": deliverable.id,
+            "assignment": assignment.id,
+            "original_filename": deliverable.original_filename,
+            "uploaded_at": deliverable.uploaded_at,
+        },
+        status=201,
+    )
+
+
+@api_view(["GET"])
+def exam_mode_view(request):
+    """GET /exam-mode/ — EDU-4 status for the SPA lockdown banner."""
+    from .exam import active_exam
+
+    if not request.user.is_authenticated:
+        return Response({"active": False, "assignment": None})
+    exam = active_exam(request.user)
+    if exam is None:
+        return Response({"active": False, "assignment": None})
+    return Response(
+        {
+            "active": True,
+            "assignment": {
+                "id": exam.id,
+                "title_i18n": exam.title_i18n,
+                "classroom": exam.classroom.name,
+                "due_at": exam.due_at,
+            },
+        }
+    )
+
+
+def _quiz_grid_payload(assignment) -> dict:
+    """EDU-5 shape for QUIZ teme: per-student best attempt + item stats."""
+    from .quiz import item_stats
+
+    members = list(
+        assignment.classroom.memberships.select_related("student").order_by(
+            "student__username"
+        )
+    )
+    best: dict[int, dict] = {}
+    for submission in assignment.quiz_submissions.select_related("student"):
+        current = best.get(submission.student_id)
+        if current is None:
+            best[submission.student_id] = {
+                "score": submission.score,
+                "correct_count": submission.correct_count,
+                "total_count": submission.total_count,
+                "submitted_at": submission.submitted_at,
+                "attempts": 1,
+            }
+        else:
+            # Every attempt counts; the best score/row wins display fields.
+            current["attempts"] += 1
+            if submission.score > current["score"]:
+                current.update(
+                    {
+                        "score": submission.score,
+                        "correct_count": submission.correct_count,
+                        "total_count": submission.total_count,
+                        "submitted_at": submission.submitted_at,
+                    }
+                )
+    return {
+        "assignment_id": assignment.id,
+        "kind": Assignment.Kind.QUIZ,
+        "students": [
+            {"id": m.student_id, "username": m.student.username} for m in members
+        ],
+        "cells": {str(uid): cell for uid, cell in best.items()},
+        "item_stats": item_stats(assignment),
+    }
+
+
+def _files_grid_payload(assignment) -> dict:
+    """EDU-5 shape for FILES teme: who delivered, how often, last upload."""
+    members = list(
+        assignment.classroom.memberships.select_related("student").order_by(
+            "student__username"
+        )
+    )
+    uploads: dict[int, dict] = {}
+    for deliverable in assignment.deliverables.select_related("student").order_by(
+        "uploaded_at"
+    ):
+        uploads[deliverable.student_id] = {
+            "count": uploads.get(deliverable.student_id, {}).get("count", 0) + 1,
+            "last_filename": deliverable.original_filename,
+            "last_uploaded_at": deliverable.uploaded_at,
+        }
+    return {
+        "assignment_id": assignment.id,
+        "kind": Assignment.Kind.FILES,
+        "students": [
+            {"id": m.student_id, "username": m.student.username} for m in members
+        ],
+        "cells": {str(uid): cell for uid, cell in uploads.items()},
+    }

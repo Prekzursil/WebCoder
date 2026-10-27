@@ -114,6 +114,9 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+    # EDU-4 exam-mode site lockdown (Wave C): last so auth is resolved; only
+    # touches authenticated non-staff users sitting an OPEN is_exam teme.
+    "classroom.exam.ExamModeMiddleware",
 ]
 
 # Comma-separated env var (e.g. CORS_ALLOWED_ORIGINS=https://app.example.com,http://localhost:3000).
@@ -211,6 +214,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
+
+# EDU-7 file deliverables: uploaded homework files (never served publicly
+# without the assignment view; MEDIA exposure is operator-controlled).
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.environ.get("MEDIA_ROOT", os.path.join(BASE_DIR, "media"))
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

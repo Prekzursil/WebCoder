@@ -6,7 +6,101 @@ from rest_framework import serializers
 from problems.models import Problem
 from users.models import User
 
-from .models import Assignment, AssignmentProblem, ClassMembership, ClassRoom
+from .models import (
+    Assignment,
+    AssignmentProblem,
+    AssignmentQuizItem,
+    ClassMembership,
+    ClassRoom,
+    MCQItem,
+    QuizSubmission,
+    UploadedDeliverable,
+)
+
+class MCQItemSerializer(serializers.ModelSerializer):
+    """EDU-8 item shape. Correct index is write-only (students never see it)."""
+
+    class Meta:
+        model = MCQItem
+        fields = [
+            "id",
+            "discipline",
+            "grade",
+            "chapter",
+            "question_i18n",
+            "variants_ro",
+            "variants_en",
+            "correct_index",
+            "source",
+            "bac_year",
+            "author",
+            "created_at",
+        ]
+        read_only_fields = ["id", "author", "created_at"]
+
+    def validate(self, attrs):
+        variants_ro = attrs.get(
+            "variants_ro", getattr(self.instance, "variants_ro", None)
+        )
+        variants_en = attrs.get(
+            "variants_en", getattr(self.instance, "variants_en", None)
+        )
+        correct = attrs.get(
+            "correct_index", getattr(self.instance, "correct_index", None)
+        )
+        if (
+            not isinstance(variants_ro, list)
+            or not isinstance(variants_en, list)
+            or len(variants_ro) != 4
+            or len(variants_en) != 4
+            or not 0 <= correct <= 3
+        ):
+            raise serializers.ValidationError(
+                {"variants": "Exactly 4 variants per locale + a 0-3 correct index."}
+            )
+        return attrs
+
+
+class AssignmentQuizItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AssignmentQuizItem
+        fields = ["id", "assignment", "item", "order"]
+
+
+class QuizSubmissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuizSubmission
+        fields = [
+            "id",
+            "assignment",
+            "student",
+            "answers",
+            "score",
+            "correct_count",
+            "total_count",
+            "submitted_at",
+        ]
+        read_only_fields = fields
+
+
+class UploadedDeliverableSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UploadedDeliverable
+        fields = ["id", "assignment", "student", "file", "original_filename", "uploaded_at"]
+        read_only_fields = ["id", "assignment", "student", "original_filename", "uploaded_at"]
+
+
+def _sync_quiz(assignment: Assignment, quiz_item_ids: list[int]) -> None:
+    """Replace the quiz board with ordered MCQ ids (EDU-7)."""
+    from .models import AssignmentQuizItem
+
+    assignment.quiz_items.all().delete()
+    AssignmentQuizItem.objects.bulk_create(
+        [
+            AssignmentQuizItem(assignment=assignment, item_id=item_id, order=order)
+            for order, item_id in enumerate(quiz_item_ids)
+        ]
+    )
 
 
 class ClassRoomSerializer(serializers.ModelSerializer):
@@ -141,6 +235,14 @@ class AssignmentSerializer(serializers.ModelSerializer):
     problems = AssignmentProblemInputSerializer(
         many=True, write_only=True, required=False
     )
+    quiz_items = AssignmentQuizItemSerializer(many=True, read_only=True)
+    # EDU-7: ordered MCQ ids for QUIZ teme (labels/order derive on save).
+    quiz_item_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        required=False,
+        write_only=True,
+        help_text="Ordered MCQItem ids for QUIZ assignments.",
+    )
     classroom_name = serializers.CharField(
         source="classroom.name", read_only=True
     )
@@ -158,6 +260,12 @@ class AssignmentSerializer(serializers.ModelSerializer):
             "due_at",
             "late_until",
             "is_exam",
+            "kind",
+            "quiz_shuffle",
+            "file_extensions",
+            "max_file_mb",
+            "quiz_items",
+            "quiz_item_ids",
             "state",
             "assignment_problems",
             "problems",
@@ -202,6 +310,20 @@ class AssignmentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {"classroom": "Not your classroom."}
             )
+        # EDU-7 policy sanity + EDU-8 quiz-board references.
+        kind = attrs.get("kind", getattr(self.instance, "kind", Assignment.Kind.PROBLEMS))
+        max_mb = attrs.get("max_file_mb", getattr(self.instance, "max_file_mb", 10))
+        if max_mb < 1 or max_mb > 50:
+            raise serializers.ValidationError(
+                {"max_file_mb": "File size cap must be between 1 and 50 MB."}
+            )
+        quiz_ids = attrs.get("quiz_item_ids")
+        if kind == Assignment.Kind.QUIZ and quiz_ids is not None:
+            existing = MCQItem.objects.filter(id__in=quiz_ids).count()
+            if existing != len(set(quiz_ids)):
+                raise serializers.ValidationError(
+                    {"quiz_item_ids": "Every id must reference an existing MCQ item."}
+                )
         return attrs
 
     def _save_problems(self, assignment, problems_data):
@@ -215,16 +337,22 @@ class AssignmentSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         problems_data = validated_data.pop("problems", [])
+        quiz_ids = validated_data.pop("quiz_item_ids", None)
         assignment = Assignment.objects.create(**validated_data)
         self._save_problems(assignment, problems_data)
+        if quiz_ids is not None:
+            _sync_quiz(assignment, quiz_ids)
         return assignment
 
     def update(self, instance, validated_data):
         problems_data = validated_data.pop("problems", None)
+        quiz_ids = validated_data.pop("quiz_item_ids", None)
         for field, value in validated_data.items():
             setattr(instance, field, value)
         instance.save()
         if problems_data is not None:
             instance.assignment_problems.all().delete()
             self._save_problems(instance, problems_data)
+        if quiz_ids is not None:
+            _sync_quiz(instance, quiz_ids)
         return instance

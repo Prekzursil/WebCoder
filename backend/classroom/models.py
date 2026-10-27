@@ -154,8 +154,36 @@ class Assignment(models.Model):
     is_exam = models.BooleanField(
         _("exam mode"),
         default=False,
-        help_text=_("Flag only in this increment; lockdown lands with EDU-4."),
+        help_text=_("EDU-4: while OPEN, the student's session is site-locked."),
     )
+
+    class Kind(models.TextChoices):
+        """Assignment type (EDU-7): the classic problem-set teme, an
+        auto-graded MCQ quiz drawn from the Bac bank (EDU-8), or a
+        file-upload deliverable teme."""
+
+        PROBLEMS = "PROBLEMS", _("Problem set")
+        QUIZ = "QUIZ", _("Quiz (MCQ)")
+        FILES = "FILES", _("File upload")
+
+    kind = models.CharField(
+        _("kind"), max_length=8, choices=Kind.choices, default=Kind.PROBLEMS
+    )
+    # QUIZ policy (EDU-7): deterministic per-student variant shuffling.
+    quiz_shuffle = models.BooleanField(
+        _("shuffle quiz variants"),
+        default=True,
+        help_text=_("Each student sees variants in a per-student random order."),
+    )
+    # FILES policy (EDU-7): teacher-set extension allowlist + size cap.
+    file_extensions = models.CharField(
+        _("allowed file extensions"),
+        max_length=200,
+        blank=True,
+        default="",
+        help_text=_("Comma-separated, e.g. 'pdf,zip,cpp'; empty = any."),
+    )
+    max_file_mb = models.PositiveIntegerField(_("max file size (MB)"), default=10)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -238,3 +266,186 @@ class AssignmentProblem(models.Model):
 
     def __str__(self):
         return f"{self.assignment_id}:{self.label} (problem {self.problem_id})"
+
+
+class MCQItem(models.Model):
+    """Auto-graded multiple-choice item (EDU-8 — the Bacalaureat grile bank).
+
+    Bilingual by discipline (question + variants per locale), tagged by
+    discipline/grade/chapter and optional Bac provenance, mirroring
+    pbinfo's exam-prep surface with EN variants pbinfo cannot offer.
+    """
+
+    discipline = models.CharField(
+        _("discipline"),
+        max_length=64,
+        default="Informatics",
+        help_text=_("Exam discipline, e.g. Informatics / Computing."),
+    )
+    grade = models.PositiveSmallIntegerField(
+        _("grade"), help_text=_("School grade 5-12 the item targets.")
+    )
+    chapter = models.ForeignKey(
+        "problems.CurriculumNode",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="mcq_items",
+        verbose_name=_("curriculum chapter"),
+    )
+    question_i18n = models.JSONField(
+        _("question (i18n)"), help_text=_("{'en': ..., 'ro': ...}")
+    )
+    variants_ro = models.JSONField(
+        _("variants (Romanian)"),
+        default=list,
+        help_text=_("Exactly 4 answer variants, order = display order."),
+    )
+    variants_en = models.JSONField(
+        _("variants (English)"),
+        default=list,
+        help_text=_("Exactly 4 answer variants, order = display order."),
+    )
+    correct_index = models.PositiveSmallIntegerField(
+        _("correct variant index"), help_text=_("0-3 into the variant lists.")
+    )
+    source = models.CharField(
+        _("source"),
+        max_length=120,
+        blank=True,
+        help_text=_("Provenance, e.g. 'Bacalaureat 2024'."),
+    )
+    bac_year = models.PositiveSmallIntegerField(
+        _("Bacalaureat year"), null=True, blank=True
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="authored_mcq_items",
+        verbose_name=_("author"),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("MCQ item")
+        verbose_name_plural = _("MCQ items")
+        ordering = ["grade", "id"]
+        indexes = [
+            models.Index(fields=["discipline", "grade"]),
+            models.Index(fields=["bac_year"]),
+        ]
+
+    def __str__(self):
+        question = (
+            self.question_i18n.get("en", "")
+            if isinstance(self.question_i18n, dict)
+            else ""
+        )
+        return "MCQ g%d: %s" % (self.grade, question[:48])
+
+    def variants_valid(self) -> bool:
+        """Both locale variant lists carry exactly 4 options and the correct
+        index points inside them (serializer + admin share this rule)."""
+        return (
+            isinstance(self.variants_ro, list)
+            and isinstance(self.variants_en, list)
+            and len(self.variants_ro) == 4
+            and len(self.variants_en) == 4
+            and 0 <= self.correct_index <= 3
+        )
+
+
+class AssignmentQuizItem(models.Model):
+    """Ordered quiz<->MCQ membership inside an assignment (EDU-7)."""
+
+    assignment = models.ForeignKey(
+        Assignment, on_delete=models.CASCADE, related_name="quiz_items"
+    )
+    item = models.ForeignKey(
+        MCQItem, on_delete=models.CASCADE, related_name="assignment_links"
+    )
+    order = models.PositiveIntegerField(_("order"), default=0)
+
+    class Meta:
+        verbose_name = _("assignment quiz item")
+        verbose_name_plural = _("assignment quiz items")
+        ordering = ["assignment", "order", "id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["assignment", "item"], name="unique_assignment_quiz_item"
+            )
+        ]
+
+    def __str__(self):
+        return "quiz item %d@%d" % (self.item_id, self.assignment_id)
+
+
+class QuizSubmission(models.Model):
+    """One student's graded answer sheet for a quiz assignment (EDU-7/8).
+
+    ``answers`` maps MCQItem id -> chosen variant index; the denormalized
+    ``score`` is correct/total so the gradebook needs no regrade pass.
+    Re-attempts while the tema is open create new rows; the grid consumes
+    the best attempt, the teacher stats read every attempt.
+    """
+
+    assignment = models.ForeignKey(
+        Assignment, on_delete=models.CASCADE, related_name="quiz_submissions"
+    )
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="quiz_submissions",
+    )
+    answers = models.JSONField(_("answers"), default=dict)
+    score = models.FloatField(_("score (0..1)"), default=0)
+    correct_count = models.PositiveSmallIntegerField(_("correct answers"), default=0)
+    total_count = models.PositiveSmallIntegerField(_("items"), default=0)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("quiz submission")
+        verbose_name_plural = _("quiz submissions")
+        ordering = ["assignment", "student", "-submitted_at"]
+
+    def __str__(self):
+        return "quiz %d/%d=%s" % (self.assignment_id, self.student_id, self.score)
+
+
+def deliverable_upload_path(instance, filename):
+    return "deliverables/%d/%d/%s" % (
+        instance.assignment_id,
+        instance.student_id,
+        filename,
+    )
+
+
+class UploadedDeliverable(models.Model):
+    """A student's uploaded file for a FILES teme (EDU-7, pbinfo type 3).
+
+    Validated against the teacher's extension allowlist + size cap at
+    upload time; one row per upload so the audit trail survives multiple
+    submissions.
+    """
+
+    assignment = models.ForeignKey(
+        Assignment, on_delete=models.CASCADE, related_name="deliverables"
+    )
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="uploaded_deliverables",
+    )
+    file = models.FileField(_("file"), upload_to=deliverable_upload_path)
+    original_filename = models.CharField(_("filename"), max_length=255, blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("uploaded deliverable")
+        verbose_name_plural = _("uploaded deliverables")
+        ordering = ["assignment", "student", "-uploaded_at"]
+
+    def __str__(self):
+        return "deliverable %d/%d" % (self.assignment_id, self.student_id)

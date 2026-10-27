@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Providers from "./providers";
+import ExamModeBanner from "@/components/common/ExamModeBanner";
 import "./globals.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://webcoder.momentstudio.ro';
@@ -99,7 +100,10 @@ export default function RootLayout({
             telemetry to an unrelated host, shipped on every page with no consent. */}
       </head>
       <body suppressHydrationWarning>
-        <Providers>{children}</Providers>
+        <Providers>
+          <ExamModeBanner />
+          {children}
+        </Providers>
       </body>
     </html>
   );

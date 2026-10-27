@@ -377,6 +377,10 @@ export interface ClassroomAssignment {
     due_at: string;
     late_until: string | null;
     is_exam: boolean;
+    kind: 'PROBLEMS' | 'QUIZ' | 'FILES';
+    quiz_shuffle: boolean;
+    file_extensions: string;
+    max_file_mb: number;
     state: 'SCHEDULED' | 'OPEN' | 'CLOSED';
     solved_count?: number;
     assignment_problems?: {
@@ -409,4 +413,60 @@ export interface AssignmentGrid {
         title_i18n: LocalizedText;
     }[];
     cells: Record<string, GridCell>;
+}
+
+export interface MCQItemRow {
+    id: number;
+    discipline: string;
+    grade: number;
+    chapter: number | null;
+    question_i18n: LocalizedText;
+    variants_ro: string[];
+    variants_en: string[];
+    correct_index: number;
+    source: string;
+    bac_year: number | null;
+}
+
+export interface QuizSheetItem {
+    item_id: number;
+    order: number;
+    question_i18n: LocalizedText;
+    variants_en: string[];
+    variants_ro: string[];
+    correct_index: number | null;
+}
+
+export interface QuizSheet {
+    assignment: number;
+    kind: 'QUIZ';
+    shuffle: boolean;
+    state: string;
+    items: QuizSheetItem[];
+}
+
+export interface QuizSubmitResult {
+    id: number;
+    score: number;
+    correct_count: number;
+    total_count: number;
+    submitted_at: string;
+}
+
+export interface DeliverableRow {
+    id: number;
+    student: { id: number; username: string };
+    original_filename: string;
+    file: string;
+    uploaded_at: string;
+}
+
+export interface ExamModeStatus {
+    active: boolean;
+    assignment: {
+        id: number;
+        title_i18n: LocalizedText;
+        classroom: string;
+        due_at: string;
+    } | null;
 }
