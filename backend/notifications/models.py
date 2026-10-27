@@ -18,6 +18,8 @@ class Notification(models.Model):
         THREAD_REPLY = "THREAD_REPLY", _("Thread reply")
         PROBLEM_APPROVED = "PROBLEM_APPROVED", _("Problem approved")
         PROBLEM_REJECTED = "PROBLEM_REJECTED", _("Problem rejected")
+        # EDU-2: a teacher published a new tema in one of your classes.
+        ASSIGNMENT_PUBLISHED = "ASSIGNMENT_PUBLISHED", _("Assignment published")
         SYSTEM = "SYSTEM", _("System")
 
     recipient = models.ForeignKey(
