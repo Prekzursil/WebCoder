@@ -1,0 +1,48 @@
+# Coverage scoping for the lean quality gate (gate-3 runs
+# `python -m pytest --cov --cov-branch --cov-fail-under=100` from the repo root).
+#
+# A BARE `--cov` (no source argument) tells coverage.py to measure every module
+# that gets imported, which would pull in the third-party dependency tree under
+# backend/venv and site-packages and make the 100% line+branch gate impossible
+# to satisfy honestly. We scope measurement to FIRST-PARTY Django source only
+# via [tool.coverage.run] source + omit. This mirrors the Reframe convention of
+# `--cov=media_studio` (measure the app, not its dependencies) and is correct
+# scoping, NOT a weakening of the gate.
+[tool.coverage.run]
+branch = true
+source = ["backend"]
+omit = [
+    # Vendored / committed virtualenv and any site-packages tree.
+    "*/venv/*",
+    "*/.venv/*",
+    "*/site-packages/*",
+    "*/node_modules/*",
+    # Django migrations are generated boilerplate (also skipped by --nomigrations).
+    "*/migrations/*",
+    # Settings + WSGI/ASGI/manage entrypoint boilerplate (no testable branches;
+    # settings_ci is exercised at import time as the DJANGO_SETTINGS_MODULE).
+    "backend/manage.py",
+    "backend/webcoder_api/asgi.py",
+    "backend/webcoder_api/wsgi.py",
+    "backend/webcoder_api/settings.py",
+    "backend/webcoder_api/settings_ci.py",
+    # Test files themselves are not the measurement target.
+    "*/tests.py",
+    "*/test_*.py",
+    "*/*_tests.py",
+    "*/conftest.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+# Reasoned, greppable exclusions only (charter: "STRICT 100%; reasoned greppable
+# pragma only"). `# pragma: no cover` is honored; nothing is blanket-excluded.
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    # Protocol / abstract stub bodies are type-only (the `...` ellipsis never
+    # executes at runtime). Greppable, reasoned exclusion.
+    "^\\s*\\.\\.\\.\\s*$",
+    ": \\.\\.\\.\\s*$",
+]

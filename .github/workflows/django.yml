@@ -1,0 +1,51 @@
+name: Django CI
+
+# Single-branch backend gate (2026-10-27 unification): adapted from the retired
+# backend branch's workflow. Triggers on backend/** paths on main and mirrors
+# the proven local gate — `python -m pytest -q` from the REPO ROOT, driven by
+# the root pytest.ini (DJANGO_SETTINGS_MODULE=webcoder_api.settings_ci, sqlite,
+# --cov=backend) so CI and local runs execute the identical command.
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "backend/**"
+      - "pytest.ini"
+      - "pyproject.toml"
+      - ".github/workflows/django.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "backend/**"
+      - "pytest.ini"
+      - "pyproject.toml"
+      - ".github/workflows/django.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      SECRET_KEY: ci-only-secret-key
+      DB_PASSWORD: ci-only-db-password
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/deps.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/deps.txt
+
+      - name: Run tests (pytest from repo root — settings_ci, 100% line coverage, zero warnings)
+        run: python -m pytest -q --cov-fail-under=100

@@ -1,0 +1,33 @@
+# Lean 6-gate quality caller (ADDITIVE — see the lean-gate charter, 2026-06-16).
+#
+# This thin caller delegates to the shared reusable lean-quality template. It does
+# NOT replace the existing Quality Zero Platform workflows in this repo; those stay
+# until the fleet-wide migration runbook removes the old SaaS machinery.
+#
+# Single-branch note (2026-10-27): the Next.js app moved from frontend/web to the
+# repo root, so opengrep now scans backend/ + src/ + e2e/ instead of backend/ + frontend/.
+name: quality
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    env:
+      SECRET_KEY: ci-placeholder
+      DB_PASSWORD: ci-placeholder
+    # Pinned to the v1 tag's commit hash (b4fbe38) — CodeQL red-blocker
+    # (actions/unpinned-tag) rejects mutable tag refs; this is v1, immutably.
+    uses: Prekzursil/quality-zero-platform/.github/workflows/reusable-quality.yml@b4fbe38470fd2831f86f194df5b638a271bae8b8 # v1
+    with:
+      opengrep-paths: "backend src e2e"

@@ -1,0 +1,332 @@
+# WebCoder — local compose stack (public online-judge platform).
+#
+# Services:
+#   postgres     - database
+#   redis        - broker/cache (Celery worker containerisation is a
+#                  follow-up; the worker currently defaults to the
+#                  filesystem broker — see webcoder_api/celery.py)
+#   backend      - Django API; judges submissions through judge-runner when
+#                  JUDGE_BACKEND=container (see submissions/judge_utils/backend.py)
+#   socket-proxy - FILTERING Docker API proxy: the default way backend and
+#                  celery-worker reach the daemon (raw docker.sock is no
+#                  longer mounted; docker-compose.raw-socket.yml is the
+#                  escape hatch for the custom-libs pip path)
+#   celery-beat  - cron driver for the nightly maintenance schedule
+#                  (settings.CELERY_BEAT_SCHEDULE: leaderboard recompute,
+#                  notification purge, test-output retention)
+#   db-backup    - daily pg_dump of the postgres volume with 7d/4w/6m
+#                  retention (SP6 execution: backups run by default)
+#   judge-runner - SANDBOXED judge container executing untrusted user code:
+#                  network-isolated, read-only rootfs, all caps dropped,
+#                  no-new-privileges, memory/CPU/PID limited
+#
+# Frontend (Next.js) is a placeholder comment at the bottom — see the
+# migration note there.
+#
+# Usage:  docker compose up --build
+# Override the dev defaults below via a root .env file or exported env vars.
+
+name: webcoder
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-webcoder_db}
+      POSTGRES_USER: ${POSTGRES_USER:-webcoder_user}
+      # DEV DEFAULT ONLY — set POSTGRES_PASSWORD in .env for anything exposed.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-webcoder_dev_password}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-webcoder_user} -d ${POSTGRES_DB:-webcoder_db}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+    # No host port published by default: the dev machine already runs a local
+    # PostgreSQL on 5433. Inspect with: docker compose exec postgres psql -U webcoder_user
+
+  redis:
+    image: redis:alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      # Prod deploys flip the whole profile via env (settings_prod: DEBUG=False,
+      # secure transport defaults, deny-all hosts/CORS unless set):
+      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-webcoder_api.settings}
+      # DEV DEFAULT ONLY — set SECRET_KEY in .env for anything exposed.
+      SECRET_KEY: ${SECRET_KEY:-django-insecure-compose-dev-only-key}
+      DB_NAME: ${POSTGRES_DB:-webcoder_db}
+      DB_USER: ${POSTGRES_USER:-webcoder_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-webcoder_dev_password}
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      # Prod judge path: submissions run inside the sandboxed judge-runner
+      # container via `docker exec` (submissions/judge_utils/backend.py).
+      JUDGE_BACKEND: container
+      # Named volume behind the shared /srv/judge mount (custom-libs pip
+      # install container mounts it by this name; unset = fail closed).
+      JUDGE_SANDBOX_VOLUME: webcoder_judge-sandbox
+      # Celery over redis (webcoder_api/celery.py honours CELERY_BROKER_URL;
+      # filesystem:// remains the local-dev default when this is unset).
+      CELERY_BROKER_URL: redis://redis:6379/0
+      # Shared throttle cache (SPEC-GAPS SP4): rate-limit counters shared
+      # across gunicorn/celery processes instead of per-process LocMem.
+      REDIS_URL: redis://redis:6379/1
+      # Structured logs (round-2 X3d): one JSON object per log line.
+      LOG_JSON: "1"
+      # Socket-proxy DEFAULT (round-2 ops / SP3): judge docker calls go
+      # through the filtering proxy instead of a raw root-equivalent
+      # docker.sock mount. The judge path needs exactly CONTAINERS+EXEC+POST
+      # (+PING/VERSION for the client handshake); everything else the proxy
+      # denies with 403.
+      DOCKER_HOST: tcp://socket-proxy:2375
+    volumes:
+      # Shared with judge-runner: the backend writes submission files here,
+      # the judge-runner compiles/executes them at the same path.
+      - judge-sandbox:/srv/judge
+      # NOTE: no /var/run/docker.sock mount — DOCKER_HOST above points at
+      # the socket-proxy service (legacy raw-socket escape hatch for the
+      # custom-libs pip path: docker-compose.raw-socket.yml).
+    ports:
+      - "8000:8000"
+    healthcheck:
+      # Liveness probe (round-2 X3b): the process answers HTTP while up.
+      # Deliberately /healthz (touches nothing) — dependency health is
+      # /readyz, which orchestrators should use before routing traffic.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - default
+      - docker-sock
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      judge-runner:
+        condition: service_started
+      socket-proxy:
+        condition: service_started
+    restart: unless-stopped
+
+  # Celery worker — consumes submission/judging tasks from redis. Needs the
+  # same judge mounts as the backend: judging runs here (tasks.py), writing
+  # submission files to judge-sandbox and driving judge containers via the
+  # docker socket.
+  celery-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    # OPR-4 priority lanes: contest-bound judge tasks dispatch to the
+    # dedicated judge-contest queue so live contests never queue behind a
+    # practice/scratch burst (and vice versa).
+    command: ["celery", "-A", "webcoder_api", "worker", "--loglevel=info", "--concurrency=2", "-Q", "celery,judge-contest"]
+    environment:
+      # Prod deploys flip the whole profile via env (settings_prod: DEBUG=False,
+      # secure transport defaults, deny-all hosts/CORS unless set):
+      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-webcoder_api.settings}
+      SECRET_KEY: ${SECRET_KEY:-django-insecure-compose-dev-only-key}
+      DB_NAME: ${POSTGRES_DB:-webcoder_db}
+      DB_USER: ${POSTGRES_USER:-webcoder_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-webcoder_dev_password}
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      JUDGE_BACKEND: container
+      JUDGE_SANDBOX_VOLUME: webcoder_judge-sandbox
+      CELERY_BROKER_URL: redis://redis:6379/0
+      REDIS_URL: redis://redis:6379/1
+      LOG_JSON: "1"
+      # Socket-proxy DEFAULT — see the backend service note.
+      DOCKER_HOST: tcp://socket-proxy:2375
+    volumes:
+      - judge-sandbox:/srv/judge
+    networks:
+      - default
+      - docker-sock
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      judge-runner:
+        condition: service_started
+      socket-proxy:
+        condition: service_started
+    restart: unless-stopped
+
+  # Celery beat — drives settings.CELERY_BEAT_SCHEDULE (nightly leaderboard
+  # recompute, notification purge, submission test-output retention).
+  celery-beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    # NB: celery 5.x renamed the flag — '--schedule-file' (the SPEC-GAPS
+    # D-B11 wording) is rejected by click with exit 2, which crash-looped
+    # the beat container on the live stack; the flag is '--schedule'.
+    command: ["celery", "-A", "webcoder_api", "beat", "--loglevel=info", "--schedule", "/tmp/celerybeat-schedule"]
+    environment:
+      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-webcoder_api.settings}
+      SECRET_KEY: ${SECRET_KEY:-django-insecure-compose-dev-only-key}
+      DB_NAME: ${POSTGRES_DB:-webcoder_db}
+      DB_USER: ${POSTGRES_USER:-webcoder_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-webcoder_dev_password}
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      CELERY_BROKER_URL: redis://redis:6379/0
+      REDIS_URL: redis://redis:6379/1
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Daily postgres backups (SP6 execution: the local stack backs itself up
+  # by default). pg_dump -Fc daily with 7-day / 4-week / 6-month retention
+  # on the pgbackups volume; restore procedure + off-host copy policy live
+  # in docs/RUNBOOK.md (backups section).
+  db-backup:
+    image: prodrigestivill/postgres-backup-local:16
+    restart: unless-stopped
+    volumes:
+      - pgbackups:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-webcoder_db}
+      POSTGRES_USER: ${POSTGRES_USER:-webcoder_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-webcoder_dev_password}
+      PGDUMP_EXTRA_OPTS: "-Fc"
+      BACKUP_KEEP_DAYS: 7
+      BACKUP_KEEP_WEEKS: 4
+      BACKUP_KEEP_MONTHS: 6
+
+  # Filtering Docker API proxy (SP3, now the DEFAULT): exposes only the
+  # endpoints the judge needs (containers/exec POST + ping/version); image
+  # builds/pulls, container create, volumes, networks, daemon config all
+  # answer 403. Reachable only inside the compose network.
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy:0.3.0
+    environment:
+      CONTAINERS: 1
+      EXEC: 1
+      POST: 1
+      PING: 1
+      VERSION: 1
+      # Everything else denied (the proxy defaults to 0; the dangerous ones
+      # listed explicitly for auditability):
+      IMAGES: 0
+      SOCKETS: 0
+      TASKS: 0
+      NETWORKS: 0
+      VOLUMES: 0
+      BUILD: 0
+      COMMIT: 0
+      CONFIGS: 0
+      SECRETS: 0
+      SWARM: 0
+      SYSTEM: 0
+      INFO: 0
+      DISTRIBUTION: 0
+      SESSION: 0
+      PLUGINS: 0
+      AUTH: 0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - docker-sock
+    restart: unless-stopped
+
+  # ------------------------------------------------------------------
+  # SANDBOXED JUDGE-RUNNER — executes untrusted user submissions.
+  #
+  # Hardening (consumed/asserted by backend/submissions/tests.py contract):
+  #   network_mode: none  -> no network for the container AND for every
+  #                          `docker exec` into it (exec joins the netns)
+  #   read_only: true     -> immutable root filesystem; writable surfaces
+  #                          are ONLY tmpfs /tmp and the /srv/judge volume
+  #   cap_drop: ALL       -> no Linux capabilities
+  #   security_opt        -> no-new-privileges (no setuid/sudo escape)
+  #   mem/cpus/pids       -> resource ceiling bounding the blast radius
+  #                          (per-submission limits are still enforced by
+  #                          the caller's timeout + /usr/bin/time metrics)
+  #   user 1000:1000      -> non-root, matches backend uid for the shared
+  #                          judge-sandbox volume
+  # ------------------------------------------------------------------
+  judge-runner:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.judge
+    # container_name is load-bearing: judge_utils/backend.py execs into this
+    # exact name (JUDGE_RUNNER_CONTAINER = "webcoder-judge-runner").
+    container_name: webcoder-judge-runner
+    user: "1000:1000"
+    command: ["sleep", "infinity"]
+    read_only: true
+    network_mode: none
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
+    mem_limit: 1g
+    cpus: "1.5"
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=128m,mode=1777
+    volumes:
+      - judge-sandbox:/srv/judge
+    restart: unless-stopped
+    # Deliberately NO healthcheck ports and NO published ports: nothing
+    # should be able to reach this container over the network.
+
+  # ------------------------------------------------------------------
+  # Next.js frontend — PLACEHOLDER (Next 15 App Router migration, wave/
+  # nextjs-migration). Uncomment once frontend/webcoder_ui is migrated from
+  # CRA React-TS to Next; the SEO-facing problem catalog will be served
+  # server-rendered from here.
+  #
+  # frontend:
+  #   build:
+  #     context: ./frontend/webcoder_ui
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     NEXT_PUBLIC_API_URL: http://localhost:8000
+  #   depends_on:
+  #     - backend
+  # ------------------------------------------------------------------
+
+networks:
+  # Proxy-only network: the socket-proxy is reachable ONLY from inside the
+  # compose network, never published to the host.
+  docker-sock:
+    internal: true
+
+volumes:
+  pgdata:
+  redisdata:
+  # Submission workspace shared between backend (writer) and judge-runner
+  # (executor). NOT mounted into postgres/redis.
+  judge-sandbox:
+  # Daily pg_dump artifacts (db-backup service, SP6).
+  pgbackups:

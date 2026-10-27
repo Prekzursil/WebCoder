@@ -1,8 +1,10 @@
 # WebCoder — Tech Stack (living document)
 
-Last updated: 2026-10-24 · Status legend: ✅ shipped · 🚧 in flight (roadmap program `dwfrun-e33e0c0f`)
+Last updated: 2026-10-27 · Status legend: ✅ shipped · 🚧 in flight (roadmap program `dwfrun-e33e0c0f`)
 
-## Frontend — web (branch `main`, repo root)
+**Repo layout (single branch):** `main` is the one and only branch — a monorepo with the Next.js app at the repo **root** (`src/`, `package.json`, root configs) **plus** `backend/` (Django + Dockerfiles), `docker-compose.yml` (+ hardening overlays) and root-level gates (`pytest.ini`, `pyproject.toml`, `scripts/verify`). The former `backend` branch was merged in with a true merge commit on 2026-10-27 and retired under tag `archive/backend-branch-2026-10-26`. Everything targets `main`.
+
+## Frontend — web (repo root on `main`)
 
 | Layer | Technology | Notes / status |
 |---|---|---|
@@ -17,7 +19,7 @@ Last updated: 2026-10-24 · Status legend: ✅ shipped · 🚧 in flight (roadma
 | Tests | Vitest + Testing Library (jsdom) · Playwright (mock mode + real-backend mode via E2E_API_BASE) · axe a11y · viewport suites | ✅ CI-gated · coverage gate 100% lines 🚧 |
 | Quality | eslint (0 errors gate) + design-token drift gate | ✅ |
 
-## Backend — API (branch `backend`)
+## Backend — API (`backend/` on `main`)
 
 | Layer | Technology | Notes / status |
 |---|---|---|
@@ -40,7 +42,7 @@ Last updated: 2026-10-24 · Status legend: ✅ shipped · 🚧 in flight (roadma
 |---|---|---|
 | Local/dev stack | docker compose: postgres + redis + backend(:8000) + celery-worker + judge-runner; override files (ports, custom-libs pypiserver, socket-proxy variant) | ✅ RUNBOOK.md |
 | Images | backend (python:3.11-slim + docker-cli), judge-runner (+g++, OpenJDK, Node, gcc) | ✅ |
-| CI | GitHub Actions: Unit Tests (Vitest) · E2E (Playwright) · CodeQL; branch protection + quality ruleset | ✅ |
+| CI | GitHub Actions (single-branch, both suites per push/PR): Frontend CI (lint zero-warnings + build + vitest/coverage) · Django CI (`backend/**` paths, pytest 100% line cov via `--cov-fail-under=100`, sqlite settings_ci) · E2E (Playwright) · Verify (both stacks via `scripts/verify`) · quality (lean 6-gate) · CodeQL | ✅ |
 | Security | sandbox receipts, throttles (auth/submit), verdict-forge backdoors removed, E1 network-none | ✅ · backups sidecar + restore drill 🚧/backlog J |
 | Deploy | Not yet deployed (owner-deferred); Vercel/compose paths documented | ⏳ production lane |
 
@@ -55,6 +57,6 @@ Last updated: 2026-10-24 · Status legend: ✅ shipped · 🚧 in flight (roadma
 
 ## Working conventions
 
-- Protected PRs only (never direct pushes); squash-merge; checks must be green.
-- Every PR: backend pytest 100%-module-coverage / frontend vitest+tsc+lint+build+e2e.
+- **Single branch**: every PR targets `main` (no other base). Protected PRs only (never direct pushes); default squash-merge; checks must be green. True (non-squash) merge commits are reserved for history-preserving operations (e.g. the 2026-10-27 unification).
+- Every PR, both suites from the repo root: backend `SECRET_KEY=x DB_PASSWORD=x python -m pytest -q` (100% line coverage, warning-clean) / frontend `npm run test` + `npx tsc -p tsconfig.json --noEmit` + `npm run lint` (0 errors AND 0 warnings) + `npm run build` + `npx playwright test` (mock mode).
 - Docs live in `docs/` — this file, `ROADMAP.md` (layered plan), `BACKLOG.md` (item tracker), `RUNBOOK.md` (ops), `SPEC-GAPS.md`, `ROADMAP-COMPETITIVE-2026-10-22.md` (research basis).

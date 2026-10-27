@@ -1,5 +1,27 @@
 version: 2
 updates:
+# Single-branch (2026-10-27): pip deps moved from the retired backend branch
+# onto main under backend/; the root npm manifest IS the frontend now.
+- package-ecosystem: pip
+  directory: /backend
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  groups:
+    pip-backend-patch-minor:
+      patterns:
+      - '*'
+      update-types:
+      - patch
+      - minor
+  ignore:
+  - dependency-name: '*'
+    update-types:
+    - version-update:semver-major
+  labels:
+  - dependencies
+  - type:chore
+  - area:ci
 - package-ecosystem: npm
   directory: /
   schedule:
