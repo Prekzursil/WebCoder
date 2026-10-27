@@ -12,6 +12,7 @@
 #                 with `javac --release 11` so source level AND bytecode
 #                 target are Java 11 regardless of the JDK in the image.
 #   - nodejs20 -> Node.js 20 (Debian trixie ships the 20.x series)
+#   - pascal   -> Free Pascal (RO-5: RO schools still teach Pascal)
 #   - /usr/bin/time -> `time` package, used for the
 #                 "%U %S %M %x %P %e" resource-usage line format
 FROM python:3.11-slim
@@ -22,6 +23,7 @@ RUN apt-get update \
         gcc \
         openjdk-21-jdk-headless \
         nodejs \
+        fp-compiler \
         time \
     && rm -rf /var/lib/apt/lists/*
 

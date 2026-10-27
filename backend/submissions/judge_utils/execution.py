@@ -20,8 +20,10 @@ Verdict classification (in order):
    ``MLE`` (no longer mis-reported as ``RE``);
 3. measured CPU time over the limit → ``TLE``;
 4. measured peak RSS (``/usr/bin/time %M``) over the memory limit → ``MLE``;
-5. exit 0 → ``AC`` (output comparison happens in ``tasks.py``);
-6. anything else → ``RE``.
+5. output above the judge's output-size cap → ``OLE`` (JDG-7);
+6. exit 0 → ``AC`` (output comparison happens in ``tasks.py``);
+7. anything else → ``RE``, with POSIX signals mapped to actionable
+   messages (SIGSEGV/SIGFPE/SIGABRT/…, JDG-7).
 
 The legacy verdict-forging trigger substrings (TLE/MLE/RE simulation
 markers embedded in test input or source code) were removed from this
@@ -63,6 +65,28 @@ TIME_FORMAT_STRING = "%U %S %M %x %P %e"
 #: ``timeout --signal=SIGKILL`` reports its own kill as 124, so a raw
 #: 128+9=137 here is the kernel/cgroup OOM kill (or equivalent SIGKILL).
 OOM_EXIT_CODES = (137, -9)
+
+#: JDG-7 (competitive roadmap): map POSIX termination signals to actionable
+#: messages — the single biggest debuggability gap between judges (DMOJ
+#: "segfault / bad_alloc / syscall disallowed", pbinfo "Killed by signal n").
+#: Keys are bare signal numbers; docker/exec layers propagate exits as
+#: ``128 + sig`` and host-side subprocess reports ``-sig`` — both are
+#: normalized in :func:`signal_feedback`.
+SIGNAL_MESSAGES: dict[int, str] = {
+    6: "Aborted (SIGABRT — check assertions/aborts)",
+    8: "Floating point exception (SIGFPE — division by zero?)",
+    4: "Illegal instruction (SIGILL)",
+    11: "Segmentation fault (SIGSEGV — invalid memory access)",
+    5: "Trace/breakpoint trap (SIGTRAP)",
+}
+
+
+def signal_feedback(returncode: int) -> str | None:
+    """JDG-7: actionable message for a signal-killed run, else ``None``."""
+    code = abs(returncode)
+    if code > 128:
+        code -= 128
+    return SIGNAL_MESSAGES.get(code)
 
 
 def run_code_in_sandbox(
@@ -322,11 +346,26 @@ def run_code_in_sandbox(
                 + f"\nMemory limit exceeded ({actual_mem_kb}KB > "
                 f"{memory_limit_kb}KB)."
             )
+        elif (
+            len(stdout_data.encode("utf-8", errors="replace"))
+            > settings.JUDGE_OUTPUT_LIMIT_BYTES
+        ):
+            # JDG-7: output-size cap — printing gigabytes must read as OLE,
+            # not as a mysterious judge hang or MLE.
+            final_verdict = Submission.VerdictStatus.OUTPUT_LIMIT_EXCEEDED
+            final_error = (
+                f"Output limit exceeded (>{settings.JUDGE_OUTPUT_LIMIT_BYTES} "
+                f"bytes produced on one test)."
+            )
         elif returncode == 0:
             final_verdict = Submission.VerdictStatus.ACCEPTED
         else:
             final_verdict = Submission.VerdictStatus.RUNTIME_ERROR
-            final_error = parsed_stderr + f"\nExit code: {returncode}."
+            mapped = signal_feedback(returncode)
+            if mapped:
+                final_error = parsed_stderr + f"\n{mapped} (exit code {returncode})."
+            else:
+                final_error = parsed_stderr + f"\nExit code: {returncode}."
             if not time_output_parsed and stderr_data:
                 final_error = stderr_data + f"\nExit code: {returncode}."
 

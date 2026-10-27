@@ -12,6 +12,7 @@ Endpoints under /api/v1/contests/:
 - ``POST /{id}/disqualify/``    integrity DQ of one participation (SAF-2)
 """
 
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Count
 from django.utils import timezone
@@ -176,6 +177,26 @@ class ContestViewSet(viewsets.ModelViewSet):
                 {"detail": "Registration closed — the contest already started."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        # Round-2 SAF-2: rated contests are the platform's integrity asset
+        # (the anti-multi-accounting spine) — registering for one requires
+        # a verified email address. Env-gated so dev stacks can turn it off.
+        if contest.is_rated and getattr(
+            settings, "RATED_CONTESTS_REQUIRE_VERIFIED_EMAIL", True
+        ):
+            from allauth.account.models import EmailAddress
+
+            has_verified = EmailAddress.objects.filter(
+                user=request.user, verified=True
+            ).exists()
+            if not has_verified:
+                return Response(
+                    {
+                        "detail": (
+                            "Rated contests require a verified email address."
+                        )
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
         serializer = RegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         if contest.visibility == Contest.Visibility.PRIVATE:

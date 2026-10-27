@@ -21,16 +21,25 @@ from submissions.judge_utils.languages import (
 
 
 class RegistryContentTests(unittest.TestCase):
-    def test_all_five_languages_registered(self):
+    def test_all_six_languages_registered(self):
+        # RO-5: pascal joins the registry (Free Pascal for RO schools).
         self.assertEqual(
-            set(LANGUAGES), {"python3", "cpp17", "c11", "java11", "nodejs20"}
+            set(LANGUAGES),
+            {"python3", "cpp17", "c11", "java11", "nodejs20", "pascal"},
         )
 
     def test_supported_ids_sorted_and_complete(self):
         self.assertEqual(
             SUPPORTED_LANGUAGE_IDS,
-            ("c11", "cpp17", "java11", "nodejs20", "python3"),
+            ("c11", "cpp17", "java11", "nodejs20", "pascal", "python3"),
         )
+
+    def test_pascal_spec_shape(self):
+        spec = LANGUAGES["pascal"]
+        self.assertEqual(spec.source_filename, "user_code.pas")
+        self.assertEqual(spec.compile_artifact, "user_program")
+        self.assertEqual(spec.run_command, ("./user_program",))
+        self.assertEqual(spec.time_multiplier, 1.0)
 
     def test_get_language_known_and_unknown(self):
         self.assertIsNotNone(get_language("python3"))

@@ -27,7 +27,7 @@ class LeaderboardListView(generics.ListAPIView):
     serializer_class = LeaderboardEntrySerializer
 
     def get_queryset(self):
-        return (
+        qs = (
             LeaderboardEntry.objects.select_related("user")
             .annotate(
                 rank=Window(
@@ -40,6 +40,18 @@ class LeaderboardListView(generics.ListAPIView):
                 )
             )
         )
+        # RO-3 (competitive roadmap): county/school segments — the Olympiad
+        # geography pbinfo wires into motivation. Minors are excluded from
+        # segmented boards (LEG-2: their identity fields are not public).
+        county = self.request.query_params.get("county", "").strip()
+        school = self.request.query_params.get("school", "").strip()
+        if county or school:
+            qs = qs.exclude(user__is_minor=True)
+            if county:
+                qs = qs.filter(user__county__iexact=county)
+            if school:
+                qs = qs.filter(user__school__iexact=school)
+        return qs
 
 
 class MyLeaderboardView(APIView):

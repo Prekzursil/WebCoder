@@ -19,6 +19,7 @@ class ThreadListSerializer(serializers.ModelSerializer):
             "post_count",
             "is_pinned",
             "is_locked",
+            "is_announcement",
             "last_activity",
             "created_at",
         ]
@@ -47,7 +48,7 @@ class ThreadCreateSerializer(serializers.Serializer):
 class ThreadUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Thread
-        fields = ["title", "problem"]
+        fields = ["title", "problem", "is_announcement"]
 
 
 class PostSerializer(serializers.ModelSerializer):
