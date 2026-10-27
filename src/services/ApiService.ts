@@ -16,7 +16,11 @@
 import {
   AdminStatsResponse,
   ApiNotification,
+  AssignmentGrid,
   Clarification,
+  ClassMembershipRow,
+  ClassRoom,
+  ClassroomAssignment,
   Contest,
   ContestProblemRow,
   CreateSubmissionResponse,
@@ -36,6 +40,7 @@ import {
   GetSubmissionsResponse,
   GetTagsResponse,
   LoginResponse,
+  MyClassRow,
   MyLeaderboardEntry,
   MyRating,
   PaginatedResponse,
@@ -603,4 +608,67 @@ export const RatingService = {
         apiFetch<PaginatedResponse<RatingLadderRow>>(`/ratings/ratings/?page=${page}`),
     getColors: () => apiFetch<{ bands: RatingBand[] }>('/ratings/ratings/colors/'),
     getMyRating: () => apiFetch<MyRating>('/ratings/ratings/me/'),
+};
+
+// =================================
+// Classroom (backend classroom app, Wave B EDU-1/2/3/5/6)
+// =================================
+
+export const ClassroomService = {
+    getClasses: (page = 1) =>
+        apiFetch<PaginatedResponse<ClassRoom>>(
+            `/classroom/classes/?page=${page}`
+        ),
+    createClass: (data: { name: string; school?: string; join_password?: string }) =>
+        apiFetch<ClassRoom>('/classroom/classes/', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+    getClass: (id: number | string) => apiFetch<ClassRoom>(`/classroom/classes/${id}/`),
+    updateClass: (id: number | string, data: Record<string, unknown>) =>
+        apiFetch<ClassRoom>(`/classroom/classes/${id}/`, {
+            method: 'PATCH',
+            body: JSON.stringify(data),
+        }),
+    deleteClass: (id: number | string) =>
+        apiFetch<void>(`/classroom/classes/${id}/`, { method: 'DELETE' }),
+    getMembers: (id: number | string) =>
+        apiFetch<ClassMembershipRow[]>(`/classroom/classes/${id}/members/`),
+    joinClass: (code: string, password?: string) =>
+        apiFetch<{ detail: string; classroom_id: number }>(
+            '/classroom/classes/join/',
+            { method: 'POST', body: JSON.stringify({ code, password: password ?? '' }) }
+        ),
+    getMyClasses: () =>
+        apiFetch<{ results: MyClassRow[] }>('/classroom/classes/my-classes/'),
+    getAssignments: (classroomId?: number | string, page = 1) => {
+        const params = new URLSearchParams({ page: String(page) });
+        if (classroomId !== undefined) params.set('classroomId', String(classroomId));
+        return apiFetch<PaginatedResponse<ClassroomAssignment>>(
+            `/classroom/assignments/?${params.toString()}`
+        );
+    },
+    createAssignment: (data: Record<string, unknown>) =>
+        apiFetch<ClassroomAssignment>('/classroom/assignments/', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+    updateAssignment: (id: number | string, data: Record<string, unknown>) =>
+        apiFetch<ClassroomAssignment>(`/classroom/assignments/${id}/`, {
+            method: 'PATCH',
+            body: JSON.stringify(data),
+        }),
+    deleteAssignment: (id: number | string) =>
+        apiFetch<void>(`/classroom/assignments/${id}/`, { method: 'DELETE' }),
+    getAssignment: (id: number | string) =>
+        apiFetch<ClassroomAssignment>(`/classroom/assignments/${id}/`),
+    getGrid: (id: number | string) =>
+        apiFetch<AssignmentGrid>(`/classroom/assignments/${id}/grid/`),
+    getMyAssignments: () =>
+        apiFetch<{ results: ClassroomAssignment[] }>(
+            '/classroom/assignments/my-assignments/'
+        ),
+    /** EDU-6: CSV gradebook download (browser navigates; auth cookie rides). */
+    exportCsvUrl: (id: number | string) =>
+        `${API_V1_URL}/classroom/assignments/${id}/export/`,
 };
