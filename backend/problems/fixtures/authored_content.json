@@ -1,0 +1,3636 @@
+{
+ "version": 1,
+ "generated": "2026-10-27",
+ "license": "own",
+ "problems": [
+  {
+   "slug": "sum-of-two-integers",
+   "title_en": "Sum of Two Integers",
+   "title_ro": "Suma a două numere întregi",
+   "statement_en": "Read two integers from the standard input and print their sum.\n\n**Input.** A single line containing two integers $a$ and $b$, separated by a space.\n\n**Output.** A single line containing $a + b$.\n\n**Constraints.** $-10^9 \\le a, b \\le 10^9$.\n\n**Example.** Input `12 23` → Output `35`",
+   "statement_ro": "Citiți două numere întregi de la intrarea standard și afișați suma lor.\n\n**Date de intrare.** O singură linie care conține două numere întregi $a$ și $b$, separate printr-un spațiu.\n\n**Date de ieșire.** O singură linie care conține $a + b$.\n\n**Restricții.** $-10^9 \\le a, b \\le 10^9$.\n\n**Exemplu.** Intrare `12 23` → Ieșire `35`",
+   "difficulty": "EASY",
+   "tags": [
+    "implementation",
+    "math"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "12 23\n",
+     "expected": "35\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "0 0\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "-5 5\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1000000000 1000000000\n",
+     "expected": "2000000000\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "-999999999 -1\n",
+     "expected": "-1000000000\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "7 8\n",
+     "expected": "15\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 86,
+    "ac_submission": 42,
+    "wa_submission": 43
+   }
+  },
+  {
+   "slug": "digit-sum",
+   "title_en": "Digit Sum",
+   "title_ro": "Suma cifrelor",
+   "statement_en": "Read a natural number and print the sum of its decimal digits.\n\n**Input.** A single line containing the natural number $n$.\n\n**Output.** A single line containing the sum of the digits of $n$.\n\n**Constraints.** $0 \\le n \\le 10^{18}$.\n\n**Example.** Input `47` → Output `11` (because $4 + 7 = 11$)",
+   "statement_ro": "Citiți un număr natural și afișați suma cifrelor sale în baza 10.\n\n**Date de intrare.** O singură linie care conține numărul natural $n$.\n\n**Date de ieșire.** O singură linie care conține suma cifrelor lui $n$.\n\n**Restricții.** $0 \\le n \\le 10^{18}$.\n\n**Exemplu.** Intrare `47` → Ieșire `11` (pentru că $4 + 7 = 11$)",
+   "difficulty": "EASY",
+   "tags": [
+    "math",
+    "loops"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "47\n",
+     "expected": "11\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "0\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "9\n",
+     "expected": "9\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "123456789\n",
+     "expected": "45\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "999999999999999999\n",
+     "expected": "162\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1000000\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "10\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 87,
+    "ac_submission": 44,
+    "wa_submission": 45
+   }
+  },
+  {
+   "slug": "count-digits",
+   "title_en": "How Many Digits",
+   "title_ro": "Câte cifre are",
+   "statement_en": "Read a natural number and print how many decimal digits it has.\n\n**Input.** A single line containing the natural number $n$.\n\n**Output.** A single line containing the number of digits of $n$.\n\n**Constraints.** $0 \\le n \\le 10^{18}$ (the number 0 has exactly one digit).\n\n**Example.** Input `407` → Output `3`",
+   "statement_ro": "Citiți un număr natural și afișați câte cifre zecimale are.\n\n**Date de intrare.** O singură linie care conține numărul natural $n$.\n\n**Date de ieșire.** O singură linie care conține numărul de cifre ale lui $n$.\n\n**Restricții.** $0 \\le n \\le 10^{18}$ (numărul 0 are exact o cifră).\n\n**Exemplu.** Intrare `407` → Ieșire `3`",
+   "difficulty": "EASY",
+   "tags": [
+    "math",
+    "loops"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "407\n",
+     "expected": "3\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "0\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "7\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "10\n",
+     "expected": "2\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "999999999999999999\n",
+     "expected": "18\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1000000000\n",
+     "expected": "10\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 88,
+    "ac_submission": 46,
+    "wa_submission": 47
+   }
+  },
+  {
+   "slug": "reverse-number",
+   "title_en": "Reversed Number",
+   "title_ro": "Numărul inversat",
+   "statement_en": "Read a natural number and print it with its decimal digits reversed. Leading zeros of the reversed number are not printed.\n\n**Input.** A single line containing the natural number $n$.\n\n**Output.** The number obtained by reversing the digits of $n$.\n\n**Constraints.** $0 \\le n \\le 10^9$.\n\n**Example.** Input `1200` → Output `21`",
+   "statement_ro": "Citiți un număr natural și afișați numărul obținut prin inversarea cifrelor sale zecimale. Zerourile de la începutul numărului inversat nu se afișează.\n\n**Date de intrare.** O singură linie care conține numărul natural $n$.\n\n**Date de ieșire.** Numărul obținut prin inversarea cifrelor lui $n$.\n\n**Restricții.** $0 \\le n \\le 10^9$.\n\n**Exemplu.** Intrare `1200` → Ieșire `21`",
+   "difficulty": "EASY",
+   "tags": [
+    "math",
+    "loops"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "1200\n",
+     "expected": "21\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "0\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "5\n",
+     "expected": "5\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "123456789\n",
+     "expected": "987654321\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1000000000\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "99\n",
+     "expected": "99\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1230\n",
+     "expected": "321\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 89,
+    "ac_submission": 48,
+    "wa_submission": 49
+   }
+  },
+  {
+   "slug": "parity-check",
+   "title_en": "Even or Odd",
+   "title_ro": "Par sau impar",
+   "statement_en": "Read an integer and print `even` if it is even or `odd` if it is odd.\n\n**Input.** A single line containing the integer $n$.\n\n**Output.** The word `even` or `odd` (lowercase).\n\n**Constraints.** $-10^9 \\le n \\le 10^9$. Negative numbers keep their parity: $-4$ is even, $-3$ is odd.\n\n**Example.** Input `-4` → Output `even`",
+   "statement_ro": "Citiți un număr întreg și afișați `even` dacă este par sau `odd` dacă este impar.\n\n**Date de intrare.** O singură linie care conține numărul întreg $n$.\n\n**Date de ieșire.** Cuvântul `even` sau `odd` (cu litere mici).\n\n**Restricții.** $-10^9 \\le n \\le 10^9$. Numerele negative își păstrează paritatea: $-4$ este par, $-3$ este impar.\n\n**Exemplu.** Intrare `-4` → Ieșire `even`",
+   "difficulty": "EASY",
+   "tags": [
+    "math"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "-4\n",
+     "expected": "even\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "0\n",
+     "expected": "even\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1\n",
+     "expected": "odd\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "7\n",
+     "expected": "odd\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "-7\n",
+     "expected": "odd\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1000000000\n",
+     "expected": "even\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "999999999\n",
+     "expected": "odd\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 90,
+    "ac_submission": 50,
+    "wa_submission": 51
+   }
+  },
+  {
+   "slug": "max-of-three",
+   "title_en": "Maximum of Three",
+   "title_ro": "Maximul a trei numere",
+   "statement_en": "Read three integers and print the largest of them.\n\n**Input.** A single line containing three integers $a$, $b$, $c$ separated by spaces.\n\n**Output.** The maximum of the three numbers.\n\n**Constraints.** $-10^9 \\le a, b, c \\le 10^9$.\n\n**Example.** Input `3 -7 3` → Output `3`",
+   "statement_ro": "Citiți trei numere întregi și afișați cel mai mare dintre ele.\n\n**Date de intrare.** O singură linie care conține trei numere întregi $a$, $b$, $c$ separate prin spații.\n\n**Date de ieșire.** Maximul celor trei numere.\n\n**Restricții.** $-10^9 \\le a, b, c \\le 10^9$.\n\n**Exemplu.** Intrare `3 -7 3` → Ieșire `3`",
+   "difficulty": "EASY",
+   "tags": [
+    "implementation"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "3 -7 3\n",
+     "expected": "3\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "-1 -2 -3\n",
+     "expected": "-1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "0 0 0\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "10 9 8\n",
+     "expected": "10\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "-5 5 0\n",
+     "expected": "5\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1000000000 -1000000000 0\n",
+     "expected": "1000000000\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 91,
+    "ac_submission": 52,
+    "wa_submission": 53
+   }
+  },
+  {
+   "slug": "last-digit-power-hint",
+   "title_en": "Last Digit of a Product",
+   "title_ro": "Ultima cifră a unui produs",
+   "statement_en": "Read two natural numbers and print the last digit of their product.\n\n**Input.** A single line containing $a$ and $b$.\n\n**Output.** The last (units) digit of $a \\cdot b$.\n\n**Constraints.** $0 \\le a, b \\le 10^{18}$ — the product itself may be huge, so do not compute it directly.\n\n**Example.** Input `123456789 987654321` → Output `9`",
+   "statement_ro": "Citiți două numere naturale și afișați ultima cifră a produsului lor.\n\n**Date de intrare.** O singură linie care conține $a$ și $b$.\n\n**Date de ieșire.** Ultima cifră (cifra unităților) a produsului $a \\cdot b$.\n\n**Restricții.** $0 \\le a, b \\le 10^{18}$ — produsul în sine poate fi uriaș, deci nu-l calculați direct.\n\n**Exemplu.** Intrare `123456789 987654321` → Ieșire `9`",
+   "difficulty": "EASY",
+   "tags": [
+    "math"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "123456789 987654321\n",
+     "expected": "9\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "0 5\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1 1\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "999999999999999999 999999999999999999\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2 5\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "12 13\n",
+     "expected": "6\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 92,
+    "ac_submission": 54,
+    "wa_submission": 55
+   }
+  },
+  {
+   "slug": "count-negatives",
+   "title_en": "Counting Negatives",
+   "title_ro": "Numărarea negativelor",
+   "statement_en": "Read a list of integers and count how many of them are negative.\n\n**Input.** The first line contains $n$ ($1 \\le n \\le 1000$). The second line contains $n$ integers separated by spaces.\n\n**Output.** A single line containing the number of negative values.\n\n**Example.** Input: `5` / `3 -1 0 -7 8` → Output `2`",
+   "statement_ro": "Citiți un șir de numere întregi și numărați câte dintre ele sunt negative.\n\n**Date de intrare.** Prima linie conține $n$ ($1 \\le n \\le 1000$). A doua linie conține $n$ numere întregi separate prin spații.\n\n**Date de ieșire.** O singură linie care conține numărul valorilor negative.\n\n**Exemplu.** Intrare: `5` / `3 -1 0 -7 8` → Ieșire `2`",
+   "difficulty": "EASY",
+   "tags": [
+    "arrays",
+    "loops"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "5\n3 -1 0 -7 8\n",
+     "expected": "2\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1\n-100\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3\n0 0 0\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4\n-1 -2 -3 -4\n",
+     "expected": "4\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "6\n10 20 30 40 50 60\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2\n-1000000 1000000\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 93,
+    "ac_submission": 56,
+    "wa_submission": 57
+   }
+  },
+  {
+   "slug": "sum-even-positions",
+   "title_en": "Sum on Even Positions",
+   "title_ro": "Suma elementelor de pe poziții pare",
+   "statement_en": "Read a list of integers and print the sum of elements located at even **positions** (0-based indexing): the 1st, 3rd, 5th, … elements of the list.\n\n**Input.** The first line contains $n$ ($1 \\le n \\le 1000$). The second line contains $n$ integers.\n\n**Output.** The sum of the elements at positions $0, 2, 4, \\dots$\n\n**Example.** Input: `4` / `5 10 15 20` → Output `20` ($5 + 15$)",
+   "statement_ro": "Citiți un șir de numere întregi și afișați suma elementelor aflate pe **poziții** pare (numerotarea începe de la 0): primul, al treilea, al cincilea, … element al șirului.\n\n**Date de intrare.** Prima linie conține $n$ ($1 \\le n \\le 1000$). A doua linie conține $n$ numere întregi.\n\n**Date de ieșire.** Suma elementelor de pe pozițiile $0, 2, 4, \\dots$\n\n**Exemplu.** Intrare: `4` / `5 10 15 20` → Ieșire `20` ($5 + 15$)",
+   "difficulty": "EASY",
+   "tags": [
+    "arrays",
+    "loops"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "4\n5 10 15 20\n",
+     "expected": "20\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1\n7\n",
+     "expected": "7\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2\n1 2\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "5\n-1 -2 -3 -4 -5\n",
+     "expected": "-9\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3\n100 1 100\n",
+     "expected": "200\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 94,
+    "ac_submission": 58,
+    "wa_submission": 59
+   }
+  },
+  {
+   "slug": "seconds-to-hms",
+   "title_en": "Clock Conversion",
+   "title_ro": "Conversie în ore, minute, secunde",
+   "statement_en": "Convert a duration given in seconds into hours, minutes and seconds.\n\n**Input.** A single line containing the natural number $s$ ($0 \\le s \\le 86399$, less than one day).\n\n**Output.** Print `H:M:S` where $H$ is hours (00–23), $M$ is minutes (00–59) and $S$ is seconds (00–59), each zero-padded to two digits.\n\n**Example.** Input `3661` → Output `01:01:01`",
+   "statement_ro": "Transformați o durată exprimată în secunde în ore, minute și secunde.\n\n**Date de intrare.** O singură linie care conține numărul natural $s$ ($0 \\le s \\le 86399$, mai puțin de o zi).\n\n**Date de ieșire.** Afișați `H:M:S`, unde $H$ este ora (00–23), $M$ sunt minutele (00–59), iar $S$ sunt secundele (00–59), fiecare completat cu zerouri până la două cifre.\n\n**Exemplu.** Intrare `3661` → Ieșire `01:01:01`",
+   "difficulty": "EASY",
+   "tags": [
+    "math",
+    "implementation"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "3661\n",
+     "expected": "01:01:01\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "0\n",
+     "expected": "00:00:00\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "59\n",
+     "expected": "00:00:59\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "60\n",
+     "expected": "00:01:00\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3600\n",
+     "expected": "01:00:00\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "86399\n",
+     "expected": "23:59:59\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "45296\n",
+     "expected": "12:34:56\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 95,
+    "ac_submission": 60,
+    "wa_submission": 61
+   }
+  },
+  {
+   "slug": "divisor-count",
+   "title_en": "Number of Divisors",
+   "title_ro": "Numărul de divizori",
+   "statement_en": "Read a natural number and print how many divisors it has.\n\n**Input.** A single line containing $n$.\n\n**Output.** The number of positive divisors of $n$.\n\n**Constraints.** $1 \\le n \\le 10^{12}$ (a loop up to $\\sqrt{n}$ is fast enough).\n\n**Example.** Input `12` → Output `6` (divisors: 1, 2, 3, 4, 6, 12)",
+   "statement_ro": "Citiți un număr natural și afișați câți divizori are.\n\n**Date de intrare.** O singură linie care conține $n$.\n\n**Date de ieșire.** Numărul divizorilor pozitivi ai lui $n$.\n\n**Restricții.** $1 \\le n \\le 10^{12}$ (o buclă până la $\\sqrt{n}$ este suficient de rapidă).\n\n**Exemplu.** Intrare `12` → Ieșire `6` (divizori: 1, 2, 3, 4, 6, 12)",
+   "difficulty": "EASY",
+   "tags": [
+    "number-theory",
+    "loops"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "12\n",
+     "expected": "6\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "7\n",
+     "expected": "2\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1000000000000\n",
+     "expected": "169\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "999983\n",
+     "expected": "2\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "36\n",
+     "expected": "9\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "999999999989\n",
+     "expected": "2\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 96,
+    "ac_submission": 166,
+    "wa_submission": 167
+   }
+  },
+  {
+   "slug": "vowel-counter",
+   "title_en": "Vowel Counter",
+   "title_ro": "Numărarea vocalelor",
+   "statement_en": "Read a word and count its vowels. The vowels are `a e i o u` (uppercase or lowercase).\n\n**Input.** A single line containing a word of at most 100 letters.\n\n**Output.** The number of vowels in the word.\n\n**Example.** Input `Informatica` → Output `5`",
+   "statement_ro": "Citiți un cuvânt și numărați vocalele. Vocalele sunt `a e i o u` (cu majuscule sau minuscule).\n\n**Date de intrare.** O singură linie care conține un cuvânt de cel mult 100 de litere.\n\n**Date de ieșire.** Numărul vocalelor din cuvânt.\n\n**Exemplu.** Intrare `Informatica` → Ieșire `5`",
+   "difficulty": "EASY",
+   "tags": [
+    "strings",
+    "loops"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "Informatica\n",
+     "expected": "5\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "bcdfg\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "AEIOU\n",
+     "expected": "5\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "a\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "Rhythm\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "aeiouaeiou\n",
+     "expected": "10\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "WebCoder\n",
+     "expected": "3\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 97,
+    "ac_submission": 168,
+    "wa_submission": 169
+   }
+  },
+  {
+   "slug": "average-excluded",
+   "title_en": "Average Without the Extremes",
+   "title_ro": "Media fără extreme",
+   "statement_en": "Given $n$ integers, print their average computed **excluding one occurrence of the minimum and one occurrence of the maximum** value. The answer must be exact: print it with two decimal places.\n\n**Input.** The first line contains $n$ ($3 \\le n \\le 1000$). The second line contains $n$ integers.\n\n**Output.** The trimmed average, with exactly two decimals.\n\n**Example.** Input: `5` / `1 2 3 4 100` → Output `3.00` (drop 1 and 100, average of 2, 3, 4)",
+   "statement_ro": "Fiind date $n$ numere întregi, afișați media lor calculată **fără o apariție a valorii minime și una a valorii maxime**. Răspunsul trebuie să fie exact: afișați-l cu două zecimale.\n\n**Date de intrare.** Prima linie conține $n$ ($3 \\le n \\le 1000$). A doua linie conține $n$ numere întregi.\n\n**Date de ieșire.** Media trunchiată, cu exact două zecimale.\n\n**Exemplu.** Intrare: `5` / `1 2 3 4 100` → Ieșire `3.00` (se elimină 1 și 100, media numerelor 2, 3, 4)",
+   "difficulty": "EASY",
+   "tags": [
+    "arrays",
+    "math"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "5\n1 2 3 4 100\n",
+     "expected": "3.00\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "3\n7 7 7\n",
+     "expected": "7.00\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4\n-5 -1 -1 10\n",
+     "expected": "-1.00\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "10\n1 1 1 1 1 1 1 1 1 1\n",
+     "expected": "1.00\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "5\n0 100 -100 50 0\n",
+     "expected": "16.67\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 98,
+    "ac_submission": 170,
+    "wa_submission": 171
+   }
+  },
+  {
+   "slug": "palindrome-word",
+   "title_en": "Palindrome Word",
+   "title_ro": "Cuvânt palindrom",
+   "statement_en": "Read a word and decide whether it is a palindrome: it reads the same forwards and backwards. Case is ignored (`A` equals `a`).\n\n**Input.** A single line containing a word of at most 1000 letters.\n\n**Output.** Print `YES` if the word is a palindrome or `NO` otherwise.\n\n**Example.** Input `Anna` → Output `YES`",
+   "statement_ro": "Citiți un cuvânt și decideți dacă este palindrom: se citește la fel în ambele sensuri. Majusculele și minusculele nu contează (`A` este egal cu `a`).\n\n**Date de intrare.** O singură linie care conține un cuvânt de cel mult 1000 de litere.\n\n**Date de ieșire.** Afișați `YES` dacă cuvântul este palindrom sau `NO` în caz contrar.\n\n**Exemplu.** Intrare `Anna` → Ieșire `YES`",
+   "difficulty": "EASY",
+   "tags": [
+    "strings"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "Anna\n",
+     "expected": "YES\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "ab\n",
+     "expected": "NO\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "racecar\n",
+     "expected": "YES\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "a\n",
+     "expected": "YES\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "AbBa\n",
+     "expected": "YES\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "informatica\n",
+     "expected": "NO\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "zzz\n",
+     "expected": "YES\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 99,
+    "ac_submission": 172,
+    "wa_submission": 173
+   }
+  },
+  {
+   "slug": "second-largest",
+   "title_en": "Second Largest",
+   "title_ro": "Al doilea cel mai mare",
+   "statement_en": "Read a list of **distinct** integers and print the second largest value.\n\n**Input.** The first line contains $n$ ($2 \\le n \\le 1000$). The second line contains $n$ distinct integers.\n\n**Output.** The second largest element of the list.\n\n**Example.** Input: `5` / `3 10 -2 7 8` → Output `8`",
+   "statement_ro": "Citiți un șir de numere întregi **distincte** și afișați a doua cea mai mare valoare.\n\n**Date de intrare.** Prima linie conține $n$ ($2 \\le n \\le 1000$). A doua linie conține $n$ numere întregi distincte.\n\n**Date de ieșire.** Al doilea cel mai mare element al șirului.\n\n**Exemplu.** Intrare: `5` / `3 10 -2 7 8` → Ieșire `8`",
+   "difficulty": "EASY",
+   "tags": [
+    "arrays",
+    "sorting"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "5\n3 10 -2 7 8\n",
+     "expected": "8\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "2\n1 2\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3\n-3 -1 -2\n",
+     "expected": "-2\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4\n100 99 1 2\n",
+     "expected": "99\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2\n0 -1000000\n",
+     "expected": "-1000000\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 100,
+    "ac_submission": 174,
+    "wa_submission": 175
+   }
+  },
+  {
+   "slug": "capitalize-words",
+   "title_en": "Capitalize Every Word",
+   "title_ro": "Majusculă la fiecare cuvânt",
+   "statement_en": "Read a sentence and print it with the first letter of every word converted to uppercase; all other letters stay unchanged.\n\n**Input.** A single line containing a sentence of at most 1000 characters (letters and spaces).\n\n**Output.** The sentence with each word capitalized.\n\n**Example.** Input `hello wEBcoder world` → Output `Hello WEBcoder World`",
+   "statement_ro": "Citiți o propoziție și afișați-o cu prima literă a fiecărui cuvânt transformată în majusculă; celelalte litere rămân neschimbate.\n\n**Date de intrare.** O singură linie care conține o propoziție de cel mult 1000 de caractere (litere și spații).\n\n**Date de ieșire.** Propoziția cu fiecare cuvânt scris cu majusculă.\n\n**Exemplu.** Intrare `hello wEBcoder world` → Ieșire `Hello WEBcoder World`",
+   "difficulty": "EASY",
+   "tags": [
+    "strings"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "hello wEBcoder world\n",
+     "expected": "Hello WEBcoder World\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "a\n",
+     "expected": "A\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "ab cd\n",
+     "expected": "Ab Cd\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "x y z\n",
+     "expected": "X Y Z\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "already Capitalized\n",
+     "expected": "Already Capitalized\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "aB\n",
+     "expected": "AB\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 101,
+    "ac_submission": 176,
+    "wa_submission": 177
+   }
+  },
+  {
+   "slug": "binary-representation",
+   "title_en": "Binary Representation",
+   "title_ro": "Reprezentarea în bază 2",
+   "statement_en": "Read a natural number and print its binary representation, without leading zeros. The binary representation of 0 is `0`.\n\n**Input.** A single line containing $n$ ($0 \\le n \\le 10^{18}$).\n\n**Output.** The binary representation of $n$.\n\n**Example.** Input `13` → Output `1101`",
+   "statement_ro": "Citiți un număr natural și afișați reprezentarea lui în baza 2, fără zerouri inițiale. Reprezentarea binară a lui 0 este `0`.\n\n**Date de intrare.** O singură linie care conține $n$ ($0 \\le n \\le 10^{18}$).\n\n**Date de ieșire.** Reprezentarea în baza 2 a lui $n$.\n\n**Exemplu.** Intrare `13` → Ieșire `1101`",
+   "difficulty": "EASY",
+   "tags": [
+    "math",
+    "number-theory"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "13\n",
+     "expected": "1101\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "0\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2\n",
+     "expected": "10\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1023\n",
+     "expected": "1111111111\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1024\n",
+     "expected": "10000000000\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1000000000000000000\n",
+     "expected": "110111100000101101101011001110100111011001000000000000000000\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 102,
+    "ac_submission": 178,
+    "wa_submission": 179
+   }
+  },
+  {
+   "slug": "count-inversions-small",
+   "title_en": "Counting Inversions",
+   "title_ro": "Numărarea inversiunilor",
+   "statement_en": "A pair of positions $(i, j)$ with $i < j$ is an *inversion* if $a_i > a_j$. Count the inversions in the given list.\n\n**Input.** The first line contains $n$ ($1 \\le n \\le 2000$). The second line contains $n$ integers.\n\n**Output.** The number of inversion pairs.\n\n**Example.** Input: `4` / `3 1 2 4` → Output `2` (pairs (3,1) and (3,2))",
+   "statement_ro": "O pereche de poziții $(i, j)$ cu $i < j$ este o *inversiune* dacă $a_i > a_j$. Numărați inversiunile din șirul dat.\n\n**Date de intrare.** Prima linie conține $n$ ($1 \\le n \\le 2000$). A doua linie conține $n$ numere întregi.\n\n**Date de ieșire.** Numărul perechilor în inversiune.\n\n**Exemplu.** Intrare: `4` / `3 1 2 4` → Ieșire `2` (perechile (3,1) și (3,2))",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "arrays",
+    "sorting"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "4\n3 1 2 4\n",
+     "expected": "2\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1\n5\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "5\n5 4 3 2 1\n",
+     "expected": "10\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "5\n1 2 3 4 5\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3\n2 2 2\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "6\n10 -10 10 -10 10 -10\n",
+     "expected": "6\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 103,
+    "ac_submission": 180,
+    "wa_submission": 181
+   }
+  },
+  {
+   "slug": "run-length-encode",
+   "title_en": "Run-Length Encoding",
+   "title_ro": "Codificare prin lungimi de execuție",
+   "statement_en": "Compress a string using run-length encoding: each maximal block of equal characters becomes the character followed by the length of the block. Blocks of length 1 still print the length.\n\n**Input.** A single line containing a non-empty string of at most 10 000 lowercase letters.\n\n**Output.** The run-length encoding, blocks in order, separated by spaces, each printed as `char count`.\n\n**Example.** Input `aaabba` → Output `a 3 b 2 a 1`",
+   "statement_ro": "Comprimați un șir folosind codificarea prin lungimi de execuție: fiecare bloc maximal de caractere egale devine caracterul urmat de lungimea blocului. Blocurile de lungime 1 afișează și ele lungimea.\n\n**Date de intrare.** O singură linie care conține un șir nevid de cel mult 10 000 de litere mici.\n\n**Date de ieșire.** Codificarea, blocuri în ordine, separate prin spații, fiecare afișat ca `caracter lungime`.\n\n**Exemplu.** Intrare `aaabba` → Ieșire `a 3 b 2 a 1`",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "strings",
+    "implementation"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "aaabba\n",
+     "expected": "a 3 b 2 a 1\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "a\n",
+     "expected": "a 1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "abc\n",
+     "expected": "a 1 b 1 c 1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "aaaa\n",
+     "expected": "a 4\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "ababab\n",
+     "expected": "a 1 b 1 a 1 b 1 a 1 b 1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "zzzzzzzzzz\n",
+     "expected": "z 10\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 104,
+    "ac_submission": 182,
+    "wa_submission": 183
+   }
+  },
+  {
+   "slug": "merge-two-sorted",
+   "title_en": "Merging Two Sorted Lists",
+   "title_ro": "Interclasarea a două șiruri sortate",
+   "statement_en": "Given two lists already sorted in non-decreasing order, print their merge — all elements of both lists, in non-decreasing order.\n\n**Input.** The first line contains $n$ ($0 \\le n \\le 1000$) and the second line contains $n$ integers. The third line contains $k$ ($0 \\le k \\le 1000$) and the fourth line contains $k$ integers. Each list is sorted ascending.\n\n**Output.** The $n + k$ merged values on one line, separated by spaces. If both lists are empty print an empty line.\n\n**Example.** Input: `3` / `1 5 9` / `4` / `2 3 8 10` → Output `1 2 3 5 8 9 10`",
+   "statement_ro": "Fiind date două șiruri deja sortate crescător, afișați interclasarea lor — toate elementele celor două șiruri, în ordine crescătoare.\n\n**Date de intrare.** Prima linie conține $n$ ($0 \\le n \\le 1000$), iar a doua linie conține $n$ numere întregi. A treia linie conține $k$ ($0 \\le k \\le 1000$), iar a patra linie conține $k$ numere întregi. Fiecare șir este sortat crescător.\n\n**Date de ieșire.** Cele $n + k$ valori interclasate pe o linie, separate prin spații. Dacă ambele șiruri sunt goale, afișați o linie vidă.\n\n**Exemplu.** Intrare: `3` / `1 5 9` / `4` / `2 3 8 10` → Ieșire `1 2 3 5 8 9 10`",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "arrays",
+    "sorting"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "3\n1 5 9\n4\n2 3 8 10\n",
+     "expected": "1 2 3 5 8 9 10\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "0\n\n0\n\n",
+     "expected": "\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1\n7\n0\n\n",
+     "expected": "7\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "0\n\n2\n-5 0\n",
+     "expected": "-5 0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3\n1 1 1\n3\n1 1 1\n",
+     "expected": "1 1 1 1 1 1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2\n-10 -9\n2\n-8 -7\n",
+     "expected": "-10 -9 -8 -7\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 105,
+    "ac_submission": 184,
+    "wa_submission": 185
+   }
+  },
+  {
+   "slug": "frequency-of-maximum",
+   "title_en": "How Many Times the Maximum",
+   "title_ro": "De câte ori apare maximul",
+   "statement_en": "Read a list of integers and print how many times its maximum value occurs.\n\n**Input.** The first line contains $n$ ($1 \\le n \\le 100000$). The second line contains $n$ integers ($|a_i| \\le 10^9$).\n\n**Output.** The number of occurrences of the maximum.\n\n**Example.** Input: `7` / `4 2 4 4 1 4 3` → Output `4`",
+   "statement_ro": "Citiți un șir de numere întregi și afișați de câte ori apare valoarea maximă.\n\n**Date de intrare.** Prima linie conține $n$ ($1 \\le n \\le 100000$). A doua linie conține $n$ numere întregi ($|a_i| \\le 10^9$).\n\n**Date de ieșire.** Numărul de apariții ale maximului.\n\n**Exemplu.** Intrare: `7` / `4 2 4 4 1 4 3` → Ieșire `4`",
+   "difficulty": "EASY",
+   "tags": [
+    "arrays",
+    "loops"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "7\n4 2 4 4 1 4 3\n",
+     "expected": "4\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1\n-1000000000\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "5\n1 1 1 1 1\n",
+     "expected": "5\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3\n-1 -2 -3\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4\n0 1000000000 0 1000000000\n",
+     "expected": "2\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 106,
+    "ac_submission": 186,
+    "wa_submission": 187
+   }
+  },
+  {
+   "slug": "remove-duplicates",
+   "title_en": "Remove Duplicates",
+   "title_ro": "Eliminarea duplicatelor",
+   "statement_en": "Remove duplicate values from a list, keeping the **first** occurrence of each value and the original relative order.\n\n**Input.** The first line contains $n$ ($1 \\le n \\le 100000$). The second line contains $n$ integers.\n\n**Output.** The list with duplicates removed, in order of first appearance, on one line separated by spaces.\n\n**Example.** Input: `8` / `3 1 3 2 1 5 2 3` → Output `3 1 2 5`",
+   "statement_ro": "Eliminați valorile duplicate dintr-un șir, păstrând **prima** apariție a fiecărei valori și ordinea relativă inițială.\n\n**Date de intrare.** Prima linie conține $n$ ($1 \\le n \\le 100000$). A doua linie conține $n$ numere întregi.\n\n**Date de ieșire.** Șirul fără duplicate, în ordinea primei apariții, pe o linie separate prin spații.\n\n**Exemplu.** Intrare: `8` / `3 1 3 2 1 5 2 3` → Ieșire `3 1 2 5`",
+   "difficulty": "EASY",
+   "tags": [
+    "arrays",
+    "implementation"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "8\n3 1 3 2 1 5 2 3\n",
+     "expected": "3 1 2 5\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1\n42\n",
+     "expected": "42\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "5\n7 7 7 7 7\n",
+     "expected": "7\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4\n1 2 3 4\n",
+     "expected": "1 2 3 4\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "6\n-1 -1 0 -1 0 0\n",
+     "expected": "-1 0\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 107,
+    "ac_submission": 188,
+    "wa_submission": 189
+   }
+  },
+  {
+   "slug": "matrix-row-sums",
+   "title_en": "Matrix Row Sums",
+   "title_ro": "Suma elementelor de pe linii",
+   "statement_en": "Read a matrix with $n$ rows and $m$ columns and print the sum of each row, one sum per line.\n\n**Input.** The first line contains $n$ and $m$ ($1 \\le n, m \\le 100$). Each of the next $n$ lines contains $m$ integers.\n\n**Output.** $n$ lines: the sum of row $i$ on line $i$.\n\n**Example.** For a matrix `1 2 / 3 4` output `3` then `7`.",
+   "statement_ro": "Citiți o matrice cu $n$ linii și $m$ coloane și afișați suma elementelor de pe fiecare linie, o sumă pe linie.\n\n**Date de intrare.** Prima linie conține $n$ și $m$ ($1 \\le n, m \\le 100$). Fiecare dintre următoarele $n$ linii conține $m$ numere întregi.\n\n**Date de ieșire.** $n$ linii: suma liniei $i$ pe linia $i$.\n\n**Exemplu.** Pentru matricea `1 2 / 3 4` se afișează `3`, apoi `7`.",
+   "difficulty": "EASY",
+   "tags": [
+    "arrays",
+    "matrices"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "2 2\n1 2\n3 4\n",
+     "expected": "3\n7\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1 1\n-5\n",
+     "expected": "-5\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1 5\n1 2 3 4 5\n",
+     "expected": "15\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3 1\n10\n20\n30\n",
+     "expected": "10\n20\n30\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2 3\n-1 -2 -3\n4 5 6\n",
+     "expected": "-6\n15\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 108,
+    "ac_submission": 190,
+    "wa_submission": 191
+   }
+  },
+  {
+   "slug": "transpose-matrix",
+   "title_en": "Transpose the Matrix",
+   "title_ro": "Transpunerea matricei",
+   "statement_en": "Read a matrix with $n$ rows and $m$ columns and print its transpose: $m$ rows of $n$ values, where line $j$ of the output is column $j$ of the input.\n\n**Input.** The first line contains $n$ and $m$ ($1 \\le n, m \\le 100$). The next $n$ lines contain $m$ integers each.\n\n**Output.** $m$ lines with $n$ integers each — the transposed matrix.\n\n**Example.** The transpose of `1 2 3 / 4 5 6` is `1 4 / 2 5 / 3 6`.",
+   "statement_ro": "Citiți o matrice cu $n$ linii și $m$ coloane și afișați transpusa ei: $m$ linii cu $n$ valori, unde linia $j$ a ieșirii este coloana $j$ a intrării.\n\n**Date de intrare.** Prima linie conține $n$ și $m$ ($1 \\le n, m \\le 100$). Următoarele $n$ linii conțin câte $m$ numere întregi.\n\n**Date de ieșire.** $m$ linii cu $n$ numere întregi — matricea transpusă.\n\n**Exemplu.** Transpusa matricei `1 2 3 / 4 5 6` este `1 4 / 2 5 / 3 6`.",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "arrays",
+    "matrices"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "2 3\n1 2 3\n4 5 6\n",
+     "expected": "1 4\n2 5\n3 6\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1 1\n9\n",
+     "expected": "9\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1 4\n1 2 3 4\n",
+     "expected": "1\n2\n3\n4\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4 1\n1\n2\n3\n4\n",
+     "expected": "1 2 3 4\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3 3\n1 0 0\n0 1 0\n0 0 1\n",
+     "expected": "1 0 0\n0 1 0\n0 0 1\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 109,
+    "ac_submission": 192,
+    "wa_submission": 193
+   }
+  },
+  {
+   "slug": "word-lengths-line",
+   "title_en": "Word Lengths",
+   "title_ro": "Lungimile cuvintelor",
+   "statement_en": "Read a sentence and print the length of each of its words, in order, separated by spaces.\n\n**Input.** A single line containing a sentence — words of lowercase letters separated by single spaces (at least one word, at most 1000 characters).\n\n**Output.** The word lengths on one line, separated by spaces.\n\n**Example.** Input `ana are mere` → Output `3 3 4`",
+   "statement_ro": "Citiți o propoziție și afișați lungimea fiecărui cuvânt, în ordine, separate prin spații.\n\n**Date de intrare.** O singură linie care conține o propoziție — cuvinte din litere mici separate prin câte un spațiu (cel puțin un cuvânt, cel mult 1000 de caractere).\n\n**Date de ieșire.** Lungimile cuvintelor pe o linie, separate prin spații.\n\n**Exemplu.** Intrare `ana are mere` → Ieșire `3 3 4`",
+   "difficulty": "EASY",
+   "tags": [
+    "strings"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "ana are mere\n",
+     "expected": "3 3 4\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "a\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "ab cd ef\n",
+     "expected": "2 2 2\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "webcoder\n",
+     "expected": "8\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "xx yy zz zz\n",
+     "expected": "2 2 2 2\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 110,
+    "ac_submission": 194,
+    "wa_submission": 195
+   }
+  },
+  {
+   "slug": "gcd-and-lcm",
+   "title_en": "GCD and LCM",
+   "title_ro": "CMMDC și CMMMC",
+   "statement_en": "Read two natural numbers and print their greatest common divisor and their least common multiple.\n\n**Input.** A single line containing $a$ and $b$ ($1 \\le a, b \\le 10^{9}$).\n\n**Output.** One line: the GCD and the LCM separated by a space.\n\n**Example.** Input `12 18` → Output `6 36`",
+   "statement_ro": "Citiți două numere naturale și afișați cel mai mare divizor comun și cel mai mic multiplu comun ale lor.\n\n**Date de intrare.** O singură linie care conține $a$ și $b$ ($1 \\le a, b \\le 10^{9}$).\n\n**Date de ieșire.** O linie: CMMDC și CMMMC separate printr-un spațiu.\n\n**Exemplu.** Intrare `12 18` → Ieșire `6 36`",
+   "difficulty": "EASY",
+   "tags": [
+    "number-theory",
+    "math"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "12 18\n",
+     "expected": "6 36\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1 1\n",
+     "expected": "1 1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "7 13\n",
+     "expected": "1 91\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1000000000 999999999\n",
+     "expected": "1 999999999000000000\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1000000000 500000000\n",
+     "expected": "500000000 1000000000\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "17 17\n",
+     "expected": "17 17\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 111,
+    "ac_submission": 196,
+    "wa_submission": 197
+   }
+  },
+  {
+   "slug": "prime-check",
+   "title_en": "Prime Check",
+   "title_ro": "Verificarea primalității",
+   "statement_en": "Read a natural number and decide whether it is prime.\n\n**Input.** A single line containing $n$ ($0 \\le n \\le 10^{12}$).\n\n**Output.** `YES` if $n$ is prime, `NO` otherwise. By definition, 0 and 1 are not prime.\n\n**Example.** Input `999999999989` → Output `YES`",
+   "statement_ro": "Citiți un număr natural și decideți dacă este prim.\n\n**Date de intrare.** O singură linie care conține $n$ ($0 \\le n \\le 10^{12}$).\n\n**Date de ieșire.** `YES` dacă $n$ este prim, `NO` în caz contrar. Prin definiție, 0 și 1 nu sunt prime.\n\n**Exemplu.** Intrare `999999999989` → Ieșire `YES`",
+   "difficulty": "EASY",
+   "tags": [
+    "number-theory"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "999999999989\n",
+     "expected": "YES\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "0\n",
+     "expected": "NO\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1\n",
+     "expected": "NO\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2\n",
+     "expected": "YES\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4\n",
+     "expected": "NO\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "999999999999\n",
+     "expected": "NO\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1000000000039\n",
+     "expected": "YES\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "999983\n",
+     "expected": "YES\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 112,
+    "ac_submission": 270,
+    "wa_submission": 271
+   }
+  },
+  {
+   "slug": "collatz-steps",
+   "title_en": "Collatz Steps",
+   "title_ro": "Pași Collatz",
+   "statement_en": "The Collatz process: while $n \\ne 1$, replace $n$ by $n/2$ if $n$ is even, or $3n+1$ if $n$ is odd. Read $n$ and print how many steps the process takes to reach 1.\n\n**Input.** A single line containing $n$ ($1 \\le n \\le 10^6$).\n\n**Output.** The number of steps until $n$ becomes 1 (already being 1 takes 0 steps).\n\n**Example.** Input `6` → Output `8` (6→3→10→5→16→8→4→2→1)",
+   "statement_ro": "Procesul Collatz: cât timp $n \\ne 1$, înlocuiți $n$ cu $n/2$ dacă $n$ este par sau cu $3n+1$ dacă $n$ este impar. Citiți $n$ și afișați de câți pași ajunge procesul la 1.\n\n**Date de intrare.** O singură linie care conține $n$ ($1 \\le n \\le 10^6$).\n\n**Date de ieșire.** Numărul de pași până când $n$ devine 1 (dacă deja este 1, sunt 0 pași).\n\n**Exemplu.** Intrare `6` → Ieșire `8` (6→3→10→5→16→8→4→2→1)",
+   "difficulty": "EASY",
+   "tags": [
+    "math",
+    "loops"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "6\n",
+     "expected": "8\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3\n",
+     "expected": "7\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "27\n",
+     "expected": "111\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1000000\n",
+     "expected": "152\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "97\n",
+     "expected": "118\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 113,
+    "ac_submission": 200,
+    "wa_submission": 201
+   }
+  },
+  {
+   "slug": "binary-search-first",
+   "title_en": "First Position in Sorted Array",
+   "title_ro": "Prima poziție într-un șir sortat",
+   "statement_en": "Given a sorted array and a value, print the index (0-based) of the **first** occurrence of the value, or `-1` if it does not appear.\n\n**Input.** The first line contains $n$ ($1 \\le n \\le 10^5$). The second line contains $n$ integers sorted non-decreasingly. The third line contains the searched value $x$.\n\n**Output.** The smallest index $i$ with $a_i = x$, or `-1`.\n\n**Example.** Input: `6` / `1 2 2 2 5 9` / `2` → Output `1`",
+   "statement_ro": "Fiind dat un șir sortat și o valoare, afișați indexul (numerotat de la 0) al **primei** apariții a valorii sau `-1` dacă nu apare.\n\n**Date de intrare.** Prima linie conține $n$ ($1 \\le n \\le 10^5$). A doua linie conține $n$ numere întregi sortate crescător. A treia linie conține valoarea căutată $x$.\n\n**Date de ieșire.** Cel mai mic index $i$ cu $a_i = x$ sau `-1`.\n\n**Exemplu.** Intrare: `6` / `1 2 2 2 5 9` / `2` → Ieșire `1`",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "binary-search",
+    "arrays"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "6\n1 2 2 2 5 9\n2\n",
+     "expected": "1\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "5\n1 3 5 7 9\n4\n",
+     "expected": "-1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1\n5\n5\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4\n2 2 2 2\n2\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "7\n-5 -3 0 0 0 8 8\n8\n",
+     "expected": "5\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3\n1 2 3\n1000000\n",
+     "expected": "-1\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 114,
+    "ac_submission": 202,
+    "wa_submission": 203
+   }
+  },
+  {
+   "slug": "insertion-index",
+   "title_en": "Where to Insert",
+   "title_ro": "Poziția de inserare",
+   "statement_en": "Given a sorted array and a value $x$, print the index where $x$ should be inserted so the array stays sorted — before any existing equal values.\n\n**Input.** The first line contains $n$ ($0 \\le n \\le 10^5$). The second line contains $n$ sorted integers (empty line when $n = 0$). The third line contains $x$.\n\n**Output.** The insertion index $i$ such that $a_0 \\le \\dots \\le a_{i-1} \\le x < a_i \\le \\dots$\n\n**Example.** Input: `4` / `1 3 5 6` / `5` → Output `2`",
+   "statement_ro": "Fiind dat un șir sortat și o valoare $x$, afișați indexul unde trebuie inserat $x$ astfel încât șirul să rămână sortat — înaintea oricăror valori egale existente.\n\n**Date de intrare.** Prima linie conține $n$ ($0 \\le n \\le 10^5$). A doua linie conține $n$ numere sortate (linia este vidă când $n = 0$). A treia linie conține $x$.\n\n**Date de ieșire.** Indexul de inserare $i$ astfel încât $a_0 \\le \\dots \\le a_{i-1} \\le x < a_i \\le \\dots$\n\n**Exemplu.** Intrare: `4` / `1 3 5 6` / `5` → Ieșire `2`",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "binary-search",
+    "arrays"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "4\n1 3 5 6\n5\n",
+     "expected": "2\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "0\n\n7\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3\n1 3 5\n0\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "5\n2 2 2 2 2\n2\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3\n10 20 30\n35\n",
+     "expected": "3\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 194,
+    "ac_submission": 204,
+    "wa_submission": 205
+   }
+  },
+  {
+   "slug": "activity-selection",
+   "title_en": "Maximum Non-Overlapping Activities",
+   "title_ro": "Maximum de activități care nu se suprapun",
+   "statement_en": "You are given $n$ activities with start and finish times. Choose as many as possible so that no two chosen activities overlap. An activity ending at time $t$ and one starting at time $t$ do **not** overlap.\n\n**Input.** The first line contains $n$ ($1 \\le n \\le 100000$). Each of the next $n$ lines contains two integers $s_i$ and $f_i$ ($0 \\le s_i < f_i \\le 10^9$).\n\n**Output.** The maximum number of non-overlapping activities.\n\n**Example.** For activities `(1 3) (2 5) (4 7) (6 9)` the answer is `3` — pick (1 3), (4 7), (6 9).",
+   "statement_ro": "Sunt date $n$ activități cu momentele de început și de sfârșit. Alegeți cât mai multe astfel încât oricare două activități alese să nu se suprapună. O activitate care se termină la momentul $t$ și una care începe la momentul $t$ **nu** se suprapun.\n\n**Date de intrare.** Prima linie conține $n$ ($1 \\le n \\le 100000$). Fiecare dintre următoarele $n$ linii conține două numere întregi $s_i$ și $f_i$ ($0 \\le s_i < f_i \\le 10^9$).\n\n**Date de ieșire.** Numărul maxim de activități care nu se suprapun.\n\n**Exemplu.** Pentru activitățile `(1 3) (2 5) (4 7) (6 9)` răspunsul este `3` — se aleg (1 3), (4 7), (6 9).",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "greedy",
+    "sorting"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "4\n1 3\n2 5\n4 7\n6 9\n",
+     "expected": "2\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1\n0 1000000000\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3\n1 2\n2 3\n3 4\n",
+     "expected": "3\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "5\n5 6\n1 2\n3 4\n0 1\n7 8\n",
+     "expected": "5\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4\n1 10\n2 3\n3 4\n4 5\n",
+     "expected": "3\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "6\n0 2\n1 3\n2 4\n3 5\n4 6\n5 7\n",
+     "expected": "3\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 195,
+    "ac_submission": 206,
+    "wa_submission": 207
+   }
+  },
+  {
+   "slug": "jump-game-min",
+   "title_en": "Minimum Jumps to the End",
+   "title_ro": "Numărul minim de sărituri",
+   "statement_en": "You stand on the first cell of an array. From cell $i$ you may jump to any cell $i+1, \\dots, i+a_i$. Print the minimum number of jumps needed to reach the last cell.\n\n**Input.** The first line contains $n$ ($1 \\le n \\le 10^4$). The second line contains $n$ integers $a_i$ ($0 \\le a_i \\le 1000$). The last cell is always reachable.\n\n**Output.** The minimum number of jumps (0 if $n = 1$).\n\n**Example.** Input: `6` / `2 3 1 1 4 1` → Output `3` (0→1→4→5 … best is 0→1→4→5 with 3 jumps)",
+   "statement_ro": "Vă aflați pe prima celulă a unui șir. Din celula $i$ puteți sări în orice celulă $i+1, \\dots, i+a_i$. Afișați numărul minim de sărituri necesare pentru a ajunge pe ultima celulă.\n\n**Date de intrare.** Prima linie conține $n$ ($1 \\le n \\le 10^4$). A doua linie conține $n$ numere întregi $a_i$ ($0 \\le a_i \\le 1000$). Ultima celulă este întotdeauna accesibilă.\n\n**Date de ieșire.** Numărul minim de sărituri (0 dacă $n = 1$).\n\n**Exemplu.** Intrare: `6` / `2 3 1 1 4 1` → Ieșire `3`",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "greedy",
+    "arrays"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "6\n2 3 1 1 4 1\n",
+     "expected": "3\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1\n0\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2\n5 0\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "5\n1 1 1 1 1\n",
+     "expected": "4\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4\n2 1 1 1\n",
+     "expected": "2\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "7\n3 0 2 1 1 4 0\n",
+     "expected": "4\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3\n10 0 0\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 196,
+    "ac_submission": 208,
+    "wa_submission": 209
+   }
+  },
+  {
+   "slug": "decimal-to-base",
+   "title_en": "Decimal to Base B",
+   "title_ro": "Din baza 10 în baza B",
+   "statement_en": "Convert a natural number from base 10 to base $b$ ($2 \\le b \\le 16$). Digits above 9 are `A`, `B`, `C`, `D`, `E`, `F`.\n\n**Input.** A single line containing $n$ and $b$ ($0 \\le n \\le 10^{18}$).\n\n**Output.** The representation of $n$ in base $b$, without leading zeros; `0` for $n = 0$.\n\n**Example.** Input `255 16` → Output `FF`",
+   "statement_ro": "Transformați un număr natural din baza 10 în baza $b$ ($2 \\le b \\le 16$). Cifrele peste 9 sunt `A`, `B`, `C`, `D`, `E`, `F`.\n\n**Date de intrare.** O singură linie care conține $n$ și $b$ ($0 \\le n \\le 10^{18}$).\n\n**Date de ieșire.** Reprezentarea lui $n$ în baza $b$, fără zerouri inițiale; `0` pentru $n = 0$.\n\n**Exemplu.** Intrare `255 16` → Ieșire `FF`",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "math",
+    "number-theory"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "255 16\n",
+     "expected": "FF\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "0 2\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "10 2\n",
+     "expected": "1010\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1000000000000000000 16\n",
+     "expected": "DE0B6B3A7640000\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "12345 7\n",
+     "expected": "50664\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1 16\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "255 2\n",
+     "expected": "11111111\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 197,
+    "ac_submission": 210,
+    "wa_submission": 211
+   }
+  },
+  {
+   "slug": "roman-small",
+   "title_en": "Roman Numerals to Decimal",
+   "title_ro": "Numere romane în zecimal",
+   "statement_en": "Read a number written in Roman numerals (using only `I V X L C D M`) and print its decimal value.\n\n**Input.** A single line containing a valid Roman numeral ($1 \\le$ value $\\le 3999$).\n\n**Output.** The decimal value.\n\n**Example.** Input `MCMXCIV` → Output `1994`",
+   "statement_ro": "Citiți un număr scris în cifre romane (doar `I V X L C D M`) și afișați valoarea lui zecimală.\n\n**Date de intrare.** O singură linie care conține un numeral roman valid ($1 \\le$ valoare $\\le 3999$).\n\n**Date de ieșire.** Valoarea zecimală.\n\n**Exemplu.** Intrare `MCMXCIV` → Ieșire `1994`",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "strings",
+    "implementation"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "MCMXCIV\n",
+     "expected": "1994\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "I\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "III\n",
+     "expected": "3\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "LVIII\n",
+     "expected": "58\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "MMMCMXCIX\n",
+     "expected": "3999\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "CDXLIV\n",
+     "expected": "444\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "IX\n",
+     "expected": "9\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 198,
+    "ac_submission": 212,
+    "wa_submission": 213
+   }
+  },
+  {
+   "slug": "dot-product",
+   "title_en": "Dot Product",
+   "title_ro": "Produsul scalar",
+   "statement_en": "Compute the dot product of two vectors: $a \\cdot b = \\sum_{i=1}^{n} a_i \\cdot b_i$.\n\n**Input.** The first line contains $n$ ($1 \\le n \\le 1000$). The second line contains $n$ integers $a_i$. The third line contains $n$ integers $b_i$ ($|a_i|, |b_i| \\le 1000$).\n\n**Output.** The dot product of the two vectors.\n\n**Example.** Input: `3` / `1 2 3` / `4 5 6` → Output `32`",
+   "statement_ro": "Calculați produsul scalar a doi vectori: $a \\cdot b = \\sum_{i=1}^{n} a_i \\cdot b_i$.\n\n**Date de intrare.** Prima linie conține $n$ ($1 \\le n \\le 1000$). A doua linie conține $n$ numere întregi $a_i$. A treia linie conține $n$ numere întregi $b_i$ ($|a_i|, |b_i| \\le 1000$).\n\n**Date de ieșire.** Produsul scalar al celor doi vectori.\n\n**Exemplu.** Intrare: `3` / `1 2 3` / `4 5 6` → Ieșire `32`",
+   "difficulty": "EASY",
+   "tags": [
+    "arrays",
+    "math"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "3\n1 2 3\n4 5 6\n",
+     "expected": "32\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1\n-1\n-1\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2\n0 0\n5 5\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4\n-2 3 -4 5\n1 -1 1 -1\n",
+     "expected": "-14\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "5\n1000 1000 1000 1000 1000\n1000 1000 1000 1000 1000\n",
+     "expected": "5000000\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 199,
+    "ac_submission": 214,
+    "wa_submission": 215
+   }
+  },
+  {
+   "slug": "perfect-number",
+   "title_en": "Perfect Number",
+   "title_ro": "Număr perfect",
+   "statement_en": "A number is *perfect* if it equals the sum of its proper divisors (all divisors except itself). Read $n$ and print `YES` or `NO`.\n\n**Input.** A single line containing $n$ ($1 \\le n \\le 10^{12}$).\n\n**Output.** `YES` if $n$ is perfect, `NO` otherwise.\n\n**Example.** Input `28` → Output `YES` (1+2+4+7+14 = 28)",
+   "statement_ro": "Un număr este *perfect* dacă este egal cu suma divizorilor proprii (toți divizorii în afara lui însuși). Citiți $n$ și afișați `YES` sau `NO`.\n\n**Date de intrare.** O singură linie care conține $n$ ($1 \\le n \\le 10^{12}$).\n\n**Date de ieșire.** `YES` dacă $n$ este perfect, `NO` în caz contrar.\n\n**Exemplu.** Intrare `28` → Ieșire `YES` (1+2+4+7+14 = 28)",
+   "difficulty": "EASY",
+   "tags": [
+    "number-theory",
+    "math"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "28\n",
+     "expected": "YES\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1\n",
+     "expected": "NO\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2\n",
+     "expected": "NO\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "6\n",
+     "expected": "YES\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "496\n",
+     "expected": "YES\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "8128\n",
+     "expected": "YES\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "33550336\n",
+     "expected": "YES\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1000000007\n",
+     "expected": "NO\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 115,
+    "ac_submission": 272,
+    "wa_submission": 273
+   }
+  },
+  {
+   "slug": "leap-year",
+   "title_en": "Leap Year",
+   "title_ro": "An bisect",
+   "statement_en": "Read a year and print `YES` if it is a leap year or `NO` otherwise. A year is leap if divisible by 4, except century years which must be divisible by 400.\n\n**Input.** A single line containing the year $y$ ($1600 \\le y \\le 3000$).\n\n**Output.** `YES` or `NO`.\n\n**Example.** Input `1900` → Output `NO`; Input `2000` → Output `YES`",
+   "statement_ro": "Citiți un an și afișați `YES` dacă este bisect sau `NO` în caz contrar. Un an este bisect dacă se divide cu 4, cu excepția anilor secole, care trebuie să se dividă cu 400.\n\n**Date de intrare.** O singură linie care conține anul $y$ ($1600 \\le y \\le 3000$).\n\n**Date de ieșire.** `YES` sau `NO`.\n\n**Exemplu.** Intrare `1900` → Ieșire `NO`; Intrare `2000` → Ieșire `YES`",
+   "difficulty": "EASY",
+   "tags": [
+    "math",
+    "implementation"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "1900\n",
+     "expected": "NO\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "2000\n",
+     "expected": "YES\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2024\n",
+     "expected": "YES\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2023\n",
+     "expected": "NO\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1600\n",
+     "expected": "YES\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2100\n",
+     "expected": "NO\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2400\n",
+     "expected": "YES\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 116,
+    "ac_submission": 218,
+    "wa_submission": 219
+   }
+  },
+  {
+   "slug": "closest-pair-value",
+   "title_en": "Closest to a Value",
+   "title_ro": "Cel mai apropiat de o valoare",
+   "statement_en": "Given a list of integers and a target $t$, print the value from the list closest to $t$. If two values are equally close, print the smaller one.\n\n**Input.** The first line contains $n$ ($1 \\le n \\le 10^5$). The second line contains $n$ integers. The third line contains $t$.\n\n**Output.** The value closest to $t$ (smaller one on ties).\n\n**Example.** Input: `4` / `1 4 7 10` / `5` → Output `4`",
+   "statement_ro": "Fiind dat un șir de numere întregi și o țintă $t$, afișați valoarea din șir cea mai apropiată de $t$. Dacă două valori sunt egal de apropiate, afișați-o pe cea mai mică.\n\n**Date de intrare.** Prima linie conține $n$ ($1 \\le n \\le 10^5$). A doua linie conține $n$ numere întregi. A treia linie conține $t$.\n\n**Date de ieșire.** Valoarea cea mai apropiată de $t$ (cea mai mică în caz de egalitate).\n\n**Exemplu.** Intrare: `4` / `1 4 7 10` / `5` → Ieșire `4`",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "arrays",
+    "sorting"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "4\n1 4 7 10\n5\n",
+     "expected": "4\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1\n100\n0\n",
+     "expected": "100\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3\n-5 -1 -10\n-7\n",
+     "expected": "-5\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "5\n1 2 3 4 5\n3\n",
+     "expected": "3\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4\n0 10 0 10\n5\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2\n-1000000 1000000\n0\n",
+     "expected": "-1000000\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 117,
+    "ac_submission": 220,
+    "wa_submission": 221
+   }
+  },
+  {
+   "slug": "fibonacci-mod",
+   "title_en": "Fibonacci modulo 666013",
+   "title_ro": "Fibonacci modulo 666013",
+   "statement_en": "The Fibonacci sequence is defined by $F_0 = 0$, $F_1 = 1$ and $F_n = F_{n-1} + F_{n-2}$. Read $n$ and print $F_n \\bmod 666013$.\n\n**Input.** A single line containing $n$ ($0 \\le n \\le 10^6$).\n\n**Output.** $F_n \\bmod 666013$.\n\n**Example.** $F_{10} = 55$, so input `10` → output `55`.",
+   "statement_ro": "Șirul lui Fibonacci este definit prin $F_0 = 0$, $F_1 = 1$ și $F_n = F_{n-1} + F_{n-2}$. Citiți $n$ și afișați $F_n \\bmod 666013$.\n\n**Date de intrare.** O singură linie care conține $n$ ($0 \\le n \\le 10^6$).\n\n**Date de ieșire.** $F_n \\bmod 666013$.\n\n**Exemplu.** $F_{10} = 55$, deci intrarea `10` → ieșirea `55`.",
+   "difficulty": "EASY",
+   "tags": [
+    "math",
+    "recursion"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "10\n",
+     "expected": "55\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "0\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "100\n",
+     "expected": "643908\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1000000\n",
+     "expected": "601399\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "999999\n",
+     "expected": "631287\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 118,
+    "ac_submission": 274,
+    "wa_submission": 275
+   }
+  },
+  {
+   "slug": "climbing-stairs",
+   "title_en": "Climbing Stairs",
+   "title_ro": "Urcarea treptelor",
+   "statement_en": "A staircase has $n$ steps. From step $i$ you can climb to $i+1$ or $i+2$. In how many distinct ways can you reach the top (step $n$), starting from the ground (step 0)?\n\n**Input.** A single line containing $n$ ($1 \\le n \\le 70$).\n\n**Output.** The number of distinct ways (it fits in 64 bits).\n\n**Example.** Input `3` → Output `3` (1+1+1, 1+2, 2+1)",
+   "statement_ro": "O scară are $n$ trepte. Din treapta $i$ poți urca la $i+1$ sau $i+2$. În câte moduri distincte poți ajunge în vârf (treapta $n$), plecând de la sol (treapta 0)?\n\n**Date de intrare.** O singură linie care conține $n$ ($1 \\le n \\le 70$).\n\n**Date de ieșire.** Numărul de moduri distincte (încap în 64 de biți).\n\n**Exemplu.** Intrare `3` → Ieșire `3` (1+1+1, 1+2, 2+1)",
+   "difficulty": "EASY",
+   "tags": [
+    "dynamic-programming",
+    "math"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "3\n",
+     "expected": "3\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2\n",
+     "expected": "2\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "10\n",
+     "expected": "89\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "70\n",
+     "expected": "308061521170129\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "25\n",
+     "expected": "121393\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "45\n",
+     "expected": "1836311903\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 119,
+    "ac_submission": 224,
+    "wa_submission": 225
+   }
+  },
+  {
+   "slug": "coin-change-min",
+   "title_en": "Minimum Number of Coins",
+   "title_ro": "Numărul minim de monede",
+   "statement_en": "You must pay exactly $S$ using coins of given denominations, each usable any number of times. Print the minimum number of coins needed, or `-1` if $S$ cannot be formed.\n\n**Input.** The first line contains $n$ and $S$ ($1 \\le n \\le 100$, $1 \\le S \\le 10^4$). The second line contains $n$ distinct denominations ($1 \\le c_i \\le 10^4$).\n\n**Output.** The minimum number of coins, or `-1`.\n\n**Example.** Input: `3 11` / `1 5 7` → Output `3` (5+5+1)",
+   "statement_ro": "Trebuie să plătiți exact $S$ folosind monede cu valorile date, fiecare folosibilă de oricâte ori. Afișați numărul minim de monede necesare sau `-1` dacă suma $S$ nu se poate forma.\n\n**Date de intrare.** Prima linie conține $n$ și $S$ ($1 \\le n \\le 100$, $1 \\le S \\le 10^4$). A doua linie conține $n$ valori distincte ($1 \\le c_i \\le 10^4$).\n\n**Date de ieșire.** Numărul minim de monede sau `-1`.\n\n**Exemplu.** Intrare: `3 11` / `1 5 7` → Ieșire `3` (5+5+1)",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "dynamic-programming",
+    "greedy"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "3 11\n1 5 7\n",
+     "expected": "3\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1 3\n2\n",
+     "expected": "-1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2 10000\n1 2\n",
+     "expected": "5000\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1 1\n1\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4 15\n1 3 6 10\n",
+     "expected": "3\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2 7\n4 6\n",
+     "expected": "-1\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 120,
+    "ac_submission": 226,
+    "wa_submission": 227
+   }
+  },
+  {
+   "slug": "knapsack-small",
+   "title_en": "Knapsack",
+   "title_ro": "Rucsac",
+   "statement_en": "You have a knapsack of capacity $G$ and $n$ objects; object $i$ has weight $w_i$ and value $v_i$. Pick a subset of total weight at most $G$ maximizing total value (each object at most once).\n\n**Input.** The first line contains $n$ and $G$ ($1 \\le n \\le 500$, $1 \\le G \\le 5000$). Each of the next $n$ lines contains $w_i$ and $v_i$ ($1 \\le w_i \\le G$, $1 \\le v_i \\le 1000$).\n\n**Output.** The maximum achievable total value.\n\n**Example.** Capacity 9 with objects (4,10)(3,7)(5,8)(2,4) → `21` (4+3+2 weights, 10+7+4 values)",
+   "statement_ro": "Aveți un rucsac de capacitate $G$ și $n$ obiecte; obiectul $i$ are greutatea $w_i$ și valoarea $v_i$. Alegeți o submulțime de greutate totală cel mult $G$ care maximizează valoarea totală (fiecare obiect cel mult o dată).\n\n**Date de intrare.** Prima linie conține $n$ și $G$ ($1 \\le n \\le 500$, $1 \\le G \\le 5000$). Fiecare dintre următoarele $n$ linii conține $w_i$ și $v_i$ ($1 \\le w_i \\le G$, $1 \\le v_i \\le 1000$).\n\n**Date de ieșire.** Valoarea totală maximă care se poate obține.\n\n**Exemplu.** Capacitate 9 cu obiectele (4,10)(3,7)(5,8)(2,4) → `21` (greutățile 4+3+2, valorile 10+7+4)",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "dynamic-programming"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "4 9\n4 10\n3 7\n5 8\n2 4\n",
+     "expected": "21\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1 5\n6 100\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3 3\n1 1\n1 1\n1 1\n",
+     "expected": "3\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "5 10\n10 100\n9 99\n1 1\n5 50\n5 50\n",
+     "expected": "100\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2 4\n2 10\n2 10\n",
+     "expected": "20\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "6 20\n7 42\n8 40\n3 15\n5 25\n6 30\n1 5\n",
+     "expected": "107\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3 10\n6 60\n5 45\n5 45\n",
+     "expected": "90\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 121,
+    "ac_submission": 228,
+    "wa_submission": 229
+   }
+  },
+  {
+   "slug": "longest-increasing-run",
+   "title_en": "Longest Strictly Increasing Subsequence",
+   "title_ro": "Cel mai lung subsir crescator strict",
+   "statement_en": "Find the length of the longest strictly increasing subsequence of the given sequence (elements keep their relative order but need not be contiguous).\n\n**Input.** The first line contains $n$ ($1 \\le n \\le 2500$). The second line contains $n$ integers ($|a_i| \\le 10^9$).\n\n**Output.** The length of the longest strictly increasing subsequence.\n\n**Example.** Input: `7` / `3 1 2 1 8 5 6` → Output `4` (1, 2, 5, 6)",
+   "statement_ro": "Determinați lungimea celui mai lung subsir strict crescător al șirului dat (elementele își păstrează ordinea relativă, dar nu trebuie să fie consecutive).\n\n**Date de intrare.** Prima linie conține $n$ ($1 \\le n \\le 2500$). A doua linie conține $n$ numere întregi ($|a_i| \\le 10^9$).\n\n**Date de ieșire.** Lungimea celui mai lung subsir strict crescător.\n\n**Exemplu.** Intrare: `7` / `3 1 2 1 8 5 6` → Ieșire `4` (1, 2, 5, 6)",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "dynamic-programming",
+    "arrays"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "7\n3 1 2 1 8 5 6\n",
+     "expected": "4\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1\n10\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "5\n5 4 3 2 1\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "5\n1 2 3 4 5\n",
+     "expected": "5\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "6\n7 7 7 7 7 7\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "8\n-5 -4 -3 -2 -1 0 1 2\n",
+     "expected": "8\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4\n2 2 3 4\n",
+     "expected": "3\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 122,
+    "ac_submission": 230,
+    "wa_submission": 231
+   }
+  },
+  {
+   "slug": "edit-distance",
+   "title_en": "Edit Distance",
+   "title_ro": "Distanța de editare",
+   "statement_en": "The edit distance between two words is the minimum number of single-character operations (insert, delete, replace) needed to turn the first word into the second. Compute it.\n\n**Input.** Two lines, each containing a word of at most 1000 lowercase letters.\n\n**Output.** The edit distance between the words.\n\n**Example.** Input `kitten` / `sitting` → Output `3`",
+   "statement_ro": "Distanța de editare dintre două cuvinte este numărul minim de operații pe un singur caracter (inserare, ștergere, înlocuire) necesare pentru a transforma primul cuvânt în al doilea. Calculați-o.\n\n**Date de intrare.** Două linii, fiecare conținând un cuvânt de cel mult 1000 de litere mici.\n\n**Date de ieșire.** Distanța de editare dintre cuvinte.\n\n**Exemplu.** Intrare `kitten` / `sitting` → Ieșire `3`",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "dynamic-programming",
+    "strings"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "kitten\nsitting\n",
+     "expected": "3\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "a\na\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "abc\nabc\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "abc\nabd\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "aaaa\naa\n",
+     "expected": "2\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "x\nyyyyyyyy\n",
+     "expected": "8\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "intention\nexecution\n",
+     "expected": "5\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "abc\nb\n",
+     "expected": "2\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "abcdef\nazced\n",
+     "expected": "3\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 123,
+    "ac_submission": 232,
+    "wa_submission": 233
+   }
+  },
+  {
+   "slug": "lcs-length",
+   "title_en": "Longest Common Subsequence",
+   "title_ro": "Cel mai lung subsir comun",
+   "statement_en": "Compute the length of the longest common subsequence of two given words (characters keep order but may be non-contiguous).\n\n**Input.** Two lines, each containing a word of at most 1000 lowercase letters.\n\n**Output.** The LCS length.\n\n**Example.** Input `abcde` / `aecde` → Output `4` (`acde`)",
+   "statement_ro": "Calculați lungimea celui mai lung subsir comun a două cuvinte date (caracterele își păstrează ordinea, dar pot să nu fie consecutive).\n\n**Date de intrare.** Două linii, fiecare conținând un cuvânt de cel mult 1000 de litere mici.\n\n**Date de ieșire.** Lungimea subsirului comun maximal.\n\n**Exemplu.** Intrare `abcde` / `aecde` → Ieșire `4` (`acde`)",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "dynamic-programming",
+    "strings"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "abcde\naecde\n",
+     "expected": "4\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "a\nb\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "abc\nabc\n",
+     "expected": "3\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "aaaa\naa\n",
+     "expected": "2\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "xyz\nabc\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "abab\nbaba\n",
+     "expected": "3\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "aggtab\ngxtxayb\n",
+     "expected": "4\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 124,
+    "ac_submission": 234,
+    "wa_submission": 235
+   }
+  },
+  {
+   "slug": "grid-paths",
+   "title_en": "Paths in a Grid",
+   "title_ro": "Drumuri într-un tabel",
+   "statement_en": "A robot starts in the top-left corner of an $n \\times m$ grid and must reach the bottom-right corner. At each step it may move one cell right or one cell down. Some cells are blocked (`#`) and cannot be entered. Count the paths, modulo $10^9+7$. The start and end cells are never blocked.\n\n**Input.** The first line contains $n$ and $m$ ($1 \\le n, m \\le 1000$). Each of the next $n$ lines contains a string of $m$ characters: `.` for free, `#` for blocked.\n\n**Output.** The number of distinct paths modulo $10^9+7$.\n\n**Example.** A 2×2 all-free grid → `2`.",
+   "statement_ro": "Un robot pleacă din colțul din stânga-sus al unui tabel $n \\times m$ și trebuie să ajungă în colțul din dreapta-jos. La fiecare pas poate merge o celulă la dreapta sau o celulă în jos. Unele celule sunt blocate (`#`) și nu pot fi folosite. Numărați drumurile, modulo $10^9+7$. Celulele de start și de final nu sunt niciodată blocate.\n\n**Date de intrare.** Prima linie conține $n$ și $m$ ($1 \\le n, m \\le 1000$). Fiecare dintre următoarele $n$ linii conține un șir de $m$ caractere: `.` pentru liber, `#` pentru blocat.\n\n**Date de ieșire.** Numărul de drumuri distincte modulo $10^9+7$.\n\n**Exemplu.** Un tabel 2×2 complet liber → `2`.",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "dynamic-programming",
+    "math"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "2 2\n..\n..\n",
+     "expected": "2\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1 1\n.\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1 5\n.....\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3 3\n...\n.#.\n...\n",
+     "expected": "2\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3 3\n...\n##.\n...\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2 2\n.#\n..\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4 4\n....\n.#..\n...#\n....\n",
+     "expected": "4\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 125,
+    "ac_submission": 236,
+    "wa_submission": 237
+   }
+  },
+  {
+   "slug": "house-robber",
+   "title_en": "Non-Adjacent Maximum Sum",
+   "title_ro": "Suma maximă fără elemente alăturate",
+   "statement_en": "Choose a subset of the given non-negative integers such that no two chosen elements are adjacent in the array, maximizing the sum. Print the maximum sum (0 if you choose nothing).\n\n**Input.** The first line contains $n$ ($1 \\le n \\le 10^5$). The second line contains $n$ non-negative integers ($\\le 10^9$).\n\n**Output.** The maximum possible sum.\n\n**Example.** Input: `5` / `2 7 9 3 1` → Output `12` (2+9+1)",
+   "statement_ro": "Alegeți o submulțime a numerelor întregi nenegative date astfel încât oricare două elemente alese să nu fie alăturate în șir, maximizând suma. Afișați suma maximă (0 dacă nu alegeți nimic).\n\n**Date de intrare.** Prima linie conține $n$ ($1 \\le n \\le 10^5$). A doua linie conține $n$ numere întregi nenegative ($\\le 10^9$).\n\n**Date de ieșire.** Suma maximă posibilă.\n\n**Exemplu.** Intrare: `5` / `2 7 9 3 1` → Ieșire `12` (2+9+1)",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "dynamic-programming",
+    "arrays"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "5\n2 7 9 3 1\n",
+     "expected": "12\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1\n1000000000\n",
+     "expected": "1000000000\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2\n5 5\n",
+     "expected": "5\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4\n1 2 3 4\n",
+     "expected": "6\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3\n0 0 0\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "6\n10 1 1 10 1 10\n",
+     "expected": "30\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 126,
+    "ac_submission": 238,
+    "wa_submission": 239
+   }
+  },
+  {
+   "slug": "prefix-sum-range",
+   "title_en": "Range Sum Queries",
+   "title_ro": "Interogări de sumă pe intervale",
+   "statement_en": "Answer multiple range-sum queries on a fixed array, fast.\n\n**Input.** The first line contains $n$ ($1 \\le n \\le 10^5$). The second line contains $n$ integers. The third line contains $q$ ($1 \\le q \\le 10^5$). Each of the next $q$ lines contains two 1-based indices $l \\le r$.\n\n**Output.** For each query, the sum $a_l + \\dots + a_r$, one per line.\n\n**Example.** Array `1 2 3 4`, query `2 4` → `9`.",
+   "statement_ro": "Răspundeți la mai multe interogări de sumă pe intervale ale unui șir fixat, rapid.\n\n**Date de intrare.** Prima linie conține $n$ ($1 \\le n \\le 10^5$). A doua linie conține $n$ numere întregi. A treia linie conține $q$ ($1 \\le q \\le 10^5$). Fiecare dintre următoarele $q$ linii conține două poziții $l \\le r$ (numerotare de la 1).\n\n**Date de ieșire.** Pentru fiecare interogare, suma $a_l + \\dots + a_r$, câte una pe linie.\n\n**Exemplu.** Șirul `1 2 3 4`, interogarea `2 4` → `9`.",
+   "difficulty": "EASY",
+   "tags": [
+    "arrays",
+    "math"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "4\n1 2 3 4\n3\n2 4\n1 1\n1 4\n",
+     "expected": "9\n1\n10\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1\n-7\n2\n1 1\n1 1\n",
+     "expected": "-7\n-7\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "5\n0 0 0 0 0\n1\n3 3\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "6\n1 -1 1 -1 1 -1\n3\n1 6\n2 5\n3 4\n",
+     "expected": "0\n0\n0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3\n1000000 1000000 1000000\n1\n1 3\n",
+     "expected": "3000000\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 127,
+    "ac_submission": 240,
+    "wa_submission": 241
+   }
+  },
+  {
+   "slug": "max-subarray-sum",
+   "title_en": "Maximum Subarray Sum",
+   "title_ro": "Suma maximă a unui subsir continuu",
+   "statement_en": "Find the maximum sum of a non-empty contiguous subarray.\n\n**Input.** The first line contains $n$ ($1 \\le n \\le 10^5$). The second line contains $n$ integers ($|a_i| \\le 10^9$).\n\n**Output.** The maximum subarray sum (the subarray must be non-empty).\n\n**Example.** Input: `9` / `-2 1 -3 4 -1 2 1 -5 4` → Output `6` (4 -1 2 1)",
+   "statement_ro": "Determinați suma maximă a unui subsir continuu nevid.\n\n**Date de intrare.** Prima linie conține $n$ ($1 \\le n \\le 10^5$). A doua linie conține $n$ numere întregi ($|a_i| \\le 10^9$).\n\n**Date de ieșire.** Suma maximă a unui subsir continuu (subsirul trebuie să fie nevid).\n\n**Exemplu.** Intrare: `9` / `-2 1 -3 4 -1 2 1 -5 4` → Ieșire `6` (4 -1 2 1)",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "dynamic-programming",
+    "arrays"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "9\n-2 1 -3 4 -1 2 1 -5 4\n",
+     "expected": "6\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1\n-5\n",
+     "expected": "-5\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3\n1 2 3\n",
+     "expected": "6\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4\n-1 -2 -3 -4\n",
+     "expected": "-1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "5\n5 -1 5 -1 5\n",
+     "expected": "13\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2\n1000000000 1000000000\n",
+     "expected": "2000000000\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 128,
+    "ac_submission": 242,
+    "wa_submission": 243
+   }
+  },
+  {
+   "slug": "digit-dp-count",
+   "title_en": "Numbers With Digit Sum Divisible by K",
+   "title_ro": "Numere cu suma cifrelor divizibilă cu K",
+   "statement_en": "Count how many integers in $[1, n]$ have their digit sum divisible by $k$.\n\n**Input.** A single line containing $n$ and $k$ ($1 \\le n \\le 10^{15}$, $1 \\le k \\le 90$).\n\n**Output.** The count.\n\n**Example.** For $n = 20$, $k = 3$: the numbers 3, 6, 9, 12 (1+2=3), 15 (1+5=6), 18 (1+8=9) qualify → `6`.",
+   "statement_ro": "Numărați câte numere întregi din intervalul $[1, n]$ au suma cifrelor divizibilă cu $k$.\n\n**Date de intrare.** O singură linie care conține $n$ și $k$ ($1 \\le n \\le 10^{15}$, $1 \\le k \\le 90$).\n\n**Date de ieșire.** Numărul cerut.\n\n**Exemplu.** Pentru $n = 20$, $k = 3$: numerele 3, 6, 9, 12 (1+2=3), 15 (1+5=6), 18 (1+8=9) se califică → `6`.",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "dynamic-programming",
+    "number-theory"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "20 3\n",
+     "expected": "6\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1 1\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "9 9\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "10 1\n",
+     "expected": "10\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1000000000000000 3\n",
+     "expected": "333333333333333\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "999 5\n",
+     "expected": "199\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "123456789 7\n",
+     "expected": "17636766\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 129,
+    "ac_submission": 244,
+    "wa_submission": 245
+   }
+  },
+  {
+   "slug": "graph-degree-count",
+   "title_en": "Vertex Degrees",
+   "title_ro": "Gradele vârfurilor",
+   "statement_en": "Given an undirected graph with $n$ vertices and $m$ edges, print the degree of every vertex (number of adjacent edges), one per line, for vertices $1 \\dots n$.\n\n**Input.** The first line contains $n$ and $m$ ($1 \\le n \\le 10^5$, $0 \\le m \\le 10^5$). Each of the next $m$ lines contains an edge $u$ $v$ ($1 \\le u, v \\le n$; no self-loops, no repeated edges).\n\n**Output.** $n$ lines: the degree of vertex $i$.\n\n**Example.** Path 1-2-3 → degrees `1 2 1`.",
+   "statement_ro": "Fiind dat un graf neorientat cu $n$ vârfuri și $m$ muchii, afișați gradul fiecărui vârf (numărul de muchii incidente), câte unul pe linie, pentru vârfurile $1 \\dots n$.\n\n**Date de intrare.** Prima linie conține $n$ și $m$ ($1 \\le n \\le 10^5$, $0 \\le m \\le 10^5$). Fiecare dintre următoarele $m$ linii conține o muchie $u$ $v$ ($1 \\le u, v \\le n$; fără muchii duble și fără bucle).\n\n**Date de ieșire.** $n$ linii: gradul vârfului $i$.\n\n**Exemplu.** Lanțul 1-2-3 → gradele `1 2 1`.",
+   "difficulty": "EASY",
+   "tags": [
+    "graphs",
+    "arrays"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "3 2\n1 2\n2 3\n",
+     "expected": "1\n2\n1\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1 0\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4 3\n1 2\n1 3\n1 4\n",
+     "expected": "3\n1\n1\n1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "5 4\n1 2\n2 3\n3 4\n4 5\n",
+     "expected": "1\n2\n2\n2\n1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4 6\n1 2\n1 3\n1 4\n2 3\n2 4\n3 4\n",
+     "expected": "3\n3\n3\n3\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 130,
+    "ac_submission": 246,
+    "wa_submission": 247
+   }
+  },
+  {
+   "slug": "connected-components",
+   "title_en": "Connected Components",
+   "title_ro": "Componente conexe",
+   "statement_en": "Count the connected components of an undirected graph.\n\n**Input.** The first line contains $n$ and $m$ ($1 \\le n \\le 10^5$, $0 \\le m \\le 2 \\cdot 10^5$). Each of the next $m$ lines contains an edge $u$ $v$.\n\n**Output.** The number of connected components.\n\n**Example.** Edges (1-2)(2-3)(5-6) on 6 vertices → `2` components {1,2,3} and {4}, {5,6} — wait, that is 3 components: {1,2,3}, {4}, {5,6}.",
+   "statement_ro": "Numărați componentele conexe ale unui graf neorientat.\n\n**Date de intrare.** Prima linie conține $n$ și $m$ ($1 \\le n \\le 10^5$, $0 \\le m \\le 2 \\cdot 10^5$). Fiecare dintre următoarele $m$ linii conține o muchie $u$ $v$.\n\n**Date de ieșire.** Numărul componentelor conexe.\n\n**Exemplu.** Muchiile (1-2)(2-3)(5-6) pe 6 vârfuri → `3` componente: {1,2,3}, {4}, {5,6}.",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "graphs",
+    "recursion"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "6 3\n1 2\n2 3\n5 6\n",
+     "expected": "3\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1 0\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "5 4\n1 2\n2 3\n3 4\n4 5\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "8 0\n",
+     "expected": "8\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "7 6\n1 2\n2 3\n3 1\n4 5\n5 6\n6 4\n",
+     "expected": "3\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2 1\n1 2\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 131,
+    "ac_submission": 248,
+    "wa_submission": 249
+   }
+  },
+  {
+   "slug": "bfs-shortest-path",
+   "title_en": "Shortest Path in a Maze",
+   "title_ro": "Drumul minim într-un labirint",
+   "statement_en": "You are in the top-left cell of a grid maze and want to reach the bottom-right cell. You may move up/down/left/right, one cell at a time, through free cells (`.`) only — walls are `#`. Print the minimum number of **steps** (moves), or `-1` if unreachable. The start and goal cells are free.\n\n**Input.** The first line contains $n$ and $m$ ($1 \\le n, m \\le 1000$). Each of the next $n$ lines contains a string of $m$ characters (`.` or `#`).\n\n**Output.** Minimum number of steps from $(1,1)$ to $(n,m)$, or `-1`.\n\n**Example.** A 3×3 grid with `..#` / `.#.` / `...` → answer `4`.",
+   "statement_ro": "Vă aflați în celula din stânga-sus a unui labirint și doriți să ajungeți în celula din dreapta-jos. Puteți merge sus/jos/stânga/dreapta, câte o celulă, doar prin celule libere (`.`) — pereții sunt `#`. Afișați numărul minim de **pași** (mutări) sau `-1` dacă nu există drum. Celulele de start și de final sunt libere.\n\n**Date de intrare.** Prima linie conține $n$ și $m$ ($1 \\le n, m \\le 1000$). Fiecare dintre următoarele $n$ linii conține un șir de $m$ caractere (`.` sau `#`).\n\n**Date de ieșire.** Numărul minim de pași de la $(1,1)$ la $(n,m)$ sau `-1`.\n\n**Exemplu.** Un tabel 3×3 cu `..#` / `.#.` / `...` → răspuns `4`.",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "graphs",
+    "arrays"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "3 3\n..#\n.#.\n...\n",
+     "expected": "4\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1 1\n.\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2 2\n..\n..\n",
+     "expected": "2\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3 3\n...\n###\n...\n",
+     "expected": "-1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4 4\n....\n.##.\n.#..\n....\n",
+     "expected": "6\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3 3\n..#\n##.\n...\n",
+     "expected": "-1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1 5\n.....\n",
+     "expected": "4\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 132,
+    "ac_submission": 250,
+    "wa_submission": 251
+   }
+  },
+  {
+   "slug": "topological-check",
+   "title_en": "Check a Topological Order",
+   "title_ro": "Verificarea unei ordonări topologice",
+   "statement_en": "Given a directed acyclic graph and a proposed vertex order, decide whether the order is topological: every edge $(u, v)$ has $u$ before $v$ in the order.\n\n**Input.** The first line contains $n$ and $m$ ($1 \\le n \\le 10^5$, $0 \\le m \\le 10^5$). The second line contains a permutation of the vertices $1 \\dots n$ (the proposed order). Each of the next $m$ lines contains an edge $u$ $v$.\n\n**Output.** `YES` if the order is topological, `NO` otherwise.\n\n**Example.** Edges (1→2)(2→3) with order `1 2 3` → `YES`.",
+   "statement_ro": "Fiind dat un graf orientat aciclic și o ordine propusă a vârfurilor, decideți dacă ordinea este topologică: pentru fiecare muchie $(u, v)$, $u$ apare înaintea lui $v$ în ordine.\n\n**Date de intrare.** Prima linie conține $n$ și $m$ ($1 \\le n \\le 10^5$, $0 \\le m \\le 10^5$). A doua linie conține o permutare a vârfurilor $1 \\dots n$ (ordinea propusă). Fiecare dintre următoarele $m$ linii conține o muchie $u$ $v$.\n\n**Date de ieșire.** `YES` dacă ordinea este topologică, `NO` în caz contrar.\n\n**Exemplu.** Muchiile (1→2)(2→3) cu ordinea `1 2 3` → `YES`.",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "graphs"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "3 2\n1 2 3\n1 2\n2 3\n",
+     "expected": "YES\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "3 2\n3 2 1\n1 2\n2 3\n",
+     "expected": "NO\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1 0\n1\n",
+     "expected": "YES\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4 3\n2 1 4 3\n1 3\n2 1\n2 4\n",
+     "expected": "YES\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4 2\n1 2 3 4\n1 4\n3 4\n",
+     "expected": "YES\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2 1\n2 1\n1 2\n",
+     "expected": "NO\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 133,
+    "ac_submission": 252,
+    "wa_submission": 253
+   }
+  },
+  {
+   "slug": "mst-kruskal-small",
+   "title_en": "Minimum Spanning Tree Weight",
+   "title_ro": "Arborele parțial de cost minim",
+   "statement_en": "Find the total weight of a minimum spanning tree of a weighted undirected connected graph.\n\n**Input.** The first line contains $n$ and $m$ ($2 \\le n \\le 10^5$, $n-1 \\le m \\le 2\\cdot10^5$). Each of the next $m$ lines contains $u$, $v$, $w$ — an edge of weight $w$ ($1 \\le w \\le 10^6$). The graph is connected.\n\n**Output.** The sum of the weights of one minimum spanning tree.\n\n**Example.** Triangle with weights 1, 2, 3 → MST weight `3`.",
+   "statement_ro": "Determinați costul total al unui arbore parțial de cost minim al unui graf neorientat conex ponderat.\n\n**Date de intrare.** Prima linie conține $n$ și $m$ ($2 \\le n \\le 10^5$, $n-1 \\le m \\le 2\\cdot10^5$). Fiecare dintre următoarele $m$ linii conține $u$, $v$, $w$ — o muchie de cost $w$ ($1 \\le w \\le 10^6$). Graful este conex.\n\n**Date de ieșire.** Suma costurilor unui arbore parțial de cost minim.\n\n**Exemplu.** Triunghi cu costurile 1, 2, 3 → costul APCM `3`.",
+   "difficulty": "HARD",
+   "tags": [
+    "graphs",
+    "sorting",
+    "greedy"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "3 3\n1 2 1\n2 3 2\n1 3 3\n",
+     "expected": "3\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "2 1\n1 2 1000000\n",
+     "expected": "1000000\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4 5\n1 2 10\n1 3 6\n2 3 5\n3 4 7\n2 4 1\n",
+     "expected": "12\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "5 4\n1 2 3\n2 3 4\n3 4 5\n4 5 6\n",
+     "expected": "18\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4 6\n1 2 1\n1 3 1\n1 4 1\n2 3 2\n2 4 3\n3 4 4\n",
+     "expected": "3\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "6 9\n1 2 1\n1 3 5\n2 3 2\n2 4 6\n3 4 3\n3 5 7\n4 5 4\n4 6 8\n5 6 9\n",
+     "expected": "18\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 134,
+    "ac_submission": 254,
+    "wa_submission": 255
+   }
+  },
+  {
+   "slug": "dijkstra-small",
+   "title_en": "Shortest Path with Weights",
+   "title_ro": "Drumul minim ponderat",
+   "statement_en": "Given a directed weighted graph with non-negative weights, print the shortest distance from vertex 1 to vertex $n$, or `-1` if unreachable.\n\n**Input.** The first line contains $n$ and $m$ ($2 \\le n \\le 10^5$, $1 \\le m \\le 2\\cdot10^5$). Each of the next $m$ lines contains $u$, $v$, $w$ ($1 \\le w \\le 10^4$) — a directed edge $u \\to v$.\n\n**Output.** The minimum total weight of a path $1 \\to n$, or `-1`.\n\n**Example.** Edges 1→2 (1), 2→3 (2), 1→3 (5) → distance `3`.",
+   "statement_ro": "Fiind dat un graf orientat ponderat cu costuri nenegative, afișați distanța minimă de la vârful 1 la vârful $n$ sau `-1` dacă nu există drum.\n\n**Date de intrare.** Prima linie conține $n$ și $m$ ($2 \\le n \\le 10^5$, $1 \\le m \\le 2\\cdot10^5$). Fiecare dintre următoarele $m$ linii conține $u$, $v$, $w$ ($1 \\le w \\le 10^4$) — o muchie orientată $u \\to v$.\n\n**Date de ieșire.** Costul total minim al unui drum $1 \\to n$ sau `-1`.\n\n**Exemplu.** Muchiile 1→2 (1), 2→3 (2), 1→3 (5) → distanța `3`.",
+   "difficulty": "HARD",
+   "tags": [
+    "graphs",
+    "greedy"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "3 3\n1 2 1\n2 3 2\n1 3 5\n",
+     "expected": "3\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "2 1\n1 2 10000\n",
+     "expected": "10000\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3 1\n1 2 1\n",
+     "expected": "-1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4 4\n1 2 1\n2 3 1\n3 4 1\n1 4 10\n",
+     "expected": "3\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4 3\n1 2 3\n2 3 4\n3 4 5\n",
+     "expected": "12\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "5 6\n1 2 2\n1 3 5\n2 4 1\n3 4 2\n4 5 3\n2 5 9\n",
+     "expected": "6\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 135,
+    "ac_submission": 256,
+    "wa_submission": 257
+   }
+  },
+  {
+   "slug": "recursive-power",
+   "title_en": "Fast Power",
+   "title_ro": "Ridicare la putere rapidă",
+   "statement_en": "Compute $a^n \\bmod p$ where $p = 10^9+7$. A loop multiplying $n$ times is too slow for the largest inputs — use fast exponentiation.\n\n**Input.** A single line containing $a$ and $n$ ($0 \\le a \\le 10^9$, $0 \\le n \\le 10^{18}$).\n\n**Output.** $a^n \\bmod (10^9+7)$.\n\n**Example.** Input `2 10` → Output `1024`",
+   "statement_ro": "Calculați $a^n \\bmod p$, unde $p = 10^9+7$. O buclă care înmulțește de $n$ ori este prea lentă pentru cele mai mari intrări — folosiți ridicarea rapidă la putere.\n\n**Date de intrare.** O singură linie care conține $a$ și $n$ ($0 \\le a \\le 10^9$, $0 \\le n \\le 10^{18}$).\n\n**Date de ieșire.** $a^n \\bmod (10^9+7)$.\n\n**Exemplu.** Intrare `2 10` → Ieșire `1024`",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "math",
+    "recursion"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "2 10\n",
+     "expected": "1024\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "0 0\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "0 5\n",
+     "expected": "0\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1 1000000000000000000\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2 1000000000000000000\n",
+     "expected": "719476260\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1000000000 999999999999999999\n",
+     "expected": "820054759\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3 0\n",
+     "expected": "1\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 136,
+    "ac_submission": 258,
+    "wa_submission": 259
+   }
+  },
+  {
+   "slug": "balanced-brackets",
+   "title_en": "Balanced Brackets",
+   "title_ro": "Paranteze echilibrate",
+   "statement_en": "Decide whether a string of brackets `()[]{}` is balanced: every opening bracket has a matching closing one of the same type and brackets close in the correct order.\n\n**Input.** A single line containing a string of at most $10^5$ bracket characters.\n\n**Output.** `YES` if balanced, `NO` otherwise.\n\n**Example.** Input `([{}])` → Output `YES`; input `([)]` → `NO`.",
+   "statement_ro": "Decideți dacă un șir de paranteze `()[]{}` este echilibrat: fiecare paranteză deschisă are o pereche închisă de același tip, iar parantezele se închid în ordinea corectă.\n\n**Date de intrare.** O singură linie care conține un șir de cel mult $10^5$ caractere-paranteză.\n\n**Date de ieșire.** `YES` dacă este echilibrat, `NO` în caz contrar.\n\n**Exemplu.** Intrare `([{}])` → Ieșire `YES`; intrare `([)]` → `NO`.",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "strings",
+    "implementation"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "([{}])\n",
+     "expected": "YES\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "([)]\n",
+     "expected": "NO\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "\n",
+     "expected": "YES\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "(\n",
+     "expected": "NO\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": ")\n",
+     "expected": "NO\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "()[]{}\n",
+     "expected": "YES\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "{[()]()}\n",
+     "expected": "YES\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "(((\n",
+     "expected": "NO\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 137,
+    "ac_submission": 260,
+    "wa_submission": 261
+   }
+  },
+  {
+   "slug": "stack-min-after-push",
+   "title_en": "Stack Minimum",
+   "title_ro": "Minimul din stivă",
+   "statement_en": "Process a sequence of stack operations. Operation `1 x` pushes $x$; operation `2` pops the top (the stack is never empty when this appears); operation `3` prints the current minimum in the stack.\n\n**Input.** The first line contains $q$ ($1 \\le q \\le 10^5$). Each of the next $q$ lines contains one operation.\n\n**Output.** For every operation `3`, print the minimum, one per line.\n\n**Example.** Ops `1 5`, `1 3`, `3`, `2`, `3` → prints `3`, then `5`.",
+   "statement_ro": "Procesați o secvență de operații pe o stivă. Operația `1 x` adaugă $x$ în vârful stivei; operația `2` elimină vârful (stiva nu este niciodată vidă când apare); operația `3` afișează minimul curent din stivă.\n\n**Date de intrare.** Prima linie conține $q$ ($1 \\le q \\le 10^5$). Fiecare dintre următoarele $q$ linii conține o operație.\n\n**Date de ieșire.** Pentru fiecare operație `3`, afișați minimul, câte unul pe linie.\n\n**Exemplu.** Operațiile `1 5`, `1 3`, `3`, `2`, `3` → afișează `3`, apoi `5`.",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "implementation",
+    "arrays"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "5\n1 5\n1 3\n3\n2\n3\n",
+     "expected": "3\n5\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "2\n1 -7\n3\n",
+     "expected": "-7\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "5\n1 100\n3\n2\n1 4\n3\n",
+     "expected": "100\n4\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "6\n1 2\n1 1\n1 3\n3\n2\n3\n",
+     "expected": "1\n1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "5\n1 9\n3\n2\n1 4\n3\n",
+     "expected": "9\n4\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 138,
+    "ac_submission": 262,
+    "wa_submission": 263
+   }
+  },
+  {
+   "slug": "queue-two-stacks-sim",
+   "title_en": "Queue With Two Operations",
+   "title_ro": "Coadă cu două operații",
+   "statement_en": "Simulate a queue. Operation `1 x` enqueues $x$; operation `2` dequeues the front element; operation `3` prints the front element (the queue is never empty when `2` or `3` appears).\n\n**Input.** The first line contains $q$ ($1 \\le q \\le 10^5$). Each of the next $q$ lines contains one operation.\n\n**Output.** For every operation `3`, print the front, one per line.\n\n**Example.** Ops `1 10`, `1 20`, `3`, `2`, `3` → prints `10`, `20`.",
+   "statement_ro": "Simulați o coadă. Operația `1 x` adaugă $x$ la final; operația `2` elimină primul element; operația `3` afișează primul element (coada nu este niciodată vidă când apar `2` sau `3`).\n\n**Date de intrare.** Prima linie conține $q$ ($1 \\le q \\le 10^5$). Fiecare dintre următoarele $q$ linii conține o operație.\n\n**Date de ieșire.** Pentru fiecare operație `3`, afișați primul element, câte unul pe linie.\n\n**Exemplu.** Operațiile `1 10`, `1 20`, `3`, `2`, `3` → afișează `10`, `20`.",
+   "difficulty": "EASY",
+   "tags": [
+    "implementation",
+    "arrays"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "5\n1 10\n1 20\n3\n2\n3\n",
+     "expected": "10\n20\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "2\n1 7\n3\n",
+     "expected": "7\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "6\n1 1\n1 2\n2\n2\n1 3\n3\n",
+     "expected": "3\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3\n1 -5\n2\n1 9\n3\n",
+     "expected": "\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4\n1 100\n3\n3\n3\n",
+     "expected": "100\n100\n100\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 139,
+    "ac_submission": 264,
+    "wa_submission": 265
+   }
+  },
+  {
+   "slug": "interval-merge-count",
+   "title_en": "Merging Intervals",
+   "title_ro": "Reuniunea intervalelor",
+   "statement_en": "Given $n$ closed intervals $[l_i, r_i]$, merge all overlapping or touching intervals (two intervals that share at least one point become one) and print the resulting intervals in sorted order, one per line, as `l r`.\n\n**Input.** The first line contains $n$ ($1 \\le n \\le 10^5$). Each of the next $n$ lines contains $l_i$ and $r_i$ ($-10^9 \\le l_i \\le r_i \\le 10^9$).\n\n**Output.** The merged intervals, sorted by left end, one `l r` per line.\n\n**Example.** Intervals (1 3)(2 5)(7 8) → `1 5` and `7 8`.",
+   "statement_ro": "Fiind date $n$ intervale închise $[l_i, r_i]$, reuniți toate intervalele care se suprapună sau se ating (două intervale care au cel puțin un punct comun devin unul singur) și afișați intervalele rezultate în ordine sortată, câte unul pe linie, ca `l r`.\n\n**Date de intrare.** Prima linie conține $n$ ($1 \\le n \\le 10^5$). Fiecare dintre următoarele $n$ linii conține $l_i$ și $r_i$ ($-10^9 \\le l_i \\le r_i \\le 10^9$).\n\n**Date de ieșire.** Intervalele reunitе, sortate după capătul din stânga, câte un `l r` pe linie.\n\n**Exemplu.** Intervalele (1 3)(2 5)(7 8) → `1 5` și `7 8`.",
+   "difficulty": "MEDIUM",
+   "tags": [
+    "sorting",
+    "greedy",
+    "arrays"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "3\n1 3\n2 5\n7 8\n",
+     "expected": "1 5\n7 8\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "1\n-1000000000 1000000000\n",
+     "expected": "-1000000000 1000000000\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "2\n1 2\n3 4\n",
+     "expected": "1 2\n3 4\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4\n5 6\n1 2\n3 4\n2 3\n",
+     "expected": "1 4\n5 6\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3\n1 1\n1 1\n1 1\n",
+     "expected": "1 1\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "4\n-5 -3\n-4 -1\n10 12\n11 15\n",
+     "expected": "-5 -1\n10 15\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 140,
+    "ac_submission": 266,
+    "wa_submission": 267
+   }
+  },
+  {
+   "slug": "caesar-shift",
+   "title_en": "Caesar Shift",
+   "title_ro": "Cifrul lui Cezar",
+   "statement_en": "Encrypt a message with the Caesar cipher: every letter is shifted $k$ positions forward through the alphabet, wrapping from `z` to `a` (case is preserved; non-letters are unchanged).\n\n**Input.** The first line contains $k$ ($0 \\le k \\le 25$). The second line contains the message — at most 1000 characters of letters, digits, spaces and punctuation.\n\n**Output.** The encrypted message.\n\n**Example.** With $k = 2$: `abcz ABCz!` becomes `cdeb CDEb!`",
+   "statement_ro": "Criptați un mesaj cu cifrul lui Cezar: fiecare literă este deplasată cu $k$ poziții în alfabet, întorcându-se din `z` în `a` (majusculele rămân majuscule; celelalte caractere nu se schimbă).\n\n**Date de intrare.** Prima linie conține $k$ ($0 \\le k \\le 25$). A doua linie conține mesajul — cel mult 1000 de caractere: litere, cifre, spații și semne de punctuație.\n\n**Date de ieșire.** Mesajul criptat.\n\n**Exemplu.** Pentru $k = 2$: `abcz ABCz!` devine `cdeb CDEb!`",
+   "difficulty": "EASY",
+   "tags": [
+    "strings",
+    "math"
+   ],
+   "comparison_mode": "LINES_STRIP_EXACT",
+   "io_mode": "STDIO",
+   "tests": [
+    {
+     "input": "2\nabcz ABCz!\n",
+     "expected": "cdeb CDEb!\n",
+     "is_sample": true,
+     "points": 10
+    },
+    {
+     "input": "0\nunchanged msg\n",
+     "expected": "unchanged msg\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "25\naz AZ\n",
+     "expected": "zy ZY\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "1\nxyz XYZ 123\n",
+     "expected": "yza YZA 123\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "13\nHello, WebCoder!\n",
+     "expected": "Uryyb, JroPbqre!\n",
+     "is_sample": false,
+     "points": 10
+    },
+    {
+     "input": "3\naaa zzz\n",
+     "expected": "ddd ccc\n",
+     "is_sample": false,
+     "points": 10
+    }
+   ],
+   "verified": {
+    "problem_id": 141,
+    "ac_submission": 268,
+    "wa_submission": 269
+   }
+  }
+ ]
+}
