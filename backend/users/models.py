@@ -39,6 +39,24 @@ class User(AbstractUser):
     # bio = models.TextField(max_length=500, blank=True)
     # country = models.CharField(max_length=100, blank=True)
 
+    # RO-3 (competitive roadmap): optional Olympiad-geography identity —
+    # feeds county/school leaderboard segments. Real names stay NOT
+    # required (deliberate differentiation from pbinfo's real-name policy).
+    county = models.CharField(_("county"), max_length=64, blank=True)
+    school = models.CharField(_("school"), max_length=160, blank=True)
+    # LEG-2 (round-2): GDPR Art. 8 — Romania kept the information-society
+    # consent age at 16, so minor accounts default to privacy-first:
+    # county/school never render on their public profile and they are
+    # excluded from public leaderboard segments.
+    is_minor = models.BooleanField(
+        _("minor account (under 16)"),
+        default=False,
+        help_text=_(
+            "Minors' profiles default non-public: county/school hidden, "
+            "no leaderboard segments."
+        ),
+    )
+
     # GDPR account control (round-2 LEG-1/X5): set when the account is
     # soft-deleted; the purge_deleted_users beat task removes user-authored
     # side content once this timestamp passes (submissions/leaderboard stay,

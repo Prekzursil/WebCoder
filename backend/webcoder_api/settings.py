@@ -385,6 +385,18 @@ if CELERY_BROKER_URL == "filesystem://":
     os.makedirs(CELERY_BROKER_FOLDER_MAIN, exist_ok=True)
     os.makedirs(CELERY_BROKER_FOLDER_PROCESSED, exist_ok=True)
     os.makedirs(CELERY_BROKER_FOLDER_SENT, exist_ok=True)
+# JDG-7: per-test output-size cap — programs printing past this read as
+# OLE (Output Limit Exceeded) instead of hanging the judge.
+JUDGE_OUTPUT_LIMIT_BYTES = int(
+    os.environ.get("JUDGE_OUTPUT_LIMIT_BYTES", 32_000_000)
+)
+
+# Round-2 SAF-2: rated contests are the platform's integrity asset —
+# registering for one requires a verified email (allauth EmailAddress).
+RATED_CONTESTS_REQUIRE_VERIFIED_EMAIL = (
+    os.environ.get("RATED_CONTESTS_REQUIRE_VERIFIED_EMAIL", "1") == "1"
+)
+
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE

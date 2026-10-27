@@ -203,10 +203,24 @@ _NODEJS20 = LanguageSpec(
     memory_floor_kb=524288,
 )
 
+# RO-5 (competitive roadmap): Free Pascal — RO schools still teach it;
+# infoarena runs FreePascal 3.0.0. The docker_image serves the LOCAL dev
+# backend only; the container backend uses the fp-compiler toolchain
+# installed in Dockerfile.judge.
+_PASCAL = LanguageSpec(
+    language_id="pascal",
+    display_name="Free Pascal",
+    source_filename="user_code.pas",
+    compile_command=("fpc", "-O2", "-ouser_program", "user_code.pas"),
+    compile_artifact="user_program",
+    run_command=("./user_program",),
+    docker_image="frolvlad/alpine-fpc",
+)
+
 #: All supported languages, keyed by submission-side language id.
 LANGUAGES: dict[str, LanguageSpec] = {
     spec.language_id: spec
-    for spec in (_PYTHON3, _CPP17, _C11, _JAVA11, _NODEJS20)
+    for spec in (_PYTHON3, _CPP17, _C11, _JAVA11, _NODEJS20, _PASCAL)
 }
 
 #: Sorted ids for validation error messages / API-facing lists.

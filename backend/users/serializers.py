@@ -91,11 +91,35 @@ class UserSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "role",
+            "county",
+            "school",
+            "is_minor",
             "is_staff",
             "is_active",
             "date_joined",
         )
         read_only_fields = ("date_joined", "id")  # Role might be updatable by admin
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # LEG-2: a minor's county/school never leave the server for other
+        # viewers (self and admins still see their own values).
+        if instance.is_minor:
+            request = self.context.get("request")
+            viewer = getattr(request, "user", None)
+            is_self_or_admin = bool(
+                viewer
+                and viewer.is_authenticated
+                and (
+                    viewer.id == instance.id
+                    or viewer.role == User.Roles.ADMIN
+                    or viewer.is_superuser
+                )
+            )
+            if not is_self_or_admin:
+                data["county"] = ""
+                data["school"] = ""
+        return data
 
 
 class AdminUserSerializer(serializers.ModelSerializer):

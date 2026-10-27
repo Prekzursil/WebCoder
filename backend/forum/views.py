@@ -47,6 +47,18 @@ class ThreadViewSet(viewsets.ModelViewSet):
             return ThreadUpdateSerializer
         return ThreadListSerializer
 
+    def perform_update(self, serializer):
+        # COM-6: the announcement flag is a moderator-only news lever —
+        # strip it from ordinary authors' payloads.
+        if "is_announcement" in serializer.validated_data and not is_moderator(
+            self.request.user
+        ):
+            if serializer.instance.is_announcement != serializer.validated_data[
+                "is_announcement"
+            ]:
+                serializer.validated_data.pop("is_announcement")
+        serializer.save()
+
     def get_queryset(self):
         qs = Thread.objects.select_related("author", "problem")
         user = self.request.user
@@ -57,6 +69,9 @@ class ThreadViewSet(viewsets.ModelViewSet):
             "true",
         ):
             qs = qs.filter(is_hidden=False)
+        # COM-6: ?announcements=1 — the admin news panel feed.
+        if self.request.query_params.get("announcements", "") in ("1", "true"):
+            qs = qs.filter(is_announcement=True)
         problem_id = self.request.query_params.get("problem_id")
         if problem_id:
             qs = qs.filter(problem_id=problem_id)

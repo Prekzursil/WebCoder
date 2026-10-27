@@ -19,6 +19,9 @@ class Submission(models.Model):
         WRONG_ANSWER = "WA", _("Wrong Answer")
         TIME_LIMIT_EXCEEDED = "TLE", _("Time Limit Exceeded")
         MEMORY_LIMIT_EXCEEDED = "MLE", _("Memory Limit Exceeded")
+        # JDG-7: the judged program produced more output than the judge
+        # accepts (output-size cap) — distinct from MLE, matches DMOJ/pbinfo.
+        OUTPUT_LIMIT_EXCEEDED = "OLE", _("Output Limit Exceeded")
         COMPILE_ERROR = "CE", _("Compile Error")
         RUNTIME_ERROR = "RE", _("Runtime Error")
         INTERNAL_ERROR = "IE", _("Internal Error")  # For judge system errors

@@ -31,6 +31,9 @@ class Thread(models.Model):
     is_pinned = models.BooleanField(_("pinned"), default=False)
     is_locked = models.BooleanField(_("locked"), default=False)
     is_hidden = models.BooleanField(_("hidden"), default=False)
+    # COM-6 (competitive roadmap): admin news posts — surfaced as a home
+    # panel; ordinary threads stay ordinary.
+    is_announcement = models.BooleanField(_("announcement"), default=False)
     post_count = models.PositiveIntegerField(
         _("post count"), default=0
     )  # denormalized
