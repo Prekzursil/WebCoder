@@ -83,6 +83,10 @@ const MOCK_TAGS = [
   { id: 2, name_i18n: { en: 'Dynamic Programming' }, slug: 'dp' },
 ];
 
+// CON-5 mock state: contests whose virtual-start the session has pressed —
+// the detail payload then reports an active replay participation.
+const virtualStarted = new Set();
+
 const MOCK_CONTESTS = [
   {
     id: 1,
@@ -100,6 +104,27 @@ const MOCK_CONTESTS = [
     created_by: 2,
     created_by_username: 'admin_e2e',
     state: 'RUNNING',
+    problem_count: 2,
+    participant_count: 2,
+    my_participation: null,
+    can_manage: false,
+  },
+  {
+    id: 3,
+    title_i18n: { en: 'Spring Replay 2025', ro: 'Replay de primăvară 2025' },
+    description_i18n: {},
+    visibility: 'PUBLIC',
+    is_rated: false,
+    format: 'IOI',
+    start_at: '2025-03-01T10:00:00Z',
+    end_at: '2025-03-01T12:00:00Z',
+    freeze_at: null,
+    is_window: false,
+    per_user_duration_minutes: 120,
+    pretest_mode: false,
+    created_by: 2,
+    created_by_username: 'admin_e2e',
+    state: 'FINISHED',
     problem_count: 2,
     participant_count: 2,
     my_participation: null,
@@ -308,7 +333,8 @@ const AUTH_COOKIES = (value) => [
 ];
 
 const server = createServer((req, res) => {
-  const path = new URL(req.url, `http://${HOST}:${PORT}`).pathname;
+  const requestUrl = new URL(req.url, `http://${HOST}:${PORT}`);
+  const path = requestUrl.pathname;
   res._corsHeaders = corsHeaders(req);
 
   // CORS preflight (browser POST with Content-Type: application/json triggers it)
@@ -553,7 +579,20 @@ const server = createServer((req, res) => {
   if (req.method === 'GET' && contestDetail) {
     const contest = MOCK_CONTESTS.find((c) => c.id === Number(contestDetail[1]));
     if (contest) {
-      json(res, 200, contest);
+      if (virtualStarted.has(contest.id) && sessionUser(req)) {
+        json(res, 200, {
+          ...contest,
+          my_participation: {
+            virtual_start: '2026-11-02T10:00:00Z',
+            effective_start: '2026-11-02T10:00:00Z',
+            effective_end: '2026-11-02T12:00:00Z',
+            is_virtual: true,
+            is_disqualified: false,
+          },
+        });
+      } else {
+        json(res, 200, contest);
+      }
     } else {
       json(res, 404, { detail: 'Not found.' });
     }
@@ -578,7 +617,37 @@ const server = createServer((req, res) => {
 
   const contestStandings = path.match(/^\/api\/v1\/contests\/contests\/(\d+)\/standings\/$/);
   if (req.method === 'GET' && contestStandings) {
-    json(res, 200, MOCK_STANDINGS);
+    if (requestUrl.searchParams.get('section') === 'virtual') {
+      json(res, 200, { ...MOCK_STANDINGS, section: 'virtual', count: 1 });
+    } else {
+      json(res, 200, { ...MOCK_STANDINGS, section: 'official' });
+    }
+    return;
+  }
+
+  const contestAwards = path.match(/^\/api\/v1\/contests\/contests\/(\d+)\/awards\/$/);
+  if (req.method === 'GET' && contestAwards) {
+    json(res, 200, {
+      count: 1,
+      results: [{ rank: 1, medal: 'GOLD', user: { id: 2, username: 'alice_e2e' } }],
+    });
+    return;
+  }
+
+  const contestVirtualStart = path.match(
+    /^\/api\/v1\/contests\/contests\/(\d+)\/virtual-start\/$/
+  );
+  if (req.method === 'POST' && contestVirtualStart) {
+    if (!sessionUser(req)) {
+      json(res, 401, { detail: 'Authentication credentials were not provided.' });
+      return;
+    }
+    virtualStarted.add(Number(contestVirtualStart[1]));
+    json(res, 201, {
+      virtual_start: '2026-11-02T10:00:00Z',
+      effective_end: '2026-11-02T12:00:00Z',
+      is_virtual: true,
+    });
     return;
   }
 

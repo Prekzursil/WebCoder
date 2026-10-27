@@ -49,6 +49,15 @@ class ContestSerializer(serializers.ModelSerializer):
 
     contest_problems = ContestProblemSerializer(many=True, read_only=True)
     created_by_username = serializers.CharField(source="created_by.username", read_only=True)
+    # CON-9 mashups: organizers assemble their board by passing problem ids
+    # on create/update. Non-admin creators (CREATOR/TEACHER) may only pick
+    # from the APPROVED pool and only run PRIVATE unrated contests.
+    problem_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        required=False,
+        write_only=True,
+        help_text="Ordered board problem ids; labels auto-assign A, B, C…",
+    )
     state = serializers.SerializerMethodField()
     problem_count = serializers.IntegerField(read_only=True, default=0)
     participant_count = serializers.IntegerField(read_only=True, default=0)
@@ -72,6 +81,9 @@ class ContestSerializer(serializers.ModelSerializer):
             "per_user_duration_minutes",
             "pretest_mode",
             "editorial_delay_minutes",
+            "rated_rating_min",
+            "rated_rating_max",
+            "problem_ids",
             "created_by",
             "created_by_username",
             "state",
@@ -114,7 +126,64 @@ class ContestSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {"access_code": "PRIVATE contests need an access code."}
             )
+        # CON-7: division band sanity.
+        lo = attrs.get("rated_rating_min", getattr(self.instance, "rated_rating_min", None))
+        hi = attrs.get("rated_rating_max", getattr(self.instance, "rated_rating_max", None))
+        if lo is not None and hi is not None and lo > hi:
+            raise serializers.ValidationError(
+                {"rated_rating_min": "Division minimum exceeds its maximum."}
+            )
+        # CON-9: non-admin creators (CREATOR/TEACHER) run PRIVATE, unrated
+        # mashups from the APPROVED pool — the community-contest guardrail.
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        is_admin = bool(
+            user
+            and user.is_authenticated
+            and (user.is_staff or user.role == User.Roles.ADMIN or user.is_superuser)
+        )
+        if user is not None and user.is_authenticated and not is_admin:
+            if attrs.get("visibility", visibility) != Contest.Visibility.PRIVATE:
+                raise serializers.ValidationError(
+                    {"visibility": "Community contests must be PRIVATE."}
+                )
+            if attrs.get("is_rated", getattr(self.instance, "is_rated", False)):
+                raise serializers.ValidationError(
+                    {"is_rated": "Community contests cannot be rated."}
+                )
+        problem_ids = attrs.get("problem_ids")
+        if problem_ids is not None:
+            if is_admin:
+                allowed = Problem.objects.filter(id__in=problem_ids)
+            else:
+                allowed = Problem.objects.filter(
+                    id__in=problem_ids, status=Problem.ProblemStatus.APPROVED
+                )
+            if allowed.count() != len(set(problem_ids)):
+                missing = sorted(set(problem_ids) - set(allowed.values_list("id", flat=True)))
+                raise serializers.ValidationError(
+                    {
+                        "problem_ids": (
+                            "Problems must exist and be APPROVED for community "
+                            f"contests. Rejected ids: {missing}."
+                        )
+                    }
+                )
         return attrs
+
+    def create(self, validated_data):
+        problem_ids = validated_data.pop("problem_ids", None)
+        contest = super().create(validated_data)
+        if problem_ids is not None:
+            _sync_board(contest, problem_ids)
+        return contest
+
+    def update(self, instance, validated_data):
+        problem_ids = validated_data.pop("problem_ids", None)
+        contest = super().update(instance, validated_data)
+        if problem_ids is not None:
+            _sync_board(contest, problem_ids)
+        return contest
 
 
 class ContestDetailSerializer(ContestSerializer):
@@ -130,15 +199,20 @@ class ContestDetailSerializer(ContestSerializer):
         request = self.context.get("request")
         if not request or not request.user.is_authenticated:
             return None
-        participation = ContestParticipation.objects.filter(
-            contest=obj, user=request.user
-        ).first()
+        # Virtual replay (CON-5) outranks the historical official row —
+        # it is the sitting the caller can still act on.
+        participation = (
+            ContestParticipation.objects.filter(contest=obj, user=request.user)
+            .order_by("-is_virtual", "created_at")
+            .first()
+        )
         if participation is None:
             return None
         return {
             "virtual_start": participation.virtual_start,
             "effective_start": participation.effective_start(),
             "effective_end": participation.effective_end(),
+            "is_virtual": participation.is_virtual,
             "is_disqualified": participation.is_disqualified,
             "created_at": participation.created_at,
         }
@@ -231,3 +305,30 @@ class ClarificationAnswerSerializer(serializers.Serializer):
                 {"detail": "Provide answer text or a canned choice."}
             )
         return attrs
+
+
+def _sync_board(contest: Contest, problem_ids: list[int]) -> None:
+    """Replace the contest board with the ordered ``problem_ids``.
+
+    Used by the CON-9 mashup create/update path: labels re-derive from the
+    new order; points default to 100 per problem (organizers adjust later
+    via the admin or a follow-up update).
+    """
+    contest.contest_problems.all().delete()
+    rows = []
+    for order, problem_id in enumerate(problem_ids):
+        # bulk_create skips Model.save(), so derive the board label here
+        # exactly as ContestProblem.save() does (A, B…, AA1-style at 27+).
+        label = chr(ord("A") + (order % 26))
+        if order >= 26:
+            label = f"{label}{order // 26}"
+        rows.append(
+            ContestProblem(
+                contest=contest,
+                problem_id=problem_id,
+                order=order,
+                points=100,
+                label=label,
+            )
+        )
+    ContestProblem.objects.bulk_create(rows)

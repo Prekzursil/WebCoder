@@ -48,7 +48,8 @@ import {
   RatingChangeRow,
   RatingLadderRow,
   RegisterResponse,
-  StandingsResponse,
+  ContestAwardsResponse,
+    StandingsResponse,
   UpdateProblemResponse,
   cursorParamFromUrl,
 } from '@/types/api';
@@ -567,8 +568,25 @@ export const ContestService = {
         }),
     getProblems: (id: number | string) =>
         apiFetch<ContestProblemRow[]>(`/contests/contests/${id}/problems/`),
-    getStandings: (id: number | string, page = 1) =>
-        apiFetch<StandingsResponse>(`/contests/contests/${id}/standings/?page=${page}`),
+    getStandings: (id: number | string, page = 1, section?: 'official' | 'virtual') => {
+        const params = new URLSearchParams({ page: String(page) });
+        if (section) params.set('section', section);
+        return apiFetch<StandingsResponse>(
+            `/contests/contests/${id}/standings/?${params.toString()}`
+        );
+    },
+    startVirtual: (id: number | string) =>
+        apiFetch<{ virtual_start: string; effective_end: string; is_virtual: boolean }>(
+            `/contests/contests/${id}/virtual-start/`,
+            { method: 'POST' }
+        ),
+    getAwards: (id: number | string) =>
+        apiFetch<ContestAwardsResponse>(`/contests/contests/${id}/awards/`),
+    createContest: (data: Record<string, unknown>) =>
+        apiFetch<Contest>('/contests/contests/', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
     unfreeze: (id: number | string) =>
         apiFetch<{ detail: string }>(`/contests/contests/${id}/unfreeze/`, { method: 'POST' }),
     getClarifications: (id: number | string) =>

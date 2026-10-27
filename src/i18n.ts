@@ -33,8 +33,10 @@ const resources = {
       "nav_problem_queue": "Verification Queue",
       "nav_leaderboard": "Leaderboard",
       "nav_forum": "Forum",
-      "nav_contests": "Contests",
-      "nav_ratings": "Ratings",
+
+      "nav_contests": "Contests",
+
+      "nav_ratings": "Ratings",
       "classes_title": "My classes",
       "classes_subtitle": "Join with your teacher’s code, then solve your teme.",
       "classes_load_error": "Failed to load classes.",
@@ -81,67 +83,145 @@ const resources = {
       "assignment_grid_empty": "Nothing to grade yet",
       "assignment_grid_empty_hint": "The grid fills as students submit inside the temă window.",
       "nav_classes": "My classes",
-      "retry": "Retry",
-      "load_more": "Load more",
-      "contests_title": "Contests",
-      "contests_subtitle": "Timed contests with live standings, ratings and freeze drama.",
-      "contests_filter_all": "All",
-      "contests_ics": "📅 Calendar (.ics)",
-      "contests_starts_in": "Next contest starts in",
-      "contests_load_error": "Failed to load contests.",
-      "contests_loading": "Loading contests…",
-      "contests_empty": "No contests yet",
-      "contests_empty_message": "When a contest is scheduled it will appear here with a countdown.",
-      "contest_state_running": "Running",
-      "contest_state_upcoming": "Upcoming",
-      "contest_state_finished": "Finished",
-      "contest_rated": "Rated",
-      "contest_windowed": "Windowed",
-      "contest_problems_count": "{{count}} problems",
-      "contest_participants_count": "{{count}} participants",
-      "contest_load_error": "Failed to load the contest.",
-      "contest_loading": "Loading contest…",
-      "contest_not_found": "Contest not found.",
-      "contests_back": "Back to contests",
-      "contest_login_to_register": "Log in to register",
-      "contest_register": "Register",
-      "contest_start_clock": "Start my timer",
-      "contest_personal_end": "My deadline:",
-      "contest_disqualified": "You were disqualified from this contest.",
-      "contest_tab_problems": "Problems",
-      "contest_tab_standings": "Standings",
-      "contest_tab_clarifications": "Clarifications",
-      "contest_tab_rating_changes": "Rating changes",
-      "contest_no_problems": "No problems attached",
-      "contest_problems_sealed": "Problems are sealed until the contest starts.",
-      "contest_problem": "Problem",
-      "contest_points": "Points",
-      "contest_no_standings": "Nobody on the board yet",
-      "contest_register_first": "Register and submit to appear on the scoreboard.",
-      "contest_frozen": "Scoreboard frozen — final standings after the contest ends.",
-      "contest_participant": "Participant",
-      "contest_score": "Score",
-      "contest_attempts": "{{count}} attempts",
-      "contest_ask_placeholder": "Ask the jury…",
-      "contest_ask": "Ask",
-      "contest_no_clarifications": "No questions yet",
-      "contest_clarifications_hint": "Your questions and broadcast answers appear here.",
-      "contest_broadcast": "Broadcast",
-      "contest_no_rating_changes": "No rating changes",
-      "contest_ratings_pending": "Ratings update when the contest finalizes.",
-      "contest_rating_before": "Before",
-      "contest_rating_after": "After",
-      "ratings_title": "Ratings",
-      "ratings_subtitle": "Glicko contest rating. Color bands follow the handle ladder.",
-      "ratings_load_error": "Failed to load the ratings ladder.",
-      "ratings_loading": "Loading ladder…",
-      "ratings_empty": "Nobody is rated yet",
-      "ratings_empty_message": "The ladder fills as the first rated contests finalize.",
-      "ratings_my_rating": "Your rating",
-      "ratings_not_yet": "Unrated — enter a rated contest to get a rating.",
-      "ratings_handle": "Handle",
-      "ratings_rating": "Rating",
-      "ratings_contests": "Contests",
+
+      "retry": "Retry",
+
+      "load_more": "Load more",
+
+      "contests_title": "Contests",
+
+      "contests_subtitle": "Timed contests with live standings, ratings and freeze drama.",
+
+      "contests_filter_all": "All",
+
+      "contests_ics": "📅 Calendar (.ics)",
+
+      "contests_starts_in": "Next contest starts in",
+
+      "contests_load_error": "Failed to load contests.",
+
+      "contests_loading": "Loading contests…",
+
+      "contests_empty": "No contests yet",
+
+      "contests_empty_message": "When a contest is scheduled it will appear here with a countdown.",
+
+      "contest_state_running": "Running",
+
+      "contest_state_upcoming": "Upcoming",
+
+      "contest_state_finished": "Finished",
+
+      "contest_rated": "Rated",
+
+      "contest_windowed": "Windowed",
+
+      "contest_problems_count": "{{count}} problems",
+
+      "contest_participants_count": "{{count}} participants",
+
+      "contest_load_error": "Failed to load the contest.",
+
+      "contest_loading": "Loading contest…",
+
+      "contest_not_found": "Contest not found.",
+
+      "contests_back": "Back to contests",
+
+      "contest_login_to_register": "Log in to register",
+
+      "contest_register": "Register",
+
+      "contest_start_clock": "Start my timer",
+
+      "contest_personal_end": "My deadline:",
+
+      "contest_disqualified": "You were disqualified from this contest.",
+
+      "contest_tab_problems": "Problems",
+
+      "contest_tab_standings": "Standings",
+
+      "contest_tab_clarifications": "Clarifications",
+
+      "contest_tab_rating_changes": "Rating changes",
+
+      "contest_no_problems": "No problems attached",
+
+      "contest_problems_sealed": "Problems are sealed until the contest starts.",
+
+      "contest_problem": "Problem",
+
+      "contest_points": "Points",
+
+      "contest_no_standings": "Nobody on the board yet",
+
+      "contest_register_first": "Register and submit to appear on the scoreboard.",
+
+      "contest_frozen": "Scoreboard frozen — final standings after the contest ends.",
+      "contest_virtual_start": "Practice virtually",
+      "contest_virtual_running": "Virtual replay running — ends",
+      "contest_division": "Division",
+      "contest_board_section": "Standings section",
+      "contest_board_official": "Official",
+      "contest_board_virtual": "Virtual replays",
+      "contest_create_title": "New community contest",
+      "contest_create_subtitle": "Private, unrated mashups assembled from the approved problem pool.",
+      "contest_create_not_allowed": "Community contests are created by teachers and verified creators.",
+      "contest_create_title_en": "Title (English)",
+      "contest_create_title_ro": "Title (Romanian)",
+      "contest_create_start": "Starts at",
+      "contest_create_end": "Ends at",
+      "contest_create_code": "Access code",
+      "contest_create_problems": "Problem IDs (comma-separated, in board order)",
+      "contest_create_submit": "Create contest",
+      "contest_create_error": "Could not create the contest.",
+
+      "contest_participant": "Participant",
+
+      "contest_score": "Score",
+
+      "contest_attempts": "{{count}} attempts",
+
+      "contest_ask_placeholder": "Ask the jury…",
+
+      "contest_ask": "Ask",
+
+      "contest_no_clarifications": "No questions yet",
+
+      "contest_clarifications_hint": "Your questions and broadcast answers appear here.",
+
+      "contest_broadcast": "Broadcast",
+
+      "contest_no_rating_changes": "No rating changes",
+
+      "contest_ratings_pending": "Ratings update when the contest finalizes.",
+
+      "contest_rating_before": "Before",
+
+      "contest_rating_after": "After",
+
+      "ratings_title": "Ratings",
+
+      "ratings_subtitle": "Glicko contest rating. Color bands follow the handle ladder.",
+
+      "ratings_load_error": "Failed to load the ratings ladder.",
+
+      "ratings_loading": "Loading ladder…",
+
+      "ratings_empty": "Nobody is rated yet",
+
+      "ratings_empty_message": "The ladder fills as the first rated contests finalize.",
+
+      "ratings_my_rating": "Your rating",
+
+      "ratings_not_yet": "Unrated — enter a rated contest to get a rating.",
+
+      "ratings_handle": "Handle",
+
+      "ratings_rating": "Rating",
+
+      "ratings_contests": "Contests",
       "nav_submission_history": "History",
       "nav_search_placeholder": "Search problems…",
       "nav_search_label": "Search problems",
@@ -774,8 +854,10 @@ const resources = {
       "nav_problem_queue": "Coadă de Verificare",
       "nav_leaderboard": "Clasament",
       "nav_forum": "Forum",
-      "nav_contests": "Concursuri",
-      "nav_ratings": "Clasament",
+
+      "nav_contests": "Concursuri",
+
+      "nav_ratings": "Clasament",
       "classes_title": "Clasele mele",
       "classes_subtitle": "Intră cu codul primit de la profesor, apoi rezolvă temele.",
       "classes_load_error": "Preluarea claselor a eșuat.",
@@ -822,67 +904,145 @@ const resources = {
       "assignment_grid_empty": "Nimic de notat încă",
       "assignment_grid_empty_hint": "Tabela se completează pe măsură ce elevii trimit în fereastra temei.",
       "nav_classes": "Clasele mele",
-      "retry": "Reîncearcă",
-      "load_more": "Încarcă mai multe",
-      "contests_title": "Concursuri",
-      "contests_subtitle": "Concursuri cronometrate cu clasamente live, rating și înghețul tablei.",
-      "contests_filter_all": "Toate",
-      "contests_ics": "📅 Calendar (.ics)",
-      "contests_starts_in": "Următorul concurs începe în",
-      "contests_load_error": "Preluarea concursurilor a eșuat.",
-      "contests_loading": "Se încarcă concursurile…",
-      "contests_empty": "Niciun concurs încă",
-      "contests_empty_message": "Când un concurs este programat va apărea aici cu un contor.",
-      "contest_state_running": "În desfășurare",
-      "contest_state_upcoming": "Următor",
-      "contest_state_finished": "Terminat",
-      "contest_rated": "Cu rating",
-      "contest_windowed": "Cu fereastră",
-      "contest_problems_count": "{{count}} probleme",
-      "contest_participants_count": "{{count}} participanți",
-      "contest_load_error": "Preluarea concursului a eșuat.",
-      "contest_loading": "Se încarcă concursul…",
-      "contest_not_found": "Concursul nu a fost găsit.",
-      "contests_back": "Înapoi la concursuri",
-      "contest_login_to_register": "Autentifică-te pentru a te înscrie",
-      "contest_register": "Înscrie-te",
-      "contest_start_clock": "Pornește cronometrul meu",
-      "contest_personal_end": "Termenul meu:",
-      "contest_disqualified": "Ai fost descalificat de la acest concurs.",
-      "contest_tab_problems": "Probleme",
-      "contest_tab_standings": "Clasament",
-      "contest_tab_clarifications": "Clarificări",
-      "contest_tab_rating_changes": "Schimbări de rating",
-      "contest_no_problems": "Nicio problemă atașată",
-      "contest_problems_sealed": "Problemele sunt sigilate până la începerea concursului.",
-      "contest_problem": "Problemă",
-      "contest_points": "Puncte",
-      "contest_no_standings": "Nimeni pe tablă încă",
-      "contest_register_first": "Înscrie-te și trimite ca să apari pe tabela de scor.",
-      "contest_frozen": "Tabela înghețată — clasamentul final după terminarea concursului.",
-      "contest_participant": "Participant",
-      "contest_score": "Scor",
-      "contest_attempts": "{{count}} încercări",
-      "contest_ask_placeholder": "Întreabă juriul…",
-      "contest_ask": "Întreabă",
-      "contest_no_clarifications": "Nicio întrebare încă",
-      "contest_clarifications_hint": "Întrebările tale și răspunsurile difuzate apar aici.",
-      "contest_broadcast": "Difuzat",
-      "contest_no_rating_changes": "Nicio schimbare de rating",
-      "contest_ratings_pending": "Rating-ul se actualizează la finalizarea concursului.",
-      "contest_rating_before": "Înainte",
-      "contest_rating_after": "După",
-      "ratings_title": "Rating",
-      "ratings_subtitle": "Rating Glicko pe concursuri. Culorile urmează scara de handle-uri.",
-      "ratings_load_error": "Preluarea scării de rating a eșuat.",
-      "ratings_loading": "Se încarcă scara…",
-      "ratings_empty": "Nimeni cu rating încă",
-      "ratings_empty_message": "Scara se populează pe măsură ce primele concursuri cu rating se finalizează.",
-      "ratings_my_rating": "Rating-ul tău",
-      "ratings_not_yet": "Fără rating — intră într-un concurs cu rating pentru a primi unul.",
-      "ratings_handle": "Nume",
-      "ratings_rating": "Rating",
-      "ratings_contests": "Concursuri",
+
+      "retry": "Reîncearcă",
+
+      "load_more": "Încarcă mai multe",
+
+      "contests_title": "Concursuri",
+
+      "contests_subtitle": "Concursuri cronometrate cu clasamente live, rating și înghețul tablei.",
+
+      "contests_filter_all": "Toate",
+
+      "contests_ics": "📅 Calendar (.ics)",
+
+      "contests_starts_in": "Următorul concurs începe în",
+
+      "contests_load_error": "Preluarea concursurilor a eșuat.",
+
+      "contests_loading": "Se încarcă concursurile…",
+
+      "contests_empty": "Niciun concurs încă",
+
+      "contests_empty_message": "Când un concurs este programat va apărea aici cu un contor.",
+
+      "contest_state_running": "În desfășurare",
+
+      "contest_state_upcoming": "Următor",
+
+      "contest_state_finished": "Terminat",
+
+      "contest_rated": "Cu rating",
+
+      "contest_windowed": "Cu fereastră",
+
+      "contest_problems_count": "{{count}} probleme",
+
+      "contest_participants_count": "{{count}} participanți",
+
+      "contest_load_error": "Preluarea concursului a eșuat.",
+
+      "contest_loading": "Se încarcă concursul…",
+
+      "contest_not_found": "Concursul nu a fost găsit.",
+
+      "contests_back": "Înapoi la concursuri",
+
+      "contest_login_to_register": "Autentifică-te pentru a te înscrie",
+
+      "contest_register": "Înscrie-te",
+
+      "contest_start_clock": "Pornește cronometrul meu",
+
+      "contest_personal_end": "Termenul meu:",
+
+      "contest_disqualified": "Ai fost descalificat de la acest concurs.",
+
+      "contest_tab_problems": "Probleme",
+
+      "contest_tab_standings": "Clasament",
+
+      "contest_tab_clarifications": "Clarificări",
+
+      "contest_tab_rating_changes": "Schimbări de rating",
+
+      "contest_no_problems": "Nicio problemă atașată",
+
+      "contest_problems_sealed": "Problemele sunt sigilate până la începerea concursului.",
+
+      "contest_problem": "Problemă",
+
+      "contest_points": "Puncte",
+
+      "contest_no_standings": "Nimeni pe tablă încă",
+
+      "contest_register_first": "Înscrie-te și trimite ca să apari pe tabela de scor.",
+
+      "contest_frozen": "Tabela înghețată — clasamentul final după terminarea concursului.",
+      "contest_virtual_start": "Exersează virtual",
+      "contest_virtual_running": "Replay virtual în desfășurare — se termină",
+      "contest_division": "Diviziune",
+      "contest_board_section": "Secțiunea clasamentului",
+      "contest_board_official": "Oficial",
+      "contest_board_virtual": "Replay-uri virtuale",
+      "contest_create_title": "Concurs comunitar nou",
+      "contest_create_subtitle": "Mashup-uri private, nearate, alcătuite din problemele aprobate.",
+      "contest_create_not_allowed": "Concursurile comunitare sunt create de profesori și creatori verificați.",
+      "contest_create_title_en": "Titlu (engleză)",
+      "contest_create_title_ro": "Titlu (română)",
+      "contest_create_start": "Începe la",
+      "contest_create_end": "Se termină la",
+      "contest_create_code": "Cod de acces",
+      "contest_create_problems": "ID-uri probleme (separate prin virgulă, în ordinea problemei)",
+      "contest_create_submit": "Creează concursul",
+      "contest_create_error": "Nu am putut crea concursul.",
+
+      "contest_participant": "Participant",
+
+      "contest_score": "Scor",
+
+      "contest_attempts": "{{count}} încercări",
+
+      "contest_ask_placeholder": "Întreabă juriul…",
+
+      "contest_ask": "Întreabă",
+
+      "contest_no_clarifications": "Nicio întrebare încă",
+
+      "contest_clarifications_hint": "Întrebările tale și răspunsurile difuzate apar aici.",
+
+      "contest_broadcast": "Difuzat",
+
+      "contest_no_rating_changes": "Nicio schimbare de rating",
+
+      "contest_ratings_pending": "Rating-ul se actualizează la finalizarea concursului.",
+
+      "contest_rating_before": "Înainte",
+
+      "contest_rating_after": "După",
+
+      "ratings_title": "Rating",
+
+      "ratings_subtitle": "Rating Glicko pe concursuri. Culorile urmează scara de handle-uri.",
+
+      "ratings_load_error": "Preluarea scării de rating a eșuat.",
+
+      "ratings_loading": "Se încarcă scara…",
+
+      "ratings_empty": "Nimeni cu rating încă",
+
+      "ratings_empty_message": "Scara se populează pe măsură ce primele concursuri cu rating se finalizează.",
+
+      "ratings_my_rating": "Rating-ul tău",
+
+      "ratings_not_yet": "Fără rating — intră într-un concurs cu rating pentru a primi unul.",
+
+      "ratings_handle": "Nume",
+
+      "ratings_rating": "Rating",
+
+      "ratings_contests": "Concursuri",
       "nav_submission_history": "Istoric",
       "nav_search_placeholder": "Caută probleme…",
       "nav_search_label": "Caută probleme",
