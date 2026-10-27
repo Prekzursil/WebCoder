@@ -89,6 +89,8 @@ const Navbar: React.FC = () => {
   const primaryLinks: NavLinkItem[] = [
     { href: '/', label: t('nav_home', 'Home') },
     { href: '/problems', label: t('nav_problems', 'Problems') },
+    { href: '/contests', label: t('nav_contests', 'Contests') },
+    { href: '/ratings', label: t('nav_ratings', 'Ratings') },
     { href: '/leaderboard', label: t('nav_leaderboard', 'Leaderboard') },
     { href: '/forum', label: t('nav_forum', 'Forum') },
   ];

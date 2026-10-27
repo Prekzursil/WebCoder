@@ -201,3 +201,123 @@ export interface ApiNotification {
 }
 
 export type GetNotificationsResponse = CursorPaginatedResponse<ApiNotification>;
+
+// =================================
+// Contest engine (backend contests app, Wave B CON-1..10)
+// =================================
+
+/** Per-locale text ({ en, ro }). */
+export type LocalizedText = Record<string, string>;
+
+export interface Contest {
+    id: number;
+    title_i18n: LocalizedText;
+    description_i18n: LocalizedText;
+    visibility: 'PUBLIC' | 'PRIVATE';
+    is_rated: boolean;
+    format: 'IOI' | 'ICPC' | 'ATCODER';
+    start_at: string;
+    end_at: string;
+    freeze_at: string | null;
+    is_window: boolean;
+    per_user_duration_minutes: number;
+    pretest_mode: boolean;
+    created_by: number;
+    created_by_username: string;
+    state: 'UPCOMING' | 'RUNNING' | 'FINISHED';
+    problem_count: number;
+    participant_count: number;
+    contest_problems?: ContestProblemRow[];
+    my_participation?: {
+        virtual_start: string | null;
+        effective_start: string;
+        effective_end: string;
+        is_disqualified: boolean;
+    } | null;
+    can_manage?: boolean;
+}
+
+export type GetContestsResponse = PaginatedResponse<Contest>;
+
+export interface ContestProblemRow {
+    id: number;
+    problem: number;
+    problem_title: LocalizedText;
+    problem_difficulty: string;
+    order: number;
+    label: string;
+    points: number;
+}
+
+export interface StandingsProblemCell {
+    label: string;
+    points_max: number;
+    best: number;
+    attempts: number;
+    wrong: number;
+    first_ac_at: string | null;
+    last_improvement: string | null;
+}
+
+export interface StandingsRow {
+    rank: number;
+    user: { id: number; username: string };
+    score: number;
+    solved: number;
+    penalty_minutes: number | null;
+    problems: StandingsProblemCell[];
+}
+
+export interface StandingsResponse extends PaginatedResponse<StandingsRow> {
+    format: string;
+    frozen: boolean;
+}
+
+export interface Clarification {
+    id: number;
+    contest: number;
+    problem_id: number | null;
+    asker_username: string;
+    question: string;
+    answer: string | null;
+    answered_by_username: string | null;
+    answered_at: string | null;
+    is_broadcast: boolean;
+    is_hidden: boolean;
+    created_at: string;
+}
+
+export interface RatingBand {
+    min: number;
+    name_en: string;
+    name_ro: string;
+    color: string;
+}
+
+export interface RatingLadderRow {
+    user: { id: number; username: string };
+    rating: number;
+    internal_rating: number;
+    rd: number;
+    contests_count: number;
+    band: RatingBand;
+}
+
+export interface RatingChangeRow {
+    rank: number;
+    username: string;
+    rating_before: number;
+    rating_after: number;
+    delta: number;
+    display_rating: number;
+    band: RatingBand;
+}
+
+export interface MyRating {
+    rated: boolean;
+    rating: number | null;
+    internal_rating?: number;
+    rd?: number;
+    contests_count?: number;
+    band: RatingBand;
+}

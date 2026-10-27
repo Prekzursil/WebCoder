@@ -83,6 +83,79 @@ const MOCK_TAGS = [
   { id: 2, name_i18n: { en: 'Dynamic Programming' }, slug: 'dp' },
 ];
 
+const MOCK_CONTESTS = [
+  {
+    id: 1,
+    title_i18n: { en: 'Autumn Open 2026', ro: 'Openul de toamnă 2026' },
+    description_i18n: {},
+    visibility: 'PUBLIC',
+    is_rated: true,
+    format: 'IOI',
+    start_at: '2026-10-01T10:00:00Z',
+    end_at: '2999-01-01T12:00:00Z',
+    freeze_at: null,
+    is_window: false,
+    per_user_duration_minutes: 180,
+    pretest_mode: false,
+    created_by: 2,
+    created_by_username: 'admin_e2e',
+    state: 'RUNNING',
+    problem_count: 2,
+    participant_count: 2,
+    my_participation: null,
+    can_manage: false,
+  },
+];
+
+const MOCK_CONTEST_PROBLEMS = [
+  { id: 11, problem: 1, problem_title: { en: 'Two Sum' }, problem_difficulty: 'EASY', order: 0, label: 'A', points: 100 },
+  { id: 12, problem: 2, problem_title: { en: 'Reverse String', ro: 'Inversarea unui șir' }, problem_difficulty: 'MEDIUM', order: 1, label: 'B', points: 100 },
+];
+
+const MOCK_STANDINGS = {
+  count: 2,
+  next: null,
+  previous: null,
+  format: 'IOI',
+  frozen: false,
+  results: [
+    {
+      rank: 1,
+      user: { id: 1, username: 'e2e_tester' },
+      score: 150,
+      solved: 1,
+      penalty_minutes: null,
+      problems: [
+        { label: 'A', points_max: 100, best: 100, attempts: 1, wrong: 0, first_ac_at: '2026-10-01T10:10:00Z', last_improvement: null },
+        { label: 'B', points_max: 100, best: 50, attempts: 2, wrong: 1, first_ac_at: null, last_improvement: null },
+      ],
+    },
+    {
+      rank: 2,
+      user: { id: 2, username: 'admin_e2e' },
+      score: 40,
+      solved: 0,
+      penalty_minutes: null,
+      problems: [
+        { label: 'A', points_max: 100, best: 40, attempts: 3, wrong: 2, first_ac_at: null, last_improvement: null },
+        { label: 'B', points_max: 100, best: 0, attempts: 0, wrong: 0, first_ac_at: null, last_improvement: null },
+      ],
+    },
+  ],
+};
+
+const MOCK_RATINGS = [
+  {
+    user: { id: 1, username: 'e2e_tester' },
+    rating: 1512,
+    internal_rating: 1560,
+    rd: 40,
+    contests_count: 2,
+    band: { min: 1400, name_en: 'Specialist', name_ro: 'Specialist', color: '#0000ff' },
+  },
+];
+
+
 const MOCK_THREADS = [
   {
     id: 1,
@@ -425,6 +498,65 @@ const server = createServer((req, res) => {
       total_submissions: 6,
       ac_submissions: 4,
       last_solved_at: '2026-10-19T00:00:00Z',
+    });
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/api/v1/contests/contests/') {
+    json(res, 200, paged(MOCK_CONTESTS));
+    return;
+  }
+
+  const contestDetail = path.match(/^\/api\/v1\/contests\/contests\/(\d+)\/$/);
+  if (req.method === 'GET' && contestDetail) {
+    const contest = MOCK_CONTESTS.find((c) => c.id === Number(contestDetail[1]));
+    if (contest) {
+      json(res, 200, contest);
+    } else {
+      json(res, 404, { detail: 'Not found.' });
+    }
+    return;
+  }
+
+  const contestRegister = path.match(/^\/api\/v1\/contests\/contests\/(\d+)\/register\/$/);
+  if (req.method === 'POST' && contestRegister) {
+    if (!sessionUser(req)) {
+      json(res, 401, { detail: 'Authentication credentials were not provided.' });
+      return;
+    }
+    json(res, 201, { contest: Number(contestRegister[1]), user: sessionUser(req).id });
+    return;
+  }
+
+  const contestProblems = path.match(/^\/api\/v1\/contests\/contests\/(\d+)\/problems\/$/);
+  if (req.method === 'GET' && contestProblems) {
+    json(res, 200, MOCK_CONTEST_PROBLEMS);
+    return;
+  }
+
+  const contestStandings = path.match(/^\/api\/v1\/contests\/contests\/(\d+)\/standings\/$/);
+  if (req.method === 'GET' && contestStandings) {
+    json(res, 200, MOCK_STANDINGS);
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/api/v1/ratings/ratings/') {
+    json(res, 200, paged(MOCK_RATINGS));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/api/v1/ratings/ratings/me/') {
+    if (!sessionUser(req)) {
+      json(res, 401, { detail: 'Authentication credentials were not provided.' });
+      return;
+    }
+    json(res, 200, {
+      rated: true,
+      rating: 1512,
+      internal_rating: 1560,
+      rd: 40,
+      contests_count: 2,
+      band: { min: 1400, name_en: 'Specialist', name_ro: 'Specialist', color: '#0000ff' },
     });
     return;
   }
