@@ -21,6 +21,11 @@ import {
   ClassMembershipRow,
   ClassRoom,
   ClassroomAssignment,
+  DeliverableRow,
+  ExamModeStatus,
+  MCQItemRow,
+  QuizSheet,
+  QuizSubmitResult,
   Contest,
   ContestProblemRow,
   CreateSubmissionResponse,
@@ -680,6 +685,34 @@ export const ClassroomService = {
         apiFetch<void>(`/classroom/assignments/${id}/`, { method: 'DELETE' }),
     getAssignment: (id: number | string) =>
         apiFetch<ClassroomAssignment>(`/classroom/assignments/${id}/`),
+    getMcqItems: (params: { discipline?: string; grade?: string; bacYear?: string } = {}) => {
+        const search = new URLSearchParams(
+            Object.entries(params).filter(([, v]) => v !== undefined) as [string, string][]
+        );
+        return apiFetch<PaginatedResponse<MCQItemRow>>(
+            `/classroom/mcq/?${search.toString()}`
+        );
+    },
+    getQuizSheet: (id: number | string) =>
+        apiFetch<QuizSheet>(`/classroom/assignments/${id}/quiz/`),
+    submitQuiz: (id: number | string, answers: Record<string, number>) =>
+        apiFetch<QuizSubmitResult>(`/classroom/assignments/${id}/quiz/submit/`, {
+            method: 'POST',
+            body: JSON.stringify({ answers }),
+        }),
+    getDeliverables: (id: number | string) =>
+        apiFetch<{ assignment: number; results: DeliverableRow[] }>(
+            `/classroom/assignments/${id}/deliverables/`
+        ),
+    uploadDeliverable: (id: number | string, file: File) => {
+        const form = new FormData();
+        form.append('file', file);
+        return apiFetch<{ id: number; original_filename: string }>(
+            `/classroom/assignments/${id}/deliverables/`,
+            { method: 'POST', body: form }
+        );
+    },
+    getExamMode: () => apiFetch<ExamModeStatus>('/classroom/exam-mode/'),
     getGrid: (id: number | string) =>
         apiFetch<AssignmentGrid>(`/classroom/assignments/${id}/grid/`),
     getMyAssignments: () =>

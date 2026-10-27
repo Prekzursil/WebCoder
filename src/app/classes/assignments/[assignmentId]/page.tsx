@@ -6,7 +6,13 @@ import { useParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { ClassroomService } from '@/services/ApiService';
 import { useAuth } from '@/context/AuthContext';
-import { AssignmentGrid, ClassroomAssignment } from '@/types/api';
+import {
+    AssignmentGrid,
+    ClassroomAssignment,
+    DeliverableRow,
+    QuizSheet,
+    QuizSubmitResult,
+} from '@/types/api';
 import { palette } from '@/theme/tokens';
 import EmptyState from '@/components/common/EmptyState';
 import PageHeader from '@/components/common/PageHeader';
@@ -24,6 +30,12 @@ export default function AssignmentDetailPage() {
     const [assignment, setAssignment] = useState<ClassroomAssignment | null>(null);
     const [grid, setGrid] = useState<AssignmentGrid | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [sheet, setSheet] = useState<QuizSheet | null>(null);
+    const [answers, setAnswers] = useState<Record<string, number>>({});
+    const [quizResult, setQuizResult] = useState<QuizSubmitResult | null>(null);
+    const [quizError, setQuizError] = useState<string | null>(null);
+    const [deliverables, setDeliverables] = useState<DeliverableRow[] | null>(null);
+    const [uploadError, setUploadError] = useState<string | null>(null);
 
     const load = useCallback(async () => {
         if (!assignmentId) return;
@@ -37,6 +49,21 @@ export default function AssignmentDetailPage() {
             } catch {
                 setGrid(null);
             }
+            if (a.kind === 'QUIZ') {
+                try {
+                    setSheet(await ClassroomService.getQuizSheet(assignmentId));
+                } catch {
+                    setSheet(null);
+                }
+            }
+            if (a.kind === 'FILES') {
+                try {
+                    const rows = await ClassroomService.getDeliverables(assignmentId);
+                    setDeliverables(rows.results);
+                } catch {
+                    setDeliverables([]);
+                }
+            }
         } catch (err) {
             setError(
                 err instanceof Error && err.message
@@ -49,6 +76,28 @@ export default function AssignmentDetailPage() {
     useEffect(() => {
         if (auth.isAuthenticated) load();
     }, [auth.isAuthenticated, load]);
+
+    const submitQuiz = async () => {
+        if (!assignmentId) return;
+        setQuizError(null);
+        try {
+            setQuizResult(await ClassroomService.submitQuiz(assignmentId, answers));
+        } catch (err) {
+            setQuizError(err instanceof Error ? err.message : String(err));
+        }
+    };
+
+    const uploadFile = async (file: File | undefined) => {
+        if (!assignmentId || !file) return;
+        setUploadError(null);
+        try {
+            await ClassroomService.uploadDeliverable(assignmentId, file);
+            const rows = await ClassroomService.getDeliverables(assignmentId);
+            setDeliverables(rows.results);
+        } catch (err) {
+            setUploadError(err instanceof Error ? err.message : String(err));
+        }
+    };
 
     if (!auth.isAuthenticated) {
         return (
@@ -96,6 +145,128 @@ export default function AssignmentDetailPage() {
                 </p>
             )}
 
+            {assignment.kind === 'QUIZ' && sheet && (
+                <section
+                    aria-label={t('assignment_quiz', 'Quiz')}
+                    data-testid="quiz-section"
+                    style={{ marginBottom: 20 }}
+                >
+                    <h2 style={{ fontSize: '1.1rem' }}>
+                        {t('assignment_quiz', 'Quiz')}
+                        {sheet.state === 'OPEN' ? '' : ' · ' + t('assignment_quiz_closed', 'closed')}
+                    </h2>
+                    {sheet.items.map((entry, index) => {
+                        const variants =
+                            lang === 'ro' && entry.variants_ro.length
+                                ? entry.variants_ro
+                                : entry.variants_en;
+                        const question = String(
+                            entry.question_i18n[lang] ?? entry.question_i18n.en ?? ''
+                        );
+                        return (
+                            <fieldset
+                                key={entry.item_id}
+                                style={{
+                                    border: `1px solid ${palette.border}`,
+                                    borderRadius: 8,
+                                    padding: '10px 14px',
+                                    marginBottom: 12,
+                                }}
+                            >
+                                <legend style={{ fontWeight: 600, padding: '0 6px' }}>
+                                    {index + 1}. {question}
+                                </legend>
+                                {variants.map((variant, choiceIndex) => (
+                                    <label
+                                        key={choiceIndex}
+                                        style={{ display: 'block', padding: '4px 0' }}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name={`item-${entry.item_id}`}
+                                            checked={
+                                                answers[String(entry.item_id)] === choiceIndex
+                                            }
+                                            onChange={() =>
+                                                setAnswers((prev) => ({
+                                                    ...prev,
+                                                    [String(entry.item_id)]: choiceIndex,
+                                                }))
+                                            }
+                                            style={{ marginRight: 8 }}
+                                        />
+                                        {variant}
+                                    </label>
+                                ))}
+                            </fieldset>
+                        );
+                    })}
+                    {sheet.state === 'OPEN' && !isTeacherView && (
+                        <button
+                            type="button"
+                            onClick={submitQuiz}
+                            data-testid="quiz-submit"
+                            style={{ padding: '8px 18px' }}
+                        >
+                            {t('assignment_quiz_submit', 'Submit answers')}
+                        </button>
+                    )}
+                    {quizError && (
+                        <p role="alert" style={{ color: palette.danger }}>
+                            {quizError}
+                        </p>
+                    )}
+                    {quizResult && (
+                        <p data-testid="quiz-result" style={{ color: palette.success }}>
+                            {t('assignment_quiz_score', 'Score')}:{' '}
+                            {Math.round(quizResult.score * 100)}% (
+                            {quizResult.correct_count}/{quizResult.total_count})
+                        </p>
+                    )}
+                </section>
+            )}
+
+            {assignment.kind === 'FILES' && (
+                <section
+                    aria-label={t('assignment_files', 'Files')}
+                    data-testid="files-section"
+                    style={{ marginBottom: 20 }}
+                >
+                    <h2 style={{ fontSize: '1.1rem' }}>
+                        {t('assignment_files', 'Files')}
+                        {assignment.file_extensions
+                            ? ` (${assignment.file_extensions}, ≤ ${assignment.max_file_mb} MB)`
+                            : ''}
+                    </h2>
+                    {!isTeacherView && assignment.state === 'OPEN' && (
+                        <input
+                            type="file"
+                            aria-label={t('assignment_upload', 'Upload')}
+                            onChange={(event) => uploadFile(event.target.files?.[0])}
+                        />
+                    )}
+                    {uploadError && (
+                        <p role="alert" style={{ color: palette.danger }}>
+                            {uploadError}
+                        </p>
+                    )}
+                    {(deliverables ?? []).length === 0 ? (
+                        <p style={{ color: palette.muted }}>
+                            {t('assignment_no_files', 'No files uploaded yet.')}
+                        </p>
+                    ) : (
+                        <ul>
+                            {(deliverables ?? []).map((row) => (
+                                <li key={row.id}>
+                                    {row.student.username} — {row.original_filename}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </section>
+            )}
+
+            {assignment.kind === 'PROBLEMS' && (
             <section aria-label={t('assignment_problems', 'Problems')} style={{ marginBottom: 20 }}>
                 <h2 style={{ fontSize: '1.1rem' }}>{t('assignment_problems', 'Problems')}</h2>
                 {(assignment.assignment_problems ?? []).length === 0 ? (
@@ -130,6 +301,7 @@ export default function AssignmentDetailPage() {
                     </table>
                 )}
             </section>
+            )}
 
             {isTeacherView && grid && (
                 <section aria-label={t('assignment_grid', 'Progress grid')}>
