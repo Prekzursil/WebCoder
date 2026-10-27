@@ -9,7 +9,7 @@ Item-level tracker of record. Statuses: `shipped (PR #N)` · `in-flight (wave X)
 26. RO curriculum tree (grades 5–12) · 27. Admitere tracks · 28. Olympiad ladder · 29. Spaced-repeat review · 30. Skill graph w/ prerequisites · 31. Guided first-solve ladder · 32. Algorithm visualizers · 33. Theory cards · 34. Practice plan generator · 35. Mistake-pattern profile · 36. Read-the-code quizzes · 37. Fill-the-line micro-exercises · 38. Complexity drills · 39. Teacher collections · 40. Daily warmup katas · 41. Exam PDF export · 42. Parent report cards · 43. Class effort leaderboards · 44. Class failure heatmaps · 45. Structured courses (Scratch→Python first)
 
 ## C. Contests & ratings — wave F
-46. Virtual contests · 47. Upsolving mode · 48. Hacks/counter-test phase · 49. Team contests · 50. School cups · 51. Rating graphs w/ annotations · 52. Percentiles (country/school) · 53. Divisions w/ promotion · 54. Long contests · 55. Self-prediction calibration · 56. Contest commentaries · 57. Replay a user's contest · 58. Frozen-board drama page
+46. Virtual contests — shipped (Wave C PR, CON-5) · 47. Upsolving mode — shipped (Wave C PR, CON-5 archive gate) · 48. Hacks/counter-test phase · 49. Team contests · 50. School cups · 51. Rating graphs w/ annotations · 52. Percentiles (country/school) · 53. Divisions w/ promotion — first increment shipped (Wave C PR, CON-7 rating bands; promotion cutoffs still planned) · 54. Long contests · 55. Self-prediction calibration · 56. Contest commentaries · 57. Replay a user's contest · 58. Frozen-board drama page
 
 ## D. Community & content — wave F
 59. Editorials system (hint ladder, locked-until-solved) · 60. Per-problem discuss (spoiler-gated) · 61. Solution sharing w/ licenses · 62. User blogs · 63. RO-first algorithm wiki · 64. Explain-my-WA queue · 65. Follow + feeds · 66. Contributor reputation · 67. Community awards · 68. Medalist AMAs · 69. Problem-request board · 70. Setter CVs · 71. Shareable solve cards · 72. Embeddable problem widgets
@@ -24,7 +24,7 @@ Item-level tracker of record. Statuses: `shipped (PR #N)` · `in-flight (wave X)
 101. Heat calendar · 102. Per-problem language stats · 103. Live difficulty calibration · 104. Time-of-day charts · 105. Org dashboards · 106. Public API v1 · 107. Webhooks · 108. GDPR data export · 109. A/B framework · 110. Search analytics · 111. Funnel dashboards · 112. Season reports
 
 ## H. Integrity & safety — wave G
-113. Plagiarism detection (MOSS/JPlag) · 114. Boilerplate detection · 115. Multi-account heuristics · 116. AI-solution labeling/policy · 117. Abuse queue + SLA · 118. Moderation appeals + audit trail · 119. Bug bounty page · 120. Verifiable participation certificates
+113. Plagiarism detection (MOSS/JPlag) · 114. Boilerplate detection · 115. Multi-account heuristics · 116. AI-solution labeling/policy · 117. Abuse queue + SLA · 118. Moderation appeals + audit trail · 119. Bug bounty page · 120. Verifiable participation certificates (contest medals shipped as their first increment — Wave C CON-11)
 
 ## I. Authoring & content ops — wave F
 121. Visual authoring wizard · 122. Testcase generator DSL · 123. Statement linter · 124. EN+translation sidecar authoring · 125. Problem versioning/changelog · 126. Variant families · 127. Polygon-format import · 128. Statement attachments · 129. Advanced search w/ saved queries · 130. Source attribution + licensing field · 131. Scheduled content drops · 132. Author analytics · 133. Testcase bounties · 134. Readability scoring

@@ -62,3 +62,27 @@ test.describe('contests surface (mock api)', () => {
     await expect(page.getByRole('link', { name: 'Ratings' })).toBeVisible();
   });
 });
+
+test.describe('contests depth (Wave C: CON-5 virtual + CON-11 medals, mock api)', () => {
+  test('finished contest: awards strip, board section toggle, virtual start', async ({
+    page,
+  }) => {
+    await login(page);
+    await page.goto('/contests/3');
+
+    // CON-11 medal strip renders beside the final standings.
+    await expect(page.getByTestId('contest-awards')).toContainText('alice_e2e');
+
+    // CON-5: the standings section switch exists and refetches the virtual board.
+    await expect(page.getByTestId('board-section-official')).toBeVisible();
+    await page.getByTestId('board-section-virtual').click();
+    await expect(page.getByTestId('board-section-virtual')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+
+    // CON-5: an authenticated user may start a virtual replay.
+    await page.getByTestId('virtual-start-button').click();
+    await expect(page.getByTestId('virtual-active-note')).toBeVisible();
+  });
+});

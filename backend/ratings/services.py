@@ -33,12 +33,13 @@ def _final_rank_map(contest: Contest) -> dict[int, int] | None:
     nobody contested moves no ratings.
     """
     participations = ContestParticipation.objects.filter(
-        contest=contest, is_disqualified=False
+        contest=contest, is_disqualified=False, is_virtual=False
     ).select_related("user")
     by_part = {}
     score_rows = ContestScore.objects.filter(
         participation__contest=contest,
         participation__is_disqualified=False,
+        participation__is_virtual=False,
     ).select_related("participation", "contest_problem")
     for row in score_rows:
         by_part.setdefault(row.participation_id, []).append(

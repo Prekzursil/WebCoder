@@ -84,7 +84,17 @@ export interface User {
   id: number;
   username: string;
   email: string;
-  role: 'BASIC_USER' | 'PROBLEM_CREATOR' | 'PROBLEM_VERIFIER' | 'TEACHER' | 'ADMIN';
+  // Backend serializes the SHORT TextChoices values (BASIC/CREATOR/
+  // VERIFIER/TEACHER/ADMIN); the long spellings are legacy tolerance.
+  role:
+    | 'BASIC'
+    | 'CREATOR'
+    | 'VERIFIER'
+    | 'TEACHER'
+    | 'ADMIN'
+    | 'BASIC_USER'
+    | 'PROBLEM_CREATOR'
+    | 'PROBLEM_VERIFIER';
 }
 
 export interface AdminUserType extends User {

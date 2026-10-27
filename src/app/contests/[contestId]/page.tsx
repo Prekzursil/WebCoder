@@ -4,17 +4,20 @@ import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { ContestService } from '@/services/ApiService';
 import { useAuth } from '@/context/AuthContext';
 import UserChip from '@/components/common/UserChip';
 import {
     Clarification,
     Contest,
+    ContestAwardsResponse,
     ContestProblemRow,
     RatingChangeRow,
     StandingsResponse,
 } from '@/types/api';
 import { palette, hexAlpha } from '@/theme/tokens';
+import * as themeTokens from '@/theme/tokens';
 import EmptyState from '@/components/common/EmptyState';
 import PageHeader from '@/components/common/PageHeader';
 
@@ -38,6 +41,8 @@ export default function ContestDetailPage() {
     const [clarifications, setClarifications] = useState<Clarification[] | null>(null);
     const [question, setQuestion] = useState('');
     const [ratingChanges, setRatingChanges] = useState<RatingChangeRow[] | null>(null);
+    const [boardSection, setBoardSection] = useState<'official' | 'virtual'>('official');
+    const [awards, setAwards] = useState<ContestAwardsResponse | null>(null);
 
     const loadContest = useCallback(async () => {
         if (!contestId) return;
@@ -70,7 +75,11 @@ export default function ContestDetailPage() {
                     const rows = await ContestService.getProblems(contestId);
                     setProblems(rows);
                 } else if (which === 'standings') {
-                    const board = await ContestService.getStandings(contestId);
+                    const board = await ContestService.getStandings(
+                        contestId,
+                        1,
+                        boardSection
+                    );
                     setStandings(board);
                 } else if (which === 'clarifications') {
                     const data = await ContestService.getClarifications(contestId);
@@ -87,12 +96,26 @@ export default function ContestDetailPage() {
                 );
             }
         },
-        [contestId, t]
+        [contestId, boardSection, t]
     );
 
     useEffect(() => {
         if (contest) loadTab(tab);
     }, [contest, tab, loadTab]);
+
+    // CON-11: the medal table appears with the final standings.
+    useEffect(() => {
+        if (!contestId || !contest || contest.state !== 'FINISHED') return;
+        let cancelled = false;
+        ContestService.getAwards(contestId)
+            .then((data) => {
+                if (!cancelled) setAwards(data);
+            })
+            .catch(() => setAwards(null));
+        return () => {
+            cancelled = true;
+        };
+    }, [contestId, contest]);
 
     const register = async () => {
         if (!contestId) return;
@@ -110,6 +133,17 @@ export default function ContestDetailPage() {
         setActionError(null);
         try {
             await ContestService.startPersonalClock(contestId);
+            await loadContest();
+        } catch (err) {
+            setActionError(err instanceof Error ? err.message : String(err));
+        }
+    };
+
+    const startVirtual = async () => {
+        if (!contestId) return;
+        setActionError(null);
+        try {
+            await ContestService.startVirtual(contestId);
             await loadContest();
         } catch (err) {
             setActionError(err instanceof Error ? err.message : String(err));
@@ -177,7 +211,11 @@ export default function ContestDetailPage() {
                 title={String(contest.title_i18n[lang] ?? contest.title_i18n.en ?? '')}
                 subtitle={`${fmt(contest.start_at)} → ${fmt(contest.end_at)} · ${contest.format}${
                     contest.is_rated ? ` · ★ ${t('contest_rated', 'Rated')}` : ''
-                }${contest.is_window ? ` · ⏱ ${t('contest_windowed', 'Windowed')} (${contest.per_user_duration_minutes} min)` : ''}`}
+                }${contest.is_window ? ` · ⏱ ${t('contest_windowed', 'Windowed')} (${contest.per_user_duration_minutes} min)` : ''}${
+                    contest.rated_rating_min != null || contest.rated_rating_max != null
+                        ? ` · ${t('contest_division', 'Division')}: ${contest.rated_rating_min ?? 0}–${contest.rated_rating_max ?? '∞'}`
+                        : ''
+                }`}
             />
 
             {disqualified && (
@@ -204,6 +242,29 @@ export default function ContestDetailPage() {
                 {registered && contest.my_participation?.virtual_start && (
                     <span style={{ color: palette.muted, alignSelf: 'center' }}>
                         {t('contest_personal_end', 'My deadline:')}{' '}
+                        {fmt(contest.my_participation.effective_end)}
+                    </span>
+                )}
+                {auth.isAuthenticated &&
+                contest.state === 'FINISHED' &&
+                !contest.is_window &&
+                !contest.pretest_mode &&
+                !contest.my_participation?.is_virtual ? (
+                    <button
+                        type="button"
+                        onClick={startVirtual}
+                        data-testid="virtual-start-button"
+                        style={{ padding: '8px 18px' }}
+                    >
+                        ▶ {t('contest_virtual_start', 'Practice virtually')}
+                    </button>
+                ) : null}
+                {contest.my_participation?.is_virtual && (
+                    <span
+                        data-testid="virtual-active-note"
+                        style={{ color: palette.accent, alignSelf: 'center', fontWeight: 600 }}
+                    >
+                        {t('contest_virtual_running', 'Virtual replay running — ends')}{' '}
                         {fmt(contest.my_participation.effective_end)}
                     </span>
                 )}
@@ -279,87 +340,66 @@ export default function ContestDetailPage() {
                 )
             )}
 
-            {tab === 'standings' && (
-                standings === null ? (
+            {tab === 'standings' &&
+                (standings === null ? (
                     <p aria-busy="true">{t('contest_loading', 'Loading contest…')}</p>
-                ) : (standings.count ?? 0) === 0 ? (
-                    <EmptyState
-                        title={t('contest_no_standings', 'Nobody on the board yet')}
-                        description={t(
-                            'contest_register_first',
-                            'Register and submit to appear on the scoreboard.'
-                        )}
-                    />
                 ) : (
                     <>
-                        {standings.frozen && (
-                            <p
-                                data-testid="standings-frozen-note"
-                                style={{ color: palette.warn, fontWeight: 600 }}
+                        {contest.state === 'FINISHED' && (
+                            <div
+                                style={{ display: 'flex', gap: 6, marginBottom: 10 }}
+                                role="group"
+                                aria-label={t('contest_board_section', 'Standings section')}
                             >
-                                ❄ {t('contest_frozen', 'Scoreboard frozen — final standings after the contest ends.')}
+                                {(['official', 'virtual'] as const).map((section) => (
+                                    <button
+                                        key={section}
+                                        type="button"
+                                        onClick={() => setBoardSection(section)}
+                                        aria-pressed={boardSection === section}
+                                        data-testid={`board-section-${section}`}
+                                        style={{
+                                            padding: '4px 12px',
+                                            borderRadius: 8,
+                                            border: `1px solid ${
+                                                boardSection === section
+                                                    ? palette.accent
+                                                    : palette.border
+                                            }`,
+                                            background:
+                                                boardSection === section
+                                                    ? hexAlpha(palette.accent, 0.15)
+                                                    : 'transparent',
+                                            cursor: 'pointer',
+                                        }}
+                                    >
+                                        {section === 'official'
+                                            ? t('contest_board_official', 'Official')
+                                            : t('contest_board_virtual', 'Virtual replays')}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                        {awards && awards.count > 0 && boardSection === 'official' && (
+                            <p
+                                data-testid="contest-awards"
+                                style={{ marginBottom: 10, color: palette.muted }}
+                            >
+                                {awards.results.map((a) => (
+                                    <span key={a.user.id} style={{ marginRight: 12 }}>
+                                        {a.medal === 'GOLD'
+                                            ? '🥇'
+                                            : a.medal === 'SILVER'
+                                                ? '🥈'
+                                                : '🥉'}{' '}
+                                        {a.user.username}
+                                    </span>
+                                ))}
                             </p>
                         )}
-                        <div style={{ overflowX: 'auto' }}>
-                            <table style={{ minWidth: 640, width: '100%', borderCollapse: 'collapse' }}>
-                                <thead>
-                                    <tr style={{ textAlign: 'left', color: palette.muted }}>
-                                        <th style={{ padding: 8 }}>#</th>
-                                        <th>{t('contest_participant', 'Participant')}</th>
-                                        {standings.results[0]?.problems.map((cell) => (
-                                            <th key={cell.label} style={{ padding: 8 }}>
-                                                {cell.label}
-                                            </th>
-                                        ))}
-                                        <th>{t('contest_score', 'Score')}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {standings.results.map((row) => (
-                                        <tr
-                                            key={row.user.id}
-                                            style={{ borderTop: `1px solid ${palette.border}` }}
-                                            data-testid={`standings-row-${row.user.username}`}
-                                        >
-                                            <td style={{ padding: 8 }}>{row.rank}</td>
-                                            <td style={{ padding: 8 }}>
-                                                <UserChip username={row.user.username} href={`/profile/${row.user.id}`} />
-                                            </td>
-                                            {row.problems.map((cell) => (
-                                                <td
-                                                    key={cell.label}
-                                                    style={{
-                                                        padding: 8,
-                                                        color:
-                                                            cell.best >= cell.points_max && cell.points_max > 0
-                                                                ? palette.success
-                                                                : cell.best > 0
-                                                                    ? palette.warn
-                                                                    : 'inherit',
-                                                    }}
-                                                    title={
-                                                        cell.attempts > 0
-                                                            ? t('contest_attempts', '{{count}} attempts', {
-                                                                  count: cell.attempts,
-                                                              })
-                                                            : undefined
-                                                    }
-                                                >
-                                                    {cell.points_max > 0 &&
-                                                    cell.best >= cell.points_max
-                                                        ? `✓ ${cell.best}`
-                                                        : cell.best}
-                                                </td>
-                                            ))}
-                                            <td style={{ padding: 8, fontWeight: 700 }}>{row.score}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                        <StandingsBoard standings={standings} t={t} />
                     </>
-                )
-            )}
+                ))}
 
             {tab === 'clarifications' && (
                 <section>
@@ -478,5 +518,101 @@ export default function ContestDetailPage() {
                 )
             )}
         </main>
+    );
+}
+
+interface StandingsBoardProps {
+    standings: StandingsResponse;
+    // The page's i18next t(), passed in so this stays a pure component.
+    t: TFunction;
+}
+
+function StandingsBoard({ standings, t }: StandingsBoardProps) {
+    const { palette: colors } = themeTokens;
+    if ((standings.count ?? 0) === 0) {
+        return (
+            <EmptyState
+                title={t('contest_no_standings', 'Nobody on the board yet')}
+                description={t(
+                    'contest_register_first',
+                    'Register and submit to appear on the scoreboard.'
+                )}
+            />
+        );
+    }
+    return (
+        <>
+            {standings.frozen && (
+                <p
+                    data-testid="standings-frozen-note"
+                    style={{ color: colors.warn, fontWeight: 600 }}
+                >
+                    ❄{' '}
+                    {t(
+                        'contest_frozen',
+                        'Scoreboard frozen — final standings after the contest ends.'
+                    )}
+                </p>
+            )}
+            <div style={{ overflowX: 'auto' }}>
+                <table style={{ minWidth: 640, width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                        <tr style={{ textAlign: 'left', color: colors.muted }}>
+                            <th style={{ padding: 8 }}>#</th>
+                            <th>{t('contest_participant', 'Participant')}</th>
+                            {standings.results[0]?.problems.map((cell) => (
+                                <th key={cell.label} style={{ padding: 8 }}>
+                                    {cell.label}
+                                </th>
+                            ))}
+                            <th>{t('contest_score', 'Score')}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {standings.results.map((row) => (
+                            <tr
+                                key={row.user.id}
+                                style={{ borderTop: `1px solid ${colors.border}` }}
+                                data-testid={`standings-row-${row.user.username}`}
+                            >
+                                <td style={{ padding: 8 }}>{row.rank}</td>
+                                <td style={{ padding: 8 }}>
+                                    <UserChip
+                                        username={row.user.username}
+                                        href={`/profile/${row.user.id}`}
+                                    />
+                                </td>
+                                {row.problems.map((cell) => (
+                                    <td
+                                        key={cell.label}
+                                        style={{
+                                            padding: 8,
+                                            color:
+                                                cell.best >= cell.points_max && cell.points_max > 0
+                                                    ? colors.success
+                                                    : cell.best > 0
+                                                        ? colors.warn
+                                                        : 'inherit',
+                                        }}
+                                        title={
+                                            cell.attempts > 0
+                                                ? t('contest_attempts', '{{count}} attempts', {
+                                                      count: cell.attempts,
+                                                  })
+                                                : undefined
+                                        }
+                                    >
+                                        {cell.points_max > 0 && cell.best >= cell.points_max
+                                            ? `✓ ${cell.best}`
+                                            : cell.best}
+                                    </td>
+                                ))}
+                                <td style={{ padding: 8, fontWeight: 700 }}>{row.score}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </>
     );
 }

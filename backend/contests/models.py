@@ -111,6 +111,20 @@ class Contest(models.Model):
     editorial_delay_minutes = models.PositiveIntegerField(
         _("editorial delay (minutes)"), default=0
     )
+    # Divisions (CON-7): optional display-rating band for registration —
+    # the USACO/CodeChef-style eligibility gate. Blank = open division.
+    rated_rating_min = models.PositiveIntegerField(
+        _("minimum display rating"),
+        null=True,
+        blank=True,
+        help_text=_("Registration gate: caller's display rating must be >= this."),
+    )
+    rated_rating_max = models.PositiveIntegerField(
+        _("maximum display rating"),
+        null=True,
+        blank=True,
+        help_text=_("Registration gate: caller's display rating must be <= this."),
+    )
 
     # Set once by the finalize beat task when the contest ends: marks that
     # the end-of-contest pass (full-suite rejudge of pretest submissions)
@@ -222,6 +236,10 @@ class ContestParticipation(models.Model):
     # Windowed contests (CON-6): set by POST /contests/{id}/start/; the
     # personal deadline is min(virtual_start + duration, contest.end_at).
     virtual_start = models.DateTimeField(_("personal start"), null=True, blank=True)
+    # CON-5 virtual participation: a replay sitting on a FINISHED contest
+    # under a personal clock. Virtual rows never appear in official
+    # standings/ratings — they rank in their own section.
+    is_virtual = models.BooleanField(_("virtual (replay)"), default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     # Contest integrity (round-2 SAF-2): organizers can DQ a participation;
     # disqualified rows keep their scores but vanish from standings/ratings.
@@ -232,7 +250,19 @@ class ContestParticipation(models.Model):
         verbose_name = _("contest participation")
         verbose_name_plural = _("contest participations")
         constraints = [
-            models.UniqueConstraint(fields=["contest", "user"], name="unique_contest_user")
+            # CON-5: one OFFICIAL sitting and one VIRTUAL replay may coexist
+            # for the same (contest, user) — official standings and the
+            # virtual board read disjoint row sets.
+            models.UniqueConstraint(
+                fields=["contest", "user"],
+                condition=models.Q(is_virtual=False),
+                name="unique_official_participation",
+            ),
+            models.UniqueConstraint(
+                fields=["contest", "user"],
+                condition=models.Q(is_virtual=True),
+                name="unique_virtual_participation",
+            ),
         ]
 
     def __str__(self):
@@ -245,6 +275,10 @@ class ContestParticipation(models.Model):
         from datetime import timedelta
 
         contest = self.contest
+        if self.is_virtual and self.virtual_start:
+            # CON-5: a virtual replay runs the contest's own length from
+            # the personal start — the original end_at no longer bounds it.
+            return self.virtual_start + timedelta(minutes=contest.duration)
         if contest.is_window and self.virtual_start:
             return min(
                 self.virtual_start + timedelta(minutes=contest.per_user_duration_minutes),
@@ -255,6 +289,26 @@ class ContestParticipation(models.Model):
     def window_open(self, now=None) -> bool:
         now = now or timezone.now()
         return self.effective_start() <= now < self.effective_end()
+
+    @classmethod
+    def for_submission(cls, contest, user_id: int, at):
+        """The participation a submission at *at* belongs to (CON-5).
+
+        Picks the sitting whose personal window covers the instant — after
+        finalize that is the virtual replay, during the contest the official
+        sitting. Falls back to the official row so callers can emit their
+        "window not open" errors instead of "not registered".
+        """
+        candidates = cls.objects.filter(contest=contest, user_id=user_id)
+        for part in candidates:
+            if part.effective_start() <= at < part.effective_end():
+                return part
+        # No covering window: prefer the virtual replay (post-contest the
+        # caller is asking about their replay clock), else the official row
+        # so the caller can surface its "window not open" error.
+        return candidates.filter(is_virtual=True).first() or candidates.filter(
+            is_virtual=False
+        ).first()
 
 
 class ContestScore(models.Model):
@@ -373,3 +427,44 @@ class Clarification(models.Model):
 
     def __str__(self):
         return f"clarification #{self.id} on contest {self.contest_id}"
+
+
+class ContestAward(models.Model):
+    """Post-contest medal (CON-11, HackerRank fixed-percentage model).
+
+    Computed once by the finalize task over the OFFICIAL standings (virtual
+    and disqualified participations excluded): the top ``GOLD_PERCENT`` of
+    finishers get gold, the next ``SILVER_PERCENT`` silver, the next
+    ``BRONZE_PERCENT`` bronze — the beloved cheap trophy that feeds profile
+    medals and future RAT-5 badges.
+    """
+
+    class Medal(models.TextChoices):
+        GOLD = "GOLD", _("Gold")
+        SILVER = "SILVER", _("Silver")
+        BRONZE = "BRONZE", _("Bronze")
+
+    contest = models.ForeignKey(
+        Contest, on_delete=models.CASCADE, related_name="awards"
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="contest_awards",
+    )
+    medal = models.CharField(_("medal"), max_length=6, choices=Medal.choices)
+    rank = models.PositiveIntegerField(
+        _("final rank"), help_text=_("Official standings position when awarded.")
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("contest award")
+        verbose_name_plural = _("contest awards")
+        ordering = ["contest", "rank"]
+        constraints = [
+            models.UniqueConstraint(fields=["contest", "user"], name="unique_award")
+        ]
+
+    def __str__(self):
+        return f"{self.medal} for user {self.user_id} on contest {self.contest_id}"

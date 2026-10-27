@@ -166,6 +166,17 @@ class SubmissionCreateSerializer(serializers.ModelSerializer):
             )
             if not ok:
                 raise serializers.ValidationError({"contest": error})
+        elif problem is not None:
+            # CON-5 archive gate: while the problem belongs to a contest that
+            # has not reverted to practice yet, the problem page stays shut
+            # (otherwise the live board leaks through practice submissions).
+            from contests.gating import practice_blocked_reason
+
+            reason = practice_blocked_reason(
+                problem, getattr(self.context.get("request"), "user", None)
+            )
+            if reason:
+                raise serializers.ValidationError({"problem": reason})
         return attrs
 
     def create(self, validated_data):

@@ -56,9 +56,9 @@ def record_verdict(submission: Submission) -> ContestScore | None:
     ).first()
     if cp is None:
         return None
-    participation = ContestParticipation.objects.filter(
-        contest=contest, user_id=submission.user_id
-    ).first()
+    participation = ContestParticipation.for_submission(
+        contest, submission.user_id, submission.submission_time
+    )
     if participation is None:
         return None
     if submission.submission_time < participation.effective_start():

@@ -16,7 +16,7 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models import Count
 from django.utils import timezone
-from rest_framework import permissions, status, viewsets
+from rest_framework import exceptions, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.response import Response
@@ -27,6 +27,7 @@ from users.permissions import IsAdminUser
 
 from .formats import rank_contest
 from .models import (
+    ContestAward,
     CLARIFICATION_CANNED_ANSWERS,
     Clarification,
     Contest,
@@ -77,6 +78,27 @@ def can_view_contest(user, contest) -> bool:
     ).exists()
 
 
+class CanCreateContest(permissions.BasePermission):
+    """CON-9: ADMIN/CREATOR/TEACHER may create contests (mashups).
+
+    CREATOR/TEACHER contests are forced PRIVATE + unrated by the serializer
+    — this gate only decides who can call create at all.
+    """
+
+    message = "Only admins, creators and teachers can create contests."
+
+    def has_permission(self, request, view):
+        user = request.user
+        if not (user and user.is_authenticated):
+            return False
+        return (
+            user.is_superuser
+            or user.is_staff
+            or user.role
+            in (User.Roles.ADMIN, User.Roles.PROBLEM_CREATOR, User.Roles.TEACHER)
+        )
+
+
 class ContestPagination(StandardPageNumberPagination):
     page_size = 20
 
@@ -95,11 +117,12 @@ class ContestViewSet(viewsets.ModelViewSet):
         # NOTE: action-level permission_classes would be shadowed by this
         # override (DRF sets them as view attributes), so the action sets
         # live HERE instead: public reads, participant actions, staff CRUD.
-        if self.action in ("list", "retrieve", "standings", "problems"):
+        if self.action in ("list", "retrieve", "standings", "problems", "awards"):
             return [permissions.AllowAny()]
         if self.action in (
             "register",
             "start",
+            "virtual_start",
             "unfreeze",
             "disqualify",
             "clarifications",
@@ -108,6 +131,12 @@ class ContestViewSet(viewsets.ModelViewSet):
         ):
             # Organizer-only actions check can_manage_contest() inside.
             return [permissions.IsAuthenticated()]
+        if self.action in ("create", "update", "partial_update", "destroy"):
+            # CON-9 mashups: CREATOR/TEACHER may create (PRIVATE + unrated
+            # enforced in the serializer) and then manage THEIR OWN contests
+            # (perform_update/perform_destroy enforce the organizer check);
+            # everything else stays admin-only.
+            return [permissions.IsAuthenticated(), CanCreateContest()]
         return [permissions.IsAuthenticated(), IsAdminUser()]
 
     def get_queryset(self):
@@ -149,6 +178,17 @@ class ContestViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
+    def perform_update(self, serializer):
+        # CON-9: organizers manage their own contests; admins anything.
+        if not can_manage_contest(self.request.user, serializer.instance):
+            raise exceptions.PermissionDenied("Organizer only.")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        if not can_manage_contest(self.request.user, instance):
+            raise exceptions.PermissionDenied("Organizer only.")
+        instance.delete()
 
     def retrieve(self, request, *args, **kwargs):
         contest = _fetch_contest(self.kwargs.get("pk"))
@@ -197,6 +237,16 @@ class ContestViewSet(viewsets.ModelViewSet):
                     },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+        # CON-7 divisions: rating-band eligibility (organizers bypass so
+        # they can always enter their own room).
+        from .awards import registration_rating_error
+
+        if not can_manage_contest(request.user, contest):
+            reason = registration_rating_error(contest, request.user)
+            if reason:
+                return Response(
+                    {"detail": reason}, status=status.HTTP_403_FORBIDDEN
+                )
         serializer = RegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         if contest.visibility == Contest.Visibility.PRIVATE:
@@ -206,7 +256,7 @@ class ContestViewSet(viewsets.ModelViewSet):
                     {"detail": "Invalid access code."}, status=status.HTTP_403_FORBIDDEN
                 )
         participation, created = ContestParticipation.objects.get_or_create(
-            contest=contest, user=request.user
+            contest=contest, user=request.user, is_virtual=False
         )
         if not created:
             return Response(
@@ -295,61 +345,18 @@ class ContestViewSet(viewsets.ModelViewSet):
         now = timezone.now()
         live = can_manage_contest(request.user, contest)
         frozen = (not live) and contest.freeze_at is not None
+        # CON-5: the official board never shows virtual replays; the
+        # ``?section=virtual`` board never shows official sittings.
+        section = request.query_params.get("section", "official")
+        virtual_board = section == "virtual"
 
-        score_rows = (
-            ContestScore.objects.filter(
-                participation__contest=contest,
-                participation__is_disqualified=False,
-            )
-            .select_related("participation__user", "contest_problem")
+        from .awards import build_ranking_input
+
+        # Freeze applies to the public OFFICIAL board only; the virtual
+        # board is by definition post-contest history.
+        ranking_input = build_ranking_input(
+            contest, virtual=virtual_board, frozen=frozen and not virtual_board
         )
-
-        participations = {}
-        problem_meta = {
-            cp.id: {"label": cp.label, "points": cp.points}
-            for cp in contest.contest_problems.all()
-        }
-        for row in score_rows:
-            part = row.participation
-            entry = participations.get(part.id)
-            if entry is None:
-                entry = participations[part.id] = {
-                    "user": part.user,
-                    "user_id": part.user_id,
-                    "start": part.effective_start(),
-                    "rows": [],
-                }
-            entry["rows"].append(
-                {
-                    "label": row.contest_problem.label,
-                    "points_max": row.contest_problem.points,
-                    "best": row.best_score_frozen if frozen else row.best_score,
-                    "attempts": row.attempts_frozen if frozen else row.attempts,
-                    "wrong": row.wrong_before_ac_frozen if frozen else row.wrong_before_ac,
-                    "first_ac_at": row.first_ac_at_frozen if frozen else row.first_ac_at,
-                    "last_improvement": (
-                        row.last_improvement_frozen if frozen else row.last_improvement
-                    ),
-                }
-            )
-
-        ranking_input = list(participations.values())
-        for entry in ranking_input:
-            # Every board problem gets a row so unsolved columns render.
-            seen = {r["label"] for r in entry["rows"]}
-            for meta in problem_meta.values():
-                if meta["label"] not in seen:
-                    entry["rows"].append(
-                        {
-                            "label": meta["label"],
-                            "points_max": meta["points"],
-                            "best": 0,
-                            "attempts": 0,
-                            "wrong": 0,
-                            "first_ac_at": None,
-                            "last_improvement": None,
-                        }
-                    )
         standings = rank_contest(contest, ranking_input)
 
         results = []
@@ -375,7 +382,100 @@ class ContestViewSet(viewsets.ModelViewSet):
         data = paginator.get_paginated_response(page).data
         data["format"] = contest.format
         data["frozen"] = frozen
+        data["section"] = "virtual" if virtual_board else "official"
         return Response(data)
+
+    @action(detail=True, methods=["post"], url_path="virtual-start")
+    def virtual_start(self, request, pk=None):
+        """CON-5: start (or resume) a virtual replay of a FINISHED contest.
+
+        The personal clock runs the contest's own length from now; contest-
+        bound submissions stay gated to it (gating.py). Pretest-mode and
+        windowed contests are excluded v1 — pretests need the systest pass
+        to score honestly and windowed contests already ARE personal-clock
+        contests while live.
+        """
+        contest = _fetch_contest(pk)
+        if contest is None or not can_view_contest(request.user, contest):
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        if contest.state() != Contest.State.FINISHED:
+            return Response(
+                {"detail": "Virtual participation opens after the contest ends."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if contest.is_window:
+            return Response(
+                {
+                    "detail": (
+                        "Windowed contests run on personal timers while live — "
+                        "replay them by re-registering next edition."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if contest.pretest_mode:
+            return Response(
+                {
+                    "detail": (
+                        "Pretest contests cannot be replayed virtually yet — "
+                        "solutions are judged on the full suite only via the "
+                        "final standings."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        now = timezone.now()
+        # A previous official sitting never blocks the replay — official and
+        # virtual rows coexist (disjoint standings sections). An existing
+        # virtual row resumes its clock idempotently.
+        participation = ContestParticipation.objects.filter(
+            contest=contest, user=request.user, is_virtual=True
+        ).first()
+        if participation is None:
+            participation = ContestParticipation.objects.create(
+                contest=contest, user=request.user, is_virtual=True, virtual_start=now
+            )
+            return Response(
+                {
+                    "virtual_start": participation.virtual_start,
+                    "effective_end": participation.effective_end(),
+                    "is_virtual": True,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+        return Response(
+            {
+                "virtual_start": participation.virtual_start,
+                "effective_end": participation.effective_end(),
+                "is_virtual": True,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=["get"])
+    def awards(self, request, pk=None):
+        """CON-11: medal table over the official standings (post-finalize)."""
+        contest = _fetch_contest(pk)
+        if contest is None or not can_view_contest(request.user, contest):
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        rows = (
+            ContestAward.objects.filter(contest=contest)
+            .select_related("user")
+            .order_by("rank")
+        )
+        return Response(
+            {
+                "count": rows.count(),
+                "results": [
+                    {
+                        "rank": a.rank,
+                        "medal": a.medal,
+                        "user": {"id": a.user.id, "username": a.user.username},
+                    }
+                    for a in rows
+                ],
+            }
+        )
 
     @action(detail=True, methods=["post"])
     def unfreeze(self, request, pk=None):

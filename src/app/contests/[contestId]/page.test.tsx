@@ -17,6 +17,8 @@ const api = vi.hoisted(() => ({
   getClarifications: vi.fn(),
   askClarification: vi.fn(),
   getRatingChanges: vi.fn(),
+  getAwards: vi.fn(),
+  startVirtual: vi.fn(),
 }));
 
 vi.mock('@/services/ApiService', () => ({
@@ -125,6 +127,7 @@ const RATING_CHANGES = {
 };
 
 beforeEach(() => {
+  api.getAwards.mockResolvedValue({ count: 0, results: [] });
   vi.clearAllMocks();
   api.getContest.mockResolvedValue(BASE);
   api.getProblems.mockResolvedValue(PROBLEMS);
@@ -208,5 +211,78 @@ describe('ContestDetailPage', () => {
     const chip = await screen.findByText('alice', { exact: false });
     expect(chip.textContent).toContain('(1460)');
     expect(screen.getByText('+60')).toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Wave C CON-5 / CON-11: virtual participation + medal table.
+// ---------------------------------------------------------------------------
+
+describe('ContestDetailPage virtual participation + awards', () => {
+  it('offers Practice virtually on a finished contest and starts the replay', async () => {
+    api.getContest.mockResolvedValue({
+      ...BASE,
+      state: 'FINISHED',
+      my_participation: null,
+    });
+    api.getStandings.mockResolvedValue({
+      ...STANDINGS,
+      frozen: false,
+      section: 'official',
+    });
+    api.startVirtual.mockResolvedValue({
+      virtual_start: '2026-11-02T10:00:00Z',
+      effective_end: '2026-11-02T12:00:00Z',
+      is_virtual: true,
+    });
+    render(<ContestDetailPage />);
+
+    const virtualButton = await screen.findByTestId('virtual-start-button');
+    expect(api.getAwards).toHaveBeenCalled();
+    fireEvent.click(virtualButton);
+    await waitFor(() => expect(api.startVirtual).toHaveBeenCalledWith('1'));
+  });
+
+  it('shows the running-virtual note when my_participation is a replay', async () => {
+    api.getContest.mockResolvedValue({
+      ...BASE,
+      state: 'FINISHED',
+      my_participation: {
+        virtual_start: '2026-11-02T10:00:00Z',
+        effective_start: '2026-11-02T10:00:00Z',
+        effective_end: '2026-11-02T12:00:00Z',
+        is_virtual: true,
+        is_disqualified: false,
+      },
+    });
+    api.getStandings.mockResolvedValue({ ...STANDINGS, frozen: false });
+    render(<ContestDetailPage />);
+
+    expect(await screen.findByTestId('virtual-active-note')).toBeInTheDocument();
+    expect(screen.queryByTestId('virtual-start-button')).not.toBeInTheDocument();
+  });
+
+  it('switches between official and virtual standings sections', async () => {
+    api.getContest.mockResolvedValue({ ...BASE, state: 'FINISHED' });
+    api.getStandings.mockResolvedValue({ ...STANDINGS, frozen: false });
+    render(<ContestDetailPage />);
+
+    await screen.findByTestId('board-section-official');
+    fireEvent.click(screen.getByTestId('board-section-virtual'));
+    await waitFor(() =>
+      expect(api.getStandings).toHaveBeenCalledWith('1', 1, 'virtual')
+    );
+  });
+
+  it('renders the medal strip when the contest awarded medals', async () => {
+    api.getContest.mockResolvedValue({ ...BASE, state: 'FINISHED' });
+    api.getStandings.mockResolvedValue({ ...STANDINGS, frozen: false });
+    api.getAwards.mockResolvedValue({
+      count: 1,
+      results: [{ rank: 1, medal: 'GOLD', user: { id: 2, username: 'alice' } }],
+    });
+    render(<ContestDetailPage />);
+
+    expect(await screen.findByTestId('contest-awards')).toHaveTextContent('alice');
   });
 });

@@ -54,6 +54,12 @@ def finalize_contest(contest_id: int) -> str:
 
     _schedule_ratings(contest)
 
+    # CON-11: medals over the official standings (materialized rows only —
+    # the staggered systest rejudge cannot race this read).
+    from .awards import compute_contest_awards
+
+    compute_contest_awards(contest)
+
     if not contest.pretest_mode:
         return f"contest {contest_id} finalized (no pretests to re-judge)"
 

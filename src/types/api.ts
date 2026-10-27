@@ -222,6 +222,8 @@ export interface Contest {
     is_window: boolean;
     per_user_duration_minutes: number;
     pretest_mode: boolean;
+    rated_rating_min: number | null;
+    rated_rating_max: number | null;
     created_by: number;
     created_by_username: string;
     state: 'UPCOMING' | 'RUNNING' | 'FINISHED';
@@ -232,6 +234,7 @@ export interface Contest {
         virtual_start: string | null;
         effective_start: string;
         effective_end: string;
+        is_virtual: boolean;
         is_disqualified: boolean;
     } | null;
     can_manage?: boolean;
@@ -271,6 +274,18 @@ export interface StandingsRow {
 export interface StandingsResponse extends PaginatedResponse<StandingsRow> {
     format: string;
     frozen: boolean;
+    section?: 'official' | 'virtual';
+}
+
+export interface ContestAwardRow {
+    rank: number;
+    medal: 'GOLD' | 'SILVER' | 'BRONZE';
+    user: { id: number; username: string };
+}
+
+export interface ContestAwardsResponse {
+    count: number;
+    results: ContestAwardRow[];
 }
 
 export interface Clarification {
