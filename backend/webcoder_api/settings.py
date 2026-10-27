@@ -97,6 +97,8 @@ INSTALLED_APPS = [
     "scratch",
     "contests",
     "ratings",
+    # Classroom (competitive roadmap Wave B: EDU-1/2/3).
+    "classroom",
 ]
 
 SITE_ID = 1

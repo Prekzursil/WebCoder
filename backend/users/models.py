@@ -13,6 +13,9 @@ class User(AbstractUser):
         BASIC_USER = "BASIC", _("Basic User")
         PROBLEM_CREATOR = "CREATOR", _("Problem Creator")
         PROBLEM_VERIFIER = "VERIFIER", _("Problem Verifier")
+        # EDU-1: granted by an ADMIN after teacher verification (school/email
+        # check) — never a self-service checkbox.
+        TEACHER = "TEACHER", _("Teacher")
         ADMIN = "ADMIN", _("Admin")  # Django's is_superuser can also denote admin
 
     # We can use Django's built-in groups and permissions for fine-grained control,
