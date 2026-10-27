@@ -2,27 +2,18 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { RATING_BAND_COLORS } from '@/theme/tokens';
 
 /**
  * RAT-3 (competitive roadmap): one chip renders a username + rating color
  * everywhere — standings, the ratings ladder, leaderboards. The band table
- * mirrors backend ratings/glicko.RATING_BANDS (single source of truth);
- * unmapped ratings render unstyled (gray default).
+ * lives in the theme tokens SSOT and mirrors backend
+ * ratings/glicko.RATING_BANDS; unmapped ratings render unstyled.
  */
-
-export const RATING_COLORS: { min: number; color: string }[] = [
-    { min: 2300, color: '#8b0000' },
-    { min: 2100, color: '#cc0000' },
-    { min: 1900, color: '#ff6600' },
-    { min: 1600, color: '#aa00aa' },
-    { min: 1400, color: '#0000ff' },
-    { min: 1200, color: '#008000' },
-    { min: 0, color: '#808080' },
-];
 
 export function ratingColor(rating: number | null | undefined): string | null {
     if (rating === null || rating === undefined) return null;
-    for (const band of RATING_COLORS) {
+    for (const band of RATING_BAND_COLORS) {
         if (rating >= band.min) return band.color;
     }
     return null;

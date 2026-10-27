@@ -57,6 +57,19 @@ export const palette = {
   brandGradient: 'linear-gradient(135deg, #38bdf8 0%, #818cf8 100%)',
 } as const;
 
+/** RAT-3 rating-band colors (Wave B): mirrors backend
+ * ratings/glicko.RATING_BANDS — the SSOT for handle colors everywhere
+ * (UserChip on standings, the ratings ladder, leaderboards). */
+export const RATING_BAND_COLORS: { min: number; color: string }[] = [
+  { min: 2300, color: '#8b0000' },
+  { min: 2100, color: '#cc0000' },
+  { min: 1900, color: '#ff6600' },
+  { min: 1600, color: '#aa00aa' },
+  { min: 1400, color: '#0000ff' },
+  { min: 1200, color: '#008000' },
+  { min: 0, color: '#808080' },
+];
+
 export const fontFamily = {
   sans: "'DM Sans', 'Manrope', system-ui, -apple-system, sans-serif",
   mono: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
