@@ -270,6 +270,21 @@ class CoverageClosureTests(CommunityDepthBase):
         # Already hidden with a reason: the mod's reason wins.
         self.assertEqual(post.hidden_reason, "mod action")
 
+    def test_apply_vote_rules_visible_post_with_stale_reason(self):
+        # Visible row carrying a stale reason string: hiding fires, the
+        # stale reason is kept (never overwritten silently).
+        thread = self.mk_thread(
+            self.creator, post_kwargs={"hidden_reason": "stale note"}
+        )
+        post = thread.posts.first()
+        from community_depth.services import apply_vote_rules
+
+        self.assertFalse(post.is_hidden)
+        apply_vote_rules(post, raw_score=-26)
+        self.assertTrue(post.is_hidden)
+        self.assertEqual(post.hidden_reason, "stale note")
+        self.assertEqual(post.upvotes, 0)
+
     def test_solutions_anonymous_user_path(self):
         # Anonymous caller: not authenticated, no AC -> gated by the solve
         # rule after the contest check.
