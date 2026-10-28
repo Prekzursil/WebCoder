@@ -114,6 +114,7 @@ class PublicProblemDetail(APIView):
                 "time_limit_ms": problem.default_time_limit_ms,
                 "memory_limit_kb": problem.default_memory_limit_kb,
                 "io_mode": problem.io_mode,
+                "problem_type": problem.problem_type,
                 # Statements only — test data and checkers never serialize.
                 "has_editorial": hasattr(problem, "editorial"),
             }

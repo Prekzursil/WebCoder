@@ -97,6 +97,23 @@ test('problem detail shows tried/solved stats bar', async ({ page }) => {
   await expect(page?.getByText('solved'))?.toBeVisible();
 });
 
+// --- Wave D interactive problems [JDG-2] ------------------------------------
+
+test('INTERACTIVE problem detail shows the interactive badge and flush notice', async ({
+  page,
+}) => {
+  test.skip(isRealStack, 'interactive fixture exists only in the mock catalog');
+  await page?.goto('/problems/3');
+
+  // The violet badge carries the flush-your-output hint as its title.
+  const badge = page?.getByText('Interactive', { exact: true });
+  await expect(badge)?.toBeVisible();
+  await expect(badge)?.toHaveAttribute('title', /flush/i);
+  await expect(
+    page?.getByRole('heading', { name: 'Guess the Number' })
+  )?.toBeVisible();
+});
+
 test('/start onboarding page renders the starter trio [ONB-1]', async ({ page }) => {
   await page?.goto('/start');
   await expect(page?.getByRole('heading', { level: 1 }))?.toContainText(/first problem/i);

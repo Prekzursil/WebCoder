@@ -88,12 +88,19 @@ def compile_checker(
     checker_code: str,
     checker_language: str,
     workspace_dir: pathlib.Path,
+    source_basename: str = CHECKER_SOURCE_BASENAME,
+    artifact_name: str = CHECKER_ARTIFACT_NAME,
 ) -> tuple[bool, str, LanguageSpec | None]:
     """Write and compile the checker ONCE per submission (J7).
 
     Returns ``(ok, message, spec)``. On success ``spec`` is the language
     spec the caller passes back to :func:`run_prepared_checker` per test;
     on failure ``spec`` is None and ``message`` explains why.
+
+    *source_basename* / *artifact_name* retarget the conventional file
+    names — the JDG-2 interactor compiles through this same path with its
+    own names so a checker and an interactor never collide inside one
+    workspace.
     """
     spec = get_language(checker_language)
     if spec is None or spec.language_id == "java11":
@@ -104,7 +111,7 @@ def compile_checker(
         )
 
     source_suffix = pathlib.Path(spec.source_filename).suffix
-    checker_source_name = CHECKER_SOURCE_BASENAME + source_suffix
+    checker_source_name = source_basename + source_suffix
     checker_source_file = workspace_dir / checker_source_name
     with open(checker_source_file, "w") as f:
         f.write(checker_code)
@@ -114,7 +121,7 @@ def compile_checker(
             compile_argv = list(
                 spec.compile_argv(
                     source_name=checker_source_name,
-                    artifact_name=CHECKER_ARTIFACT_NAME,
+                    artifact_name=artifact_name,
                 )
                 or ()
             )

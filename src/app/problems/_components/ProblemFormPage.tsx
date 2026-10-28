@@ -48,6 +48,11 @@ export default function ProblemFormPage() {
   const [floatComparisonEpsilon, setFloatComparisonEpsilon] = useState<number | null>(1e-6);
   const [checkerCode, setCheckerCode] = useState<string | null>(null);
   const [checkerLanguage, setCheckerLanguage] = useState<string | null>(null);
+  // Wave D (JDG-2): interactive problems — an interactor program judges
+  // the submission over piped stdio instead of batch output comparison.
+  const [problemType, setProblemType] = useState<string>('NORMAL');
+  const [interactorCode, setInteractorCode] = useState<string | null>(null);
+  const [interactorLanguage, setInteractorLanguage] = useState<string | null>(null);
   const [availableTags, setAvailableTags] = useState<TagType[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
 
@@ -89,6 +94,9 @@ export default function ProblemFormPage() {
           );
           setCheckerCode(data.checker_code || null);
           setCheckerLanguage(data.checker_language || null);
+          setProblemType(data.problem_type || 'NORMAL');
+          setInteractorCode(data.interactor_code || null);
+          setInteractorLanguage(data.interactor_language || null);
           setSelectedTagIds(data.tags?.map((tag: TagType) => tag.id) || []);
           setTestCases(
             data.test_cases?.map((tc: TestCaseType): TestCaseUIManaged => ({
@@ -197,8 +205,18 @@ export default function ProblemFormPage() {
       float_comparison_epsilon: comparisonMode === 'FLOAT_PRECISE' ? floatComparisonEpsilon : null,
       checker_code: comparisonMode === 'CUSTOM_CHECKER' ? checkerCode : null,
       checker_language: comparisonMode === 'CUSTOM_CHECKER' ? checkerLanguage : null,
+      problem_type: problemType,
+      interactor_code: problemType === 'INTERACTIVE' ? interactorCode : null,
+      interactor_language: problemType === 'INTERACTIVE' ? interactorLanguage : null,
       tag_ids: selectedTagIds,
     };
+
+    // Mirror of the backend's authoring-time cross-field rule: an
+    // INTERACTIVE problem must carry a compilable interactor.
+    if (problemType === 'INTERACTIVE' && (!interactorCode || !interactorLanguage)) {
+      setFormError(t('problem_form_interactor_required', 'Interactive problems require interactor code and language.'));
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -264,6 +282,7 @@ export default function ProblemFormPage() {
           <div style={fieldStyle}><label htmlFor="time_limit" style={labelStyle}>{t('problem_form_time_limit_ms', 'Time Limit (ms)')}:</label><input type="number" id="time_limit" value={defaultTimeLimitMs} onChange={(e) => setDefaultTimeLimitMs(parseInt(e.target.value, 10))} required style={inputStyle} /></div>
           <div style={fieldStyle}><label htmlFor="memory_limit" style={labelStyle}>{t('problem_form_memory_limit_kb', 'Memory Limit (KB)')}:</label><input type="number" id="memory_limit" value={defaultMemoryLimitKb} onChange={(e) => setDefaultMemoryLimitKb(parseInt(e.target.value, 10))} required style={inputStyle} /></div>
           <div style={fieldStyle}><label htmlFor="status" style={labelStyle}>{t('problem_form_status', 'Status')}:</label><select id="status" value={status} onChange={(e) => setStatus(e.target.value)} style={inputStyle}><option value="DRAFT">{t('status_draft')}</option><option value="PENDING_APPROVAL">{t('status_pending_approval')}</option><option value="APPROVED">{t('status_approved')}</option><option value="PRIVATE">{t('status_private')}</option></select></div>
+          <div style={fieldStyle}><label htmlFor="problem_type" style={labelStyle}>{t('problem_form_problem_type', 'Problem Type')}:</label><select id="problem_type" value={problemType} onChange={(e) => setProblemType(e.target.value)} style={inputStyle}><option value="NORMAL">{t('problem_type_normal', 'Normal (batch tests)')}</option><option value="INTERACTIVE">{t('problem_type_interactive', 'Interactive (interactor protocol)')}</option></select></div>
           <div style={fieldStyle}><label style={labelStyle}>{t('problem_form_allowed_languages', 'Allowed Languages')}:</label>{['python3', 'cpp17', 'c11', 'java11', 'nodejs20'].map((lang) => (<span key={lang} style={checkboxContainerStyle}><input type="checkbox" id={`lang-${lang}`} value={lang} checked={allowedLanguages.includes(lang)} onChange={(e) => {if (e.target.checked) {setAllowedLanguages((prev) => [...prev, lang]);} else {setAllowedLanguages((prev) => prev.filter((l) => l !== lang));}}} /><label htmlFor={`lang-${lang}`} style={checkboxLabelStyle}>{lang}</label></span>))}</div>
         </div>
 
@@ -274,6 +293,11 @@ export default function ProblemFormPage() {
           {comparisonMode === 'CUSTOM_CHECKER' && (<>
             <div style={fieldStyle}><label htmlFor="checker_language" style={labelStyle}>{t('problem_form_checker_language')}:</label><select id="checker_language" value={checkerLanguage || ''} onChange={(e) => setCheckerLanguage(e.target.value || null)} style={inputStyle}><option value="">{t('select_checker_language')}</option><option value="python3">Python 3</option><option value="cpp17">C++17</option><option value="c11">C (C11)</option><option value="nodejs20">JavaScript (Node.js 20)</option></select></div>
             <div style={fieldStyle}><label htmlFor="checker_code" style={labelStyle}>{t('problem_form_checker_code')}:</label><textarea id="checker_code" value={checkerCode || ''} onChange={(e) => setCheckerCode(e.target.value || null)} rows={10} style={textAreaStyle} /></div>
+          </>)}
+          {problemType === 'INTERACTIVE' && (<>
+            <div style={fieldStyle}><label htmlFor="interactor_language" style={labelStyle}>{t('problem_form_interactor_language')}:</label><select id="interactor_language" value={interactorLanguage || ''} onChange={(e) => setInteractorLanguage(e.target.value || null)} style={inputStyle}><option value="">{t('select_interactor_language')}</option><option value="python3">Python 3</option><option value="cpp17">C++17</option><option value="c11">C (C11)</option><option value="nodejs20">JavaScript (Node.js 20)</option></select></div>
+            <div style={fieldStyle}><label htmlFor="interactor_code" style={labelStyle}>{t('problem_form_interactor_code')}:</label><textarea id="interactor_code" value={interactorCode || ''} onChange={(e) => setInteractorCode(e.target.value || null)} rows={10} style={textAreaStyle} /></div>
+            <p style={{ color: 'var(--muted)', fontSize: '0.85rem', whiteSpace: 'pre-line' }}>{t('problem_form_interactor_protocol_help')}</p>
           </>)}
         </div>
 

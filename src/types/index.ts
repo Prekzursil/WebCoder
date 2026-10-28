@@ -35,6 +35,10 @@ export interface ProblemType {
   float_comparison_epsilon?: number | null;
   checker_code?: string | null;
   checker_language?: string | null;
+  // Wave D interactive problems (JDG-2): NORMAL | INTERACTIVE.
+  problem_type?: string;
+  interactor_code?: string | null;
+  interactor_language?: string | null;
   tag_ids?: number[];
   tags?: TagType[];
   verifier_feedback?: string | null;

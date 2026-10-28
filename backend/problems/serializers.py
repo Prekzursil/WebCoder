@@ -99,6 +99,9 @@ class ProblemSerializer(serializers.ModelSerializer):
             "float_comparison_epsilon",
             "checker_code",
             "checker_language",  # Added checker fields
+            "problem_type",
+            "interactor_code",
+            "interactor_language",  # JDG-2 interactive fields
             "hints_ro",
             "hints_en",
             "creation_date",
@@ -137,6 +140,35 @@ class ProblemSerializer(serializers.ModelSerializer):
                 f"{', '.join(SUPPORTED_LANGUAGE_IDS)}."
             )
         return value
+
+    def validate(self, attrs):
+        """JDG-2: an INTERACTIVE problem must carry a compilable interactor.
+
+        The cross-field rule is enforced at authoring time so a broken
+        interactive problem can never reach the queue (and the judge's
+        missing-interactor branch stays a defense-in-depth IE, not the
+        first line of feedback). Language validity itself is checked by
+        ``compile_interactor`` at judge time the same way checkers are.
+        """
+        problem_type = attrs.get(
+            "problem_type",
+            getattr(self.instance, "problem_type", Problem.ProblemType.NORMAL),
+        )
+        if problem_type == Problem.ProblemType.INTERACTIVE:
+            code = attrs.get(
+                "interactor_code",
+                getattr(self.instance, "interactor_code", None),
+            )
+            language = attrs.get(
+                "interactor_language",
+                getattr(self.instance, "interactor_language", None),
+            )
+            if not code or not language:
+                raise serializers.ValidationError(
+                    "INTERACTIVE problems require interactor_code and "
+                    "interactor_language."
+                )
+        return attrs
 
     def create(self, validated_data):
         # If author_id is not provided in request, set current user as author
