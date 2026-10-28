@@ -238,7 +238,10 @@ describe('ContestDetailPage virtual participation + awards', () => {
     render(<ContestDetailPage />);
 
     const virtualButton = await screen.findByTestId('virtual-start-button');
-    expect(api.getAwards).toHaveBeenCalled();
+    // The awards fetch resolves concurrently with the button render —
+    // waitFor instead of a synchronous assertion (CI-load race found by
+    // the wave-D PR's pipeline run).
+    await waitFor(() => expect(api.getAwards).toHaveBeenCalled());
     fireEvent.click(virtualButton);
     await waitFor(() => expect(api.startVirtual).toHaveBeenCalledWith('1'));
   });
