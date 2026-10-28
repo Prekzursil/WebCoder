@@ -19,6 +19,7 @@ import ProblemStatsPanel from './ProblemStatsPanel';
 import CommunityEditorialsPanel from './CommunityEditorialsPanel';
 import RelatedArticlesStrip from './RelatedArticlesStrip';
 import SolutionsPanel from './SolutionsPanel';
+import StatementHistory from './StatementHistory';
 import ScratchPanel from './ScratchPanel';
 import CopyButton from '@/components/common/CopyButton';
 import StatementMarkdown from '@/components/common/StatementMarkdown';
@@ -306,6 +307,7 @@ export default async function ProblemDetailPage({
           <CommunityEditorialsPanel problemId={Number(problemId)} />
           <RelatedArticlesStrip problemId={Number(problemId)} />
           <SolutionsPanel problemId={Number(problemId)} />
+          <StatementHistory problemId={Number(problemId)} />
 
           {/* Problem statement */}
           <div style={card}>

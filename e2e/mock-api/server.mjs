@@ -778,6 +778,25 @@ const server = createServer((req, res) => {
     return;
   }
 
+  // UXP-4: statement revision history.
+  const statementRevisions = path.match(
+    /^\/api\/v1\/problems\/problems\/(\d+)\/statement-revisions\/$/
+  );
+  if (req.method === 'GET' && statementRevisions) {
+    json(res, 200, {
+      count: 1,
+      results: [
+        {
+          id: 1,
+          note: 'clarified constraints',
+          edited_by: 'admin_e2e',
+          created_at: '2026-11-01T00:00:00Z',
+        },
+      ],
+    });
+    return;
+  }
+
   // OPS-3: the Microsoft SSO lane mirrors the other providers.
   if (path === '/accounts/microsoft/login/') {
     res.writeHead(302, { Location: '/login?mock_sso=microsoft' });

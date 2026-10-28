@@ -225,6 +225,9 @@ const resources = {
       "weekly_board_all_time": "All-time leaderboard →",
       "microsoft_login": "Microsoft",
       "public_api_title": "Public API",
+      "statement_changed_banner": "This statement has a change history ({{count}} revisions)",
+      "statement_history_system": "system",
+      "samples_download": "Download samples",
 
       "contest_participant": "Participant",
 
@@ -1095,6 +1098,9 @@ const resources = {
       "weekly_board_all_time": "Clasamentul all-time →",
       "microsoft_login": "Microsoft",
       "public_api_title": "API public",
+      "statement_changed_banner": "Această enunț are un istoric de modificări ({{count}} revizii)",
+      "statement_history_system": "sistem",
+      "samples_download": "Descarcă exemplele",
 
       "contest_participant": "Participant",
 

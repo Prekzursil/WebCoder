@@ -118,6 +118,32 @@ def _guard_contest_pin(problem: Problem, user) -> None:
 class ProblemViewSet(viewsets.ModelViewSet):
     queryset = Problem.objects.all()  # Default queryset
     serializer_class = ProblemSerializer
+
+    @action(detail=True, methods=["get"], url_path="statement-revisions")
+    def statement_revisions(self, request, pk=None):
+        """UXP-4 — the public statement history feed (newest first)."""
+        from .models import StatementRevision
+
+        problem = self.get_object()
+        rows = (
+            StatementRevision.objects.filter(problem=problem)
+            .select_related("edited_by")
+            .order_by("-created_at")[:20]
+        )
+        return Response(
+            {
+                "count": len(rows),
+                "results": [
+                    {
+                        "id": row.id,
+                        "note": row.note,
+                        "edited_by": row.edited_by.username if row.edited_by else None,
+                        "created_at": row.created_at,
+                    }
+                    for row in rows
+                ],
+            }
+        )
     # permission_classes = [IsAuthorOrVerifierOrAdminOrReadOnly] # Replaced with more granular per-action
 
     def get_permissions(self):
@@ -144,7 +170,13 @@ class ProblemViewSet(viewsets.ModelViewSet):
             ]  # Queryset handles visibility
         elif self.action == "bookmark":
             self.permission_classes = [permissions.IsAuthenticated]
-        elif self.action in ["editorial", "statistics", "starters", "bookmarked"]:
+        elif self.action in [
+            "editorial",
+            "statistics",
+            "starters",
+            "bookmarked",
+            "statement_revisions",
+        ]:
             # Read-shaped actions: the queryset already scopes problem
             # visibility; the editorial action additionally enforces the
             # publish-policy gate inside.
@@ -176,8 +208,13 @@ class ProblemViewSet(viewsets.ModelViewSet):
         Admins bypass; after end_at the problem reverts to normal editing
         (archive/upsolving mode).
         """
+        from .revisions import record_revision
+
         _guard_contest_pin(serializer.instance, self.request.user)
         serializer.save()
+        # UXP-4: statement history — a row lands whenever title/statement
+        # materially changed; metadata-only saves stay out of the feed.
+        record_revision(serializer.instance, edited_by=self.request.user)
 
     def get_queryset(self):
         # By default, show only APPROVED problems to non-staff/non-authors

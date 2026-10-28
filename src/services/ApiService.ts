@@ -312,6 +312,18 @@ export const AuthService = {
     logout: () => apiFetch<{ detail?: string }>(LOGOUT_ENDPOINT, { method: 'POST' }),
 };
 
+export const ToolingService = {
+    getStatementRevisions: (problemId: number | string) =>
+        apiFetch<{
+            count: number;
+            results: { id: number; note: string; edited_by: string | null; created_at: string }[];
+        }>(`/problems/problems/${problemId}/statement-revisions/`),
+    getSamplesBundle: (problemId: number | string) =>
+        apiFetch<{ count: number; filename: string; content: string }>(
+            `/problems/${problemId}/samples/`
+        ),
+};
+
 export const CommunityService = {
     getFeed: (page = 1) =>
         apiFetch<FeedResponse>(`/community/feed/?page=${page}`),
