@@ -112,6 +112,13 @@ class StressTests(ToolingBase):
         self.assertEqual(response.status_code, 200, response.data)
         self.assertTrue(response.data["found"] is False)
         self.assertEqual(response.data["iterations"], 3)
+        # The audit row rides along (ScratchRun pattern).
+        from scratch.models import StressRun
+
+        record = StressRun.objects.filter(user=self.creator).order_by("-id").first()
+        self.assertIsNotNone(record)
+        self.assertEqual(record.iterations, 3)
+        self.assertFalse(record.found)
 
     @mock.patch("problems.tooling.run_code_in_sandbox")
     @mock.patch("problems.tooling.compile_code_in_sandbox")
@@ -172,6 +179,11 @@ class StressTests(ToolingBase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("SyntaxError", str(response.data["generator_code"]))
+        from scratch.models import StressRun
+
+        self.assertTrue(
+            StressRun.objects.filter(user=self.creator, found=False).exists()
+        )
 
 
 class SolutionsExportTests(ToolingBase):
@@ -386,6 +398,15 @@ class CoverageClosureTests(ToolingBase):
         cell = grid.data["cells"][str(self.student.id)]
         self.assertEqual(cell["score"], 1.0)
         self.assertEqual(cell["attempts"], 3)
+
+    def test_stress_run_str(self):
+        from scratch.models import StressRun
+
+        record = StressRun.objects.create(
+            user=self.creator, iterations=1, found=False, detail={}
+        )
+        self.assertIn("stress", str(record))
+        self.assertIn(str(record.id), str(record))
 
     def test_statement_revision_str(self):
         problem = _mk_problem("Str")

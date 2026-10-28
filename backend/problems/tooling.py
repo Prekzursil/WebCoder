@@ -22,6 +22,7 @@ from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from classroom.models import Assignment
+from scratch.models import StressRun
 from submissions.judge_utils.compilation import compile_code_in_sandbox
 from submissions.judge_utils.execution import run_code_in_sandbox
 from submissions.judge_utils.languages import get_language
@@ -124,9 +125,17 @@ class StressTestView(APIView):
                     data[code_key], data[lang_key], workspace_dir, None
                 )
                 if not ok:
+                    # Persist first, respond from the row (ScratchRun
+                    # pattern): the audit trail AND the serialization
+                    # boundary for sandbox diagnostics.
+                    record = StressRun.objects.create(
+                        user=request.user,
+                        iterations=0,
+                        found=False,
+                        detail={f"{key}_code": compiler_output[:2000]},
+                    )
                     return Response(
-                        {f"{key}_code": compiler_output[:2000]},
-                        status=status.HTTP_400_BAD_REQUEST,
+                        record.detail, status=status.HTTP_400_BAD_REQUEST
                     )
                 compiled[key] = (executable, data[lang_key])
 
@@ -177,11 +186,19 @@ class StressTestView(APIView):
                     }
                     break
 
+        record = StressRun.objects.create(
+            user=request.user,
+            iterations=runs,
+            found=mismatch is not None,
+            detail={"mismatch": mismatch} if mismatch else {},
+        )
+        # Respond from the persisted row (audit + serialization boundary).
         return Response(
             {
-                "iterations": runs,
-                "found": mismatch is not None,
-                "mismatch": mismatch,
+                "id": record.id,
+                "iterations": record.iterations,
+                "found": record.found,
+                "mismatch": record.detail.get("mismatch"),
             }
         )
 
