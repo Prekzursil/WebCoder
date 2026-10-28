@@ -156,7 +156,12 @@ class InteractorRunArgvTest(TestCase):
 
 
 class WrapCommandPosixPrefixTest(TestCase):
-    """POSIX hosts prefix the in-container timeout + /usr/bin/time harness."""
+    """POSIX hosts prefix the in-container timeout + /usr/bin/time harness.
+
+    Both directions are exercised via the os.name patch so the branch is
+    fully covered on Windows AND Linux CI runners (the natural value only
+    ever covers one side per platform).
+    """
 
     def test_posix_prefix_added(self):
         # The Path must be constructed BEFORE patching os.name — on
@@ -182,6 +187,31 @@ class WrapCommandPosixPrefixTest(TestCase):
         wrapped = br.call_args[0][0]
         self.assertEqual(wrapped[:3], ["timeout", "--signal=SIGKILL", "12s"])
         self.assertIn("/usr/bin/time", wrapped)
+
+    def test_non_posix_host_runs_the_bare_argv(self):
+        workdir = pathlib.Path(".")
+        with mock.patch.object(
+            interactive.os, "name", "nt"
+        ), mock.patch.object(
+            interactive, "get_judge_backend", return_value="local"
+        ), mock.patch.object(
+            interactive,
+            "build_docker_run_command",
+            return_value=["docker", "run", "SENTINEL"],
+        ) as br:
+            interactive._wrap_command(
+                ["python", "x.py"],
+                workdir,
+                "python:3.11-slim",
+                262144,
+                wall_cap_s=12.0,
+                hard_timeout_s=12.0,
+            )
+        wrapped = br.call_args[0][0]
+        # No timeout//usr/bin/time prefixes on non-POSIX dev hosts — the
+        # bare argv runs and resource measurement degrades to zero.
+        self.assertNotIn("timeout", wrapped)
+        self.assertNotIn("/usr/bin/time", wrapped)
 
 
 class KillPairTest(TestCase):
