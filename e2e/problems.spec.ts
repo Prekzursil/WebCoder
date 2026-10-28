@@ -87,7 +87,7 @@ test('problem detail renders markdown statement, hints ladder and editorial', as
   }
 
   // EDT-1: the editorial card renders (mock serves it PUBLIC for id 2).
-  await expect(page?.getByRole('heading', { name: 'Editorial' }))?.toBeVisible();
+  await expect(page?.getByRole('heading', { name: 'Editorial', exact: true }))?.toBeVisible();
 });
 
 test('problem detail shows tried/solved stats bar', async ({ page }) => {
