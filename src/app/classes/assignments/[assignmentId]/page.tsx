@@ -14,6 +14,7 @@ import {
     QuizSubmitResult,
 } from '@/types/api';
 import { palette } from '@/theme/tokens';
+import { safeApiHref } from '@/lib/safe-href';
 import EmptyState from '@/components/common/EmptyState';
 import PageHeader from '@/components/common/PageHeader';
 
@@ -312,7 +313,7 @@ export default function AssignmentDetailPage() {
                         {/* EDU-6: CSV gradebook — the auth cookie rides the
                             navigation, so a plain link downloads the file. */}
                         <a
-                            href={ClassroomService.exportCsvUrl(assignment.id)}
+                            href={safeApiHref(ClassroomService.exportCsvUrl(assignment.id))}
                             data-testid="gradebook-csv"
                             style={{ color: palette.accent, fontWeight: 600 }}
                         >
