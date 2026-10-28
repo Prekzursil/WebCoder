@@ -86,10 +86,11 @@ describe('AssignmentDetailPage', () => {
     expect(await screen.findByRole('heading', { name: /Tema 1/ })).toBeInTheDocument();
     expect(await screen.findByTestId('grid-row-alice')).toHaveTextContent('100');
     expect(screen.getByTestId('grid-row-bob')).toHaveTextContent('55');
-    // Late cell flagged; the CSV export points at the backend download.
+    // Late cell flagged; the CSV export points at the same-origin proxy
+    // route (CodeQL fix: the href never leaves the app origin).
     expect(screen.getByText(/⏰/)).toBeInTheDocument();
     const csv = screen.getByTestId('gradebook-csv');
-    expect(csv.getAttribute('href')).toContain('/classroom/assignments/3/export/');
+    expect(csv.getAttribute('href')).toBe('/classroom/assignments/3/export');
   });
 
   it('student: problem set renders, grid hidden on 403', async () => {
