@@ -59,6 +59,8 @@ urlpatterns = [
         "api/v1/community/",
         include("community_depth.urls", namespace="community_depth_api_v1"),
     ),
+    # Public read-only API (competitive roadmap OPS-1).
+    path("api/v1/public/", include("public_api.urls", namespace="public_api")),
     # Custom invocation / scratch run (competitive roadmap X7/JDG-6) —
     # throttled + audit-logged raw judge execution.
     path("api/v1/scratch/", include("scratch.urls", namespace="scratch_api_v1")),
@@ -80,6 +82,8 @@ urlpatterns = [
         name="admin_metrics",
     ),
     path("api/v1/auth/google/", include("users.api.oauth.google.urls")),
+    # OPS-3 (competitive roadmap): Microsoft/Azure AD (school) SSO lane.
+    path("api/v1/auth/microsoft/", include("users.api.oauth.microsoft.urls")),
     path("api/v1/auth/github/", include("users.api.oauth.github.urls")),
     path("accounts/", include("allauth.urls")),
 ]

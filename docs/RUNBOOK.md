@@ -265,3 +265,18 @@ State at risk: the `pgdata` named volume (users, problems, testcases, submission
 2. Compose has **no frontend service** (placeholder; G6) — the Next app runs on the host or Vercel (DEPLOY.md).
 3. ~~Backend container mounts docker.sock~~ **shipped** — the default compose reaches the daemon through the `socket-proxy` service (`DOCKER_HOST=tcp://socket-proxy:2375`, containers/exec POST only; see §socket-proxy; SP3/G12). `docker-compose.raw-socket.yml` is the documented escape hatch for the custom-libs pip flow.
 4. ~~DEBUG=True / ALLOWED_HOSTS=[] / CORS localhost-only~~ **shipped** — the trio is env-driven (`DEBUG`/`ALLOWED_HOSTS`/`CORS_ALLOWED_ORIGINS`) and `webcoder_api.settings_prod` is the production profile (see the section above; SP2/G8).
+
+## Wave C operator notes
+
+- `manage.py seed_mcq` — seeds/refreshes the EDU-8 pilot (30 bilingual grade-9
+  grile in chapter `g9-elementary-algorithms`). Idempotent; run once per deploy
+  alongside `seed_problems`.
+- `MEDIA_ROOT` (default `backend/media`) stores EDU-7 file deliverables; back
+  it up with the database.
+- Microsoft school SSO (OPS-3): set the Azure AD app's redirect to
+  `<origin>/login/microsoft/callback` and configure the SocialApp (client id +
+  secret) via admin/env (`add_social_apps` honors `MICROSOFT_CLIENT_ID` /
+  `MICROSOFT_SECRET`); `MICROSOFT_LOGIN_CALLBACK_URL` overrides the SPA
+  callback the backend hands to allauth (default localhost:3000).
+- Public API (OPS-1): `/api/v1/public/` is unauthenticated read-only at
+  `THROTTLE_PUBLIC_API_RATE` (default 60/min).

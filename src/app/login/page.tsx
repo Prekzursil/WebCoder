@@ -142,6 +142,14 @@ const LoginPage: React.FC = () => {
             >
               {t('github_login', 'GitHub')}
             </Button>
+            {/* OPS-3: the Office-365 school lane. */}
+            <Button
+              variant="outlined"
+              href={`${apiBase}/accounts/microsoft/login/`}
+              data-testid="microsoft-login-button"
+            >
+              {t('microsoft_login', 'Microsoft')}
+            </Button>
           </Box>
           <Typography variant="body2" align="center" sx={{ mt: 2 }}>
             {t('no_account_prompt', "Don't have an account?")}{' '}

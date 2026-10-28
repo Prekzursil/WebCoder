@@ -85,6 +85,8 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
     "allauth.socialaccount.providers.github",
+    # OPS-3: Microsoft/Azure AD (school) SSO — Office-365 classrooms.
+    "allauth.socialaccount.providers.microsoft",
     "dj_rest_auth",
     "dj_rest_auth.registration",
     # Local apps
@@ -100,6 +102,7 @@ INSTALLED_APPS = [
     # Classroom (competitive roadmap Wave B: EDU-1/2/3).
     "classroom",
     "community_depth",
+    "public_api",
 ]
 
 SITE_ID = 1
@@ -267,6 +270,12 @@ SOCIALACCOUNT_PROVIDERS = {
             "read:org",
         ],
     },
+    # OPS-3: default consumer-tenant flow; schools with tenant-specific
+    # Azure apps set MICROSOFT_TENANT=common|organizations|<tenant-id>.
+    "microsoft": {
+        "SCOPE": ["User.Read"],
+        "AUTH_PARAMS": {"prompt": "select_account"},
+    },
 }
 
 AUTHENTICATION_BACKENDS = (
@@ -310,6 +319,8 @@ REST_FRAMEWORK = {
         # Contest clarifications (CON-4): participants get a bounded question
         # budget so the jury queue cannot be flooded mid-contest.
         "clarification": os.environ.get("THROTTLE_CLARIFICATION_RATE", "10/hour"),
+    # OPS-1 public read-only API: generous anon ceiling (DMOJ uses 90/min).
+    "public_api": os.environ.get("THROTTLE_PUBLIC_API_RATE", "60/min"),
         # dj-rest-auth's vendor LoginView/RegisterView ship throttle_scope
         # 'dj_rest_auth'; give it the same credential-stuffing cap as 'auth'.
         "dj_rest_auth": os.environ.get("THROTTLE_AUTH_RATE", "10/min"),
