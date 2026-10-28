@@ -266,6 +266,15 @@ class VoteView(generics.GenericAPIView):
             return Response(
                 {"value": "Must be 1, -1, or 0."}, status=status.HTTP_400_BAD_REQUEST
             )
+        # RAT-10 (competitive roadmap): votes count only from accounts with
+        # at least one accepted submission — the anti-brigading trust floor.
+        from community_depth import services as community_services
+
+        if not community_services.user_has_ac(request.user):
+            return Response(
+                {"detail": "Solve a problem before voting."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         if value == 0:
             PostVote.objects.filter(user=request.user, post=post).delete()
         else:
@@ -273,8 +282,10 @@ class VoteView(generics.GenericAPIView):
                 user=request.user, post=post, defaults={"value": value}
             )
         score = post.votes.aggregate(s=Sum("value"))["s"] or 0
-        post.upvotes = score
-        post.save(update_fields=["upvotes"])
+        # RAT-10: clamp small negatives to 0 for display and auto-hide at
+        # the threshold (audit trail stays) — rules see the RAW sum.
+        community_services.apply_vote_rules(post, raw_score=score)
+        post.save(update_fields=["upvotes", "is_hidden", "hidden_reason"])
         return Response({"upvotes": post.upvotes})
 
 

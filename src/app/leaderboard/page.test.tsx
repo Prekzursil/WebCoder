@@ -11,6 +11,7 @@ import LeaderboardPage from './page';
 // error/retry state that keeps the page usable when the API fails.
 
 const api = vi.hoisted(() => ({
+  getWeeklyBoard: vi.fn().mockResolvedValue({ count: 0, window_days: 7, results: [] }),
   getLeaderboard: vi.fn(),
   getMyEntry: vi.fn(),
 }));
@@ -19,6 +20,10 @@ vi.mock('@/services/ApiService', () => ({
   LeaderboardService: {
     getLeaderboard: api.getLeaderboard,
     getMyEntry: api.getMyEntry,
+  },
+  // The weekly board (RAT-9) also lives on this page; keep it quiet.
+  CommunityService: {
+    getWeeklyBoard: api.getWeeklyBoard,
   },
 }));
 

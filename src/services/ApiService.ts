@@ -23,6 +23,10 @@ import {
   ArticleRow,
   ClassroomAssignment,
   CommunityEditorialRow,
+  FeedResponse,
+  HonorResponse,
+  SolutionsResponse,
+  WeeklyBoardRow,
   DeliverableRow,
   ExamModeStatus,
   MCQItemRow,
@@ -309,6 +313,18 @@ export const AuthService = {
 };
 
 export const CommunityService = {
+    getFeed: (page = 1) =>
+        apiFetch<FeedResponse>(`/community/feed/?page=${page}`),
+    getSolutions: (problemId: number | string) =>
+        apiFetch<SolutionsResponse>(`/community/problems/${problemId}/solutions/`),
+    getHonor: (username: string) =>
+        apiFetch<HonorResponse>(`/community/honor/${username}/`),
+    getMyHonor: () => apiFetch<HonorResponse>('/community/honor/me/'),
+    getWeeklyBoard: () =>
+        apiFetch<{ count: number; window_days: number; results: WeeklyBoardRow[] }>(
+            '/community/leaderboard/weekly/'
+        ),
+
     getCommunityEditorials: (
         problemId: number | string,
         params: { lang?: string; page?: number } = {}

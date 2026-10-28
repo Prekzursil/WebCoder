@@ -701,7 +701,7 @@ class CoverageClosureTests(ClassroomDepthBase):
         quiz = self.mk_assignment(kind=Assignment.Kind.QUIZ)
         item = self.mk_mcq("m")
         AssignmentQuizItem.objects.create(assignment=quiz, item=item, order=0)
-        for score in (1.0, 0.0, 0.5):  # best, worse, then a mid re-attempt
+        for score in (0.0, 1.0, 0.5):  # worse, best, then a mid re-attempt
             QuizSubmission.objects.create(
                 assignment=quiz,
                 student=self.student,
