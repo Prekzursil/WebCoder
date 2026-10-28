@@ -268,8 +268,34 @@ class PostTest(ForumTestBase):
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
 
+def _grant_vote_trust(user):
+    """RAT-10 floor: give the user one AC on an APPROVED problem so their
+    vote counts (the trust rule ships WITH the forum — roadmap day-one)."""
+    from problems.models import Problem, TestCase
+    from submissions.models import Submission
+
+    problem = Problem.objects.create(
+        title_i18n={"en": f"Vote trust {user.username}", "ro": "x"},
+        statement_i18n={"en": "s", "ro": "s"},
+        status=Problem.ProblemStatus.APPROVED,
+    )
+    TestCase.objects.create(
+        problem=problem, input_data="1", expected_output_data="2", points=10
+    )
+    Submission.objects.create(
+        user=user,
+        problem=problem,
+        language="python3",
+        code="pass",
+        verdict="AC",
+        score=10,
+    )
+
+
 class VoteTest(ForumTestBase):
     def test_vote_toggle_updates_upvotes(self):
+        _grant_vote_trust(self.basic)
+        _grant_vote_trust(self.other)
         self.client.force_authenticate(self.basic)
         url = f"/api/v1/forum/posts/{self.first_post.id}/vote/"
 

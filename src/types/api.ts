@@ -502,3 +502,51 @@ export interface ArticleRow {
     created_at: string;
     updated_at: string;
 }
+
+export interface FeedRow {
+    id: number;
+    user: string;
+    problem: { id: number; title_i18n: LocalizedText };
+    language: string;
+    verdict: string;
+    score: number | null;
+    submission_time: string;
+}
+
+export interface FeedResponse {
+    count: number;
+    page: number;
+    results: FeedRow[];
+    next: number | null;
+}
+
+export interface SolutionRow {
+    id: number;
+    user: string;
+    language: string;
+    code: string;
+    execution_time_ms: number | null;
+    memory_used_kb: number | null;
+    submission_time: string;
+}
+
+export interface SolutionsResponse {
+    count: number;
+    license: string;
+    results: SolutionRow[];
+}
+
+export interface HonorResponse {
+    honor: number;
+    breakdown: Record<string, number>;
+    weights: Record<string, number>;
+    username: string;
+}
+
+export interface WeeklyBoardRow {
+    rank: number;
+    user_id: number;
+    username: string;
+    solved: number;
+    points: number;
+}

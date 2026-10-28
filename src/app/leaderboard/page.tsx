@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { palette, hexAlpha } from '@/theme/tokens';
 import EmptyState from '@/components/common/EmptyState';
 import PageHeader from '@/components/common/PageHeader';
+import WeeklyBoard from '@/components/common/WeeklyBoard';
 
 // Leaderboard wired to the real standings endpoint (backend leaderboard app,
 // PR #186): GET /api/v1/leaderboard/ is public, page-number paginated (50
@@ -146,6 +147,8 @@ export default function LeaderboardPage() {
         title={t('leaderboard_header', 'Leaderboard')}
         subtitle={t('leaderboard_subtitle', 'Top competitive programmers ranked by total score.')}
       />
+
+      <WeeklyBoard />
 
       {/* Loading / error states keep the page usable when the API fails */}
       {loading ? (

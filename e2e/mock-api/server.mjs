@@ -778,6 +778,60 @@ const server = createServer((req, res) => {
     return;
   }
 
+  // Wave C (COM-3/COM-7, RAT-9): feed, solutions, weekly board.
+  if (req.method === 'GET' && path === '/api/v1/community/feed/') {
+    json(res, 200, {
+      count: 1,
+      page: 1,
+      next: null,
+      results: [
+        {
+          id: 9,
+          user: 'alice_e2e',
+          problem: { id: 1, title_i18n: { en: 'Two Sum', ro: 'Suma a două' } },
+          language: 'python3',
+          verdict: 'AC',
+          score: 100,
+          submission_time: '2026-11-01T00:00:00Z',
+        },
+      ],
+    });
+    return;
+  }
+
+  const solutions = path.match(/^\/api\/v1\/community\/problems\/(\d+)\/solutions\/$/);
+  if (req.method === 'GET' && solutions) {
+    if (!sessionUser(req)) {
+      json(res, 401, { detail: 'Authentication credentials were not provided.' });
+      return;
+    }
+    json(res, 200, {
+      count: 1,
+      license: "Code stays the author's; the platform displays it under the Terms of Service submission grant.",
+      results: [
+        {
+          id: 5,
+          user: 'alice_e2e',
+          language: 'python3',
+          code: 'print(2)',
+          execution_time_ms: 12,
+          memory_used_kb: 2048,
+          submission_time: '2026-11-01T00:00:00Z',
+        },
+      ],
+    });
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/api/v1/community/leaderboard/weekly/') {
+    json(res, 200, {
+      count: 1,
+      window_days: 7,
+      results: [{ rank: 1, user_id: 2, username: 'alice_e2e', solved: 3, points: 300 }],
+    });
+    return;
+  }
+
   // Wave C (EDT-3/EDT-6): community editorials + article hub.
   const communityEditorials = path.match(
     /^\/api\/v1\/problems\/(\d+)\/community-editorials\/$/

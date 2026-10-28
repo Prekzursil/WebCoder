@@ -54,6 +54,11 @@ urlpatterns = [
     # Ratings (competitive roadmap Wave B: RAT-1/2/3 + SAF-2 rollback).
     path("api/v1/ratings/", include("ratings.urls", namespace="ratings_api_v1")),
     path("api/v1/classroom/", include("classroom.urls", namespace="classroom_api_v1")),
+    # Community depth (competitive roadmap Wave C: COM-3/7, RAT-8/9/10).
+    path(
+        "api/v1/community/",
+        include("community_depth.urls", namespace="community_depth_api_v1"),
+    ),
     # Custom invocation / scratch run (competitive roadmap X7/JDG-6) —
     # throttled + audit-logged raw judge execution.
     path("api/v1/scratch/", include("scratch.urls", namespace="scratch_api_v1")),
