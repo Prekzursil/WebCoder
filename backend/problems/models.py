@@ -238,6 +238,34 @@ class Problem(models.Model):
     creation_date = models.DateTimeField(_("creation date"), auto_now_add=True)
     last_modified_date = models.DateTimeField(_("last modified date"), auto_now=True)
 
+    # RO-6 provenance (competitive roadmap): olympiad-archive attribution.
+    # Import permission tracked in ImportSource (CNT-2 ledger); these fields
+    # ride the public problem serializer so attribution is always visible.
+    source_contest = models.CharField(
+        _("source contest"),
+        max_length=160,
+        blank=True,
+        help_text=_("Provenance, e.g. 'OJI 2024, clasa a IX-a'."),
+    )
+    source_year = models.PositiveSmallIntegerField(
+        _("source year"), null=True, blank=True
+    )
+    grade_group = models.CharField(
+        _("grade group"),
+        max_length=16,
+        blank=True,
+        help_text=_("e.g. 'IX-X', 'gimnaziu' — archive browse facet."),
+    )
+    import_source = models.ForeignKey(
+        "ImportSource",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="problems",
+        verbose_name=_("import source"),
+        help_text=_("The CNT-2 permission-ledger entry covering this problem."),
+    )
+
     tags = models.ManyToManyField(Tag, blank=True, verbose_name=_("tags"))
 
     class ComparisonMode(models.TextChoices):
@@ -669,3 +697,87 @@ class Article(models.Model):
         if isinstance(self.title_i18n, dict):
             return self.title_i18n.get("en", "Article %s" % self.id)
         return "Article %s" % self.id
+
+
+class StatementRevision(models.Model):
+    """Statement history (competitive roadmap UXP-4).
+
+    A row is written on every APPROVED-visible statement change (created by
+    ``problems.revisions.record_revision`` from the problem save path): the
+    public problem page shows a "statement changed" banner from the newest
+    row past the viewer's first solve; verifiers get the diff feed.
+    """
+
+    problem = models.ForeignKey(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name="statement_revisions",
+        verbose_name=_("problem"),
+    )
+    title_i18n = models.JSONField(_("title snapshot"))
+    statement_i18n = models.JSONField(_("statement snapshot"))
+    edited_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET(get_sentinel_user),
+        null=True,
+        blank=True,
+        related_name="statement_edits",
+        verbose_name=_("edited by"),
+    )
+    note = models.CharField(_("change note"), max_length=200, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("statement revision")
+        verbose_name_plural = _("statement revisions")
+        ordering = ["problem", "-created_at"]
+        indexes = [models.Index(fields=["problem", "-created_at"])]
+
+    def __str__(self):
+        return "revision %d of problem %d" % (self.id, self.problem_id)
+
+
+class ImportSource(models.Model):
+    """Per-source permission ledger (round-2 CNT-2).
+
+    Every archive import must point at one row here: who granted, under
+    what terms, when, and where the evidence lives. A problem without a
+    covering ledger row never leaves DRAFT — the pipeline is rights-checked
+    by construction, not by memory (the roadmap's RO-6 correction).
+    """
+
+    class Status(models.TextChoices):
+        PENDING = "PENDING", _("Permission pending")
+        GRANTED = "GRANTED", _("Granted")
+        REJECTED = "REJECTED", _("Rejected")
+        EXPIRED = "EXPIRED", _("Expired")
+
+    name = models.CharField(_("source name"), max_length=160, unique=True)
+    contact = models.CharField(_("contact"), max_length=200, blank=True)
+    terms = models.TextField(
+        _("terms"),
+        blank=True,
+        help_text=_("What was granted: re-use, translation, adaptation."),
+    )
+    granted_at = models.DateField(_("granted on"), null=True, blank=True)
+    evidence_url = models.URLField(
+        _("evidence URL"), blank=True, help_text=_("Mail thread / license page.")
+    )
+    status = models.CharField(
+        _("status"), max_length=10, choices=Status.choices, default=Status.PENDING
+    )
+    notes = models.TextField(_("notes"), blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("import source")
+        verbose_name_plural = _("import sources")
+        ordering = ["name"]
+
+    def __str__(self):
+        return "%s (%s)" % (self.name, self.status)
+
+    @property
+    def allows_publication(self) -> bool:
+        return self.status == self.Status.GRANTED

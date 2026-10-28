@@ -6,6 +6,11 @@ from .views import (
     ProblemViewSet,
     TestCaseViewSet,
 )
+from .tooling import (
+    AssignmentSolutionsExportView,
+    SampleTestsDownloadView,
+    StressTestView,
+)
 from .community import (
     ArticleViewSet,
     CommunityEditorialDetailView,
@@ -46,6 +51,18 @@ urlpatterns = [
         "community-editorials/<int:pk>/review/",
         CommunityEditorialReviewView.as_view(),
         name="community-editorial-review",
+    ),
+    # Wave C (JDG-11/13, UXP-3/4): authoring & integrity tooling.
+    path("tools/stress/", StressTestView.as_view(), name="tools-stress"),
+    path(
+        "tools/assignment-solutions/<int:assignment_id>/",
+        AssignmentSolutionsExportView.as_view(),
+        name="tools-assignment-solutions",
+    ),
+    path(
+        "<int:problem_id>/samples/",
+        SampleTestsDownloadView.as_view(),
+        name="problem-samples",
     ),
     path("", include(router.urls)),
 ]
