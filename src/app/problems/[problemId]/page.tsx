@@ -241,6 +241,19 @@ export default async function ProblemDetailPage({
                   }}>
                     {t(`difficulty_${diffKey}`, problem.difficulty)}
                   </span>
+                  {problem.problem_type === 'INTERACTIVE' && (
+                    <span
+                      title={t('problem_interactive_flush_notice')}
+                      style={{
+                        padding: '2px 10px', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 700,
+                        color: palette.violet,
+                        background: hexAlpha(palette.violet, 0.1),
+                        border: `1px solid ${hexAlpha(palette.violet, 0.25)}`,
+                      }}
+                    >
+                      {t('problem_type_interactive_badge', 'Interactive')}
+                    </span>
+                  )}
                   <BookmarkButton problemId={problemId} />
                   {problem.status && (
                     <span style={{

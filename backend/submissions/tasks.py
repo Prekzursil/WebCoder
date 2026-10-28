@@ -13,9 +13,15 @@ import pathlib
 from .judge_utils.backend import CONTAINER, get_judge_backend, judge_workspace_root
 from .judge_utils.comparison import compare_outputs_detailed
 from .judge_utils.compilation import compile_code_in_sandbox
-from .judge_utils.languages import effective_limits
+from .judge_utils.languages import effective_limits, get_language
 from .judge_utils.custom_libs import install_custom_libs
 from .judge_utils.execution import run_code_in_sandbox
+from .judge_utils.interactive import (
+    INTERACTOR_ANSWER_FILE,
+    INTERACTOR_INPUT_FILE,
+    compile_interactor,
+    run_interactive_pair,
+)
 from .judge_utils.checkers import (
     CHECKER_ANSWER_FILE,
     CHECKER_INPUT_FILE,
@@ -96,6 +102,9 @@ def judge_submission_task(self, submission_id):
     # J7: the per-submission checker workspace (None until/unless a
     # custom-checker problem compiles one); cleaned in finally.
     checker_workspace_obj = None
+    # JDG-2: the per-submission interactor workspace for INTERACTIVE
+    # problems; cleaned in finally.
+    interactor_workspace_obj = None
     try:
         # Initial transaction to fetch problem and mark submission as COMPILING
         with transaction.atomic():
@@ -234,6 +243,42 @@ def judge_submission_task(self, submission_id):
             # Missing checker code/lang defers to the per-test IE branch
             # below (same verdict, plus a per-test audit row).
 
+        # JDG-2 (interactive problems): compile the interactor ONCE per
+        # submission — same hoisting discipline as the custom checker.
+        interactive_dir = None
+        interactive_spec = None
+        if problem.problem_type == Problem.ProblemType.INTERACTIVE:
+            if problem.interactor_code and problem.interactor_language:
+                interactor_workspace_obj = _judge_workspace(
+                    f"interactor_{submission_id}_"
+                )
+                interactive_dir = pathlib.Path(interactor_workspace_obj.name)
+                interactor_ok, interactor_msg, interactive_spec = compile_interactor(
+                    problem.interactor_code,
+                    problem.interactor_language,
+                    interactive_dir,
+                )
+                if not interactor_ok:
+                    with transaction.atomic():
+                        submission = Submission.objects.select_for_update().get(
+                            id=submission_id
+                        )
+                        submission.verdict = Submission.VerdictStatus.INTERNAL_ERROR
+                        submission.detailed_feedback = interactor_msg
+                        submission.save()
+                        _notify_judged(submission, submission.verdict)
+                    # Both workspace objects are unconditionally created
+                    # before this point, so the falsey arms here are
+                    # unreachable — same reasoned pragma as the compile
+                    # cleanup guard above.
+                    if temp_dir_obj:  # pragma: no cover
+                        temp_dir_obj.cleanup()
+                    interactor_workspace_obj.cleanup()
+                    return f"Submission {submission_id}: interactor compile failed."
+            # Missing interactor code/lang defers to the per-test IE branch
+            # below (mirrors the missing-checker branch: per-test audit rows
+            # rather than a bare submission-level failure).
+
         # RO-4: FILES-mode problems exchange data through working-directory
         # files instead of stdin/stdout.
         io_files = None
@@ -258,6 +303,91 @@ def judge_submission_task(self, submission_id):
                     error_output="Internal Error - Executable path missing after successful compile.",
                 )
                 break
+
+            if problem.problem_type == Problem.ProblemType.INTERACTIVE:
+                # JDG-2: the submission and the interactor run as a
+                # connected pair; the interactor's exit code (checker
+                # protocol v2 on stderr) decides this test's verdict.
+                if interactive_spec is not None and interactive_dir is not None:
+                    with open(
+                        interactive_dir / INTERACTOR_INPUT_FILE, "w"
+                    ) as f:
+                        f.write(tc.input_data)
+                    with open(
+                        interactive_dir / INTERACTOR_ANSWER_FILE, "w"
+                    ) as f:
+                        f.write(tc.expected_output_data)
+                    user_spec = get_language(submission.language)
+                    user_run_argv = (
+                        list(user_spec.run_command) if user_spec else []
+                    )
+                    (
+                        pair_verdict,
+                        pair_time,
+                        pair_mem,
+                        pair_fraction,
+                        pair_feedback,
+                    ) = run_interactive_pair(
+                        user_run_argv,
+                        submission.language,
+                        submission_dir,
+                        interactive_spec,
+                        interactive_dir,
+                        eff_time_ms,
+                        eff_mem_kb,
+                    )
+                    final_tc_verdict = pair_verdict
+                    tc_time = pair_time
+                    tc_mem = pair_mem
+                    tc_output = ""
+                    tc_error = (
+                        "Interactive Judgement:\n" + pair_feedback
+                        if pair_feedback
+                        else ""
+                    )
+                    if pair_fraction is not None and (
+                        final_tc_verdict == Submission.VerdictStatus.ACCEPTED
+                    ):
+                        checker_fraction = pair_fraction
+                else:
+                    final_tc_verdict = Submission.VerdictStatus.INTERNAL_ERROR
+                    tc_time = -1
+                    tc_mem = -1
+                    tc_output = ""
+                    tc_error = (
+                        "Error: INTERACTIVE problem without interactor "
+                        "code/language."
+                    )
+                max_time_ms_overall = max(
+                    max_time_ms_overall, tc_time if tc_time not in (None, -1) else 0
+                )
+                max_memory_kb_overall = max(
+                    max_memory_kb_overall,
+                    tc_mem if tc_mem not in (None, -1) else 0,
+                )
+                SubmissionTestResult.objects.create(
+                    submission=submission,
+                    test_case=tc,
+                    verdict=final_tc_verdict,
+                    execution_time_ms=tc_time if tc_time != -1 else None,
+                    memory_used_kb=tc_mem if tc_mem != -1 else None,
+                    actual_output="",
+                    error_output=tc_error[:10000],
+                )
+                scored_results.append(
+                    (
+                        tc,
+                        final_tc_verdict == Submission.VerdictStatus.ACCEPTED,
+                        checker_fraction
+                        if final_tc_verdict == Submission.VerdictStatus.ACCEPTED
+                        else None,
+                    )
+                )
+                checker_fraction = None
+                if final_tc_verdict != Submission.VerdictStatus.ACCEPTED:
+                    if overall_verdict == Submission.VerdictStatus.ACCEPTED:
+                        overall_verdict = final_tc_verdict
+                continue
 
             if io_files:
                 (submission_dir / io_files[0]).write_text(
@@ -420,6 +550,8 @@ def judge_submission_task(self, submission_id):
             temp_dir_obj.cleanup()
         if checker_workspace_obj is not None:
             checker_workspace_obj.cleanup()
+        if interactor_workspace_obj is not None:
+            interactor_workspace_obj.cleanup()
     return final_message
 
 

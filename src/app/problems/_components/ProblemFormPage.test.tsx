@@ -370,6 +370,76 @@ describe('ProblemFormPage (create mode)', () => {
   });
 });
 
+describe('ProblemFormPage interactive problems (JDG-2)', () => {
+  it('switches to INTERACTIVE and sends the interactor fields in the payload', async () => {
+    render(<ProblemFormPage />);
+    await waitFor(() => expect(api.getTags).toHaveBeenCalled());
+    fillRequiredCreateFields();
+
+    fireEvent.change(screen.getByLabelText('Problem Type:'), {
+      target: { value: 'INTERACTIVE' },
+    });
+    // The interactor fields appear only for INTERACTIVE problems.
+    fireEvent.change(screen.getByLabelText('Interactor Language:'), {
+      target: { value: 'python3' },
+    });
+    fireEvent.change(screen.getByLabelText('Interactor Code:'), {
+      target: { value: 'import sys\nsys.exit(0)' },
+    });
+
+    api.createProblem.mockResolvedValueOnce(createdProblem);
+    submitForm();
+
+    await waitFor(() => expect(api.createProblem).toHaveBeenCalled());
+    const payload = api.createProblem.mock.calls[0][0];
+    expect(payload.problem_type).toBe('INTERACTIVE');
+    expect(payload.interactor_language).toBe('python3');
+    expect(payload.interactor_code).toContain('sys.exit(0)');
+  });
+
+  it('blocks submit when INTERACTIVE lacks interactor code or language', async () => {
+    render(<ProblemFormPage />);
+    await waitFor(() => expect(api.getTags).toHaveBeenCalled());
+    fillRequiredCreateFields();
+
+    fireEvent.change(screen.getByLabelText('Problem Type:'), {
+      target: { value: 'INTERACTIVE' },
+    });
+    submitForm();
+
+    // Client-side mirror of the backend cross-field rule.
+    await waitFor(() =>
+      expect(
+        screen.getByText(/Interactive problems require interactor code/i)
+      ).toBeInTheDocument()
+    );
+    expect(api.createProblem).not.toHaveBeenCalled();
+  });
+
+  it('keeps NORMAL payloads free of interactor fields', async () => {
+    render(<ProblemFormPage />);
+    await waitFor(() => expect(api.getTags).toHaveBeenCalled());
+    fillRequiredCreateFields();
+
+    // Flip to INTERACTIVE and back — stale interactor state must not leak.
+    fireEvent.change(screen.getByLabelText('Problem Type:'), {
+      target: { value: 'INTERACTIVE' },
+    });
+    fireEvent.change(screen.getByLabelText('Problem Type:'), {
+      target: { value: 'NORMAL' },
+    });
+
+    api.createProblem.mockResolvedValueOnce(createdProblem);
+    submitForm();
+
+    await waitFor(() => expect(api.createProblem).toHaveBeenCalled());
+    const payload = api.createProblem.mock.calls[0][0];
+    expect(payload.problem_type).toBe('NORMAL');
+    expect(payload.interactor_code).toBeNull();
+    expect(payload.interactor_language).toBeNull();
+  });
+});
+
 describe('ProblemFormPage (edit mode)', () => {
   beforeEach(() => {
     nav.params.mockReturnValue({ problemId: '12' });
@@ -427,6 +497,27 @@ describe('ProblemFormPage (edit mode)', () => {
     expect((screen.getByLabelText('cpp17') as HTMLInputElement).checked).toBe(true);
     expect((screen.getByLabelText('Comparison Mode:') as HTMLSelectElement).value).toBe('LINES_STRIP_EXACT');
     expect(screen.queryByText(/Test Case \d/)).not.toBeInTheDocument();
+  });
+
+  it('prefills the interactor fields of an INTERACTIVE problem (JDG-2)', async () => {
+    api.getProblemDetail.mockResolvedValue({
+      ...fullProblem,
+      problem_type: 'INTERACTIVE',
+      interactor_code: 'import sys\nsys.exit(0)',
+      interactor_language: 'python3',
+    } as ProblemType);
+    render(<ProblemFormPage />);
+
+    expect(await screen.findByText('Edit Problem')).toBeInTheDocument();
+    expect((screen.getByLabelText('Problem Type:') as HTMLSelectElement).value).toBe('INTERACTIVE');
+    expect((screen.getByLabelText('Interactor Language:') as HTMLSelectElement).value).toBe('python3');
+    expect((screen.getByLabelText('Interactor Code:') as HTMLTextAreaElement).value).toContain('sys.exit(0)');
+
+    fireEvent.submit(screen.getByRole('button', { name: 'Save Changes' }).closest('form')!);
+    await waitFor(() => expect(api.updateProblem).toHaveBeenCalledTimes(1));
+    const payload = api.updateProblem.mock.calls[0][1];
+    expect(payload.problem_type).toBe('INTERACTIVE');
+    expect(payload.interactor_language).toBe('python3');
   });
 
   it('shows a form error when the problem fails to load', async () => {

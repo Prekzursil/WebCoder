@@ -52,6 +52,51 @@ class Problem(models.Model):
         HARD = "HARD", _("Hard")
         # Could also be integer based if preferred
 
+    class ProblemType(models.TextChoices):
+        """Judging pipeline selection (competitive roadmap JDG-2).
+
+        - NORMAL: the classic batch judge — run per test, compare output.
+        - INTERACTIVE: an interactor program converses with the submission
+          over piped stdio (games / adaptive queries / communication
+          problems). The interactor's exit code decides the verdict; see
+          ``submissions.judge_utils.interactive`` for the protocol.
+        """
+
+        NORMAL = "NORMAL", _("Normal (batch tests)")
+        INTERACTIVE = "INTERACTIVE", _("Interactive (interactor protocol)")
+
+    problem_type = models.CharField(
+        _("problem type"),
+        max_length=12,
+        choices=ProblemType.choices,
+        default=ProblemType.NORMAL,
+        help_text=_(
+            "INTERACTIVE problems are judged by an interactor program "
+            "talking to the submission over stdin/stdout."
+        ),
+    )
+    # Interactor source (JDG-2): authored in any judge-registry language
+    # (same authoring surface as custom checkers); compiled once per
+    # submission and run with its own fixed limits against the user program.
+    interactor_code = models.TextField(
+        _("interactor code"),
+        blank=True,
+        null=True,
+        help_text=_(
+            "Interactor program (required for INTERACTIVE problems). "
+            "Receives the test input file as argv[1] and the answer file "
+            "as argv[2], talks to the submission over stdin/stdout, and "
+            "reports the verdict via exit code (checker protocol v2)."
+        ),
+    )
+    interactor_language = models.CharField(
+        _("interactor language"),
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text=_("Language id of the interactor (e.g. 'cpp17', 'python3')."),
+    )
+
     # For multilingual title & statement, using JSONField
     title_i18n = models.JSONField(
         _("title (i18n)"), help_text=_("Problem title in different languages")

@@ -122,6 +122,27 @@ beforeEach(() => {
 });
 
 describe('ProblemDetailPage (route "/problems/:problemId")', () => {
+  it('badges an INTERACTIVE problem with the flush notice (JDG-2)', async () => {
+    vi.mocked(getProblemDetail).mockResolvedValue(
+      problem({ problem_type: 'INTERACTIVE' })
+    );
+    render(await ProblemDetailPage(pageProps()));
+
+    const badge = screen.getByText('Interactive');
+    expect(badge).toBeInTheDocument();
+    // The flush-your-output hint rides the badge title for keyboard users.
+    expect(badge.getAttribute('title')).toMatch(/flush/i);
+  });
+
+  it('renders no interactive badge for NORMAL problems', async () => {
+    vi.mocked(getProblemDetail).mockResolvedValue(
+      problem({ problem_type: 'NORMAL' })
+    );
+    render(await ProblemDetailPage(pageProps()));
+
+    expect(screen.queryByText('Interactive')).not.toBeInTheDocument();
+  });
+
   it('renders the problem content server-side and mounts the client form island', async () => {
     vi.mocked(getProblemDetail).mockResolvedValue(
       problem({

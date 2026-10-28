@@ -72,6 +72,23 @@ const MOCK_PROBLEMS = [
     hints_ro: ['Slicing-ul integrat inversează într-un pas.', 's[::-1]'],
     has_editorial: true,
   },
+  {
+    id: 3,
+    title_i18n: { en: 'Guess the Number', ro: 'Ghicește numărul' },
+    // Wave D (JDG-2): INTERACTIVE fixture — judged by an interactor over
+    // piped stdio; the problem page badges it and warns about flushing.
+    problem_type: 'INTERACTIVE',
+    interactor_language: 'python3',
+    difficulty: 'EASY',
+    status: 'APPROVED',
+    statement_i18n: {
+      en: 'The judge has a secret number. Ask comparison questions by writing them to stdout; the interactor answers on your stdin. Flush after every line!',
+      ro: 'Evaluatorul are un număr secret. Pune întrebări comparative scriindu-le pe stdout; interactorul răspunde pe stdin-ul tău. Dă flush după fiecare linie!',
+    },
+    default_time_limit_ms: 2000,
+    default_memory_limit_kb: 262144,
+    allowed_languages: ['PYTHON', 'CPP'],
+  },
 ];
 
 // DRF envelope builders (SPEC-GAPS B4).
