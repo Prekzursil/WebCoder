@@ -44,3 +44,32 @@ class ScratchRun(models.Model):
 
     def __str__(self):
         return f"ScratchRun {self.id} by {self.user_id} ({self.language})"
+
+
+class StressRun(models.Model):
+    """Audit log for stress-test runs (competitive roadmap JDG-11).
+
+    Mirrors ScratchRun: the sandbox's stderr/compiler diagnostics pass
+    through this persisted row before reaching the API response — both the
+    abuse-audit trail and the serialization boundary. The mismatch payload
+    (first diverging input + program stderr) is stored as JSON.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="stress_runs",
+        verbose_name=_("user"),
+    )
+    iterations = models.PositiveIntegerField(_("iterations run"), default=0)
+    found = models.BooleanField(_("mismatch found"), default=False)
+    detail = models.JSONField(_("detail"), default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("stress run")
+        verbose_name_plural = _("stress runs")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return "stress %d by %s" % (self.id, self.user_id)

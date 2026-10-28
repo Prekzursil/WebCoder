@@ -46,3 +46,20 @@ test.describe('community content (Wave C, mock api)', () => {
     await expect(page.getByText(/data-processing agreement/i)).toBeVisible();
   });
 });
+
+
+test.describe('authoring & integrity (Wave C JDG/UXP, mock api)', () => {
+  test('problem page shows the statement-change banner and feed (UXP-4)', async ({
+    page,
+  }) => {
+    await page.goto('/problems/1');
+
+    const banner = page.getByTestId('statement-history');
+    await expect(banner).toBeVisible();
+    await expect(banner).toContainText(/change history/i);
+    await banner.getByRole('button').click();
+    await expect(page.getByTestId('statement-history-feed')).toContainText(
+      'clarified constraints'
+    );
+  });
+});

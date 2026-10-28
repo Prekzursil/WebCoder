@@ -4,6 +4,27 @@ import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { ProblemType, TestCaseType } from '@/types';
 
+vi.mock('@/services/ApiService', () => ({
+  ToolingService: {
+    getStatementRevisions: vi.fn().mockResolvedValue({ count: 0, results: [] }),
+    getSamplesBundle: vi.fn().mockResolvedValue({ count: 0, filename: '', content: '' }),
+  },
+  CommunityService: {
+    getCommunityEditorials: vi
+      .fn()
+      .mockResolvedValue({ count: 0, next: null, previous: null, results: [] }),
+    createCommunityEditorial: vi.fn(),
+    getRelatedArticles: vi.fn().mockResolvedValue({ count: 0, results: [] }),
+    getArticles: vi.fn().mockResolvedValue({ count: 0, next: null, previous: null, results: [] }),
+    getArticle: vi.fn(),
+    getFeed: vi.fn().mockResolvedValue({ count: 0, page: 1, next: null, results: [] }),
+    getSolutions: vi.fn().mockRejectedValue(new Error('locked')),
+    getHonor: vi.fn(),
+    getMyHonor: vi.fn(),
+    getWeeklyBoard: vi.fn().mockResolvedValue({ count: 0, window_days: 7, results: [] }),
+  },
+}));
+
 vi.mock('next/headers', () => ({
   cookies: vi.fn(),
 }));
