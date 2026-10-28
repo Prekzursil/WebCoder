@@ -34,6 +34,25 @@ class Thread(models.Model):
     # COM-6 (competitive roadmap): admin news posts — surfaced as a home
     # panel; ordinary threads stay ordinary.
     is_announcement = models.BooleanField(_("announcement"), default=False)
+    # EDT-4: the thread's writing language (ro/en); blank = unspecified.
+    lang = models.CharField(
+        _("language"),
+        max_length=2,
+        choices=[("ro", _("Romanian")), ("en", _("English"))],
+        blank=True,
+        default="",
+        help_text=_("Writing language; posts inherit it (EDT-4 filter axis)."),
+    )
+    # COM-2: editorial-discussion threads attach to a community editorial
+    # instead of (or beside) the problem itself.
+    editorial = models.ForeignKey(
+        "problems.CommunityEditorial",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="threads",
+        verbose_name=_("community editorial"),
+    )
     post_count = models.PositiveIntegerField(
         _("post count"), default=0
     )  # denormalized

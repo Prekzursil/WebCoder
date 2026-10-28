@@ -534,3 +534,138 @@ class CurriculumNode(models.Model):
         if isinstance(self.name_i18n, dict):
             return f"{self.slug} ({self.name_i18n.get('en', '')})"
         return self.slug
+
+
+class CommunityEditorial(models.Model):
+    """Community-contributed editorial (competitive roadmap EDT-3).
+
+    Unlike the official ``ProblemEditorial`` (one per problem, staff-
+    curated), community editorials are author-attributed ROWS — multiple
+    per problem, each riding the same approval lifecycle as problems
+    (DRAFT/PENDING -> APPROVED/REJECTED) with verifier feedback, and each
+    carrying the UGC license the terms grant (CC BY-SA 4.0 text; the
+    license rides the serializer, not a per-row choice).
+
+    EDT-4: every row declares its writing language so RO students can
+    filter EN commentary out and vice versa.
+    """
+
+    class Status(models.TextChoices):
+        DRAFT = "DRAFT", _("Draft")
+        PENDING = "PENDING", _("Pending review")
+        APPROVED = "APPROVED", _("Approved")
+        REJECTED = "REJECTED", _("Rejected")
+
+    class Language(models.TextChoices):
+        RO = "ro", _("Romanian")
+        EN = "en", _("English")
+
+    problem = models.ForeignKey(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name="community_editorials",
+        verbose_name=_("problem"),
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET(get_sentinel_user),
+        null=True,
+        blank=True,
+        related_name="community_editorials",
+        verbose_name=_("author"),
+    )
+    title = models.CharField(_("title"), max_length=200)
+    body = models.TextField(_("body"), help_text=_("Markdown."))
+    lang = models.CharField(
+        _("language"),
+        max_length=2,
+        choices=Language.choices,
+        default=Language.EN,
+        help_text=_("Writing language (EDT-4 filter axis)."),
+    )
+    status = models.CharField(
+        _("status"), max_length=10, choices=Status.choices, default=Status.DRAFT
+    )
+    verifier = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET(get_sentinel_user),
+        null=True,
+        blank=True,
+        related_name="verified_community_editorials",
+        verbose_name=_("verifier"),
+    )
+    verifier_feedback = models.TextField(_("verifier feedback"), blank=True)
+    # Moderation (round-2 SAF-1): hidden rows vanish from public lists but
+    # stay auditable for staff.
+    is_hidden = models.BooleanField(_("hidden"), default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("community editorial")
+        verbose_name_plural = _("community editorials")
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["problem", "status"]),
+            models.Index(fields=["lang", "status"]),
+        ]
+
+    def __str__(self):
+        return "%s (%s, %s)" % (self.title, self.problem_id, self.status)
+
+
+class Article(models.Model):
+    """Algorithm article / lecture note (competitive roadmap EDT-6).
+
+    Markdown lecture layer tied to tags: problems cross-link articles that
+    share at least one tag ("related reading" strip), seeding the RO
+    language algorithm content moat. Same bilingual + approval discipline
+    as problems.
+    """
+
+    class Status(models.TextChoices):
+        DRAFT = "DRAFT", _("Draft")
+        PENDING = "PENDING", _("Pending review")
+        APPROVED = "APPROVED", _("Approved")
+        REJECTED = "REJECTED", _("Rejected")
+
+    title_i18n = models.JSONField(
+        _("title (i18n)"), help_text="{'en': ..., 'ro': ...}"
+    )
+    body_ro = models.TextField(_("body (Romanian, markdown)"), blank=True)
+    body_en = models.TextField(_("body (English, markdown)"), blank=True)
+    tags = models.ManyToManyField(Tag, blank=True, related_name="articles")
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET(get_sentinel_user),
+        null=True,
+        blank=True,
+        related_name="authored_articles",
+        verbose_name=_("author"),
+    )
+    status = models.CharField(
+        _("status"), max_length=10, choices=Status.choices, default=Status.DRAFT
+    )
+    verifier = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET(get_sentinel_user),
+        null=True,
+        blank=True,
+        related_name="verified_articles",
+        verbose_name=_("verifier"),
+    )
+    verifier_feedback = models.TextField(_("verifier feedback"), blank=True)
+    is_hidden = models.BooleanField(_("hidden"), default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("article")
+        verbose_name_plural = _("articles")
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["status"])]
+
+    def __str__(self):
+        if isinstance(self.title_i18n, dict):
+            return self.title_i18n.get("en", "Article %s" % self.id)
+        return "Article %s" % self.id

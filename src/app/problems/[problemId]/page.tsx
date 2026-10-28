@@ -16,6 +16,8 @@ import SubmitSolutionForm from './SubmitSolutionForm';
 import HintsPanel from './HintsPanel';
 import EditoralPanelPlaceholder from './EditorialPanel';
 import ProblemStatsPanel from './ProblemStatsPanel';
+import CommunityEditorialsPanel from './CommunityEditorialsPanel';
+import RelatedArticlesStrip from './RelatedArticlesStrip';
 import ScratchPanel from './ScratchPanel';
 import CopyButton from '@/components/common/CopyButton';
 import StatementMarkdown from '@/components/common/StatementMarkdown';
@@ -298,6 +300,10 @@ export default async function ProblemDetailPage({
 
           {/* Catalog honesty [UXP-7/X9]: tried/solved/AC% + satisfaction */}
           <ProblemStatsPanel problemId={problemId} />
+
+          {/* Wave C [EDT-3/EDT-4/EDT-6]: community editorials + related reading */}
+          <CommunityEditorialsPanel problemId={Number(problemId)} />
+          <RelatedArticlesStrip problemId={Number(problemId)} />
 
           {/* Problem statement */}
           <div style={card}>

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from problems.models import Problem
+from problems.models import CommunityEditorial, Problem
 
 from .models import Post, Report, Thread
 
@@ -15,6 +15,8 @@ class ThreadListSerializer(serializers.ModelSerializer):
             "id",
             "title",
             "problem",
+            "editorial",
+            "lang",
             "author",
             "post_count",
             "is_pinned",
@@ -42,6 +44,12 @@ class ThreadCreateSerializer(serializers.Serializer):
         required=False,
         allow_null=True,
     )
+    editorial = serializers.PrimaryKeyRelatedField(
+        queryset=CommunityEditorial.objects.all(),
+        required=False,
+        allow_null=True,
+    )
+    lang = serializers.ChoiceField(choices=["", "ro", "en"], required=False)
     content = serializers.CharField()
 
 

@@ -33,6 +33,11 @@ export default async function TermsPage() {
       ),
     },
     {
+      key: 'schools',
+      title: t('terms_schools_title', 'Schools and data processing'),
+      body: t('terms_schools_body', 'Schools using classes and teme can request our data-processing agreement template.'),
+    },
+    {
       key: 'content',
       title: t('terms_content_title', 'Your content'),
       body: t(

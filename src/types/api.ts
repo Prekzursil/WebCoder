@@ -470,3 +470,35 @@ export interface ExamModeStatus {
         due_at: string;
     } | null;
 }
+
+export interface CommunityEditorialRow {
+    id: number;
+    problem: number;
+    author: number;
+    author_username: string;
+    title: string;
+    body: string;
+    lang: 'ro' | 'en';
+    status: 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED';
+    verifier_feedback: string;
+    is_hidden: boolean;
+    license: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ArticleRow {
+    id: number;
+    title_i18n: LocalizedText;
+    body_ro: string;
+    body_en: string;
+    tags: { slug: string }[];
+    author: number;
+    author_username: string;
+    status: 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED';
+    verifier_feedback: string;
+    is_hidden: boolean;
+    license: string;
+    created_at: string;
+    updated_at: string;
+}

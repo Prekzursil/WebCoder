@@ -75,6 +75,19 @@ class ThreadViewSet(viewsets.ModelViewSet):
         problem_id = self.request.query_params.get("problem_id")
         if problem_id:
             qs = qs.filter(problem_id=problem_id)
+        # EDT-4: filter threads by writing language.
+        lang = self.request.query_params.get("lang", "")
+        if lang in ("ro", "en"):
+            qs = qs.filter(lang=lang)
+        # COM-2: editorial-discussion threads vs problem threads.
+        topic = self.request.query_params.get("topic", "")
+        if topic == "editorial":
+            qs = qs.filter(editorial__isnull=False)
+        elif topic == "problem":
+            qs = qs.filter(editorial__isnull=True)
+        editorial_id = self.request.query_params.get("editorial_id")
+        if editorial_id:
+            qs = qs.filter(editorial_id=editorial_id)
         return qs
 
     def create(self, request, *args, **kwargs):
@@ -84,6 +97,8 @@ class ThreadViewSet(viewsets.ModelViewSet):
             thread = Thread.objects.create(
                 title=serializer.validated_data["title"],
                 problem=serializer.validated_data.get("problem"),
+                editorial=serializer.validated_data.get("editorial"),
+                lang=serializer.validated_data.get("lang", "") or "",
                 author=request.user,
                 post_count=1,
                 last_activity=timezone.now(),
