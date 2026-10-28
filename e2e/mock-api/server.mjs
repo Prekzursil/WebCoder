@@ -778,6 +778,40 @@ const server = createServer((req, res) => {
     return;
   }
 
+  // OPS-3: the Microsoft SSO lane mirrors the other providers.
+  if (path === '/accounts/microsoft/login/') {
+    res.writeHead(302, { Location: '/login?mock_sso=microsoft' });
+    res.end();
+    return;
+  }
+
+  // OPS-1 public read-only API.
+  if (req.method === 'GET' && path === '/api/v1/public/') {
+    json(res, 200, {
+      api: 'WebCoder public API v1 (read-only).',
+      endpoints: ['/api/v1/public/problems/', '/api/v1/public/leaderboard/'],
+    });
+    return;
+  }
+  if (req.method === 'GET' && path === '/api/v1/public/problems/') {
+    json(res, 200, {
+      count: 1,
+      next: null,
+      previous: null,
+      results: [
+        {
+          id: 1,
+          title_i18n: { en: 'Two Sum', ro: 'Suma a două' },
+          difficulty: 'EASY',
+          tags: ['arrays'],
+          time_limit_ms: 1000,
+          memory_limit_kb: 262144,
+        },
+      ],
+    });
+    return;
+  }
+
   // Wave C (COM-3/COM-7, RAT-9): feed, solutions, weekly board.
   if (req.method === 'GET' && path === '/api/v1/community/feed/') {
     json(res, 200, {

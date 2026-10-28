@@ -223,6 +223,8 @@ const resources = {
       "weekly_solves": "solves",
       "weekly_points": "pts",
       "weekly_board_all_time": "All-time leaderboard →",
+      "microsoft_login": "Microsoft",
+      "public_api_title": "Public API",
 
       "contest_participant": "Participant",
 
@@ -1091,6 +1093,8 @@ const resources = {
       "weekly_solves": "rezolvări",
       "weekly_points": "pct",
       "weekly_board_all_time": "Clasamentul all-time →",
+      "microsoft_login": "Microsoft",
+      "public_api_title": "API public",
 
       "contest_participant": "Participant",
 

@@ -21,7 +21,7 @@ Item-level tracker of record. Statuses: `shipped (PR #N)` · `in-flight (wave X)
 95. Push notifications · 96. Offline mode (statements + drafts) · 97. Streak widget · 98. Tablet classroom mode · 99. QR class join · 100. Email/SMS fallback notices
 
 ## G. Analytics & insights — wave G
-101. Heat calendar · 102. Per-problem language stats · (weekly leaderboard + verdict feed shipped Wave C — RAT-9/COM-3) · 103. Live difficulty calibration · 104. Time-of-day charts · 105. Org dashboards · 106. Public API v1 · 107. Webhooks · 108. GDPR data export · 109. A/B framework · 110. Search analytics · 111. Funnel dashboards · 112. Season reports
+101. Heat calendar · 102. Per-problem language stats · (weekly leaderboard + verdict feed shipped Wave C — RAT-9/COM-3) · 103. Live difficulty calibration · 104. Time-of-day charts · 105. Org dashboards · 106. Public API v1 · (read-only problems/leaderboard/feed/tags shipped Wave C — OPS-1; personal tokens pending OPS-2) · 107. Webhooks · 108. GDPR data export · 109. A/B framework · 110. Search analytics · 111. Funnel dashboards · 112. Season reports
 
 ## H. Integrity & safety — wave G
 113. Plagiarism detection (MOSS/JPlag) · (vote trust-weighting shipped Wave C — RAT-10) 114. Boilerplate detection · 115. Multi-account heuristics · 116. AI-solution labeling/policy · 117. Abuse queue + SLA · 118. Moderation appeals + audit trail · 119. Bug bounty page · 120. Verifiable participation certificates (contest medals shipped as their first increment — Wave C CON-11)
