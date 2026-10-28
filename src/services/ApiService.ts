@@ -20,7 +20,9 @@ import {
   Clarification,
   ClassMembershipRow,
   ClassRoom,
+  ArticleRow,
   ClassroomAssignment,
+  CommunityEditorialRow,
   DeliverableRow,
   ExamModeStatus,
   MCQItemRow,
@@ -304,6 +306,42 @@ export const AuthService = {
     // [SP1] Cookie-mode logout: dj-rest-auth blacklists the rotated refresh
     // cookie and clears wc_access/wc_refresh. Fire-and-forget safe.
     logout: () => apiFetch<{ detail?: string }>(LOGOUT_ENDPOINT, { method: 'POST' }),
+};
+
+export const CommunityService = {
+    getCommunityEditorials: (
+        problemId: number | string,
+        params: { lang?: string; page?: number } = {}
+    ) => {
+        const search = new URLSearchParams();
+        if (params.lang) search.set('lang', params.lang);
+        search.set('page', String(params.page ?? 1));
+        return apiFetch<PaginatedResponse<CommunityEditorialRow>>(
+            `/problems/${problemId}/community-editorials/?${search.toString()}`
+        );
+    },
+    createCommunityEditorial: (
+        problemId: number | string,
+        data: { title: string; body: string; lang: string; submit?: boolean }
+    ) =>
+        apiFetch<CommunityEditorialRow>(
+            `/problems/${problemId}/community-editorials/`,
+            { method: 'POST', body: JSON.stringify(data) }
+        ),
+    getRelatedArticles: (problemId: number | string) =>
+        apiFetch<{ count: number; results: ArticleRow[] }>(
+            `/problems/${problemId}/related-articles/`
+        ),
+    getArticles: (params: { tag?: string; page?: number } = {}) => {
+        const search = new URLSearchParams();
+        if (params.tag) search.set('tag', params.tag);
+        search.set('page', String(params.page ?? 1));
+        return apiFetch<PaginatedResponse<ArticleRow>>(
+            `/problems/articles/?${search.toString()}`
+        );
+    },
+    getArticle: (id: number | string) =>
+        apiFetch<ArticleRow>(`/problems/articles/${id}/`),
 };
 
 export const ProblemService = {

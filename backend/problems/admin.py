@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import CurriculumNode, Tag, Problem, TestCase
+from .models import CurriculumNode, Tag, Problem, TestCase, Article, CommunityEditorial
 from .bookmarks import ProblemStar
 
 
@@ -126,3 +126,21 @@ admin.site.register(CurriculumNode, CurriculumNodeAdmin)
 class ProblemStarAdmin(admin.ModelAdmin):
     list_display = ("id", "user", "problem", "created_at")
     search_fields = ("user__username",)
+
+
+@admin.register(CommunityEditorial)
+class CommunityEditorialAdmin(admin.ModelAdmin):
+    """EDT-3: moderation + approval queue surface for community editorials."""
+
+    list_display = ("id", "title", "problem", "author", "lang", "status", "is_hidden")
+    list_filter = ("status", "lang", "is_hidden")
+    search_fields = ("title", "author__username")
+
+
+@admin.register(Article)
+class ArticleAdmin(admin.ModelAdmin):
+    """EDT-6: article hub moderation + approval queue."""
+
+    list_display = ("id", "title_i18n", "author", "status", "is_hidden")
+    list_filter = ("status", "is_hidden")
+    search_fields = ("author__username",)

@@ -778,6 +778,110 @@ const server = createServer((req, res) => {
     return;
   }
 
+  // Wave C (EDT-3/EDT-6): community editorials + article hub.
+  const communityEditorials = path.match(
+    /^\/api\/v1\/problems\/(\d+)\/community-editorials\/$/
+  );
+  if (req.method === 'GET' && communityEditorials) {
+    json(res, 200, {
+      count: 1,
+      next: null,
+      previous: null,
+      results: [
+        {
+          id: 11,
+          problem: Number(communityEditorials[1]),
+          author: 2,
+          author_username: 'creator_e2e',
+          title: 'Two pointers, one pass',
+          body: 'Walk inward from both ends.',
+          lang: 'en',
+          status: 'APPROVED',
+          verifier_feedback: '',
+          is_hidden: false,
+          license: 'CC BY-SA 4.0',
+          created_at: '2026-11-01T00:00:00Z',
+          updated_at: '2026-11-01T00:00:00Z',
+        },
+      ],
+    });
+    return;
+  }
+
+  const relatedArticles = path.match(
+    /^\/api\/v1\/problems\/(\d+)\/related-articles\/$/
+  );
+  if (req.method === 'GET' && relatedArticles) {
+    json(res, 200, {
+      count: 1,
+      results: [
+        {
+          id: 1,
+          title_i18n: { en: 'Hash tables 101', ro: 'Tabele de dispersie 101' },
+          body_ro: 'Adresare deschisă.',
+          body_en: 'Open addressing vs chaining.',
+          tags: [{ slug: 'hashing' }],
+          author: 2,
+          author_username: 'creator_e2e',
+          status: 'APPROVED',
+          verifier_feedback: '',
+          is_hidden: false,
+          license: 'CC BY-SA 4.0',
+          created_at: '2026-11-01T00:00:00Z',
+          updated_at: '2026-11-01T00:00:00Z',
+        },
+      ],
+    });
+    return;
+  }
+
+  const articlesList = path === '/api/v1/problems/articles/';
+  if (req.method === 'GET' && articlesList) {
+    json(res, 200, {
+      count: 1,
+      next: null,
+      previous: null,
+      results: [
+        {
+          id: 1,
+          title_i18n: { en: 'Hash tables 101', ro: 'Tabele de dispersie 101' },
+          body_ro: 'Adresare deschisă.',
+          body_en: 'Open addressing vs chaining.',
+          tags: [{ slug: 'hashing' }],
+          author: 2,
+          author_username: 'creator_e2e',
+          status: 'APPROVED',
+          verifier_feedback: '',
+          is_hidden: false,
+          license: 'CC BY-SA 4.0',
+          created_at: '2026-11-01T00:00:00Z',
+          updated_at: '2026-11-01T00:00:00Z',
+        },
+      ],
+    });
+    return;
+  }
+
+  const articleDetail = path.match(/^\/api\/v1\/problems\/articles\/(\d+)\/$/);
+  if (req.method === 'GET' && articleDetail) {
+    json(res, 200, {
+      id: 1,
+      title_i18n: { en: 'Hash tables 101', ro: 'Tabele de dispersie 101' },
+      body_ro: 'Adresare deschisă.',
+      body_en: 'Open addressing vs chaining.',
+      tags: [{ slug: 'hashing' }],
+      author: 2,
+      author_username: 'creator_e2e',
+      status: 'APPROVED',
+      verifier_feedback: '',
+      is_hidden: false,
+      license: 'CC BY-SA 4.0',
+      created_at: '2026-11-01T00:00:00Z',
+      updated_at: '2026-11-01T00:00:00Z',
+    });
+    return;
+  }
+
   if (req.method === 'GET' && path === '/api/v1/classroom/exam-mode/') {
     json(res, 200, { active: false, assignment: null });
     return;
