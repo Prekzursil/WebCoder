@@ -41,9 +41,14 @@ STRESS_MEMORY_LIMIT_KB = 262144
 
 def _run_compiled(
     executable_path, language: str, stdin_data: str, workspace_dir
-) -> tuple[str, str, str]:
-    """Run one compiled artifact; returns (verdict, stdout, stderr)."""
-    verdict, _time, _mem, output, error = run_code_in_sandbox(
+) -> tuple[str, str]:
+    """Run one compiled artifact; returns (verdict, stdout).
+
+    Stderr stays server-side: it is exception-derived sandbox output, and
+    the caller can reproduce any failing case in the scratch console
+    (which owns that surface).
+    """
+    verdict, _time, _mem, output, _error = run_code_in_sandbox(
         executable_path,
         language,
         stdin_data,
@@ -52,7 +57,7 @@ def _run_compiled(
         workspace_dir,
         None,
     )
-    return verdict, output or "", error or ""
+    return verdict, output or ""
 
 
 class StressRequestSerializer(serializers.Serializer):
@@ -144,21 +149,17 @@ class StressTestView(APIView):
             ref_exec, ref_lang = compiled["reference"]
 
             for _index in range(iterations):
-                gen_verdict, gen_out, gen_err = _run_compiled(
+                gen_verdict, gen_out = _run_compiled(
                     gen_exec, gen_lang, "", workspace_dir
                 )
                 runs += 1
                 if gen_verdict != "AC":
-                    mismatch = {
-                        "phase": "generator",
-                        "verdict": gen_verdict,
-                        "stderr": gen_err[:2000],
-                    }
+                    mismatch = {"phase": "generator", "verdict": gen_verdict}
                     break
-                sol_verdict, sol_out, sol_err = _run_compiled(
+                sol_verdict, sol_out = _run_compiled(
                     sol_exec, sol_lang, gen_out, workspace_dir
                 )
-                ref_verdict, ref_out, ref_err = _run_compiled(
+                ref_verdict, ref_out = _run_compiled(
                     ref_exec, ref_lang, gen_out, workspace_dir
                 )
                 if sol_verdict != "AC":
@@ -166,7 +167,6 @@ class StressTestView(APIView):
                         "phase": "solution",
                         "input": gen_out[:4000],
                         "verdict": sol_verdict,
-                        "stderr": sol_err[:2000],
                     }
                     break
                 if ref_verdict != "AC":
@@ -174,7 +174,6 @@ class StressTestView(APIView):
                         "phase": "reference",
                         "input": gen_out[:4000],
                         "verdict": ref_verdict,
-                        "stderr": ref_err[:2000],
                     }
                     break
                 if sol_out.strip() != ref_out.strip():
