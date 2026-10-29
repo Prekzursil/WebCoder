@@ -43,12 +43,14 @@ interface ProblemsListClientProps {
 }
 
 const difficultyColor: Record<string, string> = {
+  // EDU-10: the gimnaziu beginner band gets the soft accent green.
+  very_easy: palette.accent,
   easy: palette.success,
   medium: palette.warn,
   hard: palette.danger,
 };
 
-const DIFFICULTIES = ['easy', 'medium', 'hard'];
+const DIFFICULTIES = ['very_easy', 'easy', 'medium', 'hard'];
 // Real ProblemStatus choices (backend problems/models.py) — 'rejected' never
 // existed. [F7]
 const STATUSES = ['draft', 'pending_approval', 'approved', 'private'];
@@ -56,7 +58,12 @@ const STATUSES = ['draft', 'pending_approval', 'approved', 'private'];
 type SortKey = 'title' | 'difficulty' | 'status';
 type SortDir = 'asc' | 'desc';
 
-const DIFFICULTY_ORDER: Record<string, number> = { easy: 0, medium: 1, hard: 2 };
+const DIFFICULTY_ORDER: Record<string, number> = {
+  very_easy: 0,
+  easy: 1,
+  medium: 2,
+  hard: 3,
+};
 
 export default function ProblemsListClient({ problems, totalCount, hasMore, fetchError, locale, curriculum }: ProblemsListClientProps) {
   const router = useRouter();

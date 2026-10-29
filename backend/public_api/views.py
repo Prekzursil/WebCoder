@@ -106,7 +106,7 @@ class PublicProblemList(APIView):
         if tag:
             qs = qs.filter(tags__slug=tag)
         difficulty = request.query_params.get("difficulty", "").strip().upper()
-        if difficulty in {"EASY", "MEDIUM", "HARD"}:
+        if difficulty in {"VERY_EASY", "EASY", "MEDIUM", "HARD"}:
             qs = qs.filter(difficulty=difficulty)
         search = request.query_params.get("search", "").strip().lower()
         if search:

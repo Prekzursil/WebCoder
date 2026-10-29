@@ -36,8 +36,14 @@ class TestSeedProblemsCommand:
             len(p["tests"]) for p in seed_data.PROBLEMS
         )
         assert Tag.objects.filter(slug__in=["loops", "arrays", "sorting"]).count() == 3
-        assert CurriculumNode.objects.filter(kind="GRADE").count() == 2
-        assert CurriculumNode.objects.filter(kind="CHAPTER").count() == 8
+        # EDU-10: the tree now spans gimnaziu (g5-g8) + liceu v1 (g9-g10).
+        assert CurriculumNode.objects.filter(kind="GRADE").count() == 6
+        assert CurriculumNode.objects.filter(kind="CHAPTER").count() == 16
+        assert list(
+            CurriculumNode.objects.filter(kind="GRADE")
+            .order_by("order")
+            .values_list("slug", flat=True)
+        ) == ["g5", "g6", "g7", "g8", "g9", "g10"]
         assert ProblemEditorial.objects.count() == len(seed_data.EDITORIALS)
         # first test of each problem is the visible sample
         for problem in Problem.objects.filter(
@@ -77,6 +83,86 @@ class TestSeedProblemsCommand:
         assert editorial.publish_policy == ProblemEditorial.PublishPolicy.AFTER_AC
 
 
+class TestGimnaziuPack:
+    """EDU-10 (Wave D): grades 5-8 taxonomy + the VERY_EASY ladder."""
+
+    def test_gimnaziu_ladder_seeds_with_band_and_facet(self):
+        run_seed()
+        ladder = Problem.objects.filter(difficulty="VERY_EASY")
+        assert ladder.count() == 10
+        assert all(p.grade_group == "gimnaziu" for p in ladder)
+        # Every gimnaziu chapter carries at least one problem.
+        for slug in [
+            "g5-first-steps",
+            "g5-arithmetic",
+            "g6-conditionals",
+            "g6-loops",
+            "g7-sequences",
+            "g7-divisibility",
+            "g8-arrays",
+        ]:
+            node = CurriculumNode.objects.get(slug=slug)
+            assert node.problems.count() >= 1, slug
+
+    def test_gimnaziu_problem_is_bilingual_and_simple(self):
+        run_seed()
+        problem = Problem.objects.get(title_i18n__en="Hello, Judge!")
+        assert problem.difficulty == "VERY_EASY"
+        assert problem.title_i18n["ro"] == "Salut, evaluator!"
+        assert "Salut, evaluator!" in problem.statement_i18n["ro"]
+        assert problem.hints_ro and problem.hints_en
+
+    def test_very_easy_counts_in_ladder_and_stats(self):
+        from users.statistics import LADDER_WEIGHTS, user_statistics
+
+        run_seed()
+        author = User.objects.create_user(username="gim", password="pw-123456")
+        hello = Problem.objects.get(title_i18n__en="Hello, Judge!")
+        medium = Problem.objects.create(
+            title_i18n={"en": "M"},
+            statement_i18n={"en": "S"},
+            difficulty="MEDIUM",
+            status=Problem.ProblemStatus.APPROVED,
+        )
+        for target in (hello, medium):
+            Submission.objects.create(
+                user=author,
+                problem=target,
+                language="python3",
+                code="print(1)",
+                verdict=Submission.VerdictStatus.ACCEPTED,
+            )
+        stats = user_statistics(author)
+        # EDU-10: the beginner band has its own bucket...
+        assert stats["per_difficulty"]["VERY_EASY"]["solved"] == 1
+        # ...and credits the ladder like EASY (weight 1) + MEDIUM (3) = 4.
+        assert stats["ladder"]["points"] == (
+            LADDER_WEIGHTS[Problem.DifficultyLevel.VERY_EASY]
+            + LADDER_WEIGHTS[Problem.DifficultyLevel.MEDIUM]
+        )
+
+    def test_curriculum_api_lists_gimnaziu_grades_first(self):
+        run_seed()
+        client = APIClient()
+        response = client.get("/api/v1/problems/curriculum/")
+        assert response.status_code == 200
+        results = (
+            response.data if isinstance(response.data, list) else response.data["results"]
+        )
+        slugs = [grade["slug"] for grade in results]
+        assert slugs[:4] == ["g5", "g6", "g7", "g8"]
+
+    def test_public_api_filters_by_very_easy(self):
+        run_seed()
+        client = APIClient()
+        response = client.get("/api/v1/public/problems/?difficulty=VERY_EASY")
+        assert response.status_code == 200
+        assert response.data["count"] == 10
+        assert all(
+            row["difficulty"] == "VERY_EASY" for row in response.data["results"]
+        )
+
+
 class TestCurriculumAPI:
     def test_tree_lists_grades_with_chapters_and_counts(self):
         run_seed()
@@ -88,8 +174,9 @@ class TestCurriculumAPI:
             response.data["results"] if "results" in response.data else response.data
         )
         slugs = [node["slug"] for node in results]
-        assert slugs == ["g9", "g10"]
-        g9 = results[0]
+        # EDU-10: gimnaziu (g5-g8) now leads the liceu v1 tree (g9-g10).
+        assert slugs == ["g5", "g6", "g7", "g8", "g9", "g10"]
+        g9 = next(node for node in results if node["slug"] == "g9")
         assert g9["kind"] == "GRADE"
         chapter_slugs = [child["slug"] for child in g9["children"]]
         assert "g9-elementary" in chapter_slugs and "g9-loops" in chapter_slugs

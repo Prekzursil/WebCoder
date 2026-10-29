@@ -77,6 +77,20 @@ const MOCK_PROBLEMS = [
     has_editorial: true,
   },
   {
+    id: 4,
+    title_i18n: { en: 'Hello, Judge!', ro: 'Salut, evaluator!' },
+    difficulty: 'VERY_EASY',
+    status: 'APPROVED',
+    grade_group: 'gimnaziu',
+    statement_i18n: {
+      en: 'Print the exact text `Hello, judge!`',
+      ro: 'Afișează exact textul `Salut, evaluator!`',
+    },
+    default_time_limit_ms: 1000,
+    default_memory_limit_kb: 262144,
+    allowed_languages: ['PYTHON', 'CPP'],
+  },
+  {
     id: 3,
     title_i18n: { en: 'Guess the Number', ro: 'Ghicește numărul' },
     // Wave D (JDG-2): INTERACTIVE fixture — judged by an interactor over
@@ -502,6 +516,15 @@ const server = createServer((req, res) => {
   // Wave A: curriculum tree (EDU-9) + starter trio (ONB-1) + solved ids (F5).
   if (req.method === 'GET' && path === '/api/v1/problems/curriculum/') {
     json(res, 200, paged([
+      {
+        // EDU-10 (Wave D): the gimnaziu tree leads the liceu spine.
+        id: 20, kind: 'GRADE', slug: 'g5', order: 5,
+        name_i18n: { en: 'Grade 5', ro: 'Clasa a V-a' }, problem_count: 1,
+        children: [
+          { id: 21, kind: 'CHAPTER', slug: 'g5-first-steps', order: 1,
+            name_i18n: { en: 'First steps (read & print)', ro: 'Primii pași (citire și afișare)' }, problem_count: 1 },
+        ],
+      },
       {
         id: 10, kind: 'GRADE', slug: 'g9', order: 10,
         name_i18n: { en: 'Grade 9', ro: 'Clasa a IX-a' }, problem_count: 2,

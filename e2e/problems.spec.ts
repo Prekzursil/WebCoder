@@ -135,6 +135,25 @@ test('catalog curriculum axis drills into a chapter [EDU-9]', async ({ page }) =
   }
 });
 
+test('gimnaziu grade leads the curriculum axis and the beginner band pill renders [EDU-10]', async ({
+  page,
+}) => {
+  await page?.goto('/problems');
+
+  // The g5 grade chip is the first tree entry (chips flow horizontally —
+  // compare X, not Y).
+  const g5 = page.getByRole('button', { name: /Grade 5/ });
+  await expect(g5).toBeVisible();
+  const g9 = page.getByRole('button', { name: /Grade 9/ });
+  const boxes = await Promise.all([g5, g9].map((chip) => chip.boundingBox()));
+  expect(boxes[0]!.x).toBeLessThan(boxes[1]!.x);
+
+  // The seeded beginner problem renders its band pill.
+  const helloRow = page.getByRole('row').filter({ hasText: 'Hello, Judge!' });
+  await expect(helloRow).toBeVisible();
+  await expect(helloRow.getByText('VERY_EASY')).toBeVisible();
+});
+
 test('terms and privacy pages render their sections [LEG-1]', async ({ page }) => {
   await page?.goto('/terms');
   await expect(page?.getByRole('heading', { name: 'Terms of Service' }))?.toBeVisible();

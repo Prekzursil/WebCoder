@@ -1,9 +1,10 @@
-"""Seed the bilingual starter pack (competitive roadmap ONB-1 / X4).
+"""Seed the bilingual starter pack (ONB-1 / X4 + EDU-10 gimnaziu).
 
 Creates (idempotently, matched on the English title):
 - the curriculum taxonomy v1 tree (grades 9-10),
 - the paradigm tags,
-- ~19 classic problems with RO/EN statements, progressive hints, real
+- ~19 classic + 10 gimnaziu (grades 5-8) beginner problems with RO/EN
+  statements, progressive hints, real
   test data (first test is a visible sample) and difficulty_source=SEED,
 - a few AFTER_AC editorials.
 
@@ -71,6 +72,9 @@ class Command(BaseCommand):
                 verifier=author,
                 difficulty=entry["difficulty"],
                 difficulty_source=Problem.DifficultySource.SEED,
+                # EDU-10: the gimnaziu ladder carries its segment facet so
+                # the archive browse axis can filter grades 5-8.
+                grade_group=entry.get("grade_group", ""),
                 hints_en=entry["hints_en"],
                 hints_ro=entry["hints_ro"],
             )
