@@ -623,6 +623,38 @@ const server = createServer((req, res) => {
     return;
   }
 
+  // ---- ANA-1 (Wave D): owner analytics ------------------------------------
+  if (req.method === 'GET' && path === '/api/v1/users/admin/activation/') {
+    json(res, 200, {
+      total_users: 42,
+      users_with_submission: 25,
+      users_with_ac: 18,
+      activation_rate: 0.5952,
+      first_ac_rate: 0.4286,
+      d1_active: 14,
+      d7_active: 19,
+      d1_rate: 0.3333,
+      d7_rate: 0.4524,
+      submissions_per_day_30d: { '2026-10-27': 12, '2026-10-28': 7, '2026-10-29': 15 },
+      total_submissions: 331,
+    });
+    return;
+  }
+  if (req.method === 'GET' && path === '/api/v1/users/admin/activation/history/') {
+    json(res, 200, {
+      weeks: 12,
+      history: [
+        { week: '2026-W42', captured_at: '2026-10-19T06:30:00Z', total_users: 30,
+          users_with_submission: 17, users_with_ac: 11, d1_active: 8, d7_active: 12,
+          total_submissions: 210 },
+        { week: '2026-W43', captured_at: '2026-10-26T06:30:00Z', total_users: 42,
+          users_with_submission: 25, users_with_ac: 18, d1_active: 14, d7_active: 19,
+          total_submissions: 331 },
+      ],
+    });
+    return;
+  }
+
   // ---- OPS-2 (Wave D): TOTP enrollment + personal API token ----------
   if (path === '/api/v1/users/me/totp/begin/' && req.method === 'POST') {
     if (!sessionUser(req)) {

@@ -545,6 +545,36 @@ export const AdminService = {
         return apiFetch<GetAdminUsersResponse>(`/users/admin/manage/${qs ? `?${qs}` : ''}`);
     },
     updateUser: (userId: number | string, userData: { role?: string, is_active?: boolean }) => apiFetch<{ detail?: string }>(`/users/admin/manage/${userId}/`, { method: 'PATCH', body: JSON.stringify(userData) }),
+    // [ANA-1 Wave D] Owner product analytics: live activation snapshot +
+    // weekly frozen trend.
+    getActivation: () =>
+        apiFetch<{
+            total_users: number;
+            users_with_submission: number;
+            users_with_ac: number;
+            activation_rate: number | null;
+            first_ac_rate: number | null;
+            d1_active: number;
+            d7_active: number;
+            d1_rate: number | null;
+            d7_rate: number | null;
+            submissions_per_day_30d: Record<string, number>;
+            total_submissions: number;
+        }>('/users/admin/activation/'),
+    getActivationHistory: (weeks = 12) =>
+        apiFetch<{
+            weeks: number;
+            history: {
+                week: string;
+                captured_at: string;
+                total_users: number;
+                users_with_submission: number;
+                users_with_ac: number;
+                d1_active: number;
+                d7_active: number;
+                total_submissions: number;
+            }[];
+        }>(`/users/admin/activation/history/?weeks=${weeks}`),
     getStats: () => apiFetch<AdminStatsResponse>('/users/admin/stats/'),
 };
 
