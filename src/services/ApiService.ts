@@ -310,6 +310,20 @@ export const AuthService = {
     // [SP1] Cookie-mode logout: dj-rest-auth blacklists the rotated refresh
     // cookie and clears wc_access/wc_refresh. Fire-and-forget safe.
     logout: () => apiFetch<{ detail?: string }>(LOGOUT_ENDPOINT, { method: 'POST' }),
+    // [OPS-2 Wave D] TOTP two-factor enrollment lifecycle.
+    totpBegin: () =>
+        apiFetch<{ secret: string; otpauth_uri: string }>('/users/me/totp/begin/', { method: 'POST' }),
+    totpVerify: (code: string) =>
+        apiFetch<{ detail: string }>('/users/me/totp/verify/', { method: 'POST', body: JSON.stringify({ code }) }),
+    totpDisable: (code: string, currentPassword: string) =>
+        apiFetch<{ detail: string }>('/users/me/totp/disable/', { method: 'POST', body: JSON.stringify({ code, current_password: currentPassword }) }),
+    // [OPS-2 Wave D] Personal API tokens (public-API companion credential).
+    getApiTokens: () =>
+        apiFetch<{ count: number; results: { key_hint: string; created: string }[] }>('/users/me/tokens/'),
+    createApiToken: () =>
+        apiFetch<{ detail: string; key: string; created: string }>('/users/me/tokens/', { method: 'POST', body: JSON.stringify({}) }),
+    revokeApiToken: () =>
+        apiFetch<{ detail: string }>('/users/me/tokens/', { method: 'DELETE' }),
 };
 
 export const ToolingService = {

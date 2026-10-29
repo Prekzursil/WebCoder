@@ -99,6 +99,9 @@ export interface User {
     | 'BASIC_USER'
     | 'PROBLEM_CREATOR'
     | 'PROBLEM_VERIFIER';
+  // OPS-2 (Wave D): the login-side two-factor signals.
+  two_factor_enabled?: boolean;
+  two_factor_required?: boolean;
 }
 
 export interface AdminUserType extends User {

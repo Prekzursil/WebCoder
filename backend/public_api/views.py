@@ -4,9 +4,10 @@
 interplay is resolved); throttles follow the SP4 pattern.
 """
 
+from django.conf import settings
 from rest_framework import permissions
 from rest_framework.response import Response
-from rest_framework.throttling import ScopedRateThrottle
+from rest_framework.throttling import SimpleRateThrottle
 from rest_framework.views import APIView
 
 from leaderboard.models import LeaderboardEntry
@@ -18,26 +19,70 @@ from community_depth import services as community_services
 #: OPS-1 documentation line every payload carries — the DMOJ/Codeforces
 #: social contract: unauthenticated reads, generous pages, no tokens yet.
 PUBLIC_API_NOTICE = (
-    "WebCoder public API v1 (read-only). Rate limit: 60/min per IP. "
-    "Personal tokens are not issued yet."
+    "WebCoder public API v1 (read-only). Rate limit: 60/min per IP "
+    "(240/min with a personal API token: Authorization: Token <key>)."
 )
 
 #: Anon throttle ceiling for the public namespace (SP4 pattern).
 PUBLIC_API_RATE = "60/min"
 
+#: Token-authenticated ceiling (OPS-2): personal API tokens act as the
+#: public API's "trusted reader" credential at 4x the anon rate.
+PUBLIC_API_AUTH_RATE = "240/min"
 
-class PublicAPIThrottle(ScopedRateThrottle):
-    """ScopedRateThrottle with a fixed scope — one rate for the namespace."""
+
+class PublicAPIThrottle(SimpleRateThrottle):
+    """The public namespace's own throttle — a FIXED scope, not view-driven.
+
+    Deliberately NOT a ScopedRateThrottle subclass: ScopedRateThrottle
+    re-reads ``view.throttle_scope`` on every request and resets ``scope``
+    to None when the view does not define one, which silently disabled
+    this throttle entirely (found while wiring OPS-2's authenticated
+    rate). Subclassing SimpleRateThrottle with an explicit ``__init__``
+    pins the rate to the namespace and keeps the cache key stable.
+
+    OPS-2 (Wave D): requests authenticated with a personal API token
+    (``Authorization: Token <key>``) switch to the 4x ``public_api_auth``
+    rate — the DMOJ pattern of generous authenticated reads that the
+    roadmap's "tokens double as OPS-1 auth" resolves to.
+    """
 
     scope = "public_api"
 
-    def get_rate(self):
-        from django.conf import settings
-
+    def _rate_for(self, scope: str, fallback: str) -> str:
         rates = getattr(settings, "REST_FRAMEWORK", {}).get(
             "DEFAULT_THROTTLE_RATES", {}
         )
-        return self.parse_rate(rates.get("public_api", PUBLIC_API_RATE))
+        return str(rates.get(scope, fallback))
+
+    def get_rate(self):
+        # String form ("60/min") — the SimpleRateThrottle contract; the
+        # base __init__/allow_request does the parsing.
+        if self.scope == "public_api_auth":
+            return self._rate_for("public_api_auth", PUBLIC_API_AUTH_RATE)
+        return self._rate_for("public_api", PUBLIC_API_RATE)
+
+    def __init__(self):
+        self.rate = self.get_rate()
+        self.num_requests, self.duration = self.parse_rate(self.rate)
+
+    def allow_request(self, request, view):
+        user = getattr(request, "user", None)
+        if user is not None and user.is_authenticated:
+            self.scope = "public_api_auth"
+            self.rate = self._rate_for("public_api_auth", PUBLIC_API_AUTH_RATE)
+            self.num_requests, self.duration = self.parse_rate(self.rate)
+        return super().allow_request(request, view)
+
+    def get_cache_key(self, request, view):
+        # SimpleRateThrottle leaves this abstract; the ScopedRateThrottle
+        # implementation we replaced carried exactly this key shape
+        # (authenticated users key by pk, anon by IP).
+        if request.user and request.user.is_authenticated:
+            ident = request.user.pk
+        else:
+            ident = self.get_ident(request)
+        return self.cache_format % {"scope": self.scope, "ident": ident}
 
 
 class PublicProblemList(APIView):

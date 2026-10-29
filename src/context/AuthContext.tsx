@@ -24,6 +24,17 @@ interface AuthContextType {
   user: User | null;
   login: (userData: User) => void;
   logout: () => void;
+  // False until the mount-time hydration (optimistic localStorage
+  // snapshot + /users/me/ confirmation) settles. ProtectedRoute waits
+  // for it before redirecting, so a not-yet-loaded session never
+  // bounces a signed-in user to /login. Optional: older test contexts
+  // omit it and keep the redirect-immediately behavior.
+  isHydrated?: boolean;
+  // OPS-2 (Wave D): re-fetch /users/me/ after a profile mutation the UI
+  // reacts to (e.g. TOTP enrollment flips two_factor_enabled). Optional so
+  // partial test contexts stay constructible; the real provider always
+  // supplies it.
+  refreshUser?: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,6 +43,7 @@ const USER_STORAGE_KEY = 'user';
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
   // One backend-logout POST per live session. Without the guard, a session
   // expiry loops: logout() POSTs /auth/logout/ → that 401s (cookies already
   // dead) → apiFetch's refresh fails → the unauthorized handler calls
@@ -93,6 +105,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setUser(null);
           localStorage.removeItem(USER_STORAGE_KEY);
         }
+      } finally {
+        if (!cancelled) setIsHydrated(true);
       }
     })();
     return () => {
@@ -108,8 +122,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    try {
+      const me = await AuthService.getMe();
+      if (me) {
+        setUser(me);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(me));
+        }
+      }
+    } catch {
+      // A failed refresh leaves the current snapshot standing; the next
+      // hydration or 401 path reconciles.
+    }
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated: !!user, user, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated: !!user,
+        user,
+        login,
+        logout,
+        refreshUser,
+        isHydrated,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

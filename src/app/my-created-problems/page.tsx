@@ -1,5 +1,6 @@
 'use client';
 
+import TwoFactorBanner from '@/components/common/TwoFactorBanner';
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
@@ -78,6 +79,7 @@ export function MyCreatedProblemsPage() {
 
   return (
     <div className="page-container">
+      <TwoFactorBanner />
       <h2>{t('my_created_problems_header', 'My Created Problems')}</h2>
       {myProblems.length === 0 ? (
         <p>{t('no_problems_created_yet', 'You have not created any problems yet.')}</p>

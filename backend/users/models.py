@@ -68,5 +68,37 @@ class User(AbstractUser):
         help_text=_("When purging this deleted account's side content is due."),
     )
 
+    # TOTP two-factor auth (competitive roadmap OPS-2): stdlib RFC 6238
+    # (users/totp.py). The secret is stored base32 while enrollment is in
+    # progress AND after it completes — verification needs the raw secret
+    # (a hash would be unverifiable), the same trust model django-otp
+    # uses. ``two_factor_enabled`` only flips after a live code verified.
+    two_factor_secret = models.CharField(
+        _("TOTP secret"),
+        max_length=64,
+        blank=True,
+        help_text=_("Base32 TOTP secret while enrolling or enrolled (OPS-2)."),
+    )
+    two_factor_enabled = models.BooleanField(
+        _("two-factor enabled"),
+        default=False,
+        help_text=_("TOTP verified at least once (OPS-2)."),
+    )
+
+    #: Roles the 2FA policy treats as privileged (OPS-2: content supply
+    #: chain + administration). Kept as a class constant so permissions,
+    #: serializers and the login banner agree on one definition.
+    PRIVILEGED_ROLES = (
+        Roles.PROBLEM_CREATOR,
+        Roles.PROBLEM_VERIFIER,
+        Roles.TEACHER,
+        Roles.ADMIN,
+    )
+
+    @property
+    def is_privileged(self) -> bool:
+        """Privileged-role member (or staff) — the 2FA policy cohort."""
+        return self.is_staff or self.role in self.PRIVILEGED_ROLES
+
     def __str__(self):
         return self.username

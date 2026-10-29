@@ -25,6 +25,7 @@ from users.models import User
 from users.permissions import (
     IsProblemCreator,
     IsProblemVerifier,
+    PrivilegedRoleRequires2FA,
     ProblemObjectPermissions,
 )
 
@@ -147,8 +148,16 @@ class ProblemViewSet(viewsets.ModelViewSet):
     # permission_classes = [IsAuthorOrVerifierOrAdminOrReadOnly] # Replaced with more granular per-action
 
     def get_permissions(self):
+        # OPS-2 (Wave D): with TWO_FACTOR_ENFORCE on, privileged-role
+        # writes on the content supply chain (authoring + approval) are
+        # refused until TOTP is enrolled — composes after the role gates.
+        two_factor_gate = PrivilegedRoleRequires2FA
         if self.action == "create":
-            self.permission_classes = [permissions.IsAuthenticated, IsProblemCreator]
+            self.permission_classes = [
+                permissions.IsAuthenticated,
+                IsProblemCreator,
+                two_factor_gate,
+            ]
         elif self.action in [
             "update",
             "partial_update",
@@ -158,11 +167,13 @@ class ProblemViewSet(viewsets.ModelViewSet):
             self.permission_classes = [
                 permissions.IsAuthenticated,
                 ProblemObjectPermissions,
+                two_factor_gate,
             ]
         elif self.action in ["approve_problem", "reject_problem"]:
             self.permission_classes = [
                 permissions.IsAuthenticated,
                 IsProblemVerifier,
+                two_factor_gate,
             ]  # Or IsAdminUser
         elif self.action == "list" or self.action == "retrieve":
             self.permission_classes = [

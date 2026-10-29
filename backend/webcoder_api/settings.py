@@ -294,6 +294,10 @@ REST_FRAMEWORK = {
         # simplejwt's JWTAuthentication), and when the header is absent the
         # wc_access httpOnly cookie authenticates the request instead.
         "users.authentication.WCCookieJWTAuthentication",
+        # OPS-2 (Wave D): personal API tokens (Authorization: Token <key>)
+        # — the credential companion-tooling / club dashboards use. The
+        # cookie-JWT class stays first so browser flows are unchanged.
+        "rest_framework.authentication.TokenAuthentication",
     ),
     # Rate limiting (SPEC-GAPS SP4): Anon+User throttle every endpoint at a
     # generous baseline; ScopedRateThrottle applies the tighter per-surface
@@ -313,6 +317,10 @@ REST_FRAMEWORK = {
         "user": os.environ.get("THROTTLE_USER_RATE", "240/min"),
         "auth": os.environ.get("THROTTLE_AUTH_RATE", "10/min"),
         "submit": os.environ.get("THROTTLE_SUBMIT_RATE", "20/hour"),
+        # OPS-1/OPS-2 (Wave D): token-authenticated public-API reads.
+        "public_api_auth": os.environ.get(
+            "THROTTLE_PUBLIC_API_AUTH_RATE", "240/min"
+        ),
         # Scratch runs (X7): raw judge execution, so its own strict scope —
         # the judge-DoS surface SP4 flagged.
         "scratch": os.environ.get("THROTTLE_SCRATCH_RATE", "20/hour"),
@@ -427,6 +435,17 @@ CELERY_TIMEZONE = TIME_ZONE
 # local stack. The compose celery-beat container drives it; without beat
 # running, every task here stays safe to invoke manually.
 from celery.schedules import crontab  # noqa: E402
+
+# OPS-2 (Wave D): progressive 2FA enforcement. False = the "warn" phase
+# (the login-side two_factor_required flag + banner); True = privileged
+# writes on the content supply chain are refused until TOTP is enrolled
+# (users.permissions.PrivilegedRoleRequires2FA).
+TWO_FACTOR_ENFORCE = os.environ.get("TWO_FACTOR_ENFORCE", "false").lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
 
 CELERY_BEAT_SCHEDULE = {
     "leaderboard-nightly-recompute": {

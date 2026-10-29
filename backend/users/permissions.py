@@ -1,4 +1,6 @@
 from rest_framework import permissions
+from django.utils.translation import gettext_lazy as _
+
 from .models import User
 from problems.models import Problem
 
@@ -115,3 +117,34 @@ class IsOwnerOrAdminForSubmission(permissions.BasePermission):
             and getattr(obj, "contest", None) is not None
             and obj.contest.created_by_id == request.user.id
         )
+
+
+class PrivilegedRoleRequires2FA(permissions.BasePermission):
+    """OPS-2 enforcement phase — privileged writes need enrolled TOTP.
+
+    Active only while ``settings.TWO_FACTOR_ENFORCE`` is on (the roadmap's
+    "warn → require at next login" progression: warn ships as the
+    ``two_factor_required`` flag on /users/me/, require flips with this
+    env var). Applied to the content-supply-chain surfaces (problem
+    authoring/approval); safe methods always pass, so it composes cleanly
+    with the existing per-action permission classes.
+    """
+
+    message = _(
+        "Two-factor authentication is required for this role. "
+        "Enable it in Profile → Security."
+    )
+
+    def has_permission(self, request, view):
+        from django.conf import settings
+
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        if not getattr(settings, "TWO_FACTOR_ENFORCE", False):
+            return True
+        user = request.user
+        if not (user and user.is_authenticated):
+            return True  # authentication is another class's job
+        if user.is_privileged and not user.two_factor_enabled:
+            return False
+        return True

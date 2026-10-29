@@ -97,8 +97,24 @@ class UserSerializer(serializers.ModelSerializer):
             "is_staff",
             "is_active",
             "date_joined",
+            # OPS-2: the login-side 2FA signals (read-only derivations).
+            "two_factor_enabled",
+            "two_factor_required",
         )
         read_only_fields = ("date_joined", "id")  # Role might be updatable by admin
+
+    two_factor_enabled = serializers.SerializerMethodField()
+    two_factor_required = serializers.SerializerMethodField()
+
+    def get_two_factor_enabled(self, obj) -> bool:
+        return bool(obj.two_factor_enabled)
+
+    def get_two_factor_required(self, obj) -> bool:
+        # OPS-2 "warn" phase: a privileged-role member without enrolled
+        # TOTP — the frontend renders the persistent enrollment banner.
+        # (The hard-gate variant is the PrivilegedRoleRequires2FA
+        # permission behind TWO_FACTOR_ENFORCE.)
+        return obj.is_privileged and not obj.two_factor_enabled
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

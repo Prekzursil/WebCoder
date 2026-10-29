@@ -23,6 +23,8 @@ const MOCK_USER = {
   username: 'e2e_tester',
   email: 'e2e@example.com',
   role: 'PROBLEM_CREATOR',
+  two_factor_enabled: false,
+  two_factor_required: true,
 };
 
 const MOCK_ADMIN = {
@@ -30,6 +32,8 @@ const MOCK_ADMIN = {
   username: 'admin_e2e',
   email: 'admin@e2e.local',
   role: 'ADMIN',
+  two_factor_enabled: false,
+  two_factor_required: true,
 };
 
 const MOCK_PROBLEMS = [
@@ -102,6 +106,10 @@ const MOCK_TAGS = [
 
 // CON-5 mock state: contests whose virtual-start the session has pressed —
 // the detail payload then reports an active replay participation.
+// OPS-2 (Wave D) mock state: TOTP enrollment + the personal token.
+const totpState = { secret: '', enabled: false };
+const apiTokenState = { key: null };
+
 const virtualStarted = new Set();
 
 const MOCK_CONTESTS = [
@@ -589,15 +597,111 @@ const server = createServer((req, res) => {
     return;
   }
 
+  // ---- OPS-2 (Wave D): TOTP enrollment + personal API token ----------
+  if (path === '/api/v1/users/me/totp/begin/' && req.method === 'POST') {
+    if (!sessionUser(req)) {
+      json(res, 401, { detail: 'Authentication credentials were not provided.' });
+      return;
+    }
+    totpState.secret = 'MOCKSECRETMOCKSECRETMOCKSECRET32';
+    totpState.enabled = false;
+    json(res, 200, {
+      secret: totpState.secret,
+      otpauth_uri:
+        'otpauth://totp/WebCoder%3Ae2e_tester?secret=' + totpState.secret + '&issuer=WebCoder',
+    });
+    return;
+  }
+  if (path === '/api/v1/users/me/totp/verify/' && req.method === 'POST') {
+    let raw = '';
+    req.on('data', (chunk) => {
+      raw += chunk;
+    });
+    req.on('end', () => {
+      if (!sessionUser(req)) {
+        json(res, 401, { detail: 'Authentication credentials were not provided.' });
+        return;
+      }
+      const payload = raw ? JSON.parse(raw) : {};
+      if (String(payload.code) !== '123456') {
+        json(res, 400, { detail: 'Invalid or expired code.' });
+        return;
+      }
+      totpState.enabled = true;
+      json(res, 200, { detail: 'Two-factor authentication enabled.' });
+    });
+    return;
+  }
+  if (path === '/api/v1/users/me/totp/disable/' && req.method === 'POST') {
+    // The body (code + password) is validated server-side; the mock
+    // accepts any authenticated disable.
+    if (!sessionUser(req)) {
+      json(res, 401, { detail: 'Authentication credentials were not provided.' });
+      return;
+    }
+    totpState.enabled = false;
+    totpState.secret = '';
+    json(res, 200, { detail: 'Two-factor authentication disabled.' });
+    return;
+  }
+  if (path === '/api/v1/users/me/tokens/' && req.method === 'GET') {
+    if (!sessionUser(req)) {
+      json(res, 401, { detail: 'Authentication credentials were not provided.' });
+      return;
+    }
+    json(res, 200, {
+      count: apiTokenState.key ? 1 : 0,
+      results: apiTokenState.key
+        ? [{ key_hint: '...' + apiTokenState.key.slice(-4), created: '2026-10-28T00:00:00Z' }]
+        : [],
+    });
+    return;
+  }
+  if (path === '/api/v1/users/me/tokens/' && req.method === 'POST') {
+    if (!sessionUser(req)) {
+      json(res, 401, { detail: 'Authentication credentials were not provided.' });
+      return;
+    }
+    if (apiTokenState.key) {
+      json(res, 409, { detail: 'You already have a personal token — revoke it first to rotate the key.' });
+      return;
+    }
+    apiTokenState.key = 'e2e-mock-personal-token-0123456789abcdef';
+    json(res, 201, {
+      detail: 'Store this key now — it is shown only once.',
+      key: apiTokenState.key,
+      created: '2026-10-28T00:00:00Z',
+    });
+    return;
+  }
+  if (path === '/api/v1/users/me/tokens/' && req.method === 'DELETE') {
+    if (!sessionUser(req)) {
+      json(res, 401, { detail: 'Authentication credentials were not provided.' });
+      return;
+    }
+    if (!apiTokenState.key) {
+      json(res, 404, { detail: 'Token not found.' });
+      return;
+    }
+    apiTokenState.key = null;
+    json(res, 200, { detail: 'Token revoked.' });
+    return;
+  }
+
   if (req.method === 'GET' && path === '/api/v1/users/me/') {
     // Cookie session distinguishes admin/user; anonymous gets 401 (the
-    // AuthContext hydration relies on that truth).
+    // AuthContext hydration relies on that truth). The 2FA flags reflect
+    // the mock TOTP state so the warn banner reacts to enrollment.
     const user = sessionUser(req);
     if (!user) {
       json(res, 401, { detail: 'Authentication credentials were not provided.' });
       return;
     }
-    json(res, 200, user);
+    json(res, 200, {
+      ...user,
+      two_factor_enabled: totpState.enabled,
+      two_factor_required: !totpState.enabled,
+    });
     return;
   }
 
