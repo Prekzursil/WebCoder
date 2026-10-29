@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Offline — WebCoder</title>
+    <style>
+      /* Inline on purpose: this page must render with zero network access. */
+      :root { color-scheme: dark; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+        background: #0f172a;
+        color: #e2e8f0;
+      }
+      .card {
+        max-width: 460px;
+        margin: 2rem;
+        padding: 2rem;
+        background: #1e293b;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        text-align: center;
+      }
+      h1 { font-size: 1.4rem; margin: 0 0 0.75rem; letter-spacing: -0.02em; }
+      p { font-size: 0.95rem; line-height: 1.55; color: #94a3b8; margin: 0 0 0.5rem; }
+      .brand { font-weight: 800; color: #38bdf8; letter-spacing: 0.08em; font-size: 0.8rem; text-transform: uppercase; }
+      a.retry {
+        display: inline-block;
+        margin-top: 1.25rem;
+        padding: 0.65rem 1.4rem;
+        border-radius: 9px;
+        background: #38bdf8;
+        color: #0f172a;
+        font-weight: 700;
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <div class="brand">WebCoder</div>
+      <h1>You are offline · Ești offline</h1>
+      <p>
+        This page needs a connection. Problems you already visited stay
+        readable — reopen them from your reading list while offline.
+      </p>
+      <p>
+        Această pagină are nevoie de conexiune. Problemele vizitate deja rămân
+        citibile — redeschide-le din listă cât timp ești offline.
+      </p>
+      <a class="retry" href="/">Try again · Încearcă din nou</a>
+    </main>
+  </body>
+</html>

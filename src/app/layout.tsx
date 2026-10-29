@@ -1,11 +1,21 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Providers from "./providers";
 import ExamModeBanner from "@/components/common/ExamModeBanner";
 import "./globals.css";
+import { palette } from "@/theme/tokens";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://webcoder.momentstudio.ro';
 
 export const metadata: Metadata = {
+  // OPS-6 (Wave D): the PWA manifest — installable app shell, offline
+  // problem browsing via the service worker, app shortcuts.
+  manifest: "/manifest.webmanifest",
+  applicationName: "WebCoder",
+  appleWebApp: {
+    capable: true,
+    title: "WebCoder",
+    statusBarStyle: "black-translucent",
+  },
   title: {
     default: "WebCoder — Competitive Programming Platform",
     template: "%s | WebCoder",
@@ -33,6 +43,14 @@ export const metadata: Metadata = {
       ro: siteUrl,
     },
   },
+};
+
+// Next 15+: theme color lives in the separate Viewport export.
+export const viewport: Viewport = {
+  // Palette token, not a literal — the A2 design-token gate enforces this.
+  themeColor: palette.bg,
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({

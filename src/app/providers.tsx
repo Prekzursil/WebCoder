@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { AuthProvider } from '@/context/AuthContext';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import ServiceWorkerRegistrar from '@/components/common/ServiceWorkerRegistrar';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import { palette, fontFamily, typeRamp, radius } from '@/theme/tokens';
@@ -167,6 +168,8 @@ export default function Providers({ children }: { children: ReactNode }) {
               },
             }}
           />
+      {/* OPS-6: PWA service-worker registration (production only) */}
+      <ServiceWorkerRegistrar />
         </AuthProvider>
       </ThemeProvider>
     </AppRouterCacheProvider>

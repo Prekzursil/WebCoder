@@ -1,0 +1,46 @@
+{
+  "name": "WebCoder — Competitive Programming Platform",
+  "short_name": "WebCoder",
+  "description": "Solve algorithmic problems, submit solutions in Python, C++, Java and JavaScript, and compete with developers worldwide. Bilingual RO/EN online judge.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["education", "productivity", "developer"],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Problems",
+      "url": "/problems",
+      "description": "Browse the problem catalog"
+    },
+    {
+      "name": "My submissions",
+      "url": "/my-submissions",
+      "description": "Check your latest verdicts"
+    },
+    {
+      "name": "Leaderboard",
+      "url": "/leaderboard",
+      "description": "See the standings"
+    }
+  ]
+}
