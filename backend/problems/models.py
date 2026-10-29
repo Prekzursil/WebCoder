@@ -47,6 +47,11 @@ class Problem(models.Model):
         PRIVATE = "PRIVATE", _("Private")  # Rejected or needs revision
 
     class DifficultyLevel(models.TextChoices):
+        # EDU-10 (Wave D): the gimnaziu beginner band — grades 5-8 ladder
+        # entries whose only prerequisite is reading input and printing
+        # output. Sits below EASY so the catalog and the RAT-4 ladder can
+        # treat first-contact problems honestly.
+        VERY_EASY = "VERY_EASY", _("Very easy")
         EASY = "EASY", _("Easy")
         MEDIUM = "MEDIUM", _("Medium")
         HARD = "HARD", _("Hard")

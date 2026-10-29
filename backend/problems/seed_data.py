@@ -27,6 +27,52 @@ TAGS = [
 # Curriculum taxonomy v1 (EDU-9, round-2 slice D.6: grades 9–10 first,
 # mirroring the national informatics programme's chapter names).
 CURRICULUM = [
+    # ---- Gimnaziu (grades 5-8) — EDU-10 / Wave D --------------------------
+    # Trunchi comun under the 2017 framework (OMEN 3393/2017): an
+    # under-served segment pbinfo's graded tree doesn't categorize. The
+    # chapters are deliberately conservative (first-contact programming),
+    # versioned like the liceu tree so programme edits are data changes.
+    {
+        "slug": "g5", "kind": "GRADE", "order": 5,
+        "en": "Grade 5", "ro": "Clasa a V-a",
+        "children": [
+            {"slug": "g5-first-steps", "kind": "CHAPTER", "order": 1,
+             "en": "First steps (read & print)", "ro": "Primii pași (citire și afișare)"},
+            {"slug": "g5-arithmetic", "kind": "CHAPTER", "order": 2,
+             "en": "Arithmetic", "ro": "Aritmetică"},
+        ],
+    },
+    {
+        "slug": "g6", "kind": "GRADE", "order": 6,
+        "en": "Grade 6", "ro": "Clasa a VI-a",
+        "children": [
+            {"slug": "g6-conditionals", "kind": "CHAPTER", "order": 1,
+             "en": "Conditionals", "ro": "Structuri condiționale"},
+            {"slug": "g6-loops", "kind": "CHAPTER", "order": 2,
+             "en": "Loops", "ro": "Structuri repetitive"},
+        ],
+    },
+    {
+        "slug": "g7", "kind": "GRADE", "order": 7,
+        "en": "Grade 7", "ro": "Clasa a VII-a",
+        "children": [
+            {"slug": "g7-sequences", "kind": "CHAPTER", "order": 1,
+             "en": "Number sequences", "ro": "Secvențe de numere"},
+            {"slug": "g7-divisibility", "kind": "CHAPTER", "order": 2,
+             "en": "Divisibility", "ro": "Divizibilitate"},
+        ],
+    },
+    {
+        "slug": "g8", "kind": "GRADE", "order": 8,
+        "en": "Grade 8", "ro": "Clasa a VIII-a",
+        "children": [
+            {"slug": "g8-arrays", "kind": "CHAPTER", "order": 1,
+             "en": "Arrays", "ro": "Tablouri"},
+            {"slug": "g8-pre-olympiad", "kind": "CHAPTER", "order": 2,
+             "en": "Pre-olympiad drills", "ro": "Pregătire pentru olimpiadă"},
+        ],
+    },
+    # ---- Liceu (grades 9-12; v1 shipped grades 9-10) ----------------------
     {
         "slug": "g9", "kind": "GRADE", "order": 10,
         "en": "Grade 9", "ro": "Clasa a IX-a",
@@ -63,6 +109,193 @@ def _t(inp, out, sample=False, points=10):
 
 
 PROBLEMS = [
+    # ---- Gimnaziu beginner ladder (EDU-10 / Wave D) — VERY_EASY ----------
+    {
+        "slug": "hello-judge",
+        "title_en": "Hello, Judge!", "title_ro": "Salut, evaluator!",
+        "difficulty": "VERY_EASY", "grade_group": "gimnaziu",
+        "tags": ["implementation"], "chapters": ["g5-first-steps"],
+        "statement_en": (
+            "Print the exact text `Hello, judge!`\n\n"
+            "**Input:** none.\n\n**Output:** one line with the text above.\n"
+        ),
+        "statement_ro": (
+            "Afi\u0219eaz\u0103 exact textul `Salut, evaluator!`\n\n"
+            "**Input:** nu exist\u0103.\n\n**Output:** o linie cu textul de mai sus.\n"
+        ),
+        "hints_en": ["No input to read \u2014 just print.", "Mind the comma and the exclamation mark."],
+        "hints_ro": ["Nu ai ce citi \u2014 doar afi\u0219eaz\u0103.", "Aten\u021bie la virgul\u0103 \u0219i semnul exclam\u0103rii."],
+        "tests": [_t("", "Hello, judge!\n", sample=True), _t("", "Hello, judge!\n")],
+    },
+    {
+        "slug": "greet-friend",
+        "title_en": "Greet a Friend", "title_ro": "Salut\u0103 un prieten",
+        "difficulty": "VERY_EASY", "grade_group": "gimnaziu",
+        "tags": ["implementation", "strings"], "chapters": ["g5-first-steps"],
+        "statement_en": (
+            "Read a name and greet them.\n\n"
+            "**Input:** one line with a name.\n\n"
+            "**Output:** `Hello, <name>!` where `<name>` is the given name.\n"
+        ),
+        "statement_ro": (
+            "Cite\u0219te un nume \u0219i saluteaz\u0103-l.\n\n"
+            "**Input:** o linie cu un nume.\n\n"
+            "**Output:** `Salut, <nume>!`, unde `<nume>` este numele citit.\n"
+        ),
+        "hints_en": ["Read the whole line as the name.", "f-strings make this one line."],
+        "hints_ro": ["Cite\u0219te toat\u0103 linia ca nume.", "f-string-uri rezolv\u0103 totul \u00eentr-o linie."],
+        "tests": [_t("Ana\n", "Salut, Ana!\n", sample=True), _t("Mihai\n", "Salut, Mihai!\n")],
+    },
+    {
+        "slug": "rectangle-area",
+        "title_en": "Rectangle Area", "title_ro": "Aria dreptunghiului",
+        "difficulty": "VERY_EASY", "grade_group": "gimnaziu",
+        "tags": ["math"], "chapters": ["g5-arithmetic"],
+        "statement_en": (
+            "Read the sides of a rectangle and print its area.\n\n"
+            "**Input:** one line with two integers $a$ and $b$ ($1 \\le a, b \\le 1000$).\n\n"
+            "**Output:** the area $a \\times b$.\n"
+        ),
+        "statement_ro": (
+            "Cite\u0219te laturile unui dreptunghi \u0219i afi\u0219eaz\u0103 aria lui.\n\n"
+            "**Input:** o linie cu dou\u0103 numere \u00eentregi $a$ \u0219i $b$ ($1 \\le a, b \\le 1000$).\n\n"
+            "**Output:** aria $a \\times b$.\n"
+        ),
+        "hints_en": ["Area is side times side.", "print(a * b)"],
+        "hints_ro": ["Aria este latur\u0103 ori latur\u0103.", "print(a * b)"],
+        "tests": [_t("4 5\n", "20\n", sample=True), _t("1 1\n", "1\n"), _t("1000 1000\n", "1000000\n")],
+    },
+    {
+        "slug": "minutes-to-hours",
+        "title_en": "Minutes to Hours", "title_ro": "Minute \u00een ore",
+        "difficulty": "VERY_EASY", "grade_group": "gimnaziu",
+        "tags": ["math"], "chapters": ["g5-arithmetic"],
+        "statement_en": (
+            "Convert a number of minutes into hours and minutes.\n\n"
+            "**Input:** one integer $n$ ($0 \\le n \\le 10000$).\n\n"
+            "**Output:** `H M` \u2014 the whole hours and the leftover minutes, separated by a space.\n"
+        ),
+        "statement_ro": (
+            "Transform\u0103 un num\u0103r de minute \u00een ore \u0219i minute.\n\n"
+            "**Input:** un num\u0103r \u00eentreg $n$ ($0 \\le n \\le 10000$).\n\n"
+            "**Output:** `H M` \u2014 orele \u00eentregi \u0219i minutele r\u0103mase, separate printr-un spa\u021biu.\n"
+        ),
+        "hints_en": ["Divide and take the remainder.", "In Python: n // 60 and n % 60."],
+        "hints_ro": ["\u00cemparte cu c\u00e2tul \u0219i restul.", "\u00cen Python: n // 60 \u0219i n % 60."],
+        "tests": [_t("135\n", "2 15\n", sample=True), _t("60\n", "1 0\n"), _t("59\n", "0 59\n")],
+    },
+    {
+        "slug": "bigger-of-two",
+        "title_en": "The Bigger of Two", "title_ro": "Mai mare dintre dou\u0103",
+        "difficulty": "VERY_EASY", "grade_group": "gimnaziu",
+        "tags": ["implementation"], "chapters": ["g6-conditionals"],
+        "statement_en": (
+            "Read two integers and print the bigger one (either, if equal).\n\n"
+            "**Input:** one line with two integers.\n\n**Output:** the bigger value.\n"
+        ),
+        "statement_ro": (
+            "Cite\u0219te dou\u0103 numere \u00eentregi \u0219i afi\u0219eaz\u0103-l pe cel mai mare (oricare, dac\u0103 sunt egale).\n\n"
+            "**Input:** o linie cu dou\u0103 numere \u00eentregi.\n\n**Output:** valoarea mai mare.\n"
+        ),
+        "hints_en": ["An if is enough.", "max(a, b) also works."],
+        "hints_ro": ["Un if este suficient.", "max(a, b) merge \u0219i el."],
+        "tests": [_t("3 9\n", "9\n", sample=True), _t("9 3\n", "9\n"), _t("7 7\n", "7\n")],
+    },
+    {
+        "slug": "parity-check",
+        "title_en": "Even or Odd", "title_ro": "Par sau impar",
+        "difficulty": "VERY_EASY", "grade_group": "gimnaziu",
+        "tags": ["math", "implementation"], "chapters": ["g6-conditionals"],
+        "statement_en": (
+            "Say whether a number is even or odd.\n\n"
+            "**Input:** one integer $n$.\n\n"
+            "**Output:** `even` or `odd` (lowercase).\n"
+        ),
+        "statement_ro": (
+            "Spune dac\u0103 un num\u0103r este par sau impar.\n\n"
+            "**Input:** un num\u0103r \u00eentreg $n$.\n\n"
+            "**Output:** `par` sau `impar` (cu litere mici).\n"
+        ),
+        "hints_en": ["Look at the remainder of the division by 2.", "n % 2 == 0 means even."],
+        "hints_ro": ["Uit\u0103-te la restul \u00eemp\u0103r\u021birii la 2.", "n % 2 == 0 \u00eenseamn\u0103 par."],
+        "tests": [_t("4\n", "par\n", sample=True), _t("7\n", "impar\n"), _t("0\n", "par\n")],
+    },
+    {
+        "slug": "count-to-n",
+        "title_en": "Count to N", "title_ro": "Num\u0103r\u0103m p\u00een\u0103 la N",
+        "difficulty": "VERY_EASY", "grade_group": "gimnaziu",
+        "tags": ["loops"], "chapters": ["g6-loops"],
+        "statement_en": (
+            "Print every number from 1 to $n$, one per line.\n\n"
+            "**Input:** one integer $n$ ($1 \\le n \\le 100$).\n\n"
+            "**Output:** the numbers $1, 2, \\dots, n$, each on its own line.\n"
+        ),
+        "statement_ro": (
+            "Afi\u0219eaz\u0103 toate numerele de la 1 la $n$, c\u00e2te unul pe linie.\n\n"
+            "**Input:** un num\u0103r \u00eentreg $n$ ($1 \\le n \\le 100$).\n\n"
+            "**Output:** numerele $1, 2, \\dots, n$, fiecare pe propria linie.\n"
+        ),
+        "hints_en": ["A for loop from 1 to n.", "range(1, n + 1) covers exactly that."],
+        "hints_ro": ["Un for de la 1 la n.", "range(1, n + 1) acoper\u0103 exact intervalul."],
+        "tests": [_t("3\n", "1\n2\n3\n", sample=True), _t("1\n", "1\n")],
+    },
+    {
+        "slug": "sum-sequence",
+        "title_en": "Sum of a Sequence", "title_ro": "Suma unei secven\u021be",
+        "difficulty": "VERY_EASY", "grade_group": "gimnaziu",
+        "tags": ["loops", "arrays"], "chapters": ["g7-sequences"],
+        "statement_en": (
+            "Read $n$ numbers and print their sum.\n\n"
+            "**Input:** first line: $n$ ($1 \\le n \\le 1000$); second line: $n$ integers.\n\n"
+            "**Output:** their sum.\n"
+        ),
+        "statement_ro": (
+            "Cite\u0219te $n$ numere \u0219i afi\u0219eaz\u0103 suma lor.\n\n"
+            "**Input:** prima linie: $n$ ($1 \\le n \\le 1000$); a doua linie: $n$ numere \u00eentregi.\n\n"
+            "**Output:** suma lor.\n"
+        ),
+        "hints_en": ["Keep a running total in the loop.", "sum(numbers) does it in one step."],
+        "hints_ro": ["P\u0103streaz\u0103 o sum\u0103 parcurg\u00e2nd numerele.", "sum(numere) rezolv\u0103 \u00eentr-un pas."],
+        "tests": [_t("4\n1 2 3 4\n", "10\n", sample=True), _t("1\n-5\n", "-5\n")],
+    },
+    {
+        "slug": "divisors-of-n",
+        "title_en": "The Divisors of N", "title_ro": "Divizorii lui N",
+        "difficulty": "VERY_EASY", "grade_group": "gimnaziu",
+        "tags": ["loops", "number-theory"], "chapters": ["g7-divisibility"],
+        "statement_en": (
+            "Print every divisor of $n$ in increasing order.\n\n"
+            "**Input:** one integer $n$ ($1 \\le n \\le 1000$).\n\n"
+            "**Output:** the divisors, one per line.\n"
+        ),
+        "statement_ro": (
+            "Afi\u0219eaz\u0103 to\u021bi divizorii lui $n$ \u00een ordine cresc\u0103toare.\n\n"
+            "**Input:** un num\u0103r \u00eentreg $n$ ($1 \\le n \\le 1000$).\n\n"
+            "**Output:** divizorii, c\u00e2te unul pe linie.\n"
+        ),
+        "hints_en": ["Try every d from 1 to n.", "d divides n exactly when n % d == 0."],
+        "hints_ro": ["\u00cencearc\u0103 fiecare d de la 1 la n.", "d divide n exact c\u00e2nd n % d == 0."],
+        "tests": [_t("6\n", "1\n2\n3\n6\n", sample=True), _t("1\n", "1\n")],
+    },
+    {
+        "slug": "max-in-array",
+        "title_en": "The Biggest Number", "title_ro": "Cel mai mare num\u0103r",
+        "difficulty": "VERY_EASY", "grade_group": "gimnaziu",
+        "tags": ["arrays"], "chapters": ["g8-arrays"],
+        "statement_en": (
+            "Find the biggest number in a list.\n\n"
+            "**Input:** first line: $n$ ($1 \\le n \\le 1000$); second line: $n$ integers.\n\n"
+            "**Output:** the largest of them.\n"
+        ),
+        "statement_ro": (
+            "G\u0103se\u0219te cel mai mare num\u0103r dintr-o list\u0103.\n\n"
+            "**Input:** prima linie: $n$ ($1 \\le n \\le 1000$); a doua linie: $n$ numere \u00eentregi.\n\n"
+            "**Output:** cel mai mare dintre ele.\n"
+        ),
+        "hints_en": ["Remember the best value seen so far.", "max(numbers) \u2014 but know how to loop it too."],
+        "hints_ro": ["\u021aine minte cea mai bun\u0103 valoare v\u0103zut\u0103.", "max(numere) \u2014 dar \u0219tii s\u0103 parcurgi \u0219i manual."],
+        "tests": [_t("5\n3 8 2 9 4\n", "9\n", sample=True), _t("1\n-7\n", "-7\n")],
+    },
     # ---- Grade 9 · Elementary algorithms --------------------------------
     {
         "slug": "sum-a-b",

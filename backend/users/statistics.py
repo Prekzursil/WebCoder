@@ -19,6 +19,9 @@ from submissions.models import Submission
 
 #: RAT-4 ladder weights per difficulty (contest-free practice rank).
 LADDER_WEIGHTS = {
+    # EDU-10: the beginner band credits like EASY — first-contact value
+    # without inflating the ladder.
+    Problem.DifficultyLevel.VERY_EASY: 1,
     Problem.DifficultyLevel.EASY: 1,
     Problem.DifficultyLevel.MEDIUM: 3,
     Problem.DifficultyLevel.HARD: 6,
@@ -104,7 +107,7 @@ def user_statistics(user) -> dict:
     solved = len(solved_rows)
 
     per_difficulty = {}
-    for level_name in ("EASY", "MEDIUM", "HARD"):
+    for level_name in ("VERY_EASY", "EASY", "MEDIUM", "HARD"):
         per_difficulty[level_name] = {
             "solved": sum(
                 1
