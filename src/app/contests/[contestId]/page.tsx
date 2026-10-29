@@ -218,6 +218,34 @@ export default function ContestDetailPage() {
                 }`}
             />
 
+            {/* OPS-7 groundwork: sponsor attribution (display-only). */}
+            {contest.sponsor_name && (
+                <p
+                    data-testid="contest-sponsor"
+                    style={{
+                        margin: '0 0 14px',
+                        color: palette.muted,
+                        fontSize: '0.85rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                    }}
+                >
+                    <span style={{ textTransform: 'uppercase', letterSpacing: '0.06em', fontSize: '0.7rem' }}>
+                        {t('contest_sponsored_by', 'Sponsored by')}
+                    </span>
+                    {contest.sponsor_logo_url && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                            src={contest.sponsor_logo_url}
+                            alt={contest.sponsor_name}
+                            style={{ height: 20, width: 'auto' }}
+                        />
+                    )}
+                    <strong style={{ color: palette.foreground }}>{contest.sponsor_name}</strong>
+                </p>
+            )}
+
             {disqualified && (
                 <p role="alert" style={{ color: palette.danger, fontWeight: 700 }}>
                     {t('contest_disqualified', 'You were disqualified from this contest.')}

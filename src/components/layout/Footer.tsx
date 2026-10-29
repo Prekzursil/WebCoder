@@ -17,6 +17,8 @@ const Footer: React.FC = () => {
   const legalLinks = [
     { href: '/terms', label: t('footer_terms', 'Terms') },
     { href: '/privacy', label: t('footer_privacy', 'Privacy') },
+    // [OPS-7] Donations + sponsorship (groundwork: informational page).
+    { href: '/support', label: t('footer_support', 'Support us') },
   ];
 
   const changeLanguage = (lng: string) => {

@@ -39,6 +39,20 @@ class Contest(models.Model):
         blank=True,
         help_text=_("Optional per-locale description markdown."),
     )
+    # OPS-7 (Wave D, groundwork only): sponsor attribution rails — the
+    # Codeforces sponsor-round pattern. Display-only attribution; NO
+    # payment/billing flow exists or is implied by these fields.
+    sponsor_name = models.CharField(
+        _("sponsor name"),
+        max_length=160,
+        blank=True,
+        help_text=_("Attribution shown on the contest page and standings."),
+    )
+    sponsor_logo_url = models.URLField(
+        _("sponsor logo URL"),
+        blank=True,
+        help_text=_("Optional logo rendered beside the sponsor name."),
+    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

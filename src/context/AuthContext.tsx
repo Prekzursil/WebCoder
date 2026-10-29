@@ -106,7 +106,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           localStorage.removeItem(USER_STORAGE_KEY);
         }
       } finally {
-        if (!cancelled) setIsHydrated(true);
+        // Same teardown guard as the catch arm: a late-settling promise
+        // (test env torn down first) must not dispatch into a dead DOM.
+        if (!cancelled && typeof window !== 'undefined') {
+          setIsHydrated(true);
+        }
       }
     })();
     return () => {

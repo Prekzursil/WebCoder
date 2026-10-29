@@ -68,6 +68,8 @@ class ContestSerializer(serializers.ModelSerializer):
             "id",
             "title_i18n",
             "description_i18n",
+            "sponsor_name",
+            "sponsor_logo_url",
             "visibility",
             "access_code",
             "is_rated",
