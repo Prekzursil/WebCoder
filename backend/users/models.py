@@ -102,3 +102,34 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+
+class OwnerWeeklySnapshot(models.Model):
+    """ANA-1 (round-2; completed in Wave D): the week's activation and
+    retention derivations, frozen on capture — the trend behind the
+    weekly owner dashboard.
+
+    ``week`` is the ISO year-week key (``YYYY-Www``) — one row per week;
+    re-capturing the same week overwrites (idempotent backfills).
+    """
+
+    week = models.CharField(
+        _("ISO week"),
+        max_length=8,
+        unique=True,
+        db_index=True,
+        help_text=_("ISO year-week key, e.g. 2026-W44."),
+    )
+    captured_at = models.DateTimeField(_("captured at"), auto_now=True)
+    payload = models.JSONField(
+        _("metrics payload"),
+        help_text=_("The activation_snapshot() derivations for the week."),
+    )
+
+    class Meta:
+        verbose_name = _("owner weekly snapshot")
+        verbose_name_plural = _("owner weekly snapshots")
+        ordering = ["-week"]
+
+    def __str__(self):
+        return f"owner metrics {self.week}"

@@ -86,3 +86,40 @@ def activation_snapshot() -> dict:
         "submissions_per_day_30d": per_day,
         "total_submissions": Submission.objects.count(),
     }
+
+
+def iso_week_key(at=None) -> str:
+    """The ISO year-week key (``YYYY-Www``) for a moment in time."""
+    from datetime import datetime, timezone as dt_timezone
+
+    moment = at or datetime.now(dt_timezone.utc)
+    year, week, _day = moment.isocalendar()
+    return f"{year}-W{week:02d}"
+
+
+def capture_weekly_snapshot(at=None) -> "OwnerWeeklySnapshot":
+    """Freeze this week's activation derivations into one row.
+
+    Idempotent per week: re-running the same week overwrites the payload
+    (backfills and manual re-captures converge to the latest view).
+    """
+    from .models import OwnerWeeklySnapshot
+
+    snapshot, _created = OwnerWeeklySnapshot.objects.update_or_create(
+        week=iso_week_key(at),
+        defaults={"payload": activation_snapshot()},
+    )
+    return snapshot
+
+
+def weekly_history(weeks: int = 12) -> list[dict]:
+    """The most recent *weeks* snapshots, oldest first, for the trend
+    strip on the owner dashboard (the live current-week numbers come from
+    ``activation_snapshot()`` directly)."""
+    from .models import OwnerWeeklySnapshot
+
+    rows = OwnerWeeklySnapshot.objects.order_by("-week")[: max(1, weeks)]
+    return [
+        {"week": row.week, "captured_at": row.captured_at, **row.payload}
+        for row in reversed(rows)
+    ]

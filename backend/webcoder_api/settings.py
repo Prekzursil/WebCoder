@@ -471,6 +471,12 @@ CELERY_BEAT_SCHEDULE = {
         "task": "contests.tasks.contest_tick",
         "schedule": crontab(),
     },
+    # ANA-1 (Wave D): freeze the week's owner-analytics derivations every
+    # Monday morning — the weekly dashboard's trend strip.
+    "owner-weekly-metrics": {
+        "task": "users.tasks.snapshot_owner_metrics_task",
+        "schedule": crontab(hour=6, minute=30, day_of_week=1),
+    },
 }
 
 # Structured logging (round-2 X3d): LOG_JSON=1 swaps the console formatter

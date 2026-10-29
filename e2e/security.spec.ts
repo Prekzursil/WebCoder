@@ -99,3 +99,34 @@ test('profile → settings mints and revokes the personal API token', async ({
   });
   await expect(page.getByText(/e2e-mock-personal-token-0123456789abcdef/)).toHaveCount(0);
 });
+
+// [ANA-1 Wave D] The owner dashboard renders the analytics panel (mock
+// admin session; seeded via the auth.spec cookie pattern above).
+test('admin dashboard renders the owner analytics panel [ANA-1]', async ({
+  page,
+  context,
+}) => {
+  await context.addCookies([
+    { name: 'wc_access', value: 'e2e-admin-access', domain: 'localhost', path: '/' },
+  ]);
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      'user',
+      JSON.stringify({
+        id: 2,
+        username: 'admin_e2e',
+        email: 'admin@e2e.local',
+        role: 'ADMIN',
+        two_factor_enabled: true,
+      })
+    );
+  });
+  await page.goto('/admin/dashboard');
+
+  await expect(page.getByRole('heading', { name: 'Owner Analytics' })).toBeVisible();
+  // Live funnel + trend table from the mock endpoints.
+  const panel = page.getByTestId('owner-analytics');
+  await expect(panel).toBeVisible();
+  await expect(panel.getByText('2026-W43')).toBeVisible();
+  await expect(panel.getByText(/no third-party trackers/i)).toBeVisible();
+});

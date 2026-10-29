@@ -442,3 +442,22 @@ class APITokenListView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         return Response({"detail": "Token revoked."})
+
+
+class ActivationHistoryView(APIView):
+    """GET /api/v1/users/admin/activation/history/?weeks=12 — ANA-1
+    weekly snapshots (trend strip) for the owner dashboard. Admin-only,
+    like the live activation view; ``?weeks=`` caps the look-back (<=52).
+    """
+
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        from .analytics import weekly_history
+
+        try:
+            weeks = int(request.query_params.get("weeks", 12))
+        except (TypeError, ValueError):
+            weeks = 12
+        weeks = max(1, min(weeks, 52))
+        return Response({"weeks": weeks, "history": weekly_history(weeks)})

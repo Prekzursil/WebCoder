@@ -230,6 +230,7 @@ class TestBeatSchedule:
             "submission-test-output-retention",
             "deleted-users-purge",
             "contest-tick",  # Wave B CON-8/OPR-4: end-of-contest finalize
+            "owner-weekly-metrics",  # ANA-1 (Wave D): Monday snapshot
         }
         assert (
             CELERY_BEAT_SCHEDULE["leaderboard-nightly-recompute"]["task"]

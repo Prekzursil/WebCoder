@@ -10,6 +10,7 @@ import { AdminUserType } from '@/types';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import ProtectedRoute from '@/components/common/ProtectedRoute';
 import SiteStats from './SiteStats';
+import OwnerAnalytics from './OwnerAnalytics';
 
 // Ported from frontend/webcoder_ui/src/pages/admin/AdminDashboardPage.tsx (CRA reference).
 // Route: /admin/dashboard (CRA App.tsx:43) — ADMIN only.
@@ -86,6 +87,13 @@ export function AdminDashboardPage() {
       <section>
         <h3>{t('site_statistics_title', 'Site Statistics')}</h3>
         <SiteStats />
+      </section>
+
+      {/* [ANA-1 Wave D] Owner analytics: funnel, D1/D7, 30-day volume,
+          weekly frozen trend. */}
+      <section style={{ marginTop: '2rem' }}>
+        <h3>{t('owner_analytics_title', 'Owner Analytics')}</h3>
+        <OwnerAnalytics />
       </section>
 
       <section style={{ marginTop: '2rem' }}>

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User
+from .models import OwnerWeeklySnapshot, User
 
 
 # Define a new User admin
@@ -15,3 +15,9 @@ class UserAdmin(BaseUserAdmin):
 
 # Register the new User admin.
 admin.site.register(User, UserAdmin)
+
+# ANA-1 (Wave D): owner-analytics snapshots — read/inspect in admin.
+@admin.register(OwnerWeeklySnapshot)
+class OwnerWeeklySnapshotAdmin(admin.ModelAdmin):
+    list_display = ("week", "captured_at")
+    readonly_fields = ("week", "captured_at", "payload")

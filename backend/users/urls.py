@@ -12,6 +12,7 @@ from .views import (
     AccountExportView,
     AccountDeleteView,
     ActivationMetricsView,
+    ActivationHistoryView,
     TOTPBeginView,
     TOTPVerifyView,
     TOTPDisableView,
@@ -34,6 +35,11 @@ urlpatterns = [
         "admin/activation/",
         ActivationMetricsView.as_view(),
         name="admin_activation",
+    ),
+    path(
+        "admin/activation/history/",
+        ActivationHistoryView.as_view(),
+        name="admin_activation_history",
     ),
     path(
         "me/statistics/",
