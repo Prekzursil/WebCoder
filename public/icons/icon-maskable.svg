@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="WebCoder">
+  <!-- Maskable: all meaningful art inside the 80% safe zone, full-bleed bg. -->
+  <rect width="512" height="512" fill="#0f172a"/>
+  <path d="M136 200 L184 328 L224 236 L264 328 L312 200" fill="none" stroke="#38bdf8" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="360" cy="192" r="18" fill="#a78bfa"/>
+</svg>
