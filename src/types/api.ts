@@ -226,6 +226,9 @@ export interface Contest {
     rated_rating_max: number | null;
     created_by: number;
     created_by_username: string;
+    // OPS-7 (Wave D, groundwork): display-only sponsor attribution.
+    sponsor_name?: string;
+    sponsor_logo_url?: string;
     state: 'UPCOMING' | 'RUNNING' | 'FINISHED';
     problem_count: number;
     participant_count: number;

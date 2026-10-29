@@ -75,6 +75,23 @@ export const MESSAGES: Record<PublicLocale, Record<string, string>> = {
     start_load_error: 'Could not load the starter problems: ',
     start_empty: 'No starters yet — the starter pack lands with the seed content.',
     terms_title: 'Terms of Service',
+    support_title: 'Support WebCoder',
+    support_intro:
+      'The platform is free for students and teachers, and it stays that way. If it helps your class, your club or your olympiad preparation, here is how you can keep it running.',
+    support_donate_title: 'Donate',
+    support_donate_body:
+      'WebCoder is free for students and teachers. Donations cover hosting, the judge infrastructure and the bilingual content work. Write to us and we will send the current donation channel — we publish a donor wall on request.',
+    support_donate_cta: 'Email us about donating',
+    support_sponsor_title: 'Sponsor a contest',
+    support_sponsor_body:
+      'Companies and organizations can sponsor a rated round or a school olympiad: your name and logo appear on the contest page and standings (attribution only — the contest stays free for everyone). Codeforces-style sponsor rounds are the sustainable model for a community judge.',
+    support_sponsor_cta: 'Become a sponsor',
+    support_school_title: 'Hosted school contests',
+    support_school_body:
+      'Schools and county olympiads can run private contests on WebCoder (windowed, personal timers, gradebook export). This is currently free while the platform is in its community phase; a paid hosting tier with an SLA is planned only after the legal and fiscal groundwork (invoicing, registration) exists.',
+    support_school_cta: 'Talk to us about hosting',
+    support_no_payments_note:
+      'Note: this page processes no payments. Donation channels and any future paid hosting tier will launch with proper invoicing and legal terms — until then, everything on WebCoder is free.',
     terms_updated: 'Version 1.0 — updated October 2026',
     terms_accounts_title: 'Accounts',
     terms_accounts_body: 'You are responsible for your account and its activity. One account per person; sharing accounts or submitting on behalf of someone else is not allowed. Accounts of users under 16 require parental consent or school-mediated enrollment.',
@@ -211,6 +228,23 @@ export const MESSAGES: Record<PublicLocale, Record<string, string>> = {
     start_load_error: 'Nu s-au putut încărca problemele de start: ',
     start_empty: 'Încă nu există probleme de start — pachetul de start vine odată cu conținutul introductiv.',
     terms_title: 'Termeni și condiții',
+    support_title: 'Susține WebCoder',
+    support_intro:
+      'Platforma este gratuită pentru elevi și profesori și așa rămâne. Dacă te ajută la clasă, la cerc sau la pregătirea pentru olimpiadă, iată cum o poți ține în funcțiune.',
+    support_donate_title: 'Donează',
+    support_donate_body:
+      'WebCoder este gratuit pentru elevi și profesori. Donațiile acoperă hostingul, infrastructura de evaluare și munca la conținutul bilingv. Scrie-ne și îți trimitem canalul de donații curent — publicăm un perete al donatorilor la cerere.',
+    support_donate_cta: 'Scrie-ne despre o donație',
+    support_sponsor_title: 'Sponsorizează un concurs',
+    support_sponsor_body:
+      'Companiile și organizațiile pot sponsoriza o rundă de concurs sau o olimpiadă școlară: numele și logo-ul tău apar pe pagina concursului și în clasament (doar atribuire — concursul rămâne gratuit pentru toți). Rundele sponsorizate, în stilul Codeforces, sunt modelul sustenabil pentru un evaluator comunitar.',
+    support_sponsor_cta: 'Devino sponsor',
+    support_school_title: 'Concursuri școlare găzduite',
+    support_school_body:
+      'Școlile și olimpiadele județene pot rula concursuri private pe WebCoder (cu fereastră, timere personale, export în catalog). Momentan este gratuit, cât timp platforma e în faza comunitară; un pachet de găzduire plătit cu SLA apare doar după ce există temeiul legal și fiscal (facturare, înregistrare).',
+    support_school_cta: 'Vorbește cu noi despre găzduire',
+    support_no_payments_note:
+      'Notă: această pagină nu procesează plăți. Canalele de donații și orice viitor pachet plătit vor lansa cu facturare și termeni legali corecți — până atunci, totul pe WebCoder este gratuit.',
     terms_updated: 'Versiunea 1.0 — actualizată octombrie 2026',
     terms_accounts_title: 'Conturi',
     terms_accounts_body: 'Ești responsabil pentru contul și activitatea ta. Un cont pe persoană; partajarea conturilor sau trimiterea în numele altcuiva nu este permisă. Conturile utilizatorilor sub 16 ani necesită consimțământul părinților sau înscrierea mediată de școală.',

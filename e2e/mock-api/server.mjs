@@ -130,6 +130,9 @@ const MOCK_CONTESTS = [
   {
     id: 1,
     title_i18n: { en: 'Autumn Open 2026', ro: 'Openul de toamnă 2026' },
+    // OPS-7 groundwork: sponsor attribution rail on the detail payload.
+    sponsor_name: 'CJ Cluj Tech',
+    sponsor_logo_url: 'https://example.com/cj-cluj.png',
     description_i18n: {},
     visibility: 'PUBLIC',
     is_rated: true,

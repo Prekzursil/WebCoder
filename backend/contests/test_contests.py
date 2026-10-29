@@ -1130,6 +1130,29 @@ class CoverageEdgeTests(ContestBase):
         self.assertTrue(response.data["pretest_mode"])
         self.assertTrue(response.data["my_participation"] is None)
 
+    def test_sponsor_attribution_rails_round_trip(self):
+        # OPS-7 groundwork: display-only sponsor fields serialize for any
+        # viewer of the contest detail (attribution is public by design).
+        contest = self.mk_contest(
+            sponsor_name="County Council of Cluj",
+            sponsor_logo_url="https://example.com/logo.png",
+        )
+        response = self.client.get(f"/api/v1/contests/{contest.id}/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.data["sponsor_name"], "County Council of Cluj"
+        )
+        self.assertEqual(
+            response.data["sponsor_logo_url"], "https://example.com/logo.png"
+        )
+
+    def test_sponsor_fields_default_empty(self):
+        contest = self.mk_contest()
+        response = self.client.get(f"/api/v1/contests/{contest.id}/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["sponsor_name"], "")
+        self.assertEqual(response.data["sponsor_logo_url"], "")
+
 
 class BranchCoverageTests(ContestBase):
     def test_fixed_contest_effective_end_is_end_at(self):
