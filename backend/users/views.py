@@ -267,3 +267,178 @@ class ActivationMetricsView(APIView):
         from .analytics import activation_snapshot
 
         return Response(activation_snapshot())
+
+
+# ---------------------------------------------------------------------------
+# Wave D: OPS-2 — TOTP two-factor + personal API tokens.
+
+
+class TOTPBeginView(APIView):
+    """POST /api/v1/users/me/totp/begin/ — start TOTP enrollment.
+
+    Generates (or regenerates) the caller's pending secret and returns it
+    with the ``otpauth://`` provisioning URI. The secret stays inert until
+    a live code is verified (TOTPVerifyView) — beginning twice simply
+    re-rolls the pending secret.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
+
+    def post(self, request):
+        from .totp import generate_secret, provisioning_uri
+
+        secret = generate_secret()
+        request.user.two_factor_secret = secret
+        request.user.two_factor_enabled = False
+        request.user.save(update_fields=["two_factor_secret", "two_factor_enabled"])
+        return Response(
+            {
+                "secret": secret,
+                "otpauth_uri": provisioning_uri(request.user.username, secret),
+            }
+        )
+
+
+class TOTPVerifyView(APIView):
+    """POST /api/v1/users/me/totp/verify/ {code} — complete enrollment.
+
+    A matching current-step (±1 drift) code flips two_factor_enabled.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
+
+    def post(self, request):
+        from .totp import verify_code
+
+        code = str(request.data.get("code", "")).strip()
+        user = request.user
+        if not user.two_factor_secret:
+            return Response(
+                {"detail": "No pending enrollment — call totp/begin first."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not verify_code(user.two_factor_secret, code):
+            return Response(
+                {"detail": "Invalid or expired code."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        user.two_factor_enabled = True
+        user.save(update_fields=["two_factor_enabled"])
+        return Response({"detail": "Two-factor authentication enabled."})
+
+
+class TOTPDisableView(APIView):
+    """POST /api/v1/users/me/totp/disable/ {code, current_password}.
+
+    Disabling demands BOTH a live TOTP code and the account password —
+    losing one factor must not be enough to shed the other.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
+
+    def post(self, request):
+        from .totp import verify_code
+
+        code = str(request.data.get("code", "")).strip()
+        password = str(request.data.get("current_password", ""))
+        user = request.user
+        if not user.two_factor_enabled:
+            return Response(
+                {"detail": "Two-factor is not enabled."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not user.check_password(password):
+            return Response(
+                {"detail": "Current password is incorrect."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not verify_code(user.two_factor_secret, code):
+            return Response(
+                {"detail": "Invalid or expired code."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        user.two_factor_enabled = False
+        user.two_factor_secret = ""
+        user.save(update_fields=["two_factor_enabled", "two_factor_secret"])
+        return Response({"detail": "Two-factor authentication disabled."})
+
+
+class APITokenListView(APIView):
+    """GET /api/v1/users/me/tokens/ — the personal API token (masked).
+
+    The full key is shown exactly once, at creation. The DRF Token model
+    is one-per-user with the key AS the primary key, so there is no
+    numeric id and at most one row — the list shape (``results``) keeps
+    the day a labeled multi-token model arrives a non-breaking change.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        from rest_framework.authtoken.models import Token
+
+        tokens = Token.objects.filter(user=request.user).order_by("-created")
+        return Response(
+            {
+                "count": tokens.count(),
+                "results": [
+                    {
+                        # Enough to recognize, never enough to use.
+                        "key_hint": f"…{token.key[-4:]}",
+                        "created": token.created,
+                    }
+                    for token in tokens
+                ],
+            }
+        )
+
+    def post(self, request):
+        """POST /api/v1/users/me/tokens/ — mint the personal token.
+
+        Body ``{"name": optional label}`` is accepted for forward
+        compatibility; the DRF Token model has no label column yet, so
+        the response reports the creation time instead.
+        """
+        from rest_framework.authtoken.models import Token
+
+        token, _created = Token.objects.get_or_create(user=request.user)
+        if not _created:
+            return Response(
+                {
+                    "detail": (
+                        "You already have a personal token — revoke it "
+                        "first to rotate the key."
+                    )
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
+        return Response(
+            {
+                "detail": "Store this key now — it is shown only once.",
+                "key": token.key,
+                "created": token.created,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+    def delete(self, request):
+        """DELETE /api/v1/users/me/tokens/ — revoke the personal token.
+
+        Scoped to the caller by construction (the queryset filters on
+        the requesting user); 404 when there is nothing to revoke.
+        """
+        from rest_framework.authtoken.models import Token
+
+        deleted, _ = Token.objects.filter(user=request.user).delete()
+        if not deleted:
+            return Response(
+                {"detail": "Token not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        return Response({"detail": "Token revoked."})

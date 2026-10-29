@@ -12,6 +12,10 @@ from .views import (
     AccountExportView,
     AccountDeleteView,
     ActivationMetricsView,
+    TOTPBeginView,
+    TOTPVerifyView,
+    TOTPDisableView,
+    APITokenListView,
 )
 
 app_name = "users"
@@ -39,6 +43,11 @@ urlpatterns = [
     path("me/solved-ids/", UserSolvedIdsView.as_view(), name="user_solved_ids"),
     path("me/export/", AccountExportView.as_view(), name="account_export"),
     path("me/delete/", AccountDeleteView.as_view(), name="account_delete"),
+    # OPS-2 (Wave D): TOTP enrollment lifecycle + personal API tokens.
+    path("me/totp/begin/", TOTPBeginView.as_view(), name="totp_begin"),
+    path("me/totp/verify/", TOTPVerifyView.as_view(), name="totp_verify"),
+    path("me/totp/disable/", TOTPDisableView.as_view(), name="totp_disable"),
+    path("me/tokens/", APITokenListView.as_view(), name="api_tokens"),
     # Include the router URLs for admin user management
     path("", include(router.urls)),
 ]

@@ -1,5 +1,6 @@
 'use client';
 
+import TwoFactorBanner from '@/components/common/TwoFactorBanner';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
@@ -79,6 +80,7 @@ export function AdminDashboardPage() {
 
   return (
     <div className="page-container">
+      <TwoFactorBanner />
       <h2>{t('admin_dashboard_header', 'Admin Dashboard')}</h2>
 
       <section>

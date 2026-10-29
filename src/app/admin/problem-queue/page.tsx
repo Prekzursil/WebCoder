@@ -1,5 +1,6 @@
 'use client';
 
+import TwoFactorBanner from '@/components/common/TwoFactorBanner';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
@@ -121,6 +122,7 @@ export function ProblemVerificationQueuePage() {
 
   return (
     <div className="page-container">
+      <TwoFactorBanner />
       <h2>{t('problem_verification_queue_header', 'Problem Verification Queue')}</h2>
       {actionMessage && <p style={{ color: 'var(--success)', marginBottom: '1rem' }}>{actionMessage}</p>}
       {actionError && <p style={{ color: 'var(--danger)', marginBottom: '1rem' }}>{actionError}</p>}

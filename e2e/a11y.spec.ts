@@ -3,16 +3,31 @@
 // the Q7 checklist (landmarks, names, contrast…) as a permanent CI gate
 // instead of a one-off manual sweep.
 
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 // Key public pages (login included — the highest-friction form page).
 const PAGES = ['/', '/problems', '/problems/1', '/leaderboard', '/forum', '/login'];
 
+// The suite boots `next dev` on demand: the first heavy ISR route can
+// still be compiling when an early test navigates to it, and Chromium
+// then aborts the navigation with net::ERR_ABORTED (observed as a flaky
+// full-suite failure that always passes in isolation). One retry on that
+// transient — real navigation failures still fail the test.
+async function gotoStable(page: Page, path: string) {
+  try {
+    await page.goto(path);
+  } catch (err) {
+    if (!(err instanceof Error) || !err.message.includes('ERR_ABORTED')) throw err;
+    await page.waitForTimeout(2000);
+    await page.goto(path);
+  }
+}
+
 test.describe('axe accessibility scan', () => {
   for (const path of PAGES) {
     test(`${path} has no critical or serious axe violations`, async ({ page }) => {
-      await page?.goto(path);
+      await gotoStable(page, path);
 
       const results = await new AxeBuilder({ page })
         // WCAG 2.1 AA rules + best practices for the Q7/Q8 surface.
@@ -34,7 +49,7 @@ test.describe('axe accessibility scan', () => {
   }
 
   test('app shell exposes a skip link and exactly one main landmark', async ({ page }) => {
-    await page?.goto('/problems');
+    await gotoStable(page, '/problems');
 
     // [Q11] skip link is the first focusable element and targets #main-content.
     const skip = page?.getByRole('link', { name: /skip to content/i });

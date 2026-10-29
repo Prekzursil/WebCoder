@@ -6,6 +6,7 @@ import { AuthService, SubmissionService } from '@/services/ApiService';
 import { useAuth } from '@/context/AuthContext';
 import ProtectedRoute from '@/components/common/ProtectedRoute';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
+import SecurityPanel from '@/components/common/SecurityPanel';
 import { Box, TextField, Button, Alert, CircularProgress,  } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
 import GitHubIcon from '@mui/icons-material/GitHub';
@@ -505,6 +506,9 @@ export function UserProfilePage() {
 
       {activeTab === 'settings' && (
         <div style={{ maxWidth: '600px' }}>
+          {/* OPS-2 (Wave D): TOTP enrollment + personal API token. */}
+          <SecurityPanel />
+
           {/* GDPR account control (roadmap LEG-1/X5) */}
           <AccountControlCard onAccountDeleted={async () => { await auth.logout(); window.location.href = '/'; }} />
 

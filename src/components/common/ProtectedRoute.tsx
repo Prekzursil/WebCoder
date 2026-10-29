@@ -15,16 +15,21 @@ export interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children, roles = [] }: ProtectedRouteProps) {
-  const { user } = useAuth();
+  const { user, isHydrated } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
+    // While the session snapshot is still hydrating (isHydrated === false)
+    // a missing user means "not loaded yet", not "signed out" — hold the
+    // redirect so a slow hydration never bounces a signed-in user. Contexts
+    // without the flag (older test mocks) hydrate instantly by convention.
+    if (isHydrated === false) return;
     if (!user) {
       router.replace('/login');
     } else if (roles.length > 0 && !roles.includes(user.role)) {
       router.replace('/');
     }
-  }, [user, roles, router]);
+  }, [user, roles, router, isHydrated]);
 
   if (!user) return null;
 
