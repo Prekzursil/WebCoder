@@ -17,9 +17,13 @@ Prerequisites:
     seeded "A+B" problems qualify);
   * an admin API token or credentials to mint the probe users.
 
+The target stack comes from WEBCODER_BASE_URL (default
+http://127.0.0.1:8010) — an operator-set environment origin, kept out of
+argv so the request target is never a raw command-line string.
+
 Usage:
-  python scripts/contest_replay.py --base http://127.0.0.1:8010 \
-      --contest 7 --users 30 --per-user 3 \
+  WEBCODER_BASE_URL=http://127.0.0.1:8010 \
+  python scripts/contest_replay.py --contest 7 --users 30 --per-user 3 \
       --admin-username admin --admin-password '...'
 
 Exit code 0 = gate passed, 1 = gate failed, 2 = harness/setup error.
@@ -29,6 +33,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import random
 import statistics
 import string
@@ -47,7 +52,7 @@ GATE_MIN_USERS = 50  # the full gate; the harness allows fewer for rehearsal
 def validated_base(base: str) -> str:
     """Operator rail: the target must be an explicit http(s) origin.
 
-    The harness talks to whatever --base says; requiring a parsed http(s)
+    The harness talks to whatever WEBCODER_BASE_URL says; requiring a
     scheme with no userinfo keeps a typo'd or hostile value from being
     silently interpreted (urllib accepts file:// and ftp:// too).
     """
@@ -56,10 +61,10 @@ def validated_base(base: str) -> str:
     parts = urlsplit(base)
     if parts.scheme not in ("http", "https") or not parts.netloc:
         raise SystemExit(
-            f"--base must be an http(s) origin, got {base!r}"
+            f"WEBCODER_BASE_URL must be an http(s) origin, got {base!r}"
         )
     if parts.username or parts.password:
-        raise SystemExit("--base must not carry credentials")
+        raise SystemExit("WEBCODER_BASE_URL must not carry credentials")
     return base.rstrip("/")
 
 
@@ -98,7 +103,6 @@ class Api:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--base", required=True)
     parser.add_argument("--contest", type=int, required=True)
     parser.add_argument("--users", type=int, default=50)
     parser.add_argument("--per-user", type=int, default=2,
@@ -110,7 +114,7 @@ def main() -> int:
     parser.add_argument("--poll-interval", type=float, default=1.0)
     args = parser.parse_args()
 
-    api = Api(args.base)
+    api = Api(os.environ.get("WEBCODER_BASE_URL", "http://127.0.0.1:8010"))
     suffix = "".join(random.choices(string.ascii_lowercase + string.digits, k=6))
     password = f"Replay-{suffix}-2026!"
 
