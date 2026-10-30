@@ -77,6 +77,27 @@ const MOCK_PROBLEMS = [
     has_editorial: true,
   },
   {
+    id: 7,
+    title_i18n: { en: 'Last Digit (blocks)', ro: 'Ultima cifră (blocuri)' },
+    difficulty: 'VERY_EASY',
+    status: 'APPROVED',
+    // Wave D fixture: a block-programming problem (Blockly -> python3)
+    // submitted through the normal judge pipeline.
+    statement_i18n: {
+      en: 'Read n and print its last digit.',
+      ro: 'Citește n și afișează ultima sa cifră.',
+    },
+    default_time_limit_ms: 1000,
+    default_memory_limit_kb: 262144,
+    allowed_languages: ['python3'],
+    block_config: {
+      generator: 'python3',
+    },
+    test_cases: [
+      { id: 71, input_data: '42', expected_output_data: '2', is_sample: true, points: 10 },
+    ],
+  },
+  {
     id: 4,
     title_i18n: { en: 'Hello, Judge!', ro: 'Salut, evaluator!' },
     difficulty: 'VERY_EASY',

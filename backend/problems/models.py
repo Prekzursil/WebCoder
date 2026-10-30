@@ -273,6 +273,21 @@ class Problem(models.Model):
         blank=True,
         help_text=_("List of custom library identifiers allowed."),
     )
+    # Scratch-on-site (judge-fairness wave D): per-problem block sets.
+    # When present, the problem accepts BLOCK programs: the site renders a
+    # Blockly editor with this toolbox/starter, generates source for the
+    # configured generator language, and submits it through the NORMAL
+    # judge pipeline (a block problem is just a submission with a
+    # generated source, judged identically).
+    block_config = models.JSONField(
+        _("block programming config"),
+        default=dict,
+        blank=True,
+        help_text=_(
+            "Blockly config: {generator: 'python3'|'nodejs20', "
+            "toolbox: <xml>, starter: <xml>}. Empty = not a block problem."
+        ),
+    )
     # Creator-controlled library & feature policy (judge-fairness wave C):
     # per-language banned/banned_stdlib/allowed lists plus problem-level
     # banned_features. ENFORCED vs best-effort tiers documented in

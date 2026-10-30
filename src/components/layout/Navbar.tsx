@@ -93,6 +93,7 @@ const Navbar: React.FC = () => {
     { href: '/ratings', label: t('nav_ratings', 'Ratings') },
     { href: '/leaderboard', label: t('nav_leaderboard', 'Leaderboard') },
     { href: '/forum', label: t('nav_forum', 'Forum') },
+    { href: '/blocks', label: t('nav_blocks', 'Blocks') },
   ];
 
   const accountLinks: NavLinkItem[] = [

@@ -557,3 +557,46 @@ class GuardedExecutionTests(TestCase):
             judge_submission_task.run(self.sub.id)
         self.sub.refresh_from_db()
         self.assertEqual(self.sub.verdict, Submission.VerdictStatus.ACCEPTED)
+
+
+class BlockConfigValidationTests(TestCase):
+    """Wave D: block-programming problems — serializer shape rules."""
+
+    def _serializer(self, block_config):
+        return ProblemSerializer(
+            data={
+                "title_i18n": {"en": "B"},
+                "statement_i18n": {"en": "S"},
+                "block_config": block_config,
+            }
+        )
+
+    def test_valid_config_round_trips(self):
+        serializer = self._serializer(
+            {"generator": "nodejs20", "starter": "<xml></xml>"}
+        )
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        user = User.objects.create_user(
+            username="blockauthor", password="p", role=User.Roles.PROBLEM_CREATOR
+        )
+        problem = serializer.save(author=user)
+        self.assertEqual(problem.block_config["generator"], "nodejs20")
+
+    def test_empty_config_is_valid(self):
+        self.assertTrue(self._serializer({}).is_valid())
+
+    def test_non_dict_config_rejected(self):
+        self.assertFalse(self._serializer(["bad"]).is_valid())
+
+    def test_unknown_generator_rejected(self):
+        serializer = self._serializer({"generator": "pascal"})
+        self.assertFalse(serializer.is_valid())
+        self.assertIn("block_config", serializer.errors)
+
+    def test_oversized_toolbox_rejected(self):
+        serializer = self._serializer({"toolbox": "x" * 100_001})
+        self.assertFalse(serializer.is_valid())
+
+    def test_unknown_key_rejected(self):
+        serializer = self._serializer({"nope": 1})
+        self.assertFalse(serializer.is_valid())
