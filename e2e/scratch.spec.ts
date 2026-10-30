@@ -25,6 +25,10 @@ test('a Scratch problem renders the Scratch editor and submits the project JSON'
   page,
   context,
 }) => {
+  // The Scratch stack (scratch-vm/blocks/render) is a multi-MB lazy chunk;
+  // compiling it in dev-mode on a cold CI runner can exceed the default
+  // 30s test timeout even though the app is behaving correctly.
+  test.setTimeout(240_000);
   await context?.addCookies([
     { name: 'wc_access', value: 'e2e-admin-access', domain: 'localhost', path: '/' },
   ]);
@@ -98,6 +102,7 @@ test('a rejected Scratch submission surfaces the validation message', async ({
   page,
   context,
 }) => {
+  test.setTimeout(240_000);
   await context?.addCookies([
     { name: 'wc_access', value: 'e2e-admin-access', domain: 'localhost', path: '/' },
   ]);
