@@ -554,11 +554,16 @@ export default async function ProblemDetailPage({
               problemTitle={problemTitle}
               contestId={contestId}
               blockConfig={
-                problem.block_config && problem.block_config.generator
+                problem.block_config &&
+                (problem.block_config.engine === 'scratch' ||
+                  problem.block_config.generator)
                   ? {
+                      engine: problem.block_config.engine,
                       generator: problem.block_config.generator,
                       toolbox: problem.block_config.toolbox,
                       starter: problem.block_config.starter,
+                      scratch_project: problem.block_config.scratch_project,
+                      scratch_blocks: problem.block_config.scratch_blocks,
                     }
                   : null
               }
@@ -569,7 +574,14 @@ export default async function ProblemDetailPage({
           {/* Custom test [X7]: run on your own input, no submission spent */}
           <div style={card}>
             {sectionHeader(palette.violet, t('scratch_header', 'Custom Test'))}
-            <ScratchPanel allowedLanguages={problem.allowed_languages || []} />
+            {/* 'scratch' is a block pseudo-language (project JSON, not
+                runnable source) — the custom-test sandbox only runs
+                registry languages. */}
+            <ScratchPanel
+              allowedLanguages={(problem.allowed_languages || []).filter(
+                (lang: string) => lang !== 'scratch'
+              )}
+            />
           </div>
 
           {/* Quick links */}

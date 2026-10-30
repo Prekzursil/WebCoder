@@ -60,11 +60,16 @@ export interface ProblemType {
   // Wave E: partial-code problems — full skeleton + locked regions.
   code_template?: string;
   code_template_language?: string;
-  // Wave D: Scratch on site — per-problem Blockly block sets.
+  // Wave D: block programming — BOTH engines (owner directive 2026-10-30).
+  // engine 'blockly' (default): generator + toolbox/starter XML.
+  // engine 'scratch': sb3 starter project JSON + curated opcode allowlist.
   block_config?: {
-    generator: 'python3' | 'nodejs20';
+    engine?: 'blockly' | 'scratch';
+    generator?: 'python3' | 'nodejs20';
     toolbox?: string;
     starter?: string;
+    scratch_project?: string;
+    scratch_blocks?: string[];
   };
   // Wave C: per-problem library & feature policy (creator-controlled).
   library_policy?: {

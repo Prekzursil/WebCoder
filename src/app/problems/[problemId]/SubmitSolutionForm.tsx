@@ -36,6 +36,12 @@ import dynamic from 'next/dynamic';
 const BlockEditor = dynamic(() => import('@/components/blocks/BlockEditor'), {
   ssr: false,
 });
+// [wave D engine 2] The Scratch stack (scratch-vm/blocks/render) is
+// browser-only and heavy — load it lazily, exactly like Blockly.
+const ScratchEditor = dynamic(
+  () => import('@/components/blocks/ScratchEditor'),
+  { ssr: false, loading: () => null }
+);
 // [wave E] CodeMirror is client-side too.
 const PartialCodeEditor = dynamic(
   () => import('@/components/code/PartialCodeEditor'),
@@ -43,9 +49,17 @@ const PartialCodeEditor = dynamic(
 );
 
 export interface ProblemBlockConfig {
-  generator: 'python3' | 'nodejs20';
+  /** Wave D engine 2: 'scratch' renders the Scratch editor and submits
+   * the project JSON as language 'scratch' (the judge transpiles it to
+   * Python — see docs/BLOCK-PROGRAMMING.md). */
+  engine?: 'blockly' | 'scratch';
+  generator?: 'python3' | 'nodejs20';
   toolbox?: string;
   starter?: string;
+  /** Scratch engine: the starter sb3 project JSON. */
+  scratch_project?: string;
+  /** Scratch engine: the curated opcode allowlist (per-problem blocks). */
+  scratch_blocks?: string[];
 }
 
 interface SubmitSolutionFormProps {
@@ -56,9 +70,10 @@ interface SubmitSolutionFormProps {
    * backend gates (registered + window open) and the judge-contest lane
    * both key off the submission's contest. */
   contestId?: number | null;
-  /** [wave D] present => block problem: the editor renders Blockly with
-   * the problem's toolbox/starter and submits the GENERATED source (the
-   * language is the configured generator, judged normally). */
+  /** [wave D] present => block problem: the editor renders the block
+   * engine's editor (Blockly with the problem's toolbox/starter, or the
+   * Scratch project editor) and submits the generated/project source
+   * through the normal judge pipeline. */
   blockConfig?: ProblemBlockConfig | null;
   /** [wave E] present => partial-code problem: the whole skeleton renders
    * with locked regions read-only; the submission is the FULL assembled
@@ -90,8 +105,10 @@ export default function SubmitSolutionForm({
   const auth = useAuth();
   const [code, setCode] = useState<string>('');
   const [selectedLanguage, setSelectedLanguage] = useState<string>(
-    blockConfig?.generator ||
-      (allowedLanguages.length > 0 ? allowedLanguages[0] : 'python3')
+    blockConfig?.engine === 'scratch'
+      ? 'scratch'
+      : blockConfig?.generator ||
+          (allowedLanguages.length > 0 ? allowedLanguages[0] : 'python3')
   );
   const [submissionStatus, setSubmissionStatus] = useState<string | null>(null);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
@@ -206,7 +223,23 @@ export default function SubmitSolutionForm({
   return (
     <>
       <form onSubmit={handleSubmitClick}>
-        {blockConfig ? (
+        {blockConfig?.engine === 'scratch' ? (
+          <div style={{ marginBottom: '0.75rem' }}>
+            <span className="micro-label">{t('sbx_solve_title', 'Solve with Scratch')}</span>
+            <p style={{ margin: '4px 0 10px', color: 'var(--text-tertiary)', fontSize: '0.8rem' }}>
+              {t(
+                'sbx_submit_hint',
+                'Your Scratch project is translated to Python and judged like any other submission.',
+              )}
+            </p>
+            <ScratchEditor
+              projectJson={blockConfig.scratch_project}
+              allowedOpcodes={blockConfig.scratch_blocks ?? null}
+              onProjectChange={setCode}
+              height={380}
+            />
+          </div>
+        ) : blockConfig ? (
           <div style={{ marginBottom: '0.75rem' }}>
             <span className="micro-label">{t('blocks_solve_with_blocks', 'Solve with blocks')}</span>
             <p style={{ margin: '4px 0 10px', color: 'var(--text-tertiary)', fontSize: '0.8rem' }}>

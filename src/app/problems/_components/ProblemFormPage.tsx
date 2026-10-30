@@ -75,6 +75,11 @@ export default function ProblemFormPage() {
   const [banStringOps, setBanStringOps] = useState<boolean>(false);
   // Wave D: block-programming problems (Blockly -> python/js).
   const [blockMode, setBlockMode] = useState<boolean>(false);
+  // [wave D engine 2] 'blockly' | 'scratch' — the owner directive wants
+  // BOTH engines selectable per problem.
+  const [blockEngine, setBlockEngine] = useState<'blockly' | 'scratch'>('blockly');
+  const [scratchProject, setScratchProject] = useState<string>('');
+  const [scratchBlocks, setScratchBlocks] = useState<string>('');
   const [blockGenerator, setBlockGenerator] = useState<string>('python3');
   const [blockToolbox, setBlockToolbox] = useState<string>('');
   const [blockStarter, setBlockStarter] = useState<string>('');
@@ -141,10 +146,13 @@ export default function ProblemFormPage() {
           );
           setBanStringOps((policy.banned_features || []).includes('py-no-string-ops'));
           const blocks = data.block_config;
-          setBlockMode(Boolean(blocks?.generator));
+          setBlockMode(Boolean(blocks?.generator) || blocks?.engine === 'scratch');
+          setBlockEngine(blocks?.engine === 'scratch' ? 'scratch' : 'blockly');
           setBlockGenerator(blocks?.generator || 'python3');
           setBlockToolbox(blocks?.toolbox || '');
           setBlockStarter(blocks?.starter || '');
+          setScratchProject(blocks?.scratch_project || '');
+          setScratchBlocks((blocks?.scratch_blocks || []).join(', '));
           setCodeTemplate(data.code_template || '');
           setCodeTemplateLanguage(data.code_template_language || '');
           setSelectedTagIds(data.tags?.map((tag: TagType) => tag.id) || []);
@@ -289,11 +297,30 @@ export default function ProblemFormPage() {
       code_template: codeTemplate.trim(),
       code_template_language: codeTemplate.trim() ? codeTemplateLanguage : '',
       block_config: blockMode
-        ? {
-            generator: blockGenerator === 'nodejs20' ? ('nodejs20' as const) : ('python3' as const),
-            ...(blockToolbox.trim() ? { toolbox: blockToolbox } : {}),
-            ...(blockStarter.trim() ? { starter: blockStarter } : {}),
-          }
+        ? blockEngine === 'scratch'
+          ? {
+              engine: 'scratch' as const,
+              ...(scratchProject.trim()
+                ? { scratch_project: scratchProject }
+                : {}),
+              ...(scratchBlocks.trim()
+                ? {
+                    scratch_blocks: scratchBlocks
+                      .split(',')
+                      .map((op) => op.trim())
+                      .filter(Boolean),
+                  }
+                : {}),
+            }
+          : {
+              engine: 'blockly' as const,
+              generator:
+                blockGenerator === 'nodejs20'
+                  ? ('nodejs20' as const)
+                  : ('python3' as const),
+              ...(blockToolbox.trim() ? { toolbox: blockToolbox } : {}),
+              ...(blockStarter.trim() ? { starter: blockStarter } : {}),
+            }
         : undefined,
       tag_ids: selectedTagIds,
     };
@@ -410,6 +437,45 @@ export default function ProblemFormPage() {
                 </span>
               );
             })}
+            {(() => {
+              // Wave D engine 2: the Scratch pseudo-language (project JSON
+              // the judge transpiles to Python). Effective limits inherit
+              // python3's multipliers — displayed the same way.
+              const pyRow = registryLanguages.find((r) => r.id === 'python3');
+              const effTime = Math.round(
+                defaultTimeLimitMs * (pyRow?.time_multiplier ?? 3)
+              );
+              const effMem = Math.max(
+                Math.round(defaultMemoryLimitKb * (pyRow?.memory_multiplier ?? 1.5)),
+                pyRow?.memory_floor_kb ?? 0
+              );
+              const lang = 'scratch';
+              return (
+                <span key={lang} style={checkboxContainerStyle}>
+                  <input
+                    type="checkbox"
+                    id={`lang-${lang}`}
+                    value={lang}
+                    checked={allowedLanguages.includes(lang)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setAllowedLanguages((prev) => [...prev, lang]);
+                      } else {
+                        setAllowedLanguages((prev) => prev.filter((l) => l !== lang));
+                      }
+                    }}
+                  />
+                  <label htmlFor={`lang-${lang}`} style={checkboxLabelStyle}>
+                    {t('problem_form_language_scratch', 'Scratch (blocks)')}
+                    {allowedLanguages.includes(lang) ? (
+                      <span style={{ opacity: 0.7, marginLeft: '4px', fontFamily: 'var(--font-mono)' }}>
+                        ({effTime} ms / {Math.round(effMem / 1024)} MB)
+                      </span>
+                    ) : null}
+                  </label>
+                </span>
+              );
+            })()}
           </div>
           <div style={fieldStyle}>
             <label htmlFor="io_mode" style={labelStyle}>{t('problem_form_io_mode', 'I/O mode')}:</label>
@@ -501,11 +567,31 @@ export default function ProblemFormPage() {
                 onChange={(e) => setBlockMode(e.target.checked)}
               />
               <label htmlFor="block_mode" style={checkboxLabelStyle}>
-                {t('problem_form_block_mode', 'Block programming (Blockly)')}
+                {t('problem_form_block_mode', 'Block programming (Blockly / Scratch)')}
               </label>
             </span>
             {blockMode && (
               <div style={{ display: 'grid', gap: '8px', marginTop: '8px' }}>
+                <div>
+                  <label htmlFor="block_engine" style={labelStyle}>{t('problem_form_block_engine', 'Block engine')}:</label>
+                  <select id="block_engine" value={blockEngine} onChange={(e) => setBlockEngine(e.target.value === 'scratch' ? 'scratch' : 'blockly')} style={inputStyle}>
+                    <option value="blockly">{t('problem_form_block_engine_blockly', 'Blockly (generates Python/JavaScript)')}</option>
+                    <option value="scratch">{t('problem_form_block_engine_scratch', 'Scratch (Scratch cat; judged via Python translation)')}</option>
+                  </select>
+                </div>
+                {blockEngine === 'scratch' ? (
+                  <>
+                    <div>
+                      <label htmlFor="scratch_project" style={labelStyle}>{t('problem_form_scratch_project', 'Starter Scratch project JSON (optional — default: the Scratch cat saying Hello!)')}:</label>
+                      <textarea id="scratch_project" value={scratchProject} onChange={(e) => setScratchProject(e.target.value)} style={{ ...inputStyle, minHeight: '80px', fontFamily: 'var(--font-mono)' }} />
+                    </div>
+                    <div>
+                      <label htmlFor="scratch_blocks" style={labelStyle}>{t('problem_form_scratch_blocks', 'Allowed Scratch blocks (comma-separated opcodes, optional — e.g. event_whenflagclicked, looks_say, sensing_askandwait, control_repeat, operator_add)')}:</label>
+                      <textarea id="scratch_blocks" value={scratchBlocks} onChange={(e) => setScratchBlocks(e.target.value)} style={{ ...inputStyle, minHeight: '60px', fontFamily: 'var(--font-mono)' }} />
+                    </div>
+                  </>
+                ) : (
+                  <>
                 <div>
                   <label htmlFor="block_generator" style={labelStyle}>{t('problem_form_block_generator', 'Block generator')}:</label>
                   <select id="block_generator" value={blockGenerator} onChange={(e) => setBlockGenerator(e.target.value)} style={inputStyle}>
@@ -521,6 +607,8 @@ export default function ProblemFormPage() {
                   <label htmlFor="block_starter" style={labelStyle}>{t('problem_form_block_starter', 'Starter workspace XML (optional)')}:</label>
                   <textarea id="block_starter" value={blockStarter} onChange={(e) => setBlockStarter(e.target.value)} style={{ ...inputStyle, minHeight: '80px', fontFamily: 'var(--font-mono)' }} />
                 </div>
+                  </>
+                )}
               </div>
             )}
           </div>

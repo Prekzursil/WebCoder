@@ -5,7 +5,11 @@ from users.serializers import UserSerializer
 from contests.models import Contest
 from problems.models import Problem, TestCase # Import TestCase for SubmissionTestResultSerializer
 from .judge_utils.custom_libs import is_allowed_requirement
-from .judge_utils.languages import SUPPORTED_LANGUAGE_IDS, get_language
+from .judge_utils.languages import (
+    SCRATCH_LANGUAGE_ID,
+    SUPPORTED_LANGUAGE_IDS,
+    get_language,
+)
 
 class SubmissionTestResultSerializer(serializers.ModelSerializer):
     # test_case_id = serializers.ReadOnlyField(source='test_case.id') # Simple ID
@@ -140,16 +144,21 @@ class SubmissionCreateSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         """Submit-time validation: language registry + allowed_languages
-        (SPEC-GAPS G10) and, for contest-bound submissions, the CON-1 gate
-        (registered + window open + board membership + cooldown).
+        (SPEC-GAPS G10), Scratch project validation (wave D engine 2),
+        and, for contest-bound submissions, the CON-1 gate (registered +
+        window open + board membership + cooldown).
         """
         language = attrs.get("language")
-        if get_language(language) is None:
+        # Wave D engine 2: 'scratch' is a valid SUBMISSION language (the
+        # sb3 project JSON transpiles to Python at judge time) even though
+        # it has no judge-registry toolchain of its own.
+        if language != SCRATCH_LANGUAGE_ID and get_language(language) is None:
             raise serializers.ValidationError(
                 {
                     "language": (
                         f"Unsupported language '{language}'. "
-                        f"Supported languages: {', '.join(SUPPORTED_LANGUAGE_IDS)}."
+                        f"Supported languages: "
+                        f"{', '.join((*SUPPORTED_LANGUAGE_IDS, SCRATCH_LANGUAGE_ID))}."
                     )
                 }
             )
@@ -222,6 +231,31 @@ class SubmissionCreateSerializer(serializers.ModelSerializer):
                 if violations:
                     raise serializers.ValidationError(
                         {"code": " ".join(violations)}
+                    )
+            # Wave D engine 2 (Scratch): the problem must be a Scratch
+            # block problem, and the submitted project must only use the
+            # blocks this problem allows. (The judge re-validates before
+            # transpiling: defense in depth, same pattern as wave C/E.)
+            if language == SCRATCH_LANGUAGE_ID:
+                block_config = problem.block_config or {}
+                if block_config.get("engine") != "scratch":
+                    raise serializers.ValidationError(
+                        {
+                            "language": (
+                                "This problem does not accept Scratch "
+                                "submissions."
+                            )
+                        }
+                    )
+                from problems.scratch_transpiler import validate_project
+
+                problems_found = validate_project(
+                    attrs.get("code") or "",
+                    block_config.get("scratch_blocks"),
+                )
+                if problems_found:
+                    raise serializers.ValidationError(
+                        {"code": " ".join(problems_found)}
                     )
         # Contest gate (CON-1): registered + window open + board membership
         # + the OPR-4 in-contest cooldown.

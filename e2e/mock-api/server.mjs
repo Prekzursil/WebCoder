@@ -130,6 +130,37 @@ const MOCK_PROBLEMS = [
     ],
   },
   {
+    id: 8,
+    title_i18n: { en: 'Echo (Scratch)', ro: 'Ecou (Scratch)' },
+    difficulty: 'VERY_EASY',
+    status: 'APPROVED',
+    // Wave D engine-2 fixture: a Scratch problem. Submissions carry the
+    // sb3 project JSON under language 'scratch'; the judge transpiles it
+    // to Python (see backend/problems/scratch_transpiler.py).
+    statement_i18n: {
+      en: 'Scratch: ask for a line, then say it back.',
+      ro: 'Scratch: cere o linie, apoi spune-o înapoi.',
+    },
+    default_time_limit_ms: 1000,
+    default_memory_limit_kb: 262144,
+    allowed_languages: ['scratch'],
+    block_config: {
+      engine: 'scratch',
+      scratch_blocks: [
+        'event_whenflagclicked',
+        'sensing_askandwait',
+        'sensing_answer',
+        'looks_say',
+      ],
+    },
+    effective_limits: {
+      scratch: { time_ms: 3000, memory_kb: 393216 },
+    },
+    test_cases: [
+      { id: 81, input_data: 'hello', expected_output_data: 'hello', is_sample: true, points: 10 },
+    ],
+  },
+  {
     id: 4,
     title_i18n: { en: 'Hello, Judge!', ro: 'Salut, evaluator!' },
     difficulty: 'VERY_EASY',

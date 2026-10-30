@@ -18,6 +18,14 @@ const BlockEditor = dynamic(
   { ssr: false, loading: () => <BlocksSkeleton /> }
 );
 
+// Wave D engine 2: the Scratch editor is browser-only too (scratch-vm +
+// scratch-blocks + scratch-render); the playground offers BOTH engines —
+// the owner directive is Blockly AND Scratch, not one or the other.
+const ScratchEditor = dynamic(
+  () => import('@/components/blocks/ScratchEditor'),
+  { ssr: false, loading: () => <BlocksSkeleton /> }
+);
+
 function BlocksSkeleton() {
   return (
     <div
@@ -31,6 +39,7 @@ function BlocksSkeleton() {
 export default function BlocksPlaygroundPage() {
   const { t } = useTranslation();
   const auth = useAuth();
+  const [engine, setEngine] = useState<'blockly' | 'scratch'>('blockly');
   const [generator, setGenerator] = useState<BlockGenerator>('python3');
   const [code, setCode] = useState('');
   const [stdin, setStdin] = useState('');
@@ -73,26 +82,56 @@ export default function BlocksPlaygroundPage() {
         {t('blocks_playground_subtitle', 'Build a program with blocks — it generates real Python or JavaScript and runs on the judge.')}
       </p>
 
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', margin: '1rem 0' }}>
-        <label htmlFor="block_generator" className="micro-label">
-          {t('blocks_generator_label', 'Generates')}
+      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', margin: '1rem 0', flexWrap: 'wrap' }}>
+        <label htmlFor="block_engine" className="micro-label">
+          {t('blocks_engine_label', 'Engine')}
         </label>
         <select
-          id="block_generator"
-          value={generator}
-          onChange={(e) => setGenerator(e.target.value as BlockGenerator)}
+          id="block_engine"
+          value={engine}
+          onChange={(e) => setEngine(e.target.value === 'scratch' ? 'scratch' : 'blockly')}
           style={{ padding: '6px 10px', borderRadius: 8, background: 'var(--surface-2)', color: 'var(--foreground)', border: '1px solid var(--border)' }}
         >
-          <option value="python3">Python 3</option>
-          <option value="nodejs20">JavaScript (Node.js 20)</option>
+          <option value="blockly">Blockly</option>
+          <option value="scratch">Scratch</option>
         </select>
+        {engine === 'blockly' && (
+          <>
+            <label htmlFor="block_generator" className="micro-label">
+              {t('blocks_generator_label', 'Generates')}
+            </label>
+            <select
+              id="block_generator"
+              value={generator}
+              onChange={(e) => setGenerator(e.target.value as BlockGenerator)}
+              style={{ padding: '6px 10px', borderRadius: 8, background: 'var(--surface-2)', color: 'var(--foreground)', border: '1px solid var(--border)' }}
+            >
+              <option value="python3">Python 3</option>
+              <option value="nodejs20">JavaScript (Node.js 20)</option>
+            </select>
+          </>
+        )}
       </div>
 
-      <Suspense fallback={<BlocksSkeleton />}>
-        <BlockEditor generator={generator} onCodeChange={setCode} />
-      </Suspense>
+      {engine === 'scratch' ? (
+        <ScratchEditor onProjectChange={() => undefined} />
+      ) : (
+        <Suspense fallback={<BlocksSkeleton />}>
+          <BlockEditor generator={generator} onCodeChange={setCode} />
+        </Suspense>
+      )}
 
       <div style={{ display: 'grid', gap: '10px', marginTop: '1rem', gridTemplateColumns: 'minmax(0, 1fr)' }}>
+        {engine === 'scratch' && (
+          <p style={{ color: 'var(--muted)', margin: 0, fontSize: '0.85rem' }}>
+            {t(
+              'blocks_scratch_playground_hint',
+              'Press the green flag to run your Scratch project on the stage. To have a Scratch project judged with points, open a Scratch problem.',
+            )}
+          </p>
+        )}
+        {engine === 'blockly' && (
+          <>
         <label htmlFor="block_stdin" className="micro-label">
           {t('blocks_stdin_label', 'Input (stdin)')}
         </label>
@@ -139,6 +178,8 @@ export default function BlocksPlaygroundPage() {
 {output}
             </pre>
           </div>
+        )}
+          </>
         )}
       </div>
     </div>
