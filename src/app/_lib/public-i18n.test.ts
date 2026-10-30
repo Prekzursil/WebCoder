@@ -29,10 +29,19 @@ describe('normalizeLocale', () => {
     expect(normalizeLocale('ro-RO')).toBe('ro');
   });
 
-  it('maps English, unknown locales and missing values to en', () => {
+  it('maps the ten supported locales (incl. regional tags), unknowns to en', () => {
+    // [i18n wave] the registry grew from en/ro to ten locales; supported
+    // codes (and their regional variants) now resolve to themselves, and
+    // only genuinely unknown values fall back to English.
     expect(normalizeLocale('en')).toBe('en');
     expect(normalizeLocale('en-US')).toBe('en');
-    expect(normalizeLocale('fr')).toBe('en');
+    expect(normalizeLocale('ro')).toBe('ro');
+    expect(normalizeLocale('ro-RO')).toBe('ro');
+    expect(normalizeLocale('fr')).toBe('fr');
+    expect(normalizeLocale('pt-BR')).toBe('pt');
+    expect(normalizeLocale('de-AT')).toBe('de');
+    expect(normalizeLocale('uk')).toBe('uk');
+    expect(normalizeLocale('xx')).toBe('en');
     expect(normalizeLocale(undefined)).toBe('en');
   });
 });

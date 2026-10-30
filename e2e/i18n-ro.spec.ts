@@ -55,7 +55,9 @@ test('switching to RO via the switcher survives a reload', async ({ page }) => {
   // Start English (fresh context, no localStorage), flip the switcher…
   await page?.goto('/');
   // Scoped to the nav — the footer carries a second language switcher.
-  await page?.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'ro', exact: true })?.click();
+  // [i18n wave] the two-button toggle is now the shared ten-locale
+  // <select>; selectValue flips it (and writes the i18next cookie).
+  await page?.getByRole('navigation', { name: 'Main' }).getByRole('combobox', { name: 'Language' })?.selectOption('ro');
   await expect(page?.getByRole('heading', { level: 1 }))?.toHaveText('Bun venit la WebCoder');
 
   // …then reload: the cached choice must survive for BOTH server pages

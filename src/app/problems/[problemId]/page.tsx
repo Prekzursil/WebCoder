@@ -428,7 +428,9 @@ export default async function ProblemDetailPage({
               <EditoralPanelPlaceholder
                 problemId={problemId}
                 hasEditorial={Boolean(problem.has_editorial)}
-                locale={locale}
+                /* UGC/editorial content ships ro|en; every other UI locale
+                   reads the English variant (universal fallback). */
+                locale={locale === 'ro' ? 'ro' : 'en'}
               />
             </div>
           )}

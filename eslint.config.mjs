@@ -26,6 +26,10 @@ const eslintConfig = [
       // including, in some, a Python .venv and coverage HTML — none of which
       // belongs to this tree's lint surface.
       "wt-*/**",
+      // Backend pytest coverage HTML (scripts/verify generates backend/htmlcov
+      // in the SAME job, right before `npm run lint` runs — generated vendor
+      // JS must never enter the lint surface).
+      "backend/htmlcov/**",
     ],
   },
 ];

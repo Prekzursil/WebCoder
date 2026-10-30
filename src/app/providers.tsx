@@ -12,6 +12,7 @@ import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import { palette, fontFamily, typeRamp, radius } from '@/theme/tokens';
 
 import '@/i18n';
+import { normalizeUiLocale } from '@/i18n';
 
 // Theme built entirely from src/theme/tokens.ts — no literal colors here.
 // [SPEC-GAPS A2/A12]
@@ -137,12 +138,13 @@ export default function Providers({ children }: { children: ReactNode }) {
     // hydration; a post-mount changeLanguage re-renders like any state flip.
     const match = document.cookie.split('; ').find((row) => row.startsWith('i18nextLng='));
     const cached = match?.split('=')[1];
-    if (cached && (cached === 'en' || cached === 'ro')) {
+    const locale = cached ? normalizeUiLocale(cached) : null;
+    if (cached && locale) {
       // [Q5] keep <html lang> in sync on re-application too — SSR renders
       // lang="en" (layout.tsx) and only the switcher updated it before.
-      document.documentElement.lang = cached;
-      if (cached !== i18n.language) {
-        i18n.changeLanguage(cached);
+      document.documentElement.lang = locale;
+      if (locale !== i18n.language) {
+        i18n.changeLanguage(locale);
       }
     }
   }, [i18n]);

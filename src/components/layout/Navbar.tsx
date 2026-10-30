@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
+import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 import { NotificationService } from '@/services/ApiService';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
@@ -27,7 +28,7 @@ interface NavLinkItem {
 }
 
 const Navbar: React.FC = () => {
-  const { i18n, t } = useTranslation();
+  const { t } = useTranslation();
   const auth = useAuth();
   const pathname = usePathname() ?? '/';
   const router = useRouter();
@@ -62,13 +63,6 @@ const Navbar: React.FC = () => {
       clearInterval(interval);
     };
   }, [auth.isAuthenticated, auth.user]);
-
-  const changeLanguage = (lng: string) => {
-    i18n.changeLanguage(lng);
-    if (typeof document !== 'undefined') {
-      document.documentElement.lang = lng; // [Q5] keep <html lang> in sync
-    }
-  };
 
   const handleLogout = () => {
     setMenuOpen(false);
@@ -184,17 +178,10 @@ const Navbar: React.FC = () => {
   );
 
   const renderLanguageSwitch = () => (
-    <div className={styles.langSwitch} role="group" aria-label={t('nav_language_label', 'Language')}>
-      {['en', 'ro'].map((lng) => (
-        <button
-          key={lng}
-          onClick={() => changeLanguage(lng)}
-          className={`${styles.langBtn} ${i18n.language === lng ? styles.langBtnActive : ''}`}
-        >
-          {lng}
-        </button>
-      ))}
-    </div>
+    // [i18n wave] ten locales: the shared <select>-based picker replaces
+    // the old two-button EN/RO toggle (changeLanguage + <html lang> sync
+    // live inside LanguageSwitcher).
+    <LanguageSwitcher className={styles.langSelect} />
   );
 
   return (

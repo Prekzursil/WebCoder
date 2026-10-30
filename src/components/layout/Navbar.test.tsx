@@ -184,7 +184,7 @@ describe('mobile drawer [A1]', () => {
     expect(within(drawer).getByRole('link', { name: 'Leaderboard' })).toBeInTheDocument();
     expect(within(drawer).getByRole('link', { name: 'My Submissions' })).toBeInTheDocument();
     expect(within(drawer).getByRole('link', { name: 'Verification Queue' })).toBeInTheDocument();
-    expect(within(drawer).getAllByRole('button', { name: 'ro' }).length).toBeGreaterThan(0); // language mirror
+    expect(within(drawer).getByRole('combobox', { name: 'Language' })).toBeInTheDocument(); // language mirror
 
     // Navigating a drawer link closes it.
     fireEvent.click(within(drawer).getByRole('link', { name: 'Problems' }));
@@ -227,13 +227,16 @@ describe('session actions', () => {
     expect(mocks.push).toHaveBeenCalledWith('/login');
   });
 
-  it('switches language via the EN/RO buttons', async () => {
+  it('switches language via the shared ten-locale picker', async () => {
     setAuth(false, null);
     render(<Navbar />);
-    fireEvent.click(screen.getAllByRole('button', { name: 'ro' })[0]);
+    // [i18n wave] LanguageSwitcher renders a native <select>; switching
+    // writes the choice to i18next (and its cookie cache) like before.
+    const picker = screen.getAllByRole('combobox', { name: 'Language' })[0];
+    fireEvent.change(picker, { target: { value: 'ro' } });
     await waitFor(() => expect(i18n.language).toBe('ro'));
     expect(screen.getByRole('link', { name: 'Acasă' })).toBeInTheDocument(); // nav_home in ro
-    fireEvent.click(screen.getAllByRole('button', { name: 'en' })[0]);
+    fireEvent.change(picker, { target: { value: 'en' } });
     await waitFor(() => expect(i18n.language).toBe('en'));
     expect(screen.getByRole('link', { name: 'Home' })).toBeInTheDocument();
   });

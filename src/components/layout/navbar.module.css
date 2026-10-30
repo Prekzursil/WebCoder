@@ -384,3 +384,14 @@
     padding: 0 12px;
   }
 }
+
+/* [i18n wave] ten-locale <select> picker (replaces the two-button row). */
+.langSelect {
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  color: var(--text-primary, inherit);
+  font-size: 0.78rem;
+  cursor: pointer;
+}

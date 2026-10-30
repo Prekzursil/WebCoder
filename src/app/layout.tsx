@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import { getLocale } from "./_lib/public-i18n";
+import { PUBLIC_LOCALES } from "./_lib/public-messages";
 import Providers from "./providers";
 import ExamModeBanner from "@/components/common/ExamModeBanner";
 import "./globals.css";
@@ -37,11 +39,10 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: siteUrl,
-    // [OPS-4/Q5] hreflang RO/EN — the bilingual moat, machine-readable.
-    languages: {
-      en: siteUrl,
-      ro: siteUrl,
-    },
+    // [OPS-4/Q5 + i18n wave] hreflang for all ten locales. (Locale is
+    // cookie-driven, so every language variant serves the same URL,
+    // like the RO/EN pair before it.)
+    languages: Object.fromEntries(PUBLIC_LOCALES.map((code) => [code, siteUrl])),
   },
 };
 
@@ -53,11 +54,15 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // [i18n wave/Q5] SSR renders <html lang> in the visitor's locale (the
+  // same i18next cookie the client picker writes); English before any
+  // choice. Providers re-applies the cached choice post-hydration.
+  const locale = await getLocale();
   const schemaOrg = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -101,7 +106,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en">
+    <html lang={locale}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
