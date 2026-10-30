@@ -260,6 +260,21 @@ export default async function ProblemDetailPage({
                       {t('problem_type_interactive_badge', 'Interactive')}
                     </span>
                   )}
+                  {problem.code_template ? (
+                    <span
+                      style={{
+                        padding: '2px 10px',
+                        borderRadius: '999px',
+                        fontSize: '0.72rem',
+                        fontWeight: 600,
+                        color: 'var(--violet)',
+                        background: hexAlpha(palette.violet, 0.1),
+                        border: `1px solid ${hexAlpha(palette.violet, 0.2)}`,
+                      }}
+                    >
+                      {t('problem_partial_code_badge', 'Partial code')}
+                    </span>
+                  ) : null}
                   <BookmarkButton problemId={problemId} />
                   {problem.status && (
                     <span style={{
@@ -545,6 +560,7 @@ export default async function ProblemDetailPage({
                     }
                   : null
               }
+              codeTemplate={problem.code_template || null}
             />
           </div>
 

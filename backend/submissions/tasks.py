@@ -141,6 +141,30 @@ def judge_submission_task(self, submission_id):
             submission.save()
 
         temp_dir_obj = _judge_workspace(f"submission_{submission_id}_")
+
+        # Wave E (partial-code): judge-time template integrity re-check —
+        # a client that skipped API validation still cannot judge altered
+        # scaffolding (fail as COMPILE_ERROR with the same message).
+        if problem.code_template:
+            from problems.code_template import verify_locked_integrity
+
+            template_ok, template_msg = verify_locked_integrity(
+                problem.code_template, submission.code
+            )
+            if not template_ok:
+                with transaction.atomic():
+                    submission = Submission.objects.select_for_update().get(
+                        id=submission_id
+                    )
+                    submission.verdict = Submission.VerdictStatus.COMPILE_ERROR
+                    submission.detailed_feedback = (
+                        "Template integrity violation.\n" + template_msg
+                    )
+                    submission.save()
+                    _notify_judged(submission, submission.verdict)
+                if temp_dir_obj:  # pragma: no cover — always created above
+                    temp_dir_obj.cleanup()
+                return f"Submission {submission_id}: template integrity."
         submission_dir = pathlib.Path(temp_dir_obj.name)
 
         if problem.problem_type == Problem.ProblemType.OUTPUT_ONLY:
@@ -235,6 +259,7 @@ def judge_submission_task(self, submission_id):
                 if temp_dir_obj:  # pragma: no cover
                     temp_dir_obj.cleanup()
                 return f"Submission {submission_id}: library install failed."
+
 
         # Wave C library/feature policy — judge-time re-scan of the exact
         # submitted bytes (defense in depth under the submit-time 400; a

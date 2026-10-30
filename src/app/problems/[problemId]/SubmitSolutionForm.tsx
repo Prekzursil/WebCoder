@@ -36,6 +36,11 @@ import dynamic from 'next/dynamic';
 const BlockEditor = dynamic(() => import('@/components/blocks/BlockEditor'), {
   ssr: false,
 });
+// [wave E] CodeMirror is client-side too.
+const PartialCodeEditor = dynamic(
+  () => import('@/components/code/PartialCodeEditor'),
+  { ssr: false, loading: () => null }
+);
 
 export interface ProblemBlockConfig {
   generator: 'python3' | 'nodejs20';
@@ -55,6 +60,10 @@ interface SubmitSolutionFormProps {
    * the problem's toolbox/starter and submits the GENERATED source (the
    * language is the configured generator, judged normally). */
   blockConfig?: ProblemBlockConfig | null;
+  /** [wave E] present => partial-code problem: the whole skeleton renders
+   * with locked regions read-only; the submission is the FULL assembled
+   * file (server verifies locked-region integrity). */
+  codeTemplate?: string | null;
 }
 
 // [A6-interim] Minimal runnable starter per supported judge language
@@ -75,6 +84,7 @@ export default function SubmitSolutionForm({
   problemTitle,
   contestId,
   blockConfig,
+  codeTemplate,
 }: SubmitSolutionFormProps) {
   const { t } = useTranslation();
   const auth = useAuth();
@@ -266,14 +276,25 @@ export default function SubmitSolutionForm({
               background: 'rgba(255,255,255,0.02)',
             }}
           >
-            <CodeEditor
-              value={code}
-              onChange={(value) => setCode(value)}
-              language={selectedLanguage}
-              onModEnter={handleSubmitClick}
-              ariaLabel={t('code_editor_label', 'Code')}
-              height="360px"
-            />
+            {codeTemplate ? (
+              <PartialCodeEditor
+                template={codeTemplate}
+                language={selectedLanguage}
+                value={code}
+                onChange={(value: string) => setCode(value)}
+                ariaLabel={t('code_editor_label', 'Code')}
+                height="420px"
+              />
+            ) : (
+              <CodeEditor
+                value={code}
+                onChange={(value) => setCode(value)}
+                language={selectedLanguage}
+                onModEnter={handleSubmitClick}
+                ariaLabel={t('code_editor_label', 'Code')}
+                height="360px"
+              />
+            )}
           </div>
         </div>
         </>

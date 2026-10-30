@@ -77,6 +77,38 @@ const MOCK_PROBLEMS = [
     has_editorial: true,
   },
   {
+    id: 8,
+    title_i18n: { en: 'Sum digits (template)', ro: 'Suma cifrelor (șablon)' },
+    difficulty: 'EASY',
+    status: 'APPROVED',
+    // Wave E fixture: partial-code problem — complete sum_digits between
+    // the sentinels; the scaffolding is locked and server-verified.
+    statement_i18n: {
+      en: 'Complete sum_digits(int n) so it returns the sum of the digits.',
+      ro: 'Completează sum_digits(int n) astfel încât să returneze suma cifrelor.',
+    },
+    default_time_limit_ms: 1000,
+    default_memory_limit_kb: 262144,
+    allowed_languages: ['cpp17'],
+    code_template_language: 'cpp17',
+    code_template: [
+      '#include <cstdio>',
+      '',
+      'int sum_digits(int n) {',
+      '    // WC_EDIT_START',
+      '    // TODO: your code here',
+      '    // WC_EDIT_END',
+      '}',
+      '',
+      'int main() {',
+      '    int n;',
+      '    scanf("%d", &n);',
+      '    printf("%d", sum_digits(n));',
+      '    return 0;',
+      '}',
+    ].join('\n'),
+  },
+  {
     id: 7,
     title_i18n: { en: 'Last Digit (blocks)', ro: 'Ultima cifră (blocuri)' },
     difficulty: 'VERY_EASY',

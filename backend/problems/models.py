@@ -273,6 +273,27 @@ class Problem(models.Model):
         blank=True,
         help_text=_("List of custom library identifiers allowed."),
     )
+    # Partial-code problems (judge-fairness wave E, HackerRank-style):
+    # the FULL source skeleton with WC_EDIT_START/WC_EDIT_END sentinels
+    # around the editable completion points; everything else is locked and
+    # server-verified byte-identical (modulo the documented whitespace
+    # policy) on every submission. Empty = normal full-file problem.
+    code_template = models.TextField(
+        _("code template (partial-code problems)"),
+        blank=True,
+        default="",
+        help_text=_(
+            "Full source skeleton; wrap editable regions in "
+            "WC_EDIT_START / WC_EDIT_END sentinel comment lines."
+        ),
+    )
+    code_template_language = models.CharField(
+        _("template language"),
+        max_length=20,
+        blank=True,
+        default="",
+        help_text=_("Registry language id the skeleton is written in."),
+    )
     # Scratch-on-site (judge-fairness wave D): per-problem block sets.
     # When present, the problem accepts BLOCK programs: the site renders a
     # Blockly editor with this toolbox/starter, generates source for the

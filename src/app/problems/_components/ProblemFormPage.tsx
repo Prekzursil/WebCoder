@@ -78,6 +78,9 @@ export default function ProblemFormPage() {
   const [blockGenerator, setBlockGenerator] = useState<string>('python3');
   const [blockToolbox, setBlockToolbox] = useState<string>('');
   const [blockStarter, setBlockStarter] = useState<string>('');
+  // Wave E: partial-code problems — skeleton with locked regions.
+  const [codeTemplate, setCodeTemplate] = useState<string>('');
+  const [codeTemplateLanguage, setCodeTemplateLanguage] = useState<string>('');
 
   const [testCases, setTestCases] = useState<TestCaseUIManaged[]>([]);
   const [newTestCaseInput, setNewTestCaseInput] = useState('');
@@ -142,6 +145,8 @@ export default function ProblemFormPage() {
           setBlockGenerator(blocks?.generator || 'python3');
           setBlockToolbox(blocks?.toolbox || '');
           setBlockStarter(blocks?.starter || '');
+          setCodeTemplate(data.code_template || '');
+          setCodeTemplateLanguage(data.code_template_language || '');
           setSelectedTagIds(data.tags?.map((tag: TagType) => tag.id) || []);
           setTestCases(
             data.test_cases?.map((tc: TestCaseType): TestCaseUIManaged => ({
@@ -281,6 +286,8 @@ export default function ProblemFormPage() {
       io_input_filename: ioMode === 'FILES' ? ioInputFilename : '',
       io_output_filename: ioMode === 'FILES' ? ioOutputFilename : '',
       library_policy: buildLibraryPolicy(),
+      code_template: codeTemplate.trim(),
+      code_template_language: codeTemplate.trim() ? codeTemplateLanguage : '',
       block_config: blockMode
         ? {
             generator: blockGenerator === 'nodejs20' ? ('nodejs20' as const) : ('python3' as const),
@@ -457,6 +464,33 @@ export default function ProblemFormPage() {
                 </label>
               </span>
             </div>
+          </div>
+          <div style={fieldStyle}>
+            <label htmlFor="code_template" style={labelStyle}>{t('problem_form_code_template', 'Partial-code template (locked regions)')}:</label>
+            <p style={{ margin: '0 0 8px', color: 'var(--text-tertiary)', fontSize: '0.8rem' }}>
+              {t('problem_form_code_template_hint', 'Full source skeleton. Wrap the editable completion points in WC_EDIT_START / WC_EDIT_END sentinel comment lines — everything else is locked and server-verified byte-identical on submit.')}
+            </p>
+            <textarea
+              id="code_template"
+              value={codeTemplate}
+              onChange={(e) => setCodeTemplate(e.target.value)}
+              style={{ ...inputStyle, minHeight: '140px', fontFamily: 'var(--font-mono)' }}
+              placeholder={'#include <cstdio>\nint f(int n) {\n    // WC_EDIT_START\n    // WC_EDIT_END\n}\n'}
+            />
+            {codeTemplate.trim() ? (
+              <div style={{ marginTop: '8px' }}>
+                <label htmlFor="code_template_language" style={labelStyle}>{t('problem_form_code_template_language', 'Template language')}:</label>
+                <select id="code_template_language" value={codeTemplateLanguage} onChange={(e) => setCodeTemplateLanguage(e.target.value)} style={inputStyle}>
+                  <option value="">—</option>
+                  {(registryLanguages.length > 0
+                    ? registryLanguages.map((row) => row.id)
+                    : ['python3', 'cpp17']
+                  ).map((lang) => (
+                    <option key={lang} value={lang}>{lang}</option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
           </div>
           <div style={fieldStyle}>
             <span style={checkboxContainerStyle}>
