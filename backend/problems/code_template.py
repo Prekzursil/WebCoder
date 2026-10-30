@@ -147,8 +147,13 @@ def verify_locked_integrity(
     """
     try:
         segments = parse_template(template)
-    except TemplateError as err:
-        return False, f"Broken problem template: {err}"
+    except TemplateError:
+        # Static message: str(exception) is a CodeQL taint source when it
+        # reaches API responses.
+        return False, (
+            "Broken problem template (unbalanced WC_EDIT_START/WC_EDIT_END "
+            "sentinels)."
+        )
 
     return _verify_ordered(segments, _normalize(submitted_code))
 

@@ -207,14 +207,22 @@ class ProblemSerializer(serializers.ModelSerializer):
         """Wave E: parse the skeleton at authoring time — a broken
         sentinel structure must be an authoring error, never a judge-side
         surprise; the template's language must be a registry id."""
-        from .code_template import TemplateError, parse_template
+        from .code_template import TemplateError, parse_template  # noqa: F401 (kept for clarity)
 
         if not value:
             return value
         try:
             parse_template(value)
-        except TemplateError as err:
-            raise serializers.ValidationError(f"Invalid code template: {err}")
+        except TemplateError:
+            # Static message (no exception interpolation): CodeQL taints
+            # str(exception) flows into API responses; the parse errors are
+            # enumerated so the message stays actionable either way.
+            raise serializers.ValidationError(
+                "Invalid code template: WC_EDIT_START/WC_EDIT_END sentinel "
+                "lines must be balanced (no nesting, every START closed), "
+                "with at least one editable region between them, under the "
+                "100KB cap."
+            )
         return value
 
     def validate_block_config(self, value):
