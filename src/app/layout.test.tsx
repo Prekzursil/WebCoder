@@ -1,10 +1,19 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import Layout from "./layout";
+
+// [i18n wave] RootLayout is async and reads the i18next locale cookie via
+// next/headers for <html lang>; outside a live Next request scope that
+// store does not exist, so the mock serves an empty cookie jar (locale
+// falls back to English, exactly like a first-time visitor).
 
 // The root layout renders client components that use next/navigation hooks
 // (Navbar -> usePathname/useRouter/useSearchParams). Those hooks only exist
 // inside a live Next.js app context, so they are mocked for the jsdom smoke test.
+vi.mock("next/headers", () => ({
+  cookies: async () => ({ get: () => undefined }),
+}));
+
 vi.mock("next/navigation", () => ({
   usePathname: () => "/",
   useRouter: () => ({
@@ -19,8 +28,10 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("Root layout (smoke)", () => {
-  it("renders the app shell with navbar, brand, and children", () => {
-    render(<Layout>smoke-child-marker</Layout>);
+  it("renders the app shell with navbar, brand, and children", async () => {
+    // [i18n wave] RootLayout is an async Server Component (reads the locale
+    // cookie for <html lang>); awaiting it here renders the resolved JSX.
+    render(await Layout({ children: "smoke-child-marker" }));
 
     // Navbar brand + translated nav links render (i18n initialized via setup
     // file). Several links now also exist in the footer, so query with
@@ -34,10 +45,11 @@ describe("Root layout (smoke)", () => {
     // Layout children pass through the provider tree.
     expect(screen.getByText("smoke-child-marker")).toBeInTheDocument();
 
-    // Language switcher is present for the anonymous navbar state — and now
-    // mirrored in the footer, so "en"/"ro" each appear twice.
-    expect(screen.getAllByRole("button", { name: "en" }).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByRole("button", { name: "ro" }).length).toBeGreaterThanOrEqual(1);
+    // Language switcher (shared ten-locale <select>) is present in the
+    // anonymous navbar state and mirrored in the footer.
+    const pickers = screen.getAllByRole("combobox", { name: "Language" });
+    expect(pickers.length).toBeGreaterThanOrEqual(2); // navbar + footer
+    expect(within(pickers[0]).getByRole("option", { name: "Română" })).toBeInTheDocument();
     // App shell: skip link + single main landmark + footer (Q11/A13).
     expect(screen.getByRole("link", { name: "Skip to content" })).toHaveAttribute("href", "#main-content");
     expect(document.getElementById("main-content")).toBeInTheDocument();

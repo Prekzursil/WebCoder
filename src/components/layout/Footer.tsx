@@ -4,13 +4,14 @@ import React from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
+import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 import styles from './footer.module.css';
 
 // Site footer [SPEC-GAPS A13]: brand + tagline, muted link bars (Platform /
 // Resources / Account), language switcher mirror, copyright row. Reuses the
 // .page-container width and the surface tokens.
 const Footer: React.FC = () => {
-  const { i18n, t } = useTranslation();
+  const { t } = useTranslation();
   const auth = useAuth();
 
   // [LEG-1] Legal row: terms + privacy ride beside the platform links.
@@ -22,13 +23,6 @@ const Footer: React.FC = () => {
     // [OPS-5] Published accessibility commitment.
     { href: '/accessibility', label: t('footer_accessibility', 'Accessibility') },
   ];
-
-  const changeLanguage = (lng: string) => {
-    i18n.changeLanguage(lng);
-    if (typeof document !== 'undefined') {
-      document.documentElement.lang = lng;
-    }
-  };
 
   const platformLinks = [
     { href: '/problems', label: t('nav_problems', 'Problems') },
@@ -82,17 +76,9 @@ const Footer: React.FC = () => {
           <span className={styles.copyright}>
             © {new Date().getFullYear()} WebCoder
           </span>
-          <div className={styles.langSwitch} role="group" aria-label={t('nav_language_label', 'Language')}>
-            {['en', 'ro'].map((lng) => (
-              <button
-                key={lng}
-                onClick={() => changeLanguage(lng)}
-                className={`${styles.langBtn} ${i18n.language === lng ? styles.langBtnActive : ''}`}
-              >
-                {lng}
-              </button>
-            ))}
-          </div>
+          {/* [i18n wave] ten locales: shared picker (writes the i18next
+              cookie + syncs <html lang> internally). */}
+          <LanguageSwitcher className={styles.langSelect} />
         </div>
       </div>
     </footer>

@@ -69,8 +69,12 @@ describe('Footer', () => {
 
   it('mirrors the language switcher and renders a copyright row', () => {
     render(<Footer />);
-    expect(screen.getAllByRole('button', { name: 'en' }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('button', { name: 'ro' }).length).toBeGreaterThan(0);
+    // [i18n wave] the two-button EN/RO toggle became the shared ten-locale
+    // <select> picker; the footer mirrors it beside the copyright row.
+    const picker = screen.getByRole('combobox', { name: 'Language' });
+    expect(picker).toBeInTheDocument();
+    expect(within(picker).getByRole('option', { name: 'Română' })).toBeInTheDocument();
+    expect(within(picker).getByRole('option', { name: 'Español' })).toBeInTheDocument();
     expect(screen.getByText(/© \d{4} WebCoder/)).toBeInTheDocument();
   });
 });
