@@ -11,7 +11,6 @@ import dynamic from 'next/dynamic';
 import type { BlockGenerator } from '@/components/blocks/BlockEditor';
 import { ScratchService } from '@/services/ApiService';
 import { useAuth } from '@/context/AuthContext';
-import { palette } from '@/theme/tokens';
 
 // Blockly requires the DOM — load the editor client-side only.
 const BlockEditor = dynamic(
