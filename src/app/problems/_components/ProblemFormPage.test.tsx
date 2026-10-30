@@ -884,3 +884,40 @@ describe('ProblemFormPage (library & feature policy)', () => {
     ]);
   });
 });
+
+
+describe('ProblemFormPage (block programming)', () => {
+  it('submits block_config when block mode is on', async () => {
+    render(<ProblemFormPage />);
+    await screen.findByLabelText(/Free Pascal/);
+    fireEvent.click(screen.getByLabelText(/Block programming/i));
+    fireEvent.submit(screen.getByRole('button', { name: 'Create Problem' }).closest('form')!);
+    await waitFor(() => expect(api.createProblem).toHaveBeenCalled());
+    const payload = api.createProblem.mock.calls[0][0] as Record<string, unknown>;
+    expect(payload.block_config).toEqual({ generator: 'python3' });
+  });
+
+  it('keeps block_config empty when block mode is off', async () => {
+    render(<ProblemFormPage />);
+    await screen.findByLabelText(/Free Pascal/);
+    fireEvent.submit(screen.getByRole('button', { name: 'Create Problem' }).closest('form')!);
+    await waitFor(() => expect(api.createProblem).toHaveBeenCalled());
+    const payload = api.createProblem.mock.calls[0][0] as Record<string, unknown>;
+    expect(payload.block_config).toBeUndefined();
+  });
+
+  it('sends the generator and optional xml fields', async () => {
+    render(<ProblemFormPage />);
+    await screen.findByLabelText(/Free Pascal/);
+    fireEvent.click(screen.getByLabelText(/Block programming/i));
+    fireEvent.change(screen.getByLabelText(/Block generator/i), { target: { value: 'nodejs20' } });
+    fireEvent.change(screen.getByLabelText(/Starter workspace XML/i), { target: { value: '<xml></xml>' } });
+    fireEvent.submit(screen.getByRole('button', { name: 'Create Problem' }).closest('form')!);
+    await waitFor(() => expect(api.createProblem).toHaveBeenCalled());
+    const payload = api.createProblem.mock.calls[0][0] as Record<string, unknown>;
+    expect(payload.block_config).toEqual({
+      generator: 'nodejs20',
+      starter: '<xml></xml>',
+    });
+  });
+});

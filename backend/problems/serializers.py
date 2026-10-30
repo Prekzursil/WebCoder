@@ -134,6 +134,7 @@ class ProblemSerializer(serializers.ModelSerializer):
             "allowed_languages",
             "custom_libraries_allowed",
             "library_policy",
+            "block_config",
             "comparison_mode",
             "float_comparison_epsilon",
             "checker_code",
@@ -197,6 +198,36 @@ class ProblemSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 f"Invalid I/O filename '{value}': use a plain file name "
                 f"(letters, digits, dot, dash, underscore; no paths)."
+            )
+        return value
+
+    def validate_block_config(self, value):
+        """Wave D: a block config names a generator the judge runs and
+        optional Blockly XML documents (size-capped)."""
+        if value in (None, {}):
+            return value
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("block_config must be an object.")
+        from submissions.judge_utils.languages import get_language
+
+        generator = value.get("generator", "python3")
+        spec = get_language(str(generator))
+        if spec is None or spec.language_id not in ("python3", "nodejs20"):
+            raise serializers.ValidationError(
+                "block_config.generator must be 'python3' or 'nodejs20'."
+            )
+        for key in ("toolbox", "starter"):
+            xml = value.get(key)
+            if xml is None:
+                continue
+            if not isinstance(xml, str) or len(xml) > 100_000:
+                raise serializers.ValidationError(
+                    f"block_config.{key} must be an XML string under 100KB."
+                )
+        unknown = set(value) - {"generator", "toolbox", "starter"}
+        if unknown:
+            raise serializers.ValidationError(
+                f"Unknown block_config keys: {', '.join(sorted(unknown))}."
             )
         return value
 

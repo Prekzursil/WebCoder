@@ -73,6 +73,11 @@ export default function ProblemFormPage() {
   const [pyAllowedLibs, setPyAllowedLibs] = useState<string>('');
   const [cppBannedHeaders, setCppBannedHeaders] = useState<string>('');
   const [banStringOps, setBanStringOps] = useState<boolean>(false);
+  // Wave D: block-programming problems (Blockly -> python/js).
+  const [blockMode, setBlockMode] = useState<boolean>(false);
+  const [blockGenerator, setBlockGenerator] = useState<string>('python3');
+  const [blockToolbox, setBlockToolbox] = useState<string>('');
+  const [blockStarter, setBlockStarter] = useState<string>('');
 
   const [testCases, setTestCases] = useState<TestCaseUIManaged[]>([]);
   const [newTestCaseInput, setNewTestCaseInput] = useState('');
@@ -132,6 +137,11 @@ export default function ProblemFormPage() {
             [...(policy.cpp17?.banned || []), ...(policy.c11?.banned || [])].join(', ')
           );
           setBanStringOps((policy.banned_features || []).includes('py-no-string-ops'));
+          const blocks = data.block_config;
+          setBlockMode(Boolean(blocks?.generator));
+          setBlockGenerator(blocks?.generator || 'python3');
+          setBlockToolbox(blocks?.toolbox || '');
+          setBlockStarter(blocks?.starter || '');
           setSelectedTagIds(data.tags?.map((tag: TagType) => tag.id) || []);
           setTestCases(
             data.test_cases?.map((tc: TestCaseType): TestCaseUIManaged => ({
@@ -271,6 +281,13 @@ export default function ProblemFormPage() {
       io_input_filename: ioMode === 'FILES' ? ioInputFilename : '',
       io_output_filename: ioMode === 'FILES' ? ioOutputFilename : '',
       library_policy: buildLibraryPolicy(),
+      block_config: blockMode
+        ? {
+            generator: blockGenerator === 'nodejs20' ? ('nodejs20' as const) : ('python3' as const),
+            ...(blockToolbox.trim() ? { toolbox: blockToolbox } : {}),
+            ...(blockStarter.trim() ? { starter: blockStarter } : {}),
+          }
+        : undefined,
       tag_ids: selectedTagIds,
     };
 
@@ -440,6 +457,38 @@ export default function ProblemFormPage() {
                 </label>
               </span>
             </div>
+          </div>
+          <div style={fieldStyle}>
+            <span style={checkboxContainerStyle}>
+              <input
+                type="checkbox"
+                id="block_mode"
+                checked={blockMode}
+                onChange={(e) => setBlockMode(e.target.checked)}
+              />
+              <label htmlFor="block_mode" style={checkboxLabelStyle}>
+                {t('problem_form_block_mode', 'Block programming (Blockly)')}
+              </label>
+            </span>
+            {blockMode && (
+              <div style={{ display: 'grid', gap: '8px', marginTop: '8px' }}>
+                <div>
+                  <label htmlFor="block_generator" style={labelStyle}>{t('problem_form_block_generator', 'Block generator')}:</label>
+                  <select id="block_generator" value={blockGenerator} onChange={(e) => setBlockGenerator(e.target.value)} style={inputStyle}>
+                    <option value="python3">Python 3</option>
+                    <option value="nodejs20">JavaScript (Node.js 20)</option>
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="block_toolbox" style={labelStyle}>{t('problem_form_block_toolbox', 'Toolbox XML (optional — default beginner set)')}:</label>
+                  <textarea id="block_toolbox" value={blockToolbox} onChange={(e) => setBlockToolbox(e.target.value)} style={{ ...inputStyle, minHeight: '80px', fontFamily: 'var(--font-mono)' }} />
+                </div>
+                <div>
+                  <label htmlFor="block_starter" style={labelStyle}>{t('problem_form_block_starter', 'Starter workspace XML (optional)')}:</label>
+                  <textarea id="block_starter" value={blockStarter} onChange={(e) => setBlockStarter(e.target.value)} style={{ ...inputStyle, minHeight: '80px', fontFamily: 'var(--font-mono)' }} />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

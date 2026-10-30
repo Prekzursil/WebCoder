@@ -31,6 +31,18 @@ import SubmissionStatusDisplay from '@/components/common/SubmissionStatusDisplay
 import CodeEditor from './CodeEditor';
 import { palette, hexAlpha } from '@/theme/tokens';
 
+// [wave D] Blockly requires the DOM — client-side only.
+import dynamic from 'next/dynamic';
+const BlockEditor = dynamic(() => import('@/components/blocks/BlockEditor'), {
+  ssr: false,
+});
+
+export interface ProblemBlockConfig {
+  generator: 'python3' | 'nodejs20';
+  toolbox?: string;
+  starter?: string;
+}
+
 interface SubmitSolutionFormProps {
   problemId: string;
   allowedLanguages: string[];
@@ -39,6 +51,10 @@ interface SubmitSolutionFormProps {
    * backend gates (registered + window open) and the judge-contest lane
    * both key off the submission's contest. */
   contestId?: number | null;
+  /** [wave D] present => block problem: the editor renders Blockly with
+   * the problem's toolbox/starter and submits the GENERATED source (the
+   * language is the configured generator, judged normally). */
+  blockConfig?: ProblemBlockConfig | null;
 }
 
 // [A6-interim] Minimal runnable starter per supported judge language
@@ -58,12 +74,14 @@ export default function SubmitSolutionForm({
   allowedLanguages,
   problemTitle,
   contestId,
+  blockConfig,
 }: SubmitSolutionFormProps) {
   const { t } = useTranslation();
   const auth = useAuth();
   const [code, setCode] = useState<string>('');
   const [selectedLanguage, setSelectedLanguage] = useState<string>(
-    allowedLanguages.length > 0 ? allowedLanguages[0] : 'python3'
+    blockConfig?.generator ||
+      (allowedLanguages.length > 0 ? allowedLanguages[0] : 'python3')
   );
   const [submissionStatus, setSubmissionStatus] = useState<string | null>(null);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
@@ -178,6 +196,22 @@ export default function SubmitSolutionForm({
   return (
     <>
       <form onSubmit={handleSubmitClick}>
+        {blockConfig ? (
+          <div style={{ marginBottom: '0.75rem' }}>
+            <span className="micro-label">{t('blocks_solve_with_blocks', 'Solve with blocks')}</span>
+            <p style={{ margin: '4px 0 10px', color: 'var(--text-tertiary)', fontSize: '0.8rem' }}>
+              {t('blocks_submit_hint', 'Your blocks generate {{language}} code and are judged like any other submission.', { language: blockConfig.generator === 'nodejs20' ? 'JavaScript' : 'Python' })}
+            </p>
+            <BlockEditor
+              generator={blockConfig.generator}
+              toolboxXml={blockConfig.toolbox}
+              starterXml={blockConfig.starter}
+              onCodeChange={setCode}
+              height={380}
+            />
+          </div>
+        ) : (
+        <>
         <div style={{ marginBottom: '0.75rem' }}>
           <label htmlFor="language-select">{t('language_label', 'Language')}:</label>
           <select
@@ -242,6 +276,8 @@ export default function SubmitSolutionForm({
             />
           </div>
         </div>
+        </>
+        )}
         <SubmissionStatusDisplay status={submissionStatus} error={submissionError} />
         {/* [F14] success state: link out + live verdict */}
         {lastSubmissionId != null && (

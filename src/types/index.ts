@@ -57,6 +57,12 @@ export interface ProblemType {
   io_mode?: string;
   io_input_filename?: string;
   io_output_filename?: string;
+  // Wave D: Scratch on site — per-problem Blockly block sets.
+  block_config?: {
+    generator: 'python3' | 'nodejs20';
+    toolbox?: string;
+    starter?: string;
+  };
   // Wave C: per-problem library & feature policy (creator-controlled).
   library_policy?: {
     [language: string]: {

@@ -536,6 +536,15 @@ export default async function ProblemDetailPage({
               allowedLanguages={problem.allowed_languages || []}
               problemTitle={problemTitle}
               contestId={contestId}
+              blockConfig={
+                problem.block_config && problem.block_config.generator
+                  ? {
+                      generator: problem.block_config.generator,
+                      toolbox: problem.block_config.toolbox,
+                      starter: problem.block_config.starter,
+                    }
+                  : null
+              }
             />
           </div>
 
