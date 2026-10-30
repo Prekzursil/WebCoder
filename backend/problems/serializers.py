@@ -135,6 +135,8 @@ class ProblemSerializer(serializers.ModelSerializer):
             "custom_libraries_allowed",
             "library_policy",
             "block_config",
+            "code_template",
+            "code_template_language",
             "comparison_mode",
             "float_comparison_epsilon",
             "checker_code",
@@ -201,6 +203,28 @@ class ProblemSerializer(serializers.ModelSerializer):
             )
         return value
 
+    def validate_code_template(self, value):
+        """Wave E: parse the skeleton at authoring time — a broken
+        sentinel structure must be an authoring error, never a judge-side
+        surprise; the template's language must be a registry id."""
+        from .code_template import TemplateError, parse_template  # noqa: F401 (kept for clarity)
+
+        if not value:
+            return value
+        try:
+            parse_template(value)
+        except TemplateError:
+            # Static message (no exception interpolation): CodeQL taints
+            # str(exception) flows into API responses; the parse errors are
+            # enumerated so the message stays actionable either way.
+            raise serializers.ValidationError(
+                "Invalid code template: WC_EDIT_START/WC_EDIT_END sentinel "
+                "lines must be balanced (no nesting, every START closed), "
+                "with at least one editable region between them, under the "
+                "100KB cap."
+            )
+        return value
+
     def validate_block_config(self, value):
         """Wave D: a block config names a generator the judge runs and
         optional Blockly XML documents (size-capped)."""
@@ -264,6 +288,26 @@ class ProblemSerializer(serializers.ModelSerializer):
                     attrs[field] = (
                         Problem._meta.get_field(field).get_default()
                     )
+        # Wave E (partial-code): a skeleton implies its registry language.
+        template = attrs.get(
+            "code_template", getattr(self.instance, "code_template", "")
+        )
+        template_language = attrs.get(
+            "code_template_language",
+            getattr(self.instance, "code_template_language", ""),
+        )
+        if template and not template_language:
+            raise serializers.ValidationError(
+                "code_template requires code_template_language."
+            )
+        if template_language:
+            from submissions.judge_utils.languages import get_language
+
+            if get_language(template_language) is None:
+                raise serializers.ValidationError(
+                    f"Unknown code_template_language: {template_language!r}."
+                )
+
         problem_type = attrs.get(
             "problem_type",
             getattr(self.instance, "problem_type", Problem.ProblemType.NORMAL),

@@ -921,3 +921,32 @@ describe('ProblemFormPage (block programming)', () => {
     });
   });
 });
+
+
+describe('ProblemFormPage (partial-code template)', () => {
+  it('submits code_template and its language when set', async () => {
+    render(<ProblemFormPage />);
+    await screen.findByLabelText(/Free Pascal/);
+    fireEvent.change(screen.getByLabelText(/Partial-code template/i), {
+      target: {
+        value: ['#include <cstdio>', '// WC_EDIT_START', '// WC_EDIT_END', ''].join(String.fromCharCode(10)),
+      },
+    });
+    fireEvent.change(screen.getByLabelText(/Template language/i), { target: { value: 'cpp17' } });
+    fireEvent.submit(screen.getByRole('button', { name: 'Create Problem' }).closest('form')!);
+    await waitFor(() => expect(api.createProblem).toHaveBeenCalled());
+    const payload = api.createProblem.mock.calls[0][0] as Record<string, unknown>;
+    expect(payload.code_template).toContain('WC_EDIT_START');
+    expect(payload.code_template_language).toBe('cpp17');
+  });
+
+  it('sends empty template fields when unset', async () => {
+    render(<ProblemFormPage />);
+    await screen.findByLabelText(/Free Pascal/);
+    fireEvent.submit(screen.getByRole('button', { name: 'Create Problem' }).closest('form')!);
+    await waitFor(() => expect(api.createProblem).toHaveBeenCalled());
+    const payload = api.createProblem.mock.calls[0][0] as Record<string, unknown>;
+    expect(payload.code_template).toBe('');
+    expect(payload.code_template_language).toBe('');
+  });
+});

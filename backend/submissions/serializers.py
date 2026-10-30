@@ -186,6 +186,29 @@ class SubmissionCreateSerializer(serializers.ModelSerializer):
                             )
                         }
                     )
+            # Wave E (partial-code): the submission must be the FULL
+            # assembled skeleton with every locked region byte-identical
+            # (documented whitespace policy); the language is the
+            # template's language, not a free choice.
+            if problem.code_template:
+                from problems.code_template import verify_locked_integrity
+
+                if language != problem.code_template_language:
+                    raise serializers.ValidationError(
+                        {
+                            "language": (
+                                f"This is a partial-code problem; submissions "
+                                f"must use the template's language "
+                                f"({problem.code_template_language})."
+                            )
+                        }
+                    )
+                ok, message = verify_locked_integrity(
+                    problem.code_template, attrs.get("code") or ""
+                )
+                if not ok:
+                    raise serializers.ValidationError({"code": message})
+
             # Wave C library/feature policy (problems/feature_policy.py):
             # submit-time static scan — a banned import/include/feature
             # rejects the submission with a clear 400 instead of a

@@ -57,6 +57,9 @@ export interface ProblemType {
   io_mode?: string;
   io_input_filename?: string;
   io_output_filename?: string;
+  // Wave E: partial-code problems — full skeleton + locked regions.
+  code_template?: string;
+  code_template_language?: string;
   // Wave D: Scratch on site — per-problem Blockly block sets.
   block_config?: {
     generator: 'python3' | 'nodejs20';

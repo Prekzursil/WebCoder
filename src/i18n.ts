@@ -539,6 +539,10 @@ const resources = {
       "problem_form_block_generator": "Block generator",
       "problem_form_block_toolbox": "Toolbox XML (optional — default beginner set)",
       "problem_form_block_starter": "Starter workspace XML (optional)",
+      "problem_form_code_template": "Partial-code template (locked regions)",
+      "problem_form_code_template_hint": "Full source skeleton. Wrap the editable completion points in WC_EDIT_START / WC_EDIT_END sentinel comment lines — everything else is locked and server-verified byte-identical on submit.",
+      "problem_form_code_template_language": "Template language",
+      "problem_partial_code_badge": "Partial code",
 
       "problem_form_comparison_mode": "Comparison Mode",
       "problem_form_float_epsilon": "Epsilon for Floating-Point Comparison",
@@ -1627,6 +1631,10 @@ const resources = {
       "problem_form_block_generator": "Generatorul de cod",
       "problem_form_block_toolbox": "XML toolbox (opțional — setul implicit de început)",
       "problem_form_block_starter": "XML spațiu de lucru inițial (opțional)",
+      "problem_form_code_template": "Șablon cu regiuni blocate (cod parțial)",
+      "problem_form_code_template_hint": "Scheletul complet al sursei. Marchează punctele de completat cu linii-santinelă WC_EDIT_START / WC_EDIT_END în comentarii — restul rămâne blocat și se verifică la trimitere (identic byte-cu-byte).",
+      "problem_form_code_template_language": "Limbajul șablonului",
+      "problem_partial_code_badge": "Cod parțial",
 
       "problem_form_comparison_mode": "Mod de comparare",
       "problem_form_float_epsilon": "Epsilon pentru compararea numerelor zecimale",

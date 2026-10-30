@@ -41,6 +41,7 @@ export const MESSAGES: Record<PublicLocale, Record<string, string>> = {
     effective_limit_for:
       'Effective limit for {{lang}}: {{time}} ms / {{memory}} KB',
     problem_io_mode_label: 'I/O',
+    problem_partial_code_badge: 'Partial code',
     problem_io_stdio: 'stdin / stdout',
     problem_restrictions_label: 'Restrictions',
     problem_restriction_no_string_ops:
@@ -239,6 +240,7 @@ export const MESSAGES: Record<PublicLocale, Record<string, string>> = {
     effective_limit_for:
       'Limita efectivă pentru {{lang}}: {{time}} ms / {{memory}} KB',
     problem_io_mode_label: 'Intrare/Ieșire',
+    problem_partial_code_badge: 'Cod parțial',
     problem_io_stdio: 'stdin / stdout',
     problem_restrictions_label: 'Restricții',
     problem_restriction_no_string_ops:
