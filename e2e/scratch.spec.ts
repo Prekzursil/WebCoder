@@ -62,7 +62,7 @@ test('a Scratch problem renders the Scratch editor and submits the project JSON'
     });
   });
 
-  await page?.goto('/problems/8');
+  await page?.goto('/problems/12');
 
   // Scratch mode: the Scratch editor replaces the code editor and the
   // language selector is gone (the pseudo-language IS the mode). The
@@ -132,7 +132,7 @@ test('a rejected Scratch submission surfaces the validation message', async ({
     });
   });
 
-  await page?.goto('/problems/8');
+  await page?.goto('/problems/12');
   await expect(page?.getByTestId('scratch-editor')).toBeVisible({
     timeout: 90_000,
   });

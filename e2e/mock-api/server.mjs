@@ -130,7 +130,7 @@ const MOCK_PROBLEMS = [
     ],
   },
   {
-    id: 8,
+    id: 12,
     title_i18n: { en: 'Echo (Scratch)', ro: 'Ecou (Scratch)' },
     difficulty: 'VERY_EASY',
     status: 'APPROVED',
