@@ -347,3 +347,41 @@ button {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--muted);
 }
+
+/* ============================================================
+   UXP-3 — print / save-as-PDF statement route.
+   The browser's print dialog produces a clean statement sheet:
+   chrome hidden, statements full-width in black on white.
+   ============================================================ */
+@media print {
+  header,
+  footer,
+  nav,
+  aside,
+  button,
+  [data-testid="discussions-panel"],
+  [data-testid="solutions-panel"],
+  [data-testid="community-editorials"],
+  [data-testid="scratch-panel"],
+  [data-testid="problem-stats-panel"],
+  [data-noprint] {
+    display: none !important;
+  }
+
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  main,
+  .page-container {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  section,
+  div {
+    break-inside: avoid;
+  }
+}

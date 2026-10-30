@@ -1,6 +1,9 @@
 'use client';
 
 import React, { useState, FormEvent, useEffect } from 'react';
+import IdentityCard from './IdentityCard';
+import TagProfilePanel from './TagProfilePanel';
+import type { TagProfile } from '@/types/api';
 import { useTranslation } from 'react-i18next';
 import { AuthService, SubmissionService } from '@/services/ApiService';
 import { useAuth } from '@/context/AuthContext';
@@ -32,6 +35,8 @@ interface StatisticsPayload {
   total_active_days: number;
   ladder: { points: number; level: number; next_level_points: number; progress: number };
   badges: string[];
+  /** RAT-7: per-tag skill profile + practice-next strip. */
+  tag_profile?: TagProfile;
 }
 
 interface RecentSubmission {
@@ -296,6 +301,9 @@ function ProfileOverview({ user }: { user: User }) {
         </div>
       </div>
 
+      {/* RAT-7: per-tag skill profile + practice-next */}
+      <TagProfilePanel profile={stats?.tag_profile} />
+
       {/* Practice ladder (RAT-4) + badges (RAT-5) */}
       {stats && (
         <div style={{
@@ -528,6 +536,9 @@ export function UserProfilePage() {
                 { label: 'Username', value: profileUser.username },
                 { label: 'Email', value: profileUser.email },
                 { label: 'Role', value: profileUser.role.replace('_', ' ') },
+                // RO-3: the Olympiad-geography fields on the own profile.
+                { label: t('identity_county', 'County'), value: profileUser.county || '—' },
+                { label: t('identity_school', 'School'), value: profileUser.school || '—' },
               ].map(item => (
                 <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                   <span style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>{item.label}</span>
@@ -536,6 +547,9 @@ export function UserProfilePage() {
               ))}
             </div>
           </div>
+
+          {/* RO-3: county/school + is_minor self-service */}
+          <IdentityCard />
 
           {/* Connected accounts */}
           <div style={{

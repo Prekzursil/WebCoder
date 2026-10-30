@@ -19,6 +19,8 @@ const Footer: React.FC = () => {
     { href: '/privacy', label: t('footer_privacy', 'Privacy') },
     // [OPS-7] Donations + sponsorship (groundwork: informational page).
     { href: '/support', label: t('footer_support', 'Support us') },
+    // [OPS-5] Published accessibility commitment.
+    { href: '/accessibility', label: t('footer_accessibility', 'Accessibility') },
   ];
 
   const changeLanguage = (lng: string) => {
@@ -37,6 +39,9 @@ const Footer: React.FC = () => {
     ? [
         { href: '/profile', label: t('nav_profile', 'Profile') },
         { href: '/my-submissions', label: t('nav_my_submissions', 'My Submissions') },
+        // [JDG-9] Published judge toolchain docs + [SAF-2] the AI policy.
+        { href: '/help/judge', label: t('footer_judge_docs', 'The judge') },
+        { href: '/policies/ai', label: t('footer_ai_policy', 'Contest AI policy') },
       ]
     : [
         { href: '/login', label: t('nav_login', 'Login') },

@@ -21,6 +21,7 @@ import RelatedArticlesStrip from './RelatedArticlesStrip';
 import SolutionsPanel from './SolutionsPanel';
 import DiscussionsPanel from './DiscussionsPanel';
 import EditorialEtiquetteBanner from './EditorialEtiquetteBanner';
+import PrintButton from './PrintButton';
 import StatementHistory from './StatementHistory';
 import ScratchPanel from './ScratchPanel';
 import CopyButton from '@/components/common/CopyButton';
@@ -327,6 +328,9 @@ export default async function ProblemDetailPage({
           <StatementHistory problemId={Number(problemId)} />
 
           {/* Problem statement */}
+          <div style={{ marginBottom: '0.5rem' }} data-noprint>
+            <PrintButton />
+          </div>
           <div style={card}>
             {sectionHeader('var(--accent)', t('problem_statement_header', 'Problem Statement'))}
             {problemStatement ? (

@@ -77,6 +77,16 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return user
 
 
+class UserMeUpdateSerializer(serializers.ModelSerializer):
+    """RO-3/LEG-2: the self-service slice of the profile — county/school
+    (Olympiad geography, feeding segmented leaderboards) and the is_minor
+    self-declaration (minors' identity fields stay private)."""
+
+    class Meta:
+        model = User
+        fields = ["county", "school", "is_minor"]
+
+
 class UserSerializer(serializers.ModelSerializer):
     """
     Serializer for User model (read-only or for updates by admin/owner).

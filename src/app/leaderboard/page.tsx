@@ -57,12 +57,15 @@ export default function LeaderboardPage() {
   const [search, setSearch] = useState('');
   // COM-4: friends-only board (viewer + followed).
   const [friendsOnly, setFriendsOnly] = useState(false);
+  // RO-3: county/school segment filters (Olympiad geography).
+  const [county, setCounty] = useState('');
+  const [school, setSchool] = useState('');
 
   const loadFirstPage = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await LeaderboardService.getLeaderboard({ page: 1, friends: friendsOnly });
+      const response = await LeaderboardService.getLeaderboard({ page: 1, friends: friendsOnly, county: county.trim() || undefined, school: school.trim() || undefined });
       setRows(response.results);
       setTotalCount(response.count);
       setNextCursorPage(response.next ? 2 : null);
@@ -73,7 +76,7 @@ export default function LeaderboardPage() {
     }
     // t is stable between language switches; listed so the error message
     // re-localizes on locale change.
-  }, [friendsOnly, t]);
+  }, [friendsOnly, county, school, t]);
 
   useEffect(() => {
     loadFirstPage();
@@ -107,7 +110,7 @@ export default function LeaderboardPage() {
     if (nextCursorPage === null || loadingMore) return;
     setLoadingMore(true);
     try {
-      const response = await LeaderboardService.getLeaderboard({ page: nextCursorPage, friends: friendsOnly });
+      const response = await LeaderboardService.getLeaderboard({ page: nextCursorPage, friends: friendsOnly, county: county.trim() || undefined, school: school.trim() || undefined });
       setRows((prev) => {
         const seen = new Set(prev.map((r) => r.username));
         return [...prev, ...response.results.filter((r) => !seen.has(r.username))];
@@ -178,6 +181,28 @@ export default function LeaderboardPage() {
         </div>
       ) : (
         <>
+          <div
+            role="group"
+            aria-label={t('leaderboard_segments', 'County / school segment')}
+            style={{ display: 'inline-flex', gap: '0.5rem', alignItems: 'center', margin: '0.5rem 0 0.5rem 0.75rem', flexWrap: 'wrap' }}
+          >
+            <input
+              value={county}
+              onChange={(e) => setCounty(e.target.value)}
+              placeholder={t('leaderboard_county', 'County')}
+              aria-label={t('leaderboard_county', 'County')}
+              data-testid="segment-county"
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--foreground)', padding: '6px 10px', fontSize: '0.8rem', width: 130 }}
+            />
+            <input
+              value={school}
+              onChange={(e) => setSchool(e.target.value)}
+              placeholder={t('leaderboard_school', 'School')}
+              aria-label={t('leaderboard_school', 'School')}
+              data-testid="segment-school"
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--foreground)', padding: '6px 10px', fontSize: '0.8rem', width: 150 }}
+            />
+          </div>
           {auth.isAuthenticated && (
             <label
               data-testid="friends-only-toggle"

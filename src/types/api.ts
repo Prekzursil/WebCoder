@@ -164,6 +164,44 @@ export interface ForumPost {
 export type GetForumPostsResponse = CursorPaginatedResponse<ForumPost>;
 
 /** COM-4: one row of the viewer's follow list. */
+/** JDG-13 v1: one structured solution row (the diff-view data). */
+export interface AssignmentSolutionRow {
+    id: number;
+    username: string;
+    problem_id: number;
+    verdict: string;
+    score: number;
+    language: string;
+    submission_time: string;
+    code: string;
+}
+
+export interface AssignmentSolutionsResponse {
+    count: number;
+    results: AssignmentSolutionRow[];
+}
+
+/** RAT-7: per-tag skill row + the practice-next suggestion. */
+export interface TagSkillRow {
+    tag: string;
+    solved: number;
+    attempted: number;
+    covered: boolean;
+    points: number;
+}
+
+export interface PracticeNextRow {
+    id: number;
+    title_i18n: Record<string, string>;
+    difficulty: string | null;
+    tags: string[];
+}
+
+export interface TagProfile {
+    tags: TagSkillRow[];
+    practice_next: PracticeNextRow[];
+}
+
 export interface FollowingRow {
     id: number;
     username: string;

@@ -11,6 +11,7 @@ from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .serializers import (
+    UserMeUpdateSerializer,
     UserRegistrationSerializer,
     UserSerializer,
     PasswordChangeSerializer,
@@ -80,9 +81,16 @@ class PasswordChangeView(generics.GenericAPIView):
 
 
 @method_decorator(ensure_csrf_cookie, name="dispatch")
-class UserMeView(generics.RetrieveAPIView):
+class UserMeView(generics.RetrieveUpdateAPIView):
     """
-    API endpoint to get the current authenticated user's details.
+    API endpoint to get (and partially update) the current user.
+
+    PATCH accepts the RO-3 Olympiad-geography identity fields
+    (``county``, ``school``) and the LEG-2 ``is_minor`` self-declaration
+    — the only self-service profile fields; everything else is read-only
+    here. Minors' county/school stay private to other viewers
+    (UserSerializer hides them) and minors never appear on segmented
+    leaderboards.
 
     ``ensure_csrf_cookie`` (SPEC-GAPS SP1): the SPA's hydration GET also
     seeds the ``csrftoken`` cookie the double-submit CSRF check needs for
@@ -91,6 +99,11 @@ class UserMeView(generics.RetrieveAPIView):
 
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.request.method in ("PATCH", "PUT"):
+            return UserMeUpdateSerializer
+        return UserSerializer
 
     def get_object(self):
         return self.request.user

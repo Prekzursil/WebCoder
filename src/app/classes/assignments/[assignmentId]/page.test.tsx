@@ -13,6 +13,10 @@ const api = vi.hoisted(() => ({
   getQuizSheet: vi.fn(),
   submitQuiz: vi.fn(),
   getDeliverables: vi.fn(),
+  // JDG-13: the diff-view data source (teacher-only panel).
+  getAssignmentSolutionsJson: vi
+    .fn()
+    .mockResolvedValue({ count: 0, results: [] }),
   uploadDeliverable: vi.fn(),
   exportCsvUrl: (id: number | string) => `/api/v1/classroom/assignments/${id}/export/`,
 }));

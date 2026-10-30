@@ -63,7 +63,9 @@ import {
     StandingsResponse,
   UpdateProblemResponse,
   cursorParamFromUrl,
+  AssignmentSolutionsResponse,
   FollowingResponse,
+  TagProfile,
 } from '@/types/api';
 import { TestCaseType, User } from '@/types';
 import { API_V1_URL } from '@/lib/api-config';
@@ -279,6 +281,16 @@ export const AuthService = {
     register: (userData: Record<string, unknown>) => apiFetch<RegisterResponse>('/users/register/', { method: 'POST', body: JSON.stringify(userData) }),
     login: (credentials: Record<string, unknown>) => apiFetch<LoginResponse>('/auth/login/', { method: 'POST', body: JSON.stringify(credentials) }),
     getMe: () => apiFetch<User>('/users/me/'),
+    /** RO-3/LEG-2: the self-service identity slice (county/school/is_minor). */
+    updateMe: (data: { county?: string; school?: string; isMinor?: boolean }) =>
+        apiFetch<User>('/users/me/', {
+            method: 'PATCH',
+            body: JSON.stringify({
+                county: data.county,
+                school: data.school,
+                ...(data.isMinor !== undefined ? { is_minor: data.isMinor } : {}),
+            }),
+        }),
     // [F5] Solved/attempted problem-id sets for the catalog indicator column.
     getSolvedIds: () =>
         apiFetch<{ solved: number[]; attempted: number[] }>('/users/me/solved-ids/'),
@@ -297,6 +309,8 @@ export const AuthService = {
             total_active_days: number;
             ladder: { points: number; level: number; next_level_points: number; progress: number };
             badges: string[];
+            /** RAT-7: per-tag skill profile + practice-next strip. */
+            tag_profile: TagProfile;
         }>('/users/me/statistics/'),
     // [LEG-1/X5] GDPR account control.
     exportAccount: () =>
@@ -585,12 +599,18 @@ export const AdminService = {
 
 export const LeaderboardService = {
     /** Public standings, window-ranked, 50 rows/page. */
-    getLeaderboard: (page: { page?: number, pageSize?: number, friends?: boolean } = {}) => {
+    getLeaderboard: (page: {
+        page?: number, pageSize?: number, friends?: boolean,
+        /** RO-3: county/school segment filters (Olympiad geography). */
+        county?: string, school?: string,
+    } = {}) => {
         const params = new URLSearchParams();
         if (page.page !== undefined) params.set('page', String(page.page));
         if (page.pageSize !== undefined) params.set('page_size', String(page.pageSize));
         // COM-4: friends-only board (viewer + followed); ignored when anon.
         if (page.friends) params.set('friends', '1');
+        if (page.county) params.set('county', page.county);
+        if (page.school) params.set('school', page.school);
         const qs = params.toString();
         return apiFetch<GetLeaderboardResponse>(`/leaderboard/${qs ? `?${qs}` : ''}`);
     },
@@ -865,6 +885,11 @@ export const ClassroomService = {
     getExamMode: () => apiFetch<ExamModeStatus>('/classroom/exam-mode/'),
     getGrid: (id: number | string) =>
         apiFetch<AssignmentGrid>(`/classroom/assignments/${id}/grid/`),
+    /** JDG-13 v1: structured solutions of a temă (the diff-view data). */
+    getAssignmentSolutionsJson: (assignmentId: number | string) =>
+        apiFetch<AssignmentSolutionsResponse>(
+            `/problems/tools/assignment-solutions/${assignmentId}/?format=json`
+        ),
     getMyAssignments: () =>
         apiFetch<{ results: ClassroomAssignment[] }>(
             '/classroom/assignments/my-assignments/'

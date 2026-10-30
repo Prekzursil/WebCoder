@@ -536,6 +536,66 @@ const server = createServer((req, res) => {
       current_streak: 1, max_streak: 3, total_active_days: 4,
       ladder: { points: 7, level: 1, next_level_points: 10, progress: 0.7 },
       badges: ['first_ac'],
+      tag_profile: {
+        tags: [
+          { tag: 'arrays', solved: 3, attempted: 4, covered: true, points: 5 },
+          { tag: 'strings', solved: 1, attempted: 1, covered: true, points: 1 },
+          { tag: 'dp', solved: 0, attempted: 1, covered: false, points: 0 },
+        ],
+        practice_next: [
+          { id: 2, title_i18n: { en: 'Longest Substring' }, difficulty: 'MEDIUM', tags: ['strings'] },
+        ],
+      },
+    });
+    return;
+  }
+
+  // JDG-9: the judge registry as public toolchain docs.
+  if (req.method === 'GET' && path === '/api/v1/public/languages/') {
+    json(res, 200, {
+      notice: 'mock',
+      count: 2,
+      results: [
+        { id: 'python3', name: 'Python 3', compile_command: [], run_command: ['python', 'user_code.py'] },
+        { id: 'cpp17', name: 'C++17', compile_command: ['g++', '-O2', '-o', 'user_program', 'user_code.cpp'], run_command: ['./user_program'] },
+      ],
+    });
+    return;
+  }
+
+  // RO-3: the identity PATCH.
+  if (req.method === 'PATCH' && path === '/api/v1/users/me/') {
+    let raw = '';
+    req.on('data', (chunk) => {
+      raw += chunk;
+    });
+    req.on('end', () => {
+      let body = {};
+      try {
+        body = JSON.parse(raw || '{}');
+      } catch {
+        body = {};
+      }
+      Object.assign(MOCK_USER, body);
+      json(res, 200, { ...MOCK_USER, county: body.county ?? MOCK_USER.county ?? '', school: body.school ?? MOCK_USER.school ?? '', is_minor: body.is_minor ?? false });
+    });
+    return;
+  }
+
+  // JDG-13 v1: the structured solutions for the diff view.
+  const solutionsJson = path.match(/^\/api\/v1\/problems\/tools\/assignment-solutions\/(\d+)\/$/);
+  if (req.method === 'GET' && solutionsJson && requestUrl.searchParams.get('format') === 'json') {
+    const session2 = sessionUser(req);
+    if (!session2 || (session2.username !== 'admin_e2e' && session2.username !== 'e2e_teacher')) {
+      json(res, 403, { detail: 'Only the teacher can export solutions.' });
+      return;
+    }
+    json(res, 200, {
+      count: 2,
+      results: [
+        { id: 101, username: 'e2e_tester', problem_id: 1, verdict: 'AC', score: 100, language: 'python3', submission_time: '2026-10-25T10:00:00Z', code: 'print(int(input()) + int(input()))' },
+        { id: 102, username: 'elev_ro', problem_id: 1, verdict: 'AC', score: 100, language: 'python3', submission_time: '2026-10-25T10:05:00Z', code: 'a = int(input())\nb = int(input())\nprint(a + b)' },
+      ],
     });
     return;
   }
@@ -944,6 +1004,33 @@ const server = createServer((req, res) => {
       return;
     }
     json(res, 200, MOCK_MY_CLASSES);
+    return;
+  }
+
+  // EDU-5: the teacher grid — admin/teacher sessions only, mirroring the
+  // backend's classroom-ownership gate (students 403 and stay students).
+  const assignmentGrid = path.match(/^\/api\/v1\/classroom\/assignments\/(\d+)\/grid\/$/);
+  if (req.method === 'GET' && assignmentGrid) {
+    const session = sessionUser(req);
+    const isTeacherLane = session && (session.username === 'admin_e2e' || session.username === 'e2e_teacher');
+    if (!isTeacherLane) {
+      json(res, 403, { detail: 'Only the teacher can view the grid.' });
+      return;
+    }
+    json(res, 200, {
+      assignment_id: Number(assignmentGrid[1]),
+      students: [
+        { id: 2, username: 'e2e_tester' },
+        { id: 3, username: 'elev_ro' },
+      ],
+      problems: [
+        { id: 1, problem_id: 1, label: 'A', points: 100, title_i18n: { en: 'Two Sum' } },
+      ],
+      cells: {
+        '2': { 1: { best: 100, verdict: 'AC', attempts: 1, late: false } },
+        '3': { 1: { best: 60, verdict: 'WA', attempts: 2, late: false } },
+      },
+    });
     return;
   }
 
