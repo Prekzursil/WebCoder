@@ -206,10 +206,18 @@ class ProblemSerializer(serializers.ModelSerializer):
         statement; community translations land through the translations
         app's approval flow, never by direct authoring of other locales.
         """
+        # Static message (no exception interpolation): CodeQL taints
+        # str(exception) flows into API responses (same reasoning as
+        # validate_code_template above); the failure kinds are enumerated
+        # so the message stays actionable either way.
         try:
             return normalize_localized_dict(value, field_name=field_name)
-        except LocalizedFieldError as exc:
-            raise serializers.ValidationError(str(exc)) from exc
+        except LocalizedFieldError:
+            raise serializers.ValidationError(
+                "Invalid localized field: expected a JSON object mapping "
+                "language codes to text, with a mandatory non-empty "
+                "English ('en') entry; blank entries are dropped."
+            ) from None
 
     def validate_title_i18n(self, value):
         return self._validate_localized(value, "title_i18n")
