@@ -77,6 +77,7 @@ class PostSerializer(serializers.ModelSerializer):
             "upvotes",
             "is_hidden",
             "hidden_reason",
+            "is_spoiler",
             "created_at",
         ]
 
@@ -89,6 +90,9 @@ class PostCreateSerializer(serializers.Serializer):
     parent = serializers.PrimaryKeyRelatedField(
         queryset=Post.objects.all(), required=False, allow_null=True
     )
+    # COM-1: spoiler posts (solution-revealing replies) — only meaningful
+    # inside problem-scoped threads; the view rejects the flag elsewhere.
+    is_spoiler = serializers.BooleanField(required=False, default=False)
 
 
 class PostUpdateSerializer(serializers.ModelSerializer):

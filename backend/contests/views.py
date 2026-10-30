@@ -359,6 +359,24 @@ class ContestViewSet(viewsets.ModelViewSet):
         )
         standings = rank_contest(contest, ranking_input)
 
+        # COM-4: friends-only standings — the viewer plus the people they
+        # follow (the Codeforces friends-only board). Authentication is
+        # required for the flag to mean anything; an anonymous request
+        # keeps the full board rather than 401-ing a public page.
+        friends_only = request.query_params.get("friends", "") in ("1", "true")
+        if friends_only and request.user.is_authenticated:
+            from users.models import Follow
+
+            friend_ids = set(
+                Follow.objects.filter(follower=request.user).values_list(
+                    "target_id", flat=True
+                )
+            )
+            friend_ids.add(request.user.id)
+            standings = [
+                standing for standing in standings if standing.user_id in friend_ids
+            ]
+
         results = []
         by_user = {entry["user_id"]: entry for entry in ranking_input}
         for position, standing in enumerate(standings, start=1):

@@ -6,6 +6,7 @@ from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import generics, permissions, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -124,7 +125,62 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     def get_permissions(self):
         if self.action in ["update", "partial_update", "destroy"]:
             self.permission_classes = [IsOwnerOrAdminForUser]
+        # COM-4: the follow toggle needs nothing beyond authentication
+        # (any user may follow any other user); the class default already
+        # covers it, so no branch here.
         return super().get_permissions()
+
+    @action(detail=True, methods=["post"], url_path="follow")
+    def follow(self, request, pk=None):
+        """COM-4: toggle the viewer's follow edge to this user.
+
+        POST /users/{id}/follow/ -> {"following": bool, "followers": n}.
+        Self-follow is rejected (the model constraint also enforces it);
+        the graph feeds the ?friends=1 filtered standings/leaderboard.
+        """
+        from .models import Follow
+
+        target = self.get_object()
+        if target.id == request.user.id:
+            return Response(
+                {"detail": "You cannot follow yourself."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        edge = Follow.objects.filter(follower=request.user, target=target).first()
+        if edge:
+            edge.delete()
+            following = False
+        else:
+            Follow.objects.create(follower=request.user, target=target)
+            following = True
+        return Response({"following": following, "followers": target.followers.count()})
+
+
+class FollowingListView(APIView):
+    """GET /api/v1/users/me/following/ — the viewer's follow list as
+    {id, username} rows (COM-4): the friends chip strip and the
+    ?friends=1 filtered views are driven from it."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        from .models import Follow
+
+        rows = list(
+            Follow.objects.filter(follower=request.user)
+            .select_related("target")
+            .order_by("-created_at")
+            .values("target__id", "target__username")
+        )
+        return Response(
+            {
+                "count": len(rows),
+                "results": [
+                    {"id": r["target__id"], "username": r["target__username"]}
+                    for r in rows
+                ],
+            }
+        )
 
 
 class AdminUserViewSet(viewsets.ModelViewSet):

@@ -17,4 +17,6 @@ urlpatterns = [
     path("leaderboard/", views.PublicLeaderboard.as_view(), name="leaderboard"),
     path("feed/", views.PublicFeed.as_view(), name="feed"),
     path("tags/", views.PublicTags.as_view(), name="tags"),
+    # JDG-9: the judge registry as public toolchain docs.
+    path("languages/", views.PublicLanguagesView.as_view(), name="languages"),
 ]

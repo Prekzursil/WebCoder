@@ -190,12 +190,22 @@ class PostListCreateView(generics.ListCreateAPIView):
                 {"parent": "Parent post belongs to another thread."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        # COM-1: the spoiler flag only means something inside a
+        # problem-scoped thread (a global thread has nothing to spoil).
+        is_spoiler = bool(serializer.validated_data.get("is_spoiler"))
+        if is_spoiler and thread.problem_id is None:
+            return Response(
+                {"is_spoiler": "Spoiler posts are only allowed inside "
+                 "problem-scoped threads."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         with transaction.atomic():
             post = Post.objects.create(
                 thread=thread,
                 author=request.user,
                 content=serializer.validated_data["content"],
                 parent=parent,
+                is_spoiler=is_spoiler,
             )
             Thread.objects.filter(pk=thread.pk).update(
                 post_count=F("post_count") + 1, last_activity=timezone.now()

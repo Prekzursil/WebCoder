@@ -65,10 +65,16 @@ class Problem(models.Model):
           over piped stdio (games / adaptive queries / communication
           problems). The interactor's exit code decides the verdict; see
           ``submissions.judge_utils.interactive`` for the protocol.
+        - OUTPUT_ONLY (JDG-3): no compilation and no execution — the
+          submitted answer text itself is the candidate output compared
+          (or checker-evaluated) against every test case. Enables
+          heavy-compute / translation-proof tasks (Codeforces
+          acmsguru-style special problems).
         """
 
         NORMAL = "NORMAL", _("Normal (batch tests)")
         INTERACTIVE = "INTERACTIVE", _("Interactive (interactor protocol)")
+        OUTPUT_ONLY = "OUTPUT_ONLY", _("Output-only (answer text)")
 
     problem_type = models.CharField(
         _("problem type"),

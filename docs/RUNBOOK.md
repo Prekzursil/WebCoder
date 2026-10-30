@@ -280,3 +280,47 @@ State at risk: the `pgdata` named volume (users, problems, testcases, submission
   callback the backend hands to allauth (default localhost:3000).
 - Public API (OPS-1): `/api/v1/public/` is unauthenticated read-only at
   `THROTTLE_PUBLIC_API_RATE` (default 60/min).
+
+## §email — mail transport, weekly digest, deliverability (SP5/UXP-5b/OPR-5)
+
+Mail is env-driven with a **console-backend default** — no deploy sends
+real email unless `EMAIL_HOST` is set:
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `EMAIL_BACKEND` | `django.core.mail.backends.console.EmailBackend` | switch to `...smtp.EmailBackend` for real mail |
+| `EMAIL_HOST` / `EMAIL_PORT` | `""` / `587` | the relay; empty host ⇒ the weekly digest task no-ops |
+| `EMAIL_USE_TLS` | `true` | |
+| `EMAIL_HOST_USER` / `EMAIL_HOST_PASSWORD` | `""` | relay credentials |
+| `DEFAULT_FROM_EMAIL` | `webcoder@localhost` | set to the verified sender |
+
+The **weekly digest** (`notifications.tasks.weekly_digest_task`, beat
+`weekly-digest`, Mondays 07:30) emails every user who submitted in the
+last 7 days their attempted-but-unsolved problems plus each problem's
+first hint. It self-guards: with no `EMAIL_HOST` it logs and exits 0.
+
+**Deliverability groundwork (OPR-5) before pointing EMAIL_HOST at a
+provider:** publish SPF (`v=spf1 include:<provider> ~all`), DKIM
+(provider key, DNS TXT `_domainkey.*`), and `DMARC`
+(`v=DMARC1; p=none; rua=mailto:...` monitoring first) on the sending
+domain, and warm the address gradually — password-reset mail landing in
+spam locks out classrooms. Allauth email verification rides the same
+transport.
+
+## §contest-replay — the OPR-4 capacity gate before the first rated contest
+
+Round-2 requires a numeric gate before the first rated contest:
+**50 concurrent submitters, p95 judge wait < 20 s, zero errors.**
+
+```
+python scripts/contest_replay.py --base http://127.0.0.1:8010 \
+    --contest <id> --users 50 --per-user 2 \
+    --admin-username admin --admin-password '...'
+```
+
+The harness registers throwaway `replay_*` users, registers them for the
+open contest, submits trivial python3 solutions through the real
+judge-contest lane, and reports p50/p95/max judge wait + a PASS/FAIL
+verdict (exit 0/1). Rehearse at `--users 10` first; the note reminds you
+the full gate needs 50. Clean the `replay_*` users afterwards (admin
+users view or SQL) — they exist only as load probes.

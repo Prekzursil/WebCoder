@@ -447,6 +447,26 @@ TWO_FACTOR_ENFORCE = os.environ.get("TWO_FACTOR_ENFORCE", "false").lower() in (
     "on",
 )
 
+# SP5 (mail transport) + OPR-5 (deliverability groundwork): fully
+# env-driven with a console-backend local default — a deploy sends real
+# mail only when EMAIL_HOST is set and EMAIL_BACKEND points at SMTP.
+# DNS-side deliverability (SPF/DKIM/DMARC on the sending domain) is an
+# operator task documented in RUNBOOK.md § Email deliverability.
+EMAIL_BACKEND = os.environ.get(
+    "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
+)
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "true").lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "webcoder@localhost")
+
 CELERY_BEAT_SCHEDULE = {
     "leaderboard-nightly-recompute": {
         "task": "leaderboard.aggregation.recompute_all_leaderboards_task",
@@ -470,6 +490,12 @@ CELERY_BEAT_SCHEDULE = {
     "contest-tick": {
         "task": "contests.tasks.contest_tick",
         "schedule": crontab(),
+    },
+    # UXP-5b: weekly practice digest ("problems you failed + first
+    # hint") — the task self-guards to a no-op without SMTP configured.
+    "weekly-digest": {
+        "task": "notifications.tasks.weekly_digest_task",
+        "schedule": crontab(hour=7, minute=30, day_of_week=1),
     },
     # ANA-1 (Wave D): freeze the week's owner-analytics derivations every
     # Monday morning — the weekly dashboard's trend strip.

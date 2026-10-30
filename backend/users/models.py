@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -133,3 +134,47 @@ class OwnerWeeklySnapshot(models.Model):
 
     def __str__(self):
         return f"owner metrics {self.week}"
+
+
+class Follow(models.Model):
+    """COM-4 (competitive roadmap): the friends/follow graph.
+
+    Deliberately minimal — one directed edge per (follower, target) pair.
+    The payoff surface is friends-filtered views: contest standings and
+    the practice leaderboard expose ``?friends=1`` limited to the viewer
+    plus the people they follow (the Codeforces friends-only standings
+    pattern). No feeds, no activity fan-out: notifications already cover
+    reply loops, and the roadmap defers anything heavier until the
+    community demands it.
+    """
+
+    follower = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="following",
+        verbose_name=_("follower"),
+    )
+    target = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="followers",
+        verbose_name=_("target"),
+    )
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("follow")
+        verbose_name_plural = _("follows")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["follower", "target"], name="unique_follow_pair"
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(follower=models.F("target")),
+                name="no_self_follow",
+            ),
+        ]
+        indexes = [models.Index(fields=["follower", "created_at"])]
+
+    def __str__(self):
+        return f"{self.follower_id} -> {self.target_id}"
