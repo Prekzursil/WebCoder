@@ -44,9 +44,28 @@ GATE_P95_SECONDS = 20.0
 GATE_MIN_USERS = 50  # the full gate; the harness allows fewer for rehearsal
 
 
+def validated_base(base: str) -> str:
+    """Operator rail: the target must be an explicit http(s) origin.
+
+    The harness talks to whatever --base says; requiring a parsed http(s)
+    scheme with no userinfo keeps a typo'd or hostile value from being
+    silently interpreted (urllib accepts file:// and ftp:// too).
+    """
+    from urllib.parse import urlsplit
+
+    parts = urlsplit(base)
+    if parts.scheme not in ("http", "https") or not parts.netloc:
+        raise SystemExit(
+            f"--base must be an http(s) origin, got {base!r}"
+        )
+    if parts.username or parts.password:
+        raise SystemExit("--base must not carry credentials")
+    return base.rstrip("/")
+
+
 class Api:
     def __init__(self, base: str):
-        self.base = base.rstrip("/")
+        self.base = validated_base(base)
 
     def _call(self, method: str, path: str, body: dict | None = None,
               token: str | None = None) -> dict:
