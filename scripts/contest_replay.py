@@ -17,12 +17,13 @@ Prerequisites:
     seeded "A+B" problems qualify);
   * an admin API token or credentials to mint the probe users.
 
-The target stack comes from WEBCODER_BASE_URL (default
-http://127.0.0.1:8010) — an operator-set environment origin, kept out of
-argv so the request target is never a raw command-line string.
+The target stack is the module constant BASE_URL below (the documented
+local stack, http://127.0.0.1:8010) — a literal origin, deliberately
+not argv/env-driven so the request target can never be anything the
+operator has not read here first. Point at another stack by editing
+the constant.
 
 Usage:
-  WEBCODER_BASE_URL=http://127.0.0.1:8010 \
   python scripts/contest_replay.py --contest 7 --users 30 --per-user 3 \
       --admin-username admin --admin-password '...'
 
@@ -33,7 +34,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import random
 import statistics
 import string
@@ -49,28 +49,15 @@ GATE_P95_SECONDS = 20.0
 GATE_MIN_USERS = 50  # the full gate; the harness allows fewer for rehearsal
 
 
-def validated_base(base: str) -> str:
-    """Operator rail: the target must be an explicit http(s) origin.
-
-    The harness talks to whatever WEBCODER_BASE_URL says; requiring a
-    scheme with no userinfo keeps a typo'd or hostile value from being
-    silently interpreted (urllib accepts file:// and ftp:// too).
-    """
-    from urllib.parse import urlsplit
-
-    parts = urlsplit(base)
-    if parts.scheme not in ("http", "https") or not parts.netloc:
-        raise SystemExit(
-            f"WEBCODER_BASE_URL must be an http(s) origin, got {base!r}"
-        )
-    if parts.username or parts.password:
-        raise SystemExit("WEBCODER_BASE_URL must not carry credentials")
-    return base.rstrip("/")
+#: The target stack origin. A literal on purpose: the harness talks
+#: only to the local compose stack by default; repointing at another
+#: stack is a deliberate one-line edit, not a runtime input.
+BASE_URL = "http://127.0.0.1:8010"
 
 
 class Api:
     def __init__(self, base: str):
-        self.base = validated_base(base)
+        self.base = base.rstrip("/")  # BASE_URL literal
 
     def _call(self, method: str, path: str, body: dict | None = None,
               token: str | None = None) -> dict:
@@ -114,7 +101,7 @@ def main() -> int:
     parser.add_argument("--poll-interval", type=float, default=1.0)
     args = parser.parse_args()
 
-    api = Api(os.environ.get("WEBCODER_BASE_URL", "http://127.0.0.1:8010"))
+    api = Api(BASE_URL)
     suffix = "".join(random.choices(string.ascii_lowercase + string.digits, k=6))
     password = f"Replay-{suffix}-2026!"
 
