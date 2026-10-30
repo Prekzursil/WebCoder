@@ -313,7 +313,7 @@ Round-2 requires a numeric gate before the first rated contest:
 **50 concurrent submitters, p95 judge wait < 20 s, zero errors.**
 
 ```
-# WEBCODER_BASE_URL defaults to http://127.0.0.1:8010
+# The target base is the BASE_URL constant in the script (local stack default).
 python scripts/contest_replay.py --contest <id> --users 50 --per-user 2 \
     --admin-username admin --admin-password '...'
 ```
