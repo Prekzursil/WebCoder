@@ -76,7 +76,11 @@ const openSettings = async () => {
 };
 
 const submitPasswordForm = () => {
-  fireEvent.submit(document.querySelector('form')!);
+  // Target the PASSWORD form specifically: the settings tab also renders
+  // the RO-3 identity form above it, so the first <form> is not it.
+  fireEvent.submit(
+    (document.getElementById('current-password') as HTMLElement).closest('form')!
+  );
 };
 
 describe('UserProfilePage (/profile)', () => {
@@ -93,6 +97,10 @@ describe('UserProfilePage (/profile)', () => {
       active_dates_90d: [], current_streak: 2, max_streak: 5, total_active_days: 6,
       ladder: { points: 7, level: 1, next_level_points: 10, progress: 0.7 },
       badges: ['first_ac', 'streak_7'],
+      tag_profile: {
+        tags: [{ tag: 'arrays', solved: 2, attempted: 3, covered: true, points: 3 }],
+        practice_next: [{ id: 1, title_i18n: { en: 'A+B' }, difficulty: 'EASY', tags: ['arrays'] }],
+      },
     });
     subsMock.mockResolvedValue({
       next: null, previous: null,
@@ -255,13 +263,13 @@ describe('UserProfilePage (/profile)', () => {
     await screen.findByText('admin');
     fillPasswordForm('old', 'newpass1', 'newpass1');
     submitPasswordForm();
-    expect(document.querySelector('form button[type="submit"]')).toBeDisabled();
+    expect(((document.getElementById('current-password') as HTMLElement).closest('form') as HTMLFormElement).querySelector('button[type="submit"]')).toBeDisabled();
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
     await act(async () => {
       resolveChange({});
     });
     await waitFor(() =>
-      expect(document.querySelector('form button[type="submit"]')).toBeEnabled()
+      expect(((document.getElementById('current-password') as HTMLElement).closest('form') as HTMLFormElement).querySelector('button[type="submit"]')).toBeEnabled()
     );
     expect(await screen.findByText('Password changed successfully.')).toBeInTheDocument();
   });
@@ -277,6 +285,10 @@ describe('ProfileOverview live statistics [B5/RAT-4/5/6]', () => {
       active_dates_90d: [], current_streak: 2, max_streak: 5, total_active_days: 6,
       ladder: { points: 7, level: 1, next_level_points: 10, progress: 0.7 },
       badges: ['first_ac', 'streak_7'],
+      tag_profile: {
+        tags: [{ tag: 'arrays', solved: 2, attempted: 3, covered: true, points: 3 }],
+        practice_next: [{ id: 1, title_i18n: { en: 'A+B' }, difficulty: 'EASY', tags: ['arrays'] }],
+      },
     });
     subsMock.mockResolvedValue({
       next: null, previous: null,

@@ -101,7 +101,12 @@ export interface User {
     | 'PROBLEM_VERIFIER';
   // OPS-2 (Wave D): the login-side two-factor signals.
   two_factor_enabled?: boolean;
-  two_factor_required?: boolean;
+  two_factor_required?: boolean;  /** RO-3: Olympiad-geography identity (optional; feeds segmented boards). */
+  county?: string;
+  school?: string;
+  /** LEG-2: self-declared minor — county/school stay private to others. */
+  is_minor?: boolean;
+
 }
 
 export interface AdminUserType extends User {

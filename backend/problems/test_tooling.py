@@ -450,3 +450,74 @@ class CoverageClosureTests(ToolingBase):
         )
         self.assertEqual(response.status_code, 200, response.data)
         self.assertEqual(response.data["mismatch"]["phase"], "reference")
+
+
+class AssignmentSolutionsJsonTest(TestCase):
+    """JDG-13 v1: the structured ?format=json mode (diff-view data)."""
+
+    def setUp(self):
+        self.client = APIClient()
+        from classroom.models import Assignment, ClassRoom, ClassMembership
+        from problems.models import Problem
+        from submissions.models import Submission
+
+        self.teacher = User.objects.create_user(
+            username="teach", password="p", role=User.Roles.TEACHER
+        )
+        self.student = User.objects.create_user(username="kid", password="p")
+        self.room = ClassRoom.objects.create(
+            teacher=self.teacher, name="C9", join_code="AAA111"
+        )
+        ClassMembership.objects.create(classroom=self.room, student=self.student)
+        self.problem = Problem.objects.create(
+            title_i18n={"en": "A+B"},
+            statement_i18n={"en": "S"},
+            status=Problem.ProblemStatus.APPROVED,
+            author=self.teacher,
+        )
+        from django.utils import timezone
+
+        now = timezone.now()
+        self.assignment = Assignment.objects.create(
+            classroom=self.room,
+            title_i18n={"en": "HW1"},
+            available_from=now - timezone.timedelta(days=2),
+            due_at=now + timezone.timedelta(days=2),
+        )
+        from classroom.models import AssignmentProblem
+
+        AssignmentProblem.objects.create(
+            assignment=self.assignment, problem=self.problem, order=1, points=10
+        )
+        self.sub = Submission.objects.create(
+            user=self.student,
+            problem=self.problem,
+            language="python3",
+            code="print(3)",
+            verdict=Submission.VerdictStatus.ACCEPTED,
+            score=10,
+            submission_time=now - timezone.timedelta(days=1),
+        )
+
+    def test_json_rows_carry_code_for_the_diff_view(self):
+        self.client.force_authenticate(self.teacher)
+        resp = self.client.get(
+            f"/api/v1/problems/tools/assignment-solutions/{self.assignment.id}/"
+            "?format=json"
+        )
+        self.assertEqual(resp.status_code, 200, resp.content)
+        data = resp.json()
+        self.assertEqual(data["count"], 1)
+        row = data["results"][0]
+        self.assertEqual(row["username"], "kid")
+        self.assertEqual(row["code"], "print(3)")
+        self.assertEqual(row["id"], self.sub.id)
+
+    def test_non_teacher_still_blocked(self):
+        outsider = User.objects.create_user(username="out", password="p")
+        self.client.force_authenticate(outsider)
+        resp = self.client.get(
+            f"/api/v1/problems/tools/assignment-solutions/{self.assignment.id}/"
+            "?format=json"
+        )
+        self.assertEqual(resp.status_code, 403)

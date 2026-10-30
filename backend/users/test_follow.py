@@ -196,3 +196,36 @@ class UsernameFollowTest(TestCase):
     def test_self_follow_by_username_400(self):
         resp = self.client.post("/api/v1/users/username/alice/follow/")
         self.assertEqual(resp.status_code, 400)
+
+
+class UserMePatchTest(TestCase):
+    """RO-3: the self-service identity slice on /users/me/."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="me", password="p")
+        self.client = APIClient()
+        self.client.force_authenticate(self.user)
+
+    def test_patch_updates_county_school_and_minor_flag(self):
+        resp = self.client.patch(
+            "/api/v1/users/me/",
+            {"county": "Cluj", "school": "L.T. Cluj", "is_minor": True},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 200, resp.content)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.county, "Cluj")
+        self.assertEqual(self.user.school, "L.T. Cluj")
+        self.assertTrue(self.user.is_minor)
+        # The own-view payload still carries the values (self sees them).
+        self.assertEqual(resp.json()["county"], "Cluj")
+
+    def test_get_still_returns_the_full_payload(self):
+        resp = self.client.get("/api/v1/users/me/")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("county", resp.json())
+
+    def test_patch_requires_authentication(self):
+        anon = APIClient()
+        resp = anon.patch("/api/v1/users/me/", {"county": "X"}, format="json")
+        self.assertEqual(resp.status_code, 401)

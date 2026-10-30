@@ -274,6 +274,29 @@ class AssignmentSolutionsExportView(APIView):
                     row.code,
                 ]
             )
+        # JDG-13 v1 diff view: ?format=json returns the same rows
+        # structured (id, student, problem, verdict, score, code) — the
+        # teacher's side-by-side comparison surface reads this; the CSV
+        # stays the paste-into-catalog-electronic artifact.
+        if request.query_params.get("format") == "json":
+            return Response(
+                {
+                    "count": submissions.count(),
+                    "results": [
+                        {
+                            "id": row.id,
+                            "username": row.user.username,
+                            "problem_id": row.problem_id,
+                            "verdict": row.verdict,
+                            "score": row.score,
+                            "language": row.language,
+                            "submission_time": row.submission_time.isoformat(),
+                            "code": row.code,
+                        }
+                        for row in submissions
+                    ],
+                }
+            )
         response = Response(
             {"count": submissions.count(), "csv": buffer.getvalue()}
         )

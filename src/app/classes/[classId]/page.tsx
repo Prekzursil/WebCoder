@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { ClassMembershipRow, ClassRoom, ClassroomAssignment } from '@/types/api';
 import { palette } from '@/theme/tokens';
 import EmptyState from '@/components/common/EmptyState';
+import NewAssignmentForm from './NewAssignmentForm';
 import PageHeader from '@/components/common/PageHeader';
 
 /** Class detail (EDU-1/EDU-2): roster for the teacher, teme list for all,
@@ -111,7 +112,17 @@ export default function ClassDetailPage() {
             )}
 
             <section aria-label={t('class_teme', 'Assignments')}>
-                <h2 style={{ fontSize: '1.1rem' }}>{t('class_teme', 'Assignments')}</h2>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
+                    <h2 style={{ fontSize: '1.1rem' }}>{t('class_teme', 'Assignments')}</h2>
+                    {/* EDU-2: tem authoring for the owning teacher (or admin). */}
+                    {(classroom.teacher_username === auth.user?.username ||
+                        auth.user?.role === 'ADMIN') && classroom.id != null && (
+                        <NewAssignmentForm
+                            classroomId={classroom.id}
+                            onCreated={() => void load()}
+                        />
+                    )}
+                </div>
                 {assignments === null ? (
                     <p aria-busy="true">{t('classes_loading', 'Loading classes…')}</p>
                 ) : assignments.length === 0 ? (

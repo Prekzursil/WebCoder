@@ -15,6 +15,7 @@ import {
 } from '@/types/api';
 import { palette } from '@/theme/tokens';
 import EmptyState from '@/components/common/EmptyState';
+import SolutionsDiffPanel from './SolutionsDiffPanel';
 import PageHeader from '@/components/common/PageHeader';
 
 /** Temă detail: students see the problem set + their own best scores
@@ -303,6 +304,9 @@ export default function AssignmentDetailPage() {
             </section>
             )}
 
+            {isTeacherView && (
+                <SolutionsDiffPanel assignmentId={Number(assignmentId)} />
+            )}
             {isTeacherView && grid && (
                 <section aria-label={t('assignment_grid', 'Progress grid')}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
