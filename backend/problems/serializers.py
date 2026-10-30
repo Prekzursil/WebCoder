@@ -1,5 +1,10 @@
 from django.contrib.auth import get_user_model  # Import get_user_model
 from rest_framework import serializers
+from .i18n_fields import (
+    LocalizedFieldError,
+    available_languages,
+    normalize_localized_dict,
+)
 from .models import (
     CurriculumNode,
     ProblemEditorial,
@@ -81,6 +86,14 @@ class ProblemSerializer(serializers.ModelSerializer):
     # from the registry multipliers/floors + this problem's overrides. A
     # read-only projection — authors edit limit_overrides, not this.
     effective_limits = serializers.SerializerMethodField()
+    # Statement-language availability (i18n wave, owner rule (c)/(d)):
+    # which languages the problem carries — clients render "available in
+    # your language" badges and the EN-fallback affordance from this list
+    # instead of re-deriving it from the i18n dicts.
+    available_languages = serializers.SerializerMethodField()
+
+    def get_available_languages(self, obj) -> list:
+        return available_languages(obj)
 
     def get_effective_limits(self, obj) -> dict:
         """{language_id: {"time_ms": int, "memory_kb": int}} for the
@@ -115,6 +128,7 @@ class ProblemSerializer(serializers.ModelSerializer):
             "id",
             "title_i18n",
             "statement_i18n",
+            "available_languages",
             "author",
             "author_id",
             "verifier",
@@ -182,6 +196,26 @@ class ProblemSerializer(serializers.ModelSerializer):
                 f"{', '.join(SUPPORTED_LANGUAGE_IDS)}."
             )
         return value
+
+    def _validate_localized(self, value, field_name):
+        """EN-mandatory validation (i18n wave, owner rule (b)).
+
+        Problems are authored in ONE language — English — with other
+        languages optional (one or many). Blank locale entries are dropped
+        so availability stays honest. The same rule guards title and
+        statement; community translations land through the translations
+        app's approval flow, never by direct authoring of other locales.
+        """
+        try:
+            return normalize_localized_dict(value, field_name=field_name)
+        except LocalizedFieldError as exc:
+            raise serializers.ValidationError(str(exc)) from exc
+
+    def validate_title_i18n(self, value):
+        return self._validate_localized(value, "title_i18n")
+
+    def validate_statement_i18n(self, value):
+        return self._validate_localized(value, "statement_i18n")
 
     def validate_io_input_filename(self, value):
         """FILES-mode filenames must be plain basenames (RO-4)."""
