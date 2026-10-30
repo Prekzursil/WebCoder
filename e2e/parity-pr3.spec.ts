@@ -107,3 +107,14 @@ test.describe('teacher & statement surfaces (parity audit)', () => {
     await expect(page.getByTestId('print-statement')).toBeVisible();
   });
 });
+
+test('contribute page publishes the authoring program (EDU-11)', async ({
+  page,
+}) => {
+  await page.goto('/contribute');
+  await expect(
+    page.getByRole('heading', { name: /authoring program/i })
+  ).toBeVisible();
+  await expect(page.getByText(/DRAFT → PENDING → APPROVED/)).toBeVisible();
+  await expect(page.getByText(/honor/i).first()).toBeVisible();
+});

@@ -47,6 +47,11 @@ class SubmissionSerializer(serializers.ModelSerializer):
     # J6: the denominator next to score, so the UI renders "30/100" with a
     # PARTIAL state instead of a bare number.
     max_score = serializers.SerializerMethodField()
+    # Matrix row 61 (runtime percentile vs community): the share of AC
+    # submissions on the same problem + language this run is faster than
+    # (LeetCode's "beats X% in runtime"). None without a measured time or
+    # a comparison pool.
+    runtime_percentile = serializers.SerializerMethodField()
 
     test_results = SubmissionTestResultSerializer(many=True, read_only=True) # Nested serializer for test results
 
@@ -55,17 +60,36 @@ class SubmissionSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'user', 'problem', 'problem_id', 'language', 'code',
             'submission_time', 'verdict', 'execution_time_ms',
-            'memory_used_kb', 'score', 'max_score', 'detailed_feedback',
+            'memory_used_kb', 'score', 'max_score', 'runtime_percentile',
+            'detailed_feedback',
             'contest', 'test_results' # Add test results + contest (read-only id)
         ]
         read_only_fields = [
             'id', 'user', 'problem', 'submission_time', 'verdict',
-            'execution_time_ms', 'memory_used_kb', 'score', 'max_score', 'detailed_feedback',
+            'execution_time_ms', 'memory_used_kb', 'score', 'max_score',
+            'runtime_percentile', 'detailed_feedback',
             'contest', 'test_results'
         ]
 
     def get_max_score(self, obj):
         return obj.problem.full_score if obj.problem_id else 0
+
+    def get_runtime_percentile(self, obj):
+        time_ms = obj.execution_time_ms
+        if not time_ms:
+            return None
+        from submissions.models import Submission
+
+        pool = Submission.objects.filter(
+            problem_id=obj.problem_id,
+            language=obj.language,
+            verdict=Submission.VerdictStatus.ACCEPTED,
+        ).exclude(execution_time_ms__isnull=True)
+        total = pool.count()
+        if total == 0:
+            return None
+        slower = pool.filter(execution_time_ms__gt=time_ms).count()
+        return round(slower / total, 4)
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -178,6 +202,7 @@ class SubmissionCreateSerializer(serializers.ModelSerializer):
             if reason:
                 raise serializers.ValidationError({"problem": reason})
         return attrs
+
 
     def create(self, validated_data):
         # User is set in the view (e.g., self.perform_create)

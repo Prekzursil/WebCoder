@@ -80,6 +80,8 @@ export interface DetailedSubmissionType extends SubmissionType {
   detailed_feedback?: string;
   execution_time_ms?: number | null;
   memory_used_kb?: number | null;
+  /** Matrix row 61: faster-than share of same-problem+language ACs. */
+  runtime_percentile?: number | null;
   user?: { username: string; id: number };
   test_results?: SubmissionTestResultType[];
 }

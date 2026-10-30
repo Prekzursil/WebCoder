@@ -1,3 +1,8 @@
+from django.test import TestCase
+from submissions.models import Submission
+from rest_framework.test import APIClient
+from problems.models import Problem
+from users.models import User
 """Tests for the settings-driven JUDGE_BACKEND switch (judge_utils/backend.py).
 
 Deliberately plain ``unittest.TestCase`` classes: these are pure unit tests of
@@ -263,3 +268,80 @@ class LegacyJudgeFlowUntouchedTests(unittest.TestCase):
             source = (pkg_dir / mod).read_text(encoding="utf-8")
             for trigger in ("tle_trigger", "mle_trigger", "re_trigger"):
                 self.assertNotIn(trigger, source, f"{mod}: {trigger}")
+
+
+class RuntimePercentileTest(TestCase):
+    """Matrix row 61: the runtime percentile vs the community AC pool."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="u", password="p")
+        self.problem = Problem.objects.create(
+            title_i18n={"en": "P"},
+            statement_i18n={"en": "S"},
+            status=Problem.ProblemStatus.APPROVED,
+            author=self.user,
+        )
+
+    def _ac(self, ms, language="python3"):
+        return Submission.objects.create(
+            user=self.user,
+            problem=self.problem,
+            language=language,
+            code="x",
+            verdict=Submission.VerdictStatus.ACCEPTED,
+            score=10,
+            execution_time_ms=ms,
+        )
+
+    def test_percentile_of_fastest_submission(self):
+        self._ac(100)
+        self._ac(200)
+        fastest = self._ac(50)
+        client = APIClient()
+        client.force_authenticate(self.user)
+        resp = client.get(f"/api/v1/submissions/submissions/{fastest.id}/")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        # Faster than both other ACs in the (inclusive) 3-run pool: 2/3.
+        self.assertEqual(resp.json()["runtime_percentile"], 0.6667)
+
+    def test_percentile_null_without_measured_time(self):
+        sub = Submission.objects.create(
+            user=self.user,
+            problem=self.problem,
+            language="python3",
+            code="x",
+            verdict=Submission.VerdictStatus.ACCEPTED,
+            score=10,
+        )
+        client = APIClient()
+        client.force_authenticate(self.user)
+        resp = client.get(f"/api/v1/submissions/submissions/{sub.id}/")
+        self.assertIsNone(resp.json()["runtime_percentile"])
+
+    def test_percentile_scopes_to_problem_and_language(self):
+        # A slow C++ AC on the same problem must not dilute a python run.
+        self._ac(100, language="cpp17")
+        py = self._ac(900, language="python3")
+        client = APIClient()
+        client.force_authenticate(self.user)
+        resp = client.get(f"/api/v1/submissions/submissions/{py.id}/")
+        # The only python AC -> faster than nobody: 0.0.
+        self.assertEqual(resp.json()["runtime_percentile"], 0.0)
+
+
+    def test_percentile_null_with_no_ac_pool(self):
+        # A wrong-answer run carries a measured time but joins no pool:
+        # total == 0 -> None (no comparison exists).
+        sub = Submission.objects.create(
+            user=self.user,
+            problem=self.problem,
+            language="python3",
+            code="x",
+            verdict=Submission.VerdictStatus.WRONG_ANSWER,
+            score=0,
+            execution_time_ms=42,
+        )
+        client = APIClient()
+        client.force_authenticate(self.user)
+        resp = client.get(f"/api/v1/submissions/submissions/{sub.id}/")
+        self.assertIsNone(resp.json()["runtime_percentile"])
