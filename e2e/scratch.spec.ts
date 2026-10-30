@@ -61,8 +61,11 @@ test('a Scratch problem renders the Scratch editor and submits the project JSON'
   await page?.goto('/problems/8');
 
   // Scratch mode: the Scratch editor replaces the code editor and the
-  // language selector is gone (the pseudo-language IS the mode).
-  await expect(page?.getByTestId('scratch-editor')).toBeVisible();
+  // language selector is gone (the pseudo-language IS the mode). The
+  // scratch-vm chunk is heavy — allow a slow first load (CI cold cache).
+  await expect(page?.getByTestId('scratch-editor')).toBeVisible({
+    timeout: 90_000,
+  });
   await expect(page?.locator('#language-select')).toHaveCount(0);
   await expect(page?.getByText(/solve with scratch/i)).toBeVisible();
 
@@ -125,7 +128,9 @@ test('a rejected Scratch submission surfaces the validation message', async ({
   });
 
   await page?.goto('/problems/8');
-  await expect(page?.getByTestId('scratch-editor')).toBeVisible();
+  await expect(page?.getByTestId('scratch-editor')).toBeVisible({
+    timeout: 90_000,
+  });
   await page?.getByRole('button', { name: /submit/i }).first().click();
   await page?.getByRole('button', { name: /^confirm$/i }).click();
 
