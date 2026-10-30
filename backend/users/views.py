@@ -156,6 +156,35 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         return Response({"following": following, "followers": target.followers.count()})
 
 
+class UsernameFollowView(APIView):
+    """POST /api/v1/users/username/{username}/follow/ — COM-4 toggle by
+    handle. The public surfaces (forum threads, leaderboard rows) carry
+    usernames, not ids; this lane keeps the follow button usable
+    everywhere a handle renders."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, username):
+        from .models import Follow
+
+        target = User.objects.filter(username=username).first()
+        if target is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        if target.id == request.user.id:
+            return Response(
+                {"detail": "You cannot follow yourself."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        edge = Follow.objects.filter(follower=request.user, target=target).first()
+        if edge:
+            edge.delete()
+            following = False
+        else:
+            Follow.objects.create(follower=request.user, target=target)
+            following = True
+        return Response({"following": following, "followers": target.followers.count()})
+
+
 class FollowingListView(APIView):
     """GET /api/v1/users/me/following/ — the viewer's follow list as
     {id, username} rows (COM-4): the friends chip strip and the

@@ -156,10 +156,23 @@ export interface ForumPost {
     upvotes: number;
     is_hidden: boolean;
     hidden_reason: string;
+    /** COM-1: solution-revealing reply (problem-scoped threads only). */
+    is_spoiler: boolean;
     created_at: string;
 }
 
 export type GetForumPostsResponse = CursorPaginatedResponse<ForumPost>;
+
+/** COM-4: one row of the viewer's follow list. */
+export interface FollowingRow {
+    id: number;
+    username: string;
+}
+
+export interface FollowingResponse {
+    count: number;
+    results: FollowingRow[];
+}
 
 /** Report as returned by the report endpoints (ReportSerializer). */
 export interface ForumReport {

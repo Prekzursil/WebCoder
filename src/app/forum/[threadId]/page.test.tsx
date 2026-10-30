@@ -17,6 +17,9 @@ const api = vi.hoisted(() => ({
 }));
 
 vi.mock('@/services/ApiService', () => ({
+  FollowService: {
+    toggleByUsername: vi.fn().mockResolvedValue({ following: true, followers: 1 }),
+  },
   ForumService: {
     getThread: api.getThread,
     getPosts: api.getPosts,
@@ -116,7 +119,8 @@ describe('ForumThreadPage (live thread)', () => {
     await screen.findByText('First post');
     fireEvent.change(screen.getByRole('textbox'), { target: { value: 'My reply' } });
     fireEvent.click(screen.getByRole('button', { name: 'Post Reply' }));
-    await waitFor(() => expect(api.createPost).toHaveBeenCalledWith('3', { content: 'My reply' }));
+    // COM-1: the spoiler flag rides every reply (false for plain ones).
+    await waitFor(() => expect(api.createPost).toHaveBeenCalledWith('3', { content: 'My reply', isSpoiler: false }));
     await waitFor(() => expect(screen.getByText('My reply')).toBeInTheDocument());
   });
 

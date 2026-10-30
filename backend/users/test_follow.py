@@ -173,3 +173,26 @@ class FriendsFilteredBoardsTest(TestCase):
         # setUp already created the alice->bob edge.
         edge = Follow.objects.get(follower=self.alice, target=self.bob)
         self.assertEqual(str(edge), f"{self.alice.id} -> {self.bob.id}")
+
+
+class UsernameFollowTest(TestCase):
+    def setUp(self):
+        self.alice = User.objects.create_user(username="alice", password="p")
+        self.bob = User.objects.create_user(username="bob", password="p")
+        self.client = APIClient()
+        self.client.force_authenticate(self.alice)
+
+    def test_toggle_by_username(self):
+        resp = self.client.post("/api/v1/users/username/bob/follow/")
+        self.assertEqual(resp.status_code, 200, resp.content)
+        self.assertTrue(resp.json()["following"])
+        resp = self.client.post("/api/v1/users/username/bob/follow/")
+        self.assertFalse(resp.json()["following"])
+
+    def test_unknown_username_404(self):
+        resp = self.client.post("/api/v1/users/username/nobody/follow/")
+        self.assertEqual(resp.status_code, 404)
+
+    def test_self_follow_by_username_400(self):
+        resp = self.client.post("/api/v1/users/username/alice/follow/")
+        self.assertEqual(resp.status_code, 400)

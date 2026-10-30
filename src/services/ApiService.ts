@@ -63,6 +63,7 @@ import {
     StandingsResponse,
   UpdateProblemResponse,
   cursorParamFromUrl,
+  FollowingResponse,
 } from '@/types/api';
 import { TestCaseType, User } from '@/types';
 import { API_V1_URL } from '@/lib/api-config';
@@ -584,10 +585,12 @@ export const AdminService = {
 
 export const LeaderboardService = {
     /** Public standings, window-ranked, 50 rows/page. */
-    getLeaderboard: (page: { page?: number, pageSize?: number } = {}) => {
+    getLeaderboard: (page: { page?: number, pageSize?: number, friends?: boolean } = {}) => {
         const params = new URLSearchParams();
         if (page.page !== undefined) params.set('page', String(page.page));
         if (page.pageSize !== undefined) params.set('page_size', String(page.pageSize));
+        // COM-4: friends-only board (viewer + followed); ignored when anon.
+        if (page.friends) params.set('friends', '1');
         const qs = params.toString();
         return apiFetch<GetLeaderboardResponse>(`/leaderboard/${qs ? `?${qs}` : ''}`);
     },
@@ -596,16 +599,47 @@ export const LeaderboardService = {
 };
 
 // =================================
+// Follow Service (COM-4 — friends graph)
+// =================================
+
+export const FollowService = {
+    /** Toggle the viewer's follow edge; returns the new state + count. */
+    toggle: (userId: number) =>
+        apiFetch<{ following: boolean; followers: number }>(`/users/${userId}/follow/`, {
+            method: 'POST',
+        }),
+    /** By-handle lane: public surfaces render usernames, not ids. */
+    toggleByUsername: (username: string) =>
+        apiFetch<{ following: boolean; followers: number }>(
+            `/users/username/${encodeURIComponent(username)}/follow/`,
+            { method: 'POST' }
+        ),
+    /** The viewer's follow list (id + username rows). */
+    getFollowing: () => apiFetch<FollowingResponse>('/users/me/following/'),
+};
+
+// =================================
 // Forum Service (backend/forum)
 // =================================
 
 export const ForumService = {
     /** Public thread list, ordered pinned-then-last-activity, 20/page. */
-    getThreads: (params: { page?: number, pageSize?: number, problemId?: number | string } = {}) => {
+    getThreads: (params: {
+        page?: number, pageSize?: number, problemId?: number | string,
+        /** EDT-4: writing-language filter (ro/en). */
+        lang?: string,
+        /** COM-2: 'problem' | 'editorial' topic axis. */
+        topic?: string,
+        /** COM-6: the admin news feed (announcement threads only). */
+        announcements?: boolean,
+    } = {}) => {
         const search = new URLSearchParams();
         if (params.page !== undefined) search.set('page', String(params.page));
         if (params.pageSize !== undefined) search.set('page_size', String(params.pageSize));
         if (params.problemId !== undefined) search.set('problem_id', String(params.problemId));
+        if (params.lang) search.set('lang', params.lang);
+        if (params.topic) search.set('topic', params.topic);
+        if (params.announcements) search.set('announcements', '1');
         const qs = search.toString();
         return apiFetch<GetForumThreadsResponse>(`/forum/threads/${qs ? `?${qs}` : ''}`);
     },
@@ -622,8 +656,12 @@ export const ForumService = {
         return apiFetch<GetForumPostsResponse>(`/forum/threads/${threadId}/posts/${qs ? `?${qs}` : ''}`);
     },
     /** Reply to a thread ({content, parent?} — parent must be in the same thread). */
-    createPost: (threadId: number | string, data: { content: string, parent?: number | null }) =>
-        apiFetch<ForumPost>(`/forum/threads/${threadId}/posts/`, { method: 'POST', body: JSON.stringify(data) }),
+    createPost: (threadId: number | string, data: { content: string, parent?: number | null, isSpoiler?: boolean }) =>
+        apiFetch<ForumPost>(`/forum/threads/${threadId}/posts/`, {
+            method: 'POST',
+            // COM-1: the API speaks snake_case for the spoiler flag.
+            body: JSON.stringify({ ...data, is_spoiler: data.isSpoiler ?? false }),
+        }),
     getPost: (postId: number | string) => apiFetch<ForumPost>(`/forum/posts/${postId}/`),
     updatePost: (postId: number | string, data: { content: string }) =>
         apiFetch<ForumPost>(`/forum/posts/${postId}/`, { method: 'PATCH', body: JSON.stringify(data) }),
@@ -683,9 +721,11 @@ export const ContestService = {
         }),
     getProblems: (id: number | string) =>
         apiFetch<ContestProblemRow[]>(`/contests/contests/${id}/problems/`),
-    getStandings: (id: number | string, page = 1, section?: 'official' | 'virtual') => {
+    getStandings: (id: number | string, page = 1, section?: 'official' | 'virtual', friends = false) => {
         const params = new URLSearchParams({ page: String(page) });
         if (section) params.set('section', section);
+        // COM-4: friends-only standings (viewer + followed).
+        if (friends) params.set('friends', '1');
         return apiFetch<StandingsResponse>(
             `/contests/contests/${id}/standings/?${params.toString()}`
         );

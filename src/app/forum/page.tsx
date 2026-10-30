@@ -29,7 +29,7 @@ function timeAgo(dateStr: string, t: ReturnType<typeof useTranslation>['t']): st
   return t('time_day_ago', '{{count}}d ago', { count: days });
 }
 
-type CategoryFilter = 'all' | 'problem' | 'general';
+type CategoryFilter = 'all' | 'problem' | 'general' | 'editorial';
 type SortBy = 'activity' | 'newest';
 
 export default function ForumPage() {
@@ -42,6 +42,8 @@ export default function ForumPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('all');
+  // EDT-4: writing-language filter (server-side ?lang=). '' = all.
+  const [langFilter, setLangFilter] = useState<'' | 'ro' | 'en'>('');
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<SortBy>('activity');
 
@@ -49,7 +51,12 @@ export default function ForumPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await ForumService.getThreads({ page: 1 });
+      const response = await ForumService.getThreads({
+        page: 1,
+        // EDT-4 lang axis + COM-2 editorial axis are server-side filters.
+        lang: langFilter || undefined,
+        topic: activeCategory === 'editorial' ? 'editorial' : undefined,
+      });
       setThreads(response.results);
       setTotalCount(response.count);
       setNextPage(response.next ? 2 : null);
@@ -60,7 +67,12 @@ export default function ForumPage() {
     }
     // t is stable between language switches; listed so the error message
     // re-localizes on locale change.
-  }, [t]);
+  // Refetch only when the SERVER-side axes change: the language filter,
+  // or crossing into/out of the editorial topic. The problem/general
+  // category chips stay client-side filters over the loaded rows —
+  // clicking them must not flash a loading state.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [t, langFilter, activeCategory === 'editorial' ? 'editorial' : 'plain']);
 
   useEffect(() => {
     loadFirstPage();
@@ -70,7 +82,11 @@ export default function ForumPage() {
     if (nextPage === null || loadingMore) return;
     setLoadingMore(true);
     try {
-      const response = await ForumService.getThreads({ page: nextPage });
+      const response = await ForumService.getThreads({
+        page: nextPage,
+        lang: langFilter || undefined,
+        topic: activeCategory === 'editorial' ? 'editorial' : undefined,
+      });
       setThreads((prev) => {
         const seen = new Set(prev.map((t) => t.id));
         return [...prev, ...response.results.filter((t) => !seen.has(t.id))];
@@ -110,6 +126,14 @@ export default function ForumPage() {
     { key: 'all', label: t('forum_filter_all', 'All'), icon: '🌐' },
     { key: 'problem', label: t('forum_filter_problem', 'Problem threads'), icon: '🧩' },
     { key: 'general', label: t('forum_filter_general', 'General'), icon: '💬' },
+    { key: 'editorial', label: t('forum_filter_editorial', 'Editorial talks'), icon: '📝' },
+  ];
+
+  // EDT-4 language chips: All / Romanian / English writing language.
+  const langChips: { key: '' | 'ro' | 'en'; label: string }[] = [
+    { key: '', label: t('forum_lang_all', 'All languages') },
+    { key: 'ro', label: 'Română' },
+    { key: 'en', label: 'English' },
   ];
 
   return (
@@ -152,6 +176,35 @@ export default function ForumPage() {
             </button>
           );
         })}
+        <div
+          role="group"
+          aria-label={t('forum_lang_filter', 'Writing language')}
+          style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}
+        >
+          {langChips.map(({ key, label }) => {
+            const active = langFilter === key;
+            return (
+              <button
+                key={key || 'all'}
+                onClick={() => setLangFilter(key)}
+                aria-pressed={active}
+                data-testid={`lang-chip-${key || 'all'}`}
+                className="chip"
+                style={
+                  active
+                    ? {
+                        borderColor: 'var(--accent)',
+                        color: 'var(--accent)',
+                        background: hexAlpha(palette.accent, 0.12),
+                      }
+                    : undefined
+                }
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
         <input
           type="text"
           placeholder={t('forum_search_placeholder', 'Search threads…')}

@@ -294,7 +294,8 @@ describe('ForumService endpoints', () => {
     await ForumService.createPost(9, { content: 'reply' });
     expect(fetchMock).toHaveBeenCalledWith(
       `${BASE}/forum/threads/9/posts/`,
-      expect.objectContaining({ method: 'POST', body: JSON.stringify({ content: 'reply' }) })
+      // COM-1: is_spoiler rides every reply payload (false default).
+      expect.objectContaining({ method: 'POST', body: JSON.stringify({ content: 'reply', is_spoiler: false }) })
     );
   });
 

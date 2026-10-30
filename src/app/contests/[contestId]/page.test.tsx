@@ -273,7 +273,8 @@ describe('ContestDetailPage virtual participation + awards', () => {
     await screen.findByTestId('board-section-official');
     fireEvent.click(screen.getByTestId('board-section-virtual'));
     await waitFor(() =>
-      expect(api.getStandings).toHaveBeenCalledWith('1', 1, 'virtual')
+      // COM-4: friends flag rides every standings fetch (off by default).
+      expect(api.getStandings).toHaveBeenCalledWith('1', 1, 'virtual', false)
     );
   });
 

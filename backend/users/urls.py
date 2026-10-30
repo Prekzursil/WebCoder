@@ -18,6 +18,7 @@ from .views import (
     TOTPDisableView,
     APITokenListView,
     FollowingListView,
+    UsernameFollowView,
 )
 
 app_name = "users"
@@ -60,6 +61,11 @@ urlpatterns = [
         "me/following/",
         FollowingListView.as_view(),
         name="user_following",
+    ),
+    path(
+        "username/<str:username>/follow/",
+        UsernameFollowView.as_view(),
+        name="user_follow_by_username",
     ),
     # Include the router URLs for admin user management
     path("", include(router.urls)),

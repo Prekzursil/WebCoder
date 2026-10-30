@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { ForumService } from '@/services/ApiService';
+import FollowButton from '@/components/common/FollowButton';
 import { ForumPost, ForumThread, cursorParamFromUrl } from '@/types/api';
 import { useAuth } from '@/context/AuthContext';
 import { palette, hexAlpha } from '@/theme/tokens';
@@ -42,6 +43,10 @@ export default function ForumThreadPage() {
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  // COM-1: spoiler posts render blurred until explicitly revealed.
+  const [revealedSpoilers, setRevealedSpoilers] = useState<Set<number>>(new Set());
+  // COM-1: the reply form's spoiler checkbox (problem threads only).
+  const [replySpoiler, setReplySpoiler] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -111,9 +116,13 @@ export default function ForumThreadPage() {
     setSubmitting(true);
     setReplyError(null);
     try {
-      const post = await ForumService.createPost(threadId, { content: replyText.trim() });
+      const post = await ForumService.createPost(threadId, {
+        content: replyText.trim(),
+        isSpoiler: replySpoiler && Boolean(thread?.problem),
+      });
       setPosts((prev) => [...prev, post]);
       setReplyText('');
+      setReplySpoiler(false);
       setThread((t) => (t ? { ...t, post_count: t.post_count + 1 } : t));
     } catch (err) {
       setReplyError(err instanceof Error && err.message ? err.message : t('forum_reply_error', 'Failed to post reply.'));
@@ -319,6 +328,7 @@ export default function ForumThreadPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>
             {t('forum_started_by', 'started by')} <strong style={{ color: 'var(--muted)' }}>{thread.author ?? t('forum_unknown_author', 'unknown')}</strong>{' '}
+            <FollowButton username={thread.author} />{' '}
             {timeAgo(thread.created_at, t)}
           </span>
           <span style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>{t('forum_posts_count', '{{count}} posts', { count: thread.post_count })}</span>
@@ -440,9 +450,42 @@ export default function ForumThreadPage() {
                     </span>
                   </div>
 
+                  {post.is_spoiler ? (
+                    <div data-testid={`spoiler-post-${post.id}`} style={{ fontSize: '0.875rem', lineHeight: 1.7 }}>
+                      <div
+                        aria-hidden={!revealedSpoilers.has(post.id)}
+                        style={{
+                          color: 'var(--body)',
+                          whiteSpace: 'pre-wrap',
+                          filter: revealedSpoilers.has(post.id) ? 'none' : 'blur(6px)',
+                          userSelect: revealedSpoilers.has(post.id) ? 'auto' : 'none',
+                          transition: 'filter 0.15s ease',
+                        }}
+                      >
+                        {post.content}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setRevealedSpoilers((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(post.id)) next.delete(post.id);
+                            else next.add(post.id);
+                            return next;
+                          })
+                        }
+                        style={{ marginTop: '0.5rem', fontSize: '0.75rem' }}
+                      >
+                        {revealedSpoilers.has(post.id)
+                          ? t('spoiler_hide', 'Hide spoiler')
+                          : t('spoiler_reveal', 'Spoiler — click to reveal')}
+                      </button>
+                    </div>
+                  ) : (
                   <div style={{ fontSize: '0.875rem', color: 'var(--body)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
                     {post.content}
                   </div>
+                  )}
 
                   <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem', alignItems: 'center' }}>
                     {auth.isAuthenticated && (
@@ -555,6 +598,19 @@ export default function ForumThreadPage() {
                 <p role="alert" style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: '0.5rem' }}>
                   {replyError}
                 </p>
+              )}
+              {thread?.problem && (
+                <label
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.6rem', fontSize: '0.8rem', color: 'var(--muted)' }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={replySpoiler}
+                    onChange={(e) => setReplySpoiler(e.target.checked)}
+                    data-testid="reply-spoiler-toggle"
+                  />
+                  {t('reply_mark_spoiler', 'Mark as spoiler (reveals the solution)')}
+                </label>
               )}
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.75rem', gap: '0.75rem' }}>
                 <button

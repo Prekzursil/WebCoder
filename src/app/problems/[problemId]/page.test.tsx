@@ -5,6 +5,12 @@ import { notFound } from 'next/navigation';
 import { ProblemType, TestCaseType } from '@/types';
 
 vi.mock('@/services/ApiService', () => ({
+  ForumService: {
+    getThreads: vi
+      .fn()
+      .mockResolvedValue({ count: 0, next: null, previous: null, results: [] }),
+    createThread: vi.fn(),
+  },
   ToolingService: {
     getStatementRevisions: vi.fn().mockResolvedValue({ count: 0, results: [] }),
     getSamplesBundle: vi.fn().mockResolvedValue({ count: 0, filename: '', content: '' }),
