@@ -550,14 +550,18 @@ const server = createServer((req, res) => {
     return;
   }
 
-  // JDG-9: the judge registry as public toolchain docs.
+  // JDG-9: the judge registry as public toolchain docs (mock rows carry
+  // the language-fair multipliers so the form's effective-limit preview
+  // renders against mocks exactly as against the live registry).
   if (req.method === 'GET' && path === '/api/v1/public/languages/') {
     json(res, 200, {
       notice: 'mock',
-      count: 2,
+      count: 4,
       results: [
-        { id: 'python3', name: 'Python 3', compile_command: [], run_command: ['python', 'user_code.py'] },
-        { id: 'cpp17', name: 'C++17', compile_command: ['g++', '-O2', '-o', 'user_program', 'user_code.cpp'], run_command: ['./user_program'] },
+        { id: 'python3', name: 'Python 3', compile_command: [], run_command: ['python', 'user_code.py'], time_multiplier: 3, memory_multiplier: 1.5, memory_floor_kb: 0, checker_capable: true },
+        { id: 'cpp17', name: 'C++17', compile_command: ['g++', '-O2', '-o', 'user_program', 'user_code.cpp'], run_command: ['./user_program'], time_multiplier: 1, memory_multiplier: 1, memory_floor_kb: 0, checker_capable: true },
+        { id: 'java11', name: 'Java 11', compile_command: ['javac', '--release', '11', 'Main.java'], run_command: ['java', '-cp', '.', 'Main'], time_multiplier: 2, memory_multiplier: 1, memory_floor_kb: 524288, checker_capable: false },
+        { id: 'pascal', name: 'Free Pascal', compile_command: ['fpc', '-O2', '-ouser_program', 'user_code.pas'], run_command: ['./user_program'], time_multiplier: 1, memory_multiplier: 1, memory_floor_kb: 0, checker_capable: true },
       ],
     });
     return;

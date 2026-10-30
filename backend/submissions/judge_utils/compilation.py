@@ -28,9 +28,11 @@ from .languages import get_language
 CONTAINER_BOOST_INCLUDE_PATH = "/usr/local/include/boost_custom"
 
 #: In-container compile deadline (coreutils ``timeout``, SIGKILL on expiry).
-#: The host-side subprocess timeout below is a backstop that also kills the
-#: docker client, so a wedged compile can never outlive COMPILE_TIMEOUT_S by
-#: more than a factor of two.
+#: The DEFAULT budget; per-language budgets come from
+#: ``LanguageSpec.compile_timeout_s`` (Go first build, Kotlin and GHC need
+#: longer than the 30s baseline). The host-side subprocess timeout below is
+#: a backstop that also kills the docker client, so a wedged compile can
+#: never outlive its budget by more than a factor of two.
 COMPILE_TIMEOUT_S = 30
 
 #: Host-side backstop: docker client kill window (>= in-container deadline).
@@ -42,18 +44,21 @@ def run_compile_step(
     workdir: pathlib.Path,
     docker_image: str,
     extra_volume_mounts: list[str] | None = None,
+    timeout_s: int | None = None,
 ) -> tuple[bool, str]:
     """Run one compile argv in the sandbox and report (ok, output).
 
     Shared by submission compilation (below) and custom-checker compilation
     (``checkers.py``). The argv is wrapped in an in-container
     ``timeout --signal=SIGKILL`` so a wedged compiler is killed inside the
-    sandbox, not just at the host-side docker client.
+    sandbox, not just at the host-side docker client. *timeout_s* overrides
+    the default budget (slow toolchains pass their registry value).
     """
+    budget_s = timeout_s or COMPILE_TIMEOUT_S
     wrapped_command = [
         "timeout",
         "--signal=SIGKILL",
-        f"{COMPILE_TIMEOUT_S}s",
+        f"{budget_s}s",
         *compile_argv,
     ]
     if get_judge_backend() == CONTAINER:
@@ -73,7 +78,7 @@ def run_compile_step(
             argv,
             capture_output=True,
             text=True,
-            timeout=COMPILE_HOST_TIMEOUT_S,
+            timeout=budget_s * 2,
         )
         output = f"STDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
         return result.returncode == 0, output
@@ -156,6 +161,7 @@ def compile_code_in_sandbox(
         workdir=submission_dir,
         docker_image=spec.docker_image,
         extra_volume_mounts=extra_volume_mounts,
+        timeout_s=spec.compile_timeout_s,
     )
     artifact_on_host = (
         submission_dir / spec.compile_artifact if spec.compile_artifact else None

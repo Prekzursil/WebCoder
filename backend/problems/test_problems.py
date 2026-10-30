@@ -480,3 +480,117 @@ class TestCaseViewSetTest(TestCase):
         self.client.force_authenticate(self.other)
         resp = self.client.delete(f"/api/v1/problems/testcases/{tc.id}/")
         self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class EffectiveLimitsSerializationTest(TestCase):
+    """Language-fair limits (J5): the problem serializer surfaces the
+    judge-resolved effective limits per allowed language so the problem
+    page can SHOW them (owner requirement), plus the RO-4 I/O fields."""
+
+    def _problem(self, **kwargs):
+        defaults = {
+            "title_i18n": {"en": "Limits"},
+            "statement_i18n": {"en": "S"},
+            "default_time_limit_ms": 100,
+            "default_memory_limit_kb": 262144,
+            "allowed_languages": ["python3", "cpp17", "java11"],
+        }
+        defaults.update(kwargs)
+        return Problem.objects.create(**defaults)
+
+    def test_effective_limits_per_allowed_language(self):
+        problem = self._problem()
+        data = ProblemSerializer(problem).data
+        eff = data["effective_limits"]
+        # 0.1s C-baseline: python3 gets 300ms (3x) — the owner's canonical
+        # "hard limit must not lock out interpreted languages" scenario.
+        self.assertEqual(eff["python3"]["time_ms"], 300)
+        self.assertEqual(eff["python3"]["memory_kb"], 393216)  # 1.5x memory
+        self.assertEqual(eff["cpp17"], {"time_ms": 100, "memory_kb": 262144})
+        self.assertEqual(eff["java11"]["memory_kb"], 524288)  # JVM floor
+        # Only allowed languages appear.
+        self.assertEqual(set(eff), {"python3", "cpp17", "java11"})
+
+    def test_no_language_restriction_lists_the_whole_registry(self):
+        from submissions.judge_utils.languages import LANGUAGES
+
+        problem = self._problem(allowed_languages=[])
+        data = ProblemSerializer(problem).data
+        self.assertEqual(set(data["effective_limits"]), set(LANGUAGES))
+
+    def test_limit_override_wins_in_effective_projection(self):
+        problem = self._problem(
+            limit_overrides={"python3": {"time_ms": 500, "memory_kb": 65536}}
+        )
+        eff = ProblemSerializer(problem).data["effective_limits"]
+        self.assertEqual(eff["python3"], {"time_ms": 500, "memory_kb": 65536})
+
+    def test_io_mode_fields_round_trip(self):
+        problem = self._problem(
+            io_mode=Problem.IOMode.FILES,
+            io_input_filename="date.in",
+            io_output_filename="date.out",
+        )
+        data = ProblemSerializer(problem).data
+        self.assertEqual(data["io_mode"], "FILES")
+        self.assertEqual(data["io_input_filename"], "date.in")
+        self.assertEqual(data["io_output_filename"], "date.out")
+
+    def test_files_mode_blanks_get_model_defaults(self):
+        factory = RequestFactory()
+        user = User.objects.create_user(
+            username="ioauthor", password="p", role=User.Roles.PROBLEM_CREATOR
+        )
+        request = factory.post("/")
+        request.user = user
+        serializer = ProblemSerializer(
+            data={
+                "title_i18n": {"en": "IO"},
+                "statement_i18n": {"en": "S"},
+                "io_mode": "FILES",
+                "io_input_filename": "",
+                "io_output_filename": "",
+            },
+            context={"request": request},
+        )
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        serializer.save(author=user)
+        self.assertEqual(serializer.instance.io_input_filename, "input.txt")
+        self.assertEqual(serializer.instance.io_output_filename, "output.txt")
+
+    def test_files_mode_rejects_path_traversal_filename(self):
+        serializer = ProblemSerializer(
+            data={
+                "title_i18n": {"en": "IO"},
+                "statement_i18n": {"en": "S"},
+                "io_mode": "FILES",
+                "io_input_filename": "../../etc/passwd",
+            }
+        )
+        self.assertFalse(serializer.is_valid())
+        self.assertIn("io_input_filename", serializer.errors)
+
+    def test_files_mode_keeps_explicit_valid_filenames(self):
+        """Explicit, valid filenames pass through untouched (covers the
+        short-circuit arm of the blank-default fill and the validator's
+        final return)."""
+        factory = RequestFactory()
+        user = User.objects.create_user(
+            username="ioauthor2", password="p", role=User.Roles.PROBLEM_CREATOR
+        )
+        request = factory.post("/")
+        request.user = user
+        serializer = ProblemSerializer(
+            data={
+                "title_i18n": {"en": "IO2"},
+                "statement_i18n": {"en": "S"},
+                "io_mode": "FILES",
+                "io_input_filename": "date.in",
+                "io_output_filename": "date.out",
+            },
+            context={"request": request},
+        )
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        serializer.save(author=user)
+        self.assertEqual(serializer.instance.io_input_filename, "date.in")
+        self.assertEqual(serializer.instance.io_output_filename, "date.out")

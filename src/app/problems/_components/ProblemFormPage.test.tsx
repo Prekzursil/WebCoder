@@ -41,6 +41,7 @@ vi.mock('next/navigation', () => ({
 
 const api = vi.hoisted(() => ({
   getTags: vi.fn(),
+  getLanguages: vi.fn(),
   getProblemDetail: vi.fn(),
   createProblem: vi.fn(),
   updateProblem: vi.fn(),
@@ -62,6 +63,9 @@ vi.mock('@/services/ApiService', async (importOriginal) => {
       getProblemDetail: api.getProblemDetail,
       createProblem: api.createProblem,
       updateProblem: api.updateProblem,
+    },
+    PublicService: {
+      getLanguages: api.getLanguages,
     },
     TestCaseService: {
       createTestCase: api.createTestCase,
@@ -127,6 +131,18 @@ beforeEach(() => {
   authState.isAuthenticated = true;
   authState.user = { id: 7, username: 'creator', email: 'creator@example.com', role: 'PROBLEM_CREATOR' };
   api.getTags.mockResolvedValue({ count: 0, next: null, previous: null, results: [] });
+  // Registry rows (JDG-9): tests exercise the registry-driven checkboxes +
+  // the effective-limit preview against the same shape the API returns.
+  api.getLanguages.mockResolvedValue({
+    notice: 'mock',
+    count: 3,
+    results: [
+      { id: 'python3', name: 'Python 3', compile_command: [], run_command: ['python', 'user_code.py'], time_multiplier: 3, memory_multiplier: 1.5, memory_floor_kb: 0, checker_capable: true },
+      { id: 'cpp17', name: 'C++17', compile_command: ['g++'], run_command: ['./user_program'], time_multiplier: 1, memory_multiplier: 1, memory_floor_kb: 0, checker_capable: true },
+      { id: 'pascal', name: 'Free Pascal', compile_command: ['fpc'], run_command: ['./user_program'], time_multiplier: 1, memory_multiplier: 1, memory_floor_kb: 0, checker_capable: true },
+      { id: 'java11', name: 'Java 11', compile_command: ['javac'], run_command: ['java', 'Main'], time_multiplier: 2, memory_multiplier: 1, memory_floor_kb: 524288, checker_capable: false },
+    ],
+  });
   api.createProblem.mockResolvedValue(createdProblem);
   api.updateProblem.mockResolvedValue({} as unknown as ProblemType);
 });
@@ -217,8 +233,8 @@ describe('ProblemFormPage (create mode)', () => {
     await screen.findByText('Create New Problem');
 
     // Default [python3, cpp17]: uncheck cpp17, check java11.
-    fireEvent.click(screen.getByLabelText('cpp17'));
-    fireEvent.click(screen.getByLabelText('java11'));
+    fireEvent.click(screen.getByLabelText(/C\+\+17/));
+    fireEvent.click(screen.getByLabelText(/Java 11/));
     fillRequiredCreateFields();
     submitForm();
 
@@ -468,8 +484,8 @@ describe('ProblemFormPage (edit mode)', () => {
     expect((screen.getByLabelText('Memory Limit (KB):') as HTMLInputElement).value).toBe('131072');
     expect((screen.getByLabelText('Status:') as HTMLSelectElement).value).toBe('PRIVATE');
     expect((screen.getByLabelText('Comparison Mode:') as HTMLSelectElement).value).toBe('CUSTOM_CHECKER');
-    expect((screen.getByLabelText('java11') as HTMLInputElement).checked).toBe(true);
-    expect((screen.getByLabelText('python3') as HTMLInputElement).checked).toBe(false);
+    expect((screen.getByLabelText(/Java 11/) as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByLabelText(/Python 3/) as HTMLInputElement).checked).toBe(false);
     expect((screen.getByLabelText('Greedy') as HTMLInputElement).checked).toBe(true);
     expect((screen.getByLabelText(/checker code/i) as HTMLTextAreaElement).value).toBe('print("chk")');
 
@@ -493,8 +509,8 @@ describe('ProblemFormPage (edit mode)', () => {
     expect((screen.getByLabelText('Time Limit (ms):') as HTMLInputElement).value).toBe('1000');
     expect((screen.getByLabelText('Memory Limit (KB):') as HTMLInputElement).value).toBe('262144');
     expect((screen.getByLabelText('Status:') as HTMLSelectElement).value).toBe('DRAFT');
-    expect((screen.getByLabelText('python3') as HTMLInputElement).checked).toBe(true);
-    expect((screen.getByLabelText('cpp17') as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByLabelText(/Python 3/) as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByLabelText(/C\+\+17/) as HTMLInputElement).checked).toBe(true);
     expect((screen.getByLabelText('Comparison Mode:') as HTMLSelectElement).value).toBe('LINES_STRIP_EXACT');
     expect(screen.queryByText(/Test Case \d/)).not.toBeInTheDocument();
   });
@@ -787,5 +803,41 @@ describe('ProblemFormPage (advanced configuration branches)', () => {
     expect(api.createProblem).toHaveBeenLastCalledWith(
       expect.objectContaining({ checker_code: null, checker_language: null })
     );
+  });
+});
+
+
+describe('ProblemFormPage (language fairness + io mode)', () => {
+  it('renders registry language names from /public/languages/', async () => {
+    render(<ProblemFormPage />);
+    expect(await screen.findByLabelText(/Free Pascal/)).toBeTruthy();
+    expect(screen.getByLabelText(/Python 3/)).toBeTruthy();
+  });
+
+  it('shows the effective limit preview on checked languages', async () => {
+    render(<ProblemFormPage />);
+    // python3 defaults to checked: 1000ms * 3 = 3000ms / (256MB * 1.5 = 384MB)
+    const label = await screen.findByText(/3000 ms \/ 384 MB/);
+    expect(label).toBeTruthy();
+  });
+
+  it('submits io_mode and filenames for a FILES problem', async () => {
+    render(<ProblemFormPage />);
+    await screen.findByLabelText(/Free Pascal/);
+    fireEvent.change(screen.getByLabelText(/I\/O mode/i), { target: { value: 'FILES' } });
+    fireEvent.change(screen.getByLabelText(/Input filename/i), { target: { value: 'date.in' } });
+    fireEvent.change(screen.getByLabelText(/Output filename/i), { target: { value: 'date.out' } });
+    fireEvent.submit(screen.getByRole('button', { name: 'Create Problem' }).closest('form')!);
+    await waitFor(() => expect(api.createProblem).toHaveBeenCalled());
+    const payload = api.createProblem.mock.calls[0][0] as Record<string, unknown>;
+    expect(payload.io_mode).toBe('FILES');
+    expect(payload.io_input_filename).toBe('date.in');
+    expect(payload.io_output_filename).toBe('date.out');
+  });
+
+  it('keeps STDIO the default and hides filename fields', async () => {
+    render(<ProblemFormPage />);
+    await screen.findByLabelText(/Free Pascal/);
+    expect(screen.queryByLabelText(/Input filename/i)).toBeNull();
   });
 });

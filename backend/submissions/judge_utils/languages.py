@@ -26,6 +26,63 @@ with all of these):
               language id stays honest: source level AND bytecode target are
               Java 11 regardless of the JDK in the image.
 - nodejs20 -> Node.js 20
+- pascal   -> Free Pascal (RO olympiad staple, RO-5)
+- go       -> Go (Debian trixie ``golang``)
+- rust     -> Rust (``rustc`` direct; judged programs are single-file, no
+              cargo project)
+- csharp   -> C# via Mono ``mcs``/``mono`` (SPEC-GAPS J11d design)
+- ruby     -> Ruby (``ruby`` CLI)
+- kotlin   -> Kotlin (pinned ``kotlinc`` ZIP on the image's OpenJDK)
+- lua      -> Lua 5.4 (``lua5.4``)
+- php      -> PHP CLI (``php-cli``)
+- haskell  -> GHC (``ghc``)
+
+**Language-fair limits (owner requirement; competitive roadmap J5/JDG-5).**
+A hard limit tuned for C/C++ must not make a problem solvable ONLY in a
+low-level language: the judge normalizes time AND memory per language.
+``Problem.default_time_limit_ms`` / ``default_memory_limit_kb`` are the
+C-baseline; the EFFECTIVE limit for a submission is::
+
+    time_ms   = override  or  default_time_limit_ms * spec.time_multiplier
+    memory_kb = override  or  max(default_memory_limit_kb
+                                  * spec.memory_multiplier,
+                                  spec.memory_floor_kb)
+
+The shipped multiplier table (documented against major judges' published
+practice — HackerRank's Execution Environment page documents per-language
+defaults e.g. C 2s / Python 10s / Go 4s; Codeforces publishes per-language
+factor lists per problem; DMOJ exposes ``language_resource_limits``):
+
+============ ======== ======== =========== ====================================
+language     time ×   mem ×   mem floor   rationale
+============ ======== ======== =========== ====================================
+c11          1.0      1.0     —           baseline (compiled, no runtime)
+cpp17        1.0      1.0     —           baseline
+pascal       1.0      1.0     —           FPC -O2 is competitive with gcc
+go           1.0      1.0     262144 KB   compiled; the runtime wants a
+                                            little heap headroom
+rust         1.0      1.0     —           compiled
+haskell      1.0      1.0     262144 KB   compiled; the GHC RTS wants heap
+                                            headroom beyond a C program
+java11       2.0      1.0     524288 KB   JVM startup + JIT warmup (~2× is
+                                            the Codeforces/HackerRank norm);
+                                            JVM heap + metaspace floor
+kotlin       2.0      1.0     524288 KB   same JVM story as java11
+csharp       2.0      1.0     524288 KB   Mono runtime behaves like the JVM
+                                            (SPEC-GAPS J11d)
+python3      3.0      1.5     —           CPython runs ~3–5× slower than C
+                                            on contest workloads (HackerRank
+                                            grants 5×); object + GC overhead
+                                            needs memory headroom
+ruby         3.0      1.5     —           MRI is in the CPython class
+php          3.0      1.5     —           PHP CLI, interpreted class
+nodejs20     2.0      1.0     524288 KB   V8 JIT + heap floor (J5 design)
+lua          2.0      1.0     —           lua5.4 is fast for an interpreter;
+                                            2× is the honest band
+============ ======== ======== =========== ====================================
+
+Per-problem ``Problem.limit_overrides`` beat every row above for that
+language, on either axis.
 
 Custom-library caveats (unchanged by this registry):
 
@@ -71,9 +128,23 @@ class LanguageSpec:
     #: language (competitive roadmap J5): interpreted/JVM/Node runtimes need
     #: more than C/C++ for the same algorithm. 1.0 = no adjustment.
     time_multiplier: float = 1.0
+    #: Memory multiplier for runtimes whose memory overhead scales with the
+    #: data (boxed objects, GC): effective memory is
+    #: max(limit * memory_multiplier, memory_floor_kb). 1.0 = no adjustment.
+    memory_multiplier: float = 1.0
     #: Memory floor in KB for runtimes with large fixed overheads (JVM,
     #: Node, Mono): the effective limit is max(problem limit, floor).
     memory_floor_kb: int = 0
+    #: In-container compile deadline in seconds (JDG-8/J11c): slower
+    #: toolchains (Go first build, Kotlin, GHC) get a longer budget than
+    #: the 30s default.
+    compile_timeout_s: int = 30
+    #: Whether this spec can serve as a custom-checker/interactor language
+    #: (``checkers.py``). False for languages whose argv cannot be
+    #: retargeted to arbitrary file names: Java's run argv is a fixed
+    #: class name, and Go/Kotlin compile through an ``sh -c`` string whose
+    #: tokens cannot be swapped for the checker's file names.
+    checker_capable: bool = True
 
     def compile_argv(
         self,
@@ -136,6 +207,7 @@ _PYTHON3 = LanguageSpec(
     run_command=("python", "user_code.py"),
     docker_image="python:3.11-slim",
     time_multiplier=3.0,
+    memory_multiplier=1.5,
 )
 
 _CPP17 = LanguageSpec(
@@ -189,6 +261,7 @@ _JAVA11 = LanguageSpec(
     java_release="11",
     time_multiplier=2.0,
     memory_floor_kb=524288,
+    checker_capable=False,
 )
 
 _NODEJS20 = LanguageSpec(
@@ -217,10 +290,185 @@ _PASCAL = LanguageSpec(
     docker_image="frolvlad/alpine-fpc",
 )
 
+# ---------------------------------------------------------------------------
+# Wave: language-fairness expansion (owner requirement "very large number of
+# languages"). Inclusion rationale per language — judged against what school
+# and contest users actually submit, and the marginal image/maintenance cost:
+#
+# - go:      compiled systems language, offered by every major judge
+#            (HackerRank/DMOJ/Codewars); Debian trixie ships 1.24.
+#            Needs GOCACHE/HOME in the writable /tmp (J11c).
+# - rust:    fast-growing, memory-safe compiled language; ``rustc`` alone
+#            judges single-file programs (no cargo). Slower compiles than
+#            gcc but well inside a 60s budget.
+# - csharp:  SPEC-GAPS J11d: Mono ``mcs`` (~200ms compile) instead of a
+#            dotnet publish flow that costs seconds per submission.
+# - ruby:    classic interpreted language, tiny apt cost, common in
+#            club/retiree cohorts and reference solutions.
+# - kotlin:  the modern JVM language RO universities increasingly teach;
+#            kotlinc cold compiles are slow (raised compile budget), runs
+#            on the image's existing OpenJDK.
+# - lua:     ~1MB interpreter, the standard first scripting language for
+#            game/modding clubs; cheapest language in the set.
+# - php:     huge install base in RO freelancing/lectures; php-cli is a
+#            small apt package.
+# - haskell: the functional-programming course language (facultate);
+#            GHC is the heaviest toolchain in the image (~1GB) — kept
+#            because a judge's language breadth is itself a feature and
+#            the marginal maintenance after the toolchain lands is zero.
+#
+# Deliberately EXCLUDED (documented for honesty): Visual Basic (no
+# maintained Linux toolchain), Objective-C/Swift (Apple toolchains, no
+# school demand), assembly (per-arch grading disputes), R/MATLAB (licence
+# + runtime size; numpy covers the numeric niche via pip allowlist),
+# Perl (demand collapsed; re-add is one LanguageSpec away).
+# ---------------------------------------------------------------------------
+
+_GO = LanguageSpec(
+    language_id="go",
+    display_name="Go",
+    source_filename="user_code.go",
+    compile_command=(
+        "sh",
+        "-c",
+        "export HOME=/tmp GOCACHE=/tmp/gocache GOFLAGS=-mod=mod "
+        "&& go build -o user_program user_code.go",
+    ),
+    compile_artifact="user_program",
+    run_command=("./user_program",),
+    docker_image="golang:1.24",
+    memory_floor_kb=262144,
+    compile_timeout_s=60,
+    checker_capable=False,
+)
+
+_RUST = LanguageSpec(
+    language_id="rust",
+    display_name="Rust",
+    source_filename="user_code.rs",
+    compile_command=(
+        "rustc",
+        "-O",
+        "-o",
+        "user_program",
+        "user_code.rs",
+    ),
+    compile_artifact="user_program",
+    run_command=("./user_program",),
+    docker_image="rust:1-slim",
+    compile_timeout_s=60,
+)
+
+_CSHARP = LanguageSpec(
+    language_id="csharp",
+    display_name="C# (Mono)",
+    source_filename="user_code.cs",
+    compile_command=(
+        "mcs",
+        "-out:user_program.exe",
+        "user_code.cs",
+    ),
+    compile_artifact="user_program.exe",
+    run_command=("mono", "user_program.exe"),
+    docker_image="mono:6.12",
+    time_multiplier=2.0,
+    memory_floor_kb=524288,
+    compile_timeout_s=60,
+)
+
+_RUBY = LanguageSpec(
+    language_id="ruby",
+    display_name="Ruby",
+    source_filename="user_code.rb",
+    compile_command=None,
+    compile_artifact=None,
+    run_command=("ruby", "user_code.rb"),
+    docker_image="ruby:3.3-slim",
+    time_multiplier=3.0,
+    memory_multiplier=1.5,
+)
+
+_KOTLIN = LanguageSpec(
+    language_id="kotlin",
+    display_name="Kotlin",
+    source_filename="user_code.kt",
+    compile_command=(
+        "sh",
+        "-c",
+        "kotlinc user_code.kt -d user_program.jar",
+    ),
+    compile_artifact="user_program.jar",
+    run_command=("kotlin", "user_program.jar"),
+    # LOCAL-backend image only: zenika/kotlin is the one maintained
+    # kotlinc-in-docker base on Docker Hub (Kotlin 1.4-era; production
+    # judging uses the pinned kotlinc installed in Dockerfile.judge).
+    docker_image="zenika/kotlin:latest",
+    time_multiplier=2.0,
+    memory_floor_kb=524288,
+    compile_timeout_s=120,
+    checker_capable=False,
+)
+
+_LUA = LanguageSpec(
+    language_id="lua",
+    display_name="Lua 5.4",
+    source_filename="user_code.lua",
+    compile_command=None,
+    compile_artifact=None,
+    run_command=("lua5.4", "user_code.lua"),
+    docker_image="nickblah/lua:5.4",
+    time_multiplier=2.0,
+)
+
+_PHP = LanguageSpec(
+    language_id="php",
+    display_name="PHP",
+    source_filename="user_code.php",
+    compile_command=None,
+    compile_artifact=None,
+    run_command=("php", "user_code.php"),
+    docker_image="php:8.4-cli",
+    time_multiplier=3.0,
+    memory_multiplier=1.5,
+)
+
+_HASKELL = LanguageSpec(
+    language_id="haskell",
+    display_name="Haskell (GHC)",
+    source_filename="user_code.hs",
+    compile_command=(
+        "ghc",
+        "-O",
+        "-o",
+        "user_program",
+        "user_code.hs",
+    ),
+    compile_artifact="user_program",
+    run_command=("./user_program",),
+    docker_image="haskell:9.6-slim",
+    memory_floor_kb=262144,
+    compile_timeout_s=90,
+)
+
 #: All supported languages, keyed by submission-side language id.
 LANGUAGES: dict[str, LanguageSpec] = {
     spec.language_id: spec
-    for spec in (_PYTHON3, _CPP17, _C11, _JAVA11, _NODEJS20, _PASCAL)
+    for spec in (
+        _PYTHON3,
+        _CPP17,
+        _C11,
+        _JAVA11,
+        _NODEJS20,
+        _PASCAL,
+        _GO,
+        _RUST,
+        _CSHARP,
+        _RUBY,
+        _KOTLIN,
+        _LUA,
+        _PHP,
+        _HASKELL,
+    )
 }
 
 #: Sorted ids for validation error messages / API-facing lists.
@@ -242,14 +490,16 @@ def effective_limits(
 
     Layers, most specific first:
     1. ``Problem.limit_overrides[language_id]`` — explicit author override.
-    2. Language registry multipliers/floors — the default-time multiplier
-       for the language, and the memory floor for heavy runtimes.
+    2. Language registry multipliers/floors — the time multiplier, the
+       memory multiplier, and the memory floor for heavy runtimes
+       (``max(limit * memory_multiplier, memory_floor_kb)``).
     """
     spec = LANGUAGES.get(language_id)
-    multiplier = spec.time_multiplier if spec else 1.0
+    time_mult = spec.time_multiplier if spec else 1.0
+    mem_mult = spec.memory_multiplier if spec else 1.0
     floor_kb = spec.memory_floor_kb if spec else 0
-    time_ms = int(default_time_ms * multiplier)
-    memory_kb = max(default_memory_kb, floor_kb)
+    time_ms = int(default_time_ms * time_mult)
+    memory_kb = max(int(default_memory_kb * mem_mult), floor_kb)
 
     overrides = (limit_overrides or {}).get(language_id)
     if isinstance(overrides, dict):

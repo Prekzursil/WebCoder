@@ -187,6 +187,11 @@ export interface LanguageRow {
     name: string;
     compile_command: string[];
     run_command: string[];
+    /** Language-fair limits (J5): the judge's exact multipliers. */
+    time_multiplier: number;
+    memory_multiplier: number;
+    memory_floor_kb: number;
+    checker_capable: boolean;
 }
 
 /** RAT-7: per-tag skill row + the practice-next suggestion. */

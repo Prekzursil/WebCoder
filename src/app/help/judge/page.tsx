@@ -66,6 +66,9 @@ export default function JudgeHelpPage() {
               <th style={{ textAlign: 'left', padding: '0.5rem', borderBottom: '1px solid var(--border-strong)' }}>
                 {t('judge_docs_run', 'Run')}
               </th>
+              <th style={{ textAlign: 'left', padding: '0.5rem', borderBottom: '1px solid var(--border-strong)' }}>
+                {t('judge_docs_limits_column', 'Fair limits')}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -85,6 +88,17 @@ export default function JudgeHelpPage() {
                   <code style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--muted)' }}>
                     {row.run_command.join(' ')}
                   </code>
+                </td>
+                <td style={{ padding: '0.5rem', borderBottom: '1px solid var(--border)' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--muted)' }}>
+                    {t('judge_docs_time_multiplier', '{{n}}× time', { n: row.time_multiplier })}
+                    {row.memory_multiplier !== 1
+                      ? ` · ${t('judge_docs_memory_multiplier', '{{n}}× memory', { n: row.memory_multiplier })}`
+                      : ''}
+                    {row.memory_floor_kb > 0
+                      ? ` · ⌊${Math.round(row.memory_floor_kb / 1024)} MB⌋`
+                      : ''}
+                  </span>
                 </td>
               </tr>
             ))}

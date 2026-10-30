@@ -49,6 +49,14 @@ export interface ProblemType {
   has_editorial?: boolean;
   editorial_locked?: boolean;
   difficulty_source?: string;
+  // Language-fair limits (J5): per-language overrides + the judge-resolved
+  // effective limits the problem page displays per allowed language.
+  limit_overrides?: Record<string, { time_ms?: number; memory_kb?: number }>;
+  effective_limits?: Record<string, { time_ms: number; memory_kb: number }>;
+  // Console vs file I/O (RO-4): 'STDIO' | 'FILES' + the FILES-mode names.
+  io_mode?: string;
+  io_input_filename?: string;
+  io_output_filename?: string;
 }
 
 export interface SubmissionType {
