@@ -273,6 +273,21 @@ class Problem(models.Model):
         blank=True,
         help_text=_("List of custom library identifiers allowed."),
     )
+    # Creator-controlled library & feature policy (judge-fairness wave C):
+    # per-language banned/banned_stdlib/allowed lists plus problem-level
+    # banned_features. ENFORCED vs best-effort tiers documented in
+    # problems/feature_policy.py.
+    library_policy = models.JSONField(
+        _("library & feature policy"),
+        default=dict,
+        blank=True,
+        help_text=_(
+            "Per-language library bans and feature bans: "
+            '{"python3": {"banned_stdlib": ["re"], "banned": ["numpy"], '
+            '"allowed": ["sympy"]}, "cpp17": {"banned": ["boost"]}, '
+            '"banned_features": ["py-no-string-ops"]}.'
+        ),
+    )
 
     # Progressive hints ladder (competitive roadmap EDT-2): ordered text
     # steps revealed one-by-one in the UI — the pedagogical middle ground

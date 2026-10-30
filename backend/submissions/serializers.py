@@ -169,7 +169,14 @@ class SubmissionCreateSerializer(serializers.ModelSerializer):
             # entries are judge inputs — reject URL/VCS/path/extras
             # specifiers at submit time with a 400 instead of executing
             # them anywhere near the judge. (The judge re-validates.)
-            for entry in problem.custom_libraries_allowed or []:
+            # Wave C: the policy's python "allowed" extras face the SAME
+            # pip allowlist validation as custom_libraries_allowed.
+            from problems.feature_policy import allowed_libraries as _policy_allows
+
+            for entry in [
+                *(problem.custom_libraries_allowed or []),
+                *_policy_allows(problem.library_policy, "python3"),
+            ]:
                 if not is_allowed_requirement(entry):
                     raise serializers.ValidationError(
                         {
@@ -178,6 +185,20 @@ class SubmissionCreateSerializer(serializers.ModelSerializer):
                                 "(only 'name' or 'name==version' allowed)"
                             )
                         }
+                    )
+            # Wave C library/feature policy (problems/feature_policy.py):
+            # submit-time static scan — a banned import/include/feature
+            # rejects the submission with a clear 400 instead of a
+            # judge-side surprise. (The judge re-scans: defense in depth.)
+            if problem.library_policy:
+                from problems.feature_policy import scan_policy_violations
+
+                violations = scan_policy_violations(
+                    attrs.get("code") or "", language, problem.library_policy
+                )
+                if violations:
+                    raise serializers.ValidationError(
+                        {"code": " ".join(violations)}
                     )
         # Contest gate (CON-1): registered + window open + board membership
         # + the OPR-4 in-contest cooldown.

@@ -65,6 +65,14 @@ export default function ProblemFormPage() {
   const [ioMode, setIoMode] = useState<string>('STDIO');
   const [ioInputFilename, setIoInputFilename] = useState<string>('input.txt');
   const [ioOutputFilename, setIoOutputFilename] = useState<string>('output.txt');
+  // Wave C: per-problem library & feature policy (creator-controlled bans).
+  // CSV text fields per language + a feature-ban checkbox; assembled into
+  // the library_policy JSON on submit.
+  const [pyBannedStdlib, setPyBannedStdlib] = useState<string>('');
+  const [pyBannedLibs, setPyBannedLibs] = useState<string>('');
+  const [pyAllowedLibs, setPyAllowedLibs] = useState<string>('');
+  const [cppBannedHeaders, setCppBannedHeaders] = useState<string>('');
+  const [banStringOps, setBanStringOps] = useState<boolean>(false);
 
   const [testCases, setTestCases] = useState<TestCaseUIManaged[]>([]);
   const [newTestCaseInput, setNewTestCaseInput] = useState('');
@@ -116,6 +124,14 @@ export default function ProblemFormPage() {
           setIoMode(data.io_mode === 'FILES' ? 'FILES' : 'STDIO');
           setIoInputFilename(data.io_input_filename || 'input.txt');
           setIoOutputFilename(data.io_output_filename || 'output.txt');
+          const policy = data.library_policy || {};
+          setPyBannedStdlib((policy.python3?.banned_stdlib || []).join(', '));
+          setPyBannedLibs((policy.python3?.banned || []).join(', '));
+          setPyAllowedLibs((policy.python3?.allowed || []).join(', '));
+          setCppBannedHeaders(
+            [...(policy.cpp17?.banned || []), ...(policy.c11?.banned || [])].join(', ')
+          );
+          setBanStringOps((policy.banned_features || []).includes('py-no-string-ops'));
           setSelectedTagIds(data.tags?.map((tag: TagType) => tag.id) || []);
           setTestCases(
             data.test_cases?.map((tc: TestCaseType): TestCaseUIManaged => ({
@@ -203,6 +219,30 @@ export default function ProblemFormPage() {
     }
   };
 
+  const csvToList = (value: string): string[] =>
+    value
+      .split(',')
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+
+  /** Wave C: assemble the per-problem library/feature policy from the
+   * CSV editor fields (empty lists are omitted so the JSON stays clean). */
+  const buildLibraryPolicy = (): ProblemType['library_policy'] => {
+    const policy: NonNullable<ProblemType['library_policy']> = {};
+    const py: Record<string, string[]> = {};
+    if (pyBannedStdlib.trim()) py.banned_stdlib = csvToList(pyBannedStdlib);
+    if (pyBannedLibs.trim()) py.banned = csvToList(pyBannedLibs);
+    if (pyAllowedLibs.trim()) py.allowed = csvToList(pyAllowedLibs);
+    if (Object.keys(py).length) policy.python3 = py;
+    const cppBanned = cppBannedHeaders.trim() ? csvToList(cppBannedHeaders) : [];
+    if (cppBanned.length) {
+      policy.cpp17 = { banned: cppBanned };
+      policy.c11 = { banned: cppBanned };
+    }
+    if (banStringOps) policy.banned_features = ['py-no-string-ops'];
+    return policy;
+  };
+
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setFormError(null);
@@ -230,6 +270,7 @@ export default function ProblemFormPage() {
       io_mode: ioMode,
       io_input_filename: ioMode === 'FILES' ? ioInputFilename : '',
       io_output_filename: ioMode === 'FILES' ? ioOutputFilename : '',
+      library_policy: buildLibraryPolicy(),
       tag_ids: selectedTagIds,
     };
 
@@ -365,6 +406,41 @@ export default function ProblemFormPage() {
               </div>
             </div>
           )}
+          <div style={fieldStyle}>
+            <label style={labelStyle}>{t('problem_form_policy_header', 'Library & feature policy')}:</label>
+            <p style={{ margin: '0 0 8px', color: 'var(--text-tertiary)', fontSize: '0.8rem' }}>
+              {t('problem_form_policy_hint', 'Comma-separated. Import bans are enforced at submit (clear 400) and at judge time; Boost availability itself is deployment-dependent.')}
+            </p>
+            <div style={{ display: 'grid', gap: '8px' }}>
+              <div>
+                <label htmlFor="py_banned_stdlib" style={labelStyle}>{t('problem_form_policy_py_stdlib', 'Python: banned stdlib modules (e.g. re)')}:</label>
+                <input id="py_banned_stdlib" type="text" value={pyBannedStdlib} onChange={(e) => setPyBannedStdlib(e.target.value)} style={inputStyle} placeholder="re, itertools" />
+              </div>
+              <div>
+                <label htmlFor="py_banned_libs" style={labelStyle}>{t('problem_form_policy_py_libs', 'Python: banned libraries (import names)')}:</label>
+                <input id="py_banned_libs" type="text" value={pyBannedLibs} onChange={(e) => setPyBannedLibs(e.target.value)} style={inputStyle} placeholder="numpy" />
+              </div>
+              <div>
+                <label htmlFor="py_allowed_libs" style={labelStyle}>{t('problem_form_policy_py_allowed', 'Python: extra allowed pip packages (name or name==version)')}:</label>
+                <input id="py_allowed_libs" type="text" value={pyAllowedLibs} onChange={(e) => setPyAllowedLibs(e.target.value)} style={inputStyle} placeholder="sympy==1.12" />
+              </div>
+              <div>
+                <label htmlFor="cpp_banned_headers" style={labelStyle}>{t('problem_form_policy_cpp_headers', 'C/C++: banned headers or prefixes (e.g. boost)')}:</label>
+                <input id="cpp_banned_headers" type="text" value={cppBannedHeaders} onChange={(e) => setCppBannedHeaders(e.target.value)} style={inputStyle} placeholder="boost" />
+              </div>
+              <span style={checkboxContainerStyle}>
+                <input
+                  type="checkbox"
+                  id="ban_string_ops"
+                  checked={banStringOps}
+                  onChange={(e) => setBanStringOps(e.target.checked)}
+                />
+                <label htmlFor="ban_string_ops" style={checkboxLabelStyle}>
+                  {t('problem_form_policy_no_string_ops', 'Ban treating the input as a string (indexing s[i], str methods) — enforce the arithmetic solution')}
+                </label>
+              </span>
+            </div>
+          </div>
         </div>
 
         <div style={sectionStyle}>

@@ -224,7 +224,7 @@ class JudgeTaskWaveATest(TestCase):
         sub = self._sub()
         captured = {}
 
-        def fake_run(exe, lang, input_data, t, m, submission_dir, libs, io_files=None):
+        def fake_run(exe, lang, input_data, t, m, submission_dir, libs, io_files=None, banned_stdlib_modules=None):
             captured["io_files"] = io_files
             in_path = submission_dir / io_files[0]
             captured["input_written"] = in_path.read_text()

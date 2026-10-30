@@ -42,6 +42,10 @@ export const MESSAGES: Record<PublicLocale, Record<string, string>> = {
       'Effective limit for {{lang}}: {{time}} ms / {{memory}} KB',
     problem_io_mode_label: 'I/O',
     problem_io_stdio: 'stdin / stdout',
+    problem_restrictions_label: 'Restrictions',
+    problem_restriction_no_string_ops:
+      'the input must not be treated as a string (no s[i] / string methods)',
+    problem_restriction_banned: 'banned: {{items}}',
     problem_id_label: 'Problem ID',
     problem_not_found: 'Problem not found.',
     problem_statement_header: 'Problem Statement',
@@ -236,6 +240,10 @@ export const MESSAGES: Record<PublicLocale, Record<string, string>> = {
       'Limita efectivă pentru {{lang}}: {{time}} ms / {{memory}} KB',
     problem_io_mode_label: 'Intrare/Ieșire',
     problem_io_stdio: 'stdin / stdout',
+    problem_restrictions_label: 'Restricții',
+    problem_restriction_no_string_ops:
+      'intrarea nu trebuie tratată ca text (fără s[i] / metode de șir)',
+    problem_restriction_banned: 'interzise: {{items}}',
     problem_id_label: 'ID-ul problemei',
     problem_not_found: 'Problema nu a fost găsită.',
     problem_statement_header: 'Enunțul Problemei',

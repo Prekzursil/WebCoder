@@ -98,6 +98,7 @@ def run_code_in_sandbox(
     submission_dir: pathlib.Path,
     custom_libraries_allowed: list[str] | None = None,
     io_files: tuple[str, str] | None = None,
+    banned_stdlib_modules: list[str] | None = None,
 ):
     """Runs code in the judge sandbox.
 
@@ -111,6 +112,11 @@ def run_code_in_sandbox(
     submission dir read-write (the program must create the output file), and
     reads the output file back as the run's output. A missing output file
     maps to RUNTIME_ERROR with an explicit message.
+
+    ``banned_stdlib_modules`` (wave C): non-empty only for python3 — the
+    judged run goes through a generated ``_wc_guard.py`` that installs a
+    meta-path import blocker for those modules (fail-closed for dynamic
+    imports) and then runs the submitted program with runpy.
     """
 
     print(
@@ -158,7 +164,28 @@ def run_code_in_sandbox(
 
     backend = get_judge_backend()
 
-    if language == "python3" and custom_libraries_allowed:
+    if language == "python3" and banned_stdlib_modules:
+        # Wave C: write the generated import guard next to the program and
+        # run THROUGH it — the guard bans the modules at meta-path level
+        # (fail-closed for importlib.import_module and aliasing), then
+        # runpy's the submitted source with __main__ semantics. Custom
+        # libs (if any) stay on PYTHONPATH for the guarded run too.
+        from problems.feature_policy import build_python_import_guard
+
+        guard_path = submission_dir / "_wc_guard.py"
+        guard_path.write_text(
+            build_python_import_guard(banned_stdlib_modules), encoding="utf-8"
+        )
+        if custom_libraries_allowed:
+            program_and_args = [
+                "sh",
+                "-c",
+                f"PYTHONPATH={LIBS_DIR_NAME}:$PYTHONPATH python _wc_guard.py",
+            ]
+        else:
+            program_and_args = ["python", "_wc_guard.py"]
+
+    elif language == "python3" and custom_libraries_allowed:
         program_and_args = [
             "sh",
             "-c",
