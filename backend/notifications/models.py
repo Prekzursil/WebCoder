@@ -20,6 +20,8 @@ class Notification(models.Model):
         PROBLEM_REJECTED = "PROBLEM_REJECTED", _("Problem rejected")
         # EDU-2: a teacher published a new tema in one of your classes.
         ASSIGNMENT_PUBLISHED = "ASSIGNMENT_PUBLISHED", _("Assignment published")
+        # COM-5 (owner reversal 2026-10-30): a private message arrived.
+        MESSAGE_RECEIVED = "MESSAGE_RECEIVED", _("Message received")
         # i18n wave: a community translation proposal decision.
         TRANSLATION_APPROVED = "TRANSLATION_APPROVED", _("Translation approved")
         TRANSLATION_REJECTED = "TRANSLATION_REJECTED", _("Translation rejected")

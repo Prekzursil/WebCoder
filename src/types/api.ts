@@ -247,6 +247,7 @@ export type NotificationVerb =
     | 'THREAD_REPLY'
     | 'PROBLEM_APPROVED'
     | 'PROBLEM_REJECTED'
+    | 'MESSAGE_RECEIVED'
     | 'SYSTEM';
 
 /** Notification as returned by the list/mark-read endpoints. */
@@ -265,6 +266,89 @@ export interface ApiNotification {
 }
 
 export type GetNotificationsResponse = CursorPaginatedResponse<ApiNotification>;
+
+// =================================
+// Messaging types (COM-5 private 1:1 threads)
+// =================================
+
+/** The minimal user shape messaging surfaces (id + username only). */
+export interface MessagingUser {
+    id: number;
+    username: string;
+}
+
+/** A 1:1 conversation row from GET /messages/threads/. */
+export interface ApiConversation {
+    id: number;
+    other_user: MessagingUser;
+    unread_count: number;
+    last_message: {
+        sender_id: number;
+        excerpt: string;
+        created_at: string;
+    } | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export type GetConversationsResponse = PaginatedResponse<ApiConversation>;
+
+/** A message inside a conversation (plain text — rendered as text only). */
+export interface ApiPrivateMessage {
+    id: number;
+    sender: MessagingUser;
+    body: string;
+    created_at: string;
+    read_at: string | null;
+}
+
+export type GetPrivateMessagesResponse = CursorPaginatedResponse<ApiPrivateMessage>;
+
+/** The viewer's block (mute) list. */
+export interface ApiBlock {
+    id: number;
+    blocked: MessagingUser;
+    created_at: string;
+}
+
+export type GetBlocksResponse = PaginatedResponse<ApiBlock>;
+
+/** A report against a private message, for the moderation queue. */
+export interface ApiMessageReport {
+    id: number;
+    message: ApiPrivateMessage & { is_flagged?: boolean };
+    reporter: MessagingUser;
+    reason: 'SPAM' | 'ABUSE' | 'GROOMING' | 'OTHER';
+    details: string;
+    status: 'OPEN' | 'RESOLVED' | 'DISMISSED';
+    resolution_note: string;
+    resolved_by: MessagingUser | null;
+    created_at: string;
+}
+
+export type GetMessageReportsResponse = PaginatedResponse<ApiMessageReport>;
+
+/** Admin audit metadata row (no bodies). */
+export interface ApiAdminConversation {
+    id: number;
+    participants: MessagingUser[];
+    message_count: number;
+    has_report: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export type GetAdminConversationsResponse = PaginatedResponse<ApiAdminConversation>;
+
+/** A content-filter flag row (moderator queue). */
+export interface ApiFlaggedMessage {
+    id: number;
+    conversation: number;
+    sender: MessagingUser;
+    body: string;
+    flag_categories: string[];
+    created_at: string;
+}
 
 // =================================
 // Contest engine (backend contests app, Wave B CON-1..10)

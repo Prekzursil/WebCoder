@@ -66,6 +66,12 @@ urlpatterns = [
         "api/v1/translations/",
         include("translations.urls", namespace="translations_api_v1"),
     ),
+    # Private 1:1 message threads (competitive roadmap COM-5, owner
+    # reversal 2026-10-30: shipped WITH the full safety stack).
+    path(
+        "api/v1/messages/",
+        include("messaging.urls", namespace="messaging_api_v1"),
+    ),
     # Custom invocation / scratch run (competitive roadmap X7/JDG-6) —
     # throttled + audit-logged raw judge execution.
     path("api/v1/scratch/", include("scratch.urls", namespace="scratch_api_v1")),

@@ -1,6 +1,6 @@
 # WebCoder — Product Roadmap (layered)
 
-Last updated: 2026-10-24 · This is the master plan. Layers are the platform's architecture; within each, items carry status: **SHIPPED** (with PR), **IN FLIGHT** (current program: waves A–D → parity audit → judge-fairness → i18n-10 → mobile → waves E/F/G), or **NEXT** (backlog item numbers from `BACKLOG.md`, e.g. "B-29"). Work top-down within dependencies; the tracker of record for item-level status is `BACKLOG.md`.
+Last updated: 2026-10-30 · This is the master plan. Layers are the platform's architecture; within each, items carry status: **SHIPPED** (with PR), **IN FLIGHT** (current program: waves A–D → parity audit → judge-fairness → i18n-10 → mobile → waves E/F/G), or **NEXT** (backlog item numbers from `BACKLOG.md`, e.g. "B-29"). Work top-down within dependencies; the tracker of record for item-level status is `BACKLOG.md`.
 
 ## Layer 0 — Core judge & execution
 - SHIPPED: sandboxed docker-exec judge; 5 languages; per-test partial scoring; custom checkers (5 modes); per-problem time/mem limits; MLE/TLE genuine detection; verdict-forging backdoors removed; submit-time language validation (#181–#183).
@@ -17,7 +17,7 @@ Last updated: 2026-10-24 · This is the master plan. Layers are the platform's a
 - NEXT: virtual contests (C-46), upsolving mode (C-47), hacks/counter-tests (C-48), teams (C-49), school cups (C-50), rating graphs (C-51), percentiles (C-52), divisions (C-53), long contests (C-54), replay (C-57), frozen-board drama (C-58).
 
 ## Layer 3 — Community, content & authoring
-- SHIPPED: forum (threads/posts/votes/reports/moderation), notifications, translation proposals pipeline + AI curator (in flight with i18n wave).
+- SHIPPED: forum (threads/posts/votes/reports/moderation), notifications, translation proposals pipeline + AI curator (in flight with i18n wave); private 1:1 messaging COM-5 (owner reversal 2026-10-30 — the roadmap's skip was overridden and the feature shipped WITH its full moderation burden: per-message reporting, RO+EN content filter flag-not-block, blocks honored end-to-end, send/thread rate limits, minor-safety contact policy, admin audit view metadata-only with transcripts behind an explicit report).
 - IN FLIGHT: editorials/hints patterns (wave A/C), moderation-before-UGC sequencing, legal groundwork (wave C), per-problem discuss (parity audit scope).
 - NEXT: editorials system (D-59), per-problem discuss (D-60), solution sharing (D-61/11), blogs (D-62), wiki (D-63), WA-help queue (D-64), follow/feeds (D-65), reputation (D-66), problem-request board (D-69), embeds (D-72); authoring: wizard (I-121), generator DSL (I-122), statement linter (I-123), versioning (I-125), variants (I-126), Polygon import (I-127), attachments (I-128), advanced search (I-129), source attribution (I-130), author analytics (I-132).
 
