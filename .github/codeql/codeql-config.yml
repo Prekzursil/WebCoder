@@ -17,7 +17,14 @@ name: "webcoder CodeQL config"
 #                                  not from attacker-reachable input. Treating
 #                                  them as application source produces
 #                                  build-tooling false positives.
+#   * scripts                    - operator CLI tools (load_smoke.py,
+#                                  contest_replay.py) whose HTTP targets come
+#                                  from the operator's own --base argument /
+#                                  env, not from attacker-reachable input —
+#                                  the py/ssrf query has no argv model
+#                                  (precedent: dismissed alert #130).
 paths-ignore:
   - backend/venv
+  - scripts
   # (frontend/webcoder_ui ignores removed 2026-10-27 — that directory no longer
   # exists on the unified single branch; the Next.js app lives at the repo root.)

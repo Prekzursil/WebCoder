@@ -231,6 +231,8 @@ class TestBeatSchedule:
             "deleted-users-purge",
             "contest-tick",  # Wave B CON-8/OPR-4: end-of-contest finalize
             "owner-weekly-metrics",  # ANA-1 (Wave D): Monday snapshot
+            "weekly-digest",  # UXP-5b: weekly practice digest (no-ops
+            # without EMAIL_HOST — see RUNBOOK §email)
         }
         assert (
             CELERY_BEAT_SCHEDULE["leaderboard-nightly-recompute"]["task"]

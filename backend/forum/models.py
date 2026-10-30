@@ -103,6 +103,12 @@ class Post(models.Model):
     is_hidden = models.BooleanField(_("hidden"), default=False)
     hidden_reason = models.CharField(_("hidden reason"), max_length=200, blank=True)
     is_edited = models.BooleanField(_("edited"), default=False)
+    # COM-1: spoiler flag — meaningful only inside problem-scoped threads,
+    # where a reply can give away the solution. The client renders flagged
+    # posts behind an explicit reveal control (the Codewars kata-discourse
+    # Spoiler pattern); the server keeps the flag so the contract survives
+    # any client.
+    is_spoiler = models.BooleanField(_("spoiler"), default=False)
     upvotes = models.IntegerField(
         _("upvotes"), default=0
     )  # denormalized net score (Sum of votes)

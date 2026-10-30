@@ -17,6 +17,7 @@ from .views import (
     TOTPVerifyView,
     TOTPDisableView,
     APITokenListView,
+    FollowingListView,
 )
 
 app_name = "users"
@@ -54,6 +55,12 @@ urlpatterns = [
     path("me/totp/verify/", TOTPVerifyView.as_view(), name="totp_verify"),
     path("me/totp/disable/", TOTPDisableView.as_view(), name="totp_disable"),
     path("me/tokens/", APITokenListView.as_view(), name="api_tokens"),
+    # COM-4: the friends/follow graph.
+    path(
+        "me/following/",
+        FollowingListView.as_view(),
+        name="user_following",
+    ),
     # Include the router URLs for admin user management
     path("", include(router.urls)),
 ]

@@ -51,6 +51,21 @@ class LeaderboardListView(generics.ListAPIView):
                 qs = qs.filter(user__county__iexact=county)
             if school:
                 qs = qs.filter(user__school__iexact=school)
+        # COM-4: friends-only view — the viewer plus everyone they follow
+        # (the Codeforces friends-filtered standings pattern). Anonymous
+        # callers keep the unfiltered board; the flag is ignored rather
+        # than 401-ing the public leaderboard.
+        if self.request.query_params.get("friends", "") in ("1", "true"):
+            user = self.request.user
+            if user.is_authenticated:
+                from users.models import Follow
+
+                friend_ids = list(
+                    Follow.objects.filter(follower=user).values_list(
+                        "target_id", flat=True
+                    )
+                )
+                qs = qs.filter(user_id__in=[user.id, *friend_ids])
         return qs
 
 

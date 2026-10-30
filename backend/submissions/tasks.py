@@ -132,20 +132,36 @@ def judge_submission_task(self, submission_id):
                         test_cases = pretests
                         pretest_run = True
             submission.verdict = Submission.VerdictStatus.COMPILING
-            submission.detailed_feedback = (
-                "Compiling (pretest run)…" if pretest_run else "Compiling..."
-            )
+            if problem.problem_type == Problem.ProblemType.OUTPUT_ONLY:
+                submission.detailed_feedback = "Evaluating answer (output-only)..."
+            else:
+                submission.detailed_feedback = (
+                    "Compiling (pretest run)…" if pretest_run else "Compiling..."
+                )
             submission.save()
 
         temp_dir_obj = _judge_workspace(f"submission_{submission_id}_")
         submission_dir = pathlib.Path(temp_dir_obj.name)
 
-        compile_success, compiler_output, executable_path_str = compile_code_in_sandbox(
-            submission.code,
-            submission.language,
-            submission_dir,
-            problem.custom_libraries_allowed,
-        )
+        if problem.problem_type == Problem.ProblemType.OUTPUT_ONLY:
+            # JDG-3: output-only problems never compile and never run —
+            # the submitted answer text IS the candidate output for every
+            # test, compared (or checker-evaluated) like a program's
+            # stdout. executable_path_str stays None; the per-test loop's
+            # OUTPUT_ONLY branch runs before the missing-executable IE
+            # guard, so a submission always reaches the compare phase.
+            compile_success = True
+            compiler_output = "Output-only submission — no compilation."
+            executable_path_str = None
+        else:
+            compile_success, compiler_output, executable_path_str = (
+                compile_code_in_sandbox(
+                    submission.code,
+                    submission.language,
+                    submission_dir,
+                    problem.custom_libraries_allowed,
+                )
+            )
 
         # Update submission status after compilation attempt
         with transaction.atomic():
@@ -169,14 +185,24 @@ def judge_submission_task(self, submission_id):
                 return f"Submission {submission_id}: Compile Error."
 
             submission.verdict = Submission.VerdictStatus.RUNNING
-            submission.detailed_feedback = f"Compilation successful. Running test cases...\nCompiler Output:\n{compiler_output}"
+            if problem.problem_type == Problem.ProblemType.OUTPUT_ONLY:
+                submission.detailed_feedback = (
+                    "Output-only submission — comparing the answer text "
+                    "against every test case..."
+                )
+            else:
+                submission.detailed_feedback = f"Compilation successful. Running test cases...\nCompiler Output:\n{compiler_output}"
             submission.save()
 
         # Custom-library install phase (SPEC-GAPS J3/E1): ONE pip container
         # per submission, BEFORE any judged run. Fail-closed egress by
         # default (JUDGE_PIP_NETWORK=none); the judged runs themselves stay
         # network-isolated either way (execution.py).
-        if submission.language == "python3" and problem.custom_libraries_allowed:
+        if (
+            submission.language == "python3"
+            and problem.custom_libraries_allowed
+            and problem.problem_type != Problem.ProblemType.OUTPUT_ONLY
+        ):
             libs_ok, libs_message = install_custom_libs(
                 submission_dir, problem.custom_libraries_allowed
             )
@@ -294,7 +320,16 @@ def judge_submission_task(self, submission_id):
         checker_fraction = None
 
         for i, tc in enumerate(test_cases):
-            if executable_path_str is None:
+            if problem.problem_type == Problem.ProblemType.OUTPUT_ONLY:
+                # JDG-3: no execution — the answer text is the candidate
+                # output for this test; tc_verdict=ACCEPTED flows into the
+                # shared compare/checker section below unchanged.
+                tc_verdict = Submission.VerdictStatus.ACCEPTED
+                tc_time = 0
+                tc_mem = 0
+                tc_output = submission.code
+                tc_error = ""
+            elif executable_path_str is None:
                 overall_verdict = Submission.VerdictStatus.INTERNAL_ERROR
                 SubmissionTestResult.objects.create(
                     submission=submission,
@@ -389,20 +424,25 @@ def judge_submission_task(self, submission_id):
                         overall_verdict = final_tc_verdict
                 continue
 
-            if io_files:
-                (submission_dir / io_files[0]).write_text(
-                    tc.input_data, encoding="utf-8"
+            if problem.problem_type != Problem.ProblemType.OUTPUT_ONLY:
+                # JDG-3: OUTPUT_ONLY set the candidate output above and
+                # never reaches the sandbox.
+                if io_files:
+                    (submission_dir / io_files[0]).write_text(
+                        tc.input_data, encoding="utf-8"
+                    )
+                tc_verdict, tc_time, tc_mem, tc_output, tc_error = (
+                    run_code_in_sandbox(
+                        executable_path_str,
+                        submission.language,
+                        tc.input_data,
+                        eff_time_ms,
+                        eff_mem_kb,
+                        submission_dir,
+                        problem.custom_libraries_allowed,  # Pass custom libraries here as well
+                        io_files=io_files,
+                    )
                 )
-            tc_verdict, tc_time, tc_mem, tc_output, tc_error = run_code_in_sandbox(
-                executable_path_str,
-                submission.language,
-                tc.input_data,
-                eff_time_ms,
-                eff_mem_kb,
-                submission_dir,
-                problem.custom_libraries_allowed,  # Pass custom libraries here as well
-                io_files=io_files,
-            )
 
             max_time_ms_overall = max(
                 max_time_ms_overall, tc_time if tc_time is not None else 0

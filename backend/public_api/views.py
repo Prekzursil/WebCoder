@@ -85,6 +85,34 @@ class PublicAPIThrottle(SimpleRateThrottle):
         return self.cache_format % {"scope": self.scope, "ident": ident}
 
 
+class PublicLanguagesView(APIView):
+    """GET /api/v1/public/languages/ — the judge registry, public (JDG-9).
+
+    The /help/judge toolchain page and the public API's consumers read the
+    exact same LanguageSpec rows the judge itself uses — one source of
+    truth, no drift between docs and sandbox.
+    """
+
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [PublicAPIThrottle]
+
+    def get(self, request):
+        from submissions.judge_utils.languages import LANGUAGES
+
+        rows = [
+            {
+                "id": spec.language_id,
+                "name": spec.display_name,
+                "compile_command": list(spec.compile_command or ()),
+                "run_command": list(spec.run_command),
+            }
+            for spec in sorted(LANGUAGES.values(), key=lambda x: x.language_id)
+        ]
+        return Response(
+            {"notice": PUBLIC_API_NOTICE, "count": len(rows), "results": rows}
+        )
+
+
 class PublicProblemList(APIView):
     """GET /public/problems/ — APPROVED problems with taxonomy tags.
 
@@ -242,6 +270,7 @@ class PublicRoot(APIView):
                     "/api/v1/public/leaderboard/",
                     "/api/v1/public/feed/",
                     "/api/v1/public/tags/",
+                    "/api/v1/public/languages/",
                 ],
             }
         )

@@ -142,13 +142,13 @@ class ProblemSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
-        """JDG-2: an INTERACTIVE problem must carry a compilable interactor.
+        """JDG-2/JDG-3: cross-field problem-type rules at authoring time.
 
-        The cross-field rule is enforced at authoring time so a broken
-        interactive problem can never reach the queue (and the judge's
-        missing-interactor branch stays a defense-in-depth IE, not the
-        first line of feedback). Language validity itself is checked by
-        ``compile_interactor`` at judge time the same way checkers are.
+        INTERACTIVE problems must carry a compilable interactor (the rule
+        below keeps a broken interactive problem off the queue; the judge's
+        missing-interactor branch stays a defense-in-depth IE). OUTPUT_ONLY
+        problems never execute anything, so an interactor there is always a
+        misconfiguration — reject it instead of silently ignoring it.
         """
         problem_type = attrs.get(
             "problem_type",
@@ -167,6 +167,16 @@ class ProblemSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     "INTERACTIVE problems require interactor_code and "
                     "interactor_language."
+                )
+        if problem_type == Problem.ProblemType.OUTPUT_ONLY:
+            code = attrs.get(
+                "interactor_code",
+                getattr(self.instance, "interactor_code", None),
+            )
+            if code:
+                raise serializers.ValidationError(
+                    "OUTPUT_ONLY problems are not executed — an interactor "
+                    "cannot apply. Remove interactor_code."
                 )
         return attrs
 
