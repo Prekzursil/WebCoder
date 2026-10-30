@@ -480,6 +480,29 @@ def get_language(language_id: str) -> LanguageSpec | None:
     return LANGUAGES.get(language_id)
 
 
+#: Wave D engine 2 — Scratch block programs are a SUBMISSION language, not
+#: a judge toolchain: the source is an sb3 project JSON that the judge
+#: transpiles to Python (problems/scratch_transpiler.py documents why the
+#: transpiling path shipped instead of headless scratch-vm). For
+#: language-fair limits the transpiled program IS a CPython program, so
+#: scratch inherits python3's multipliers — anything else would re-create
+#: exactly the low-level-only bias this wave exists to remove.
+SCRATCH_LANGUAGE_ID = "scratch"
+SCRATCH_JUDGED_AS = "python3"
+
+
+def judged_language(language_id: str) -> str:
+    """The registry language a submission is actually executed as.
+
+    Every registry id maps to itself; the Scratch pseudo-language maps to
+    ``python3`` (the transpiler's target), so compile/run paths and the
+    J5 effective limits stay registry-driven for block submissions too.
+    """
+    if language_id == SCRATCH_LANGUAGE_ID:
+        return SCRATCH_JUDGED_AS
+    return language_id
+
+
 def effective_limits(
     default_time_ms: int,
     default_memory_kb: int,
@@ -489,12 +512,15 @@ def effective_limits(
     """Resolve the effective (time_ms, memory_kb) for one language (J5).
 
     Layers, most specific first:
-    1. ``Problem.limit_overrides[language_id]`` — explicit author override.
+    1. ``Problem.limit_overrides[language_id]`` — explicit author override
+       (keyed by the SUBMISSION language, so a 'scratch' override beats
+       the python3 multipliers the pseudo-language inherits).
     2. Language registry multipliers/floors — the time multiplier, the
        memory multiplier, and the memory floor for heavy runtimes
-       (``max(limit * memory_multiplier, memory_floor_kb)``).
+       (``max(limit * memory_multiplier, memory_floor_kb)``). The Scratch
+       pseudo-language resolves through :func:`judged_language` (→ python3).
     """
-    spec = LANGUAGES.get(language_id)
+    spec = LANGUAGES.get(judged_language(language_id))
     time_mult = spec.time_multiplier if spec else 1.0
     mem_mult = spec.memory_multiplier if spec else 1.0
     floor_kb = spec.memory_floor_kb if spec else 0

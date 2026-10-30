@@ -13,6 +13,7 @@
 // scratch-vm fits a sprite-animation product, not a judge.
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { analyzeComplexity, hintMessage } from './complexity';
 import { useTranslation } from 'react-i18next';
 
 import { WC_JS_PREAMBLE } from './wcBlocks';
@@ -47,7 +48,13 @@ export const DEFAULT_TOOLBOX_XML = `
     <block type="wc_input_number"></block>
     <block type="wc_input_line"></block>
   </category>
+  <category name="%(lists)s" colour="%{BKY_LISTS_HUE}">
+    <block type="lists_create_with"></block>
+    <block type="lists_length"></block>
+    <block type="lists_getIndex"></block>
+  </category>
   <category name="%(variables)s" colour="%{BKY_VARIABLES_HUE}" custom="VARIABLE"></category>
+  <category name="%(functions)s" colour="%{BKY_PROCEDURES_HUE}" custom="PROCEDURE"></category>
 </xml>`;
 
 /** Starter workspace: read n, print n % 10. */
@@ -130,6 +137,7 @@ export default function BlockEditor({
   const genRef = useRef<((ws: unknown) => string) | null>(null);
   const [showCode, setShowCode] = useState(false);
   const [code, setCode] = useState('');
+  const [hints, setHints] = useState<string[]>([]);
   const onChangeRef = useRef(onCodeChange);
   onChangeRef.current = onCodeChange;
 
@@ -138,6 +146,9 @@ export default function BlockEditor({
       const generated = genRef.current(workspaceRef.current);
       setCode(generated);
       onChangeRef.current?.(generated);
+      // Complexity hints (owner spec): flag nested loops / endless loops
+      // in the generated program — advisory, never a verdict.
+      setHints(analyzeComplexity(generated));
     }
   }, []);
 
@@ -171,7 +182,9 @@ export default function BlockEditor({
         math: t('blocks_cat_math', 'Math'),
         text: t('blocks_cat_text', 'Text'),
         input: t('blocks_cat_input', 'Input'),
+        lists: t('blocks_cat_lists', 'Lists'),
         variables: t('blocks_cat_variables', 'Variables'),
+        functions: t('blocks_cat_functions', 'Functions'),
       });
 
       const workspace = Blockly.inject(containerRef.current, {
@@ -237,6 +250,33 @@ export default function BlockEditor({
             : t('blocks_generates_python', 'generates Python 3')}
         </span>
       </div>
+      {hints.length > 0 && (
+        <div
+          data-testid="complexity-hints"
+          style={{
+            marginTop: '8px',
+            display: 'grid',
+            gap: '6px',
+          }}
+        >
+          {hints.map((hint) => (
+            <p
+              key={hint}
+              style={{
+                margin: 0,
+                padding: '8px 10px',
+                border: '1px solid var(--border)',
+                borderRadius: 8,
+                background: 'var(--surface-2)',
+                color: 'var(--muted)',
+                fontSize: '0.78rem',
+              }}
+            >
+              ⚠ {hintMessage(hint as Parameters<typeof hintMessage>[0], t)}
+            </p>
+          ))}
+        </div>
+      )}
       {showCode && (
         <pre
           data-testid="generated-code"

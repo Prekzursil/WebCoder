@@ -98,9 +98,13 @@ class ProblemSerializer(serializers.ModelSerializer):
     def get_effective_limits(self, obj) -> dict:
         """{language_id: {"time_ms": int, "memory_kb": int}} for the
         problem's allowed languages (every registry language when the
-        problem declares no restriction)."""
+        problem declares no restriction). The Scratch pseudo-language
+        (wave D engine 2) is included when allowed: its row resolves
+        through the python3 multipliers because the judge transpiles the
+        project to Python before running it."""
         from submissions.judge_utils.languages import (
             LANGUAGES,
+            SCRATCH_LANGUAGE_ID,
             effective_limits,
         )
 
@@ -118,7 +122,7 @@ class ProblemSerializer(serializers.ModelSerializer):
                 )
             )
             for lang in languages
-            if lang in LANGUAGES
+            if lang in LANGUAGES or lang == SCRATCH_LANGUAGE_ID
         }
     # test_cases = TestCaseSerializer(many=True, read_only=True) # To show test cases when retrieving a problem
 
@@ -177,9 +181,14 @@ class ProblemSerializer(serializers.ModelSerializer):
         (submissions.serializers.SubmissionCreateSerializer), so entries the
         judge could never accept would silently block every submission for
         the problem — reject them at authoring time instead. An empty list
-        means "no restriction" and stays valid.
+        means "no restriction" and stays valid. The one non-registry id
+        accepted is ``scratch`` (wave D engine 2): a block pseudo-language
+        whose sb3 project JSON transpiles to judged Python; a problem that
+        lists scratch without a Scratch block_config simply rejects
+        scratch submissions at submit time.
         """
         from submissions.judge_utils.languages import (
+            SCRATCH_LANGUAGE_ID,
             SUPPORTED_LANGUAGE_IDS,
             get_language,
         )
@@ -187,13 +196,16 @@ class ProblemSerializer(serializers.ModelSerializer):
         if not value:
             return value
         unknown = [
-            lang for lang in value if get_language(str(lang)) is None
+            lang
+            for lang in value
+            if get_language(str(lang)) is None
+            and str(lang) != SCRATCH_LANGUAGE_ID
         ]
         if unknown:
             raise serializers.ValidationError(
                 f"Unknown language ids in allowed_languages: "
                 f"{', '.join(map(str, unknown))}. Supported languages: "
-                f"{', '.join(SUPPORTED_LANGUAGE_IDS)}."
+                f"{', '.join((*SUPPORTED_LANGUAGE_IDS, SCRATCH_LANGUAGE_ID))}."
             )
         return value
 
@@ -268,13 +280,62 @@ class ProblemSerializer(serializers.ModelSerializer):
         return value
 
     def validate_block_config(self, value):
-        """Wave D: a block config names a generator the judge runs and
-        optional Blockly XML documents (size-capped)."""
+        """Wave D: block problems come in two engines (owner directive
+        2026-10-30 — BOTH, not one or the other).
+
+        - ``engine: 'blockly'`` (default; PR #252 layout): ``generator``
+          names the judge language the blocks generate into, plus optional
+          ``toolbox``/``starter`` XML (size-capped).
+        - ``engine: 'scratch'``: ``scratch_project`` is the starter sb3
+          project JSON (string, size-capped) and ``scratch_blocks`` is the
+          per-problem block allowlist (opcodes; mirrored role to the
+          Blockly toolbox). Judged via transpile — see
+          problems/scratch_transpiler.py.
+        """
         if value in (None, {}):
             return value
         if not isinstance(value, dict):
             raise serializers.ValidationError("block_config must be an object.")
         from submissions.judge_utils.languages import get_language
+
+        engine = value.get("engine", "blockly")
+        if engine not in ("blockly", "scratch"):
+            raise serializers.ValidationError(
+                "block_config.engine must be 'blockly' or 'scratch'."
+            )
+        if engine == "scratch":
+            from .scratch_transpiler import KNOWN_OPCODES
+
+            allowed_keys = {"engine", "scratch_project", "scratch_blocks"}
+            project = value.get("scratch_project")
+            if project is not None and (
+                not isinstance(project, str) or len(project) > 500_000
+            ):
+                raise serializers.ValidationError(
+                    "block_config.scratch_project must be a project-JSON "
+                    "string under 500KB."
+                )
+            blocks = value.get("scratch_blocks")
+            if blocks is not None:
+                if not isinstance(blocks, list) or not all(
+                    isinstance(op, str) for op in blocks
+                ):
+                    raise serializers.ValidationError(
+                        "block_config.scratch_blocks must be a list of "
+                        "opcode strings."
+                    )
+                unknown_ops = sorted(set(blocks) - KNOWN_OPCODES)
+                if unknown_ops:
+                    raise serializers.ValidationError(
+                        "block_config.scratch_blocks has no judged mapping: "
+                        + ", ".join(unknown_ops)
+                    )
+            unknown = set(value) - allowed_keys
+            if unknown:
+                raise serializers.ValidationError(
+                    f"Unknown block_config keys: {', '.join(sorted(unknown))}."
+                )
+            return value
 
         generator = value.get("generator", "python3")
         spec = get_language(str(generator))
@@ -290,7 +351,7 @@ class ProblemSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     f"block_config.{key} must be an XML string under 100KB."
                 )
-        unknown = set(value) - {"generator", "toolbox", "starter"}
+        unknown = set(value) - {"engine", "generator", "toolbox", "starter"}
         if unknown:
             raise serializers.ValidationError(
                 f"Unknown block_config keys: {', '.join(sorted(unknown))}."

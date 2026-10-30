@@ -894,7 +894,8 @@ describe('ProblemFormPage (block programming)', () => {
     fireEvent.submit(screen.getByRole('button', { name: 'Create Problem' }).closest('form')!);
     await waitFor(() => expect(api.createProblem).toHaveBeenCalled());
     const payload = api.createProblem.mock.calls[0][0] as Record<string, unknown>;
-    expect(payload.block_config).toEqual({ generator: 'python3' });
+    // Wave D engine 2: blockly configs now carry the explicit engine key.
+    expect(payload.block_config).toEqual({ engine: 'blockly', generator: 'python3' });
   });
 
   it('keeps block_config empty when block mode is off', async () => {
@@ -916,8 +917,26 @@ describe('ProblemFormPage (block programming)', () => {
     await waitFor(() => expect(api.createProblem).toHaveBeenCalled());
     const payload = api.createProblem.mock.calls[0][0] as Record<string, unknown>;
     expect(payload.block_config).toEqual({
+      engine: 'blockly',
       generator: 'nodejs20',
       starter: '<xml></xml>',
+    });
+  });
+
+  it('submits a scratch engine config with the curated opcode list', async () => {
+    render(<ProblemFormPage />);
+    await screen.findByLabelText(/Free Pascal/);
+    fireEvent.click(screen.getByLabelText(/Block programming/i));
+    fireEvent.change(screen.getByLabelText(/Block engine/i), { target: { value: 'scratch' } });
+    fireEvent.change(screen.getByLabelText(/Allowed Scratch blocks/i), {
+      target: { value: 'event_whenflagclicked, looks_say , sensing_askandwait' },
+    });
+    fireEvent.submit(screen.getByRole('button', { name: 'Create Problem' }).closest('form')!);
+    await waitFor(() => expect(api.createProblem).toHaveBeenCalled());
+    const payload = api.createProblem.mock.calls[0][0] as Record<string, unknown>;
+    expect(payload.block_config).toEqual({
+      engine: 'scratch',
+      scratch_blocks: ['event_whenflagclicked', 'looks_say', 'sensing_askandwait'],
     });
   });
 });
