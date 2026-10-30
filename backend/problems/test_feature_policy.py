@@ -442,3 +442,118 @@ class CoverageCompletenessTests(unittest.TestCase):
         self.assertEqual(
             scan_policy_violations(code, "python3", PY_NO_STRING), []
         )
+
+
+class GuardedExecutionTests(TestCase):
+    """The judged python3 run routes through the generated guard when the
+    problem bans stdlib modules (execution.py), and a compliant policy
+    never short-circuits the judge loop (tasks.py branch coverage)."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username="gx", password="p")
+        self.problem = Problem.objects.create(
+            title_i18n={"en": "P"},
+            statement_i18n={"en": "S"},
+            status=Problem.ProblemStatus.APPROVED,
+            library_policy={"python3": {"banned_stdlib": ["re"]}},
+        )
+        self.sub = Submission.objects.create(
+            user=self.user,
+            problem=self.problem,
+            language="python3",
+            code="n = int(input())\nprint(n % 10)\n",
+        )
+
+    def test_guard_written_and_used_in_run_argv(self):
+        import pathlib
+        import tempfile
+        from unittest import mock
+
+        from submissions.judge_utils.execution import run_code_in_sandbox
+        from submissions.models import Submission as Sub
+
+        with tempfile.TemporaryDirectory() as tmp:
+            workdir = pathlib.Path(tmp)
+            (workdir / "user_code.py").write_text("print(1)\n")
+
+            def fake_run(argv, **kwargs):
+                return mock.Mock(
+                    returncode=0,
+                    stdout="1\n",
+                    stderr="0.01 0.01 1024 0 90.0% 0.02\n",
+                )
+
+            with mock.patch("subprocess.run", side_effect=fake_run):
+                verdict, *_ = run_code_in_sandbox(
+                    str(workdir / "user_code.py"),
+                    "python3",
+                    "1",
+                    1000,
+                    262144,
+                    workdir,
+                    None,
+                    banned_stdlib_modules=["re"],
+                )
+            self.assertEqual(verdict, Sub.VerdictStatus.ACCEPTED)
+            guard = workdir / "_wc_guard.py"
+            self.assertTrue(guard.exists())
+            self.assertIn("_BANNED = frozenset(['re'])", guard.read_text())
+
+    def test_guard_with_custom_libs_uses_pythonpath(self):
+        import pathlib
+        import tempfile
+        from unittest import mock
+
+        from submissions.judge_utils.execution import run_code_in_sandbox
+
+        with tempfile.TemporaryDirectory() as tmp:
+            workdir = pathlib.Path(tmp)
+            (workdir / "user_code.py").write_text("print(1)\n")
+            seen: dict = {}
+
+            def fake_run(argv, **kwargs):
+                seen["argv"] = argv
+                return mock.Mock(
+                    returncode=0,
+                    stdout="1\n",
+                    stderr="0.01 0.01 1024 0 90.0% 0.02\n",
+                )
+
+            with mock.patch("subprocess.run", side_effect=fake_run):
+                run_code_in_sandbox(
+                    str(workdir / "user_code.py"),
+                    "python3",
+                    "1",
+                    1000,
+                    262144,
+                    workdir,
+                    ["numpy"],
+                    banned_stdlib_modules=["re"],
+                )
+            argv = " ".join(seen["argv"])
+            self.assertIn("_wc_guard.py", argv)
+            self.assertIn("PYTHONPATH=libs", argv)
+
+    def test_compliant_policy_proceeds_to_full_judging(self):
+        from unittest import mock
+
+        TASKS = "submissions.tasks"
+        with (
+            mock.patch(
+                f"{TASKS}.compile_code_in_sandbox",
+                return_value=(True, "ok", "/tmp/user_code.py"),
+            ),
+            mock.patch(
+                f"{TASKS}.run_code_in_sandbox",
+                return_value=(
+                    Submission.VerdictStatus.ACCEPTED,
+                    10,
+                    1024,
+                    "7",
+                    "",
+                ),
+            ),
+        ):
+            judge_submission_task.run(self.sub.id)
+        self.sub.refresh_from_db()
+        self.assertEqual(self.sub.verdict, Submission.VerdictStatus.ACCEPTED)

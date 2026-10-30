@@ -258,7 +258,11 @@ def judge_submission_task(self, submission_id):
                     )
                     submission.save()
                     _notify_judged(submission, submission.verdict)
-                if temp_dir_obj:
+                # temp_dir_obj is unconditionally created before this
+                # point (top of the try-block), so the falsey arm is
+                # unreachable — same reasoned pragma as the compile-cleanup
+                # guard above.
+                if temp_dir_obj:  # pragma: no cover
                     temp_dir_obj.cleanup()
                 return f"Submission {submission_id}: policy violation."
 
