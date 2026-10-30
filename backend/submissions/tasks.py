@@ -193,8 +193,17 @@ def judge_submission_task(self, submission_id):
                         id=submission_id
                     )
                     submission.verdict = Submission.VerdictStatus.COMPILE_ERROR
+                    # args[0], not str(exc): every TranspileError carries a
+                    # static literal message, and str(exc) is a CodeQL
+                    # information-exposure taint source into feedback
+                    # (same rule as the submit-time path).
                     submission.detailed_feedback = (
-                        "Scratch project could not be translated.\n" + str(exc)
+                        "Scratch project could not be translated.\n"
+                        + (
+                            exc.args[0]
+                            if exc.args and isinstance(exc.args[0], str)
+                            else "invalid project"
+                        )
                     )
                     submission.save()
                     _notify_judged(submission, submission.verdict)
