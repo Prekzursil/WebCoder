@@ -313,14 +313,14 @@ Round-2 requires a numeric gate before the first rated contest:
 **50 concurrent submitters, p95 judge wait < 20 s, zero errors.**
 
 ```
-# The target base is the BASE_URL constant in the script (local stack default).
-python scripts/contest_replay.py --contest <id> --users 50 --per-user 2 \
-    --admin-username admin --admin-password '...'
+# from the backend venv (or the API container) against the live stack:
+python manage.py contest_replay --contest <id> --users 50 --per-user 2
 ```
 
-The harness registers throwaway `replay_*` users, registers them for the
-open contest, submits trivial python3 solutions through the real
-judge-contest lane, and reports p50/p95/max judge wait + a PASS/FAIL
-verdict (exit 0/1). Rehearse at `--users 10` first; the note reminds you
-the full gate needs 50. Clean the `replay_*` users afterwards (admin
+The command registers throwaway `replay_<run>_` users for the OPEN
+contest, submits trivial python3 solutions through the real celery
+judge lane, and reports p50/p95/max judge wait + a PASS/FAIL verdict
+(exit 0/1). Rehearse at `--users 10` first; the note reminds you the
+full gate needs 50. `--concurrency` caps the parallel submitter pool
+(default: all of them). Clean the `replay_*` users afterwards (admin
 users view or SQL) — they exist only as load probes.
