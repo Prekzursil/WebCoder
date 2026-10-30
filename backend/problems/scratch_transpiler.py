@@ -536,8 +536,14 @@ def validate_project(code: str, allowed_opcodes: list[str] | None = None) -> lis
     """
     try:
         project = json.loads(code)
-    except (json.JSONDecodeError, TypeError) as exc:
-        return [f"invalid project JSON: {exc}"]
+    except (json.JSONDecodeError, TypeError):
+        # Static message (no exception interpolation): CodeQL taints
+        # str(exception) flows into API responses (the same reasoning as
+        # problems/serializers.py's validate_localized / code_template).
+        return [
+            "invalid project JSON: expected a JSON object with a "
+            "'targets' array of sprites"
+        ]
     if not isinstance(project, dict):
         return ["project must be a JSON object"]
     errors: list[str] = []
@@ -612,7 +618,12 @@ def transpile(code: str) -> str:
     try:
         project = json.loads(code)
     except (json.JSONDecodeError, TypeError) as exc:
-        raise TranspileError(f"invalid project JSON: {exc}") from exc
+        # Static message — the judge surfaces this text verbatim in
+        # feedback (same no-exception-interpolation rule as above).
+        raise TranspileError(
+            "invalid project JSON: expected a JSON object with a "
+            "'targets' array of sprites"
+        ) from exc
     if not isinstance(project, dict):
         raise TranspileError("project must be a JSON object")
     return transpile_project(project)

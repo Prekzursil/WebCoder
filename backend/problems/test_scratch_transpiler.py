@@ -926,10 +926,11 @@ class TestValidateProject:
         assert validate_project(json.dumps(project)) == []
 
     def test_invalid_json(self):
+        # Static message (no exception text in API responses — CodeQL).
         assert validate_project("{nope") == [
-            "invalid project JSON: Expecting property name enclosed"
-            " in double quotes: line 1 column 2 (char 1)"
-        ] or validate_project("{nope")[0].startswith("invalid project JSON")
+            "invalid project JSON: expected a JSON object with a "
+            "'targets' array of sprites"
+        ]
 
     def test_non_object(self):
         assert validate_project("[]") == ["project must be a JSON object"]
