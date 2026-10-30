@@ -61,6 +61,11 @@ urlpatterns = [
     ),
     # Public read-only API (competitive roadmap OPS-1).
     path("api/v1/public/", include("public_api.urls", namespace="public_api")),
+    # Community problem translations (i18n & translation platform wave).
+    path(
+        "api/v1/translations/",
+        include("translations.urls", namespace="translations_api_v1"),
+    ),
     # Custom invocation / scratch run (competitive roadmap X7/JDG-6) —
     # throttled + audit-logged raw judge execution.
     path("api/v1/scratch/", include("scratch.urls", namespace="scratch_api_v1")),

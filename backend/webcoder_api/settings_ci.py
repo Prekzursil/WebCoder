@@ -45,6 +45,7 @@ REST_FRAMEWORK = {
         "scratch": "10000/min",
         "stress": "10000/min",
         "clarification": "10000/min",
+        "translation_propose": "10000/min",
         "dj_rest_auth": "10000/min",
         "public_api": "10000/min",
         "public_api_auth": "10000/min",
