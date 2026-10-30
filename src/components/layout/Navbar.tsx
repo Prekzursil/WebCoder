@@ -92,6 +92,8 @@ const Navbar: React.FC = () => {
 
   const accountLinks: NavLinkItem[] = [
     { href: '/classes', label: t('nav_classes', 'My classes') },
+    // COM-5 (owner reversal 2026-10-30): private 1:1 message threads.
+    { href: '/messages', label: t('nav_messages', 'Messages') },
     { href: '/profile', label: t('nav_profile', 'Profile') },
     { href: '/my-submissions', label: t('nav_my_submissions', 'My Submissions') },
     { href: '/submission-history', label: t('nav_submission_history', 'History') },

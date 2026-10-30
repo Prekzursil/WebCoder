@@ -67,6 +67,17 @@ import {
   FollowingResponse,
   LanguageRow,
   TagProfile,
+  ApiConversation,
+  ApiPrivateMessage,
+  ApiBlock,
+  ApiMessageReport,
+  ApiAdminConversation,
+  ApiFlaggedMessage,
+  GetConversationsResponse,
+  GetPrivateMessagesResponse,
+  GetBlocksResponse,
+  GetMessageReportsResponse,
+  GetAdminConversationsResponse,
 } from '@/types/api';
 import { TestCaseType, User } from '@/types';
 import { API_V1_URL } from '@/lib/api-config';
@@ -700,6 +711,98 @@ export const ForumService = {
     /** Report a post (duplicate reporter+post → 409). */
     reportPost: (postId: number | string, data: { reason: string, details?: string }) =>
         apiFetch<ForumReport>(`/forum/reports/`, { method: 'POST', body: JSON.stringify({ post: postId, ...data }) }),
+};
+
+// =================================
+// Messaging Service (COM-5 private 1:1 threads + safety stack)
+// =================================
+
+export const MessagingService = {
+    /** The viewer's threads (block-hidden ones excluded by the backend). */
+    getThreads: (page: { cursor?: string | null } = {}) => {
+        const params = new URLSearchParams();
+        if (page.cursor) params.set('cursor', page.cursor);
+        const qs = params.toString();
+        return apiFetch<GetConversationsResponse>(`/messages/threads/${qs ? `?${qs}` : ''}`);
+    },
+    /** Start (or fetch) a 1:1 thread; blocks/minor policy answer 403 with {detail: code}. */
+    startThread: (data: { userId?: number, username?: string }) =>
+        apiFetch<ApiConversation>('/messages/threads/', {
+            method: 'POST',
+            body: JSON.stringify(
+                data.userId !== undefined
+                    ? { user_id: data.userId }
+                    : { username: data.username ?? '' }
+            ),
+        }),
+    getThread: (threadId: number | string) =>
+        apiFetch<ApiConversation>(`/messages/threads/${threadId}/`),
+    /** Message history, newest-first cursor pagination. */
+    getMessages: (
+        threadId: number | string,
+        page: { cursor?: string | null, pageSize?: number } = {}
+    ) => {
+        const params = new URLSearchParams();
+        if (page.cursor) params.set('cursor', page.cursor);
+        if (page.pageSize !== undefined) params.set('page_size', String(page.pageSize));
+        const qs = params.toString();
+        return apiFetch<GetPrivateMessagesResponse>(
+            `/messages/threads/${threadId}/messages/${qs ? `?${qs}` : ''}`
+        );
+    },
+    /** Send a plain-text message (30/hour budget server-side). */
+    sendMessage: (threadId: number | string, body: string) =>
+        apiFetch<ApiPrivateMessage>(`/messages/threads/${threadId}/send/`, {
+            method: 'POST',
+            body: JSON.stringify({ body }),
+        }),
+    /** Mark the other party's messages read (idempotent). */
+    markRead: (threadId: number | string) =>
+        apiFetch<{ marked_read: number }>(`/messages/threads/${threadId}/read/`, {
+            method: 'POST',
+        }),
+    /** Report a message into the moderation queue (duplicate → 409). */
+    reportMessage: (
+        messageId: number | string,
+        data: { reason: 'SPAM' | 'ABUSE' | 'GROOMING' | 'OTHER', details?: string }
+    ) =>
+        apiFetch<ApiMessageReport>(`/messages/messages/${messageId}/report/`, {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+    // -- Blocks (mute list) --
+    getBlocks: () => apiFetch<GetBlocksResponse>('/messages/blocks/'),
+    blockUser: (data: { userId?: number, username?: string }) =>
+        apiFetch<ApiBlock>('/messages/blocks/', {
+            method: 'POST',
+            body: JSON.stringify(
+                data.userId !== undefined
+                    ? { user_id: data.userId }
+                    : { username: data.username ?? '' }
+            ),
+        }),
+    unblockUser: (userId: number) =>
+        apiFetch<void>(`/messages/blocks/${userId}/`, { method: 'DELETE' }),
+    // -- Moderation queue (VERIFIER/ADMIN) --
+    getReports: (status?: string) =>
+        apiFetch<GetMessageReportsResponse>(
+            `/messages/moderation/reports/${status ? `?status=${status}` : ''}`
+        ),
+    resolveReport: (reportId: number | string, action: 'resolved' | 'dismissed', note = '') =>
+        apiFetch<ApiMessageReport>(`/messages/moderation/reports/${reportId}/resolve/`, {
+            method: 'POST',
+            body: JSON.stringify({ action, note }),
+        }),
+    getFlagged: () =>
+        apiFetch<PaginatedResponse<ApiFlaggedMessage>>('/messages/moderation/flagged/'),
+    // -- Admin audit (metadata only; transcripts behind an explicit report) --
+    getAdminThreads: () =>
+        apiFetch<GetAdminConversationsResponse>('/messages/admin/threads/'),
+    getTranscript: (threadId: number | string) =>
+        apiFetch<{
+            conversation: ApiAdminConversation;
+            messages: Array<ApiPrivateMessage & { is_flagged?: boolean }>;
+        }>(`/messages/admin/threads/${threadId}/transcript/`),
 };
 
 // =================================

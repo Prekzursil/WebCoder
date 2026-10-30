@@ -21,7 +21,7 @@ import PageHeader from '@/components/common/PageHeader';
 // The old mock list, the fake "new notification after 8s" timer and the
 // delete button (no DELETE endpoint exists) are gone.
 
-type DisplayType = 'reply' | 'verdict' | 'approved' | 'rejected' | 'system';
+type DisplayType = 'reply' | 'verdict' | 'approved' | 'rejected' | 'message' | 'system';
 
 // [Q2] labels are translated at render time via useTranslation — the map
 // keeps icon/color per display type plus a t-friendly label key.
@@ -30,6 +30,7 @@ const TYPE_META: Record<DisplayType, { icon: string; color: string; labelKey: st
   verdict: { icon: '⚡', color: palette.warn, labelKey: 'notification_type_verdict', fallback: 'Verdict' },
   approved: { icon: '✓', color: palette.success, labelKey: 'notification_type_approved', fallback: 'Approved' },
   rejected: { icon: '✕', color: palette.danger, labelKey: 'notification_type_rejected', fallback: 'Rejected' },
+  message: { icon: '✉️', color: palette.accent, labelKey: 'notification_type_message', fallback: 'Message' },
   system: { icon: '🔔', color: palette.muted, labelKey: 'notification_type_system', fallback: 'System' },
 };
 
@@ -38,6 +39,7 @@ const VERB_TO_TYPE: Record<NotificationVerb, DisplayType> = {
   SUBMISSION_JUDGED: 'verdict',
   PROBLEM_APPROVED: 'approved',
   PROBLEM_REJECTED: 'rejected',
+  MESSAGE_RECEIVED: 'message',
   SYSTEM: 'system',
 };
 
@@ -65,6 +67,10 @@ const num = (n: ApiNotification, key: string): number | undefined => {
 
 /** Derive the click target from the notification's generic target. */
 function targetHref(n: ApiNotification): string | null {
+  if (n.verb === 'MESSAGE_RECEIVED') {
+    const conversationId = num(n, 'conversation_id');
+    return conversationId !== undefined ? `/messages/${conversationId}` : null;
+  }
   if (n.target_type === 'submission' && n.target_id !== null) return `/submissions/${n.target_id}`;
   if (n.target_type === 'thread' && n.target_id !== null) return `/forum/${n.target_id}`;
   if (n.target_type === 'problem' && (num(n, 'problem_id') ?? n.target_id) !== null) {
@@ -120,6 +126,13 @@ function describe(n: ApiNotification, t: ReturnType<typeof useTranslation>['t'])
           ? `${t('notification_feedback_prefix', 'Feedback: ')}${str(n, 'feedback')}`
           : t('notification_rejected_body', 'Your problem was sent back as private.'),
       };
+    case 'MESSAGE_RECEIVED': {
+      const excerpt = str(n, 'excerpt');
+      return {
+        title: t('notification_message_title', '{{who}} sent you a message', { who }),
+        body: excerpt ?? t('notification_message_body', 'Open the conversation to read it.'),
+      };
+    }
     case 'SYSTEM':
     default:
       return { title: t('notification_system_title', 'System notification'), body: str(n, 'message') ?? '' };

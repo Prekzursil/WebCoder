@@ -105,6 +105,9 @@ INSTALLED_APPS = [
     "public_api",
     # Community problem translations (i18n & translation platform wave).
     "translations",
+    # COM-5 (competitive roadmap, owner reversal 2026-10-30): private 1:1
+    # message threads with the full safety stack.
+    "messaging",
 ]
 
 SITE_ID = 1
@@ -331,6 +334,10 @@ REST_FRAMEWORK = {
         # Contest clarifications (CON-4): participants get a bounded question
         # budget so the jury queue cannot be flooded mid-contest.
         "clarification": os.environ.get("THROTTLE_CLARIFICATION_RATE", "10/hour"),
+        # COM-5 private messaging: strict send + new-thread budgets (the
+        # roadmap skip-reversal made these part of the feature, not polish).
+        "message_send": os.environ.get("THROTTLE_MESSAGE_SEND_RATE", "30/hour"),
+        "message_thread": os.environ.get("THROTTLE_MESSAGE_THREAD_RATE", "10/hour"),
         # Community translation proposals (i18n wave): cheap writes, but a
         # single account must not be able to flood the curation queue.
         "translation_propose": os.environ.get(
