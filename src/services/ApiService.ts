@@ -65,6 +65,7 @@ import {
   cursorParamFromUrl,
   AssignmentSolutionsResponse,
   FollowingResponse,
+  LanguageRow,
   TagProfile,
 } from '@/types/api';
 import { TestCaseType, User } from '@/types';
@@ -621,6 +622,14 @@ export const LeaderboardService = {
 // =================================
 // Follow Service (COM-4 — friends graph)
 // =================================
+
+export const PublicService = {
+    /** JDG-9: the public judge registry (toolchain docs). */
+    getLanguages: () =>
+        apiFetch<{ notice: string; count: number; results: LanguageRow[] }>(
+            '/public/languages/'
+        ),
+};
 
 export const FollowService = {
     /** Toggle the viewer's follow edge; returns the new state + count. */

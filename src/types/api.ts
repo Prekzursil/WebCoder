@@ -181,6 +181,14 @@ export interface AssignmentSolutionsResponse {
     results: AssignmentSolutionRow[];
 }
 
+/** JDG-9: one registry row from /public/languages/. */
+export interface LanguageRow {
+    id: string;
+    name: string;
+    compile_command: string[];
+    run_command: string[];
+}
+
 /** RAT-7: per-tag skill row + the practice-next suggestion. */
 export interface TagSkillRow {
     tag: string;

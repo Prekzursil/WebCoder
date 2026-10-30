@@ -4,39 +4,36 @@
 // registry the sandbox runs — so this page can never drift from the
 // judge (the campion precedent: publish the compilers).
 
-import type { Metadata } from 'next';
-import { createTranslator, getLocale } from '../../_lib/public-i18n';
-import { API_V1_URL } from '@/lib/api-config';
+'use client';
 
-export async function generateMetadata(): Promise<Metadata> {
-  const t = createTranslator(await getLocale());
-  return { title: t('judge_docs_title', 'The judge: languages & limits') };
-}
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { PublicService } from '@/services/ApiService';
+import type { LanguageRow } from '@/types/api';
 
-type LanguageRow = {
-    id: string;
-    name: string;
-    compile_command: string[];
-    run_command: string[];
-};
+/**
+ * Client-rendered on purpose: the registry is read through the app's
+ * standard API lane (apiFetch) — the same fetch every page uses — so
+ * the docs table and the sandbox share one source of truth without a
+ * server-side fetch of the build-time API base.
+ */
+export default function JudgeHelpPage() {
+  const { t } = useTranslation();
+  const [languages, setLanguages] = useState<LanguageRow[]>([]);
 
-async function loadLanguages(): Promise<LanguageRow[]> {
-    try {
-        const res = await fetch(`${API_V1_URL}/public/languages/`, {
-            next: { revalidate: 3600 },
-        });
-        if (!res.ok) return [];
-        const data = (await res.json()) as { results: LanguageRow[] };
-        return data.results ?? [];
-    } catch {
-        return [];
-    }
-}
-
-export default async function JudgeHelpPage() {
-  const locale = await getLocale();
-  const t = createTranslator(locale);
-  const languages = await loadLanguages();
+  useEffect(() => {
+    let cancelled = false;
+    PublicService.getLanguages()
+      .then((data) => {
+        if (!cancelled) setLanguages(data.results ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setLanguages([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="page-container" style={{ paddingTop: '2.5rem', maxWidth: '860px' }}>
