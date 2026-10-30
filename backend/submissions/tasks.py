@@ -198,13 +198,24 @@ def judge_submission_task(self, submission_id):
         # per submission, BEFORE any judged run. Fail-closed egress by
         # default (JUDGE_PIP_NETWORK=none); the judged runs themselves stay
         # network-isolated either way (execution.py).
+        # Wave C: the install list is the union of the legacy
+        # custom_libraries_allowed allowlist and the policy's per-language
+        # "allowed" extras (both validated at submit time).
+        from problems.feature_policy import allowed_libraries as _allowed
+
+        _install_libs = list(
+            dict.fromkeys(
+                list(problem.custom_libraries_allowed or [])
+                + _allowed(problem.library_policy, "python3")
+            )
+        )
         if (
             submission.language == "python3"
-            and problem.custom_libraries_allowed
+            and _install_libs
             and problem.problem_type != Problem.ProblemType.OUTPUT_ONLY
         ):
             libs_ok, libs_message = install_custom_libs(
-                submission_dir, problem.custom_libraries_allowed
+                submission_dir, _install_libs
             )
             if not libs_ok:
                 with transaction.atomic():
@@ -224,6 +235,32 @@ def judge_submission_task(self, submission_id):
                 if temp_dir_obj:  # pragma: no cover
                     temp_dir_obj.cleanup()
                 return f"Submission {submission_id}: library install failed."
+
+        # Wave C library/feature policy — judge-time re-scan of the exact
+        # submitted bytes (defense in depth under the submit-time 400; a
+        # policy violation here reads as COMPILE_ERROR: the code cannot run
+        # under this problem's policy).
+        if problem.library_policy:
+            from problems.feature_policy import scan_policy_violations
+
+            violations = scan_policy_violations(
+                submission.code, submission.language, problem.library_policy
+            )
+            if violations:
+                with transaction.atomic():
+                    submission = Submission.objects.select_for_update().get(
+                        id=submission_id
+                    )
+                    submission.verdict = Submission.VerdictStatus.COMPILE_ERROR
+                    submission.detailed_feedback = (
+                        "Problem policy violation (library/feature bans).\n"
+                        + "\n".join(violations)
+                    )
+                    submission.save()
+                    _notify_judged(submission, submission.verdict)
+                if temp_dir_obj:
+                    temp_dir_obj.cleanup()
+                return f"Submission {submission_id}: policy violation."
 
         # J5: per-language effective limits — registry multipliers/floors,
         # explicit Problem.limit_overrides win over both.
@@ -304,6 +341,14 @@ def judge_submission_task(self, submission_id):
             # Missing interactor code/lang defers to the per-test IE branch
             # below (mirrors the missing-checker branch: per-test audit rows
             # rather than a bare submission-level failure).
+
+        # Wave C: ENFORCED python stdlib import bans — the judged run goes
+        # through the generated meta-path guard (see execution.py).
+        from problems.feature_policy import banned_stdlib_modules as _banned
+
+        policy_banned_stdlib = _banned(
+            problem.library_policy, submission.language
+        )
 
         # RO-4: FILES-mode problems exchange data through working-directory
         # files instead of stdin/stdout.
@@ -441,6 +486,7 @@ def judge_submission_task(self, submission_id):
                         submission_dir,
                         problem.custom_libraries_allowed,  # Pass custom libraries here as well
                         io_files=io_files,
+                        banned_stdlib_modules=policy_banned_stdlib,
                     )
                 )
 

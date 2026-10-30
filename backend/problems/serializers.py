@@ -133,6 +133,7 @@ class ProblemSerializer(serializers.ModelSerializer):
             "io_output_filename",
             "allowed_languages",
             "custom_libraries_allowed",
+            "library_policy",
             "comparison_mode",
             "float_comparison_epsilon",
             "checker_code",
@@ -197,6 +198,17 @@ class ProblemSerializer(serializers.ModelSerializer):
                 f"Invalid I/O filename '{value}': use a plain file name "
                 f"(letters, digits, dot, dash, underscore; no paths)."
             )
+        return value
+
+    def validate_library_policy(self, value):
+        """Structural validation of the per-problem library/feature policy
+        (wave C): unknown languages/keys/feature bans are authoring
+        errors, not silent no-ops the judge would then ignore."""
+        from .feature_policy import validate_policy_shape
+
+        problems = validate_policy_shape(value)
+        if problems:
+            raise serializers.ValidationError(" ".join(problems))
         return value
 
     def validate(self, attrs):

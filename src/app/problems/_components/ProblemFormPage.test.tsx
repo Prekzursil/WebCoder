@@ -841,3 +841,46 @@ describe('ProblemFormPage (language fairness + io mode)', () => {
     expect(screen.queryByLabelText(/Input filename/i)).toBeNull();
   });
 });
+
+
+describe('ProblemFormPage (library & feature policy)', () => {
+  it('submits an assembled library_policy from the CSV fields', async () => {
+    render(<ProblemFormPage />);
+    await screen.findByLabelText(/Free Pascal/);
+    fireEvent.change(screen.getByLabelText(/banned stdlib modules/i), { target: { value: 're, itertools' } });
+    fireEvent.change(screen.getByLabelText(/banned libraries/i), { target: { value: 'numpy' } });
+    fireEvent.change(screen.getByLabelText(/banned headers or prefixes/i), { target: { value: 'boost' } });
+    fireEvent.click(screen.getByLabelText(/Ban treating the input as a string/i));
+    fireEvent.submit(screen.getByRole('button', { name: 'Create Problem' }).closest('form')!);
+    await waitFor(() => expect(api.createProblem).toHaveBeenCalled());
+    const payload = api.createProblem.mock.calls[0][0] as Record<string, unknown>;
+    expect(payload.library_policy).toEqual({
+      python3: { banned_stdlib: ['re', 'itertools'], banned: ['numpy'] },
+      cpp17: { banned: ['boost'] },
+      c11: { banned: ['boost'] },
+      banned_features: ['py-no-string-ops'],
+    });
+  });
+
+  it('omits the policy entirely when nothing is set', async () => {
+    render(<ProblemFormPage />);
+    await screen.findByLabelText(/Free Pascal/);
+    fireEvent.submit(screen.getByRole('button', { name: 'Create Problem' }).closest('form')!);
+    await waitFor(() => expect(api.createProblem).toHaveBeenCalled());
+    const payload = api.createProblem.mock.calls[0][0] as Record<string, unknown>;
+    expect(payload.library_policy).toEqual({});
+  });
+
+  it('trims and drops empty CSV entries', async () => {
+    render(<ProblemFormPage />);
+    await screen.findByLabelText(/Free Pascal/);
+    fireEvent.change(screen.getByLabelText(/banned stdlib modules/i), { target: { value: ' re , , itertools ' } });
+    fireEvent.submit(screen.getByRole('button', { name: 'Create Problem' }).closest('form')!);
+    await waitFor(() => expect(api.createProblem).toHaveBeenCalled());
+    const payload = api.createProblem.mock.calls[0][0] as Record<string, unknown>;
+    expect((payload.library_policy as Record<string, { banned_stdlib: string[] }>).python3.banned_stdlib).toEqual([
+      're',
+      'itertools',
+    ]);
+  });
+});

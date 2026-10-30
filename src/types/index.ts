@@ -57,6 +57,14 @@ export interface ProblemType {
   io_mode?: string;
   io_input_filename?: string;
   io_output_filename?: string;
+  // Wave C: per-problem library & feature policy (creator-controlled).
+  library_policy?: {
+    [language: string]: {
+      banned_stdlib?: string[];
+      banned?: string[];
+      allowed?: string[];
+    };
+  } & { banned_features?: string[] };
 }
 
 export interface SubmissionType {

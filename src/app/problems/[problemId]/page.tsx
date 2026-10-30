@@ -35,6 +35,7 @@ import MemoryOutlinedIcon from '@mui/icons-material/MemoryOutlined';
 import CodeOutlinedIcon from '@mui/icons-material/CodeOutlined';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import TerminalOutlinedIcon from '@mui/icons-material/Terminal';
+import BlockOutlinedIcon from '@mui/icons-material/BlockOutlined';
 import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -337,6 +338,33 @@ export default async function ProblemDetailPage({
                   <span style={{ fontWeight: 600, color: 'var(--muted)' }}>{t('problem_io_stdio', 'stdin / stdout')}</span>
                 )
               )}
+              {(() => {
+                // Wave C: surface the creator's library/feature bans so the
+                // restrictions are visible BEFORE submitting (a 400 surprise
+                // is a bad learning moment).
+                const policy = problem.library_policy || ({} as ProblemType['library_policy']);
+                const bans: string[] = [];
+                const py = policy?.python3;
+                if (py?.banned_stdlib?.length)
+                  bans.push(t('problem_restriction_banned', 'banned: {{items}}', { items: `python3: ${py.banned_stdlib.join(', ')}` }));
+                if (py?.banned?.length)
+                  bans.push(t('problem_restriction_banned', 'banned: {{items}}', { items: `python3 libs: ${py.banned.join(', ')}` }));
+                const cppBans = [...(policy?.cpp17?.banned || []), ...(policy?.c11?.banned || [])];
+                if (cppBans.length)
+                  bans.push(t('problem_restriction_banned', 'banned: {{items}}', { items: `C/C++: ${[...new Set(cppBans)].join(', ')}` }));
+                if (policy?.banned_features?.includes('py-no-string-ops'))
+                  bans.push(t('problem_restriction_no_string_ops', 'the input must not be treated as a string (no s[i] / string methods)'));
+                if (!bans.length) return null;
+                return statBlock(
+                  <BlockOutlinedIcon fontSize="small" />,
+                  t('problem_restrictions_label', 'Restrictions'),
+                  <ul style={{ margin: 0, paddingLeft: '1.1rem', color: 'var(--muted)', fontSize: '0.8rem' }}>
+                    {bans.map((b, i) => (
+                      <li key={i} style={{ fontFamily: 'var(--font-mono)' }}>{b}</li>
+                    ))}
+                  </ul>
+                );
+              })()}
               {problem.author && (
                 statBlock(
                   <PersonOutlineOutlinedIcon fontSize="small" />,
