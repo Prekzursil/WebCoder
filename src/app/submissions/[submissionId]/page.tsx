@@ -339,6 +339,17 @@ function SubmissionDetailPage() {
           )}
           {submission.execution_time_ms !== null &&
             metaCell(t('execution_time_label', 'Execution Time (Overall)'), <>{submission.execution_time_ms} ms</>)}
+          {/* Matrix row 61: faster than X% of AC runs (same problem+language). */}
+          {submission.runtime_percentile !== null &&
+            submission.runtime_percentile !== undefined &&
+            metaCell(
+              t('runtime_percentile_label', 'Runtime percentile'),
+              <>
+                {t('runtime_beats', 'faster than {{pct}}% of accepted solutions', {
+                  pct: Math.round(submission.runtime_percentile * 100),
+                })}
+              </>
+            )}
           {submission.memory_used_kb !== null &&
             metaCell(t('memory_used_label', 'Memory Used (Overall)'), <>{submission.memory_used_kb} KB</>)}
         </div>

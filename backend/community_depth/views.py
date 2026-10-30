@@ -72,7 +72,10 @@ class SolutionsView(APIView):
             )
             .exclude(user__is_minor=True)  # LEG-2: no minors' code in the pool
             .select_related("user")
-            .order_by("submission_time")[:50]
+            # Matrix row 60 (best-solutions ranking): fastest-first — the
+            # DMOJ/infoarena "best solutions" board, a code-style lesson
+            # in itself. Ties break on the older submission.
+            .order_by("execution_time_ms", "submission_time")[:50]
         )
         return Response(
             {

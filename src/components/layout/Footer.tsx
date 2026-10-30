@@ -41,6 +41,7 @@ const Footer: React.FC = () => {
         { href: '/my-submissions', label: t('nav_my_submissions', 'My Submissions') },
         // [JDG-9] Published judge toolchain docs + [SAF-2] the AI policy.
         { href: '/help/judge', label: t('footer_judge_docs', 'The judge') },
+    { href: '/contribute', label: t('footer_contribute', 'Contribute') },
         { href: '/policies/ai', label: t('footer_ai_policy', 'Contest AI policy') },
       ]
     : [
