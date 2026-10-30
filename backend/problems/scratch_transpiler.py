@@ -42,6 +42,19 @@ from __future__ import annotations
 import json
 import re
 
+
+def _transpile_message(exc: "TranspileError") -> str:
+    """The exception's own static message.
+
+    ``str(exc)`` is a CodeQL information-exposure taint source when the
+    value flows into an API response; every TranspileError we raise is
+    constructed with a literal string, so ``args[0]`` carries exactly
+    that message without the taint.
+    """
+    if exc.args and isinstance(exc.args[0], str):
+        return exc.args[0]
+    return "the Scratch project could not be translated"
+
 #: The pseudo-language id submissions use (judge_utils.languages).
 SCRATCH_LANGUAGE_ID = "scratch"
 
@@ -550,7 +563,7 @@ def validate_project(code: str, allowed_opcodes: list[str] | None = None) -> lis
     try:
         used = collect_opcodes(project)
     except TranspileError as exc:
-        return [str(exc)]
+        return [_transpile_message(exc)]
     allowed = set(allowed_opcodes) if allowed_opcodes is not None else set(KNOWN_OPCODES)
     unsupported_set = used - KNOWN_OPCODES
     unsupported = sorted(unsupported_set)
@@ -567,7 +580,7 @@ def validate_project(code: str, allowed_opcodes: list[str] | None = None) -> lis
     try:
         transpile_project(project)
     except TranspileError as exc:
-        errors.append(str(exc))
+        errors.append(_transpile_message(exc))
     return errors
 
 
