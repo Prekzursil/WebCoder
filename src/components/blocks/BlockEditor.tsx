@@ -16,6 +16,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { WC_JS_PREAMBLE } from './wcBlocks';
+import { palette } from '@/theme/tokens';
 
 export type BlockGenerator = 'python3' | 'nodejs20';
 
@@ -175,7 +176,7 @@ export default function BlockEditor({
 
       const workspace = Blockly.inject(containerRef.current, {
         toolbox,
-        grid: { spacing: 24, length: 3, colour: '#2a3b52', snap: true },
+        grid: { spacing: 24, length: 3, colour: palette.border, snap: true },
         zoom: { controls: true, wheel: false },
         trashcan: true,
       });

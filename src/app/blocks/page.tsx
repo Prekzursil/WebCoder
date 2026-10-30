@@ -11,6 +11,7 @@ import dynamic from 'next/dynamic';
 import type { BlockGenerator } from '@/components/blocks/BlockEditor';
 import { ScratchService } from '@/services/ApiService';
 import { useAuth } from '@/context/AuthContext';
+import { palette } from '@/theme/tokens';
 
 // Blockly requires the DOM — load the editor client-side only.
 const BlockEditor = dynamic(
@@ -116,7 +117,7 @@ export default function BlocksPlaygroundPage() {
           </button>
         </div>
         {runError && (
-          <p role="alert" style={{ color: 'var(--danger, #f87171)', margin: 0 }}>
+          <p role="alert" style={{ color: 'var(--danger)', margin: 0 }}>
             {runError}
           </p>
         )}
