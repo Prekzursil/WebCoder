@@ -1060,3 +1060,20 @@ class TestRobustness:
         # CONDITION entry lacks a target → the if body never runs.
         out = _run(transpile_project(_flag(blocks)))
         assert out == ""
+
+
+class TestTranspileMessageHelper:
+    def test_static_message_from_args(self):
+        from .scratch_transpiler import TranspileError, _transpile_message
+
+        assert (
+            _transpile_message(TranspileError("bad block 'x'"))
+            == "bad block 'x'"
+        )
+
+    def test_fallback_without_args(self):
+        from .scratch_transpiler import TranspileError, _transpile_message
+
+        assert _transpile_message(TranspileError()) == (
+            "the Scratch project could not be translated"
+        )
