@@ -8,6 +8,7 @@ import type { TFunction } from 'i18next';
 import { ContestService } from '@/services/ApiService';
 import { useAuth } from '@/context/AuthContext';
 import UserChip from '@/components/common/UserChip';
+import FollowButton from '@/components/common/FollowButton';
 import {
     Clarification,
     Contest,
@@ -42,6 +43,8 @@ export default function ContestDetailPage() {
     const [question, setQuestion] = useState('');
     const [ratingChanges, setRatingChanges] = useState<RatingChangeRow[] | null>(null);
     const [boardSection, setBoardSection] = useState<'official' | 'virtual'>('official');
+    // COM-4: friends-only standings (viewer + followed).
+    const [friendsOnly, setFriendsOnly] = useState(false);
     const [awards, setAwards] = useState<ContestAwardsResponse | null>(null);
 
     const loadContest = useCallback(async () => {
@@ -78,7 +81,8 @@ export default function ContestDetailPage() {
                     const board = await ContestService.getStandings(
                         contestId,
                         1,
-                        boardSection
+                        boardSection,
+                        friendsOnly
                     );
                     setStandings(board);
                 } else if (which === 'clarifications') {
@@ -96,7 +100,7 @@ export default function ContestDetailPage() {
                 );
             }
         },
-        [contestId, boardSection, t]
+        [contestId, boardSection, friendsOnly, t]
     );
 
     useEffect(() => {
@@ -408,6 +412,24 @@ export default function ContestDetailPage() {
                                 ))}
                             </div>
                         )}
+                        <label
+                            data-testid="standings-friends-toggle"
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.4rem',
+                                fontSize: '0.85rem',
+                                color: palette.muted,
+                                marginLeft: '0.75rem',
+                            }}
+                        >
+                            <input
+                                type="checkbox"
+                                checked={friendsOnly}
+                                onChange={(e) => setFriendsOnly(e.target.checked)}
+                            />
+                            {t('contest_friends_only', 'Friends only')}
+                        </label>
                         {awards && awards.count > 0 && boardSection === 'official' && (
                             <p
                                 data-testid="contest-awards"
@@ -608,7 +630,8 @@ function StandingsBoard({ standings, t }: StandingsBoardProps) {
                                     <UserChip
                                         username={row.user.username}
                                         href={`/profile/${row.user.id}`}
-                                    />
+                                    />{' '}
+                                    <FollowButton username={row.user.username} />
                                 </td>
                                 {row.problems.map((cell) => (
                                     <td

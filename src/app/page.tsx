@@ -6,6 +6,7 @@ import { getProblems } from './problems/_lib/problems-api';
 import { createTranslator, getLocale } from './_lib/public-i18n';
 import HomeSignUpButton from './HomeSignUpButton';
 import ActivityFeed from '@/components/common/ActivityFeed';
+import AnnouncementPanel from '@/components/common/AnnouncementPanel';
 import styles from './home.module.css';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://webcoder.momentstudio.ro';
@@ -140,6 +141,7 @@ export default async function HomePage() {
       </div>
 
       {/* COM-3: the live activity heartbeat (Wave C). */}
+      <AnnouncementPanel />
       <ActivityFeed />
     </>
   );

@@ -55,12 +55,14 @@ export default function LeaderboardPage() {
   const [sortKey, setSortKey] = useState<SortKey>('rank');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [search, setSearch] = useState('');
+  // COM-4: friends-only board (viewer + followed).
+  const [friendsOnly, setFriendsOnly] = useState(false);
 
   const loadFirstPage = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await LeaderboardService.getLeaderboard({ page: 1 });
+      const response = await LeaderboardService.getLeaderboard({ page: 1, friends: friendsOnly });
       setRows(response.results);
       setTotalCount(response.count);
       setNextCursorPage(response.next ? 2 : null);
@@ -71,7 +73,7 @@ export default function LeaderboardPage() {
     }
     // t is stable between language switches; listed so the error message
     // re-localizes on locale change.
-  }, [t]);
+  }, [friendsOnly, t]);
 
   useEffect(() => {
     loadFirstPage();
@@ -105,7 +107,7 @@ export default function LeaderboardPage() {
     if (nextCursorPage === null || loadingMore) return;
     setLoadingMore(true);
     try {
-      const response = await LeaderboardService.getLeaderboard({ page: nextCursorPage });
+      const response = await LeaderboardService.getLeaderboard({ page: nextCursorPage, friends: friendsOnly });
       setRows((prev) => {
         const seen = new Set(prev.map((r) => r.username));
         return [...prev, ...response.results.filter((r) => !seen.has(r.username))];
@@ -176,6 +178,19 @@ export default function LeaderboardPage() {
         </div>
       ) : (
         <>
+          {auth.isAuthenticated && (
+            <label
+              data-testid="friends-only-toggle"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', color: 'var(--muted)', margin: '0.5rem 0' }}
+            >
+              <input
+                type="checkbox"
+                checked={friendsOnly}
+                onChange={(e) => setFriendsOnly(e.target.checked)}
+              />
+              {t('leaderboard_friends_only', 'Friends only')}
+            </label>
+          )}
           {/* Own-rank card (authenticated) — best-effort */}
           {auth.isAuthenticated && myEntry && (
             <div

@@ -19,6 +19,8 @@ import ProblemStatsPanel from './ProblemStatsPanel';
 import CommunityEditorialsPanel from './CommunityEditorialsPanel';
 import RelatedArticlesStrip from './RelatedArticlesStrip';
 import SolutionsPanel from './SolutionsPanel';
+import DiscussionsPanel from './DiscussionsPanel';
+import EditorialEtiquetteBanner from './EditorialEtiquetteBanner';
 import StatementHistory from './StatementHistory';
 import ScratchPanel from './ScratchPanel';
 import CopyButton from '@/components/common/CopyButton';
@@ -320,6 +322,8 @@ export default async function ProblemDetailPage({
           <CommunityEditorialsPanel problemId={Number(problemId)} />
           <RelatedArticlesStrip problemId={Number(problemId)} />
           <SolutionsPanel problemId={Number(problemId)} />
+          {/* COM-1: per-problem discussion threads on the problem page. */}
+          <DiscussionsPanel problemId={Number(problemId)} />
           <StatementHistory problemId={Number(problemId)} />
 
           {/* Problem statement */}
@@ -342,6 +346,7 @@ export default async function ProblemDetailPage({
           {problem.has_editorial && (
             <div style={card}>
               {sectionHeader('var(--success)', t('editorial_header', 'Editorial'))}
+              <EditorialEtiquetteBanner />
               <EditoralPanelPlaceholder
                 problemId={problemId}
                 hasEditorial={Boolean(problem.has_editorial)}

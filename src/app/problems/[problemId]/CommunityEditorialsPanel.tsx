@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { CommunityService } from '@/services/ApiService';
 import { AuthContext } from '@/context/AuthContext';
 import { CommunityEditorialRow } from '@/types/api';
+import EditorialEtiquetteBanner from './EditorialEtiquetteBanner';
 import { palette } from '@/theme/tokens';
 
 /**
@@ -94,6 +95,7 @@ export default function CommunityEditorialsPanel({ problemId }: { problemId: num
                     </button>
                 ))}
             </h3>
+            <EditorialEtiquetteBanner />
 
             {(rows ?? []).length === 0 ? (
                 <p style={{ color: palette.muted }}>

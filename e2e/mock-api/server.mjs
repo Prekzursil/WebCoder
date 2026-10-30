@@ -307,6 +307,9 @@ const MOCK_THREADS = [
     id: 1,
     title: 'Welcome to the WebCoder forum',
     problem: null,
+    editorial: null,
+    lang: 'en',
+    is_announcement: false,
     author: 'admin_e2e',
     post_count: 2,
     is_pinned: true,
@@ -318,12 +321,45 @@ const MOCK_THREADS = [
     id: 2,
     title: 'Two Sum approaches discussion',
     problem: { id: 1, title_i18n: { en: 'Two Sum' } },
+    editorial: null,
+    lang: 'en',
+    is_announcement: false,
     author: 'e2e_tester',
     post_count: 1,
     is_pinned: false,
     is_locked: false,
     last_activity: '2026-10-19T12:00:00Z',
     created_at: '2026-10-19T11:30:00Z',
+  },
+  // COM-6: the home announcements feed.
+  {
+    id: 8,
+    title: 'Site news: interactive problems are live',
+    problem: null,
+    editorial: null,
+    lang: 'en',
+    is_announcement: true,
+    author: 'admin_e2e',
+    post_count: 1,
+    is_pinned: true,
+    is_locked: false,
+    last_activity: '2026-10-21T10:00:00Z',
+    created_at: '2026-10-21T09:00:00Z',
+  },
+  // COM-2/EDT-4: an editorial-discussion thread in Romanian.
+  {
+    id: 9,
+    title: 'Discuție editorial Two Sum',
+    problem: { id: 1, title_i18n: { en: 'Two Sum' } },
+    editorial: 11,
+    lang: 'ro',
+    is_announcement: false,
+    author: 'elev_ro',
+    post_count: 1,
+    is_pinned: false,
+    is_locked: false,
+    last_activity: '2026-10-22T12:00:00Z',
+    created_at: '2026-10-22T11:30:00Z',
   },
 ];
 
@@ -338,7 +374,21 @@ const MOCK_POSTS = [
     upvotes: 5,
     is_hidden: false,
     hidden_reason: '',
+    is_spoiler: false,
     created_at: '2026-10-18T09:00:00Z',
+  },
+  {
+    id: 2,
+    thread_id: 2,
+    author: 'e2e_tester',
+    content: 'The trick is a hash map of seen values (SPOILER).',
+    parent_id: null,
+    is_edited: false,
+    upvotes: 2,
+    is_hidden: false,
+    hidden_reason: '',
+    is_spoiler: true,
+    created_at: '2026-10-19T12:00:00Z',
   },
 ];
 
@@ -1183,7 +1233,33 @@ const server = createServer((req, res) => {
   }
 
   if (req.method === 'GET' && path === '/api/v1/forum/threads/') {
-    json(res, 200, paged(MOCK_THREADS));
+    let rows = MOCK_THREADS;
+    const problemId = requestUrl.searchParams.get('problem_id');
+    if (problemId) rows = rows.filter((t) => t.problem && String(t.problem.id) === problemId);
+    if (requestUrl.searchParams.get('announcements') === '1') {
+      rows = rows.filter((t) => t.is_announcement);
+    }
+    const lang = requestUrl.searchParams.get('lang');
+    if (lang === 'ro' || lang === 'en') rows = rows.filter((t) => t.lang === lang);
+    const topic = requestUrl.searchParams.get('topic');
+    if (topic === 'editorial') rows = rows.filter((t) => t.editorial);
+    else if (topic === 'problem') rows = rows.filter((t) => t.problem);
+    json(res, 200, paged(rows));
+    return;
+  }
+
+  // COM-4: follow toggle by handle.
+  const followByName = path.match(/^\/api\/v1\/users\/username\/([^/]+)\/follow\/$/);
+  if (req.method === 'POST' && followByName) {
+    if (!sessionUser(req)) {
+      json(res, 401, { detail: 'Authentication credentials were not provided.' });
+      return;
+    }
+    json(res, 200, { following: true, followers: 1 });
+    return;
+  }
+  if (path === '/api/v1/users/me/following/' && req.method === 'GET') {
+    json(res, 200, { count: 1, results: [{ id: 2, username: 'e2e_tester' }] });
     return;
   }
 

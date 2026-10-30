@@ -140,7 +140,8 @@ describe('LeaderboardPage (live standings)', () => {
     expect((await screen.findAllByText('alex_coder')).length).toBeGreaterThan(0);
     fireEvent.click(screen.getByRole('button', { name: 'Load more' }));
     await waitFor(() => expect(screen.getByText('radu_bits')).toBeInTheDocument());
-    expect(api.getLeaderboard).toHaveBeenLastCalledWith({ page: 2 });
+    // COM-4: friends flag rides every page fetch (off by default).
+    expect(api.getLeaderboard).toHaveBeenLastCalledWith({ page: 2, friends: false });
     expect(screen.getByText(/Showing 5 of 5 ranked users/)).toBeInTheDocument();
   });
 
