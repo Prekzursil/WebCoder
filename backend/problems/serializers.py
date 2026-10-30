@@ -374,12 +374,36 @@ class ProblemDetailSerializer(ProblemSerializer):
     # (possibly gated) content itself — locked editorial state is honest UI.
     has_editorial = serializers.SerializerMethodField()
     editorial_locked = serializers.SerializerMethodField()
+    # Community-translation attribution (i18n wave, owner rule (c)): the
+    # "translated by @user" credits on the problem page, sourced from
+    # APPROVED proposals. Detail-only — the list serializer stays N+1-free.
+    translations = serializers.SerializerMethodField()
 
     class Meta(ProblemSerializer.Meta):
         fields = ProblemSerializer.Meta.fields + [
             "test_cases",
             "has_editorial",
             "editorial_locked",
+            "translations",
+        ]
+
+    def get_translations(self, obj) -> list:
+        from translations.models import TranslationProposal
+
+        rows = (
+            obj.translation_proposals.filter(
+                status=TranslationProposal.Status.APPROVED
+            )
+            .select_related("contributor")
+            .order_by("language")
+        )
+        return [
+            {
+                "language": row.language,
+                "contributor_username": row.contributor.username,
+                "reviewed_at": row.reviewed_at,
+            }
+            for row in rows
         ]
 
     def _editorial(self, obj):

@@ -103,6 +103,8 @@ INSTALLED_APPS = [
     "classroom",
     "community_depth",
     "public_api",
+    # Community problem translations (i18n & translation platform wave).
+    "translations",
 ]
 
 SITE_ID = 1
@@ -329,6 +331,11 @@ REST_FRAMEWORK = {
         # Contest clarifications (CON-4): participants get a bounded question
         # budget so the jury queue cannot be flooded mid-contest.
         "clarification": os.environ.get("THROTTLE_CLARIFICATION_RATE", "10/hour"),
+        # Community translation proposals (i18n wave): cheap writes, but a
+        # single account must not be able to flood the curation queue.
+        "translation_propose": os.environ.get(
+            "THROTTLE_TRANSLATION_PROPOSE_RATE", "10/hour"
+        ),
     # OPS-1 public read-only API: generous anon ceiling (DMOJ uses 90/min).
     "public_api": os.environ.get("THROTTLE_PUBLIC_API_RATE", "60/min"),
         # dj-rest-auth's vendor LoginView/RegisterView ship throttle_scope

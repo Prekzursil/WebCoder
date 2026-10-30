@@ -85,6 +85,9 @@ SECRET_KEY=x DB_PASSWORD=x <python.exe> -m pytest -q
 | JUDGE_PIP_NETWORK / JUDGE_PYPI_INDEX_URL | judge_utils/custom_libs | pip-install container network/index; default `none`/unset ⇒ fail closed (see §judge-pip-egress) |
 | REDIS_URL | Django CACHES | compose: redis://redis:6379/1 (shared throttle counters); unset ⇒ LocMem |
 | THROTTLE_ANON_RATE / THROTTLE_USER_RATE / THROTTLE_AUTH_RATE / THROTTLE_SUBMIT_RATE | DRF throttles (SP4) | defaults 60/min · 240/min · 10/min · 20/hour |
+| THROTTLE_TRANSLATION_PROPOSE_RATE | DRF throttles (i18n wave) | translation proposals per user; default 10/hour (see §ai-curator) |
+| AI_CURATOR_URL / AI_CURATOR_API_KEY / AI_CURATOR_MODEL | translations app (i18n wave) | pluggable AI screening of translation proposals; URL unset = OFF. See §ai-curator |
+| AI_CURATOR_TIMEOUT_S / AI_CURATOR_AUTO_APPROVE | translations app (i18n wave) | per-call timeout (default 10s, hard cap 30s); auto-approve default OFF — humans confirm |
 | JWT_AUTH_SAMESITE / JWT_AUTH_SECURE | dj-rest-auth cookies (SP1) | dev `Lax`/`false`; cross-site deploys: `None` + `true` |
 | ADMIN_USER/ADMIN_EMAIL/ADMIN_PASS | create_admin | seeds superuser |
 | NEXT_PUBLIC_API_BASE | frontend | default http://localhost:8000 (src/lib/api-config.ts) |
@@ -324,3 +327,33 @@ judge lane, and reports p50/p95/max judge wait + a PASS/FAIL verdict
 full gate needs 50. `--concurrency` caps the parallel submitter pool
 (default: all of them). Clean the `replay_*` users afterwards (admin
 users view or SQL) — they exist only as load probes.
+
+## §ai-curator — pluggable AI screening of translation proposals (i18n wave)
+
+Community members propose problem translations (`POST /api/v1/translations/proposals/`,
+throttled `THROTTLE_TRANSLATION_PROPOSE_RATE`, default 10/hour per user); VERIFIER/ADMIN
+curate them (`GET /api/v1/translations/proposals/?status=PENDING`, `POST …/{id}/approve|reject/`).
+Approval promotes the proposal atomically into the problem's `title_i18n`/`statement_i18n`,
+notifies the contributor, and the proposal row becomes the "translated by @user" credit
+(problem detail payload `translations` field). English is the mandatory authoring source —
+it can never be proposed as a target; every problem always carries `en` (universal fallback).
+
+The **AI curator is optional and OFF by default**. Configure with:
+
+```
+AI_CURATOR_URL=https://your-endpoint/v1   # any OpenAI-compatible /chat/completions server; unset = OFF
+AI_CURATOR_API_KEY=…                      # bearer token (omit for local servers)
+AI_CURATOR_MODEL=…                        # required when the URL is set
+AI_CURATOR_TIMEOUT_S=10                   # default 10s, hard-capped at 30s
+AI_CURATOR_AUTO_APPROVE=false             # default; humans confirm every approval
+```
+
+Policy when ON: every proposal is auto-screened — a high-confidence quality pass is
+marked `ai_verdict=approve` (with confidence + notes) and queued for human confirmation;
+low confidence is marked `flag`. Only with `AI_CURATOR_AUTO_APPROVE=true` do
+`ai_verdict=approve` results promote without a human click (reviewer is null; the review
+note records the AI decision). **Fail-open semantics**: timeouts, HTTP errors, malformed
+replies and missing config never reject a proposal — they mark `ai_verdict=error` and the
+proposal proceeds into the ordinary human queue. When the URL is unset the pipeline is
+human-only. No vendor lock-in: any OpenAI-compatible endpoint works (OpenAI, Azure
+gateways, vLLM, Ollama, llama.cpp server, LM Studio…).
