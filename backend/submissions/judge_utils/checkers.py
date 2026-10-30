@@ -26,11 +26,13 @@ executes it per test case. :func:`run_custom_checker` remains as the
 one-shot composition (compile + single run) for callers that do not loop.
 
 Checker languages are registry-driven
-(:mod:`submissions.judge_utils.languages`): any non-Java registry language
-works as a checker (the checker source is written under the spec's file
-name, optionally compiled with the spec's toolchain, and run with the three
-evidence files as argv). Java is excluded because its run argv is a fixed
-class name, not a program file.
+(:mod:`submissions.judge_utils.languages`): any registry language whose
+``LanguageSpec.checker_capable`` is True works as a checker (the checker
+source is written under the spec's file name, optionally compiled with the
+spec's toolchain, and run with the three evidence files as argv). Excluded:
+Java (run argv is a fixed class name, not a program file) and Go/Kotlin
+(their compile argv is a single ``sh -c`` string the file-name retargeting
+cannot rewrite).
 
 Spawning goes through the configured judge backend
 (:mod:`submissions.judge_utils.backend`) — ``docker exec`` into the hardened
@@ -103,7 +105,7 @@ def compile_checker(
     workspace.
     """
     spec = get_language(checker_language)
-    if spec is None or spec.language_id == "java11":
+    if spec is None or not spec.checker_capable:
         return (
             False,
             f"Unsupported checker language: {checker_language}",
@@ -129,6 +131,7 @@ def compile_checker(
                 compile_argv,
                 workdir=workspace_dir,
                 docker_image=spec.docker_image,
+                timeout_s=spec.compile_timeout_s,
             )
         except Exception as e:  # defensive: run_compile_step fails closed itself
             return False, f"Checker compile error: {str(e)}", None

@@ -58,7 +58,9 @@ class EffectiveLimitsTest(TestCase):
             1000, 262144, "python3", {"python3": {"time_ms": 1200}}
         )
         self.assertEqual(time_ms, 1200)
-        self.assertEqual(mem_kb, 262144)
+        # python3 carries a 1.5x memory multiplier (language-fair limits):
+        # 262144 * 1.5 = 393216 KB when no explicit override is present.
+        self.assertEqual(mem_kb, 393216)
 
     def test_unknown_language_defaults_to_identity(self):
         self.assertEqual(effective_limits(500, 1000, "cobol"), (500, 1000))

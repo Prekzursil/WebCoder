@@ -33,6 +33,8 @@ import { palette, hexAlpha } from '@/theme/tokens';
 import TimerOutlinedIcon from '@mui/icons-material/TimerOutlined';
 import MemoryOutlinedIcon from '@mui/icons-material/MemoryOutlined';
 import CodeOutlinedIcon from '@mui/icons-material/CodeOutlined';
+import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
+import TerminalOutlinedIcon from '@mui/icons-material/Terminal';
 import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -296,14 +298,43 @@ export default async function ProblemDetailPage({
                   <CodeOutlinedIcon fontSize="small" />,
                   t('problem_form_allowed_languages', 'Languages'),
                   <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '2px' }}>
-                    {problem.allowed_languages.map((lang) => (
-                      <span key={lang} style={{
-                        fontSize: '0.7rem', fontWeight: 700, padding: '1px 7px', borderRadius: '4px',
-                        color: 'var(--violet)', background: hexAlpha(palette.violet, 0.1), border: `1px solid ${hexAlpha(palette.violet, 0.2)}`,
-                        fontFamily: 'var(--font-mono)',
-                      }}>{lang}</span>
-                    ))}
+                    {problem.allowed_languages.map((lang) => {
+                      const eff = problem.effective_limits?.[lang];
+                      return (
+                        <span
+                          key={lang}
+                          title={
+                            eff
+                              ? t('effective_limit_for', 'Effective limit for {{lang}}: {{time}} ms / {{memory}} KB', { lang, time: eff.time_ms, memory: eff.memory_kb })
+                              : undefined
+                          }
+                          style={{
+                            fontSize: '0.7rem', fontWeight: 700, padding: '1px 7px', borderRadius: '4px',
+                            color: 'var(--violet)', background: hexAlpha(palette.violet, 0.1), border: `1px solid ${hexAlpha(palette.violet, 0.2)}`,
+                            fontFamily: 'var(--font-mono)',
+                          }}
+                        >
+                          {lang}
+                          {eff ? <span style={{ opacity: 0.75, fontWeight: 600 }}> · {eff.time_ms} ms</span> : null}
+                        </span>
+                      );
+                    })}
                   </div>
+                )
+              )}
+              {problem.io_mode === 'FILES' ? (
+                statBlock(
+                  <DescriptionOutlinedIcon fontSize="small" />,
+                  t('problem_io_mode_label', 'I/O'),
+                  <span style={{ fontWeight: 600, color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+                    {problem.io_input_filename || 'input.txt'} → {problem.io_output_filename || 'output.txt'}
+                  </span>
+                )
+              ) : (
+                statBlock(
+                  <TerminalOutlinedIcon fontSize="small" />,
+                  t('problem_io_mode_label', 'I/O'),
+                  <span style={{ fontWeight: 600, color: 'var(--muted)' }}>{t('problem_io_stdio', 'stdin / stdout')}</span>
                 )
               )}
               {problem.author && (

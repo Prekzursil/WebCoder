@@ -13,9 +13,26 @@
 #                 target are Java 11 regardless of the JDK in the image.
 #   - nodejs20 -> Node.js 20 (Debian trixie ships the 20.x series)
 #   - pascal   -> Free Pascal (RO-5: RO schools still teach Pascal)
+#   - go       -> Debian trixie golang (1.24)
+#   - rust     -> rustc (judged programs are single-file: no cargo needed)
+#   - csharp   -> Mono mcs + mono-runtime (SPEC-GAPS J11d)
+#   - ruby     -> ruby interpreter
+#   - kotlin   -> pinned kotlinc ZIP from JetBrains' GitHub releases
+#                 (Debian ships no Kotlin; kotlinc runs on the image's
+#                 OpenJDK 21 — kept OUT of apt because it isn't there)
+#   - lua      -> lua5.4
+#   - php      -> php-cli
+#   - haskell  -> GHC (heaviest toolchain in the image; language breadth
+#                 is itself a judge feature — see languages.py rationale)
 #   - /usr/bin/time -> `time` package, used for the
 #                 "%U %S %M %x %P %e" resource-usage line format
 FROM python:3.11-slim
+
+# Kotlin: version- AND sha256-pinned compiler archive so a tampered mirror
+# fails the build instead of silently changing the toolchain.
+ARG KOTLIN_VERSION=2.0.21
+ARG KOTLIN_SHA256=0352c0a45bd22f80f6b26e485cd04da8047baa5de54865281fb9f89a4a7bcf2a
+ARG KOTLIN_URL=https://github.com/JetBrains/kotlin/releases/download/v${KOTLIN_VERSION}/kotlin-compiler-${KOTLIN_VERSION}.zip
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -24,8 +41,25 @@ RUN apt-get update \
         openjdk-21-jdk-headless \
         nodejs \
         fp-compiler \
+        golang \
+        rustc \
+        mono-mcs \
+        mono-runtime \
+        ruby \
+        lua5.4 \
+        php-cli \
+        ghc \
+        curl \
+        ca-certificates \
+        unzip \
         time \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -fsSL "$KOTLIN_URL" -o /tmp/kotlin.zip \
+    && echo "$KOTLIN_SHA256  /tmp/kotlin.zip" | sha256sum -c - \
+    && unzip -q /tmp/kotlin.zip -d /opt \
+    && rm /tmp/kotlin.zip \
+    && ln -s /opt/kotlinc/bin/kotlinc /usr/local/bin/kotlinc \
+    && ln -s /opt/kotlinc/bin/kotlin /usr/local/bin/kotlin
 
 # uid 1000 matches compose `user: "1000:1000"`; a real passwd entry gives
 # judged processes a sane $HOME (pip --user, javac caches, ...).

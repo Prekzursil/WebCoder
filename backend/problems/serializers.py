@@ -77,6 +77,36 @@ class ProblemSerializer(serializers.ModelSerializer):
     # ProblemViewSet.get_queryset ("X tried / Y solved" per card).
     submission_count = serializers.IntegerField(read_only=True)
     solved_count = serializers.IntegerField(read_only=True)
+    # Effective per-language limits (language-fair judging, J5): resolved
+    # from the registry multipliers/floors + this problem's overrides. A
+    # read-only projection — authors edit limit_overrides, not this.
+    effective_limits = serializers.SerializerMethodField()
+
+    def get_effective_limits(self, obj) -> dict:
+        """{language_id: {"time_ms": int, "memory_kb": int}} for the
+        problem's allowed languages (every registry language when the
+        problem declares no restriction)."""
+        from submissions.judge_utils.languages import (
+            LANGUAGES,
+            effective_limits,
+        )
+
+        languages = obj.allowed_languages or list(LANGUAGES)
+        return {
+            lang: dict(
+                zip(
+                    ("time_ms", "memory_kb"),
+                    effective_limits(
+                        obj.default_time_limit_ms,
+                        obj.default_memory_limit_kb,
+                        lang,
+                        obj.limit_overrides,
+                    ),
+                )
+            )
+            for lang in languages
+            if lang in LANGUAGES
+        }
     # test_cases = TestCaseSerializer(many=True, read_only=True) # To show test cases when retrieving a problem
 
     class Meta:
@@ -93,6 +123,14 @@ class ProblemSerializer(serializers.ModelSerializer):
             "difficulty_source",
             "default_time_limit_ms",
             "default_memory_limit_kb",
+            # Language-fair limits (J5): the shipped per-language multiplier
+            # resolution, surfaced so the problem page can SHOW the effective
+            # limit for every allowed language (owner requirement).
+            "limit_overrides",
+            "effective_limits",
+            "io_mode",
+            "io_input_filename",
+            "io_output_filename",
             "allowed_languages",
             "custom_libraries_allowed",
             "comparison_mode",
@@ -141,6 +179,26 @@ class ProblemSerializer(serializers.ModelSerializer):
             )
         return value
 
+    def validate_io_input_filename(self, value):
+        """FILES-mode filenames must be plain basenames (RO-4)."""
+        return self._validate_io_filename(value)
+
+    def validate_io_output_filename(self, value):
+        return self._validate_io_filename(value)
+
+    @staticmethod
+    def _validate_io_filename(value):
+        import re as _re
+
+        if value in (None, ""):
+            return value
+        if not _re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}", value):
+            raise serializers.ValidationError(
+                f"Invalid I/O filename '{value}': use a plain file name "
+                f"(letters, digits, dot, dash, underscore; no paths)."
+            )
+        return value
+
     def validate(self, attrs):
         """JDG-2/JDG-3: cross-field problem-type rules at authoring time.
 
@@ -150,6 +208,19 @@ class ProblemSerializer(serializers.ModelSerializer):
         problems never execute anything, so an interactor there is always a
         misconfiguration — reject it instead of silently ignoring it.
         """
+        # RO-4: FILES-mode problems must name their input/output files (the
+        # model defaults cover blanks, but a bad extension-less name is
+        # still the author's call — keep the default when blank).
+        io_mode = attrs.get(
+            "io_mode", getattr(self.instance, "io_mode", Problem.IOMode.STDIO)
+        )
+        if io_mode == Problem.IOMode.FILES:
+            for field in ("io_input_filename", "io_output_filename"):
+                name = attrs.get(field) or getattr(self.instance, field, "")
+                if name in (None, ""):
+                    attrs[field] = (
+                        Problem._meta.get_field(field).get_default()
+                    )
         problem_type = attrs.get(
             "problem_type",
             getattr(self.instance, "problem_type", Problem.ProblemType.NORMAL),

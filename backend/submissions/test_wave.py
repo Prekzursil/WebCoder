@@ -1120,9 +1120,9 @@ class CheckerTests(unittest.TestCase):
         self.assertIn("Checker compile error", msg)
 
     def test_unsupported_checker_language(self):
-        (verdict, msg), _, _ = self._checker(language="ruby")
+        (verdict, msg), _, _ = self._checker(language="cobol")
         self.assertEqual(verdict, IE)
-        self.assertIn("Unsupported checker language: ruby", msg)
+        self.assertIn("Unsupported checker language: cobol", msg)
 
     def test_java_rejected_as_checker_language(self):
         (verdict, msg), _, _ = self._checker(language="java11")

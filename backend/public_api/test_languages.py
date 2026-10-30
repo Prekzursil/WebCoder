@@ -37,3 +37,18 @@ class PublicLanguagesTest(TestCase):
     def test_root_directory_lists_languages(self):
         resp = self.client.get("/api/v1/public/")
         self.assertIn("/api/v1/public/languages/", resp.json()["endpoints"])
+
+    def test_rows_expose_fairness_multipliers(self):
+        """Language-fair limits (J5): the public registry carries the exact
+        multipliers/floors the judge applies, so the creator form, problem
+        page and /help/judge can never drift from the sandbox."""
+        resp = self.client.get("/api/v1/public/languages/")
+        rows = {row["id"]: row for row in resp.json()["results"]}
+        self.assertEqual(rows["python3"]["time_multiplier"], 3.0)
+        self.assertEqual(rows["python3"]["memory_multiplier"], 1.5)
+        self.assertEqual(rows["java11"]["memory_floor_kb"], 524288)
+        self.assertEqual(rows["cpp17"]["time_multiplier"], 1.0)
+        self.assertEqual(rows["rust"]["time_multiplier"], 1.0)
+        # Checker capability is part of the contract surface too.
+        self.assertFalse(rows["go"]["checker_capable"])
+        self.assertTrue(rows["python3"]["checker_capable"])

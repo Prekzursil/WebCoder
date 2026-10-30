@@ -54,7 +54,7 @@ class CompileInteractorTest(TestCase):
         self.assertTrue((self.dir / "interactor.py").exists())
 
     def test_unsupported_language_rejected(self):
-        ok, msg, spec = compile_interactor("code", "ruby", self.dir)
+        ok, msg, spec = compile_interactor("code", "cobol", self.dir)
         self.assertFalse(ok)
         self.assertIsNone(spec)
         self.assertIn("Unsupported", msg)

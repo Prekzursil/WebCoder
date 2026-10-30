@@ -4,7 +4,8 @@ import React, { useState, FormEvent, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { ProblemService, TestCaseService, collectAllPages } from '@/services/ApiService';
+import { ProblemService, TestCaseService, collectAllPages, PublicService } from '@/services/ApiService';
+import type { LanguageRow } from '@/types/api';
 import { useAuth } from '@/context/AuthContext';
 import { ProblemType, TagType, TestCaseType, TestCaseUIManaged } from '@/types';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
@@ -55,6 +56,15 @@ export default function ProblemFormPage() {
   const [interactorLanguage, setInteractorLanguage] = useState<string | null>(null);
   const [availableTags, setAvailableTags] = useState<TagType[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
+  // Registry-driven language list (language-fairness wave): the checkboxes
+  // come from /public/languages/ — the same rows the judge uses — with a
+  // static fallback so an API hiccup never blanks the authoring form.
+  const [registryLanguages, setRegistryLanguages] = useState<LanguageRow[]>([]);
+  // Console vs file I/O (RO-4): creators pick the olympiad convention at
+  // authoring time; FILES mode names its own input/output files.
+  const [ioMode, setIoMode] = useState<string>('STDIO');
+  const [ioInputFilename, setIoInputFilename] = useState<string>('input.txt');
+  const [ioOutputFilename, setIoOutputFilename] = useState<string>('output.txt');
 
   const [testCases, setTestCases] = useState<TestCaseUIManaged[]>([]);
   const [newTestCaseInput, setNewTestCaseInput] = useState('');
@@ -72,6 +82,12 @@ export default function ProblemFormPage() {
     collectAllPages((page) => ProblemService.getTags({ page, pageSize: 100 }))
       .then((tags: TagType[]) => setAvailableTags(tags))
       .catch((err) => console.error('Failed to fetch tags', err));
+
+    // Language registry (JDG-9 public endpoint): one source of truth for
+    // the authoring checkboxes and the effective-limit preview.
+    PublicService.getLanguages()
+      .then((payload) => setRegistryLanguages(payload.results || []))
+      .catch((err) => console.error('Failed to fetch languages', err));
 
     // isEditMode === Boolean(problemId), so `problemId && auth.isAuthenticated` is
     // equivalent to the CRA `isEditMode && problemId && auth.isAuthenticated` guard.
@@ -97,6 +113,9 @@ export default function ProblemFormPage() {
           setProblemType(data.problem_type || 'NORMAL');
           setInteractorCode(data.interactor_code || null);
           setInteractorLanguage(data.interactor_language || null);
+          setIoMode(data.io_mode === 'FILES' ? 'FILES' : 'STDIO');
+          setIoInputFilename(data.io_input_filename || 'input.txt');
+          setIoOutputFilename(data.io_output_filename || 'output.txt');
           setSelectedTagIds(data.tags?.map((tag: TagType) => tag.id) || []);
           setTestCases(
             data.test_cases?.map((tc: TestCaseType): TestCaseUIManaged => ({
@@ -208,6 +227,9 @@ export default function ProblemFormPage() {
       problem_type: problemType,
       interactor_code: problemType === 'INTERACTIVE' ? interactorCode : null,
       interactor_language: problemType === 'INTERACTIVE' ? interactorLanguage : null,
+      io_mode: ioMode,
+      io_input_filename: ioMode === 'FILES' ? ioInputFilename : '',
+      io_output_filename: ioMode === 'FILES' ? ioOutputFilename : '',
       tag_ids: selectedTagIds,
     };
 
@@ -283,7 +305,66 @@ export default function ProblemFormPage() {
           <div style={fieldStyle}><label htmlFor="memory_limit" style={labelStyle}>{t('problem_form_memory_limit_kb', 'Memory Limit (KB)')}:</label><input type="number" id="memory_limit" value={defaultMemoryLimitKb} onChange={(e) => setDefaultMemoryLimitKb(parseInt(e.target.value, 10))} required style={inputStyle} /></div>
           <div style={fieldStyle}><label htmlFor="status" style={labelStyle}>{t('problem_form_status', 'Status')}:</label><select id="status" value={status} onChange={(e) => setStatus(e.target.value)} style={inputStyle}><option value="DRAFT">{t('status_draft')}</option><option value="PENDING_APPROVAL">{t('status_pending_approval')}</option><option value="APPROVED">{t('status_approved')}</option><option value="PRIVATE">{t('status_private')}</option></select></div>
           <div style={fieldStyle}><label htmlFor="problem_type" style={labelStyle}>{t('problem_form_problem_type', 'Problem Type')}:</label><select id="problem_type" value={problemType} onChange={(e) => setProblemType(e.target.value)} style={inputStyle}><option value="NORMAL">{t('problem_type_normal', 'Normal (batch tests)')}</option><option value="INTERACTIVE">{t('problem_type_interactive', 'Interactive (interactor protocol)')}</option></select></div>
-          <div style={fieldStyle}><label style={labelStyle}>{t('problem_form_allowed_languages', 'Allowed Languages')}:</label>{['python3', 'cpp17', 'c11', 'java11', 'nodejs20'].map((lang) => (<span key={lang} style={checkboxContainerStyle}><input type="checkbox" id={`lang-${lang}`} value={lang} checked={allowedLanguages.includes(lang)} onChange={(e) => {if (e.target.checked) {setAllowedLanguages((prev) => [...prev, lang]);} else {setAllowedLanguages((prev) => prev.filter((l) => l !== lang));}}} /><label htmlFor={`lang-${lang}`} style={checkboxLabelStyle}>{lang}</label></span>))}</div>
+          <div style={fieldStyle}>
+            <label style={labelStyle}>{t('problem_form_allowed_languages', 'Allowed Languages')}:</label>
+            {(registryLanguages.length > 0
+              ? registryLanguages.map((row) => row.id)
+              : ['python3', 'cpp17', 'c11', 'java11', 'nodejs20', 'pascal', 'go', 'rust', 'csharp', 'ruby', 'kotlin', 'lua', 'php', 'haskell']
+            ).map((lang) => {
+              const row = registryLanguages.find((r) => r.id === lang);
+              // Language-fair limits: show each checked language's judge
+              // multiplier right on the checkbox (2× = twice the baseline).
+              const effTime = Math.round(defaultTimeLimitMs * (row?.time_multiplier ?? 1));
+              const effMem = Math.max(
+                Math.round(defaultMemoryLimitKb * (row?.memory_multiplier ?? 1)),
+                row?.memory_floor_kb ?? 0
+              );
+              return (
+                <span key={lang} style={checkboxContainerStyle}>
+                  <input
+                    type="checkbox"
+                    id={`lang-${lang}`}
+                    value={lang}
+                    checked={allowedLanguages.includes(lang)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setAllowedLanguages((prev) => [...prev, lang]);
+                      } else {
+                        setAllowedLanguages((prev) => prev.filter((l) => l !== lang));
+                      }
+                    }}
+                  />
+                  <label htmlFor={`lang-${lang}`} style={checkboxLabelStyle}>
+                    {row?.name || lang}
+                    {allowedLanguages.includes(lang) && row ? (
+                      <span style={{ opacity: 0.7, marginLeft: '4px', fontFamily: 'var(--font-mono)' }}>
+                        ({effTime} ms / {Math.round(effMem / 1024)} MB)
+                      </span>
+                    ) : null}
+                  </label>
+                </span>
+              );
+            })}
+          </div>
+          <div style={fieldStyle}>
+            <label htmlFor="io_mode" style={labelStyle}>{t('problem_form_io_mode', 'I/O mode')}:</label>
+            <select id="io_mode" value={ioMode} onChange={(e) => setIoMode(e.target.value)} style={inputStyle}>
+              <option value="STDIO">{t('problem_form_io_stdio', 'Console (stdin/stdout)')}</option>
+              <option value="FILES">{t('problem_form_io_files', 'Files (.in/.out)')}</option>
+            </select>
+          </div>
+          {ioMode === 'FILES' && (
+            <div style={{ ...fieldStyle, display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <div style={{ flex: '1 1 200px' }}>
+                <label htmlFor="io_input_filename" style={labelStyle}>{t('problem_form_io_input_file', 'Input filename')}:</label>
+                <input id="io_input_filename" type="text" value={ioInputFilename} onChange={(e) => setIoInputFilename(e.target.value)} style={inputStyle} placeholder="date.in" />
+              </div>
+              <div style={{ flex: '1 1 200px' }}>
+                <label htmlFor="io_output_filename" style={labelStyle}>{t('problem_form_io_output_file', 'Output filename')}:</label>
+                <input id="io_output_filename" type="text" value={ioOutputFilename} onChange={(e) => setIoOutputFilename(e.target.value)} style={inputStyle} placeholder="date.out" />
+              </div>
+            </div>
+          )}
         </div>
 
         <div style={sectionStyle}>

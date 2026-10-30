@@ -368,7 +368,7 @@ class RunCodeInSandboxTest(TestCase):
         self.assertIn("user_code.js", seen["argv"])
 
     def test_unsupported_language(self):
-        verdict, t, m, out, err = self._run(language="rust")
+        verdict, t, m, out, err = self._run(language="cobol")
         self.assertEqual(verdict, Submission.VerdictStatus.INTERNAL_ERROR)
         self.assertIn("Unsupported language", err)
 

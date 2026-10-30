@@ -16,22 +16,43 @@ from submissions.judge_utils.backend import (
 from submissions.judge_utils.languages import (
     LANGUAGES,
     SUPPORTED_LANGUAGE_IDS,
+    effective_limits,
     get_language,
 )
 
 
+#: The 14-language registry after the language-fairness wave: the six
+#: wave-A/RO-5 entries plus the eight additions (go, rust, csharp, ruby,
+#: kotlin, lua, php, haskell).
+EXPANDED_IDS = frozenset(
+    {
+        "python3",
+        "cpp17",
+        "c11",
+        "java11",
+        "nodejs20",
+        "pascal",
+        "go",
+        "rust",
+        "csharp",
+        "ruby",
+        "kotlin",
+        "lua",
+        "php",
+        "haskell",
+    }
+)
+
+
 class RegistryContentTests(unittest.TestCase):
-    def test_all_six_languages_registered(self):
-        # RO-5: pascal joins the registry (Free Pascal for RO schools).
-        self.assertEqual(
-            set(LANGUAGES),
-            {"python3", "cpp17", "c11", "java11", "nodejs20", "pascal"},
-        )
+    def test_all_fourteen_languages_registered(self):
+        # RO-5 (pascal) + the language-fairness wave's eight additions.
+        self.assertEqual(set(LANGUAGES), EXPANDED_IDS)
 
     def test_supported_ids_sorted_and_complete(self):
         self.assertEqual(
             SUPPORTED_LANGUAGE_IDS,
-            ("c11", "cpp17", "java11", "nodejs20", "pascal", "python3"),
+            tuple(sorted(EXPANDED_IDS)),
         )
 
     def test_pascal_spec_shape(self):
@@ -222,3 +243,116 @@ class BuilderEdgeCaseTests(unittest.TestCase):
         self.assertNotIn("-i", argv)
         argv_on = build_docker_run_command(["true"], "/w", "img")
         self.assertIn("-i", argv_on)
+
+
+class LanguageFairLimitTests(unittest.TestCase):
+    """Owner requirement: a hard 0.1s-style limit must not make a problem
+    solvable only in low-level languages — the registry normalizes time AND
+    memory per language (wave item A)."""
+
+    def test_multiplier_table_shipped_values(self):
+        # (time ×, mem ×, mem floor) — the documented fairness table.
+        table = {
+            "c11": (1.0, 1.0, 0),
+            "cpp17": (1.0, 1.0, 0),
+            "pascal": (1.0, 1.0, 0),
+            "go": (1.0, 1.0, 262144),
+            "rust": (1.0, 1.0, 0),
+            "haskell": (1.0, 1.0, 262144),
+            "java11": (2.0, 1.0, 524288),
+            "kotlin": (2.0, 1.0, 524288),
+            "csharp": (2.0, 1.0, 524288),
+            "python3": (3.0, 1.5, 0),
+            "ruby": (3.0, 1.5, 0),
+            "php": (3.0, 1.5, 0),
+            "nodejs20": (2.0, 1.0, 524288),
+            "lua": (2.0, 1.0, 0),
+        }
+        self.assertEqual(set(table), set(LANGUAGES))
+        for lang, (t, m, floor) in table.items():
+            spec = LANGUAGES[lang]
+            self.assertEqual(spec.time_multiplier, t, lang)
+            self.assertEqual(spec.memory_multiplier, m, lang)
+            self.assertEqual(spec.memory_floor_kb, floor, lang)
+
+    def test_effective_limits_new_languages(self):
+        # Compiled additions are unadjusted; interpreted ones scaled.
+        self.assertEqual(effective_limits(1000, 262144, "rust"), (1000, 262144))
+        self.assertEqual(effective_limits(1000, 262144, "ruby"), (3000, 393216))
+        self.assertEqual(
+            effective_limits(1000, 262144, "csharp"),
+            (2000, 524288),  # 2x time, JVM-class memory floor
+        )
+        self.assertEqual(effective_limits(1000, 262144, "kotlin"), (2000, 524288))
+        self.assertEqual(effective_limits(1000, 262144, "lua"), (2000, 262144))
+        # Floor beats a small default even without a multiplier.
+        self.assertEqual(effective_limits(1000, 100000, "haskell"), (1000, 262144))
+
+    def test_python_memory_multiplier_and_floor_composition(self):
+        # python3: no floor, 1.5x memory — a 256MB default becomes 384MB.
+        self.assertEqual(effective_limits(1000, 262144, "python3"), (3000, 393216))
+
+    def test_override_beats_multipliers_on_new_language(self):
+        self.assertEqual(
+            effective_limits(
+                1000, 262144, "ruby", {"ruby": {"time_ms": 500, "memory_kb": 65536}}
+            ),
+            (500, 65536),
+        )
+
+    def test_010s_baseline_is_python_solvable_with_multiplier(self):
+        # The owner's canonical scenario: a 0.1s C-baseline limit.
+        self.assertEqual(effective_limits(100, 262144, "python3")[0], 300)
+        self.assertEqual(effective_limits(100, 262144, "cpp17")[0], 100)
+
+
+class ExpansionShapeTests(unittest.TestCase):
+    """Structural invariants for the eight added languages."""
+
+    def test_go_compiles_through_sh_with_writable_caches(self):
+        argv = LANGUAGES["go"].compile_argv()
+        self.assertEqual(argv[:2], ("sh", "-c"))
+        self.assertIn("GOCACHE=/tmp/gocache", argv[2])
+        self.assertIn("go build", argv[2])
+
+    def test_rust_compiles_with_rustc_o(self):
+        argv = LANGUAGES["rust"].compile_argv()
+        self.assertEqual(argv[0], "rustc")
+        self.assertIn("-O", argv)
+
+    def test_csharp_uses_mcs_and_mono(self):
+        self.assertEqual(LANGUAGES["csharp"].compile_argv()[0], "mcs")
+        self.assertEqual(LANGUAGES["csharp"].run_command, ("mono", "user_program.exe"))
+
+    def test_kotlin_compiles_to_jar_and_runs_with_kotlin_runner(self):
+        argv = LANGUAGES["kotlin"].compile_argv()
+        self.assertEqual(argv[:2], ("sh", "-c"))
+        self.assertIn("kotlinc user_code.kt -d user_program.jar", argv[2])
+        self.assertEqual(LANGUAGES["kotlin"].run_command, ("kotlin", "user_program.jar"))
+
+    def test_interpreted_additions_have_no_compile_step(self):
+        for lang in ("ruby", "lua", "php"):
+            spec = LANGUAGES[lang]
+            self.assertIsNone(spec.compile_command, lang)
+            self.assertIsNone(spec.compile_artifact, lang)
+
+    def test_haskell_compiles_with_ghc(self):
+        self.assertEqual(LANGUAGES["haskell"].compile_argv()[0], "ghc")
+
+    def test_slow_toolchains_get_raised_compile_budgets(self):
+        self.assertEqual(LANGUAGES["go"].compile_timeout_s, 60)
+        self.assertEqual(LANGUAGES["rust"].compile_timeout_s, 60)
+        self.assertEqual(LANGUAGES["csharp"].compile_timeout_s, 60)
+        self.assertEqual(LANGUAGES["kotlin"].compile_timeout_s, 120)
+        self.assertEqual(LANGUAGES["haskell"].compile_timeout_s, 90)
+        # Default stays 30s for the fast toolchains.
+        for lang in ("cpp17", "python3", "pascal"):
+            self.assertEqual(LANGUAGES[lang].compile_timeout_s, 30, lang)
+
+    def test_checker_capability_flags(self):
+        # java11 (fixed class-name run argv) and the sh -c compilers
+        # (go, kotlin) cannot serve as checker/interactor languages.
+        for lang in ("java11", "go", "kotlin"):
+            self.assertFalse(LANGUAGES[lang].checker_capable, lang)
+        for lang in ("python3", "cpp17", "c11", "rust", "haskell", "pascal"):
+            self.assertTrue(LANGUAGES[lang].checker_capable, lang)

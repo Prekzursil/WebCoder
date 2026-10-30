@@ -105,6 +105,14 @@ class PublicLanguagesView(APIView):
                 "name": spec.display_name,
                 "compile_command": list(spec.compile_command or ()),
                 "run_command": list(spec.run_command),
+                # Language-fair limits (J5): the exact multipliers the judge
+                # applies — the creator form and problem page compute the
+                # effective limits from these, so docs can never drift from
+                # the sandbox.
+                "time_multiplier": spec.time_multiplier,
+                "memory_multiplier": spec.memory_multiplier,
+                "memory_floor_kb": spec.memory_floor_kb,
+                "checker_capable": spec.checker_capable,
             }
             for spec in sorted(LANGUAGES.values(), key=lambda x: x.language_id)
         ]

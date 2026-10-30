@@ -50,7 +50,7 @@ class RunCustomCheckerTest(TestCase):
 
     def test_unsupported_language(self):
         verdict, _frac, msg = run_custom_checker(
-            "code", "ruby", self.inp, self.uout, self.ans, self.dir
+            "code", "cobol", self.inp, self.uout, self.ans, self.dir
         )
         self.assertEqual(verdict, _VERDICT_INTERNAL_ERROR)
         self.assertIn("Unsupported checker language", msg)
@@ -348,7 +348,7 @@ class CheckerProtocolV2Test(TestCase):
     # --- compile-once API ----------------------------------------------
 
     def test_compile_checker_unsupported_language(self):
-        ok, msg, spec = checkers.compile_checker("code", "ruby", self.dir)
+        ok, msg, spec = checkers.compile_checker("code", "cobol", self.dir)
         self.assertFalse(ok)
         self.assertIn("Unsupported checker language", msg)
         self.assertIsNone(spec)

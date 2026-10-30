@@ -234,7 +234,7 @@ class CompileCodeInSandboxTest(TestCase):
         self.assertIn("system error", out)
 
     def test_unsupported_language(self):
-        ok, out, path = compile_code_in_sandbox("x", "rust", self.dir)
+        ok, out, path = compile_code_in_sandbox("x", "cobol", self.dir)
         self.assertFalse(ok)
         self.assertIsNone(path)
         self.assertIn("Unsupported language", out)

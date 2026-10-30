@@ -314,6 +314,22 @@ def run_code_in_sandbox(
         final_time_ms = actual_time_ms
         final_mem_kb = actual_mem_kb
 
+        # RO-4 FILES mode: the program's answer is the output FILE it was
+        # required to create — stdout is irrelevant. Read the file back as
+        # the run's output (this is what the docstring always promised; the
+        # readback itself was missing — found by this wave's live-stack
+        # acceptance pass). A clean-exiting program that never created the
+        # file is resolved to RUNTIME_ERROR below the verdict chain, with a
+        # message naming the file, instead of a silent empty-output WA.
+        missing_output_file = False
+        if io_files and returncode == 0:
+            output_path = submission_dir / io_files[1]
+            if output_path.exists():
+                final_output = output_path.read_text(encoding="utf-8")
+            else:
+                missing_output_file = True
+                final_output = ""
+
         if returncode == 124:
             final_verdict, final_error, final_time_ms = (
                 Submission.VerdictStatus.TIME_LIMIT_EXCEEDED,
@@ -347,11 +363,12 @@ def run_code_in_sandbox(
                 f"{memory_limit_kb}KB)."
             )
         elif (
-            len(stdout_data.encode("utf-8", errors="replace"))
+            len(final_output.encode("utf-8", errors="replace"))
             > settings.JUDGE_OUTPUT_LIMIT_BYTES
         ):
             # JDG-7: output-size cap — printing gigabytes must read as OLE,
-            # not as a mysterious judge hang or MLE.
+            # not as a mysterious judge hang or MLE. In FILES mode the
+            # program's output IS the file, so the cap applies there too.
             final_verdict = Submission.VerdictStatus.OUTPUT_LIMIT_EXCEEDED
             final_error = (
                 f"Output limit exceeded (>{settings.JUDGE_OUTPUT_LIMIT_BYTES} "
@@ -368,6 +385,17 @@ def run_code_in_sandbox(
                 final_error = parsed_stderr + f"\nExit code: {returncode}."
             if not time_output_parsed and stderr_data:
                 final_error = stderr_data + f"\nExit code: {returncode}."
+
+        # RO-4 FILES mode: a clean-exiting program that never created the
+        # required output file is a RUNTIME_ERROR with a message naming the
+        # file (overriding the AC the exit code alone would imply).
+        if missing_output_file:
+            final_verdict = Submission.VerdictStatus.RUNTIME_ERROR
+            final_error = (
+                parsed_stderr
+                + f"\nProgram exited normally but did not create the "
+                f"required output file '{io_files[1]}'."
+            )
 
     except subprocess.TimeoutExpired:
         final_verdict, final_error, final_time_ms, final_mem_kb = (
