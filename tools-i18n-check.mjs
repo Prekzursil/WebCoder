@@ -39,7 +39,7 @@ function inAllowed(cp) {
 // (the key-set + placeholder + identical-to-EN gates still apply).
 const NON_LATIN_LOCALES = new Set([
   'zh-Hans', 'zh-Hant', 'ja', 'ko', 'hi', 'th', 'ar', 'fa',
-  'el', 'bg', 'ru', 'uk', 'kk', 'he', 'rmy',
+  'el', 'bg', 'ru', 'uk', 'kk', 'he', 'rmy', 'sr-Cyrl',
 ]);
 
 const enEntries = [...flat(JSON.parse(fs.readFileSync(path.join(process.cwd(), 'src/locales/en.json'), 'utf8')))];

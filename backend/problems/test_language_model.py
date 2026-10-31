@@ -35,10 +35,10 @@ class LanguageRegistryTests(APITestCase):
         self.assertEqual(
             SUPPORTED_LANGUAGES,
             [
-                "en", "ro", "es", "fr", "de", "pt", "it",
-                "pl", "hu", "ru", "uk", "bg", "el",
-                "zh-Hans", "ja", "ko", "hi", "vi", "th", "id",
-                "tr", "ar", "fa",
+                "en", "ro", "es", "fr", "de", "pt", "it", "ca",
+                "pl", "hu", "hr", "sr-Latn", "ru", "uk", "bg", "el",
+                "zh-Hans", "zh-Hant", "ja", "ko", "hi", "vi", "th", "id",
+                "tr", "kk", "ar", "fa",
             ],
         )
         # English mandatory + home market + globals + the owner-directed
