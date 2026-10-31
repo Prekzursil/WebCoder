@@ -62,8 +62,13 @@ CONTAINER_JAVA_HOST_LIBS_MOUNT_PATH = "/app/host_java_libs"
 TIME_FORMAT_STRING = "%U %S %M %x %P %e"
 
 #: Exit codes that indicate the judged process was SIGKILLed (OOM killer).
-#: ``timeout --signal=SIGKILL`` reports its own kill as 124, so a raw
-#: 128+9=137 here is the kernel/cgroup OOM kill (or equivalent SIGKILL).
+#: Live-stack measurement (2026-10-31, coreutils 9.7 in the judge-runner):
+#: ``timeout --signal=SIGKILL`` does NOT exit 124 — it propagates the
+#: child's kill status (137) — so every live CPU-TLE was classified as
+#: MLE. The sandbox now uses the default TERM signal plus ``-k 1`` (hard
+#: SIGKILL one second later), which exits 124 correctly for both paths;
+#: a raw 128+9=137 reaching us is therefore the kernel/cgroup OOM kill
+#: (or equivalent SIGKILL) — the original intent of this tuple.
 OOM_EXIT_CODES = (137, -9)
 
 #: JDG-7 (competitive roadmap): map POSIX termination signals to actionable
@@ -255,9 +260,15 @@ def run_code_in_sandbox(
         TIME_FORMAT_STRING,
         *program_and_args,
     ]
+    # TERM at the wall limit (exit 124 on timeout — the TLE contract),
+    # SIGKILL one second later for programs that ignore TERM. Do NOT use
+    # ``--signal=SIGKILL`` here: coreutils 9.7 propagates the child's
+    # kill status (137) instead of exiting 124, which the judge then
+    # misclassifies as an OOM kill (MLE) — measured on the live stack.
     command_for_sandbox = [
         "timeout",
-        "--signal=SIGKILL",
+        "-k",
+        "1",
         f"{time_limit_s + 1:.2f}s",
         *command_to_time,
     ]
