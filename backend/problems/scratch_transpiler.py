@@ -112,9 +112,14 @@ _MATH_OPS = frozenset(
     {"abs", "floor", "ceiling", "sqrt", "sin", "cos", "tan", "round"}
 )
 
-#: sb3 primitive input typecodes (scratch-parser / sb3 format).
+#: sb3 primitive input typecodes (scratch-vm's serialization/sb3.js:
+#: MATH_PRIMITIVE=4, TEXT_PRIMITIVE=10, BROADCAST_PRIMITIVE=11,
+#: COLOUR_PRIMITIVE=9 — plus the boolean shadow form 6). Real Scratch
+#: editors emit text literals as [10, "hello"], never [3, ...]; 3 is
+#: accepted as a legacy convenience for hand-authored projects.
 _PRIM_MATH_NUMBER = 4
 _PRIM_TEXT = 3
+_PRIM_TEXT_SHADOW = 10
 _PRIM_BOOLEAN = 6
 _PRIM_COLOUR = 9
 
@@ -330,7 +335,7 @@ class _Emitter:
             if f.is_integer() and abs(f) < 1e16:
                 return str(int(f))
             return repr(f)
-        if code in (_PRIM_TEXT, _PRIM_COLOUR):
+        if code in (_PRIM_TEXT, _PRIM_TEXT_SHADOW, _PRIM_COLOUR):
             return json.dumps(str(raw))
         if code == _PRIM_BOOLEAN:
             return "True" if str(raw) == "true" else "False"
