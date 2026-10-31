@@ -1077,3 +1077,42 @@ class TestTranspileMessageHelper:
         assert _transpile_message(TranspileError()) == (
             "the Scratch project could not be translated"
         )
+
+
+class TestRealSb3TextTypecode:
+    """Real Scratch editors emit text literals as [10, "..."] (scratch-vm
+    serialization/sb3.js: TEXT_PRIMITIVE = 10) — the shape the judge must
+    accept for every real editor submission."""
+
+    def test_say_text_shadow_typecode_10(self):
+        blocks = {"first": _say([1, [10, "Hello!"]])}
+        out = _run(transpile_project(_flag(blocks)))
+        assert out == "Hello!\n"
+
+    def test_ask_question_typecode_10(self):
+        blocks = {
+            "first": {
+                "opcode": "sensing_askandwait",
+                "next": "second",
+                "parent": "hat",
+                "inputs": {"QUESTION": [1, [10, "n?"]]},
+                "fields": {},
+                "topLevel": False,
+                "shadow": False,
+            },
+            "second": _say([1, "ans"]),
+            "ans": _op("sensing_answer", {}),
+        }
+        out = _run(transpile_project(_flag(blocks)), stdin_text="42\n")
+        assert out == "42\n"
+
+    def test_mathop_operand_typecode_10_is_text_coerced(self):
+        expr = _op("operator_mathop", {"NUM": [1, [10, "9"]]}, {"OPERATOR": ["sqrt"]})
+        blocks = {"first": _say([1, "expr"]), "expr": expr}
+        out = _run(transpile_project(_flag(blocks)))
+        assert out == "3\n"
+
+    def test_legacy_typecode_3_still_accepted(self):
+        blocks = {"first": _say([1, [3, "old"]])}
+        out = _run(transpile_project(_flag(blocks)))
+        assert out == "old\n"
