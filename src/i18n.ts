@@ -2,23 +2,29 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
-// Ten-locale UI (i18n & translation platform wave).
+// Full-locale UI (i18n & translation platform wave — owner requirements of
+// 2026-10-31: base ten + Asian + regional + the union bar of every UI
+// language any major judge ships).
 //
 // The catalogs live as JSON under src/locales/<code>.json — one file per
-// language, hand-translated (the RO/EN pair was ported verbatim from the
-// old inline blocks in this module; the other eight were authored for this
-// wave). The JSON files are the single source of truth for BOTH the client
-// i18next resources and the server-side public dictionary
-// (src/app/_lib/public-messages.ts derives from the same files), and the
-// static copies under public/locales/ are what the future mobile app
-// consumes — export them with `node scripts/export-locales.mjs`.
+// language, hand-translated. The JSON files are the single source of truth
+// for BOTH the client i18next resources and the server-side public
+// dictionary (src/app/_lib/public-messages.ts derives from the same files),
+// and the static copies under public/locales/ are what the future mobile
+// app consumes — export them with `node scripts/export-locales.mjs`.
 //
-// The ten locales (see backend/webcoder_api/languages.py for the decision
-// record): en (mandatory problem language + universal fallback), ro (home
-// market), es/fr/de/pt/it (global + Romanian diaspora), ru (the historic
-// competitive-programming lingua franca), pl (per-capita the strongest CP
-// nation), uk (large community in the home region). No RTL locale ships
-// because no RTL layout exists yet.
+// The set (see backend/webcoder_api/languages.py for the decision record
+// with the verified union-bar matrix):
+//   • base ten — en (mandatory problem language + universal fallback), ro
+//     (home market), es/fr/de/pt/it, ru, pl, uk;
+//   • Asian (owner directive) — zh-Hans, ja, ko, hi, vi, th, id + tr, ar,
+//     fa per the research;
+//   • regional (owner-named) — el, bg, hu.
+//   (A follow-up PR adds the union-bar remainder — zh-Hant, ca, hr, kk,
+//   sr-Latn — taking the set to every UI language any major judge ships.)
+//
+// RTL: ar and fa render right-to-left (RTL_LOCALES + <html dir> sync in
+// layout/providers/LanguageSwitcher; RTL layout verified by e2e).
 //
 // Next.js adaptation note: this module is also evaluated server-side
 // during App Router SSR/prerender, so the browser language detector is
@@ -34,9 +40,22 @@ import fr from './locales/fr.json';
 import de from './locales/de.json';
 import pt from './locales/pt.json';
 import it from './locales/it.json';
-import ru from './locales/ru.json';
 import pl from './locales/pl.json';
+import hu from './locales/hu.json';
+import ru from './locales/ru.json';
 import uk from './locales/uk.json';
+import bg from './locales/bg.json';
+import el from './locales/el.json';
+import zhHans from './locales/zh-Hans.json';
+import ja from './locales/ja.json';
+import ko from './locales/ko.json';
+import hi from './locales/hi.json';
+import vi from './locales/vi.json';
+import th from './locales/th.json';
+import id from './locales/id.json';
+import tr from './locales/tr.json';
+import ar from './locales/ar.json';
+import fa from './locales/fa.json';
 
 /** The supported UI locales — keep in sync with the backend registry. */
 export const SUPPORTED_LOCALES = [
@@ -47,9 +66,22 @@ export const SUPPORTED_LOCALES = [
   'de',
   'pt',
   'it',
-  'ru',
   'pl',
+  'hu',
+  'ru',
   'uk',
+  'bg',
+  'el',
+  'zh-Hans',
+  'ja',
+  'ko',
+  'hi',
+  'vi',
+  'th',
+  'id',
+  'tr',
+  'ar',
+  'fa',
 ] as const;
 
 export type Locale = (typeof SUPPORTED_LOCALES)[number];
@@ -63,19 +95,89 @@ export const LOCALE_NATIVE_NAMES: Record<Locale, string> = {
   de: 'Deutsch',
   pt: 'Português',
   it: 'Italiano',
-  ru: 'Русский',
   pl: 'Polski',
+  hu: 'Magyar',
+  ru: 'Русский',
   uk: 'Українська',
+  bg: 'Български',
+  el: 'Ελληνικά',
+  'zh-Hans': '简体中文',
+  ja: '日本語',
+  ko: '한국어',
+  hi: 'हिन्दी',
+  vi: 'Tiếng Việt',
+  th: 'ไทย',
+  id: 'Bahasa Indonesia',
+  tr: 'Türkçe',
+  ar: 'العربية',
+  fa: 'فارسی',
 };
 
-/** Map any BCP-47-ish string onto a supported locale ('en' fallback). */
+/** Right-to-left locales — <html dir="rtl"> + mirrored layout. */
+export const RTL_LOCALES: ReadonlySet<Locale> = new Set<Locale>(['ar', 'fa']);
+
+/** Text direction for a locale ('rtl' | 'ltr'). */
+export function localeDirection(locale: Locale): 'ltr' | 'rtl' {
+  return RTL_LOCALES.has(locale) ? 'rtl' : 'ltr';
+}
+
+/**
+ * Picker grouping — 23 endonyms in one flat <select> is unusable, so the
+ * picker renders optgroups by script/region (labels are catalog keys
+ * lang_group_*, translated into every locale). Group order follows display
+ * order in SUPPORTED_LOCALES; every locale appears in exactly one group
+ * (pinned by the parity test).
+ */
+export interface LocaleGroup {
+  /** Catalog key for the group label. */
+  labelKey: string;
+  locales: Locale[];
+}
+
+export const LOCALE_GROUPS: LocaleGroup[] = [
+  { labelKey: 'lang_group_worldwide', locales: ['en'] },
+  {
+    labelKey: 'lang_group_europe_latin_west',
+    locales: ['ro', 'es', 'fr', 'de', 'pt', 'it'],
+  },
+  { labelKey: 'lang_group_europe_latin_east', locales: ['pl', 'hu'] },
+  { labelKey: 'lang_group_cyrillic_greek', locales: ['ru', 'uk', 'bg', 'el'] },
+  { labelKey: 'lang_group_east_asian', locales: ['zh-Hans', 'ja', 'ko'] },
+  { labelKey: 'lang_group_south_southeast_asian', locales: ['hi', 'vi', 'th', 'id'] },
+  { labelKey: 'lang_group_turkic', locales: ['tr'] },
+  { labelKey: 'lang_group_right_to_left', locales: ['ar', 'fa'] },
+];
+
+/**
+ * Region/script variants browsers report that normalize onto a DIFFERENT
+ * supported locale than their neutral prefix would (zh-TW/zh-HK/zh-MO are
+ * written in Traditional script; zh-CN/zh-SG in Simplified). Extend when
+ * the corresponding locale ships.
+ */
+const LOCALE_ALIASES: Record<string, Locale> = {
+  'zh-tw': 'zh-Hans', // until the Traditional catalog ships (union-bar PR)
+  'zh-hk': 'zh-Hans',
+  'zh-mo': 'zh-Hans',
+  'zh-hant': 'zh-Hans',
+};
+
+/**
+ * Map any BCP-47-ish string onto a supported locale ('en' fallback).
+ * Canonicalization is case-insensitive ('ZH-HANS' → 'zh-Hans'); a neutral
+ * prefix match wins next (pt-BR → pt, fa-IR → fa); the alias table handles
+ * script-region variants; a neutral zh defaults to Simplified.
+ */
 export function normalizeUiLocale(raw: string | null | undefined): Locale {
   if (!raw) return 'en';
   const lower = raw.toLowerCase();
-  const exact = lower as Locale;
-  if (SUPPORTED_LOCALES.includes(exact)) return exact;
-  const prefix = lower.split('-')[0] as Locale;
-  if (SUPPORTED_LOCALES.includes(prefix)) return prefix;
+  const exact = SUPPORTED_LOCALES.find((code) => code.toLowerCase() === lower);
+  if (exact) return exact;
+  const aliased = LOCALE_ALIASES[lower];
+  if (aliased) return aliased;
+  const prefix = lower.split('-')[0];
+  const prefixExact = SUPPORTED_LOCALES.find((code) => code.toLowerCase() === prefix);
+  if (prefixExact) return prefixExact;
+  if (prefix === 'zh') return 'zh-Hans'; // neutral Chinese → Simplified default
   return 'en'; // universal fallback (owner rule (d))
 }
 
@@ -87,9 +189,22 @@ const resources = {
   de: { translation: de },
   pt: { translation: pt },
   it: { translation: it },
-  ru: { translation: ru },
   pl: { translation: pl },
+  hu: { translation: hu },
+  ru: { translation: ru },
   uk: { translation: uk },
+  bg: { translation: bg },
+  el: { translation: el },
+  'zh-Hans': { translation: zhHans },
+  ja: { translation: ja },
+  ko: { translation: ko },
+  hi: { translation: hi },
+  vi: { translation: vi },
+  th: { translation: th },
+  id: { translation: id },
+  tr: { translation: tr },
+  ar: { translation: ar },
+  fa: { translation: fa },
 };
 
 if (typeof window !== 'undefined') {
@@ -109,6 +224,14 @@ i18n?.use(initReactI18next)?.init({
     detection: {
       // Order and from where user language should be detected
       order: ['querystring', 'cookie', 'localStorage', 'sessionStorage', 'navigator', 'htmlTag', 'path', 'subdomain'],
+      // NOTE on cookie persistence: the detector's DEFAULT cookie name is
+      // 'i18next', while SSR (public-i18n getLocale) and the providers
+      // post-hydration re-application read 'i18nextLng'. Do NOT pin
+      // lookupCookie here — i18next caches the INIT-pinned 'en' through
+      // the detector, which would clobber the visitor's incoming
+      // i18nextLng cookie before providers re-apply it. The picker
+      // (LanguageSwitcher) writes i18nextLng explicitly on every switch;
+      // that is the one cookie everything reads.
       caches: ['localStorage', 'cookie'], // Where to cache detected language
     }
   });

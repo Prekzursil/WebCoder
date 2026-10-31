@@ -19,6 +19,7 @@ from problems.i18n_fields import (
 from problems.models import Problem
 from webcoder_api.languages import (
     FALLBACK_LANGUAGE,
+    RTL_LANGUAGES,
     SUPPORTED_LANGUAGES,
     SUPPORTED_LANGUAGES_SET,
     TRANSLATABLE_LANGUAGES,
@@ -28,23 +29,31 @@ User = get_user_model()
 
 
 class LanguageRegistryTests(APITestCase):
-    """The ten-locale registry is the single source of truth."""
+    """The full-locale registry is the single source of truth."""
 
     def test_registry_shape(self):
         self.assertEqual(
             SUPPORTED_LANGUAGES,
-            ["en", "ro", "es", "fr", "de", "pt", "it", "ru", "pl", "uk"],
+            [
+                "en", "ro", "es", "fr", "de", "pt", "it",
+                "pl", "hu", "ru", "uk", "bg", "el",
+                "zh-Hans", "ja", "ko", "hi", "vi", "th", "id",
+                "tr", "ar", "fa",
+            ],
         )
-        # English mandatory + home market + eight globals; no RTL locale
-        # because no RTL layout ships.
+        # English mandatory + home market + globals + the owner-directed
+        # Asian/regional set (requirements of 2026-10-31); ar/fa are RTL
+        # and ship WITH the RTL layout (RTL_LANGUAGES).
         self.assertIn("en", SUPPORTED_LANGUAGES)
         self.assertIn("ro", SUPPORTED_LANGUAGES)
-        for rtl in ("ar", "he", "fa"):
-            self.assertNotIn(rtl, SUPPORTED_LANGUAGES)
+        self.assertEqual(RTL_LANGUAGES, frozenset({"ar", "fa"}))
+        for rtl in RTL_LANGUAGES:
+            self.assertIn(rtl, SUPPORTED_LANGUAGES)
+        self.assertNotIn("he", SUPPORTED_LANGUAGES)
         self.assertEqual(SUPPORTED_LANGUAGES_SET, frozenset(SUPPORTED_LANGUAGES))
         # English is the mandatory authoring language, never a proposal target.
         self.assertNotIn("en", TRANSLATABLE_LANGUAGES)
-        self.assertEqual(len(TRANSLATABLE_LANGUAGES), 9)
+        self.assertEqual(len(TRANSLATABLE_LANGUAGES), len(SUPPORTED_LANGUAGES) - 1)
         self.assertEqual(FALLBACK_LANGUAGE, "en")
 
 

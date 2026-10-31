@@ -1141,5 +1141,13 @@
   "msgs_send": "Send",
   "notification_type_message": "Message",
   "notification_message_title": "{{who}} sent you a message",
-  "notification_message_body": "Open the conversation to read it."
+  "notification_message_body": "Open the conversation to read it.",
+  "lang_group_worldwide": "Worldwide",
+  "lang_group_europe_latin_west": "Europe — Western (Latin script)",
+  "lang_group_europe_latin_east": "Europe — Central & Eastern (Latin script)",
+  "lang_group_cyrillic_greek": "Cyrillic & Greek",
+  "lang_group_east_asian": "East Asian",
+  "lang_group_south_southeast_asian": "South & Southeast Asian",
+  "lang_group_turkic": "Turkic",
+  "lang_group_right_to_left": "Right-to-left (Arabic script)"
 }

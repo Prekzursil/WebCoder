@@ -28,7 +28,13 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import i18n, { SUPPORTED_LOCALES, type Locale } from './i18n';
+import i18n, {
+  LOCALE_GROUPS,
+  RTL_LOCALES,
+  SUPPORTED_LOCALES,
+  localeDirection,
+  type Locale,
+} from './i18n';
 import { MESSAGES, PUBLIC_LOCALES, PUBLIC_KEYS } from './app/_lib/public-messages';
 
 // jsdom gives import.meta.url an http scheme — resolve from the project cwd
@@ -98,14 +104,50 @@ function t(key: string, lng: Locale): string {
   return String(i18n.t(key, { lng } as never));
 }
 
-describe('i18n parity sweep [Q1 × ten locales]', () => {
-  it('ships exactly the ten agreed locales', () => {
-    // English mandatory + home market + globals; no RTL locale without RTL
-    // layout (decision record in backend/webcoder_api/languages.py).
+describe('i18n parity sweep [Q1 × full locale set]', () => {
+  it('ships exactly the agreed full locale set', () => {
+    // English mandatory + home market + globals + the owner-directed
+    // Asian/regional set (requirements of 2026-10-31; decision record in
+    // backend/webcoder_api/languages.py). The union-bar remainder
+    // (zh-Hant, ca, hr, kk, sr-Latn) lands in a follow-up PR.
     expect([...SUPPORTED_LOCALES]).toEqual([
-      'en', 'ro', 'es', 'fr', 'de', 'pt', 'it', 'ru', 'pl', 'uk',
+      'en', 'ro', 'es', 'fr', 'de', 'pt', 'it',
+      'pl', 'hu', 'ru', 'uk', 'bg', 'el',
+      'zh-Hans', 'ja', 'ko', 'hi', 'vi', 'th', 'id',
+      'tr', 'ar', 'fa',
     ]);
     expect(PUBLIC_LOCALES).toEqual(SUPPORTED_LOCALES);
+  });
+
+  it('RTL locales are exactly ar and fa, and direction is derivable', () => {
+    // [owner RTL requirement] Arabic and Persian render right-to-left;
+    // every other locale is explicitly LTR so switching back from an RTL
+    // locale can never leave a stale dir attribute.
+    expect(localeDirection('ar')).toBe('rtl');
+    expect(localeDirection('fa')).toBe('rtl');
+    expect(localeDirection('en')).toBe('ltr');
+    expect(localeDirection('ro')).toBe('ltr');
+    expect([...RTL_LOCALES].sort()).toEqual(['ar', 'fa']);
+  });
+
+  it('picker groups cover every locale exactly once with translated labels', () => {
+    // [owner grouped-picker requirement] the 23-locale picker renders
+    // <optgroup>s by script/region; every locale must appear in exactly
+    // one group and each group label key must exist in every catalog.
+    const grouped = LOCALE_GROUPS.flatMap((g) => g.locales);
+    expect(grouped.length).toBe(SUPPORTED_LOCALES.length);
+    expect(new Set(grouped).size).toBe(SUPPORTED_LOCALES.length);
+    for (const code of SUPPORTED_LOCALES) {
+      expect(grouped, `${code} appears in a picker group`).toContain(code);
+    }
+    for (const group of LOCALE_GROUPS) {
+      for (const code of SUPPORTED_LOCALES) {
+        expect(
+          LOCALE_SETS[code].has(group.labelKey),
+          `${group.labelKey} label translated in ${code}`
+        ).toBe(true);
+      }
+    }
   });
 
   it('every locale catalog carries an identical key set', () => {

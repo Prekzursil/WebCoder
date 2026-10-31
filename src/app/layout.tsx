@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { getLocale } from "./_lib/public-i18n";
 import { PUBLIC_LOCALES } from "./_lib/public-messages";
+import { localeDirection } from "@/i18n";
 import Providers from "./providers";
 import ExamModeBanner from "@/components/common/ExamModeBanner";
 import "./globals.css";
@@ -62,7 +63,11 @@ export default async function RootLayout({
   // [i18n wave/Q5] SSR renders <html lang> in the visitor's locale (the
   // same i18next cookie the client picker writes); English before any
   // choice. Providers re-applies the cached choice post-hydration.
+  // [RTL] <html dir> is derived from the locale registry (ar/fa are RTL);
+  // dir="ltr" is written explicitly for every other locale so switching
+  // back from an RTL locale can never leave a stale rtl attribute behind.
   const locale = await getLocale();
+  const dir = localeDirection(locale);
   const schemaOrg = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -106,7 +111,7 @@ export default async function RootLayout({
   };
 
   return (
-    <html lang={locale}>
+    <html lang={locale} dir={dir}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />

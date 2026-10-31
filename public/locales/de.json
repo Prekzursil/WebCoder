@@ -1141,5 +1141,13 @@
   "msgs_send": "Senden",
   "notification_type_message": "Nachricht",
   "notification_message_title": "{{who}} hat Ihnen eine Nachricht geschickt",
-  "notification_message_body": "Öffnen Sie die Unterhaltung, um sie zu lesen."
+  "notification_message_body": "Öffnen Sie die Unterhaltung, um sie zu lesen.",
+  "lang_group_worldwide": "Weltweit",
+  "lang_group_europe_latin_west": "Europa — Westen (lateinisches Alphabet)",
+  "lang_group_europe_latin_east": "Europa — Mittel- und Osteuropa (lateinisches Alphabet)",
+  "lang_group_cyrillic_greek": "Kyrillisch & Griechisch",
+  "lang_group_east_asian": "Ostasiatisch",
+  "lang_group_south_southeast_asian": "Süd- und Südostasiatisch",
+  "lang_group_turkic": "Turksprachen",
+  "lang_group_right_to_left": "Von rechts nach links (arabische Schrift)"
 }
