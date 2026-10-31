@@ -1141,5 +1141,13 @@
   "msgs_send": "Wyślij",
   "notification_type_message": "Wiadomość",
   "notification_message_title": "{{who}} wysłał Ci wiadomość",
-  "notification_message_body": "Otwórz rozmowę, aby przeczytać."
+  "notification_message_body": "Otwórz rozmowę, aby przeczytać.",
+  "lang_group_worldwide": "Świat",
+  "lang_group_europe_latin_west": "Europa — Zachód (alfabet łaciński)",
+  "lang_group_europe_latin_east": "Europa — Środkowo-Wschodnia (alfabet łaciński)",
+  "lang_group_cyrillic_greek": "Cyrylica i greka",
+  "lang_group_east_asian": "Azja Wschodnia",
+  "lang_group_south_southeast_asian": "Azja Południowa i Południowo-Wschodnia",
+  "lang_group_turkic": "Języki tureckie",
+  "lang_group_right_to_left": "Od prawej do lewej (pismo arabskie)"
 }

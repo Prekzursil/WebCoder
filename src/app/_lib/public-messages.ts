@@ -23,10 +23,23 @@ import fr from '../../locales/fr.json';
 import de from '../../locales/de.json';
 import pt from '../../locales/pt.json';
 import it from '../../locales/it.json';
-import ru from '../../locales/ru.json';
 import pl from '../../locales/pl.json';
+import hu from '../../locales/hu.json';
+import ru from '../../locales/ru.json';
 import uk from '../../locales/uk.json';
-import { SUPPORTED_LOCALES, type Locale } from '../../i18n';
+import bg from '../../locales/bg.json';
+import el from '../../locales/el.json';
+import zhHans from '../../locales/zh-Hans.json';
+import ja from '../../locales/ja.json';
+import ko from '../../locales/ko.json';
+import hi from '../../locales/hi.json';
+import vi from '../../locales/vi.json';
+import th from '../../locales/th.json';
+import id from '../../locales/id.json';
+import tr from '../../locales/tr.json';
+import ar from '../../locales/ar.json';
+import fa from '../../locales/fa.json';
+import { SUPPORTED_LOCALES, normalizeUiLocale, type Locale } from '../../i18n';
 
 export type PublicLocale = Locale;
 
@@ -40,9 +53,22 @@ const CATALOGS: Record<PublicLocale, Record<string, unknown>> = {
   de,
   pt,
   it,
-  ru,
   pl,
+  hu,
+  ru,
   uk,
+  bg,
+  el,
+  'zh-Hans': zhHans,
+  ja,
+  ko,
+  hi,
+  vi,
+  th,
+  id,
+  tr,
+  ar,
+  fa,
 };
 
 /** The subset of catalog keys the public server pages render. */
@@ -244,20 +270,30 @@ export const MESSAGES: Record<PublicLocale, Record<string, string>> = {
   de: pick(CATALOGS.de),
   pt: pick(CATALOGS.pt),
   it: pick(CATALOGS.it),
-  ru: pick(CATALOGS.ru),
   pl: pick(CATALOGS.pl),
+  hu: pick(CATALOGS.hu),
+  ru: pick(CATALOGS.ru),
   uk: pick(CATALOGS.uk),
+  bg: pick(CATALOGS.bg),
+  el: pick(CATALOGS.el),
+  'zh-Hans': pick(CATALOGS['zh-Hans']),
+  ja: pick(CATALOGS.ja),
+  ko: pick(CATALOGS.ko),
+  hi: pick(CATALOGS.hi),
+  vi: pick(CATALOGS.vi),
+  th: pick(CATALOGS.th),
+  id: pick(CATALOGS.id),
+  tr: pick(CATALOGS.tr),
+  ar: pick(CATALOGS.ar),
+  fa: pick(CATALOGS.fa),
 };
 
 /** Reduce a raw cookie value like "ro-RO" / "pt-BR" to the supported set. */
 export function normalizeLocale(raw: string | undefined): PublicLocale {
-  if (!raw) return 'en';
-  const lower = raw.toLowerCase();
-  const exact = lower as PublicLocale;
-  if (SUPPORTED_LOCALES.includes(exact)) return exact;
-  const prefix = lower.split('-')[0] as PublicLocale;
-  if (SUPPORTED_LOCALES.includes(prefix)) return prefix;
-  return 'en'; // English is the universal fallback
+  // Delegates to the canonical normalizer in src/i18n.ts: case-insensitive
+  // canonicalization ('ZH-HANS' → 'zh-Hans') plus neutral-prefix mapping
+  // (zh → zh-Hans, sr → sr-Latn), with EN as the universal fallback.
+  return normalizeUiLocale(raw);
 }
 
 export interface TranslateVars {

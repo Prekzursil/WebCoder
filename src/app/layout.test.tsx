@@ -45,11 +45,14 @@ describe("Root layout (smoke)", () => {
     // Layout children pass through the provider tree.
     expect(screen.getByText("smoke-child-marker")).toBeInTheDocument();
 
-    // Language switcher (shared ten-locale <select>) is present in the
-    // anonymous navbar state and mirrored in the footer.
+    // Language switcher (shared grouped <select>) is present in the
+    // anonymous navbar state and mirrored in the footer. [i18n full-locale
+    // wave] the picker groups options by script/region; an RTL locale
+    // (Arabic) is present inside its optgroup.
     const pickers = screen.getAllByRole("combobox", { name: "Language" });
     expect(pickers.length).toBeGreaterThanOrEqual(2); // navbar + footer
     expect(within(pickers[0]).getByRole("option", { name: "Română" })).toBeInTheDocument();
+    expect(within(pickers[0]).getByRole("option", { name: "العربية" })).toBeInTheDocument();
     // App shell: skip link + single main landmark + footer (Q11/A13).
     expect(screen.getByRole("link", { name: "Skip to content" })).toHaveAttribute("href", "#main-content");
     expect(document.getElementById("main-content")).toBeInTheDocument();

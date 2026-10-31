@@ -75,7 +75,11 @@ summary:focus-visible {
 /* Skip-to-content link — visually hidden until keyboard-focused. [Q11] */
 .skip-link {
   position: absolute;
-  left: -9999px;
+  /* [RTL] logical property: in RTL the scroll origin flips, so a physical
+     `left: -9999px` would sit on the scrollable side and inflate
+     scrollWidth by 9999px. inset-inline-start hides the link beyond the
+     non-scrollable edge in BOTH directions. */
+  inset-inline-start: -9999px;
   top: 8px;
   z-index: 200;
   padding: 10px 16px;
@@ -87,7 +91,7 @@ summary:focus-visible {
 }
 
 .skip-link:focus {
-  left: 8px;
+  inset-inline-start: 8px;
 }
 
 /* Page wrapper — consistent max-width + padding for all inner pages */

@@ -1141,5 +1141,13 @@
   "msgs_send": "Trimite",
   "notification_type_message": "Mesaj",
   "notification_message_title": "{{who}} ți-a trimis un mesaj",
-  "notification_message_body": "Deschide conversația pentru a-l citi."
+  "notification_message_body": "Deschide conversația pentru a-l citi.",
+  "lang_group_worldwide": "Lume",
+  "lang_group_europe_latin_west": "Europa — Vest (alfabet latin)",
+  "lang_group_europe_latin_east": "Europa — Central-Est (alfabet latin)",
+  "lang_group_cyrillic_greek": "Chirilică și greacă",
+  "lang_group_east_asian": "Asiatică de Est",
+  "lang_group_south_southeast_asian": "Asiatică de Sud și de Sud-Est",
+  "lang_group_turkic": "Turcice",
+  "lang_group_right_to_left": "De la dreapta la stânga (alfabet arab)"
 }

@@ -1141,5 +1141,13 @@
   "msgs_send": "Отправить",
   "notification_type_message": "Сообщение",
   "notification_message_title": "{{who}} отправил вам сообщение",
-  "notification_message_body": "Откройте диалог, чтобы прочитать."
+  "notification_message_body": "Откройте диалог, чтобы прочитать.",
+  "lang_group_worldwide": "Весь мир",
+  "lang_group_europe_latin_west": "Европа — Запад (латиница)",
+  "lang_group_europe_latin_east": "Европа — Центр и Восток (латиница)",
+  "lang_group_cyrillic_greek": "Кириллица и греческий",
+  "lang_group_east_asian": "Восточноазиатские",
+  "lang_group_south_southeast_asian": "Южная и Юго-Восточная Азия",
+  "lang_group_turkic": "Тюркские",
+  "lang_group_right_to_left": "Справа налево (арабская письменность)"
 }

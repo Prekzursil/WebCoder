@@ -1141,5 +1141,13 @@
   "msgs_send": "Надіслати",
   "notification_type_message": "Повідомлення",
   "notification_message_title": "{{who}} надіслав вам повідомлення",
-  "notification_message_body": "Відкрийте розмову, щоб прочитати."
+  "notification_message_body": "Відкрийте розмову, щоб прочитати.",
+  "lang_group_worldwide": "Увесь світ",
+  "lang_group_europe_latin_west": "Європа — Захід (латиниця)",
+  "lang_group_europe_latin_east": "Європа — Центр і Схід (латиниця)",
+  "lang_group_cyrillic_greek": "Кирилиця та грецька",
+  "lang_group_east_asian": "Східноазійські",
+  "lang_group_south_southeast_asian": "Південна та Південно-Східна Азія",
+  "lang_group_turkic": "Тюркські",
+  "lang_group_right_to_left": "Справа наліво (арабське письмо)"
 }
