@@ -23,13 +23,17 @@ import fr from '../../locales/fr.json';
 import de from '../../locales/de.json';
 import pt from '../../locales/pt.json';
 import it from '../../locales/it.json';
+import ca from '../../locales/ca.json';
 import pl from '../../locales/pl.json';
 import hu from '../../locales/hu.json';
+import hr from '../../locales/hr.json';
+import srLatn from '../../locales/sr-Latn.json';
 import ru from '../../locales/ru.json';
 import uk from '../../locales/uk.json';
 import bg from '../../locales/bg.json';
 import el from '../../locales/el.json';
 import zhHans from '../../locales/zh-Hans.json';
+import zhHant from '../../locales/zh-Hant.json';
 import ja from '../../locales/ja.json';
 import ko from '../../locales/ko.json';
 import hi from '../../locales/hi.json';
@@ -37,6 +41,7 @@ import vi from '../../locales/vi.json';
 import th from '../../locales/th.json';
 import id from '../../locales/id.json';
 import tr from '../../locales/tr.json';
+import kk from '../../locales/kk.json';
 import ar from '../../locales/ar.json';
 import fa from '../../locales/fa.json';
 import { SUPPORTED_LOCALES, normalizeUiLocale, type Locale } from '../../i18n';
@@ -53,13 +58,17 @@ const CATALOGS: Record<PublicLocale, Record<string, unknown>> = {
   de,
   pt,
   it,
+  ca,
   pl,
   hu,
+  hr,
+  'sr-Latn': srLatn,
   ru,
   uk,
   bg,
   el,
   'zh-Hans': zhHans,
+  'zh-Hant': zhHant,
   ja,
   ko,
   hi,
@@ -67,6 +76,7 @@ const CATALOGS: Record<PublicLocale, Record<string, unknown>> = {
   th,
   id,
   tr,
+  kk,
   ar,
   fa,
 };
@@ -270,13 +280,17 @@ export const MESSAGES: Record<PublicLocale, Record<string, string>> = {
   de: pick(CATALOGS.de),
   pt: pick(CATALOGS.pt),
   it: pick(CATALOGS.it),
+  ca: pick(CATALOGS.ca),
   pl: pick(CATALOGS.pl),
   hu: pick(CATALOGS.hu),
+  hr: pick(CATALOGS.hr),
+  'sr-Latn': pick(CATALOGS['sr-Latn']),
   ru: pick(CATALOGS.ru),
   uk: pick(CATALOGS.uk),
   bg: pick(CATALOGS.bg),
   el: pick(CATALOGS.el),
   'zh-Hans': pick(CATALOGS['zh-Hans']),
+  'zh-Hant': pick(CATALOGS['zh-Hant']),
   ja: pick(CATALOGS.ja),
   ko: pick(CATALOGS.ko),
   hi: pick(CATALOGS.hi),
@@ -284,6 +298,7 @@ export const MESSAGES: Record<PublicLocale, Record<string, string>> = {
   th: pick(CATALOGS.th),
   id: pick(CATALOGS.id),
   tr: pick(CATALOGS.tr),
+  kk: pick(CATALOGS.kk),
   ar: pick(CATALOGS.ar),
   fa: pick(CATALOGS.fa),
 };

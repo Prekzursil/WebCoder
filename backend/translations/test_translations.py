@@ -131,10 +131,10 @@ class ProposeFlowTests(APITestCase):
         self.assertEqual(
             codes,
             [
-                "ro", "es", "fr", "de", "pt", "it",
-                "pl", "hu", "ru", "uk", "bg", "el",
-                "zh-Hans", "ja", "ko", "hi", "vi", "th", "id",
-                "tr", "ar", "fa",
+                "ro", "es", "fr", "de", "pt", "it", "ca",
+                "pl", "hu", "hr", "sr-Latn", "ru", "uk", "bg", "el",
+                "zh-Hans", "zh-Hant", "ja", "ko", "hi", "vi", "th", "id",
+                "tr", "kk", "ar", "fa",
             ],  # TRANSLATABLE_LANGUAGES: every registry locale except 'en'
         )
         self.assertIn("endonym", response.data["results"][0])

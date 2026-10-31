@@ -20,8 +20,6 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 //   • Asian (owner directive) — zh-Hans, ja, ko, hi, vi, th, id + tr, ar,
 //     fa per the research;
 //   • regional (owner-named) — el, bg, hu.
-//   (A follow-up PR adds the union-bar remainder — zh-Hant, ca, hr, kk,
-//   sr-Latn — taking the set to every UI language any major judge ships.)
 //
 // RTL: ar and fa render right-to-left (RTL_LOCALES + <html dir> sync in
 // layout/providers/LanguageSwitcher; RTL layout verified by e2e).
@@ -40,13 +38,17 @@ import fr from './locales/fr.json';
 import de from './locales/de.json';
 import pt from './locales/pt.json';
 import it from './locales/it.json';
+import ca from './locales/ca.json';
 import pl from './locales/pl.json';
 import hu from './locales/hu.json';
+import hr from './locales/hr.json';
+import srLatn from './locales/sr-Latn.json';
 import ru from './locales/ru.json';
 import uk from './locales/uk.json';
 import bg from './locales/bg.json';
 import el from './locales/el.json';
 import zhHans from './locales/zh-Hans.json';
+import zhHant from './locales/zh-Hant.json';
 import ja from './locales/ja.json';
 import ko from './locales/ko.json';
 import hi from './locales/hi.json';
@@ -54,6 +56,7 @@ import vi from './locales/vi.json';
 import th from './locales/th.json';
 import id from './locales/id.json';
 import tr from './locales/tr.json';
+import kk from './locales/kk.json';
 import ar from './locales/ar.json';
 import fa from './locales/fa.json';
 
@@ -66,13 +69,17 @@ export const SUPPORTED_LOCALES = [
   'de',
   'pt',
   'it',
+  'ca',
   'pl',
   'hu',
+  'hr',
+  'sr-Latn',
   'ru',
   'uk',
   'bg',
   'el',
   'zh-Hans',
+  'zh-Hant',
   'ja',
   'ko',
   'hi',
@@ -80,6 +87,7 @@ export const SUPPORTED_LOCALES = [
   'th',
   'id',
   'tr',
+  'kk',
   'ar',
   'fa',
 ] as const;
@@ -95,13 +103,17 @@ export const LOCALE_NATIVE_NAMES: Record<Locale, string> = {
   de: 'Deutsch',
   pt: 'Português',
   it: 'Italiano',
+  ca: 'Català',
   pl: 'Polski',
   hu: 'Magyar',
+  hr: 'Hrvatski',
+  'sr-Latn': 'Srpski (latinica)',
   ru: 'Русский',
   uk: 'Українська',
   bg: 'Български',
   el: 'Ελληνικά',
   'zh-Hans': '简体中文',
+  'zh-Hant': '繁體中文',
   ja: '日本語',
   ko: '한국어',
   hi: 'हिन्दी',
@@ -109,6 +121,7 @@ export const LOCALE_NATIVE_NAMES: Record<Locale, string> = {
   th: 'ไทย',
   id: 'Bahasa Indonesia',
   tr: 'Türkçe',
+  kk: 'Қазақша',
   ar: 'العربية',
   fa: 'فارسی',
 };
@@ -138,13 +151,16 @@ export const LOCALE_GROUPS: LocaleGroup[] = [
   { labelKey: 'lang_group_worldwide', locales: ['en'] },
   {
     labelKey: 'lang_group_europe_latin_west',
-    locales: ['ro', 'es', 'fr', 'de', 'pt', 'it'],
+    locales: ['ro', 'es', 'fr', 'de', 'pt', 'it', 'ca'],
   },
-  { labelKey: 'lang_group_europe_latin_east', locales: ['pl', 'hu'] },
+  {
+    labelKey: 'lang_group_europe_latin_east',
+    locales: ['pl', 'hu', 'hr', 'sr-Latn'],
+  },
   { labelKey: 'lang_group_cyrillic_greek', locales: ['ru', 'uk', 'bg', 'el'] },
-  { labelKey: 'lang_group_east_asian', locales: ['zh-Hans', 'ja', 'ko'] },
+  { labelKey: 'lang_group_east_asian', locales: ['zh-Hans', 'zh-Hant', 'ja', 'ko'] },
   { labelKey: 'lang_group_south_southeast_asian', locales: ['hi', 'vi', 'th', 'id'] },
-  { labelKey: 'lang_group_turkic', locales: ['tr'] },
+  { labelKey: 'lang_group_turkic', locales: ['tr', 'kk'] },
   { labelKey: 'lang_group_right_to_left', locales: ['ar', 'fa'] },
 ];
 
@@ -155,10 +171,14 @@ export const LOCALE_GROUPS: LocaleGroup[] = [
  * the corresponding locale ships.
  */
 const LOCALE_ALIASES: Record<string, Locale> = {
-  'zh-tw': 'zh-Hans', // until the Traditional catalog ships (union-bar PR)
-  'zh-hk': 'zh-Hans',
-  'zh-mo': 'zh-Hans',
-  'zh-hant': 'zh-Hans',
+  // Traditional-script regions → the shipped Traditional catalog.
+  'zh-tw': 'zh-Hant',
+  'zh-hk': 'zh-Hant',
+  'zh-mo': 'zh-Hant',
+  'zh-hant': 'zh-Hant',
+  // Serbian also written in Cyrillic → the Latin script we ship.
+  'sr-cyrl': 'sr-Latn',
+  'sr': 'sr-Latn',
 };
 
 /**
@@ -189,13 +209,17 @@ const resources = {
   de: { translation: de },
   pt: { translation: pt },
   it: { translation: it },
+  ca: { translation: ca },
   pl: { translation: pl },
   hu: { translation: hu },
+  hr: { translation: hr },
+  'sr-Latn': { translation: srLatn },
   ru: { translation: ru },
   uk: { translation: uk },
   bg: { translation: bg },
   el: { translation: el },
   'zh-Hans': { translation: zhHans },
+  'zh-Hant': { translation: zhHant },
   ja: { translation: ja },
   ko: { translation: ko },
   hi: { translation: hi },
@@ -203,6 +227,7 @@ const resources = {
   th: { translation: th },
   id: { translation: id },
   tr: { translation: tr },
+  kk: { translation: kk },
   ar: { translation: ar },
   fa: { translation: fa },
 };

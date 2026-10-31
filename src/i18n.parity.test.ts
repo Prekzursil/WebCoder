@@ -111,11 +111,14 @@ describe('i18n parity sweep [Q1 × full locale set]', () => {
     // backend/webcoder_api/languages.py). The union-bar remainder
     // (zh-Hant, ca, hr, kk, sr-Latn) lands in a follow-up PR.
     expect([...SUPPORTED_LOCALES]).toEqual([
-      'en', 'ro', 'es', 'fr', 'de', 'pt', 'it',
-      'pl', 'hu', 'ru', 'uk', 'bg', 'el',
-      'zh-Hans', 'ja', 'ko', 'hi', 'vi', 'th', 'id',
-      'tr', 'ar', 'fa',
+      'en', 'ro', 'es', 'fr', 'de', 'pt', 'it', 'ca',
+      'pl', 'hu', 'hr', 'sr-Latn', 'ru', 'uk', 'bg', 'el',
+      'zh-Hans', 'zh-Hant', 'ja', 'ko', 'hi', 'vi', 'th', 'id',
+      'tr', 'kk', 'ar', 'fa',
     ]);
+    // [union bar] with zh-Hant/ca/hr/sr-Latn/kk shipped, this set covers
+    // every UI language any major judge offers (matrix in the registry
+    // docstring) except DMOJ's lt/nl — deliberately deferred.
     expect(PUBLIC_LOCALES).toEqual(SUPPORTED_LOCALES);
   });
 
