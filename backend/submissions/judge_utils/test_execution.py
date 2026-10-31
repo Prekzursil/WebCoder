@@ -494,3 +494,50 @@ class RunCodeInSandboxTest(TestCase):
             verdict, _t, _m, out, err = self._run(input_data="re_trigger")
         self.assertEqual(verdict, Submission.VerdictStatus.ACCEPTED)
         self.assertNotIn("Simulated", err)
+
+
+class SandboxTimeoutSignalTest(TestCase):
+    """The wall-limit wrapper must keep the 124=TLE contract (live bug).
+
+    coreutils 9.7 propagates the child's kill status when told
+    ``--signal=SIGKILL`` (measured on the live judge-runner: exit 137, so
+    every live CPU-TLE classified as MLE). The argv must therefore use
+    the default TERM plus ``-k 1`` for the hard kill.
+    """
+
+    def test_argv_uses_term_plus_kill_after_not_sigkill(self):
+        from .execution import run_code_in_sandbox  # noqa: F401  (import check)
+        from .languages import get_language
+        from . import execution as ex
+
+        seen = {}
+
+        class FakeResult:
+            returncode = 0
+            stdout = "0.01 0.01 8192 0 90% 0.05\nok"
+            stderr = ""
+
+        def fake_run(*args, **kwargs):
+            seen["argv"] = args[0]
+            seen["kwargs"] = kwargs
+            return FakeResult()
+
+        spec = get_language("python3")
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(
+            ex.subprocess, "run", fake_run
+        ):
+            ex.run_code_in_sandbox(
+                executable_path_str=str(spec.run_command[0]),
+                language="python3",
+                input_data="1 2",
+                time_limit_ms=1000,
+                memory_limit_kb=262144,
+                submission_dir=pathlib.Path(tmp),
+            )
+        argv = seen["argv"]
+        joined = " ".join(argv)
+        self.assertNotIn("--signal=SIGKILL", joined)
+        self.assertIn("-k", argv)
+        self.assertEqual(argv[argv.index("-k") + 1], "1")
+        i = argv.index("timeout")
+        self.assertEqual(argv[i + 1], "-k")
