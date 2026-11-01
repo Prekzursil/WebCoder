@@ -2,6 +2,12 @@ version: 2
 updates:
 # Single-branch (2026-10-27): pip deps moved from the retired backend branch
 # onto main under backend/; the root npm manifest IS the frontend now.
+#
+# Fleet baseline (docs/BEST-CONFIG.md SS4): majors are NEVER ignored - each
+# semver-major update arrives as its own PR. Under the zero-tolerance
+# dependency gate, a fix that only ships in a new major has to be able to
+# arrive. The previous blanket `ignore: version-update:semver-major` on
+# every rail was a baseline-audit gap and is removed.
 - package-ecosystem: pip
   directory: /backend
   schedule:
@@ -14,10 +20,6 @@ updates:
       update-types:
       - patch
       - minor
-  ignore:
-  - dependency-name: '*'
-    update-types:
-    - version-update:semver-major
   labels:
   - dependencies
   - type:chore
@@ -34,10 +36,6 @@ updates:
       update-types:
       - patch
       - minor
-  ignore:
-  - dependency-name: '*'
-    update-types:
-    - version-update:semver-major
   labels:
   - dependencies
   - type:chore
@@ -54,10 +52,6 @@ updates:
       update-types:
       - patch
       - minor
-  ignore:
-  - dependency-name: '*'
-    update-types:
-    - version-update:semver-major
   labels:
   - dependencies
   - type:chore
