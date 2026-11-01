@@ -208,6 +208,41 @@ const MOCK_TAGS = [
 const totpState = { secret: '', enabled: false };
 const apiTokenState = { key: null };
 
+// i18n community translations (owner rule (c)): the translatable catalog
+// mirrors backend/webcoder_api/languages.py TRANSLATABLE_LANGUAGES (all 28
+// SUPPORTED_LANGUAGES minus the mandatory English source), plus the
+// stateful proposal store the propose → curate → visible spec drives.
+const TRANSLATABLE_LANGUAGES = [
+  { code: 'ro', endonym: 'Română', english: 'Romanian' },
+  { code: 'es', endonym: 'Español', english: 'Spanish' },
+  { code: 'fr', endonym: 'Français', english: 'French' },
+  { code: 'de', endonym: 'Deutsch', english: 'German' },
+  { code: 'pt', endonym: 'Português', english: 'Portuguese' },
+  { code: 'it', endonym: 'Italiano', english: 'Italian' },
+  { code: 'ca', endonym: 'Català', english: 'Catalan' },
+  { code: 'pl', endonym: 'Polski', english: 'Polish' },
+  { code: 'hu', endonym: 'Magyar', english: 'Hungarian' },
+  { code: 'hr', endonym: 'Hrvatski', english: 'Croatian' },
+  { code: 'sr-Latn', endonym: 'Srpski (latinica)', english: 'Serbian (Latin)' },
+  { code: 'ru', endonym: 'Русский', english: 'Russian' },
+  { code: 'uk', endonym: 'Українська', english: 'Ukrainian' },
+  { code: 'bg', endonym: 'Български', english: 'Bulgarian' },
+  { code: 'el', endonym: 'Ελληνικά', english: 'Greek' },
+  { code: 'zh-Hans', endonym: '简体中文', english: 'Chinese (Simplified)' },
+  { code: 'zh-Hant', endonym: '繁體中文', english: 'Chinese (Traditional)' },
+  { code: 'ja', endonym: '日本語', english: 'Japanese' },
+  { code: 'ko', endonym: '한국어', english: 'Korean' },
+  { code: 'hi', endonym: 'हिन्दी', english: 'Hindi' },
+  { code: 'vi', endonym: 'Tiếng Việt', english: 'Vietnamese' },
+  { code: 'th', endonym: 'ไทย', english: 'Thai' },
+  { code: 'id', endonym: 'Bahasa Indonesia', english: 'Indonesian' },
+  { code: 'tr', endonym: 'Türkçe', english: 'Turkish' },
+  { code: 'kk', endonym: 'Қазақша', english: 'Kazakh' },
+  { code: 'ar', endonym: 'العربية', english: 'Arabic' },
+  { code: 'fa', endonym: 'فارسی', english: 'Persian' },
+];
+const translationsState = { nextId: 1, proposals: [] };
+
 // COM-5 mock state: one live conversation (e2e_tester <-> admin_e2e) plus
 // the reporting/moderation flow's mutable pieces (reports queue, blocks,
 // message-received notifications). Message 2 carries an HTML snippet the
@@ -797,6 +832,158 @@ const server = createServer((req, res) => {
 
   if (req.method === 'GET' && path === '/api/v1/users/me/solved-ids/') {
     json(res, 200, { solved: [1], attempted: [2] });
+    return;
+  }
+
+  // i18n community translations (owner rule (c)): a STATEFUL store so the
+  // propose → curate → visible round-trip works against mocks exactly as
+  // against Django — approving writes the language into the mock problem's
+  // title_i18n/statement_i18n and appends the attribution row, so the
+  // problem page re-render shows the promoted translation.
+  const translationRow = (proposal) => ({
+    id: proposal.id,
+    problem_id: proposal.problem_id,
+    problem_title_en: (MOCK_PROBLEMS.find((p) => p.id === proposal.problem_id) || {}).title_i18n?.en ?? `Problem ${proposal.problem_id}`,
+    language: proposal.language,
+    language_name: (TRANSLATABLE_LANGUAGES.find((l) => l.code === proposal.language) || {}).english ?? proposal.language,
+    title: proposal.title,
+    statement: proposal.statement,
+    status: proposal.status,
+    contributor_username: proposal.contributor_username,
+    reviewer_username: proposal.reviewer_username,
+    review_note: proposal.review_note,
+    reviewed_at: proposal.reviewed_at,
+    ai_verdict: '',
+    ai_confidence: null,
+    ai_notes: '',
+    created_at: proposal.created_at,
+    updated_at: proposal.reviewed_at ?? proposal.created_at,
+  });
+  const isVerifier = (req) => {
+    const session = sessionUser(req);
+    return session !== null
+      && (session.role === 'ADMIN' || session.role === 'PROBLEM_VERIFIER' || session.role === 'VERIFIER');
+  };
+
+  if (req.method === 'GET' && path === '/api/v1/translations/languages/') {
+    json(res, 200, { results: TRANSLATABLE_LANGUAGES });
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/api/v1/translations/proposals/mine/') {
+    const session = sessionUser(req);
+    if (!session) {
+      json(res, 401, { detail: 'Authentication credentials were not provided.' });
+      return;
+    }
+    const mine = translationsState.proposals
+      .filter((p) => p.contributor_username === session.username)
+      .map(translationRow);
+    json(res, 200, paged(mine));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/api/v1/translations/proposals/') {
+    if (!isVerifier(req)) {
+      json(res, 403, { detail: 'Only verifiers and admins can manage translations.' });
+      return;
+    }
+    const listUrl = new URL(req.url, `http://${HOST}:${PORT}`);
+    const statusFilter = listUrl.searchParams.get('status');
+    const languageFilter = listUrl.searchParams.get('language');
+    const problemFilter = listUrl.searchParams.get('problem');
+    let rows = translationsState.proposals;
+    if (statusFilter) rows = rows.filter((p) => p.status === statusFilter);
+    if (languageFilter) rows = rows.filter((p) => p.language === languageFilter);
+    if (problemFilter) rows = rows.filter((p) => p.problem_id === Number(problemFilter));
+    json(res, 200, paged(rows.slice().reverse().map(translationRow)));
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/api/v1/translations/proposals/') {
+    const session = sessionUser(req);
+    if (!session) {
+      json(res, 401, { detail: 'Authentication credentials were not provided.' });
+      return;
+    }
+    readBody(req, (body) => {
+      const problem = MOCK_PROBLEMS.find((p) => p.id === Number(body.problem));
+      const language = String(body.language ?? '');
+      if (!problem) {
+        json(res, 400, { detail: 'Only published (APPROVED) problems accept community translations.' });
+        return;
+      }
+      if (!TRANSLATABLE_LANGUAGES.some((l) => l.code === language)) {
+        json(res, 400, { detail: '"language" is not a valid choice.' });
+        return;
+      }
+      if (problem.title_i18n[language]) {
+        json(res, 400, { detail: 'There is already an approved translation for this language.' });
+        return;
+      }
+      const dup = translationsState.proposals.find(
+        (p) => p.problem_id === problem.id && p.language === language
+          && p.contributor_username === session.username && p.status === 'PENDING'
+      );
+      if (dup) {
+        json(res, 409, { detail: 'You already have a pending proposal for this problem and language — wait for a decision before proposing again.' });
+        return;
+      }
+      const proposal = {
+        id: translationsState.nextId++,
+        problem_id: problem.id,
+        language,
+        title: String(body.title ?? ''),
+        statement: String(body.statement ?? ''),
+        status: 'PENDING',
+        contributor_username: session.username,
+        reviewer_username: null,
+        review_note: '',
+        reviewed_at: null,
+        created_at: new Date().toISOString(),
+      };
+      translationsState.proposals.push(proposal);
+      json(res, 201, translationRow(proposal));
+    });
+    return;
+  }
+
+  const decisionMatch = path.match(/^\/api\/v1\/translations\/proposals\/(\d+)\/(approve|reject)\/$/);
+  if (req.method === 'POST' && decisionMatch) {
+    if (!isVerifier(req)) {
+      json(res, 403, { detail: 'Only verifiers and admins can manage translations.' });
+      return;
+    }
+    readBody(req, (body) => {
+      const proposal = translationsState.proposals.find((p) => p.id === Number(decisionMatch[1]));
+      if (!proposal) {
+        json(res, 404, { detail: 'Not found.' });
+        return;
+      }
+      if (proposal.status !== 'PENDING') {
+        json(res, 400, { detail: `Only pending proposals can be decided.` });
+        return;
+      }
+      const reviewer = sessionUser(req).username;
+      proposal.reviewer_username = reviewer;
+      proposal.review_note = decisionMatch[2] === 'reject' ? String(body.note ?? '') : '';
+      proposal.reviewed_at = new Date().toISOString();
+      if (decisionMatch[2] === 'approve') {
+        proposal.status = 'APPROVED';
+        const problem = MOCK_PROBLEMS.find((p) => p.id === proposal.problem_id);
+        if (problem) {
+          problem.title_i18n[proposal.language] = proposal.title;
+          problem.statement_i18n[proposal.language] = proposal.statement;
+          problem.translations = [
+            ...(problem.translations ?? []).filter((row) => row.language !== proposal.language),
+            { language: proposal.language, contributor_username: proposal.contributor_username, reviewed_at: proposal.reviewed_at },
+          ];
+        }
+      } else {
+        proposal.status = 'REJECTED';
+      }
+      json(res, 200, translationRow(proposal));
+    });
     return;
   }
 
