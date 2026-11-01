@@ -113,6 +113,8 @@ const refreshAccessToken = (): Promise<boolean> => {
   if (!refreshInFlight) {
     const attempt = (async () => {
       try {
+        // codeql[js/request-forgery] — URL is two module constants; no user
+        // input (owner triage: alert #122, false positive, 2026-10-27).
         const response = await fetch(`${API_BASE_URL}${REFRESH_ENDPOINT}`, {
           method: "POST",
           credentials: "include",
@@ -158,6 +160,8 @@ const ensureCsrfToken = (): Promise<string | null> => {
         // GET /auth/csrf/ makes Django set the csrftoken cookie; any
         // failure (e.g. a mock backend without the endpoint) just means
         // "no header available" — the request proceeds without it.
+        // codeql[js/request-forgery] — URL is two module constants; no user
+        // input (owner triage: alert #121, false positive, 2026-10-27).
         await fetch(`${API_BASE_URL}${CSRF_ENDPOINT}`, { credentials: "include" });
       } catch {
         /* best-effort */
@@ -187,6 +191,9 @@ const authenticatedFetch = async (url: string, options: RequestInit): Promise<Re
     }
   }
 
+  // codeql[js/request-forgery] — url originates solely from this module's own
+  // typed service methods over the fixed API_BASE_URL (owner triage: alert
+  // #120, false positive, 2026-10-27).
   return fetch(`${API_BASE_URL}${url}`, {
     ...options,
     credentials: "include",

@@ -20,10 +20,13 @@ export async function GET(
   }
   const cookie = request.headers.get("cookie") ?? "";
   try {
-    const upstream = await fetch(`${API_V1_URL}/classroom/assignments/${assignmentId}/export/`, {
-      headers: cookie ? { cookie } : {},
-      cache: "no-store",
-    });
+    const upstream = await fetch(
+      `${API_V1_URL}/classroom/assignments/${encodeURIComponent(assignmentId)}/export/`,
+      {
+        headers: cookie ? { cookie } : {},
+        cache: "no-store",
+      },
+    );
     if (upstream.status === 401 || upstream.status === 403) {
       return NextResponse.json(
         { detail: "Only the teacher can export grades." },

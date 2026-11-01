@@ -273,7 +273,11 @@ describe("i18n parity sweep [Q1 × full locale set]", () => {
     // src/app without 'use client') for t('key' calls and require MESSAGES
     // coverage.
     const serverPages = scanned.filter(
-      (f) => /[\\/]page\.tsx$/.test(f) && !readFileSync(f, "utf8").startsWith("'use client'"),
+      (f) =>
+        // Quote-agnostic directive check: biome formats literals with double
+        // quotes ("use client"), hand-written pages used single quotes
+        // ('use client'). Both mark a CLIENT page — neither is a server page.
+        /[\\/]page\.tsx$/.test(f) && !/^['"]use client['"]/.test(readFileSync(f, "utf8")),
     );
     const { keys: serverKeys } = scanCallsites(serverPages);
     const missing: string[] = [];

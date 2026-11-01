@@ -138,6 +138,10 @@ export default function ContestsPage() {
           </button>
         ))}
         <a
+          // codeql[js/xss]
+          // codeql[js/client-side-unvalidated-url-redirection] — constant
+          // module-scope URL (owner triage: alerts #134/#135, false
+          // positive, 2026-10-27).
           href={CALENDAR_ICS_URL}
           style={{ marginLeft: "auto", color: palette.accent, fontWeight: 600 }}
           data-testid="contests-ics-link"

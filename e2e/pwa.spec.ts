@@ -33,7 +33,10 @@ test.describe("PWA surface [OPS-6]", () => {
     const body = await sw.text();
     // The contract the registrar relies on: registration at /sw.js with
     // the offline fallback precached and notification deep links wired.
-    expect(body).toContain("'/offline.html'");
+    // Quote-agnostic: biome formats the service worker with double
+    // quotes ("/offline.html"); the contract is the precached offline
+    // fallback, not the literal quote style.
+    expect(body).toMatch(/["']offline\.html["']/);
     expect(body).toContain("notificationclick");
     expect(body).toContain("self.clients.openWindow");
 
