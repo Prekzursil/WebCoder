@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { TranslationsService } from '@/services/ApiService';
 import type { TranslationProposalRow } from '@/types/api';
 import { useAuth } from '@/context/AuthContext';
-import { palette } from '@/theme/tokens';
+import { palette, hexAlpha } from '@/theme/tokens';
 import EmptyState from '@/components/common/EmptyState';
 import PageHeader from '@/components/common/PageHeader';
 
@@ -54,9 +54,9 @@ type Tab = 'queue' | 'mine';
 
 function statusChip(t: ReturnType<typeof useTranslation>['t'], row: TranslationProposalRow) {
   const styles: Record<string, React.CSSProperties> = {
-    PENDING: { color: palette.warn, background: 'rgba(250, 204, 21, 0.12)' },
-    APPROVED: { color: palette.success, background: 'rgba(74, 222, 128, 0.12)' },
-    REJECTED: { color: palette.danger, background: 'rgba(248, 113, 113, 0.12)' },
+    PENDING: { color: palette.warn, background: hexAlpha(palette.warn, 0.12) },
+    APPROVED: { color: palette.success, background: hexAlpha(palette.success, 0.12) },
+    REJECTED: { color: palette.danger, background: hexAlpha(palette.danger, 0.12) },
   };
   const label = row.status === 'PENDING'
     ? t('translations_status_pending', 'Pending')
@@ -83,7 +83,7 @@ function aiChip(t: ReturnType<typeof useTranslation>['t'], row: TranslationPropo
   return (
     <span
       title={row.ai_notes || undefined}
-      style={{ ...CHIP, color: entry.color, background: 'var(--surface-2, rgba(148,163,184,0.1))' }}
+      style={{ ...CHIP, color: entry.color, background: hexAlpha(palette.muted, 0.1) }}
     >
       {entry.label}
       {row.ai_confidence !== null ? ` · ${t('translations_confidence', 'confidence {{n}}', { n: row.ai_confidence.toFixed(2) })}` : ''}
@@ -113,7 +113,7 @@ function ProposalCard({
         <Link href={`/problems/${row.problem_id}`} style={{ color: 'var(--accent)', fontWeight: 700, fontSize: '0.95rem' }}>
           #{row.problem_id} · {row.problem_title_en}
         </Link>
-        <span style={{ ...CHIP, color: 'var(--violet, #a78bfa)', background: 'rgba(167,139,250,0.1)', fontFamily: 'var(--font-mono)' }}>
+        <span style={{ ...CHIP, color: palette.violet, background: hexAlpha(palette.violet, 0.1), fontFamily: 'var(--font-mono)' }}>
           {row.language}
         </span>
         {statusChip(t, row)}
