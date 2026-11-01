@@ -111,9 +111,17 @@ export async function getProblems(): Promise<ProblemType[]> {
  * Problem detail (server-side). Returns null on HTTP 404 so the page can call
  * notFound() (proper 404 status for SEO, vs the CRA app's 200 with a message);
  * every other failure rejects with the shared Error(detail || statusText).
+ *
+ * The id comes from the URL route param, so it is coerced to a positive
+ * integer BEFORE it reaches the fetch URL — a malformed id 404s locally
+ * instead of being interpolated into a request URL (CodeQL ssrf taint).
  */
 export async function getProblemDetail(id: string | number): Promise<ProblemType | null> {
-  const response = await fetch(apiUrl(`/problems/problems/${id}/`), e2eFetchCache());
+  const numericId = typeof id === 'number' ? id : Number.parseInt(id, 10);
+  if (!Number.isInteger(numericId) || numericId <= 0) {
+    return null;
+  }
+  const response = await fetch(apiUrl(`/problems/problems/${numericId}/`), e2eFetchCache());
   if (response.status === 404) {
     return null;
   }
