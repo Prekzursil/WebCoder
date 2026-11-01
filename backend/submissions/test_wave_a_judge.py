@@ -6,14 +6,14 @@ hints, file-I/O mode, and the scratch endpoint.
 
 from unittest import mock
 
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from rest_framework.test import APIClient
 
 from problems.models import Problem, TestCase as ProblemTestCase
-from problems.scoring import aggregate_score, full_score_for
+from problems.scoring import aggregate_score
 from scratch.models import ScratchRun
 from submissions.judge_utils.comparison import compare_outputs_detailed
-from submissions.judge_utils.languages import effective_limits, get_language
+from submissions.judge_utils.languages import effective_limits
 from submissions.models import Submission, SubmissionTestResult
 from submissions.tasks import judge_submission_task
 from users.models import User
@@ -80,7 +80,9 @@ class ComparisonDetailedTest(TestCase):
         self.assertIn("line 2", hint)
 
     def test_case_insensitive_exact(self):
-        ok, _ = compare_outputs_detailed("Da\n", "DA\n", CM.EXACT, case_insensitive=True)
+        ok, _ = compare_outputs_detailed(
+            "Da\n", "DA\n", CM.EXACT, case_insensitive=True
+        )
         self.assertTrue(ok)
         ok, _ = compare_outputs_detailed("Da\n", "DA\n", CM.EXACT)
         self.assertFalse(ok)
@@ -224,7 +226,17 @@ class JudgeTaskWaveATest(TestCase):
         sub = self._sub()
         captured = {}
 
-        def fake_run(exe, lang, input_data, t, m, submission_dir, libs, io_files=None, banned_stdlib_modules=None):
+        def fake_run(
+            exe,
+            lang,
+            input_data,
+            t,
+            m,
+            submission_dir,
+            libs,
+            io_files=None,
+            banned_stdlib_modules=None,
+        ):
             captured["io_files"] = io_files
             in_path = submission_dir / io_files[0]
             captured["input_written"] = in_path.read_text()
@@ -270,7 +282,6 @@ class JudgeTaskWaveATest(TestCase):
         self.assertIn("outputs differ", result.error_output)
 
     def test_submission_serializer_exposes_max_score(self):
-        from submissions.serializers import SubmissionSerializer
 
         sub = self._sub()
         sub.verdict = Submission.VerdictStatus.ACCEPTED
@@ -517,9 +528,7 @@ class CheckerProtocolV2TaskTest(TestCase):
         self.assertEqual(sub.verdict, Submission.VerdictStatus.INTERNAL_ERROR)
         self.assertIn("syntax", sub.detailed_feedback)
         # No test rows were produced — the failure precedes the loop.
-        self.assertEqual(
-            SubmissionTestResult.objects.filter(submission=sub).count(), 0
-        )
+        self.assertEqual(SubmissionTestResult.objects.filter(submission=sub).count(), 0)
 
     def test_missing_checker_code_yields_per_test_ie(self):
         self.problem.checker_code = ""
@@ -540,9 +549,7 @@ class CheckerProtocolV2TaskTest(TestCase):
         sub.refresh_from_db()
         self.assertEqual(sub.verdict, Submission.VerdictStatus.INTERNAL_ERROR)
         c.assert_not_called()  # nothing to compile without checker source
-        self.assertEqual(
-            SubmissionTestResult.objects.filter(submission=sub).count(), 3
-        )
+        self.assertEqual(SubmissionTestResult.objects.filter(submission=sub).count(), 3)
 
 
 class AggregateScoreFractionTest(TestCase):
@@ -554,12 +561,18 @@ class AggregateScoreFractionTest(TestCase):
             statement_i18n={"en": "S"},
         )
         self.t1 = ProblemTestCase.objects.create(
-            problem=self.problem, input_data="a", expected_output_data="b",
-            points=10, order=0,
+            problem=self.problem,
+            input_data="a",
+            expected_output_data="b",
+            points=10,
+            order=0,
         )
         self.t2 = ProblemTestCase.objects.create(
-            problem=self.problem, input_data="a", expected_output_data="b",
-            points=10, order=1,
+            problem=self.problem,
+            input_data="a",
+            expected_output_data="b",
+            points=10,
+            order=1,
         )
 
     def test_partial_credit_sums_fractions(self):

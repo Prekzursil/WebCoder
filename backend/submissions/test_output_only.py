@@ -96,9 +96,7 @@ class OutputOnlyJudgeTest(TestCase):
         sub.refresh_from_db()
         self.assertEqual(sub.verdict, Submission.VerdictStatus.WRONG_ANSWER)
         self.assertEqual(sub.score, 10)  # 10 of 20
-        self.assertEqual(
-            SubmissionTestResult.objects.filter(submission=sub).count(), 2
-        )
+        self.assertEqual(SubmissionTestResult.objects.filter(submission=sub).count(), 2)
 
     def test_lines_strip_mode_applies(self):
         self.problem.comparison_mode = Problem.ComparisonMode.LINES_STRIP_EXACT

@@ -111,7 +111,9 @@ TRANSLATABLE_LANGUAGES = [code for code in SUPPORTED_LANGUAGES if code != "en"]
 
 #: Locale code -> human label for API surfaces (verbose, lazily translated
 #: where DRF renders it into a response).
-LANGUAGE_CHOICES = [(code, _(LANGUAGE_NAMES[code]["english"])) for code in SUPPORTED_LANGUAGES]
+LANGUAGE_CHOICES = [
+    (code, _(LANGUAGE_NAMES[code]["english"])) for code in SUPPORTED_LANGUAGES
+]
 
 #: The universal fallback locale (owner requirement (d)).
 FALLBACK_LANGUAGE = "en"

@@ -100,9 +100,7 @@ def aggregate_score(scoring_mode, test_results):
         outcome = {id(tc): (ok, f) for tc, ok, f in ordered}
         # Ungrouped tests score individually (partial credit allowed);
         # a subtask group is all-or-nothing at FULL credit per member.
-        score = sum(
-            _credit(tc, *outcome[id(tc)]) for tc in ungrouped
-        )
+        score = sum(_credit(tc, *outcome[id(tc)]) for tc in ungrouped)
         for members in groups.values():
             if all(_full_pass(*outcome[id(tc)]) for tc in members):
                 score += members[0].points

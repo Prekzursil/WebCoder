@@ -71,9 +71,7 @@ class FollowApiTest(TestCase):
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
         self.assertEqual(data["count"], 2)
-        self.assertEqual(
-            {row["username"] for row in data["results"]}, {"bob", "carol"}
-        )
+        self.assertEqual({row["username"] for row in data["results"]}, {"bob", "carol"})
 
 
 class FriendsFilteredBoardsTest(TestCase):
@@ -151,9 +149,7 @@ class FriendsFilteredBoardsTest(TestCase):
                 submission_time=start + timezone.timedelta(minutes=10),
             )
             record_verdict(sub)
-        resp = self.client.get(
-            f"/api/v1/contests/{contest.id}/standings/?friends=1"
-        )
+        resp = self.client.get(f"/api/v1/contests/{contest.id}/standings/?friends=1")
         self.assertEqual(resp.status_code, 200, resp.content)
         rows = resp.json()["results"]
         usernames = {row["user"]["username"] for row in rows}
@@ -167,7 +163,6 @@ class FriendsFilteredBoardsTest(TestCase):
         with self.assertRaises(IntegrityError):
             with transaction.atomic():
                 Follow.objects.create(follower=self.alice, target=self.alice)
-
 
     def test_follow_str_representation(self):
         # setUp already created the alice->bob edge.

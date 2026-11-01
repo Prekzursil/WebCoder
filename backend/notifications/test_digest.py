@@ -70,9 +70,7 @@ class WeeklyDigestSendTest(TestCase):
 
     def test_inactive_user_gets_nothing(self):
         # Push the submissions outside the 7-day window.
-        Submission.objects.update(
-            submission_time=timezone.now() - timedelta(days=10)
-        )
+        Submission.objects.update(submission_time=timezone.now() - timedelta(days=10))
         sent = weekly_digest_task()
         self.assertEqual(sent, 0)
         self.assertEqual(len(mail.outbox), 0)
@@ -88,7 +86,6 @@ class WeeklyDigestSendTest(TestCase):
         )
         sent = weekly_digest_task()
         self.assertEqual(sent, 0)
-
 
     def test_problem_without_hints_yields_plain_line(self):
         # Drop the hint: the line carries the bare problem title.

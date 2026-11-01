@@ -11,7 +11,6 @@ from rest_framework.views import APIView
 
 from problems.models import Problem
 from submissions.models import Submission
-from webcoder_api.pagination import StandardPageNumberPagination
 
 from . import services
 

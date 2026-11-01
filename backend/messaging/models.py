@@ -110,9 +110,7 @@ class Message(models.Model):
         help_text=_("Filter categories that matched, e.g. grooming."),
     )
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
-    read_at = models.DateTimeField(
-        _("read at"), null=True, blank=True
-    )  # null = unread
+    read_at = models.DateTimeField(_("read at"), null=True, blank=True)  # null = unread
 
     class Meta:
         verbose_name = _("message")

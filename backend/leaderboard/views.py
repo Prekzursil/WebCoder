@@ -27,17 +27,14 @@ class LeaderboardListView(generics.ListAPIView):
     serializer_class = LeaderboardEntrySerializer
 
     def get_queryset(self):
-        qs = (
-            LeaderboardEntry.objects.select_related("user")
-            .annotate(
-                rank=Window(
-                    expression=RowNumber(),
-                    order_by=(
-                        F("total_points").desc(),
-                        F("solved_count").desc(),
-                        F("last_solved_at").asc(),
-                    ),
-                )
+        qs = LeaderboardEntry.objects.select_related("user").annotate(
+            rank=Window(
+                expression=RowNumber(),
+                order_by=(
+                    F("total_points").desc(),
+                    F("solved_count").desc(),
+                    F("last_solved_at").asc(),
+                ),
             )
         )
         # RO-3 (competitive roadmap): county/school segments — the Olympiad

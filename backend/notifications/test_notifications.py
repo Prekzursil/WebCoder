@@ -133,8 +133,16 @@ class NotificationEndpointTest(TestCase):
         self._notify_alice(verb=Notification.Verb.THREAD_REPLY)
         self.client.force_authenticate(self.alice)
         row = self.client.get("/api/v1/notifications/").json()["results"][0]
-        for key in ("id", "verb", "actor", "target_type", "target_id", "data",
-                    "read_at", "created_at"):
+        for key in (
+            "id",
+            "verb",
+            "actor",
+            "target_type",
+            "target_id",
+            "data",
+            "read_at",
+            "created_at",
+        ):
             self.assertIn(key, row)
 
 
@@ -181,9 +189,7 @@ class JudgeEmissionTest(TestCase):
                         judge_submission_task.run(self.sub.id)
 
     def test_terminal_ac_produces_exactly_one_notification(self):
-        self._judge(
-            run_result=(Submission.VerdictStatus.ACCEPTED, 10, 512, "o", "")
-        )
+        self._judge(run_result=(Submission.VerdictStatus.ACCEPTED, 10, 512, "o", ""))
         self.sub.refresh_from_db()
         self.assertEqual(self.sub.verdict, Submission.VerdictStatus.ACCEPTED)
         notes = Notification.objects.filter(recipient=self.user)

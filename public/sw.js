@@ -20,57 +20,51 @@
  * opens it directly — notifications never dead-end.
  */
 
-const VERSION = 'v1';
+const VERSION = "v1";
 const STATIC_CACHE = `wc-static-${VERSION}`;
 const PAGES_CACHE = `wc-pages-${VERSION}`;
-const OFFLINE_URL = '/offline.html';
+const OFFLINE_URL = "/offline.html";
 
 const PRECACHE = [
   OFFLINE_URL,
-  '/manifest.webmanifest',
-  '/icons/icon.svg',
-  '/icons/icon-maskable.svg',
+  "/manifest.webmanifest",
+  "/icons/icon.svg",
+  "/icons/icon-maskable.svg",
 ];
 
-self.addEventListener('install', (event) => {
+self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(STATIC_CACHE)
       .then((cache) => cache.addAll(PRECACHE))
-      .then(() => self.skipWaiting())
+      .then(() => self.skipWaiting()),
   );
 });
 
-self.addEventListener('activate', (event) => {
+self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
       .keys()
       .then((keys) =>
         Promise.all(
-          keys
-            .filter((k) => k !== STATIC_CACHE && k !== PAGES_CACHE)
-            .map((k) => caches.delete(k))
-        )
+          keys.filter((k) => k !== STATIC_CACHE && k !== PAGES_CACHE).map((k) => caches.delete(k)),
+        ),
       )
-      .then(() => self.clients.claim())
+      .then(() => self.clients.claim()),
   );
 });
 
 /** Same-origin, GET, and not an API/auth call — everything the SW touches. */
 function cacheableAsset(url) {
-  return (
-    url.origin === self.location.origin &&
-    url.pathname.startsWith('/_next/static/')
-  );
+  return url.origin === self.location.origin && url.pathname.startsWith("/_next/static/");
 }
 
 function isBuildAssetRequest(request) {
   const url = new URL(request.url);
   return (
     cacheableAsset(url) ||
-    url.origin === self.location.origin &&
-      (url.pathname.startsWith('/icons/') ||
-        url.pathname === '/manifest.webmanifest')
+    (url.origin === self.location.origin &&
+      (url.pathname.startsWith("/icons/") || url.pathname === "/manifest.webmanifest"))
   );
 }
 
@@ -102,16 +96,16 @@ async function staleWhileRevalidate(request) {
   return cached || (await refresh) || Response.error();
 }
 
-self.addEventListener('fetch', (event) => {
+self.addEventListener("fetch", (event) => {
   const { request } = event;
-  if (request.method !== 'GET') return;
+  if (request.method !== "GET") return;
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
   // The API is NEVER cached — a stale verdict is worse than no verdict.
-  if (url.pathname.startsWith('/api/')) return;
+  if (url.pathname.startsWith("/api/")) return;
 
-  if (request.mode === 'navigate') {
+  if (request.mode === "navigate") {
     event.respondWith(handleNavigation(request));
     return;
   }
@@ -122,41 +116,41 @@ self.addEventListener('fetch', (event) => {
 
 async function focusOrOpen(url) {
   const clientList = await self.clients.matchAll({
-    type: 'window',
+    type: "window",
     includeUncontrolled: true,
   });
   for (const client of clientList) {
-    if ('focus' in client) {
+    if ("focus" in client) {
       await client.focus();
-      if ('postMessage' in client) client.postMessage({ type: 'wc-navigate', url });
+      if ("postMessage" in client) client.postMessage({ type: "wc-navigate", url });
       return;
     }
   }
   await self.clients.openWindow(url);
 }
 
-self.addEventListener('notificationclick', (event) => {
+self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = (event.notification.data && event.notification.data.url) || '/';
+  const url = (event.notification.data && event.notification.data.url) || "/";
   event.waitUntil(focusOrOpen(url));
 });
 
 // Web-push landed? Not yet — the handler below is the forward hook the
 // roadmap's "notification deep links" ask for; without a push
 // subscription it is dormant and costs nothing.
-self.addEventListener('push', (event) => {
+self.addEventListener("push", (event) => {
   if (!event.data) return;
   let payload = {};
   try {
     payload = event.data.json();
   } catch {
-    payload = { title: 'WebCoder', body: event.data.text() };
+    payload = { title: "WebCoder", body: event.data.text() };
   }
   event.waitUntil(
-    self.registration.showNotification(payload.title || 'WebCoder', {
-      body: payload.body || '',
-      tag: payload.tag || 'webcoder',
-      data: { url: payload.url || '/' },
-    })
+    self.registration.showNotification(payload.title || "WebCoder", {
+      body: payload.body || "",
+      tag: payload.tag || "webcoder",
+      data: { url: payload.url || "/" },
+    }),
   );
 });

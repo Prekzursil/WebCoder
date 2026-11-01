@@ -4,20 +4,53 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('submissions', '0003_submission_contest'),
+        ("submissions", "0003_submission_contest"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='submission',
-            name='verdict',
-            field=models.CharField(choices=[('PENDING', 'Pending'), ('COMPILING', 'Compiling'), ('RUNNING', 'Running'), ('AC', 'Accepted'), ('WA', 'Wrong Answer'), ('TLE', 'Time Limit Exceeded'), ('MLE', 'Memory Limit Exceeded'), ('OLE', 'Output Limit Exceeded'), ('CE', 'Compile Error'), ('RE', 'Runtime Error'), ('IE', 'Internal Error')], default='PENDING', max_length=10, verbose_name='verdict'),
+            model_name="submission",
+            name="verdict",
+            field=models.CharField(
+                choices=[
+                    ("PENDING", "Pending"),
+                    ("COMPILING", "Compiling"),
+                    ("RUNNING", "Running"),
+                    ("AC", "Accepted"),
+                    ("WA", "Wrong Answer"),
+                    ("TLE", "Time Limit Exceeded"),
+                    ("MLE", "Memory Limit Exceeded"),
+                    ("OLE", "Output Limit Exceeded"),
+                    ("CE", "Compile Error"),
+                    ("RE", "Runtime Error"),
+                    ("IE", "Internal Error"),
+                ],
+                default="PENDING",
+                max_length=10,
+                verbose_name="verdict",
+            ),
         ),
         migrations.AlterField(
-            model_name='submissiontestresult',
-            name='verdict',
-            field=models.CharField(choices=[('PENDING', 'Pending'), ('COMPILING', 'Compiling'), ('RUNNING', 'Running'), ('AC', 'Accepted'), ('WA', 'Wrong Answer'), ('TLE', 'Time Limit Exceeded'), ('MLE', 'Memory Limit Exceeded'), ('OLE', 'Output Limit Exceeded'), ('CE', 'Compile Error'), ('RE', 'Runtime Error'), ('IE', 'Internal Error')], help_text='Verdict for this specific test case.', max_length=10, verbose_name='verdict'),
+            model_name="submissiontestresult",
+            name="verdict",
+            field=models.CharField(
+                choices=[
+                    ("PENDING", "Pending"),
+                    ("COMPILING", "Compiling"),
+                    ("RUNNING", "Running"),
+                    ("AC", "Accepted"),
+                    ("WA", "Wrong Answer"),
+                    ("TLE", "Time Limit Exceeded"),
+                    ("MLE", "Memory Limit Exceeded"),
+                    ("OLE", "Output Limit Exceeded"),
+                    ("CE", "Compile Error"),
+                    ("RE", "Runtime Error"),
+                    ("IE", "Internal Error"),
+                ],
+                help_text="Verdict for this specific test case.",
+                max_length=10,
+                verbose_name="verdict",
+            ),
         ),
     ]

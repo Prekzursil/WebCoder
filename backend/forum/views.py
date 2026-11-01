@@ -9,7 +9,6 @@ from notifications.models import Notification
 from notifications.services import notify
 from webcoder_api.pagination import (
     NewestFirstCursorPagination,
-    StandardPageNumberPagination,
 )
 
 from .models import Post, PostVote, Report, Thread
@@ -53,9 +52,10 @@ class ThreadViewSet(viewsets.ModelViewSet):
         if "is_announcement" in serializer.validated_data and not is_moderator(
             self.request.user
         ):
-            if serializer.instance.is_announcement != serializer.validated_data[
-                "is_announcement"
-            ]:
+            if (
+                serializer.instance.is_announcement
+                != serializer.validated_data["is_announcement"]
+            ):
                 serializer.validated_data.pop("is_announcement")
         serializer.save()
 
@@ -154,9 +154,9 @@ class PostListCreateView(generics.ListCreateAPIView):
     serializer_class = PostSerializer
 
     def get_queryset(self):
-        qs = Post.objects.filter(
-            thread_id=self.kwargs["thread_pk"]
-        ).select_related("author", "parent")
+        qs = Post.objects.filter(thread_id=self.kwargs["thread_pk"]).select_related(
+            "author", "parent"
+        )
         user = self.request.user
         if not is_moderator(user):
             qs = qs.filter(is_hidden=False)
@@ -171,9 +171,7 @@ class PostListCreateView(generics.ListCreateAPIView):
         try:
             thread = _thread_from_url(self.kwargs["thread_pk"])
         except Thread.DoesNotExist:
-            return Response(
-                {"thread": "Not found."}, status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"thread": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         if thread.is_locked:
             return Response(
                 {"thread": "This thread is locked."}, status=status.HTTP_400_BAD_REQUEST
@@ -195,8 +193,10 @@ class PostListCreateView(generics.ListCreateAPIView):
         is_spoiler = bool(serializer.validated_data.get("is_spoiler"))
         if is_spoiler and thread.problem_id is None:
             return Response(
-                {"is_spoiler": "Spoiler posts are only allowed inside "
-                 "problem-scoped threads."},
+                {
+                    "is_spoiler": "Spoiler posts are only allowed inside "
+                    "problem-scoped threads."
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
         with transaction.atomic():
@@ -325,17 +325,16 @@ class ReportViewSet(
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         post = serializer.validated_data.get("post")
-        if post is not None and Report.objects.filter(
-            reporter=request.user, post=post
-        ).exists():
+        if (
+            post is not None
+            and Report.objects.filter(reporter=request.user, post=post).exists()
+        ):
             return Response(
                 {"detail": "You already reported this post."},
                 status=status.HTTP_409_CONFLICT,
             )
         report = serializer.save(reporter=request.user)
-        return Response(
-            ReportSerializer(report).data, status=status.HTTP_201_CREATED
-        )
+        return Response(ReportSerializer(report).data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["post"])
     def resolve(self, request, pk=None):

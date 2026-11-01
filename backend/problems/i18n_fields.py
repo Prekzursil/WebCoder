@@ -38,7 +38,9 @@ def normalize_localized_dict(value, *, field_name):
     field-level DRF ``ValidationError``).
     """
     if not isinstance(value, dict):
-        raise LocalizedFieldError(f"{field_name} must be a JSON object mapping language codes to text.")
+        raise LocalizedFieldError(
+            f"{field_name} must be a JSON object mapping language codes to text."
+        )
 
     normalized = {}
     for key, text in value.items():
@@ -51,7 +53,11 @@ def normalize_localized_dict(value, *, field_name):
             continue
         normalized[str(key)] = text
 
-    en_value = normalized.get(FALLBACK_LANGUAGE, "").strip() if isinstance(normalized.get(FALLBACK_LANGUAGE), str) else ""
+    en_value = (
+        normalized.get(FALLBACK_LANGUAGE, "").strip()
+        if isinstance(normalized.get(FALLBACK_LANGUAGE), str)
+        else ""
+    )
     if not en_value:
         raise LocalizedFieldError(
             f"{field_name}: an English ('en') version is mandatory — every problem must be authored in English; other languages are optional."

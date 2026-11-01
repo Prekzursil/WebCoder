@@ -73,11 +73,11 @@ def finalize_contest(contest_id: int) -> str:
         # Stagger: batch k starts at k * REJUDGE_STAGGER_SECONDS — bounded
         # ramp, contest lane stays dedicated (judge-contest queue).
         rejudge_submissions_batch.apply_async(
-            args=[batch], countdown=(index // REJUDGE_BATCH_SIZE) * REJUDGE_STAGGER_SECONDS
+            args=[batch],
+            countdown=(index // REJUDGE_BATCH_SIZE) * REJUDGE_STAGGER_SECONDS,
         )
     return (
-        f"contest {contest_id} finalized; "
-        f"{len(submission_ids)} submissions re-judging"
+        f"contest {contest_id} finalized; {len(submission_ids)} submissions re-judging"
     )
 
 
@@ -109,9 +109,7 @@ def rejudge_submissions_batch(submission_ids):
     with transaction.atomic():
         for submission_id in submission_ids:
             submission = (
-                Submission.objects.select_for_update()
-                .filter(pk=submission_id)
-                .first()
+                Submission.objects.select_for_update().filter(pk=submission_id).first()
             )
             if submission is None:
                 continue
@@ -119,9 +117,7 @@ def rejudge_submissions_batch(submission_ids):
             submission.verdict = Submission.VerdictStatus.PENDING
             submission.score = None
             submission.detailed_feedback = "Rejudging on the full test suite…"
-            submission.save(
-                update_fields=["verdict", "score", "detailed_feedback"]
-            )
+            submission.save(update_fields=["verdict", "score", "detailed_feedback"])
             reset += 1
             reset_ids.append(submission_id)
     for submission_id in reset_ids:

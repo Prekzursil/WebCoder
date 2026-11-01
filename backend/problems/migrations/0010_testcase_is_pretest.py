@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('problems', '0009_problemstar'),
+        ("problems", "0009_problemstar"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='testcase',
-            name='is_pretest',
-            field=models.BooleanField(default=False, help_text='Runs as part of the contest pretest subset.', verbose_name='pretest'),
+            model_name="testcase",
+            name="is_pretest",
+            field=models.BooleanField(
+                default=False,
+                help_text="Runs as part of the contest pretest subset.",
+                verbose_name="pretest",
+            ),
         ),
     ]

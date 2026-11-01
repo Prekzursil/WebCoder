@@ -66,9 +66,7 @@ def record_verdict(submission: Submission) -> ContestScore | None:
 
     score = float(submission.score or 0)
     at = submission.submission_time
-    frozen_view = (
-        contest.freeze_at is not None and at <= contest.freeze_at
-    )
+    frozen_view = contest.freeze_at is not None and at <= contest.freeze_at
 
     with transaction.atomic():
         row, _created = ContestScore.objects.select_for_update().get_or_create(
@@ -82,11 +80,7 @@ def record_verdict(submission: Submission) -> ContestScore | None:
             if score > row.best_score_frozen:
                 row.best_score_frozen = score
                 row.last_improvement_frozen = at
-            if (
-                cp.points > 0
-                and score >= cp.points
-                and row.first_ac_at_frozen is None
-            ):
+            if cp.points > 0 and score >= cp.points and row.first_ac_at_frozen is None:
                 row.first_ac_at_frozen = at
             if (
                 row.first_ac_at_frozen is None

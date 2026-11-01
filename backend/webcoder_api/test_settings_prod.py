@@ -6,10 +6,13 @@ pattern as webcoder_api/test_webcoder_api.py::_exec_settings) so every
 branch is exercised without reloading Django's configured settings.
 """
 
+import importlib
 import os
 import pathlib
 
 import pytest
+
+import webcoder_api.settings_prod as _prod_module
 
 
 def _exec_module(relpath, module_name):
@@ -75,18 +78,19 @@ def test_base_empty_env_vars_yield_empty_lists(monkeypatch):
 # Production profile: settings_prod.py
 # ---------------------------------------------------------------------------
 
-import importlib
-
-import webcoder_api.settings_prod as _prod_module
-
 
 @pytest.fixture(autouse=True)
 def _restore_prod_module():
     """Reload settings_prod with a clean env after each test so leaked env
     mutations never leave a non-default module state behind."""
     yield
-    for var in ("DEBUG", "ALLOWED_HOSTS", "CORS_ALLOWED_ORIGINS",
-                "JWT_SECRET_KEY", "SECURE_SSL_REDIRECT"):
+    for var in (
+        "DEBUG",
+        "ALLOWED_HOSTS",
+        "CORS_ALLOWED_ORIGINS",
+        "JWT_SECRET_KEY",
+        "SECURE_SSL_REDIRECT",
+    ):
         os.environ.pop(var, None)
     importlib.reload(_prod_module)
 
@@ -99,8 +103,13 @@ def _exec_prod(monkeypatch, **env):
     ``from .settings import *`` base values come from the already-imported
     base module, which is exactly what production does too.
     """
-    for var in ("DEBUG", "ALLOWED_HOSTS", "CORS_ALLOWED_ORIGINS",
-                "JWT_SECRET_KEY", "SECURE_SSL_REDIRECT"):
+    for var in (
+        "DEBUG",
+        "ALLOWED_HOSTS",
+        "CORS_ALLOWED_ORIGINS",
+        "JWT_SECRET_KEY",
+        "SECURE_SSL_REDIRECT",
+    ):
         monkeypatch.delenv(var, raising=False)
     for k, v in env.items():
         monkeypatch.setenv(k, v)
@@ -110,8 +119,8 @@ def _exec_prod(monkeypatch, **env):
 def test_prod_defaults_are_safe(monkeypatch):
     ns = _exec_prod(monkeypatch)
     assert ns["DEBUG"] is False
-    assert ns["ALLOWED_HOSTS"] == []          # deny-all until set
-    assert ns["CORS_ALLOWED_ORIGINS"] == []   # deny-all until set
+    assert ns["ALLOWED_HOSTS"] == []  # deny-all until set
+    assert ns["CORS_ALLOWED_ORIGINS"] == []  # deny-all until set
     assert ns["CORS_ALLOW_CREDENTIALS"] is True
     assert ns["SECURE_PROXY_SSL_HEADER"] == ("HTTP_X_FORWARDED_PROTO", "https")
     assert ns["SECURE_SSL_REDIRECT"] is True

@@ -5,7 +5,7 @@ from io import StringIO
 from unittest import mock
 
 from django.core.management import call_command
-from django.test import TestCase, TransactionTestCase
+from django.test import TransactionTestCase
 from django.utils import timezone
 
 from contests.models import Contest, ContestProblem
@@ -20,6 +20,7 @@ class _Base(TransactionTestCase):
     """TransactionTestCase: the command writes from worker-thread
     connections, which a wrapped TestCase transaction would lock out on
     sqlite."""
+
     def setUp(self):
         self.organizer = User.objects.create_user(
             username="organizer", password="p", role=User.Roles.ADMIN
@@ -94,12 +95,8 @@ class ReplayGatePassTest(_Base):
         self.assertIn("GATE: PASS", out)
         self.assertIn("rehearsal scale", out)
         # Probe users + participations exist for later cleanup.
-        self.assertTrue(
-            User.objects.filter(username__startswith="replay_").exists()
-        )
-        self.assertEqual(
-            Submission.objects.filter(contest=self.contest).count(), 2
-        )
+        self.assertTrue(User.objects.filter(username__startswith="replay_").exists())
+        self.assertEqual(Submission.objects.filter(contest=self.contest).count(), 2)
 
 
 class ReplayGateFailTest(_Base):

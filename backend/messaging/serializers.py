@@ -26,9 +26,7 @@ def _sanitize_body(value: str) -> str:
     # C0 controls except tab/newline/CR would smuggle escapes through
     # naive clients; strip-check them outright.
     if any(ord(ch) < 32 and ch not in "\t\n\r" for ch in value):
-        raise serializers.ValidationError(
-            "Message body contains control characters."
-        )
+        raise serializers.ValidationError("Message body contains control characters.")
     return value
 
 
@@ -72,9 +70,7 @@ class ConversationCreateSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         if not ("user_id" in attrs or "username" in attrs):
-            raise serializers.ValidationError(
-                "Provide either user_id or username."
-            )
+            raise serializers.ValidationError("Provide either user_id or username.")
         return attrs
 
 
@@ -102,7 +98,9 @@ class ConversationSerializer(serializers.ModelSerializer):
 
     def get_unread_count(self, obj):
         viewer = self.context["request"].user
-        return obj.messages.filter(sender=obj.other_user(viewer), read_at__isnull=True).count()
+        return obj.messages.filter(
+            sender=obj.other_user(viewer), read_at__isnull=True
+        ).count()
 
     def get_last_message(self, obj):
         last = obj.messages.order_by("-created_at", "-id").first()
@@ -121,9 +119,7 @@ class BlockCreateSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         if not ("user_id" in attrs or "username" in attrs):
-            raise serializers.ValidationError(
-                "Provide either user_id or username."
-            )
+            raise serializers.ValidationError("Provide either user_id or username.")
         return attrs
 
 
@@ -199,17 +195,13 @@ class AdminConversationSerializer(serializers.ModelSerializer):
         )
 
     def get_participants(self, obj):
-        return PublicUserSerializer(
-            [obj.user1, obj.user2], many=True
-        ).data
+        return PublicUserSerializer([obj.user1, obj.user2], many=True).data
 
     def get_message_count(self, obj):
         return obj.messages.count()
 
     def get_has_report(self, obj):
-        return MessageReport.objects.filter(
-            message__conversation=obj
-        ).exists()
+        return MessageReport.objects.filter(message__conversation=obj).exists()
 
 
 class TranscriptSerializer(serializers.ModelSerializer):

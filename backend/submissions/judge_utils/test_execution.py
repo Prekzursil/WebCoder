@@ -87,7 +87,7 @@ class RunCodeInSandboxTest(TestCase):
         self.assertIn("65536k", argv)
         self.assertIn(
             ["--network", "none"],
-            [argv[i:i + 2] for i in range(len(argv) - 1)],
+            [argv[i : i + 2] for i in range(len(argv) - 1)],
         )
         self.assertIn("timeout", argv)
         self.assertIn("/usr/bin/time", argv)
@@ -105,9 +105,7 @@ class RunCodeInSandboxTest(TestCase):
             return _fake_completed(returncode=0, stderr=_RES)
 
         with override_settings(JUDGE_BACKEND="container"):
-            with mock.patch.object(
-                execution.subprocess, "run", side_effect=fake_run
-            ):
+            with mock.patch.object(execution.subprocess, "run", side_effect=fake_run):
                 verdict, *_ = self._run()
         self.assertEqual(verdict, Submission.VerdictStatus.ACCEPTED)
         argv = seen["argv"]
@@ -152,7 +150,7 @@ class RunCodeInSandboxTest(TestCase):
         # Network isolation, never bridge.
         self.assertIn(
             ["--network", "none"],
-            [argv[i:i + 2] for i in range(len(argv) - 1)],
+            [argv[i : i + 2] for i in range(len(argv) - 1)],
         )
         # PYTHONPATH shim instead of an in-run pip install.
         sh_index = argv.index("sh")
@@ -381,7 +379,9 @@ class RunCodeInSandboxTest(TestCase):
             return _fake_completed(returncode=0, stdout="ok", stderr=_RES)
 
         with mock.patch.object(execution.subprocess, "run", side_effect=fake_run):
-            verdict, *_ = self._run(language="java11", executable_path_str=str(self.dir))
+            verdict, *_ = self._run(
+                language="java11", executable_path_str=str(self.dir)
+            )
         self.assertEqual(verdict, Submission.VerdictStatus.ACCEPTED)
         self.assertEqual(seen["argv"][-4:], ["java", "-cp", ".", "Main"])
 
@@ -443,7 +443,7 @@ class RunCodeInSandboxTest(TestCase):
                 )
         self.assertEqual(verdict, Submission.VerdictStatus.ACCEPTED)
         cp = seen["argv"][seen["argv"].index("-cp") + 1]
-        self.assertEqual(cp, f".:/app/host_java_libs/ok.jar")
+        self.assertEqual(cp, ".:/app/host_java_libs/ok.jar")
 
     def test_java_libs_container_backend_skips_jars(self):
         # The exec path has no host mounts: JARs are skipped with a warning
@@ -523,8 +523,9 @@ class SandboxTimeoutSignalTest(TestCase):
             return FakeResult()
 
         spec = get_language("python3")
-        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(
-            ex.subprocess, "run", fake_run
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            mock.patch.object(ex.subprocess, "run", fake_run),
         ):
             ex.run_code_in_sandbox(
                 executable_path_str=str(spec.run_command[0]),

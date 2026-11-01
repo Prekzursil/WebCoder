@@ -49,7 +49,9 @@ class LanguageCatalogView(APIView):
         return Response({"results": serializer.data})
 
 
-def promote_proposal(proposal: TranslationProposal, *, reviewer, note: str = "") -> None:
+def promote_proposal(
+    proposal: TranslationProposal, *, reviewer, note: str = ""
+) -> None:
     """Atomically publish a proposal into its problem (idempotent-guarded).
 
     Runs inside ``select_for_update`` on BOTH the proposal and the problem
@@ -61,15 +63,18 @@ def promote_proposal(proposal: TranslationProposal, *, reviewer, note: str = "")
     """
     rows = TranslationProposal.objects.select_for_update().filter(pk=proposal.pk)
     locked_proposal = rows.first()
-    if locked_proposal is None or locked_proposal.status != TranslationProposal.Status.PENDING:
+    if (
+        locked_proposal is None
+        or locked_proposal.status != TranslationProposal.Status.PENDING
+    ):
         from rest_framework.exceptions import ValidationError
 
-        raise ValidationError(
-            {"detail": "Only pending proposals can be approved."}
-        )
+        raise ValidationError({"detail": "Only pending proposals can be approved."})
 
     problem = (
-        Problem.objects.select_for_update().filter(pk=locked_proposal.problem_id).first()
+        Problem.objects.select_for_update()
+        .filter(pk=locked_proposal.problem_id)
+        .first()
     )
     if problem is None:  # pragma: no cover — CASCADE keeps rows in step
         from rest_framework.exceptions import ValidationError
@@ -77,11 +82,11 @@ def promote_proposal(proposal: TranslationProposal, *, reviewer, note: str = "")
         raise ValidationError({"detail": "The problem no longer exists."})
 
     language = locked_proposal.language
-    title_i18n = dict(problem.title_i18n) if isinstance(problem.title_i18n, dict) else {}
+    title_i18n = (
+        dict(problem.title_i18n) if isinstance(problem.title_i18n, dict) else {}
+    )
     statement_i18n = (
-        dict(problem.statement_i18n)
-        if isinstance(problem.statement_i18n, dict)
-        else {}
+        dict(problem.statement_i18n) if isinstance(problem.statement_i18n, dict) else {}
     )
     title_i18n[language] = locked_proposal.title
     statement_i18n[language] = locked_proposal.statement
@@ -279,7 +284,9 @@ class TranslationProposalViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         proposal = self.get_object()
         with transaction.atomic():
-            rows = TranslationProposal.objects.select_for_update().filter(pk=proposal.pk)
+            rows = TranslationProposal.objects.select_for_update().filter(
+                pk=proposal.pk
+            )
             locked = rows.first()
             if locked is None or locked.status != TranslationProposal.Status.PENDING:
                 return Response(

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 // Shared empty-state component [SPEC-GAPS A11]: replaces the bare centered
 // gray text blocks with a consistent card: icon, title, optional description
@@ -15,31 +15,34 @@ export default function EmptyState({ title, description, icon, action }: EmptySt
   return (
     <div
       style={{
-        padding: '3rem 1.5rem',
-        textAlign: 'center',
-        color: 'var(--muted)',
-        background: 'var(--surface)',
-        borderRadius: 'var(--radius-lg)',
-        border: '1px solid var(--border)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '0.5rem',
+        padding: "3rem 1.5rem",
+        textAlign: "center",
+        color: "var(--muted)",
+        background: "var(--surface)",
+        borderRadius: "var(--radius-lg)",
+        border: "1px solid var(--border)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "0.5rem",
       }}
       role="status"
     >
       {icon && (
-        <span style={{ fontSize: '1.75rem', lineHeight: 1, color: 'var(--text-tertiary)' }} aria-hidden="true">
+        <span
+          style={{ fontSize: "1.75rem", lineHeight: 1, color: "var(--text-tertiary)" }}
+          aria-hidden="true"
+        >
           {icon}
         </span>
       )}
-      <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--muted)' }}>{title}</div>
+      <div style={{ fontSize: "0.95rem", fontWeight: 600, color: "var(--muted)" }}>{title}</div>
       {description && (
-        <div style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)', maxWidth: '420px' }}>
+        <div style={{ fontSize: "0.85rem", color: "var(--text-tertiary)", maxWidth: "420px" }}>
           {description}
         </div>
       )}
-      {action && <div style={{ marginTop: '0.75rem' }}>{action}</div>}
+      {action && <div style={{ marginTop: "0.75rem" }}>{action}</div>}
     </div>
   );
 }

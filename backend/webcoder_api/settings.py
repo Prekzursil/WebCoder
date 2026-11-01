@@ -32,7 +32,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ["SECRET_KEY"]  # fail-loud: required in backend/.env or environment
+SECRET_KEY = os.environ[
+    "SECRET_KEY"
+]  # fail-loud: required in backend/.env or environment
 
 
 def _env_bool(name: str, default: str = "false") -> bool:
@@ -171,7 +173,9 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": os.environ.get("DB_NAME", "webcoder_db"),
         "USER": os.environ.get("DB_USER", "webcoder_user"),
-        "PASSWORD": os.environ["DB_PASSWORD"],  # fail-loud: no secret defaults in source
+        "PASSWORD": os.environ[
+            "DB_PASSWORD"
+        ],  # fail-loud: no secret defaults in source
         "HOST": os.environ.get("DB_HOST", "localhost"),
         # Local PostgreSQL 18 service listens on 5433 on this machine (measured).
         "PORT": os.environ.get("DB_PORT", "5433"),
@@ -323,9 +327,7 @@ REST_FRAMEWORK = {
         "auth": os.environ.get("THROTTLE_AUTH_RATE", "10/min"),
         "submit": os.environ.get("THROTTLE_SUBMIT_RATE", "20/hour"),
         # OPS-1/OPS-2 (Wave D): token-authenticated public-API reads.
-        "public_api_auth": os.environ.get(
-            "THROTTLE_PUBLIC_API_AUTH_RATE", "240/min"
-        ),
+        "public_api_auth": os.environ.get("THROTTLE_PUBLIC_API_AUTH_RATE", "240/min"),
         # Scratch runs (X7): raw judge execution, so its own strict scope —
         # the judge-DoS surface SP4 flagged.
         "scratch": os.environ.get("THROTTLE_SCRATCH_RATE", "20/hour"),
@@ -343,8 +345,8 @@ REST_FRAMEWORK = {
         "translation_propose": os.environ.get(
             "THROTTLE_TRANSLATION_PROPOSE_RATE", "10/hour"
         ),
-    # OPS-1 public read-only API: generous anon ceiling (DMOJ uses 90/min).
-    "public_api": os.environ.get("THROTTLE_PUBLIC_API_RATE", "60/min"),
+        # OPS-1 public read-only API: generous anon ceiling (DMOJ uses 90/min).
+        "public_api": os.environ.get("THROTTLE_PUBLIC_API_RATE", "60/min"),
         # dj-rest-auth's vendor LoginView/RegisterView ship throttle_scope
         # 'dj_rest_auth'; give it the same credential-stuffing cap as 'auth'.
         "dj_rest_auth": os.environ.get("THROTTLE_AUTH_RATE", "10/min"),
@@ -424,16 +426,16 @@ if CELERY_BROKER_URL == "filesystem://":
         "CELERY_BROKER_ROOT", os.path.join(BASE_DIR, "..")
     )
     CELERY_BROKER_FOLDER_MAIN = os.path.join(_celery_broker_root, "celery_broker")
-    CELERY_BROKER_FOLDER_PROCESSED = os.path.join(_celery_broker_root, "celery_broker_processed")
+    CELERY_BROKER_FOLDER_PROCESSED = os.path.join(
+        _celery_broker_root, "celery_broker_processed"
+    )
     CELERY_BROKER_FOLDER_SENT = os.path.join(_celery_broker_root, "celery_broker_sent")
     os.makedirs(CELERY_BROKER_FOLDER_MAIN, exist_ok=True)
     os.makedirs(CELERY_BROKER_FOLDER_PROCESSED, exist_ok=True)
     os.makedirs(CELERY_BROKER_FOLDER_SENT, exist_ok=True)
 # JDG-7: per-test output-size cap — programs printing past this read as
 # OLE (Output Limit Exceeded) instead of hanging the judge.
-JUDGE_OUTPUT_LIMIT_BYTES = int(
-    os.environ.get("JUDGE_OUTPUT_LIMIT_BYTES", 32_000_000)
-)
+JUDGE_OUTPUT_LIMIT_BYTES = int(os.environ.get("JUDGE_OUTPUT_LIMIT_BYTES", 32_000_000))
 
 # Round-2 SAF-2: rated contests are the platform's integrity asset —
 # registering for one requires a verified email (allauth EmailAddress).
@@ -557,7 +559,7 @@ JUDGE_BOOST_HEADERS_PATH = os.environ.get(
 # Each JAR file in this directory will be added to the classpath.
 # IMPORTANT: This path MUST exist on the judge server.
 # Example: "/opt/java_libs"
-JUDGE_JAVA_LIBS_DIR_HOST = os.environ.get('JUDGE_JAVA_LIBS_DIR_HOST', "/opt/java_libs")
+JUDGE_JAVA_LIBS_DIR_HOST = os.environ.get("JUDGE_JAVA_LIBS_DIR_HOST", "/opt/java_libs")
 
 # Judge execution backend (settings-driven switch, consumed by
 # submissions/judge_utils/backend.py — THE judge spawn path; compilation.py /
@@ -572,29 +574,29 @@ JUDGE_JAVA_LIBS_DIR_HOST = os.environ.get('JUDGE_JAVA_LIBS_DIR_HOST', "/opt/java
 #              resource-limited). The submission workspace lives on the
 #              shared judge-sandbox volume (JUDGE_SANDBOX_ROOT — identical
 #              path inside the worker and the judge-runner).
-JUDGE_BACKEND = os.environ.get('JUDGE_BACKEND', 'local')
+JUDGE_BACKEND = os.environ.get("JUDGE_BACKEND", "local")
 
 # Mount point of the shared judge-sandbox volume (docker-compose.yml mounts
 # `judge-sandbox:/srv/judge` on both the celery-worker/backend and the
 # judge-runner). Under JUDGE_BACKEND=container the per-submission workspace
 # is created under this root so `docker exec` reaches it at the same path
 # with no host bind-mounts.
-JUDGE_SANDBOX_ROOT = os.environ.get('JUDGE_SANDBOX_ROOT', '/srv/judge')
+JUDGE_SANDBOX_ROOT = os.environ.get("JUDGE_SANDBOX_ROOT", "/srv/judge")
 
 # Name of the shared judge-sandbox docker volume on the Docker host. Needed
 # by the custom-libs pip INSTALL container under JUDGE_BACKEND=container
 # (it mounts the volume by name so the workspace path matches the worker's;
 # the judged RUN itself stays `docker exec` with no mounts at all).
 # docker-compose sets this; unset => custom-libs installs fail closed.
-JUDGE_SANDBOX_VOLUME = os.environ.get('JUDGE_SANDBOX_VOLUME', '')
+JUDGE_SANDBOX_VOLUME = os.environ.get("JUDGE_SANDBOX_VOLUME", "")
 
 # Custom-libs pip egress (SPEC-GAPS J3/E1): the one-shot pip install
 # container's docker network. 'none' (default) = fail closed — judged code
 # NEVER gets network. Operators provisioning the judge-build internal
 # network + PyPI allowlist proxy (RUNBOOK §judge-pip-egress) set this to
 # 'judge-build' (and optionally JUDGE_PYPI_INDEX_URL) to enable pip.
-JUDGE_PIP_NETWORK = os.environ.get('JUDGE_PIP_NETWORK', 'none')
-JUDGE_PYPI_INDEX_URL = os.environ.get('JUDGE_PYPI_INDEX_URL', '')
+JUDGE_PIP_NETWORK = os.environ.get("JUDGE_PIP_NETWORK", "none")
+JUDGE_PYPI_INDEX_URL = os.environ.get("JUDGE_PYPI_INDEX_URL", "")
 
 # In-contest submission cooldown in seconds (round-2 OPR-4): rate-limits a
 # single participant's contest submissions (anti-brute-force pacing). 0

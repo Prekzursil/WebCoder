@@ -64,15 +64,53 @@ import re
 #: method calls on input-derived values without needing type inference.
 _STR_METHODS = frozenset(
     {
-        "capitalize", "casefold", "center", "count", "encode", "endswith",
-        "expandtabs", "find", "format", "format_map", "index", "isalnum",
-        "isalpha", "isascii", "isdecimal", "isdigit", "isidentifier",
-        "islower", "isnumeric", "isprintable", "isspace", "istitle",
-        "isupper", "join", "ljust", "lower", "lstrip", "maketrans",
-        "partition", "removeprefix", "removesuffix", "replace", "rfind",
-        "rindex", "rjust", "rpartition", "rsplit", "rstrip", "split",
-        "splitlines", "startswith", "strip", "swapcase", "title",
-        "translate", "upper", "zfill",
+        "capitalize",
+        "casefold",
+        "center",
+        "count",
+        "encode",
+        "endswith",
+        "expandtabs",
+        "find",
+        "format",
+        "format_map",
+        "index",
+        "isalnum",
+        "isalpha",
+        "isascii",
+        "isdecimal",
+        "isdigit",
+        "isidentifier",
+        "islower",
+        "isnumeric",
+        "isprintable",
+        "isspace",
+        "istitle",
+        "isupper",
+        "join",
+        "ljust",
+        "lower",
+        "lstrip",
+        "maketrans",
+        "partition",
+        "removeprefix",
+        "removesuffix",
+        "replace",
+        "rfind",
+        "rindex",
+        "rjust",
+        "rpartition",
+        "rsplit",
+        "rstrip",
+        "split",
+        "splitlines",
+        "startswith",
+        "strip",
+        "swapcase",
+        "title",
+        "translate",
+        "upper",
+        "zfill",
     }
 )
 
@@ -83,7 +121,7 @@ FEATURE_BAN_KEYS = ("py-no-string-ops",)
 _CPP_INCLUDE_RE = re.compile(r'^\s*#\s*include\s*[<"]([^">]+)[">]')
 
 #: Java package import: captures foo.bar.* / foo.bar.Baz.
-_JAVA_IMPORT_RE = re.compile(r'^\s*import\s+(?:static\s+)?([\w.]+)(?:\.\*)?\s*;')
+_JAVA_IMPORT_RE = re.compile(r"^\s*import\s+(?:static\s+)?([\w.]+)(?:\.\*)?\s*;")
 
 
 def _language_policy(policy: dict | None, language: str) -> dict:
@@ -259,9 +297,11 @@ def _scan_python(code: str, policy: dict, language: str) -> list[str]:
         derived = _python_string_derived_names(tree)
         if derived:
             for node in ast.walk(tree):
-                if isinstance(node, ast.Subscript) and isinstance(
-                    node.value, ast.Name
-                ) and node.value.id in derived:
+                if (
+                    isinstance(node, ast.Subscript)
+                    and isinstance(node.value, ast.Name)
+                    and node.value.id in derived
+                ):
                     violations.append(
                         "Banned feature: the input is treated as a string "
                         "and indexed (s[...]). Solve it with arithmetic "

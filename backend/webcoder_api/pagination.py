@@ -31,9 +31,7 @@ class StandardPageNumberPagination(PageNumberPagination):
         # already carry an ordering (e.g. Problem's -creation_date) and
         # already-ranked plain lists (contest standings) pass through
         # untouched.
-        if hasattr(queryset, "order_by") and not getattr(
-            queryset, "ordered", False
-        ):
+        if hasattr(queryset, "order_by") and not getattr(queryset, "ordered", False):
             queryset = queryset.order_by("pk")
         return super().paginate_queryset(queryset, request, view=view)
 

@@ -4,6 +4,7 @@ from allauth.socialaccount.providers.microsoft.views import (
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from dj_rest_auth.registration.views import SocialLoginView
 
+
 # OPS-3 (competitive roadmap): Microsoft/Azure AD (school) SSO — RO schools
 # commonly run Office 365, so this removes the largest classroom onboarding
 # friction. Same SPA contract as the Google/GitHub lanes: the browser does

@@ -11,8 +11,14 @@ class ConversationAdmin(admin.ModelAdmin):
 
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
-    list_display = ("id", "conversation", "sender", "is_flagged",
-                    "created_at", "read_at")
+    list_display = (
+        "id",
+        "conversation",
+        "sender",
+        "is_flagged",
+        "created_at",
+        "read_at",
+    )
     list_filter = ("is_flagged",)
     search_fields = ("sender__username", "body")
 
@@ -25,7 +31,13 @@ class BlockAdmin(admin.ModelAdmin):
 
 @admin.register(MessageReport)
 class MessageReportAdmin(admin.ModelAdmin):
-    list_display = ("message", "reporter", "reason", "status", "resolved_by",
-                    "created_at")
+    list_display = (
+        "message",
+        "reporter",
+        "reason",
+        "status",
+        "resolved_by",
+        "created_at",
+    )
     list_filter = ("reason", "status")
     search_fields = ("reporter__username", "details")

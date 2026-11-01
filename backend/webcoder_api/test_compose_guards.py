@@ -20,9 +20,7 @@ def test_compose_file_exists():
 
 def test_beat_uses_the_celery5_schedule_flag():
     text = COMPOSE.read_text(encoding="utf-8")
-    beat_cmd = re.search(
-        r'command:\s*\[([^\]]*"beat"[^\]]*)\]', text
-    )
+    beat_cmd = re.search(r'command:\s*\[([^\]]*"beat"[^\]]*)\]', text)
     assert beat_cmd is not None, "celery beat command not found in compose"
     cmd = beat_cmd.group(1)
     assert "--schedule-file" not in cmd, (
@@ -36,6 +34,5 @@ def test_beat_uses_the_celery5_schedule_flag():
 def test_no_service_command_uses_the_dead_flag():
     text = COMPOSE.read_text(encoding="utf-8")
     assert '"--schedule-file"' not in text, (
-        "a compose service command uses the celery-5.x-dead flag "
-        "--schedule-file"
+        "a compose service command uses the celery-5.x-dead flag --schedule-file"
     )

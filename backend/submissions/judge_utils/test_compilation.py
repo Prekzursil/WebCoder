@@ -251,9 +251,7 @@ class CompileCodeInSandboxTest(TestCase):
             return _fake_completed(returncode=0)
 
         with override_settings(JUDGE_BACKEND="container"):
-            with mock.patch.object(
-                compilation.subprocess, "run", side_effect=fake_run
-            ):
+            with mock.patch.object(compilation.subprocess, "run", side_effect=fake_run):
                 ok, _out, _path = compile_code_in_sandbox(
                     "int main(){}", "cpp17", self.dir
                 )
@@ -287,9 +285,7 @@ class CompileCodeInSandboxTest(TestCase):
         argv = seen_argv[0]
         self.assertEqual(argv[:3], ["docker", "run", "--rm"])
         self.assertIn("gcc:latest", argv)
-        self.assertIn(
-            f"{self.dir.resolve()}:/app:ro", argv
-        )
+        self.assertIn(f"{self.dir.resolve()}:/app:ro", argv)
 
     def test_container_backend_boost_warns_and_compiles_without_mount(self):
         from django.test import override_settings
@@ -306,15 +302,11 @@ class CompileCodeInSandboxTest(TestCase):
         with override_settings(
             JUDGE_BACKEND="container", JUDGE_BOOST_HEADERS_PATH=str(boost)
         ):
-            with mock.patch.object(
-                compilation.subprocess, "run", side_effect=fake_run
-            ):
+            with mock.patch.object(compilation.subprocess, "run", side_effect=fake_run):
                 ok, _out, _path = compile_code_in_sandbox(
                     "int main(){}", "cpp17", self.dir, ["boost_headers"]
                 )
         self.assertTrue(ok)
         # No host bind-mounts are possible on the exec path.
         self.assertNotIn("-v", seen_argv[0])
-        self.assertNotIn(
-            f"-I{compilation.CONTAINER_BOOST_INCLUDE_PATH}", seen_argv[0]
-        )
+        self.assertNotIn(f"-I{compilation.CONTAINER_BOOST_INCLUDE_PATH}", seen_argv[0])

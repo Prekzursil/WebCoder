@@ -282,9 +282,7 @@ def judge_submission_task(self, submission_id):
             and _install_libs
             and problem.problem_type != Problem.ProblemType.OUTPUT_ONLY
         ):
-            libs_ok, libs_message = install_custom_libs(
-                submission_dir, _install_libs
-            )
+            libs_ok, libs_message = install_custom_libs(submission_dir, _install_libs)
             if not libs_ok:
                 with transaction.atomic():
                     submission = Submission.objects.select_for_update().get(
@@ -303,7 +301,6 @@ def judge_submission_task(self, submission_id):
                 if temp_dir_obj:  # pragma: no cover
                     temp_dir_obj.cleanup()
                 return f"Submission {submission_id}: library install failed."
-
 
         # Wave C library/feature policy — judge-time re-scan of the exact
         # submitted bytes (defense in depth under the submit-time 400; a
@@ -357,9 +354,7 @@ def judge_submission_task(self, submission_id):
         checker_spec = None
         if problem.comparison_mode == Problem.ComparisonMode.CUSTOM_CHECKER:
             if problem.checker_code and problem.checker_language:
-                checker_workspace_obj = _judge_workspace(
-                    f"checker_{submission_id}_"
-                )
+                checker_workspace_obj = _judge_workspace(f"checker_{submission_id}_")
                 checker_dir = pathlib.Path(checker_workspace_obj.name)
                 checker_ok, checker_msg, checker_spec = compile_checker(
                     problem.checker_code,
@@ -425,9 +420,7 @@ def judge_submission_task(self, submission_id):
         # through the generated meta-path guard (see execution.py).
         from problems.feature_policy import banned_stdlib_modules as _banned
 
-        policy_banned_stdlib = _banned(
-            problem.library_policy, judge_language
-        )
+        policy_banned_stdlib = _banned(problem.library_policy, judge_language)
 
         # RO-4: FILES-mode problems exchange data through working-directory
         # files instead of stdin/stdout.
@@ -468,18 +461,12 @@ def judge_submission_task(self, submission_id):
                 # connected pair; the interactor's exit code (checker
                 # protocol v2 on stderr) decides this test's verdict.
                 if interactive_spec is not None and interactive_dir is not None:
-                    with open(
-                        interactive_dir / INTERACTOR_INPUT_FILE, "w"
-                    ) as f:
+                    with open(interactive_dir / INTERACTOR_INPUT_FILE, "w") as f:
                         f.write(tc.input_data)
-                    with open(
-                        interactive_dir / INTERACTOR_ANSWER_FILE, "w"
-                    ) as f:
+                    with open(interactive_dir / INTERACTOR_ANSWER_FILE, "w") as f:
                         f.write(tc.expected_output_data)
                     user_spec = get_language(judge_language)
-                    user_run_argv = (
-                        list(user_spec.run_command) if user_spec else []
-                    )
+                    user_run_argv = list(user_spec.run_command) if user_spec else []
                     (
                         pair_verdict,
                         pair_time,
@@ -514,8 +501,7 @@ def judge_submission_task(self, submission_id):
                     tc_mem = -1
                     tc_output = ""
                     tc_error = (
-                        "Error: INTERACTIVE problem without interactor "
-                        "code/language."
+                        "Error: INTERACTIVE problem without interactor code/language."
                     )
                 max_time_ms_overall = max(
                     max_time_ms_overall, tc_time if tc_time not in (None, -1) else 0
@@ -555,18 +541,16 @@ def judge_submission_task(self, submission_id):
                     (submission_dir / io_files[0]).write_text(
                         tc.input_data, encoding="utf-8"
                     )
-                tc_verdict, tc_time, tc_mem, tc_output, tc_error = (
-                    run_code_in_sandbox(
-                        executable_path_str,
-                        judge_language,
-                        tc.input_data,
-                        eff_time_ms,
-                        eff_mem_kb,
-                        submission_dir,
-                        problem.custom_libraries_allowed,  # Pass custom libraries here as well
-                        io_files=io_files,
-                        banned_stdlib_modules=policy_banned_stdlib,
-                    )
+                tc_verdict, tc_time, tc_mem, tc_output, tc_error = run_code_in_sandbox(
+                    executable_path_str,
+                    judge_language,
+                    tc.input_data,
+                    eff_time_ms,
+                    eff_mem_kb,
+                    submission_dir,
+                    problem.custom_libraries_allowed,  # Pass custom libraries here as well
+                    io_files=io_files,
+                    banned_stdlib_modules=policy_banned_stdlib,
                 )
 
             max_time_ms_overall = max(
@@ -584,9 +568,7 @@ def judge_submission_task(self, submission_id):
                         # workspace; the artifact was compiled once above.
                         with open(checker_dir / CHECKER_INPUT_FILE, "w") as f:
                             f.write(tc.input_data)
-                        with open(
-                            checker_dir / CHECKER_USER_OUTPUT_FILE, "w"
-                        ) as f:
+                        with open(checker_dir / CHECKER_USER_OUTPUT_FILE, "w") as f:
                             f.write(tc_output)
                         with open(checker_dir / CHECKER_ANSWER_FILE, "w") as f:
                             f.write(tc.expected_output_data)
@@ -620,9 +602,8 @@ def judge_submission_task(self, submission_id):
                         # never reach this line — the falsey arm is dead.
                         if mismatch_hint:  # pragma: no branch
                             tc_error = (
-                                (tc_error + "\n" if tc_error else "")
-                                + mismatch_hint
-                            )
+                                tc_error + "\n" if tc_error else ""
+                            ) + mismatch_hint
 
             SubmissionTestResult.objects.create(
                 submission=submission,
@@ -685,9 +666,7 @@ def judge_submission_task(self, submission_id):
             # terminal verdict on a contest-bound submission folds into its
             # ContestScore row so scoreboard reads stay pure selects.
             if submission.contest_id:
-                transaction.on_commit(
-                    lambda: record_verdict_task.delay(submission.id)
-                )
+                transaction.on_commit(lambda: record_verdict_task.delay(submission.id))
             _notify_judged(submission, overall_verdict)
 
         final_message = f"Submission {submission_id} judged. Verdict: {overall_verdict}"
@@ -736,9 +715,9 @@ def prune_old_test_outputs():
     Daily beat scheduling lives in settings.CELERY_BEAT_SCHEDULE.
     """
     cutoff = timezone.now() - timedelta(days=RETENTION_DAYS)
-    updated = SubmissionTestResult.objects.filter(
-        submission__submission_time__lt=cutoff
-    ).exclude(actual_output="", error_output="").update(
-        actual_output="", error_output=""
+    updated = (
+        SubmissionTestResult.objects.filter(submission__submission_time__lt=cutoff)
+        .exclude(actual_output="", error_output="")
+        .update(actual_output="", error_output="")
     )
     return updated

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { useTranslation } from 'react-i18next';
+import React from "react";
+import { useTranslation } from "react-i18next";
 
 // Ported from frontend/webcoder_ui/src/components/common/LoadingSpinner.tsx (CRA reference).
 // [SPEC-GAPS A11] The light-theme leftover inline <style> (rgba(0,0,0,0.1)
@@ -12,12 +12,18 @@ const LoadingSpinner: React.FC = () => {
   const { t } = useTranslation();
   return (
     <div
-      style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', minHeight: '100px' }}
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: "20px",
+        minHeight: "100px",
+      }}
       role="status"
       aria-live="polite"
     >
       <div className="spinner" aria-hidden="true"></div>
-      <p style={{ marginLeft: '10px' }}>{t('loading', 'Loading...')}</p>
+      <p style={{ marginLeft: "10px" }}>{t("loading", "Loading...")}</p>
     </div>
   );
 };

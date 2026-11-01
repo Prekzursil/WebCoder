@@ -24,13 +24,18 @@ def normalize(apps, schema_editor):
         new_statement = ensure_english(
             problem.statement_i18n, field_name="statement_i18n"
         )
-        if new_title is not problem.title_i18n or new_statement is not problem.statement_i18n:
+        if (
+            new_title is not problem.title_i18n
+            or new_statement is not problem.statement_i18n
+        ):
             problem.title_i18n = new_title
             problem.statement_i18n = new_statement
             problem.save(update_fields=["title_i18n", "statement_i18n"])
             repaired += 1
     if repaired:
-        print(f"[0019_en_mandatory_statements] repaired English fallback on {repaired} problem(s)")
+        print(
+            f"[0019_en_mandatory_statements] repaired English fallback on {repaired} problem(s)"
+        )
 
 
 def unnormalize(apps, schema_editor):
@@ -40,7 +45,6 @@ def unnormalize(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("problems", "0018_partial_code"),
     ]

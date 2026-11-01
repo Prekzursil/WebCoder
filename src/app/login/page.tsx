@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 // Ported from frontend/webcoder_ui/src/pages/auth/LoginPage.tsx (CRA reference).
 // Next.js adaptations:
@@ -13,13 +13,13 @@
 //   ApiService throws plain `Error` objects (PORT-MAP §0.2), so the catch
 //   surfaces err.message directly with an i18n fallback.
 
-import React, { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
-import NextLink from 'next/link';
-import { useTranslation } from 'react-i18next';
-import { AuthService } from '@/services/ApiService';
-import { useAuth } from '@/context/AuthContext';
-import { API_BASE_URL } from '@/lib/api-config';
+import React, { useState, FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import NextLink from "next/link";
+import { useTranslation } from "react-i18next";
+import { AuthService } from "@/services/ApiService";
+import { useAuth } from "@/context/AuthContext";
+import { API_BASE_URL } from "@/lib/api-config";
 import {
   Container,
   Box,
@@ -30,16 +30,16 @@ import {
   Alert,
   CircularProgress,
   Divider,
-} from '@mui/material';
-import GoogleIcon from '@mui/icons-material/Google';
-import GitHubIcon from '@mui/icons-material/GitHub';
+} from "@mui/material";
+import GoogleIcon from "@mui/icons-material/Google";
+import GitHubIcon from "@mui/icons-material/GitHub";
 
 const LoginPage: React.FC = () => {
   const { t } = useTranslation();
   const router = useRouter();
   const auth = useAuth();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -59,15 +59,15 @@ const LoginPage: React.FC = () => {
         // prefer it, falling back to the login payload.
         const me = await AuthService.getMe().catch(() => null);
         auth.login((me ?? response.user) as typeof response.user);
-        router.push('/');
+        router.push("/");
       } else {
-        setError(t('login_failed_no_token', 'Login failed: No token received.'));
+        setError(t("login_failed_no_token", "Login failed: No token received."));
       }
     } catch (err: unknown) {
       setError(
         err instanceof Error && err.message
           ? err.message
-          : t('login_failed', 'Login failed. Please check your credentials.')
+          : t("login_failed", "Login failed. Please check your credentials."),
       );
     } finally {
       setIsSubmitting(false);
@@ -79,16 +79,16 @@ const LoginPage: React.FC = () => {
       <Box
         sx={{
           marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
         }}
       >
         <Typography component="h1" variant="h5">
-          {t('login_header', 'Login')}
+          {t("login_header", "Login")}
         </Typography>
         {error && (
-          <Alert severity="error" sx={{ width: '100%', mt: 2 }}>
+          <Alert severity="error" sx={{ width: "100%", mt: 2 }}>
             {error}
           </Alert>
         )}
@@ -98,7 +98,7 @@ const LoginPage: React.FC = () => {
             required
             fullWidth
             id="login-username"
-            label={t('username_label', 'Username')}
+            label={t("username_label", "Username")}
             name="username"
             autoComplete="username"
             autoFocus
@@ -110,7 +110,7 @@ const LoginPage: React.FC = () => {
             required
             fullWidth
             name="password"
-            label={t('password_label', 'Password')}
+            label={t("password_label", "Password")}
             type="password"
             id="login-password"
             autoComplete="current-password"
@@ -124,23 +124,23 @@ const LoginPage: React.FC = () => {
             sx={{ mt: 3, mb: 2 }}
             disabled={isSubmitting}
           >
-            {isSubmitting ? <CircularProgress size={24} /> : t('login_button', 'Login')}
+            {isSubmitting ? <CircularProgress size={24} /> : t("login_button", "Login")}
           </Button>
-          <Divider sx={{ my: 2 }}>{t('or_login_with', 'Or login with')}</Divider>
-          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
+          <Divider sx={{ my: 2 }}>{t("or_login_with", "Or login with")}</Divider>
+          <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
             <Button
               variant="outlined"
               startIcon={<GoogleIcon />}
               href={`${apiBase}/accounts/google/login/`}
             >
-              {t('google_login', 'Google')}
+              {t("google_login", "Google")}
             </Button>
             <Button
               variant="outlined"
               startIcon={<GitHubIcon />}
               href={`${apiBase}/accounts/github/login/`}
             >
-              {t('github_login', 'GitHub')}
+              {t("github_login", "GitHub")}
             </Button>
             {/* OPS-3: the Office-365 school lane. */}
             <Button
@@ -148,13 +148,13 @@ const LoginPage: React.FC = () => {
               href={`${apiBase}/accounts/microsoft/login/`}
               data-testid="microsoft-login-button"
             >
-              {t('microsoft_login', 'Microsoft')}
+              {t("microsoft_login", "Microsoft")}
             </Button>
           </Box>
           <Typography variant="body2" align="center" sx={{ mt: 2 }}>
-            {t('no_account_prompt', "Don't have an account?")}{' '}
+            {t("no_account_prompt", "Don't have an account?")}{" "}
             <Link component={NextLink} href="/register" variant="body2">
-              {t('register_link_text', 'Register here')}
+              {t("register_link_text", "Register here")}
             </Link>
           </Typography>
         </Box>

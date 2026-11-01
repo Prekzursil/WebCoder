@@ -128,11 +128,26 @@ def rating_band(display_rating: int) -> dict:
 
 #: Band table (RAT-3): min threshold, bilingual name, hex color.
 RATING_BANDS: list[dict] = [
-    {"min": 2300, "name_en": "Legendary Grandmaster", "name_ro": "Grandmaster legendar", "color": "#8b0000"},
-    {"min": 2100, "name_en": "Grandmaster", "name_ro": "Grandmaster", "color": "#cc0000"},
+    {
+        "min": 2300,
+        "name_en": "Legendary Grandmaster",
+        "name_ro": "Grandmaster legendar",
+        "color": "#8b0000",
+    },
+    {
+        "min": 2100,
+        "name_en": "Grandmaster",
+        "name_ro": "Grandmaster",
+        "color": "#cc0000",
+    },
     {"min": 1900, "name_en": "Master", "name_ro": "Master", "color": "#ff6600"},
     {"min": 1600, "name_en": "Expert", "name_ro": "Expert", "color": "#aa00aa"},
     {"min": 1400, "name_en": "Specialist", "name_ro": "Specialist", "color": "#0000ff"},
-    {"min": 1200, "name_en": "Pupil", "name_ro": "Începător avansat", "color": "#008000"},
+    {
+        "min": 1200,
+        "name_en": "Pupil",
+        "name_ro": "Începător avansat",
+        "color": "#008000",
+    },
     {"min": 0, "name_en": "Newbie", "name_ro": "Începător", "color": "#808080"},
 ]

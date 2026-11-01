@@ -23,9 +23,14 @@ concurrency:
 
 jobs:
   quality:
-    env:
-      SECRET_KEY: ci-placeholder
-      DB_PASSWORD: ci-placeholder
+    # No job-level `env:` here: GitHub Actions forbids any key other than
+    # uses/with/secrets/needs/if/permissions/strategy/concurrency/name on a
+    # job that calls a reusable workflow - the previous env: block made this
+    # workflow fail workflow-file validation (0s startup failure, no jobs
+    # created) on every push since 2026-10-27. The SECRET_KEY/DB_PASSWORD
+    # placeholders the test settings need are seeded by
+    # backend/webcoder_api/settings_ci.py itself (setdefault, so a real env
+    # still wins).
     # Pinned to the v1 tag's commit hash (b4fbe38) — CodeQL red-blocker
     # (actions/unpinned-tag) rejects mutable tag refs; this is v1, immutably.
     uses: Prekzursil/quality-zero-platform/.github/workflows/reusable-quality.yml@b4fbe38470fd2831f86f194df5b638a271bae8b8 # v1

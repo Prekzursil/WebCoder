@@ -31,7 +31,9 @@ class ProblemStar(models.Model):
         verbose_name_plural = "problem stars"
         ordering = ["-created_at"]
         constraints = [
-            models.UniqueConstraint(fields=["user", "problem"], name="unique_user_problem_star")
+            models.UniqueConstraint(
+                fields=["user", "problem"], name="unique_user_problem_star"
+            )
         ]
 
     def __str__(self):

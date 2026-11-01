@@ -1,8 +1,3 @@
-from django.test import TestCase
-from submissions.models import Submission
-from rest_framework.test import APIClient
-from problems.models import Problem
-from users.models import User
 """Tests for the settings-driven JUDGE_BACKEND switch (judge_utils/backend.py).
 
 Deliberately plain ``unittest.TestCase`` classes: these are pure unit tests of
@@ -13,6 +8,11 @@ depend on a reachable PostgreSQL with matching credentials).
 any test class.
 """
 
+from django.test import TestCase
+from submissions.models import Submission
+from rest_framework.test import APIClient
+from problems.models import Problem
+from users.models import User
 import pathlib
 import subprocess
 import sys
@@ -169,9 +169,7 @@ class RunJudgedProcessContainerTests(unittest.TestCase):
     the compose stack, see docker-compose.yml)."""
 
     def _run_mocked(self, **kwargs):
-        with patch(
-            "submissions.judge_utils.backend.subprocess.run"
-        ) as mock_run:
+        with patch("submissions.judge_utils.backend.subprocess.run") as mock_run:
             mock_run.return_value = "completed-stub"
             result = run_judged_process(backend=CONTAINER, **kwargs)
         return result, mock_run
@@ -189,11 +187,16 @@ class RunJudgedProcessContainerTests(unittest.TestCase):
         self.assertEqual(
             argv,
             [
-                "docker", "exec", "-i",
-                "-w", "/srv/judge/submission_9",
-                "--user", JUDGE_RUNNER_USER,
+                "docker",
+                "exec",
+                "-i",
+                "-w",
+                "/srv/judge/submission_9",
+                "--user",
+                JUDGE_RUNNER_USER,
                 JUDGE_RUNNER_CONTAINER,
-                "python", "user_code.py",
+                "python",
+                "user_code.py",
             ],
         )
         self.assertEqual(kwargs["input"], "1 2\n")
@@ -215,9 +218,7 @@ class RunJudgedProcessContainerTests(unittest.TestCase):
 
     def test_setting_drives_dispatch_without_explicit_backend(self):
         with override_settings(JUDGE_BACKEND="container"):
-            with patch(
-                "submissions.judge_utils.backend.subprocess.run"
-            ) as mock_run:
+            with patch("submissions.judge_utils.backend.subprocess.run") as mock_run:
                 mock_run.return_value = "ok"
                 run_judged_process(["echo", "hi"])
         (argv,), _ = mock_run.call_args
@@ -264,7 +265,13 @@ class LegacyJudgeFlowUntouchedTests(unittest.TestCase):
         # mle_trigger / re_trigger substring backdoors must not exist in any
         # production judge module (they live on only in test fixtures).
         pkg_dir = pathlib.Path(__file__).parent / "judge_utils"
-        for mod in ("compilation.py", "execution.py", "checkers.py", "backend.py", "languages.py"):
+        for mod in (
+            "compilation.py",
+            "execution.py",
+            "checkers.py",
+            "backend.py",
+            "languages.py",
+        ):
             source = (pkg_dir / mod).read_text(encoding="utf-8")
             for trigger in ("tle_trigger", "mle_trigger", "re_trigger"):
                 self.assertNotIn(trigger, source, f"{mod}: {trigger}")
@@ -327,7 +334,6 @@ class RuntimePercentileTest(TestCase):
         resp = client.get(f"/api/v1/submissions/submissions/{py.id}/")
         # The only python AC -> faster than nobody: 0.0.
         self.assertEqual(resp.json()["runtime_percentile"], 0.0)
-
 
     def test_percentile_null_with_no_ac_pool(self):
         # A wrong-answer run carries a measured time but joins no pool:

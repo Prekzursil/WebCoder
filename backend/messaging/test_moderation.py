@@ -28,14 +28,10 @@ class ModerationBase(TestCase):
         self.client = APIClient()
         self.alice = _user("md-alice")
         self.bob = _user("md-bob")
-        self.verifier = _user(
-            "md-verifier", role=User.Roles.PROBLEM_VERIFIER
-        )
+        self.verifier = _user("md-verifier", role=User.Roles.PROBLEM_VERIFIER)
         self.admin = _user("md-admin", role=User.Roles.ADMIN)
         self.client.force_authenticate(self.alice)
-        self.thread = self.client.post(
-            THREADS, {"user_id": self.bob.pk}
-        ).json()
+        self.thread = self.client.post(THREADS, {"user_id": self.bob.pk}).json()
         self.message = self.client.post(
             f"{THREADS}{self.thread['id']}/send/",
             {"body": "you are shit"},
@@ -94,9 +90,7 @@ class ReportQueueTest(ModerationBase):
         self._report(self.bob, self.message["id"])
         # Basic users: no queue.
         self.client.force_authenticate(self.alice)
-        self.assertEqual(
-            self.client.get(REPORT).status_code, status.HTTP_403_FORBIDDEN
-        )
+        self.assertEqual(self.client.get(REPORT).status_code, status.HTTP_403_FORBIDDEN)
         # Verifier: sees the open report with full message context.
         self.client.force_authenticate(self.verifier)
         listing = self.client.get(REPORT).json()
@@ -111,9 +105,7 @@ class ReportQueueTest(ModerationBase):
     def test_resolve_and_dismiss_contract(self):
         report = self._report(self.bob, self.message["id"]).json()
         self.client.force_authenticate(self.verifier)
-        bad = self.client.post(
-            RESOLVE.format(pk=report["id"]), {"action": "nonsense"}
-        )
+        bad = self.client.post(RESOLVE.format(pk=report["id"]), {"action": "nonsense"})
         self.assertEqual(bad.status_code, status.HTTP_400_BAD_REQUEST)
         resolved = self.client.post(
             RESOLVE.format(pk=report["id"]),
@@ -122,21 +114,15 @@ class ReportQueueTest(ModerationBase):
         self.assertEqual(resolved.status_code, status.HTTP_200_OK)
         self.assertEqual(resolved.json()["status"], "RESOLVED")
         self.assertEqual(resolved.json()["resolution_note"], "warned sender")
-        self.assertEqual(
-            resolved.json()["resolved_by"]["username"], "md-verifier"
-        )
+        self.assertEqual(resolved.json()["resolved_by"]["username"], "md-verifier")
         # Dismiss path on a fresh report.
-        other = self._report(
-            self.alice, self.message["id"], reason="OTHER"
-        ).json()
+        other = self._report(self.alice, self.message["id"], reason="OTHER").json()
         self.client.force_authenticate(self.verifier)
         dismissed = self.client.post(
             RESOLVE.format(pk=other["id"]), {"action": "dismissed"}
         )
         self.assertEqual(dismissed.json()["status"], "DISMISSED")
-        missing = self.client.post(
-            RESOLVE.format(pk=99999), {"action": "resolved"}
-        )
+        missing = self.client.post(RESOLVE.format(pk=99999), {"action": "resolved"})
         self.assertEqual(missing.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_reporter_string(self):
@@ -162,9 +148,7 @@ class FlaggedQueueTest(ModerationBase):
         listing = self.client.get(FLAGGED).json()
         # Both the profanity setUp message and the grooming probe queue.
         self.assertEqual(listing["count"], 2)
-        categories = {
-            tuple(row["flag_categories"]) for row in listing["results"]
-        }
+        categories = {tuple(row["flag_categories"]) for row in listing["results"]}
         self.assertIn(("grooming",), categories)
         self.assertIn(("profanity_en",), categories)
 
@@ -179,9 +163,7 @@ class AdminAuditTest(ModerationBase):
         # Transcript for a BASIC user is a 404 — same answer as a
         # nonexistent thread, leaking nothing about audit existence.
         self.assertEqual(
-            self.client.get(
-                TRANSCRIPT.format(pk=self.thread["id"])
-            ).status_code,
+            self.client.get(TRANSCRIPT.format(pk=self.thread["id"])).status_code,
             status.HTTP_404_NOT_FOUND,
         )
 
@@ -200,13 +182,9 @@ class AdminAuditTest(ModerationBase):
 
     def test_transcript_requires_explicit_report(self):
         self.client.force_authenticate(self.admin)
-        sealed = self.client.get(
-            TRANSCRIPT.format(pk=self.thread["id"])
-        )
+        sealed = self.client.get(TRANSCRIPT.format(pk=self.thread["id"]))
         self.assertEqual(sealed.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(
-            sealed.json()["detail"], "transcript_requires_report"
-        )
+        self.assertEqual(sealed.json()["detail"], "transcript_requires_report")
         self._report(self.bob, self.message["id"])
         self.client.force_authenticate(self.admin)
         opened = self.client.get(TRANSCRIPT.format(pk=self.thread["id"]))
@@ -240,17 +218,12 @@ class AdminAuditTest(ModerationBase):
         self.client.force_authenticate(teacher)
         listing = self.client.get(ADMIN_THREADS).json()
         self.assertEqual(listing["count"], 1)
-        usernames = {
-            p["username"]
-            for p in listing["results"][0]["participants"]
-        }
+        usernames = {p["username"] for p in listing["results"][0]["participants"]}
         self.assertEqual(usernames, {"md-alice", "md-bob"})
         # ...and can open that thread's transcript once reported.
         self._report(self.bob, self.message["id"])
         self.client.force_authenticate(teacher)
-        transcript = self.client.get(
-            TRANSCRIPT.format(pk=self.thread["id"])
-        )
+        transcript = self.client.get(TRANSCRIPT.format(pk=self.thread["id"]))
         self.assertEqual(transcript.status_code, status.HTTP_200_OK)
         # A thread outside the class stays invisible (404, not 403).
         other = Conversation.objects.exclude(pk=self.thread["id"]).first()

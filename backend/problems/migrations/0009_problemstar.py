@@ -6,26 +6,51 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('problems', '0008_problem_case_insensitive_problem_full_score_and_more'),
+        ("problems", "0008_problem_case_insensitive_problem_full_score_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ProblemStar',
+            name="ProblemStar",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('problem', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='stars', to='problems.problem')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='problem_stars', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "problem",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="stars",
+                        to="problems.problem",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="problem_stars",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'problem star',
-                'verbose_name_plural': 'problem stars',
-                'ordering': ['-created_at'],
-                'constraints': [models.UniqueConstraint(fields=('user', 'problem'), name='unique_user_problem_star')],
+                "verbose_name": "problem star",
+                "verbose_name_plural": "problem stars",
+                "ordering": ["-created_at"],
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=("user", "problem"), name="unique_user_problem_star"
+                    )
+                ],
             },
         ),
     ]

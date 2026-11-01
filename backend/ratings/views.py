@@ -54,9 +54,7 @@ class RatingLadderView(APIView):
         paginator = RatingsPagination()
         page = paginator.paginate_queryset(list(qs), request)
         results = []
-        for position, state in enumerate(
-            page, start=paginator.page.start_index()
-        ):
+        for position, state in enumerate(page, start=paginator.page.start_index()):
             payload = _state_payload(state)
             payload["rank"] = position
             results.append(payload)

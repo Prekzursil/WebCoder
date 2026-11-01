@@ -14,7 +14,11 @@ def is_teacher(user) -> bool:
     return bool(
         user
         and user.is_authenticated
-        and (user.role == User.Roles.TEACHER or user.role == User.Roles.ADMIN or user.is_superuser)
+        and (
+            user.role == User.Roles.TEACHER
+            or user.role == User.Roles.ADMIN
+            or user.is_superuser
+        )
     )
 
 

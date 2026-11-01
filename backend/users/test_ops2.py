@@ -2,14 +2,12 @@
 tokens — stdlib RFC 6238, enrollment lifecycle, enforcement gate, token
 minting/revocation/auth, and the authenticated public-API rate."""
 
-import time
 from unittest import mock
 
 from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 
 from public_api.views import PublicAPIThrottle
-from problems.models import Problem
 from users.models import User
 from users.totp import (
     DIGITS,
@@ -156,7 +154,10 @@ class TotpEnrollmentFlowTest(TestCase):
         # Both factors correct: disabled and secret cleared.
         response = self.client.post(
             "/api/v1/users/me/totp/disable/",
-            {"code": totp_code(self.user.two_factor_secret), "current_password": "pw-123456"},
+            {
+                "code": totp_code(self.user.two_factor_secret),
+                "current_password": "pw-123456",
+            },
             format="json",
         )
         self.assertEqual(response.status_code, 200)
@@ -327,9 +328,7 @@ class PersonalApiTokenTest(TestCase):
         self.client.post("/api/v1/users/me/tokens/", format="json")
         response = self.client.delete("/api/v1/users/me/tokens/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            self.client.get("/api/v1/users/me/tokens/").data["count"], 0
-        )
+        self.assertEqual(self.client.get("/api/v1/users/me/tokens/").data["count"], 0)
 
     def test_revoke_without_token_404(self):
         response = self.client.delete("/api/v1/users/me/tokens/")
@@ -339,9 +338,9 @@ class PersonalApiTokenTest(TestCase):
         # The other user mints a token; the caller's revoke must not kill it.
         other_client = APIClient()
         other_client.force_authenticate(self.other)
-        other_key = other_client.post(
-            "/api/v1/users/me/tokens/", format="json"
-        ).data["key"]
+        other_key = other_client.post("/api/v1/users/me/tokens/", format="json").data[
+            "key"
+        ]
 
         self.client.delete("/api/v1/users/me/tokens/")
 
@@ -433,14 +432,17 @@ class PublicApiTokenRateTest(TestCase):
         factory = APIRequestFactory()
         request = factory.get("/api/v1/public/problems/")
         request.user = None
-        with override_settings(
-            REST_FRAMEWORK={
-                "DEFAULT_THROTTLE_RATES": {
-                    "public_api": "2/min",
-                    "public_api_auth": "10000/min",
+        with (
+            override_settings(
+                REST_FRAMEWORK={
+                    "DEFAULT_THROTTLE_RATES": {
+                        "public_api": "2/min",
+                        "public_api_auth": "10000/min",
+                    }
                 }
-            }
-        ), mock.patch.object(PublicAPIThrottle, "cache", cache):
+            ),
+            mock.patch.object(PublicAPIThrottle, "cache", cache),
+        ):
             throttle = PublicAPIThrottle()
             self.assertTrue(throttle.allow_request(request, None))
             self.assertTrue(throttle.allow_request(request, None))

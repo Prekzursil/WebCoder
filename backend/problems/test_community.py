@@ -76,9 +76,7 @@ class CommunityEditorialTests(CommunityBase):
 
     def test_visibility_and_lang_filter(self):
         approved_ro = self.mk_editorial(lang="ro", title="Soluție ro")
-        self.mk_editorial(
-            status=CommunityEditorial.Status.PENDING, title="Pending one"
-        )
+        self.mk_editorial(status=CommunityEditorial.Status.PENDING, title="Pending one")
         self.mk_editorial(
             status=CommunityEditorial.Status.APPROVED,
             is_hidden=True,
@@ -108,7 +106,9 @@ class CommunityEditorialTests(CommunityBase):
             f"/api/v1/problems/{self.problem.id}/community-editorials/"
         )
         self.assertEqual(len(everything.data["results"]), 3)
-        self.assertTrue(approved_ro.title in [r["title"] for r in everything.data["results"]])
+        self.assertTrue(
+            approved_ro.title in [r["title"] for r in everything.data["results"]]
+        )
 
     def test_review_approve_and_reject_with_notification(self):
         pending = self.mk_editorial(
@@ -153,7 +153,9 @@ class CommunityEditorialTests(CommunityBase):
                 "data", flat=True
             )
         )
-        self.assertEqual(len([k for k in kinds if k.get("kind") == "editorial_review"]), 2)
+        self.assertEqual(
+            len([k for k in kinds if k.get("kind") == "editorial_review"]), 2
+        )
 
     def test_author_edit_resubmits_and_visibility_rules(self):
         row = self.mk_editorial(status=CommunityEditorial.Status.REJECTED, title="V1")
@@ -291,9 +293,7 @@ class ArticleTests(CommunityBase):
             statement_i18n={"en": "s", "ro": "s"},
             status=Problem.ProblemStatus.APPROVED,
         )
-        strip = self.client.get(
-            f"/api/v1/problems/{self.problem.id}/related-articles/"
-        )
+        strip = self.client.get(f"/api/v1/problems/{self.problem.id}/related-articles/")
         self.assertEqual(strip.status_code, 200)
         self.assertEqual(strip.data["count"], 1)
         self.assertEqual(
@@ -421,9 +421,7 @@ class CoverageClosureTests(CommunityBase):
         )
 
     def test_review_on_authorless_row_and_get_detail(self):
-        row = self.mk_editorial(
-            status=CommunityEditorial.Status.PENDING, author=None
-        )
+        row = self.mk_editorial(status=CommunityEditorial.Status.PENDING, author=None)
         self.client.force_authenticate(self.verifier)
         reviewed = self.client.post(
             f"/api/v1/problems/community-editorials/{row.id}/review/",

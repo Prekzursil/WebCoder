@@ -50,7 +50,9 @@ class CommunityDepthBase(TestCase):
     def setUp(self):
         self.alice = User.objects.create_user(username="alice", password="pw")
         self.bob = User.objects.create_user(username="bob", password="pw")
-        self.kid = User.objects.create_user(username="kid", password="pw", is_minor=True)
+        self.kid = User.objects.create_user(
+            username="kid", password="pw", is_minor=True
+        )
         self.creator = User.objects.create_user(
             username="creator", password="pw", role=User.Roles.PROBLEM_CREATOR
         )
@@ -95,12 +97,16 @@ class SolutionsTests(CommunityDepthBase):
     def test_requires_own_ac(self):
         _ac(self.bob, self.problem)
         self.client.force_authenticate(self.alice)
-        denied = self.client.get(f"/api/v1/community/problems/{self.problem.id}/solutions/")
+        denied = self.client.get(
+            f"/api/v1/community/problems/{self.problem.id}/solutions/"
+        )
         self.assertEqual(denied.status_code, status.HTTP_403_FORBIDDEN)
         self.assertIn("Solve the problem first", denied.data["detail"])
 
         _ac(self.alice, self.problem)
-        allowed = self.client.get(f"/api/v1/community/problems/{self.problem.id}/solutions/")
+        allowed = self.client.get(
+            f"/api/v1/community/problems/{self.problem.id}/solutions/"
+        )
         self.assertEqual(allowed.status_code, 200)
         self.assertEqual(allowed.data["count"], 2)
         self.assertIn("license", allowed.data)
@@ -116,7 +122,9 @@ class SolutionsTests(CommunityDepthBase):
         self.problem.verifier = verifier
         self.problem.save()
         self.client.force_authenticate(verifier)
-        response = self.client.get(f"/api/v1/community/problems/{self.problem.id}/solutions/")
+        response = self.client.get(
+            f"/api/v1/community/problems/{self.problem.id}/solutions/"
+        )
         self.assertEqual(response.status_code, 200)
 
     def test_contest_fresh_problem_locked(self):
@@ -135,7 +143,9 @@ class SolutionsTests(CommunityDepthBase):
         )
         _ac(self.alice, self.problem)
         self.client.force_authenticate(self.alice)
-        locked = self.client.get(f"/api/v1/community/problems/{self.problem.id}/solutions/")
+        locked = self.client.get(
+            f"/api/v1/community/problems/{self.problem.id}/solutions/"
+        )
         self.assertEqual(locked.status_code, status.HTTP_403_FORBIDDEN)
         self.assertIn("contest", str(locked.data["detail"]))
 
@@ -262,7 +272,9 @@ class CoverageClosureTests(CommunityDepthBase):
     """Drive remaining branches to the 100% gate."""
 
     def test_apply_vote_rules_keeps_existing_reason(self):
-        thread = self.mk_thread(self.creator, post_kwargs={"is_hidden": True, "hidden_reason": "mod action"})
+        thread = self.mk_thread(
+            self.creator, post_kwargs={"is_hidden": True, "hidden_reason": "mod action"}
+        )
         post = thread.posts.first()
         from community_depth.services import apply_vote_rules
 

@@ -139,9 +139,7 @@ class StressTestView(APIView):
                         found=False,
                         detail={f"{key}_code": compiler_output[:2000]},
                     )
-                    return Response(
-                        record.detail, status=status.HTTP_400_BAD_REQUEST
-                    )
+                    return Response(record.detail, status=status.HTTP_400_BAD_REQUEST)
                 compiled[key] = (executable, data[lang_key])
 
             gen_exec, gen_lang = compiled["generator"]
@@ -297,9 +295,7 @@ class AssignmentSolutionsExportView(APIView):
                     ],
                 }
             )
-        response = Response(
-            {"count": submissions.count(), "csv": buffer.getvalue()}
-        )
+        response = Response({"count": submissions.count(), "csv": buffer.getvalue()})
         return response
 
 

@@ -33,9 +33,7 @@ class MessagingTestBase(TestCase):
 
     def _send(self, user, thread_pk, body, expect=status.HTTP_201_CREATED):
         self.client.force_authenticate(user)
-        resp = self.client.post(
-            f"{THREADS}{thread_pk}/send/", {"body": body}
-        )
+        resp = self.client.post(f"{THREADS}{thread_pk}/send/", {"body": body})
         assert expect == resp.status_code, (expect, resp.status_code, resp.content)
         return resp
 
@@ -124,18 +122,14 @@ class SendReceiveTest(MessagingTestBase):
             1,
         )
         notification = Notification.objects.get(recipient=self.bob)
-        self.assertEqual(
-            notification.data["conversation_id"], thread["id"]
-        )
+        self.assertEqual(notification.data["conversation_id"], thread["id"])
         self.assertEqual(notification.data["excerpt"], "salut bob!")
 
     def test_send_into_foreign_thread_404(self):
         carol = _user("carol")
         thread = self._start(self.bob, carol).json()
         self.client.force_authenticate(self.alice)
-        resp = self.client.post(
-            f"{THREADS}{thread['id']}/send/", {"body": "snoop"}
-        )
+        resp = self.client.post(f"{THREADS}{thread['id']}/send/", {"body": "snoop"})
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_send_empty_body_400(self):
@@ -147,17 +141,13 @@ class SendReceiveTest(MessagingTestBase):
     def test_send_over_length_body_400(self):
         thread = self._start(self.alice, self.bob).json()
         self.client.force_authenticate(self.alice)
-        resp = self.client.post(
-            f"{THREADS}{thread['id']}/send/", {"body": "x" * 4001}
-        )
+        resp = self.client.post(f"{THREADS}{thread['id']}/send/", {"body": "x" * 4001})
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_send_control_characters_400(self):
         thread = self._start(self.alice, self.bob).json()
         self.client.force_authenticate(self.alice)
-        resp = self.client.post(
-            f"{THREADS}{thread['id']}/send/", {"body": "a\x00b"}
-        )
+        resp = self.client.post(f"{THREADS}{thread['id']}/send/", {"body": "a\x00b"})
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         # Tabs and newlines are legitimate prose and pass.
         ok = self.client.post(
@@ -195,14 +185,10 @@ class ReadUnreadTest(MessagingTestBase):
         self.assertEqual(resp.json()["marked_read"], 2)
         # Idempotent: nothing left unread.
         self.assertEqual(
-            self.client.post(f"{THREADS}{thread['id']}/read/").json()[
-                "marked_read"
-            ],
+            self.client.post(f"{THREADS}{thread['id']}/read/").json()["marked_read"],
             0,
         )
-        unread = self.client.get(THREADS).json()["results"][0][
-            "unread_count"
-        ]
+        unread = self.client.get(THREADS).json()["results"][0]["unread_count"]
         self.assertEqual(unread, 0)
         # Message read_at set.
         message = Message.objects.filter(sender=self.alice).first()
@@ -255,9 +241,7 @@ class ModelUnitTest(MessagingTestBase):
         thread = self._start(self.alice, self.bob).json()
         self._send(self.alice, thread["id"], "hello")
         conversation = Conversation.objects.get(pk=thread["id"])
-        self.assertTrue(
-            str(conversation).startswith("Conversation(")
-        )
+        self.assertTrue(str(conversation).startswith("Conversation("))
         message = Message.objects.first()
         self.assertIn("Message(", str(message))
 
@@ -341,6 +325,4 @@ class SanitizerUnitTest(TestCase):
         from messaging.models import Block
 
         block = Block.objects.create(blocker=self.alice, blocked=self.bob)
-        self.assertEqual(
-            str(block), f"Block({self.alice.pk} -> {self.bob.pk})"
-        )
+        self.assertEqual(str(block), f"Block({self.alice.pk} -> {self.bob.pk})")

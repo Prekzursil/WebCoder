@@ -43,30 +43,22 @@ class FilterUnitTest(TestCase):
         self.assertEqual(scan_message(""), [])
 
     def test_english_profanity_flagged_not_blocked(self):
-        self.assertEqual(
-            scan_message("this is shit"), ["profanity_en"]
-        )
+        self.assertEqual(scan_message("this is shit"), ["profanity_en"])
         # Word boundaries: no Scunthorpe false positives.
         self.assertEqual(scan_message("we had a class about assessment"), [])
 
     def test_romanian_profanity_flagged_with_diacritics(self):
-        self.assertEqual(
-            scan_message("Du-te dracului, PULĂ!"), ["profanity_ro"]
-        )
+        self.assertEqual(scan_message("Du-te dracului, PULĂ!"), ["profanity_ro"])
 
     def test_grooming_age_probe(self):
-        self.assertEqual(
-            scan_message("hey, how old are you?"), ["grooming"]
-        )
+        self.assertEqual(scan_message("hey, how old are you?"), ["grooming"])
         self.assertEqual(scan_message("Câți ani ai?"), ["grooming"])
 
     def test_grooming_secrecy(self):
         self.assertEqual(
             scan_message("don't tell your parents about this"), ["grooming"]
         )
-        self.assertEqual(
-            scan_message("nu spune nimic părinților"), ["grooming"]
-        )
+        self.assertEqual(scan_message("nu spune nimic părinților"), ["grooming"])
 
     def test_grooming_nude_solicitation(self):
         self.assertEqual(scan_message("send me nudes"), ["grooming"])
@@ -77,9 +69,7 @@ class FilterUnitTest(TestCase):
             scan_message("hai să ne întâlnim față în față, doar noi"),
             ["grooming"],
         )
-        self.assertEqual(
-            scan_message("let's meet in person, just us"), ["grooming"]
-        )
+        self.assertEqual(scan_message("let's meet in person, just us"), ["grooming"])
 
     def test_multiple_categories_stack(self):
         self.assertEqual(
@@ -96,9 +86,7 @@ class FilterIntegrationTest(TestCase):
 
     def test_flagged_message_delivered_and_flag_state_hidden_from_users(self):
         self.client.force_authenticate(self.alice)
-        thread = self.client.post(
-            THREADS, {"user_id": self.bob.pk}
-        ).json()
+        thread = self.client.post(THREADS, {"user_id": self.bob.pk}).json()
         resp = self.client.post(
             f"{THREADS}{thread['id']}/send/",
             {"body": "don't tell your parents, how old are you?"},
@@ -120,9 +108,7 @@ class BlockTest(TestCase):
         self.alice = _user("bk-alice")
         self.bob = _user("bk-bob")
         self.client.force_authenticate(self.alice)
-        self.thread = self.client.post(
-            THREADS, {"user_id": self.bob.pk}
-        ).json()
+        self.thread = self.client.post(THREADS, {"user_id": self.bob.pk}).json()
 
     def test_block_crud(self):
         self.client.force_authenticate(self.alice)
@@ -184,9 +170,7 @@ class BlockTest(TestCase):
 
     def test_blocked_side_thread_hidden_everywhere(self):
         self.client.force_authenticate(self.alice)
-        self.client.post(
-            f"{THREADS}{self.thread['id']}/send/", {"body": "hello"}
-        )
+        self.client.post(f"{THREADS}{self.thread['id']}/send/", {"body": "hello"})
         self.client.post(BLOCKS, {"user_id": self.bob.pk})
         # List: hidden from Bob.
         self.client.force_authenticate(self.bob)
@@ -256,9 +240,7 @@ class MessagingThrottleTest(TestCase):
         self.bob = _user("th-bob")
         self.carol = _user("th-carol")
         self.client.force_authenticate(self.alice)
-        self.thread = self.client.post(
-            THREADS, {"user_id": self.bob.pk}
-        ).json()
+        self.thread = self.client.post(THREADS, {"user_id": self.bob.pk}).json()
 
     def test_third_send_in_a_minute_is_429(self):
         with _shrink_rates(message_send="2/min"):
@@ -289,12 +271,8 @@ class MessagingThrottleTest(TestCase):
         # send budget to 1/min must not break reading the thread.
         with _shrink_rates(message_send="1/min"):
             cache.clear()
-            self.client.post(
-                f"{THREADS}{self.thread['id']}/send/", {"body": "1"}
-            )
-            reading = self.client.get(
-                f"{THREADS}{self.thread['id']}/messages/"
-            )
+            self.client.post(f"{THREADS}{self.thread['id']}/send/", {"body": "1"})
+            reading = self.client.get(f"{THREADS}{self.thread['id']}/messages/")
             listing = self.client.get(THREADS)
         self.assertEqual(reading.status_code, status.HTTP_200_OK)
         self.assertEqual(listing.status_code, status.HTTP_200_OK)
@@ -312,9 +290,7 @@ class EdgePolicyTest(TestCase):
         minor = _user("ep-minor", is_minor=True)
         Follow.objects.create(follower=minor, target=self.alice)
         self.client.force_authenticate(self.alice)
-        thread = self.client.post(
-            THREADS, {"user_id": minor.pk}
-        ).json()
+        thread = self.client.post(THREADS, {"user_id": minor.pk}).json()
         # The minor unfollows; alice's next send hits the minor policy.
         Follow.objects.all().delete()
         resp = self.client.post(

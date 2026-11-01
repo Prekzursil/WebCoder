@@ -9,7 +9,7 @@ in the gold/silver/bronze percentage bands (HackerRank's fixed model).
 import math
 
 from .formats import rank_contest
-from .models import ContestAward, ContestParticipation, ContestScore
+from .models import ContestAward, ContestScore
 
 #: Fixed award percentages of the official field (HackerRank's published
 #: top-25% split: 4% gold, 8% silver, 13% bronze).
@@ -27,14 +27,11 @@ def build_ranking_input(contest, *, virtual: bool, frozen: bool = False):
     aggregate columns (the public board during a freeze, CON-3). Shared by
     the standings view and the award pass (which always reads live).
     """
-    score_rows = (
-        ContestScore.objects.filter(
-            participation__contest=contest,
-            participation__is_disqualified=False,
-            participation__is_virtual=virtual,
-        )
-        .select_related("participation__user", "contest_problem")
-    )
+    score_rows = ContestScore.objects.filter(
+        participation__contest=contest,
+        participation__is_disqualified=False,
+        participation__is_virtual=virtual,
+    ).select_related("participation__user", "contest_problem")
     participations: dict[int, dict] = {}
     problem_meta = {
         cp.label: {"label": cp.label, "points": cp.points}
@@ -59,9 +56,7 @@ def build_ranking_input(contest, *, virtual: bool, frozen: bool = False):
                 "wrong": (
                     row.wrong_before_ac_frozen if frozen else row.wrong_before_ac
                 ),
-                "first_ac_at": (
-                    row.first_ac_at_frozen if frozen else row.first_ac_at
-                ),
+                "first_ac_at": (row.first_ac_at_frozen if frozen else row.first_ac_at),
                 "last_improvement": (
                     row.last_improvement_frozen if frozen else row.last_improvement
                 ),
@@ -90,7 +85,10 @@ def official_ranking(contest):
     """Ordered official standings (best first) as [(user_id, rank)]."""
     entries = build_ranking_input(contest, virtual=False)
     standings = rank_contest(contest, entries)
-    return [(standing.user_id, position) for position, standing in enumerate(standings, start=1)]
+    return [
+        (standing.user_id, position)
+        for position, standing in enumerate(standings, start=1)
+    ]
 
 
 def medal_for_rank(rank: int, field_size: int) -> str | None:
@@ -129,9 +127,7 @@ def compute_contest_awards(contest) -> int:
         medal = medal_for_rank(rank, field_size)
         if medal is not None:
             awards.append(
-                ContestAward(
-                    contest=contest, user_id=user_id, medal=medal, rank=rank
-                )
+                ContestAward(contest=contest, user_id=user_id, medal=medal, rank=rank)
             )
     ContestAward.objects.bulk_create(awards)
     return len(awards)
@@ -158,8 +154,7 @@ def registration_rating_error(contest, user) -> str | None:
     if rating is None:
         if lo is not None:
             return (
-                "This division requires a contest rating — enter an open "
-                "contest first."
+                "This division requires a contest rating — enter an open contest first."
             )
         return None
     if lo is not None and rating < lo:
@@ -167,4 +162,3 @@ def registration_rating_error(contest, user) -> str | None:
     if hi is not None and rating > hi:
         return f"This division is for ratings up to {hi}."
     return None
-

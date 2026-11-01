@@ -12,8 +12,16 @@ class PostInline(admin.TabularInline):
 
 @admin.register(Thread)
 class ThreadAdmin(admin.ModelAdmin):
-    list_display = ("title", "author", "problem", "is_pinned", "is_locked",
-                    "is_hidden", "post_count", "last_activity")
+    list_display = (
+        "title",
+        "author",
+        "problem",
+        "is_pinned",
+        "is_locked",
+        "is_hidden",
+        "post_count",
+        "last_activity",
+    )
     list_filter = ("is_pinned", "is_locked", "is_hidden")
     search_fields = ("title", "author__username")
     inlines = [PostInline]
@@ -21,8 +29,14 @@ class ThreadAdmin(admin.ModelAdmin):
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ("thread", "author", "is_hidden", "is_edited", "upvotes",
-                    "created_at")
+    list_display = (
+        "thread",
+        "author",
+        "is_hidden",
+        "is_edited",
+        "upvotes",
+        "created_at",
+    )
     list_filter = ("is_hidden", "is_edited")
     search_fields = ("author__username", "content")
 
@@ -35,7 +49,6 @@ class PostVoteAdmin(admin.ModelAdmin):
 
 @admin.register(Report)
 class ReportAdmin(admin.ModelAdmin):
-    list_display = ("post", "reporter", "reason", "status", "resolved_by",
-                    "created_at")
+    list_display = ("post", "reporter", "reason", "status", "resolved_by", "created_at")
     list_filter = ("reason", "status")
     search_fields = ("reporter__username", "details")

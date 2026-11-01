@@ -160,7 +160,9 @@ class Contest(models.Model):
 
     def __str__(self):
         if isinstance(self.title_i18n, dict):
-            return self.title_i18n.get("en", self.title_i18n.get("ro", f"Contest {self.id}"))
+            return self.title_i18n.get(
+                "en", self.title_i18n.get("ro", f"Contest {self.id}")
+            )
         return f"Contest {self.id}"
 
     @property
@@ -220,7 +222,9 @@ class ContestProblem(models.Model):
         verbose_name_plural = _("contest problems")
         ordering = ["contest", "order", "id"]
         constraints = [
-            models.UniqueConstraint(fields=["contest", "problem"], name="unique_contest_problem")
+            models.UniqueConstraint(
+                fields=["contest", "problem"], name="unique_contest_problem"
+            )
         ]
 
     def save(self, *args, **kwargs):
@@ -295,7 +299,8 @@ class ContestParticipation(models.Model):
             return self.virtual_start + timedelta(minutes=contest.duration)
         if contest.is_window and self.virtual_start:
             return min(
-                self.virtual_start + timedelta(minutes=contest.per_user_duration_minutes),
+                self.virtual_start
+                + timedelta(minutes=contest.per_user_duration_minutes),
                 contest.end_at,
             )
         return contest.end_at
@@ -320,9 +325,10 @@ class ContestParticipation(models.Model):
         # No covering window: prefer the virtual replay (post-contest the
         # caller is asking about their replay clock), else the official row
         # so the caller can surface its "window not open" error.
-        return candidates.filter(is_virtual=True).first() or candidates.filter(
-            is_virtual=False
-        ).first()
+        return (
+            candidates.filter(is_virtual=True).first()
+            or candidates.filter(is_virtual=False).first()
+        )
 
 
 class ContestScore(models.Model):
@@ -348,14 +354,18 @@ class ContestScore(models.Model):
     best_score = models.FloatField(_("best score (live)"), default=0)
     best_score_frozen = models.FloatField(_("best score (frozen view)"), default=0)
     attempts = models.PositiveIntegerField(_("attempts (live)"), default=0)
-    attempts_frozen = models.PositiveIntegerField(_("attempts (frozen view)"), default=0)
+    attempts_frozen = models.PositiveIntegerField(
+        _("attempts (frozen view)"), default=0
+    )
     # Wrong (non-CE) submissions that scored nothing before the first full
     # solve — the ICPC/AtCoder penalty input. Only meaningful on solved rows.
     wrong_before_ac = models.PositiveIntegerField(default=0)
     wrong_before_ac_frozen = models.PositiveIntegerField(default=0)
     first_ac_at = models.DateTimeField(_("first full-solve at"), null=True, blank=True)
     first_ac_at_frozen = models.DateTimeField(null=True, blank=True)
-    last_improvement = models.DateTimeField(_("last score improvement"), null=True, blank=True)
+    last_improvement = models.DateTimeField(
+        _("last score improvement"), null=True, blank=True
+    )
     last_improvement_frozen = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 

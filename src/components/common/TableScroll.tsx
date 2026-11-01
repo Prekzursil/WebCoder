@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 // Shared horizontal-scroll wrapper for wide tables [SPEC-GAPS A1]: the list
 // tables previously sat inside overflow:hidden containers that silently

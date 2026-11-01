@@ -63,7 +63,9 @@ class TestReadyz:
 
     def test_database_down_returns_503(self, client):
         with mock.patch.object(
-            observability, "_check_database", return_value=(False, "OperationalError: x")
+            observability,
+            "_check_database",
+            return_value=(False, "OperationalError: x"),
         ):
             response = client.get("/readyz")
         assert response.status_code == 503
@@ -75,7 +77,9 @@ class TestReadyz:
         # The raw except inside _check_database (mock at the cursor layer so
         # the real branch code executes).
         with mock.patch.object(
-            observability.connection, "ensure_connection", side_effect=RuntimeError("db gone")
+            observability.connection,
+            "ensure_connection",
+            side_effect=RuntimeError("db gone"),
         ):
             ok, detail = observability._check_database()
         assert ok is False
@@ -91,7 +95,9 @@ class TestReadyz:
 
     def test_cache_exception_returns_503(self, client):
         with mock.patch.object(
-            observability, "_check_cache", return_value=(False, "InvalidCacheBackend: x")
+            observability,
+            "_check_cache",
+            return_value=(False, "InvalidCacheBackend: x"),
         ):
             response = client.get("/readyz")
         assert response.status_code == 503
@@ -103,7 +109,10 @@ class TestReadyz:
         with mock.patch("django.core.cache.cache.get", return_value=None):
             response = client.get("/readyz")
         assert response.status_code == 503
-        assert response.json()["components"]["cache"]["detail"] == "cache round-trip mismatch"
+        assert (
+            response.json()["components"]["cache"]["detail"]
+            == "cache round-trip mismatch"
+        )
 
     @override_settings(CELERY_BROKER_URL="redis://127.0.0.1:6379/0")
     def test_redis_broker_ok(self, client):
@@ -144,7 +153,9 @@ class TestMetrics:
     def test_admin_gets_snapshot(self, admin_user, basic_user):
         # Seed a couple of rows so the aggregates have something to count.
         author = User.objects.create_user(
-            username="metrics-author", password="pw-12345678", role=User.Roles.PROBLEM_CREATOR
+            username="metrics-author",
+            password="pw-12345678",
+            role=User.Roles.PROBLEM_CREATOR,
         )
         problem = Problem.objects.create(
             title_i18n={"en": "Metrics problem", "ro": "Problemă metrici"},
@@ -167,7 +178,8 @@ class TestMetrics:
         assert body["users"] >= 3
         assert body["problems"]["APPROVED"] >= 1
         assert (
-            body["submissions"]["verdicts"].get(Submission.VerdictStatus.ACCEPTED, 0) >= 1
+            body["submissions"]["verdicts"].get(Submission.VerdictStatus.ACCEPTED, 0)
+            >= 1
         )
         assert set(body["submissions"]["queue_depth"]) == {
             Submission.VerdictStatus.PENDING,

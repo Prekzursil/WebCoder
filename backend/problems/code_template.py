@@ -64,9 +64,7 @@ EDIT_END = "WC_EDIT_END"
 #: Sentinels may sit inside any language's line-comment syntax: the line
 #: may carry a comment prefix (// C-family, # Python/Lua-adjacent,
 #: -- Lua/SQL/Haskell, ; Lisp/asm) before the token.
-_SENTINEL_RE = re.compile(
-    rf"^\s*(?://|#|--|;)?\s*({EDIT_START}|{EDIT_END})\s*$"
-)
+_SENTINEL_RE = re.compile(rf"^\s*(?://|#|--|;)?\s*({EDIT_START}|{EDIT_END})\s*$")
 
 MAX_TEMPLATE_CHARS = 100_000
 
@@ -151,8 +149,7 @@ def verify_locked_integrity(
         # Static message: str(exception) is a CodeQL taint source when it
         # reaches API responses.
         return False, (
-            "Broken problem template (unbalanced WC_EDIT_START/WC_EDIT_END "
-            "sentinels)."
+            "Broken problem template (unbalanced WC_EDIT_START/WC_EDIT_END sentinels)."
         )
 
     return _verify_ordered(segments, _normalize(submitted_code))
@@ -197,9 +194,7 @@ def _verify_ordered(segments: list[Segment], submission: str) -> tuple[bool, str
     return True, ""
 
 
-def _first_diff(
-    locked_text: str, submitted_code: str, template_start_line: int
-) -> str:
+def _first_diff(locked_text: str, submitted_code: str, template_start_line: int) -> str:
     """Human message for the first differing locked line."""
     locked_lines = [ln.rstrip() for ln in locked_text.replace("\r\n", "\n").split("\n")]
     submitted_lines = [

@@ -55,9 +55,7 @@ def ladder_state(points: int) -> dict:
         "points": points,
         "level": level,
         "next_level_points": next_at,
-        "progress": (
-            round((points - prev_at) / span, 4) if span > 0 else 1.0
-        ),
+        "progress": (round((points - prev_at) / span, 4) if span > 0 else 1.0),
     }
 
 
@@ -85,7 +83,6 @@ def _streaks(submission_dates):
     else:
         current_streak = 0
     return current_streak, max(max_streak, streak), total
-
 
 
 #: CNT-3 tag-coverage floor: a tag enters the per-tag skill profile and
@@ -130,9 +127,9 @@ def tag_skill_profile(user) -> dict:
         .values_list("problem_id", flat=True)
     )
     attempted_ids = set(
-        Submission.objects.filter(user=user).order_by().values_list(
-            "problem_id", flat=True
-        )
+        Submission.objects.filter(user=user)
+        .order_by()
+        .values_list("problem_id", flat=True)
     )
 
     # Catalog coverage per tag over APPROVED problems (the practice pool).
@@ -196,7 +193,11 @@ def tag_skill_profile(user) -> dict:
     # practice_next: unsolved covered-tag problems, weakest tag first
     # (fewest solved relative to catalog), easiest difficulty first.
     weak_tag_order = sorted(
-        (tid for tid in tag_catalog_count if tag_catalog_count[tid] >= TAG_COVERAGE_FLOOR),
+        (
+            tid
+            for tid in tag_catalog_count
+            if tag_catalog_count[tid] >= TAG_COVERAGE_FLOOR
+        ),
         key=lambda tid: (
             tag_solved.get(tid, 0) / max(tag_catalog_count[tid], 1),
             tag_names.get(tid, ""),
@@ -223,9 +224,7 @@ def tag_skill_profile(user) -> dict:
                 default=len(weak_rank),
             ),
             _DIFFICULTY_ORDER.index(
-                difficulty_by_problem.get(
-                    pid, Problem.DifficultyLevel.EASY
-                )
+                difficulty_by_problem.get(pid, Problem.DifficultyLevel.EASY)
             ),
             pid,
         )
@@ -269,9 +268,7 @@ def user_statistics(user) -> dict:
     for level_name in ("VERY_EASY", "EASY", "MEDIUM", "HARD"):
         per_difficulty[level_name] = {
             "solved": sum(
-                1
-                for row in solved_rows
-                if row["problem__difficulty"] == level_name
+                1 for row in solved_rows if row["problem__difficulty"] == level_name
             ),
             "attempted": subs.filter(problem__difficulty=level_name)
             .values("problem_id")
@@ -285,9 +282,7 @@ def user_statistics(user) -> dict:
     }
 
     total_submissions = subs.count()
-    acceptance_rate = (
-        round(solved / attempted, 4) if attempted else None
-    )
+    acceptance_rate = round(solved / attempted, 4) if attempted else None
 
     heatmap_from = timezone.now().date() - timedelta(days=90)
     active_dates = sorted(

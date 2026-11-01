@@ -16,6 +16,7 @@ class UserAdmin(BaseUserAdmin):
 # Register the new User admin.
 admin.site.register(User, UserAdmin)
 
+
 # ANA-1 (Wave D): owner-analytics snapshots — read/inspect in admin.
 @admin.register(OwnerWeeklySnapshot)
 class OwnerWeeklySnapshotAdmin(admin.ModelAdmin):

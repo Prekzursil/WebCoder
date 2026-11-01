@@ -122,9 +122,7 @@ class JudgeSubmissionTaskTest(TestCase):
                 f"{TASKS}.run_code_in_sandbox",
                 return_value=(Submission.VerdictStatus.ACCEPTED, 5, 100, "out", ""),
             ),
-            mock.patch(
-                f"{TASKS}.compare_outputs_detailed", return_value=(True, None)
-            ),
+            mock.patch(f"{TASKS}.compare_outputs_detailed", return_value=(True, None)),
         ):
             _call(sub.id)
         sub.refresh_from_db()
@@ -146,9 +144,7 @@ class JudgeSubmissionTaskTest(TestCase):
                 f"{TASKS}.run_code_in_sandbox",
                 return_value=(Submission.VerdictStatus.ACCEPTED, 5, 100, "out", ""),
             ),
-            mock.patch(
-                f"{TASKS}.compare_outputs_detailed", return_value=(True, None)
-            ),
+            mock.patch(f"{TASKS}.compare_outputs_detailed", return_value=(True, None)),
         ):
             _call(sub.id)
         install_mock.assert_not_called()
@@ -197,9 +193,7 @@ class JudgeSubmissionTaskTest(TestCase):
                 f"{TASKS}.run_code_in_sandbox",
                 return_value=(Submission.VerdictStatus.ACCEPTED, 5, 100, "out", ""),
             ),
-            mock.patch(
-                f"{TASKS}.compare_outputs_detailed", return_value=(True, None)
-            ),
+            mock.patch(f"{TASKS}.compare_outputs_detailed", return_value=(True, None)),
         ):
             _call(sub.id)
         sub.refresh_from_db()
@@ -216,9 +210,7 @@ class JudgeSubmissionTaskTest(TestCase):
                 f"{TASKS}.run_code_in_sandbox",
                 return_value=(Submission.VerdictStatus.ACCEPTED, 5, 100, "out", ""),
             ),
-            mock.patch(
-                f"{TASKS}.compare_outputs_detailed", return_value=(True, None)
-            ),
+            mock.patch(f"{TASKS}.compare_outputs_detailed", return_value=(True, None)),
         ):
             msg = _call(sub.id)
         sub.refresh_from_db()
@@ -427,9 +419,7 @@ class JudgeSubmissionTaskTest(TestCase):
                 f"{TASKS}.run_code_in_sandbox",
                 return_value=(Submission.VerdictStatus.ACCEPTED, 5, 100, "out", ""),
             ),
-            mock.patch(
-                f"{TASKS}.compare_outputs_detailed", return_value=(True, None)
-            ),
+            mock.patch(f"{TASKS}.compare_outputs_detailed", return_value=(True, None)),
         ):
             _call(sub.id)
         sub.refresh_from_db()
@@ -478,10 +468,13 @@ class ContestCompileErrorScheduleTest(TestCase):
             language="cpp17",
             code="not compiling",
         )
-        with mock.patch(
-            f"{TASKS}.compile_code_in_sandbox",
-            return_value=(False, "syntax error", None),
-        ), mock.patch(f"{TASKS}.record_verdict_task") as record_mock:
+        with (
+            mock.patch(
+                f"{TASKS}.compile_code_in_sandbox",
+                return_value=(False, "syntax error", None),
+            ),
+            mock.patch(f"{TASKS}.record_verdict_task") as record_mock,
+        ):
             with self.captureOnCommitCallbacks(execute=True):
                 msg = _call(sub.id)
         self.assertIn("Compile Error", msg)

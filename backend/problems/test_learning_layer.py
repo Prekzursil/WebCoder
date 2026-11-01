@@ -4,7 +4,6 @@ statistics (UXP-7/X9 core) and the satisfaction vote.
 """
 
 import pytest
-from django.urls import reverse
 from rest_framework.test import APIClient
 
 from problems.models import Problem, ProblemEditorial, ProblemRating
@@ -271,7 +270,9 @@ class TestProblemRating:
         problem = make_problem()
         client = APIClient()
         response = client.post(
-            f"/api/v1/problems/problems/{problem.id}/rate/", {"rating": 3}, format="json"
+            f"/api/v1/problems/problems/{problem.id}/rate/",
+            {"rating": 3},
+            format="json",
         )
         assert response.status_code in (401, 403)
 
@@ -281,7 +282,9 @@ class TestProblemRating:
         client = APIClient()
         client.force_authenticate(user=user)
         response = client.post(
-            f"/api/v1/problems/problems/{problem.id}/rate/", {"rating": 4}, format="json"
+            f"/api/v1/problems/problems/{problem.id}/rate/",
+            {"rating": 4},
+            format="json",
         )
         assert response.status_code == 400
 
@@ -291,7 +294,9 @@ class TestProblemRating:
         client = APIClient()
         client.force_authenticate(user=user)
         response = client.post(
-            f"/api/v1/problems/problems/{problem.id}/rate/", {"rating": "3"}, format="json"
+            f"/api/v1/problems/problems/{problem.id}/rate/",
+            {"rating": "3"},
+            format="json",
         )
         assert response.status_code == 200
         assert response.data["your_rating"] == 3
@@ -304,18 +309,24 @@ class TestProblemRating:
 
         client.force_authenticate(user=first)
         response = client.post(
-            f"/api/v1/problems/problems/{problem.id}/rate/", {"rating": 1}, format="json"
+            f"/api/v1/problems/problems/{problem.id}/rate/",
+            {"rating": 1},
+            format="json",
         )
         assert response.data == {"rating_avg": 1.0, "rating_count": 1, "your_rating": 1}
 
         client.force_authenticate(user=second)
         client.post(
-            f"/api/v1/problems/problems/{problem.id}/rate/", {"rating": 3}, format="json"
+            f"/api/v1/problems/problems/{problem.id}/rate/",
+            {"rating": 3},
+            format="json",
         )
         # first re-votes 2: one row per user, aggregate reflects the update
         client.force_authenticate(user=first)
         response = client.post(
-            f"/api/v1/problems/problems/{problem.id}/rate/", {"rating": 2}, format="json"
+            f"/api/v1/problems/problems/{problem.id}/rate/",
+            {"rating": 2},
+            format="json",
         )
         assert response.data["rating_count"] == 2
         assert response.data["rating_avg"] == 2.5

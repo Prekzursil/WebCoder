@@ -32,8 +32,6 @@ from .models import (
     Clarification,
     Contest,
     ContestParticipation,
-    ContestProblem,
-    ContestScore,
 )
 from .serializers import (
     ClarificationAnswerSerializer,
@@ -61,6 +59,7 @@ def _fetch_contest(pk):
     """Fetch by pk bypassing the list queryset — detail actions govern
     visibility with can_view_contest (PRIVATE id probing stays a 404)."""
     from contests.models import Contest as _C
+
     return _C.objects.filter(pk=pk).first()
 
 
@@ -73,9 +72,7 @@ def can_view_contest(user, contest) -> bool:
         return True
     if not (user and user.is_authenticated):
         return False
-    return ContestParticipation.objects.filter(
-        contest=contest, user=user
-    ).exists()
+    return ContestParticipation.objects.filter(contest=contest, user=user).exists()
 
 
 class CanCreateContest(permissions.BasePermission):
@@ -158,17 +155,17 @@ class ContestViewSet(viewsets.ModelViewSet):
             else:
                 qs = qs.filter(end_at__lte=now)
         user = self.request.user
-        if user and user.is_authenticated and (
-            user.role == User.Roles.ADMIN or user.is_superuser
+        if (
+            user
+            and user.is_authenticated
+            and (user.role == User.Roles.ADMIN or user.is_superuser)
         ):
             return qs.order_by("-start_at", "-id")  # staff see PRIVATE too
         visible = Contest.objects.filter(visibility=Contest.Visibility.PUBLIC)
         if user and user.is_authenticated:
             mine = Contest.objects.filter(created_by=user)
             visible = (
-                visible
-                | Contest.objects.filter(participations__user=user)
-                | mine
+                visible | Contest.objects.filter(participations__user=user) | mine
             ).distinct()
         # pk__in-subquery + aggregations drop the Meta ordering in some
         # combinations — pin it explicitly so pagination stays consistent.
@@ -193,9 +190,7 @@ class ContestViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         contest = _fetch_contest(self.kwargs.get("pk"))
         if contest is None or not can_view_contest(request.user, contest):
-            return Response(
-                {"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         serializer = self.get_serializer(contest)
         return Response(serializer.data)
 
@@ -230,11 +225,7 @@ class ContestViewSet(viewsets.ModelViewSet):
             ).exists()
             if not has_verified:
                 return Response(
-                    {
-                        "detail": (
-                            "Rated contests require a verified email address."
-                        )
-                    },
+                    {"detail": ("Rated contests require a verified email address.")},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         # CON-7 divisions: rating-band eligibility (organizers bypass so
@@ -244,9 +235,7 @@ class ContestViewSet(viewsets.ModelViewSet):
         if not can_manage_contest(request.user, contest):
             reason = registration_rating_error(contest, request.user)
             if reason:
-                return Response(
-                    {"detail": reason}, status=status.HTTP_403_FORBIDDEN
-                )
+                return Response({"detail": reason}, status=status.HTTP_403_FORBIDDEN)
         serializer = RegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         if contest.visibility == Contest.Visibility.PRIVATE:
@@ -280,14 +269,16 @@ class ContestViewSet(viewsets.ModelViewSet):
         now = timezone.now()
         if not (contest.start_at <= now < contest.end_at):
             return Response(
-                {"detail": "The contest window is not open."}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": "The contest window is not open."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
         participation = ContestParticipation.objects.filter(
             contest=contest, user=request.user
         ).first()
         if participation is None:
             return Response(
-                {"detail": "Register before starting."}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": "Register before starting."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
         if participation.virtual_start is not None:
             return Response(
@@ -342,7 +333,6 @@ class ContestViewSet(viewsets.ModelViewSet):
         contest = _fetch_contest(pk)
         if contest is None or not can_view_contest(request.user, contest):
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
-        now = timezone.now()
         live = can_manage_contest(request.user, contest)
         frozen = (not live) and contest.freeze_at is not None
         # CON-5: the official board never shows virtual replays; the
@@ -384,13 +374,16 @@ class ContestViewSet(viewsets.ModelViewSet):
             results.append(
                 {
                     "rank": position,
-                    "user": {"id": entry["user"].id, "username": entry["user"].username},
+                    "user": {
+                        "id": entry["user"].id,
+                        "username": entry["user"].username,
+                    },
                     "score": standing.total_score,
                     "solved": standing.solved,
                     "penalty_minutes": (
-                        None if standing.penalty_minutes == float("inf") else round(
-                            standing.penalty_minutes, 2
-                        )
+                        None
+                        if standing.penalty_minutes == float("inf")
+                        else round(standing.penalty_minutes, 2)
                     ),
                     "problems": sorted(entry["rows"], key=lambda r: r["label"]),
                 }
@@ -539,7 +532,6 @@ class ContestViewSet(viewsets.ModelViewSet):
             }
         )
 
-
     # ------------------------------------------------------------------
     # Clarifications (CON-4) + moderation basics (round-2 SAF-1)
     # ------------------------------------------------------------------
@@ -617,9 +609,11 @@ class ContestViewSet(viewsets.ModelViewSet):
     )
     def clarification_answer(self, request, clarification_id=None):
         """Jury answers a clarification; broadcasts notify every participant."""
-        clarification = Clarification.objects.select_related("contest").filter(
-            pk=clarification_id
-        ).first()
+        clarification = (
+            Clarification.objects.select_related("contest")
+            .filter(pk=clarification_id)
+            .first()
+        )
         if clarification is None:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         if not can_manage_contest(request.user, clarification.contest):
@@ -628,9 +622,10 @@ class ContestViewSet(viewsets.ModelViewSet):
             )
         serializer = ClarificationAnswerSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        answer = serializer.validated_data.get("answer") or serializer.validated_data[
-            "canned"
-        ]
+        answer = (
+            serializer.validated_data.get("answer")
+            or serializer.validated_data["canned"]
+        )
         broadcast = serializer.validated_data.get("broadcast", False)
         clarification.answer = answer
         clarification.is_broadcast = broadcast
@@ -676,7 +671,5 @@ class ContestViewSet(viewsets.ModelViewSet):
         clarification.is_hidden = True
         clarification.hidden_by = request.user
         clarification.hidden_reason = (request.data.get("reason") or "").strip()
-        clarification.save(
-            update_fields=["is_hidden", "hidden_by", "hidden_reason"]
-        )
+        clarification.save(update_fields=["is_hidden", "hidden_by", "hidden_reason"])
         return Response({"detail": "Clarification hidden.", "id": clarification.id})
