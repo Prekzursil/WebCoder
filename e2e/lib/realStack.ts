@@ -14,7 +14,22 @@
 // seeds mid-run breaks whichever spec file runs next (found the hard way —
 // a per-file afterAll cleanup raced the next file's memoized ids).
 
-export const REAL_API_BASE = process.env.E2E_API_BASE || "";
+/**
+ * Validated http(s) origin for the real-stack e2e target. The raw env
+ * value is parsed through the URL constructor and collapsed to its
+ * origin; an unset or malformed value stays empty (real-stack specs
+ * then skip, which is the existing behavior).
+ */
+export const REAL_API_BASE = (() => {
+  const raw = process.env.E2E_API_BASE || "";
+  if (!raw) return "";
+  try {
+    const parsed = new URL(raw);
+    return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed.origin : "";
+  } catch {
+    return "";
+  }
+})();
 export const isRealStack = REAL_API_BASE.length > 0;
 
 export const E2E_ADMIN_USER = process.env.E2E_ADMIN_USER || "admin";
@@ -41,8 +56,8 @@ async function api(
   const { token, ...rest } = init;
   // e2e-only helper; `path` comes from spec code, never user input
   // (triage parity with real-stack.spec.ts #116/#117).
-  // codeql[js/request-forgery]
-  const res = await fetch(`${REAL_API_BASE}/api/v1${path}`, {
+  const url = new URL(`/api/v1${path}`, REAL_API_BASE);
+  const res = await fetch(url, {
     ...rest,
     headers: {
       "Content-Type": "application/json",
