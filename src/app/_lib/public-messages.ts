@@ -105,6 +105,15 @@ export const PUBLIC_KEYS: string[] = [
   'problem_restriction_banned',
   'problem_id_label',
   'problem_not_found',
+  // i18n wave, owner rules (c)+(d): EN-fallback banner, help-translate
+  // affordance, per-language availability chips and "translated by" credit.
+  'problem_not_in_your_language',
+  'problem_help_translate',
+  'problem_available_in',
+  'problem_language_badge',
+  'problem_translated_by',
+  // The propose-form server shell's own title (metadata + breadcrumb).
+  'translate_page_title',
   'problem_statement_header',
   'sample_test_cases_header',
   'sample_input_label',
