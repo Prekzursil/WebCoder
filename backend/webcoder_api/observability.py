@@ -24,7 +24,6 @@ Wired into compose healthchecks and the RUNBOOK load/uptime story.
 
 from __future__ import annotations
 
-import logging
 from datetime import timedelta
 
 from django.conf import settings

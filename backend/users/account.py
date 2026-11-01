@@ -31,9 +31,7 @@ def build_account_export(user) -> dict:
     from submissions.models import Submission, SubmissionTestResult
 
     submissions = []
-    for submission in Submission.objects.filter(user=user).select_related(
-        "problem"
-    ):
+    for submission in Submission.objects.filter(user=user).select_related("problem"):
         submissions.append(
             {
                 "id": submission.id,
@@ -69,12 +67,12 @@ def build_account_export(user) -> dict:
         },
         "submissions": submissions,
         "forum_threads": list(
-            Thread.objects.filter(author=user).values(
-                "id", "title", "created_at"
-            )
+            Thread.objects.filter(author=user).values("id", "title", "created_at")
         ),
         "forum_posts": list(
-            Post.objects.filter(author=user).values("id", "thread_id", "content", "created_at")
+            Post.objects.filter(author=user).values(
+                "id", "thread_id", "content", "created_at"
+            )
         ),
         "forum_votes": list(
             PostVote.objects.filter(user=user).values("id", "post_id", "value")
@@ -102,7 +100,6 @@ def export_as_attachment(user) -> tuple[str, str]:
 
 def soft_delete_account(user) -> None:
     """Deactivate + anonymize PII; schedule the side-content purge."""
-    from .models import User
 
     now = timezone.now()
     user.is_active = False
@@ -111,7 +108,13 @@ def soft_delete_account(user) -> None:
     user.set_unusable_password()
     user.scheduled_purge_at = now + timezone.timedelta(days=PURGE_DELAY_DAYS)
     user.save(
-        update_fields=["is_active", "email", "username", "password", "scheduled_purge_at"]
+        update_fields=[
+            "is_active",
+            "email",
+            "username",
+            "password",
+            "scheduled_purge_at",
+        ]
     )
 
 
@@ -128,15 +131,15 @@ def purge_deleted_users() -> int:
 
     from .models import User
 
-    due = User.objects.filter(
-        is_active=False, scheduled_purge_at__lte=timezone.now()
-    )
+    due = User.objects.filter(is_active=False, scheduled_purge_at__lte=timezone.now())
     purged = 0
     for user in due:
         ScratchRun.objects.filter(user=user).delete()
         ProblemRating.objects.filter(user=user).delete()
         PostVote.objects.filter(user=user).delete()
-        Post.objects.filter(author=user).update(is_hidden=True, hidden_reason="author account deleted")
+        Post.objects.filter(author=user).update(
+            is_hidden=True, hidden_reason="author account deleted"
+        )
         Thread.objects.filter(author=user).update(is_hidden=True)
         user.scheduled_purge_at = None
         user.save(update_fields=["scheduled_purge_at"])

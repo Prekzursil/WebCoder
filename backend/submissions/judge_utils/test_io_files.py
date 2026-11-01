@@ -60,9 +60,7 @@ class FilesModeReadbackTests(unittest.TestCase):
             # stdin must NOT receive the testcase input in FILES mode.
             assert kwargs.get("input") == ""
             (self.submission_dir / "date.out").write_text("file-answer\n")
-            return _FakeCompleted(
-                stdout="", stderr=_resource_line(), returncode=0
-            )
+            return _FakeCompleted(stdout="", stderr=_resource_line(), returncode=0)
 
         with mock.patch("subprocess.run", side_effect=fake_runner):
             verdict, _t, _m, output, _err = self._run()
@@ -90,9 +88,7 @@ class FilesModeReadbackTests(unittest.TestCase):
 
         with mock.patch("subprocess.run", side_effect=fake_runner):
             verdict, _t, _m, _output, error = self._run()
-        self.assertEqual(
-            verdict, Submission.VerdictStatus.OUTPUT_LIMIT_EXCEEDED
-        )
+        self.assertEqual(verdict, Submission.VerdictStatus.OUTPUT_LIMIT_EXCEEDED)
         self.assertIn("Output limit exceeded", error)
 
     def test_custom_output_filename_is_respected(self):
@@ -110,17 +106,13 @@ class CompileBudgetTests(unittest.TestCase):
     """Per-language compile deadlines (LanguageSpec.compile_timeout_s)."""
 
     def test_default_budget_is_30s(self):
-        with mock.patch(
-            "subprocess.run", return_value=_FakeCompleted()
-        ) as run_mock:
+        with mock.patch("subprocess.run", return_value=_FakeCompleted()) as run_mock:
             run_compile_step(["true"], pathlib.Path("."), "gcc:latest")
         argv = run_mock.call_args.args[0]
         self.assertIn("30s", argv)
 
     def test_slow_toolchain_budget_flows_into_timeout_argv(self):
-        with mock.patch(
-            "subprocess.run", return_value=_FakeCompleted()
-        ) as run_mock:
+        with mock.patch("subprocess.run", return_value=_FakeCompleted()) as run_mock:
             run_compile_step(
                 ["kotlinc", "x.kt"],
                 pathlib.Path("."),

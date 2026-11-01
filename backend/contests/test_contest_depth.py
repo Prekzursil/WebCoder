@@ -81,9 +81,7 @@ class ContestDepthBase(TestCase):
     def rate(self, user, rating):
         # contests_count=20 defeats RAT-2 newcomer suppression so the tests
         # exercise the CON-7 band math, not the display curve.
-        UserRating.objects.create(
-            user=user, rating=rating, rd=60, contests_count=20
-        )
+        UserRating.objects.create(user=user, rating=rating, rd=60, contests_count=20)
 
 
 class VirtualParticipationTests(ContestDepthBase):
@@ -92,31 +90,40 @@ class VirtualParticipationTests(ContestDepthBase):
     def test_virtual_start_requires_finished(self):
         contest = self.mk_contest(end_at=self.now + timedelta(hours=1))
         self.client.force_authenticate(self.alice)
-        response = self.client.post(f"/api/v1/contests/{contest.id}/virtual-start/", format="json")
+        response = self.client.post(
+            f"/api/v1/contests/{contest.id}/virtual-start/", format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("after the contest ends", response.data["detail"])
 
     def test_virtual_start_rejects_windowed(self):
         contest = self.mk_contest(
-            is_window=True, per_user_duration_minutes=30,
+            is_window=True,
+            per_user_duration_minutes=30,
             end_at=self.now - timedelta(minutes=1),
         )
         self.client.force_authenticate(self.alice)
-        response = self.client.post(f"/api/v1/contests/{contest.id}/virtual-start/", format="json")
+        response = self.client.post(
+            f"/api/v1/contests/{contest.id}/virtual-start/", format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("Windowed contests", response.data["detail"])
 
     def test_virtual_start_rejects_pretest(self):
         contest = self.mk_contest(pretest_mode=True)
         self.client.force_authenticate(self.alice)
-        response = self.client.post(f"/api/v1/contests/{contest.id}/virtual-start/", format="json")
+        response = self.client.post(
+            f"/api/v1/contests/{contest.id}/virtual-start/", format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("Pretest contests", response.data["detail"])
 
     def test_virtual_start_creates_and_resumes(self):
         contest = self.finished_contest()
         self.client.force_authenticate(self.alice)
-        response = self.client.post(f"/api/v1/contests/{contest.id}/virtual-start/", format="json")
+        response = self.client.post(
+            f"/api/v1/contests/{contest.id}/virtual-start/", format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(response.data["is_virtual"])
         self.assertEqual(
@@ -124,17 +131,24 @@ class VirtualParticipationTests(ContestDepthBase):
             response.data["virtual_start"] + timedelta(minutes=contest.duration),
         )
         # Idempotent resume.
-        response2 = self.client.post(f"/api/v1/contests/{contest.id}/virtual-start/", format="json")
+        response2 = self.client.post(
+            f"/api/v1/contests/{contest.id}/virtual-start/", format="json"
+        )
         self.assertEqual(response2.status_code, status.HTTP_200_OK)
 
     def test_official_and_virtual_participations_coexist(self):
         contest = self.finished_contest()
         ContestParticipation.objects.create(contest=contest, user=self.alice)
         self.client.force_authenticate(self.alice)
-        response = self.client.post(f"/api/v1/contests/{contest.id}/virtual-start/", format="json")
+        response = self.client.post(
+            f"/api/v1/contests/{contest.id}/virtual-start/", format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(
-            ContestParticipation.objects.filter(contest=contest, user=self.alice).count(), 2
+            ContestParticipation.objects.filter(
+                contest=contest, user=self.alice
+            ).count(),
+            2,
         )
 
     def test_virtual_submission_gating(self):
@@ -180,8 +194,8 @@ class VirtualParticipationTests(ContestDepthBase):
 
     def test_standings_sections_are_disjoint(self):
         contest = self.finished_contest()
-        official = ContestParticipation.objects.create(contest=contest, user=self.alice)
-        virtual = ContestParticipation.objects.create(
+        ContestParticipation.objects.create(contest=contest, user=self.alice)
+        ContestParticipation.objects.create(
             contest=contest,
             user=self.bob,
             is_virtual=True,
@@ -189,14 +203,24 @@ class VirtualParticipationTests(ContestDepthBase):
         )
         record_verdict(
             Submission.objects.create(
-                user=self.alice, problem=self.problem, contest=contest,
-                language="python3", code="pass", verdict="AC", score=100,
+                user=self.alice,
+                problem=self.problem,
+                contest=contest,
+                language="python3",
+                code="pass",
+                verdict="AC",
+                score=100,
             )
         )
         record_verdict(
             Submission.objects.create(
-                user=self.bob, problem=self.problem, contest=contest,
-                language="python3", code="pass", verdict="AC", score=50,
+                user=self.bob,
+                problem=self.problem,
+                contest=contest,
+                language="python3",
+                code="pass",
+                verdict="AC",
+                score=50,
             )
         )
         self.client.force_authenticate(self.alice)
@@ -273,7 +297,9 @@ class DivisionTests(ContestDepthBase):
         error = registration_rating_error(contest, self.alice)
         self.assertIn("requires a contest rating", error)
         self.client.force_authenticate(self.alice)
-        response = self.client.post(f"/api/v1/contests/{contest.id}/register/", format="json")
+        response = self.client.post(
+            f"/api/v1/contests/{contest.id}/register/", format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_rating_below_minimum_blocked(self):
@@ -307,13 +333,17 @@ class DivisionTests(ContestDepthBase):
         self.assertIsNotNone(registration_rating_error(contest, self.bob))
         # API: bob blocked, organizer allowed (view-level bypass), alice allowed.
         self.client.force_authenticate(self.bob)
-        blocked = self.client.post(f"/api/v1/contests/{contest.id}/register/", format="json")
+        blocked = self.client.post(
+            f"/api/v1/contests/{contest.id}/register/", format="json"
+        )
         self.assertEqual(blocked.status_code, status.HTTP_403_FORBIDDEN)
         self.client.force_authenticate(self.organizer)
         ok = self.client.post(f"/api/v1/contests/{contest.id}/register/", format="json")
         self.assertEqual(ok.status_code, status.HTTP_201_CREATED)
         self.client.force_authenticate(self.alice)
-        ok2 = self.client.post(f"/api/v1/contests/{contest.id}/register/", format="json")
+        ok2 = self.client.post(
+            f"/api/v1/contests/{contest.id}/register/", format="json"
+        )
         self.assertEqual(ok2.status_code, status.HTTP_201_CREATED)
 
 
@@ -374,7 +404,9 @@ class CommunityContestTests(ContestDepthBase):
         )
         self.assertEqual(public.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("PRIVATE", str(public.data["visibility"]))
-        rated = self.client.post("/api/v1/contests/", self.payload(is_rated=True), format="json")
+        rated = self.client.post(
+            "/api/v1/contests/", self.payload(is_rated=True), format="json"
+        )
         self.assertEqual(rated.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("cannot be rated", str(rated.data["is_rated"]))
 
@@ -503,9 +535,7 @@ class AwardTests(ContestDepthBase):
         first = compute_contest_awards(contest)
         second = compute_contest_awards(contest)
         self.assertEqual(first, second)
-        self.assertEqual(
-            ContestAward.objects.filter(contest=contest).count(), first
-        )
+        self.assertEqual(ContestAward.objects.filter(contest=contest).count(), first)
 
 
 class CoverageClosureTest(ContestDepthBase):

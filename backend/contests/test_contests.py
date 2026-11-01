@@ -23,6 +23,7 @@ from problems.models import TestCase as ProblemTestCase
 from submissions.models import Submission
 from users.models import User
 
+
 # The in-contest cooldown default (30s) would reject most of these tests'
 # follow-up submissions — collapse it everywhere except the dedicated
 # cooldown test.
@@ -70,7 +71,9 @@ class ContestBase(TestCase):
     def register(self, contest, user):
         return ContestParticipation.objects.create(contest=contest, user=user)
 
-    def mk_contest_submission(self, contest, user, problem, score, verdict="AC", at=None):
+    def mk_contest_submission(
+        self, contest, user, problem, score, verdict="AC", at=None
+    ):
         sub = Submission.objects.create(
             user=user,
             problem=problem,
@@ -109,7 +112,9 @@ class ContestModelTests(ContestBase):
             editorial_delay_minutes=30,
         )
         self.assertEqual(contest.duration, 120)
-        self.assertEqual(contest.upsolving_free_at(), contest.end_at + timedelta(minutes=30))
+        self.assertEqual(
+            contest.upsolving_free_at(), contest.end_at + timedelta(minutes=30)
+        )
 
     def test_str_and_title_fallback(self):
         contest = self.mk_contest()
@@ -188,14 +193,16 @@ class ContestAPITests(ContestBase):
             self.client.post("/api/v1/contests/", bad, format="json").status_code, 400
         )
         bad_freeze = dict(base, freeze_at=(self.now + timedelta(hours=3)).isoformat())
-        response = self.client.post(
-            "/api/v1/contests/", bad_freeze, format="json"
-        )
+        response = self.client.post("/api/v1/contests/", bad_freeze, format="json")
         self.assertEqual(response.status_code, 400)
         self.assertIn("freeze_at", response.data)
-        early_freeze = dict(base, freeze_at=(self.now - timedelta(minutes=1)).isoformat())
+        early_freeze = dict(
+            base, freeze_at=(self.now - timedelta(minutes=1)).isoformat()
+        )
         self.assertEqual(
-            self.client.post("/api/v1/contests/", early_freeze, format="json").status_code,
+            self.client.post(
+                "/api/v1/contests/", early_freeze, format="json"
+            ).status_code,
             400,
         )
         bad_window = dict(base, is_window=True, per_user_duration_minutes=999)
@@ -263,18 +270,26 @@ class ContestAPITests(ContestBase):
             end_at=self.now + timedelta(hours=3),
         )
         self.auth(self.alice)
-        response = self.client.post(f"/api/v1/contests/{upcoming.id}/register/", {}, format="json")
+        response = self.client.post(
+            f"/api/v1/contests/{upcoming.id}/register/", {}, format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         # Duplicate registration → 409.
-        response = self.client.post(f"/api/v1/contests/{upcoming.id}/register/", {}, format="json")
+        response = self.client.post(
+            f"/api/v1/contests/{upcoming.id}/register/", {}, format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
         # Registration closes for fixed-time contests once running.
         running = self.mk_contest()
         self.auth(self.bob)
-        response = self.client.post(f"/api/v1/contests/{running.id}/register/", {}, format="json")
+        response = self.client.post(
+            f"/api/v1/contests/{running.id}/register/", {}, format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         # Registering a bogus id → 404.
-        response = self.client.post("/api/v1/contests/424242/register/", {}, format="json")
+        response = self.client.post(
+            "/api/v1/contests/424242/register/", {}, format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_register_upcoming_and_finished(self):
@@ -400,12 +415,11 @@ class ContestAPITests(ContestBase):
         self.assertEqual(response.status_code, 404)
 
     def test_unfreeze_requires_organizer(self):
-        contest = self.mk_contest(
-            freeze_at=self.now + timedelta(minutes=10)
-        )
+        contest = self.mk_contest(freeze_at=self.now + timedelta(minutes=10))
         self.auth(self.alice)
         self.assertEqual(
-            self.client.post(f"/api/v1/contests/{contest.id}/unfreeze/").status_code, 403
+            self.client.post(f"/api/v1/contests/{contest.id}/unfreeze/").status_code,
+            403,
         )
         self.auth(self.organizer)
         response = self.client.post(f"/api/v1/contests/{contest.id}/unfreeze/")
@@ -494,9 +508,7 @@ class SubmissionGateTests(ContestBase):
         self.submit(contest=contest, expect=400)
 
     def test_windowed_requires_personal_start(self):
-        contest = self.mk_contest(
-            is_window=True, per_user_duration_minutes=60
-        )
+        contest = self.mk_contest(is_window=True, per_user_duration_minutes=60)
         self.register(contest, self.alice)
         self.submit(contest=contest, expect=400)
         part = ContestParticipation.objects.get(contest=contest, user=self.alice)
@@ -699,17 +711,13 @@ class ScoringMaterializationTests(ContestBase):
             language="python3",
             code="print(2)",
         )
-        with mock.patch(
-            "submissions.tasks.record_verdict_task"
-        ) as score_mock, mock.patch(
-            "submissions.tasks.update_user_entry_task"
-        ), mock.patch(
-            "submissions.tasks.compile_code_in_sandbox"
-        ) as compile_mock, mock.patch(
-            "submissions.tasks.run_code_in_sandbox"
-        ) as run_mock, mock.patch(
-            "submissions.tasks.compare_outputs_detailed"
-        ) as cmp_mock:
+        with (
+            mock.patch("submissions.tasks.record_verdict_task") as score_mock,
+            mock.patch("submissions.tasks.update_user_entry_task"),
+            mock.patch("submissions.tasks.compile_code_in_sandbox") as compile_mock,
+            mock.patch("submissions.tasks.run_code_in_sandbox") as run_mock,
+            mock.patch("submissions.tasks.compare_outputs_detailed") as cmp_mock,
+        ):
             compile_mock.return_value = (True, "", "/tmp/x")
             run_mock.return_value = ("AC", 10, 1000, "2", "")
             cmp_mock.return_value = (True, "")
@@ -719,7 +727,16 @@ class ScoringMaterializationTests(ContestBase):
 
 
 class FormatRankingTests(ContestBase):
-    def _row(self, points_max=100, best=100, attempts=1, wrong=0, first_ac=None, last=None, label="A"):
+    def _row(
+        self,
+        points_max=100,
+        best=100,
+        attempts=1,
+        wrong=0,
+        first_ac=None,
+        last=None,
+        label="A",
+    ):
         return {
             "label": label,
             "points_max": points_max,
@@ -734,11 +751,19 @@ class FormatRankingTests(ContestBase):
         contest = self.mk_contest(format=Contest.Format.IOI)
         t0 = self.now - timedelta(minutes=60)
         alice_rows = [
-            self._row(best=100, first_ac=t0 + timedelta(minutes=10), last=t0 + timedelta(minutes=10)),
+            self._row(
+                best=100,
+                first_ac=t0 + timedelta(minutes=10),
+                last=t0 + timedelta(minutes=10),
+            ),
             self._row(best=50, label="B", last=t0 + timedelta(minutes=30)),
         ]
         bob_rows = [
-            self._row(best=100, first_ac=t0 + timedelta(minutes=5), last=t0 + timedelta(minutes=5)),
+            self._row(
+                best=100,
+                first_ac=t0 + timedelta(minutes=5),
+                last=t0 + timedelta(minutes=5),
+            ),
             self._row(best=60, label="B", last=t0 + timedelta(minutes=20)),
         ]
         parts = [
@@ -751,10 +776,20 @@ class FormatRankingTests(ContestBase):
         self.assertEqual(standings[0].total_score, 160)
         # Tie on total → earlier last improvement wins.
         tie = [
-            {"user_id": self.alice.id, "start": t0, "rows": [self._row(best=100, last=t0 + timedelta(minutes=2))]},
-            {"user_id": self.bob.id, "start": t0, "rows": [self._row(best=100, last=t0 + timedelta(minutes=1))]},
+            {
+                "user_id": self.alice.id,
+                "start": t0,
+                "rows": [self._row(best=100, last=t0 + timedelta(minutes=2))],
+            },
+            {
+                "user_id": self.bob.id,
+                "start": t0,
+                "rows": [self._row(best=100, last=t0 + timedelta(minutes=1))],
+            },
         ]
-        self.assertEqual([s.user_id for s in rank_ioi(contest, tie)], [self.bob.id, self.alice.id])
+        self.assertEqual(
+            [s.user_id for s in rank_ioi(contest, tie)], [self.bob.id, self.alice.id]
+        )
         # rank_contest dispatches by contest.format.
         standings = rank_contest(contest, parts)
         self.assertEqual(standings[0].user_id, self.bob.id)
@@ -781,7 +816,12 @@ class FormatRankingTests(ContestBase):
                 "start": t0,
                 "rows": [
                     self._row(best=100, wrong=9, first_ac=t0 + timedelta(minutes=100)),
-                    self._row(best=100, label="B", wrong=9, first_ac=t0 + timedelta(minutes=110)),
+                    self._row(
+                        best=100,
+                        label="B",
+                        wrong=9,
+                        first_ac=t0 + timedelta(minutes=110),
+                    ),
                 ],
             }
         )
@@ -809,7 +849,9 @@ class FormatRankingTests(ContestBase):
         standings = rank_atcoder(contest, parts)
         # Same score; Bob's 2 wrongs add 10 penalty minutes.
         self.assertEqual([s.user_id for s in standings], [self.alice.id, self.bob.id])
-        self.assertAlmostEqual(standings[1].penalty_minutes - standings[0].penalty_minutes, 10)
+        self.assertAlmostEqual(
+            standings[1].penalty_minutes - standings[0].penalty_minutes, 10
+        )
         # Higher score wins regardless of penalty.
         alice_rows[0]["best"] = 200
         standings = rank_atcoder(contest, parts)
@@ -869,13 +911,14 @@ class StandingsEndpointTests(ContestBase):
         self.seed_scores(contest)
         # Post-freeze improvement for alice (100 → live only).
         part = ContestParticipation.objects.get(contest=contest, user=self.alice)
-        cp = ContestProblem.objects.get(contest=contest)
         ContestScore.objects.filter(participation=part).update(best_score=100)
         response = self.client.get(f"/api/v1/contests/{contest.id}/standings/")
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.data["frozen"])
         # Anonymous: frozen columns (both 100+40 frozen as seeded).
-        scores = {row["user"]["username"]: row["score"] for row in response.data["results"]}
+        scores = {
+            row["user"]["username"]: row["score"] for row in response.data["results"]
+        }
         self.assertEqual(scores, {"alice": 100, "bob": 40})
         # Organizer: live board (alice still 100 here — live best matches).
         self.client.force_authenticate(user=self.organizer)
@@ -924,9 +967,7 @@ class StandingsEndpointTests(ContestBase):
         self.assertEqual(response.status_code, 404)
 
     def test_icpc_standings_penalty_columns(self):
-        contest = self.mk_contest(
-            format=Contest.Format.ICPC, penalty_time_minutes=20
-        )
+        contest = self.mk_contest(format=Contest.Format.ICPC, penalty_time_minutes=20)
         t0 = self.now - timedelta(minutes=60)
         part = self.register(contest, self.alice)
         cp = ContestProblem.objects.get(contest=contest)
@@ -986,7 +1027,7 @@ class ProblemPinTests(ContestBase):
         self.assertEqual(response.status_code, 200, response.data)
 
     def test_testcase_create_pinned(self):
-        contest = self.mk_contest()
+        self.mk_contest()
         self.problem.author = self.alice
         self.problem.status = Problem.ProblemStatus.DRAFT
         self.problem.save()
@@ -1044,9 +1085,7 @@ class CoverageEdgeTests(ContestBase):
             end_at=self.now + timedelta(hours=2),
         )
         response = self.client.get("/api/v1/contests/?state=UPCOMING")
-        self.assertEqual(
-            [row["id"] for row in response.data["results"]], [upcoming.id]
-        )
+        self.assertEqual([row["id"] for row in response.data["results"]], [upcoming.id])
         response = self.client.get("/api/v1/contests/?state=ignored")
         self.assertEqual(len(response.data["results"]), 2)
 
@@ -1064,14 +1103,10 @@ class CoverageEdgeTests(ContestBase):
             self.client.get(f"/api/v1/contests/{private.id}/").status_code, 404
         )
         # Bogus id → 404.
-        self.assertEqual(
-            self.client.get("/api/v1/contests/424242/").status_code, 404
-        )
+        self.assertEqual(self.client.get("/api/v1/contests/424242/").status_code, 404)
 
     def test_frozen_mirror_updates_freeze_columns(self):
-        contest = self.mk_contest(
-            freeze_at=self.now + timedelta(minutes=25)
-        )
+        contest = self.mk_contest(freeze_at=self.now + timedelta(minutes=25))
         part = self.register(contest, self.alice)
         cp = ContestProblem.objects.get(contest=contest)
         t0 = self.now - timedelta(minutes=5)  # before the freeze boundary
@@ -1139,9 +1174,7 @@ class CoverageEdgeTests(ContestBase):
         )
         response = self.client.get(f"/api/v1/contests/{contest.id}/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            response.data["sponsor_name"], "County Council of Cluj"
-        )
+        self.assertEqual(response.data["sponsor_name"], "County Council of Cluj")
         self.assertEqual(
             response.data["sponsor_logo_url"], "https://example.com/logo.png"
         )

@@ -1,0 +1,6 @@
+# Root shim so the lean quality gate's dependency lane (`pip install -r` of the
+# standard requirements manifests) installs the backend runtime deps. The real
+# manifest is backend/deps.txt (Django CI and scripts/verify install it
+# directly); a non-standard filename is invisible to the gate's manifest globs,
+# which would leave Django uninstalled and fail pytest on ModuleNotFoundError.
+-r backend/deps.txt

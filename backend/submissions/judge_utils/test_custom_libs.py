@@ -97,7 +97,10 @@ class InstallCustomLibsTest(TestCase):
 
     def test_success_argv_contract_local_backend(self):
         ok = subprocess.CompletedProcess(
-            args=["docker"], returncode=0, stdout="Successfully installed numpy", stderr=""
+            args=["docker"],
+            returncode=0,
+            stdout="Successfully installed numpy",
+            stderr="",
         )
         (success, out), argv = self._install(["numpy==1.26.4"], return_value=ok)
         self.assertTrue(success)
@@ -128,14 +131,14 @@ class InstallCustomLibsTest(TestCase):
         JUDGE_PYPI_INDEX_URL="http://pypi-proxy:8080/simple/",
     )
     def test_operator_provisioned_egress_is_env_gated(self):
-        ok = subprocess.CompletedProcess(args=["docker"], returncode=0, stdout="", stderr="")
+        ok = subprocess.CompletedProcess(
+            args=["docker"], returncode=0, stdout="", stderr=""
+        )
         (success, _), argv = self._install(["numpy"], return_value=ok)
         self.assertTrue(success)
         self.assertEqual(argv[argv.index("--network") + 1], "judge-build")
         self.assertIn("-i", argv)
-        self.assertEqual(
-            argv[argv.index("-i") + 1], "http://pypi-proxy:8080/simple/"
-        )
+        self.assertEqual(argv[argv.index("-i") + 1], "http://pypi-proxy:8080/simple/")
 
     def test_pip_resolution_failure_message(self):
         bad = subprocess.CompletedProcess(
@@ -185,7 +188,9 @@ class InstallCustomLibsTest(TestCase):
         JUDGE_SANDBOX_ROOT="/srv/judge",
     )
     def test_container_backend_mounts_named_volume(self):
-        ok = subprocess.CompletedProcess(args=["docker"], returncode=0, stdout="", stderr="")
+        ok = subprocess.CompletedProcess(
+            args=["docker"], returncode=0, stdout="", stderr=""
+        )
         (success, _), argv = self._install(["numpy"], return_value=ok)
         self.assertTrue(success)
         self.assertIn("webcoder_judge-sandbox:/srv/judge:rw", argv)

@@ -42,7 +42,7 @@ export interface ProblemType {
   tag_ids?: number[];
   tags?: TagType[];
   verifier_feedback?: string | null;
-  author?: {id: number; username: string};
+  author?: { id: number; username: string };
   // Wave A learning layer (EDT-1/EDT-2) + provenance (CNT-3)
   hints_ro?: string[];
   hints_en?: string[];
@@ -64,8 +64,8 @@ export interface ProblemType {
   // engine 'blockly' (default): generator + toolbox/starter XML.
   // engine 'scratch': sb3 starter project JSON + curated opcode allowlist.
   block_config?: {
-    engine?: 'blockly' | 'scratch';
-    generator?: 'python3' | 'nodejs20';
+    engine?: "blockly" | "scratch";
+    generator?: "python3" | "nodejs20";
     toolbox?: string;
     starter?: string;
     scratch_project?: string;
@@ -123,28 +123,27 @@ export interface User {
   // Backend serializes the SHORT TextChoices values (BASIC/CREATOR/
   // VERIFIER/TEACHER/ADMIN); the long spellings are legacy tolerance.
   role:
-    | 'BASIC'
-    | 'CREATOR'
-    | 'VERIFIER'
-    | 'TEACHER'
-    | 'ADMIN'
-    | 'BASIC_USER'
-    | 'PROBLEM_CREATOR'
-    | 'PROBLEM_VERIFIER';
+    | "BASIC"
+    | "CREATOR"
+    | "VERIFIER"
+    | "TEACHER"
+    | "ADMIN"
+    | "BASIC_USER"
+    | "PROBLEM_CREATOR"
+    | "PROBLEM_VERIFIER";
   // OPS-2 (Wave D): the login-side two-factor signals.
   two_factor_enabled?: boolean;
-  two_factor_required?: boolean;  /** RO-3: Olympiad-geography identity (optional; feeds segmented boards). */
+  two_factor_required?: boolean /** RO-3: Olympiad-geography identity (optional; feeds segmented boards). */;
   county?: string;
   school?: string;
   /** LEG-2: self-declared minor — county/school stay private to others. */
   is_minor?: boolean;
-
 }
 
 export interface AdminUserType extends User {
-    is_staff: boolean;
-    is_active: boolean;
-    date_joined: string;
-    first_name?: string;
-    last_name?: string;
+  is_staff: boolean;
+  is_active: boolean;
+  date_joined: string;
+  first_name?: string;
+  last_name?: string;
 }

@@ -131,7 +131,9 @@ class RegistryContentTests(unittest.TestCase):
             cpp.run_argv(artifact_name="checker_program"), ("./checker_program",)
         )
         py = LANGUAGES["python3"]
-        self.assertEqual(py.run_argv(source_name="checker.py"), ("python", "checker.py"))
+        self.assertEqual(
+            py.run_argv(source_name="checker.py"), ("python", "checker.py")
+        )
 
     def test_every_language_declares_a_local_docker_image(self):
         for lang, spec in LANGUAGES.items():
@@ -159,9 +161,7 @@ class DockerRunBuilderTests(unittest.TestCase):
         self.assertEqual(argv[-2:], ["python", "user_code.py"])
 
     def test_memory_limit_flags_only_when_positive(self):
-        argv = build_docker_run_command(
-            ["true"], "/w", "i", memory_limit_kb=262144
-        )
+        argv = build_docker_run_command(["true"], "/w", "i", memory_limit_kb=262144)
         self.assertIn("--memory", argv)
         self.assertEqual(argv[argv.index("--memory") + 1], "262144k")
         self.assertIn("--memory-swap", argv)
@@ -170,9 +170,7 @@ class DockerRunBuilderTests(unittest.TestCase):
         # versions; omitting is unambiguous).
         argv0 = build_docker_run_command(["true"], "/w", "i", memory_limit_kb=0)
         self.assertNotIn("--memory", argv0)
-        argv_neg = build_docker_run_command(
-            ["true"], "/w", "i", memory_limit_kb=-5
-        )
+        argv_neg = build_docker_run_command(["true"], "/w", "i", memory_limit_kb=-5)
         self.assertNotIn("--memory", argv_neg)
 
     def test_extra_mounts_appended(self):
@@ -207,14 +205,14 @@ class WorkspaceRootTests(unittest.TestCase):
 
         from django.test import override_settings
 
-        with override_settings(JUDGE_BACKEND=CONTAINER, JUDGE_SANDBOX_ROOT="/srv/judge"):
+        with override_settings(
+            JUDGE_BACKEND=CONTAINER, JUDGE_SANDBOX_ROOT="/srv/judge"
+        ):
             self.assertEqual(judge_workspace_root(), pathlib.Path("/srv/judge"))
         with override_settings(
             JUDGE_BACKEND=CONTAINER, JUDGE_SANDBOX_ROOT="/custom/sandbox"
         ):
-            self.assertEqual(
-                judge_workspace_root(), pathlib.Path("/custom/sandbox")
-            )
+            self.assertEqual(judge_workspace_root(), pathlib.Path("/custom/sandbox"))
 
     def test_container_backend_defaults_to_srv_judge_without_setting(self):
         import pathlib
@@ -229,9 +227,7 @@ class WorkspaceRootTests(unittest.TestCase):
             del judge_backend.settings.JUDGE_SANDBOX_ROOT
         try:
             with override_settings(JUDGE_BACKEND=CONTAINER):
-                self.assertEqual(
-                    judge_workspace_root(), pathlib.Path("/srv/judge")
-                )
+                self.assertEqual(judge_workspace_root(), pathlib.Path("/srv/judge"))
         finally:
             if had:
                 judge_backend.settings.JUDGE_SANDBOX_ROOT = previous
@@ -328,7 +324,9 @@ class ExpansionShapeTests(unittest.TestCase):
         argv = LANGUAGES["kotlin"].compile_argv()
         self.assertEqual(argv[:2], ("sh", "-c"))
         self.assertIn("kotlinc user_code.kt -d user_program.jar", argv[2])
-        self.assertEqual(LANGUAGES["kotlin"].run_command, ("kotlin", "user_program.jar"))
+        self.assertEqual(
+            LANGUAGES["kotlin"].run_command, ("kotlin", "user_program.jar")
+        )
 
     def test_interpreted_additions_have_no_compile_step(self):
         for lang in ("ruby", "lua", "php"):

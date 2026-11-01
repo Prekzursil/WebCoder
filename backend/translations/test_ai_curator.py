@@ -40,8 +40,10 @@ PROPOSAL_FR = {
 
 
 def _ok_transport(verdict="approve", confidence=0.93, notes="Faithful, fluent."):
-    content = (
-        '{"verdict": "%s", "confidence": %s, "notes": "%s"}' % (verdict, confidence, notes)
+    content = '{"verdict": "%s", "confidence": %s, "notes": "%s"}' % (
+        verdict,
+        confidence,
+        notes,
     )
 
     def transport(url, headers, payload, timeout_s):
@@ -105,7 +107,9 @@ class CuratorConfigTests(TestCase):
 
 class ExtractJsonTests(TestCase):
     def test_plain_object(self):
-        self.assertEqual(_extract_json('{"verdict": "approve"}'), {"verdict": "approve"})
+        self.assertEqual(
+            _extract_json('{"verdict": "approve"}'), {"verdict": "approve"}
+        )
 
     def test_code_fenced(self):
         self.assertEqual(
@@ -127,7 +131,11 @@ class ExtractJsonTests(TestCase):
 class CuratorScreeningTests(TestCase):
     def _curator(self, transport, **env):
         config = CuratorConfig.from_env(
-            {"AI_CURATOR_URL": "http://curator.local/v1", "AI_CURATOR_MODEL": "m", **env}
+            {
+                "AI_CURATOR_URL": "http://curator.local/v1",
+                "AI_CURATOR_MODEL": "m",
+                **env,
+            }
         )
         return OpenAICompatibleCurator(config, transport=transport)
 
@@ -157,9 +165,9 @@ class CuratorScreeningTests(TestCase):
         self.assertEqual(result.confidence, 0.0)
 
     def test_non_numeric_confidence_becomes_zero(self):
-        result = self._curator(
-            _ok_transport(confidence='"high"')
-        ).screen(problem_en=PROBLEM_EN, proposal=PROPOSAL_FR)
+        result = self._curator(_ok_transport(confidence='"high"')).screen(
+            problem_en=PROBLEM_EN, proposal=PROPOSAL_FR
+        )
         self.assertEqual(result.confidence, 0.0)
 
     def test_unknown_verdict_is_error_fail_open(self):
@@ -180,14 +188,18 @@ class CuratorScreeningTests(TestCase):
         def garbage(url, headers, payload, timeout_s):
             return {"choices": [{"message": {"content": "I cannot judge this."}}]}
 
-        result = self._curator(garbage).screen(problem_en=PROBLEM_EN, proposal=PROPOSAL_FR)
+        result = self._curator(garbage).screen(
+            problem_en=PROBLEM_EN, proposal=PROPOSAL_FR
+        )
         self.assertEqual(result.verdict, "error")
 
     def test_http_structure_mismatch_fails_open(self):
         def weird(url, headers, payload, timeout_s):
             return {"unexpected": True}
 
-        result = self._curator(weird).screen(problem_en=PROBLEM_EN, proposal=PROPOSAL_FR)
+        result = self._curator(weird).screen(
+            problem_en=PROBLEM_EN, proposal=PROPOSAL_FR
+        )
         self.assertEqual(result.verdict, "error")
 
     def test_missing_model_id_is_error(self):
@@ -202,7 +214,15 @@ class CuratorScreeningTests(TestCase):
 
         def recorder(url, headers, payload, timeout_s):
             seen.update(url=url, headers=headers, payload=payload, timeout_s=timeout_s)
-            return {"choices": [{"message": {"content": '{"verdict": "approve", "confidence": 1, "notes": "ok"}'}}]}
+            return {
+                "choices": [
+                    {
+                        "message": {
+                            "content": '{"verdict": "approve", "confidence": 1, "notes": "ok"}'
+                        }
+                    }
+                ]
+            }
 
         self._curator(recorder).screen(problem_en=PROBLEM_EN, proposal=PROPOSAL_FR)
         self.assertEqual(seen["url"], "http://curator.local/v1/chat/completions")
@@ -218,10 +238,22 @@ class CuratorScreeningTests(TestCase):
 
         def recorder(url, headers, payload, timeout_s):
             seen["headers"] = headers
-            return {"choices": [{"message": {"content": '{"verdict": "approve", "confidence": 1, "notes": "ok"}'}}]}
+            return {
+                "choices": [
+                    {
+                        "message": {
+                            "content": '{"verdict": "approve", "confidence": 1, "notes": "ok"}'
+                        }
+                    }
+                ]
+            }
 
         config = CuratorConfig.from_env(
-            {"AI_CURATOR_URL": "http://x/v1", "AI_CURATOR_MODEL": "m", "AI_CURATOR_API_KEY": "k1"}
+            {
+                "AI_CURATOR_URL": "http://x/v1",
+                "AI_CURATOR_MODEL": "m",
+                "AI_CURATOR_API_KEY": "k1",
+            }
         )
         OpenAICompatibleCurator(config, transport=recorder).screen(
             problem_en=PROBLEM_EN, proposal=PROPOSAL_FR
@@ -235,11 +267,15 @@ class ProposeWithCuratorTests(TestCase):
     def setUp(self):
         self.alice = User.objects.create_user(username="alice", password="pw-12345678")
         self.verifier = User.objects.create_user(
-            username="verifier", password="pw-12345678", role=User.Roles.PROBLEM_VERIFIER
+            username="verifier",
+            password="pw-12345678",
+            role=User.Roles.PROBLEM_VERIFIER,
         )
         self.problem = Problem.objects.create(
             title_i18n={"en": "Two Sum"},
-            statement_i18n={"en": "Return indices of the two numbers adding up to target."},
+            statement_i18n={
+                "en": "Return indices of the two numbers adding up to target."
+            },
             status=Problem.ProblemStatus.APPROVED,
         )
         self.client = APIClient()
@@ -268,14 +304,20 @@ class ProposeWithCuratorTests(TestCase):
         with mock.patch.dict("os.environ", {}, clear=False):
             import os
 
-            saved = {k: os.environ.pop(k, None) for k in list(os.environ) if k.startswith("AI_CURATOR_")}
+            saved = {
+                k: os.environ.pop(k, None)
+                for k in list(os.environ)
+                if k.startswith("AI_CURATOR_")
+            }
             try:
                 response = self._propose()
             finally:
                 for k, v in saved.items():
                     if v is not None:
                         os.environ[k] = v
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        self.assertEqual(
+            response.status_code, status.HTTP_201_CREATED, response.content
+        )
         self.assertEqual(response.data["ai_verdict"], "")
 
     def test_high_confidence_pass_marked_but_needs_human(self):
@@ -284,7 +326,9 @@ class ProposeWithCuratorTests(TestCase):
         )
         with mock.patch("translations.views.curator_from_env", return_value=curator):
             response = self._propose()
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        self.assertEqual(
+            response.status_code, status.HTTP_201_CREATED, response.content
+        )
         self.assertEqual(response.data["ai_verdict"], "approve")
         self.assertEqual(response.data["ai_confidence"], 0.93)
         # Default policy: humans confirm — still PENDING, problem untouched.
@@ -299,7 +343,9 @@ class ProposeWithCuratorTests(TestCase):
         )
         with mock.patch("translations.views.curator_from_env", return_value=curator):
             response = self._propose()
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        self.assertEqual(
+            response.status_code, status.HTTP_201_CREATED, response.content
+        )
         self.assertEqual(response.data["status"], "APPROVED")
         self.problem.refresh_from_db()
         self.assertEqual(self.problem.title_i18n["fr"], "Somme de deux")
@@ -311,7 +357,9 @@ class ProposeWithCuratorTests(TestCase):
         )
         with mock.patch("translations.views.curator_from_env", return_value=curator):
             response = self._propose()
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        self.assertEqual(
+            response.status_code, status.HTTP_201_CREATED, response.content
+        )
         self.assertEqual(response.data["status"], "PENDING")
         self.assertEqual(response.data["ai_verdict"], "flag")
         self.problem.refresh_from_db()
@@ -326,7 +374,9 @@ class ProposeWithCuratorTests(TestCase):
         )
         with mock.patch("translations.views.curator_from_env", return_value=curator):
             response = self._propose()
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        self.assertEqual(
+            response.status_code, status.HTTP_201_CREATED, response.content
+        )
         self.assertEqual(response.data["status"], "PENDING")
         self.assertEqual(response.data["ai_verdict"], "error")
         self.assertIn("unavailable", response.data["ai_notes"])

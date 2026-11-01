@@ -16,21 +16,21 @@
 // The client-side loading spinner and red error paragraph map to the App
 // Router loading.tsx / error.tsx boundaries in this directory.
 
-import type { Metadata } from 'next';
-import { Suspense } from 'react';
-import { createTranslator, getLocale } from '../_lib/public-i18n';
-import { getCurriculum, getProblemsPage } from './_lib/problems-api';
-import type { CurriculumGrade } from './_lib/problems-api';
-import ProblemsListClient from './ProblemsListClient';
-import ProblemsTableSkeleton from './ProblemsTableSkeleton';
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import { createTranslator, getLocale } from "../_lib/public-i18n";
+import { getCurriculum, getProblemsPage } from "./_lib/problems-api";
+import type { CurriculumGrade } from "./_lib/problems-api";
+import ProblemsListClient from "./ProblemsListClient";
+import ProblemsTableSkeleton from "./ProblemsTableSkeleton";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = createTranslator(await getLocale());
   return {
-    title: t('problem_list_header', 'Problems'),
+    title: t("problem_list_header", "Problems"),
     description: t(
-      'problems_page_description',
-      'Browse the public competitive programming problem catalog on WebCoder.'
+      "problems_page_description",
+      "Browse the public competitive programming problem catalog on WebCoder.",
     ),
   };
 }
@@ -43,7 +43,7 @@ export default async function ProblemsListPage({ searchParams }: ProblemsListPag
   const locale = await getLocale();
   const { curriculum: curriculumParam } = await searchParams;
 
-  let problems: Awaited<ReturnType<typeof getProblemsPage>>['results'] = [];
+  let problems: Awaited<ReturnType<typeof getProblemsPage>>["results"] = [];
   let total = 0;
   let hasMore = false;
   let fetchError: string | null = null;
@@ -69,8 +69,7 @@ export default async function ProblemsListPage({ searchParams }: ProblemsListPag
     hasMore = Boolean(firstPage.next);
   } catch (err) {
     await curriculumFetch.catch(() => undefined);
-    fetchError =
-      err instanceof Error ? err.message : 'Failed to load problems.';
+    fetchError = err instanceof Error ? err.message : "Failed to load problems.";
   }
 
   return (

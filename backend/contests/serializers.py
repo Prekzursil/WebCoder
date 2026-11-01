@@ -1,6 +1,5 @@
 """Contest serializers (Wave B: CON-1/CON-2/CON-3/CON-6)."""
 
-from django.utils import timezone
 from rest_framework import serializers
 
 from problems.models import Problem
@@ -48,7 +47,9 @@ class ContestSerializer(serializers.ModelSerializer):
     """
 
     contest_problems = ContestProblemSerializer(many=True, read_only=True)
-    created_by_username = serializers.CharField(source="created_by.username", read_only=True)
+    created_by_username = serializers.CharField(
+        source="created_by.username", read_only=True
+    )
     # CON-9 mashups: organizers assemble their board by passing problem ids
     # on create/update. Non-admin creators (CREATOR/TEACHER) may only pick
     # from the APPROVED pool and only run PRIVATE unrated contests.
@@ -120,17 +121,25 @@ class ContestSerializer(serializers.ModelSerializer):
             window_minutes = (end - start).total_seconds() / 60
             if duration > window_minutes:
                 raise serializers.ValidationError(
-                    {"per_user_duration_minutes": "Personal duration exceeds the window."}
+                    {
+                        "per_user_duration_minutes": "Personal duration exceeds the window."
+                    }
                 )
         visibility = attrs.get("visibility", getattr(self.instance, "visibility", None))
-        access_code = attrs.get("access_code", getattr(self.instance, "access_code", ""))
+        access_code = attrs.get(
+            "access_code", getattr(self.instance, "access_code", "")
+        )
         if visibility == Contest.Visibility.PRIVATE and not access_code:
             raise serializers.ValidationError(
                 {"access_code": "PRIVATE contests need an access code."}
             )
         # CON-7: division band sanity.
-        lo = attrs.get("rated_rating_min", getattr(self.instance, "rated_rating_min", None))
-        hi = attrs.get("rated_rating_max", getattr(self.instance, "rated_rating_max", None))
+        lo = attrs.get(
+            "rated_rating_min", getattr(self.instance, "rated_rating_min", None)
+        )
+        hi = attrs.get(
+            "rated_rating_max", getattr(self.instance, "rated_rating_max", None)
+        )
         if lo is not None and hi is not None and lo > hi:
             raise serializers.ValidationError(
                 {"rated_rating_min": "Division minimum exceeds its maximum."}
@@ -162,7 +171,9 @@ class ContestSerializer(serializers.ModelSerializer):
                     id__in=problem_ids, status=Problem.ProblemStatus.APPROVED
                 )
             if allowed.count() != len(set(problem_ids)):
-                missing = sorted(set(problem_ids) - set(allowed.values_list("id", flat=True)))
+                missing = sorted(
+                    set(problem_ids) - set(allowed.values_list("id", flat=True))
+                )
                 raise serializers.ValidationError(
                     {
                         "problem_ids": (
@@ -234,7 +245,9 @@ class ContestDetailSerializer(ContestSerializer):
 class RegistrationSerializer(serializers.Serializer):
     """POST /contests/{id}/register/ body: PRIVATE contests need the code."""
 
-    access_code = serializers.CharField(required=False, allow_blank=True, trim_whitespace=True)
+    access_code = serializers.CharField(
+        required=False, allow_blank=True, trim_whitespace=True
+    )
 
 
 class ClarificationSerializer(serializers.ModelSerializer):

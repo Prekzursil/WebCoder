@@ -25,6 +25,7 @@ COVERAGE STATE (measured, updated per round — 3 rounds used):
     ROUND 3 (exact gate command, no extra flags): 94 passed, exit 0, problems
         app 100% lines. Disk receipt: this docstring + the run transcripts.
 """
+
 import importlib
 import pkgutil
 from unittest import mock
@@ -40,7 +41,10 @@ from problems import admin as problems_admin
 from problems import migrations as problems_migrations
 from problems.models import Problem, Tag
 from problems.models import TestCase as ProblemTestCase
-from problems.serializers import ProblemSerializer, TestCaseSerializer as ProblemTestCaseSerializer  # alias: avoid pytest Test-prefixed collection warning
+from problems.serializers import (
+    ProblemSerializer,
+    TestCaseSerializer as ProblemTestCaseSerializer,
+)  # alias: avoid pytest Test-prefixed collection warning
 from problems.views import ProblemViewSet
 from users.models import User
 from users.permissions import ProblemObjectPermissions
@@ -100,11 +104,14 @@ def drf_request(method="get", path="/", user=None):
 # Models
 # ---------------------------------------------------------------------------
 
+
 class TagModelStrTests(DjangoTestCase):
     """Cover every branch of Tag.__str__ (models.py:14-18)."""
 
     def test_str_dict_with_english_name(self):
-        tag = Tag.objects.create(name_i18n={"en": "Arrays", "ro": "Tablouri"}, slug="arrays")
+        tag = Tag.objects.create(
+            name_i18n={"en": "Arrays", "ro": "Tablouri"}, slug="arrays"
+        )
         self.assertEqual(str(tag), "Arrays")
 
     def test_str_dict_with_romanian_fallback(self):
@@ -167,6 +174,7 @@ class MigrationModulesImportedTests(DjangoTestCase):
 # ---------------------------------------------------------------------------
 # Admin (display methods + save_model)
 # ---------------------------------------------------------------------------
+
 
 class AdminDisplayMethodTests(DjangoTestCase):
     """Cover TagAdmin/ProblemAdmin display-method branches (admin.py)."""
@@ -244,6 +252,7 @@ class AdminSaveModelTests(DjangoTestCase):
 # Serializers (direct unit tests)
 # ---------------------------------------------------------------------------
 
+
 class TestCaseSerializerRepresentationTests(DjangoTestCase):
     """Cover TestCaseSerializer.to_representation auth branches (serializers.py:17-35)."""
 
@@ -254,7 +263,9 @@ class TestCaseSerializerRepresentationTests(DjangoTestCase):
         self.tc_sample = make_testcase(self.problem, is_sample=True)
 
     def serialize(self, tc, request):
-        serializer = ProblemTestCaseSerializer(instance=tc, context={"request": request})
+        serializer = ProblemTestCaseSerializer(
+            instance=tc, context={"request": request}
+        )
         return serializer.data
 
     def test_anonymous_cannot_see_hidden_output(self):
@@ -304,7 +315,9 @@ class ProblemSerializerCreateTests(DjangoTestCase):
         self.assertEqual(problem.author, creator)
 
     def test_create_without_authenticated_request_leaves_author_null(self):
-        serializer = ProblemSerializer(data=self.PAYLOAD, context={"request": drf_request()})
+        serializer = ProblemSerializer(
+            data=self.PAYLOAD, context={"request": drf_request()}
+        )
         self.assertTrue(serializer.is_valid(), serializer.errors)
         problem = serializer.save()
         self.assertIsNone(problem.author)
@@ -313,7 +326,8 @@ class ProblemSerializerCreateTests(DjangoTestCase):
         author = make_user("explicit-author")
         payload = dict(self.PAYLOAD, author_id=author.id)
         serializer = ProblemSerializer(
-            data=payload, context={"request": drf_request(user=make_user("someone-else"))}
+            data=payload,
+            context={"request": drf_request(user=make_user("someone-else"))},
         )
         self.assertTrue(serializer.is_valid(), serializer.errors)
         problem = serializer.save()
@@ -343,25 +357,32 @@ class ProblemObjectPermissionsDirectTests(DjangoTestCase):
     def test_safe_method_allowed_for_anonymous(self):
         request = drf_request(method="get")
         self.assertTrue(
-            self.permission.has_object_permission(request, mock.Mock(action="retrieve"), self.problem)
+            self.permission.has_object_permission(
+                request, mock.Mock(action="retrieve"), self.problem
+            )
         )
 
     def test_unauthenticated_non_safe_method_denied(self):
         request = drf_request(method="post")
         self.assertFalse(
-            self.permission.has_object_permission(request, mock.Mock(action="update"), self.problem)
+            self.permission.has_object_permission(
+                request, mock.Mock(action="update"), self.problem
+            )
         )
 
     def test_user_none_non_safe_method_denied(self):
         request = drf_request(method="post", user=None)
         self.assertFalse(
-            self.permission.has_object_permission(request, mock.Mock(action="update"), self.problem)
+            self.permission.has_object_permission(
+                request, mock.Mock(action="update"), self.problem
+            )
         )
 
 
 # ---------------------------------------------------------------------------
 # TagViewSet API
 # ---------------------------------------------------------------------------
+
 
 class TagViewSetAPITests(DjangoTestCase):
     """Cover TagViewSet.get_permissions branches + CRUD (views.py:11-22)."""
@@ -383,19 +404,26 @@ class TagViewSetAPITests(DjangoTestCase):
         response = self.client.post(
             reverse(TAG_LIST), {"name_i18n": {"en": "X"}, "slug": "x"}, format="json"
         )
-        self.assertIn(response.status_code, (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN))
+        self.assertIn(
+            response.status_code,
+            (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN),
+        )
 
     def test_authenticated_can_create(self):
         self.client.force_authenticate(self.basic)
         response = self.client.post(
-            reverse(TAG_LIST), {"name_i18n": {"en": "New"}, "slug": "new"}, format="json"
+            reverse(TAG_LIST),
+            {"name_i18n": {"en": "New"}, "slug": "new"},
+            format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_authenticated_can_update(self):
         self.client.force_authenticate(self.basic)
         response = self.client.patch(
-            reverse(TAG_DETAIL, args=[self.tag.id]), {"name_i18n": {"en": "DP2"}}, format="json"
+            reverse(TAG_DETAIL, args=[self.tag.id]),
+            {"name_i18n": {"en": "DP2"}},
+            format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -409,16 +437,25 @@ class TagViewSetAPITests(DjangoTestCase):
 # ProblemViewSet: visibility (get_queryset branches)
 # ---------------------------------------------------------------------------
 
+
 class ProblemVisibilityTests(DjangoTestCase):
     """Cover ProblemViewSet.get_queryset branches (views.py:55-68)."""
 
     def setUp(self):
         self.client = APIClient()
         self.creator = make_user("vis-creator", role=User.Roles.PROBLEM_CREATOR)
-        self.approved = make_problem(author=self.creator, status=Problem.ProblemStatus.APPROVED)
-        self.draft = make_problem(author=self.creator, status=Problem.ProblemStatus.DRAFT)
-        self.pending = make_problem(author=self.creator, status=Problem.ProblemStatus.PENDING_APPROVAL)
-        self.private = make_problem(author=self.creator, status=Problem.ProblemStatus.PRIVATE)
+        self.approved = make_problem(
+            author=self.creator, status=Problem.ProblemStatus.APPROVED
+        )
+        self.draft = make_problem(
+            author=self.creator, status=Problem.ProblemStatus.DRAFT
+        )
+        self.pending = make_problem(
+            author=self.creator, status=Problem.ProblemStatus.PENDING_APPROVAL
+        )
+        self.private = make_problem(
+            author=self.creator, status=Problem.ProblemStatus.PRIVATE
+        )
 
     def rows(self, response):
         data = response.data
@@ -486,6 +523,7 @@ class ProblemVisibilityTests(DjangoTestCase):
 # ProblemViewSet: create + the get_permissions chain
 # ---------------------------------------------------------------------------
 
+
 class ProblemCreateAPITests(DjangoTestCase):
     """Cover ProblemViewSet.get_permissions create/else branches (views.py:30-41)."""
 
@@ -495,7 +533,10 @@ class ProblemCreateAPITests(DjangoTestCase):
 
     def test_anonymous_cannot_create(self):
         response = self.client.post(reverse(PROBLEM_LIST), self.payload, format="json")
-        self.assertIn(response.status_code, (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN))
+        self.assertIn(
+            response.status_code,
+            (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN),
+        )
 
     def test_basic_role_cannot_create(self):
         self.client.force_authenticate(make_user("pc-basic"))
@@ -519,7 +560,9 @@ class ProblemCreateAPITests(DjangoTestCase):
         someone = make_user("pc-someone")
         self.client.force_authenticate(creator)
         response = self.client.post(
-            reverse(PROBLEM_LIST), dict(self.payload, author_id=someone.id), format="json"
+            reverse(PROBLEM_LIST),
+            dict(self.payload, author_id=someone.id),
+            format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Problem.objects.get(id=response.data["id"]).author, creator)
@@ -528,12 +571,16 @@ class ProblemCreateAPITests(DjangoTestCase):
         # action == 'metadata' hits the else branch -> IsAdminUser; anonymous
         # is denied as 401 because JWTAuthentication issues a challenge header.
         response = self.client.options(reverse(PROBLEM_LIST))
-        self.assertIn(response.status_code, (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN))
+        self.assertIn(
+            response.status_code,
+            (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN),
+        )
 
 
 # ---------------------------------------------------------------------------
 # ProblemViewSet: update/destroy (ProblemObjectPermissions arcs)
 # ---------------------------------------------------------------------------
+
 
 class ProblemUpdateDestroyAPITests(DjangoTestCase):
     """Cover ProblemObjectPermissions has_object_permission arcs via API."""
@@ -545,46 +592,69 @@ class ProblemUpdateDestroyAPITests(DjangoTestCase):
     def patch(self, user, problem, payload=None):
         self.client.force_authenticate(user)
         return self.client.patch(
-            reverse(PROBLEM_DETAIL, args=[problem.id]), payload or {"title_i18n": {"en": "U"}}, format="json"
+            reverse(PROBLEM_DETAIL, args=[problem.id]),
+            payload or {"title_i18n": {"en": "U"}},
+            format="json",
         )
 
     def test_author_can_update_own_draft(self):
         problem = make_problem(author=self.author, status=Problem.ProblemStatus.DRAFT)
-        self.assertEqual(self.patch(self.author, problem).status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            self.patch(self.author, problem).status_code, status.HTTP_200_OK
+        )
 
     def test_author_cannot_update_own_private_not_in_queryset(self):
         # ProblemObjectPermissions would allow update of own PRIVATE
         # (views.py:55), but get_queryset hides PRIVATE even from its author,
         # so the request 404s in get_object before object permissions run.
         problem = make_problem(author=self.author, status=Problem.ProblemStatus.PRIVATE)
-        self.assertEqual(self.patch(self.author, problem).status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(
+            self.patch(self.author, problem).status_code, status.HTTP_404_NOT_FOUND
+        )
 
     def test_author_cannot_update_own_approved(self):
-        problem = make_problem(author=self.author, status=Problem.ProblemStatus.APPROVED)
-        self.assertEqual(self.patch(self.author, problem).status_code, status.HTTP_403_FORBIDDEN)
+        problem = make_problem(
+            author=self.author, status=Problem.ProblemStatus.APPROVED
+        )
+        self.assertEqual(
+            self.patch(self.author, problem).status_code, status.HTTP_403_FORBIDDEN
+        )
 
     def test_author_cannot_update_own_pending(self):
-        problem = make_problem(author=self.author, status=Problem.ProblemStatus.PENDING_APPROVAL)
-        self.assertEqual(self.patch(self.author, problem).status_code, status.HTTP_403_FORBIDDEN)
+        problem = make_problem(
+            author=self.author, status=Problem.ProblemStatus.PENDING_APPROVAL
+        )
+        self.assertEqual(
+            self.patch(self.author, problem).status_code, status.HTTP_403_FORBIDDEN
+        )
 
     def test_other_user_cannot_update_others_draft(self):
         # Others' drafts are filtered out of a basic user's queryset, so the
         # request 404s in get_object rather than reaching a 403.
         problem = make_problem(author=self.author, status=Problem.ProblemStatus.DRAFT)
-        self.assertEqual(self.patch(make_user("ud-other"), problem).status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(
+            self.patch(make_user("ud-other"), problem).status_code,
+            status.HTTP_404_NOT_FOUND,
+        )
 
     def test_verifier_can_update_any(self):
-        problem = make_problem(author=self.author, status=Problem.ProblemStatus.APPROVED)
+        problem = make_problem(
+            author=self.author, status=Problem.ProblemStatus.APPROVED
+        )
         verifier = make_user("ud-verifier", role=User.Roles.PROBLEM_VERIFIER)
         self.assertEqual(self.patch(verifier, problem).status_code, status.HTTP_200_OK)
 
     def test_admin_role_can_update_any(self):
-        problem = make_problem(author=self.author, status=Problem.ProblemStatus.APPROVED)
+        problem = make_problem(
+            author=self.author, status=Problem.ProblemStatus.APPROVED
+        )
         admin = make_user("ud-admin", role=User.Roles.ADMIN)
         self.assertEqual(self.patch(admin, problem).status_code, status.HTTP_200_OK)
 
     def test_superuser_can_update_any(self):
-        problem = make_problem(author=self.author, status=Problem.ProblemStatus.APPROVED)
+        problem = make_problem(
+            author=self.author, status=Problem.ProblemStatus.APPROVED
+        )
         superuser = make_user("ud-super")
         superuser.is_superuser = True
         superuser.save()
@@ -597,14 +667,18 @@ class ProblemUpdateDestroyAPITests(DjangoTestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_author_cannot_destroy_own_approved(self):
-        problem = make_problem(author=self.author, status=Problem.ProblemStatus.APPROVED)
+        problem = make_problem(
+            author=self.author, status=Problem.ProblemStatus.APPROVED
+        )
         self.client.force_authenticate(self.author)
         response = self.client.delete(reverse(PROBLEM_DETAIL, args=[problem.id]))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_verifier_can_destroy_any(self):
         problem = make_problem(author=self.author, status=Problem.ProblemStatus.DRAFT)
-        self.client.force_authenticate(make_user("ud-verifier2", role=User.Roles.PROBLEM_VERIFIER))
+        self.client.force_authenticate(
+            make_user("ud-verifier2", role=User.Roles.PROBLEM_VERIFIER)
+        )
         response = self.client.delete(reverse(PROBLEM_DETAIL, args=[problem.id]))
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
@@ -612,6 +686,7 @@ class ProblemUpdateDestroyAPITests(DjangoTestCase):
 # ---------------------------------------------------------------------------
 # ProblemViewSet: workflow actions (submit / approve / reject)
 # ---------------------------------------------------------------------------
+
 
 class ProblemWorkflowAPITests(DjangoTestCase):
     """Cover submit_for_approval / approve_problem / reject_problem branches."""
@@ -638,22 +713,30 @@ class ProblemWorkflowAPITests(DjangoTestCase):
         self.assertIsNone(problem.verifier_feedback)
 
     def test_author_cannot_resubmit_pending(self):
-        problem = make_problem(author=self.author, status=Problem.ProblemStatus.PENDING_APPROVAL)
+        problem = make_problem(
+            author=self.author, status=Problem.ProblemStatus.PENDING_APPROVAL
+        )
         self.client.force_authenticate(self.author)
         response = self.client.post(reverse(PROBLEM_SUBMIT, args=[problem.id]))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_submit_non_draft_returns_400(self):
-        problem = make_problem(author=self.author, status=Problem.ProblemStatus.APPROVED)
+        problem = make_problem(
+            author=self.author, status=Problem.ProblemStatus.APPROVED
+        )
         self.client.force_authenticate(self.admin)
         response = self.client.post(reverse(PROBLEM_SUBMIT, args=[problem.id]))
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_verifier_approves_pending_problem_with_feedback(self):
-        problem = make_problem(author=self.author, status=Problem.ProblemStatus.PENDING_APPROVAL)
+        problem = make_problem(
+            author=self.author, status=Problem.ProblemStatus.PENDING_APPROVAL
+        )
         self.client.force_authenticate(self.verifier)
         response = self.client.post(
-            reverse(PROBLEM_APPROVE, args=[problem.id]), {"feedback": "looks good"}, format="json"
+            reverse(PROBLEM_APPROVE, args=[problem.id]),
+            {"feedback": "looks good"},
+            format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
         problem.refresh_from_db()
@@ -668,27 +751,40 @@ class ProblemWorkflowAPITests(DjangoTestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_basic_user_cannot_approve(self):
-        problem = make_problem(author=self.author, status=Problem.ProblemStatus.PENDING_APPROVAL)
+        problem = make_problem(
+            author=self.author, status=Problem.ProblemStatus.PENDING_APPROVAL
+        )
         self.client.force_authenticate(make_user("wf-basic"))
         response = self.client.post(reverse(PROBLEM_APPROVE, args=[problem.id]))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_anonymous_cannot_approve(self):
-        problem = make_problem(author=self.author, status=Problem.ProblemStatus.PENDING_APPROVAL)
+        problem = make_problem(
+            author=self.author, status=Problem.ProblemStatus.PENDING_APPROVAL
+        )
         response = self.client.post(reverse(PROBLEM_APPROVE, args=[problem.id]))
-        self.assertIn(response.status_code, (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN))
+        self.assertIn(
+            response.status_code,
+            (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN),
+        )
 
     def test_reject_without_feedback_returns_400(self):
-        problem = make_problem(author=self.author, status=Problem.ProblemStatus.PENDING_APPROVAL)
+        problem = make_problem(
+            author=self.author, status=Problem.ProblemStatus.PENDING_APPROVAL
+        )
         self.client.force_authenticate(self.verifier)
         response = self.client.post(reverse(PROBLEM_REJECT, args=[problem.id]))
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_verifier_rejects_pending_problem(self):
-        problem = make_problem(author=self.author, status=Problem.ProblemStatus.PENDING_APPROVAL)
+        problem = make_problem(
+            author=self.author, status=Problem.ProblemStatus.PENDING_APPROVAL
+        )
         self.client.force_authenticate(self.verifier)
         response = self.client.post(
-            reverse(PROBLEM_REJECT, args=[problem.id]), {"feedback": "needs work"}, format="json"
+            reverse(PROBLEM_REJECT, args=[problem.id]),
+            {"feedback": "needs work"},
+            format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
         problem.refresh_from_db()
@@ -697,10 +793,14 @@ class ProblemWorkflowAPITests(DjangoTestCase):
         self.assertEqual(problem.verifier_feedback, "needs work")
 
     def test_reject_non_pending_returns_400(self):
-        problem = make_problem(author=self.author, status=Problem.ProblemStatus.APPROVED)
+        problem = make_problem(
+            author=self.author, status=Problem.ProblemStatus.APPROVED
+        )
         self.client.force_authenticate(self.admin)
         response = self.client.post(
-            reverse(PROBLEM_REJECT, args=[problem.id]), {"feedback": "nope"}, format="json"
+            reverse(PROBLEM_REJECT, args=[problem.id]),
+            {"feedback": "nope"},
+            format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -708,6 +808,7 @@ class ProblemWorkflowAPITests(DjangoTestCase):
 # ---------------------------------------------------------------------------
 # TestCaseViewSet API
 # ---------------------------------------------------------------------------
+
 
 class TestCaseViewSetAPITests(DjangoTestCase):
     """Cover TestCaseViewSet get_queryset / perform_create / perform_update /
@@ -723,8 +824,12 @@ class TestCaseViewSetAPITests(DjangoTestCase):
         self.basic = make_user("tcv-basic")
         self.admin = make_user("tcv-admin", role=User.Roles.ADMIN)
         self.verifier = make_user("tcv-verifier", role=User.Roles.PROBLEM_VERIFIER)
-        self.problem = make_problem(author=self.author, status=Problem.ProblemStatus.DRAFT)
-        self.other_problem = make_problem(author=self.author, status=Problem.ProblemStatus.DRAFT)
+        self.problem = make_problem(
+            author=self.author, status=Problem.ProblemStatus.DRAFT
+        )
+        self.other_problem = make_problem(
+            author=self.author, status=Problem.ProblemStatus.DRAFT
+        )
         self.tc_sample = make_testcase(self.problem, is_sample=True, order=0)
         self.tc_hidden = make_testcase(self.problem, is_sample=False, order=1)
 
@@ -737,7 +842,10 @@ class TestCaseViewSetAPITests(DjangoTestCase):
 
     def test_anonymous_cannot_list(self):
         response = self.client.get(reverse(TESTCASE_LIST))
-        self.assertIn(response.status_code, (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN))
+        self.assertIn(
+            response.status_code,
+            (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN),
+        )
 
     def test_list_without_param_returns_all(self):
         self.client.force_authenticate(self.basic)
@@ -748,10 +856,13 @@ class TestCaseViewSetAPITests(DjangoTestCase):
     def test_list_with_problem_id_param_filters(self):
         make_testcase(self.other_problem, order=0)
         self.client.force_authenticate(self.basic)
-        response = self.client.get(reverse(TESTCASE_LIST), {"problem_id": self.problem.id})
+        response = self.client.get(
+            reverse(TESTCASE_LIST), {"problem_id": self.problem.id}
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            {row["id"] for row in self.rows(response)}, {self.tc_sample.id, self.tc_hidden.id}
+            {row["id"] for row in self.rows(response)},
+            {self.tc_sample.id, self.tc_hidden.id},
         )
 
     def test_detail_hides_non_sample_output_for_basic_user(self):
@@ -777,37 +888,49 @@ class TestCaseViewSetAPITests(DjangoTestCase):
 
     def test_admin_can_create_testcase(self):
         self.client.force_authenticate(self.admin)
-        response = self.client.post(reverse(TESTCASE_LIST), self.create_payload(), format="json")
+        response = self.client.post(
+            reverse(TESTCASE_LIST), self.create_payload(), format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
 
     def test_verifier_can_create_testcase(self):
         self.client.force_authenticate(self.verifier)
-        response = self.client.post(reverse(TESTCASE_LIST), self.create_payload(), format="json")
+        response = self.client.post(
+            reverse(TESTCASE_LIST), self.create_payload(), format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
 
     def test_author_cannot_create_testcase_for_own_problem(self):
         # action 'create' is not in the author's allowed actions in
         # ProblemObjectPermissions, so perform_create denies it.
         self.client.force_authenticate(self.author)
-        response = self.client.post(reverse(TESTCASE_LIST), self.create_payload(), format="json")
+        response = self.client.post(
+            reverse(TESTCASE_LIST), self.create_payload(), format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_basic_user_cannot_create_testcase(self):
         self.client.force_authenticate(self.basic)
-        response = self.client.post(reverse(TESTCASE_LIST), self.create_payload(), format="json")
+        response = self.client.post(
+            reverse(TESTCASE_LIST), self.create_payload(), format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_admin_can_update_testcase(self):
         self.client.force_authenticate(self.admin)
         response = self.client.patch(
-            reverse(TESTCASE_DETAIL, args=[self.tc_hidden.id]), {"points": 20}, format="json"
+            reverse(TESTCASE_DETAIL, args=[self.tc_hidden.id]),
+            {"points": 20},
+            format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_author_can_update_testcase_of_own_draft_problem(self):
         self.client.force_authenticate(self.author)
         response = self.client.patch(
-            reverse(TESTCASE_DETAIL, args=[self.tc_hidden.id]), {"points": 30}, format="json"
+            reverse(TESTCASE_DETAIL, args=[self.tc_hidden.id]),
+            {"points": 30},
+            format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -819,23 +942,31 @@ class TestCaseViewSetAPITests(DjangoTestCase):
         self.problem.save()
         self.client.force_authenticate(self.author)
         response = self.client.patch(
-            reverse(TESTCASE_DETAIL, args=[self.tc_hidden.id]), {"points": 35}, format="json"
+            reverse(TESTCASE_DETAIL, args=[self.tc_hidden.id]),
+            {"points": 35},
+            format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_basic_user_cannot_update_testcase(self):
         self.client.force_authenticate(self.basic)
         response = self.client.patch(
-            reverse(TESTCASE_DETAIL, args=[self.tc_hidden.id]), {"points": 40}, format="json"
+            reverse(TESTCASE_DETAIL, args=[self.tc_hidden.id]),
+            {"points": 40},
+            format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_admin_can_destroy_testcase(self):
         self.client.force_authenticate(self.admin)
-        response = self.client.delete(reverse(TESTCASE_DETAIL, args=[self.tc_hidden.id]))
+        response = self.client.delete(
+            reverse(TESTCASE_DETAIL, args=[self.tc_hidden.id])
+        )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_basic_user_cannot_destroy_testcase(self):
         self.client.force_authenticate(self.basic)
-        response = self.client.delete(reverse(TESTCASE_DETAIL, args=[self.tc_hidden.id]))
+        response = self.client.delete(
+            reverse(TESTCASE_DETAIL, args=[self.tc_hidden.id])
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

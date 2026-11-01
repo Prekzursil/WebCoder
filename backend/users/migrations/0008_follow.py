@@ -6,25 +6,66 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('users', '0007_alter_ownerweeklysnapshot_id'),
+        ("users", "0007_alter_ownerweeklysnapshot_id"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Follow',
+            name="Follow",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
-                ('follower', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='following', to=settings.AUTH_USER_MODEL, verbose_name='follower')),
-                ('target', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='followers', to=settings.AUTH_USER_MODEL, verbose_name='target')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="created at"),
+                ),
+                (
+                    "follower",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="following",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="follower",
+                    ),
+                ),
+                (
+                    "target",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="followers",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="target",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'follow',
-                'verbose_name_plural': 'follows',
-                'indexes': [models.Index(fields=['follower', 'created_at'], name='users_follo_followe_229ec1_idx')],
-                'constraints': [models.UniqueConstraint(fields=('follower', 'target'), name='unique_follow_pair'), models.CheckConstraint(condition=models.Q(('follower', models.F('target')), _negated=True), name='no_self_follow')],
+                "verbose_name": "follow",
+                "verbose_name_plural": "follows",
+                "indexes": [
+                    models.Index(
+                        fields=["follower", "created_at"],
+                        name="users_follo_followe_229ec1_idx",
+                    )
+                ],
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=("follower", "target"), name="unique_follow_pair"
+                    ),
+                    models.CheckConstraint(
+                        condition=models.Q(
+                            ("follower", models.F("target")), _negated=True
+                        ),
+                        name="no_self_follow",
+                    ),
+                ],
             },
         ),
     ]

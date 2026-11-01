@@ -110,6 +110,7 @@ class _RaisingUserSocialLogin:
 # models / utils
 # ---------------------------------------------------------------------------
 
+
 class UserStrTests(SimpleTestCase):
     def test_str_returns_username(self):
         u = User(username="struser")
@@ -135,15 +136,22 @@ class MigrationImportTests(SimpleTestCase):
 # permissions (unit level, no DB)
 # ---------------------------------------------------------------------------
 
+
 class IsAdminUserTests(SimpleTestCase):
     def setUp(self):
         self.perm = IsAdminUser()
 
     def test_admin_role_allowed(self):
-        self.assertTrue(self.perm.has_permission(_perm_request(_fake_user(role=User.Roles.ADMIN)), None))
+        self.assertTrue(
+            self.perm.has_permission(
+                _perm_request(_fake_user(role=User.Roles.ADMIN)), None
+            )
+        )
 
     def test_superuser_allowed(self):
-        self.assertTrue(self.perm.has_permission(_perm_request(_fake_user(superuser=True)), None))
+        self.assertTrue(
+            self.perm.has_permission(_perm_request(_fake_user(superuser=True)), None)
+        )
 
     def test_basic_user_denied(self):
         self.assertFalse(self.perm.has_permission(_perm_request(_fake_user()), None))
@@ -158,17 +166,23 @@ class IsProblemCreatorTests(SimpleTestCase):
 
     def test_creator_allowed(self):
         self.assertTrue(
-            self.perm.has_permission(_perm_request(_fake_user(role=User.Roles.PROBLEM_CREATOR)), None)
+            self.perm.has_permission(
+                _perm_request(_fake_user(role=User.Roles.PROBLEM_CREATOR)), None
+            )
         )
 
     def test_verifier_allowed(self):
         self.assertTrue(
-            self.perm.has_permission(_perm_request(_fake_user(role=User.Roles.PROBLEM_VERIFIER)), None)
+            self.perm.has_permission(
+                _perm_request(_fake_user(role=User.Roles.PROBLEM_VERIFIER)), None
+            )
         )
 
     def test_admin_allowed(self):
         self.assertTrue(
-            self.perm.has_permission(_perm_request(_fake_user(role=User.Roles.ADMIN)), None)
+            self.perm.has_permission(
+                _perm_request(_fake_user(role=User.Roles.ADMIN)), None
+            )
         )
 
     def test_basic_denied(self):
@@ -184,17 +198,23 @@ class IsProblemVerifierTests(SimpleTestCase):
 
     def test_verifier_allowed(self):
         self.assertTrue(
-            self.perm.has_permission(_perm_request(_fake_user(role=User.Roles.PROBLEM_VERIFIER)), None)
+            self.perm.has_permission(
+                _perm_request(_fake_user(role=User.Roles.PROBLEM_VERIFIER)), None
+            )
         )
 
     def test_admin_allowed(self):
         self.assertTrue(
-            self.perm.has_permission(_perm_request(_fake_user(role=User.Roles.ADMIN)), None)
+            self.perm.has_permission(
+                _perm_request(_fake_user(role=User.Roles.ADMIN)), None
+            )
         )
 
     def test_creator_denied(self):
         self.assertFalse(
-            self.perm.has_permission(_perm_request(_fake_user(role=User.Roles.PROBLEM_CREATOR)), None)
+            self.perm.has_permission(
+                _perm_request(_fake_user(role=User.Roles.PROBLEM_CREATOR)), None
+            )
         )
 
     def test_anonymous_denied(self):
@@ -213,10 +233,18 @@ class ProblemObjectPermissionsTests(SimpleTestCase):
         return _perm_request(user, method=method)
 
     def test_safe_method_allowed_for_anyone(self):
-        self.assertTrue(self.perm.has_object_permission(self._req(ANON, "GET"), None, self._obj("APPROVED")))
+        self.assertTrue(
+            self.perm.has_object_permission(
+                self._req(ANON, "GET"), None, self._obj("APPROVED")
+            )
+        )
 
     def test_unauthenticated_write_denied(self):
-        self.assertFalse(self.perm.has_object_permission(self._req(ANON, "DELETE"), None, self._obj("DRAFT")))
+        self.assertFalse(
+            self.perm.has_object_permission(
+                self._req(ANON, "DELETE"), None, self._obj("DRAFT")
+            )
+        )
 
     def test_admin_role_can_write(self):
         self.assertTrue(
@@ -248,35 +276,45 @@ class ProblemObjectPermissionsTests(SimpleTestCase):
     def test_author_update_draft_allowed(self):
         self.assertTrue(
             self.perm.has_object_permission(
-                self._req(self.author, "PATCH"), SimpleNamespace(action="update"), self._obj("DRAFT")
+                self._req(self.author, "PATCH"),
+                SimpleNamespace(action="update"),
+                self._obj("DRAFT"),
             )
         )
 
     def test_author_update_private_allowed(self):
         self.assertTrue(
             self.perm.has_object_permission(
-                self._req(self.author, "PATCH"), SimpleNamespace(action="partial_update"), self._obj("PRIVATE")
+                self._req(self.author, "PATCH"),
+                SimpleNamespace(action="partial_update"),
+                self._obj("PRIVATE"),
             )
         )
 
     def test_author_update_approved_denied(self):
         self.assertFalse(
             self.perm.has_object_permission(
-                self._req(self.author, "PATCH"), SimpleNamespace(action="update"), self._obj("APPROVED")
+                self._req(self.author, "PATCH"),
+                SimpleNamespace(action="update"),
+                self._obj("APPROVED"),
             )
         )
 
     def test_author_destroy_draft_allowed(self):
         self.assertTrue(
             self.perm.has_object_permission(
-                self._req(self.author, "DELETE"), SimpleNamespace(action="destroy"), self._obj("DRAFT")
+                self._req(self.author, "DELETE"),
+                SimpleNamespace(action="destroy"),
+                self._obj("DRAFT"),
             )
         )
 
     def test_author_destroy_pending_denied(self):
         self.assertFalse(
             self.perm.has_object_permission(
-                self._req(self.author, "DELETE"), SimpleNamespace(action="destroy"), self._obj("PENDING")
+                self._req(self.author, "DELETE"),
+                SimpleNamespace(action="destroy"),
+                self._obj("PENDING"),
             )
         )
 
@@ -302,7 +340,9 @@ class ProblemObjectPermissionsTests(SimpleTestCase):
         other = _fake_user()
         self.assertFalse(
             self.perm.has_object_permission(
-                self._req(other, "PATCH"), SimpleNamespace(action="update"), self._obj("DRAFT")
+                self._req(other, "PATCH"),
+                SimpleNamespace(action="update"),
+                self._obj("DRAFT"),
             )
         )
 
@@ -322,22 +362,32 @@ class IsOwnerOrAdminForUserTests(SimpleTestCase):
         self.owner = _fake_user()
 
     def test_owner_allowed(self):
-        self.assertTrue(self.perm.has_object_permission(_perm_request(self.owner), None, self.owner))
+        self.assertTrue(
+            self.perm.has_object_permission(_perm_request(self.owner), None, self.owner)
+        )
 
     def test_admin_role_allowed(self):
         admin = _fake_user(role=User.Roles.ADMIN)
-        self.assertTrue(self.perm.has_object_permission(_perm_request(admin), None, self.owner))
+        self.assertTrue(
+            self.perm.has_object_permission(_perm_request(admin), None, self.owner)
+        )
 
     def test_superuser_allowed(self):
         sup = _fake_user(superuser=True)
-        self.assertTrue(self.perm.has_object_permission(_perm_request(sup), None, self.owner))
+        self.assertTrue(
+            self.perm.has_object_permission(_perm_request(sup), None, self.owner)
+        )
 
     def test_other_user_denied(self):
         other = _fake_user()
-        self.assertFalse(self.perm.has_object_permission(_perm_request(other), None, self.owner))
+        self.assertFalse(
+            self.perm.has_object_permission(_perm_request(other), None, self.owner)
+        )
 
     def test_anonymous_denied(self):
-        self.assertFalse(self.perm.has_object_permission(_perm_request(ANON), None, self.owner))
+        self.assertFalse(
+            self.perm.has_object_permission(_perm_request(ANON), None, self.owner)
+        )
 
 
 class IsOwnerOrAdminForSubmissionTests(SimpleTestCase):
@@ -349,23 +399,32 @@ class IsOwnerOrAdminForSubmissionTests(SimpleTestCase):
         self.obj = SimpleNamespace(user=self.owner)
 
     def test_owner_allowed(self):
-        self.assertTrue(self.perm.has_object_permission(_perm_request(self.owner), None, self.obj))
+        self.assertTrue(
+            self.perm.has_object_permission(_perm_request(self.owner), None, self.obj)
+        )
 
     def test_admin_role_allowed(self):
         admin = _fake_user(role=User.Roles.ADMIN)
-        self.assertTrue(self.perm.has_object_permission(_perm_request(admin), None, self.obj))
+        self.assertTrue(
+            self.perm.has_object_permission(_perm_request(admin), None, self.obj)
+        )
 
     def test_other_user_denied(self):
         other = _fake_user()
-        self.assertFalse(self.perm.has_object_permission(_perm_request(other), None, self.obj))
+        self.assertFalse(
+            self.perm.has_object_permission(_perm_request(other), None, self.obj)
+        )
 
     def test_anonymous_denied(self):
-        self.assertFalse(self.perm.has_object_permission(_perm_request(ANON), None, self.obj))
+        self.assertFalse(
+            self.perm.has_object_permission(_perm_request(ANON), None, self.obj)
+        )
 
 
 # ---------------------------------------------------------------------------
 # adapters
 # ---------------------------------------------------------------------------
+
 
 class CustomAccountAdapterTests(SimpleTestCase):
     def test_login_redirect_url_is_root(self):
@@ -401,6 +460,7 @@ class CustomSocialAccountAdapterTests(SimpleTestCase):
 # registration API
 # ---------------------------------------------------------------------------
 
+
 class RegistrationApiTests(APITestCase):
     def setUp(self):
         self.url = "/api/v1/users/register/"
@@ -432,7 +492,9 @@ class RegistrationApiTests(APITestCase):
         }
         response = self.client.post(self.url, payload, format="json")
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(User.objects.get(username="basicreg").role, User.Roles.BASIC_USER)
+        self.assertEqual(
+            User.objects.get(username="basicreg").role, User.Roles.BASIC_USER
+        )
 
     def test_register_duplicate_email_case_insensitive(self):
         User.objects.create_user(
@@ -475,10 +537,13 @@ class RegistrationApiTests(APITestCase):
 # login serializer
 # ---------------------------------------------------------------------------
 
+
 class CustomLoginSerializerTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
-            username="loginser", email="loginser@example.com", password="Serializer!Pass1"
+            username="loginser",
+            email="loginser@example.com",
+            password="Serializer!Pass1",
         )
 
     def test_to_representation_injects_user(self):
@@ -498,7 +563,9 @@ class RestAuthLoginSmokeTests(TestCase):
         # USE_JWT=True and LOGIN_SERIALIZER are inert and the endpoint returns
         # a DRF token ``key`` instead of JWT access/refresh.
         User.objects.create_user(
-            username="loginsmoke", email="loginsmoke@example.com", password="Smoke!Test!99"
+            username="loginsmoke",
+            email="loginsmoke@example.com",
+            password="Smoke!Test!99",
         )
         response = self.client.post(
             "/api/v1/auth/login/",
@@ -514,6 +581,7 @@ class RestAuthLoginSmokeTests(TestCase):
 # password change API
 # ---------------------------------------------------------------------------
 
+
 class PasswordChangeApiTests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
@@ -525,7 +593,11 @@ class PasswordChangeApiTests(APITestCase):
     def test_password_change_success(self):
         response = self.client.post(
             self.url,
-            {"old_password": "OldPass!1234", "new_password1": "NewPass!5678", "new_password2": "NewPass!5678"},
+            {
+                "old_password": "OldPass!1234",
+                "new_password1": "NewPass!5678",
+                "new_password2": "NewPass!5678",
+            },
             format="json",
         )
         self.assertEqual(response.status_code, 200)
@@ -536,7 +608,11 @@ class PasswordChangeApiTests(APITestCase):
     def test_password_change_wrong_old_password(self):
         response = self.client.post(
             self.url,
-            {"old_password": "WrongOld!0000", "new_password1": "NewPass!5678", "new_password2": "NewPass!5678"},
+            {
+                "old_password": "WrongOld!0000",
+                "new_password1": "NewPass!5678",
+                "new_password2": "NewPass!5678",
+            },
             format="json",
         )
         self.assertEqual(response.status_code, 400)
@@ -545,7 +621,11 @@ class PasswordChangeApiTests(APITestCase):
     def test_password_change_new_mismatch(self):
         response = self.client.post(
             self.url,
-            {"old_password": "OldPass!1234", "new_password1": "NewPass!5678", "new_password2": "Different!9x"},
+            {
+                "old_password": "OldPass!1234",
+                "new_password1": "NewPass!5678",
+                "new_password2": "Different!9x",
+            },
             format="json",
         )
         self.assertEqual(response.status_code, 400)
@@ -554,7 +634,11 @@ class PasswordChangeApiTests(APITestCase):
     def test_password_change_same_as_old(self):
         response = self.client.post(
             self.url,
-            {"old_password": "OldPass!1234", "new_password1": "OldPass!1234", "new_password2": "OldPass!1234"},
+            {
+                "old_password": "OldPass!1234",
+                "new_password1": "OldPass!1234",
+                "new_password2": "OldPass!1234",
+            },
             format="json",
         )
         self.assertEqual(response.status_code, 400)
@@ -564,7 +648,11 @@ class PasswordChangeApiTests(APITestCase):
         self.client.force_authenticate(user=None)
         response = self.client.post(
             self.url,
-            {"old_password": "OldPass!1234", "new_password1": "NewPass!5678", "new_password2": "NewPass!5678"},
+            {
+                "old_password": "OldPass!1234",
+                "new_password1": "NewPass!5678",
+                "new_password2": "NewPass!5678",
+            },
             format="json",
         )
         self.assertIn(response.status_code, (401, 403))
@@ -591,6 +679,7 @@ class PasswordChangeApiTests(APITestCase):
 # ---------------------------------------------------------------------------
 # /users/me/ + UserViewSet
 # ---------------------------------------------------------------------------
+
 
 class UserMeApiTests(APITestCase):
     def setUp(self):
@@ -647,6 +736,7 @@ class UserViewSetApiTests(APITestCase):
 # ---------------------------------------------------------------------------
 # admin user management viewset
 # ---------------------------------------------------------------------------
+
 
 class AdminUserViewSetApiTests(APITestCase):
     def setUp(self):
@@ -757,6 +847,7 @@ class AdminUserViewSetApiTests(APITestCase):
 # admin stats
 # ---------------------------------------------------------------------------
 
+
 class AdminStatsApiTests(APITestCase):
     def setUp(self):
         self.admin = User.objects.create_user(
@@ -766,7 +857,9 @@ class AdminStatsApiTests(APITestCase):
             role=User.Roles.ADMIN,
         )
         self.basic = User.objects.create_user(
-            username="statsuser", email="statsuser@example.com", password="Stats!Pass8765"
+            username="statsuser",
+            email="statsuser@example.com",
+            password="Stats!Pass8765",
         )
         self.problem = Problem.objects.create(
             title_i18n={"en": "A+B"},
@@ -785,7 +878,8 @@ class AdminStatsApiTests(APITestCase):
         response = self.client.get("/api/v1/users/admin/stats/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            response.json(), {"user_count": 2, "problem_count": 1, "submission_count": 2}
+            response.json(),
+            {"user_count": 2, "problem_count": 1, "submission_count": 2},
         )
 
     def test_stats_as_basic_user_forbidden(self):
@@ -798,17 +892,24 @@ class AdminStatsApiTests(APITestCase):
 # management commands
 # ---------------------------------------------------------------------------
 
+
 class CreateAdminCommandTests(TestCase):
     def test_missing_env_vars_reports_error(self):
         out = StringIO()
-        with mock.patch.dict(os.environ, {"ADMIN_USER": "", "ADMIN_EMAIL": "", "ADMIN_PASS": ""}):
+        with mock.patch.dict(
+            os.environ, {"ADMIN_USER": "", "ADMIN_EMAIL": "", "ADMIN_PASS": ""}
+        ):
             call_command("create_admin", stdout=out)
         self.assertIn("required", out.getvalue())
         self.assertEqual(User.objects.filter(username="rootadmin").count(), 0)
 
     def test_creates_superuser_from_env(self):
         out = StringIO()
-        env = {"ADMIN_USER": "rootadmin", "ADMIN_EMAIL": "root@example.com", "ADMIN_PASS": "Sup3rSecret!99"}
+        env = {
+            "ADMIN_USER": "rootadmin",
+            "ADMIN_EMAIL": "root@example.com",
+            "ADMIN_PASS": "Sup3rSecret!99",
+        }
         with mock.patch.dict(os.environ, env):
             call_command("create_admin", stdout=out)
         self.assertIn("Successfully created", out.getvalue())
@@ -822,9 +923,15 @@ class CreateAdminCommandTests(TestCase):
         self.assertEqual(user.role, User.Roles.ADMIN)
 
     def test_existing_superuser_is_updated(self):
-        User.objects.create_superuser("rootadmin", "root@example.com", "First!Password1")
+        User.objects.create_superuser(
+            "rootadmin", "root@example.com", "First!Password1"
+        )
         out = StringIO()
-        env = {"ADMIN_USER": "rootadmin", "ADMIN_EMAIL": "root@example.com", "ADMIN_PASS": "Sec0nd!Password"}
+        env = {
+            "ADMIN_USER": "rootadmin",
+            "ADMIN_EMAIL": "root@example.com",
+            "ADMIN_PASS": "Sec0nd!Password",
+        }
         with mock.patch.dict(os.environ, env):
             call_command("create_admin", stdout=out)
         self.assertIn("already exists", out.getvalue())
@@ -834,11 +941,13 @@ class CreateAdminCommandTests(TestCase):
 
     def test_existing_basic_role_superuser_is_healed_to_admin(self):
         # Seed predating the fix: superuser with the BASIC default role.
-        User.objects.create_superuser(
-            "oldadmin", "old@example.com", "First!Password1"
-        )
+        User.objects.create_superuser("oldadmin", "old@example.com", "First!Password1")
         User.objects.filter(username="oldadmin").update(role=User.Roles.BASIC_USER)
-        env = {"ADMIN_USER": "oldadmin", "ADMIN_EMAIL": "old@example.com", "ADMIN_PASS": "Sec0nd!Password"}
+        env = {
+            "ADMIN_USER": "oldadmin",
+            "ADMIN_EMAIL": "old@example.com",
+            "ADMIN_PASS": "Sec0nd!Password",
+        }
         with mock.patch.dict(os.environ, env):
             call_command("create_admin", stdout=StringIO())
         user = User.objects.get(username="oldadmin")
@@ -856,8 +965,10 @@ class AddSocialAppsCommandTests(TestCase):
 
         out = StringIO()
         empty = {
-            "GOOGLE_CLIENT_ID": "", "GOOGLE_SECRET": "",
-            "GITHUB_CLIENT_ID": "", "GITHUB_SECRET": "",
+            "GOOGLE_CLIENT_ID": "",
+            "GOOGLE_SECRET": "",
+            "GITHUB_CLIENT_ID": "",
+            "GITHUB_SECRET": "",
         }
         with mock.patch.dict(os.environ, empty):
             call_command("add_social_apps", stdout=out)
@@ -868,8 +979,10 @@ class AddSocialAppsCommandTests(TestCase):
         from allauth.socialaccount.models import SocialApp
 
         env = {
-            "GOOGLE_CLIENT_ID": "google-id", "GOOGLE_SECRET": "google-secret",
-            "GITHUB_CLIENT_ID": "github-id", "GITHUB_SECRET": "github-secret",
+            "GOOGLE_CLIENT_ID": "google-id",
+            "GOOGLE_SECRET": "google-secret",
+            "GITHUB_CLIENT_ID": "github-id",
+            "GITHUB_SECRET": "github-secret",
         }
         out = StringIO()
         with mock.patch.dict(os.environ, env):

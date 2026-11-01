@@ -1,7 +1,6 @@
 """URLs for the community-depth app (Wave C)."""
 
 from django.urls import path
-from rest_framework.routers import DefaultRouter
 
 from . import views
 

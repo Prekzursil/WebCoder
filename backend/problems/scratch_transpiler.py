@@ -55,6 +55,7 @@ def _transpile_message(exc: "TranspileError") -> str:
         return exc.args[0]
     return "the Scratch project could not be translated"
 
+
 #: The pseudo-language id submissions use (judge_utils.languages).
 SCRATCH_LANGUAGE_ID = "scratch"
 
@@ -108,9 +109,7 @@ REPORTER_OPCODES = frozenset(
 KNOWN_OPCODES = STATEMENT_OPCODES | REPORTER_OPCODES
 
 #: operator_mathop implementations (Scratch names → preamble helpers).
-_MATH_OPS = frozenset(
-    {"abs", "floor", "ceiling", "sqrt", "sin", "cos", "tan", "round"}
-)
+_MATH_OPS = frozenset({"abs", "floor", "ceiling", "sqrt", "sin", "cos", "tan", "round"})
 
 #: sb3 primitive input typecodes (scratch-vm's serialization/sb3.js:
 #: MATH_PRIMITIVE=4, TEXT_PRIMITIVE=10, BROADCAST_PRIMITIVE=11,
@@ -381,9 +380,13 @@ class _Emitter:
             right = self._value("NUM2", inputs)
             return f"(_wc_num({left}) {op} _wc_num({right}))"
         if opcode == "operator_divide":
-            return f"_wc_div({self._value('NUM1', inputs)}, {self._value('NUM2', inputs)})"
+            return (
+                f"_wc_div({self._value('NUM1', inputs)}, {self._value('NUM2', inputs)})"
+            )
         if opcode == "operator_mod":
-            return f"_wc_mod({self._value('NUM1', inputs)}, {self._value('NUM2', inputs)})"
+            return (
+                f"_wc_mod({self._value('NUM1', inputs)}, {self._value('NUM2', inputs)})"
+            )
         if opcode == "operator_lt":
             return f"_wc_lt({self._value('OPERAND1', inputs)}, {self._value('OPERAND2', inputs)})"
         if opcode == "operator_gt":
@@ -437,9 +440,7 @@ class _Emitter:
             return
         if opcode == "data_changevariableby":
             ident = self.var_ident(block)
-            self.line(
-                f"{ident} = _wc_add({ident}, {self._value('VALUE', inputs)})"
-            )
+            self.line(f"{ident} = _wc_add({ident}, {self._value('VALUE', inputs)})")
             return
         if opcode == "sensing_askandwait":
             # The question is a stage bubble; the judge consumes only the
@@ -569,7 +570,9 @@ def validate_project(code: str, allowed_opcodes: list[str] | None = None) -> lis
         used = collect_opcodes(project)
     except TranspileError as exc:
         return [_transpile_message(exc)]
-    allowed = set(allowed_opcodes) if allowed_opcodes is not None else set(KNOWN_OPCODES)
+    allowed = (
+        set(allowed_opcodes) if allowed_opcodes is not None else set(KNOWN_OPCODES)
+    )
     unsupported_set = used - KNOWN_OPCODES
     unsupported = sorted(unsupported_set)
     if unsupported:
@@ -579,8 +582,7 @@ def validate_project(code: str, allowed_opcodes: list[str] | None = None) -> lis
     not_allowed = sorted((used - unsupported_set) - allowed)
     if not_allowed:
         errors.append(
-            "project uses blocks this problem does not allow: "
-            + ", ".join(not_allowed)
+            "project uses blocks this problem does not allow: " + ", ".join(not_allowed)
         )
     try:
         transpile_project(project)

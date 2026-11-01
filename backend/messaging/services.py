@@ -60,9 +60,7 @@ def can_message(sender, recipient) -> None:
     if recipient.is_minor:
         exempt = sender.is_staff or sender.role == User.Roles.ADMIN
         if not exempt:
-            follows = Follow.objects.filter(
-                follower=recipient, target=sender
-            ).exists()
+            follows = Follow.objects.filter(follower=recipient, target=sender).exists()
             if not (follows or shares_a_classroom(recipient, sender)):
                 raise PolicyError("minor_policy")
 
@@ -74,9 +72,13 @@ def get_or_start_conversation(sender, recipient):
     thread into existence.
     """
     can_message(sender, recipient)
-    lo, hi = (sender, recipient) if sender.pk <= recipient.pk else (
-        recipient,
-        sender,
+    lo, hi = (
+        (sender, recipient)
+        if sender.pk <= recipient.pk
+        else (
+            recipient,
+            sender,
+        )
     )
     return Conversation.objects.get_or_create(user1=lo, user2=hi)
 

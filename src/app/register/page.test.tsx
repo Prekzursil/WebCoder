@@ -1,9 +1,8 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, act, cleanup } from '@testing-library/react';
-import type React from 'react';
-import { AuthService } from '@/services/ApiService';
-import type { RegisterResponse } from '@/types/api';
-import RegisterPage from './page';
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, fireEvent, act, cleanup } from "@testing-library/react";
+import { AuthService } from "@/services/ApiService";
+import type { RegisterResponse } from "@/types/api";
+import RegisterPage from "./page";
 
 // Mocks follow the layout.test.tsx convention: next/navigation hooks and the
 // ApiService. RegisterPage does not consume AuthContext, so it stays real
@@ -22,13 +21,13 @@ const { routerMock } = vi.hoisted(() => ({
   },
 }));
 
-vi.mock('next/navigation', () => ({
+vi.mock("next/navigation", () => ({
   useRouter: () => routerMock,
-  usePathname: () => '/register',
+  usePathname: () => "/register",
   useSearchParams: () => new URLSearchParams(),
 }));
 
-vi.mock('@/services/ApiService', () => ({
+vi.mock("@/services/ApiService", () => ({
   AuthService: {
     login: vi.fn(),
     register: vi.fn(),
@@ -55,7 +54,7 @@ function fillForm(username: string, email: string, password: string, password2: 
 }
 
 function submitForm() {
-  fireEvent.click(screen.getByRole('button', { name: 'Register' }));
+  fireEvent.click(screen.getByRole("button", { name: "Register" }));
 }
 
 beforeEach(() => {
@@ -68,60 +67,63 @@ beforeEach(() => {
 // later queries find duplicate elements.
 afterEach(cleanup);
 
-describe('RegisterPage', () => {
-  it('renders the register form with labels, social links, and login link', () => {
+describe("RegisterPage", () => {
+  it("renders the register form with labels, social links, and login link", () => {
     renderRegister();
 
-    expect(screen.getByRole('heading', { name: 'Register' })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Register" })).toBeInTheDocument();
     expect(screen.getByLabelText(/^Username/)).toBeInTheDocument();
     expect(screen.getByLabelText(/^Email Address/)).toBeInTheDocument();
     expect(screen.getByLabelText(/^Password/)).toBeInTheDocument();
     expect(screen.getByLabelText(/^Confirm Password/)).toBeInTheDocument();
-    expect(screen.getByText('Or sign up with:')).toBeInTheDocument();
+    expect(screen.getByText("Or sign up with:")).toBeInTheDocument();
     // MUI Button with href renders an <a> (implicit link role), not a button.
-    expect(screen.getByRole('link', { name: 'Google' })).toHaveAttribute(
-      'href',
-      'http://localhost:8000/api/v1/auth/google/login/'
+    expect(screen.getByRole("link", { name: "Google" })).toHaveAttribute(
+      "href",
+      "http://localhost:8000/api/v1/auth/google/login/",
     );
-    expect(screen.getByRole('link', { name: 'GitHub' })).toHaveAttribute(
-      'href',
-      'http://localhost:8000/api/v1/auth/github/login/'
+    expect(screen.getByRole("link", { name: "GitHub" })).toHaveAttribute(
+      "href",
+      "http://localhost:8000/api/v1/auth/github/login/",
     );
-    expect(screen.getByRole('link', { name: 'Login here' })).toHaveAttribute('href', '/login');
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Login here" })).toHaveAttribute("href", "/login");
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
-  it('reflects typed values in the four controlled inputs', () => {
+  it("reflects typed values in the four controlled inputs", () => {
     renderRegister();
 
-    fillForm('Grace', 'grace@example.com', 'pw-one', 'pw-two');
+    fillForm("Grace", "grace@example.com", "pw-one", "pw-two");
 
-    expect((screen.getByLabelText(/^Username/) as HTMLInputElement).value).toBe('Grace');
+    expect((screen.getByLabelText(/^Username/) as HTMLInputElement).value).toBe("Grace");
     expect((screen.getByLabelText(/^Email Address/) as HTMLInputElement).value).toBe(
-      'grace@example.com'
+      "grace@example.com",
     );
-    expect((screen.getByLabelText(/^Password/) as HTMLInputElement).value).toBe('pw-one');
-    expect((screen.getByLabelText(/^Confirm Password/) as HTMLInputElement).value).toBe('pw-two');
+    expect((screen.getByLabelText(/^Password/) as HTMLInputElement).value).toBe("pw-one");
+    expect((screen.getByLabelText(/^Confirm Password/) as HTMLInputElement).value).toBe("pw-two");
   });
 
-  it('blocks submission with an error when passwords do not match (no API call)', () => {
+  it("blocks submission with an error when passwords do not match (no API call)", () => {
     renderRegister();
 
-    fillForm('Grace', 'grace@example.com', 'pw-one', 'pw-TWO-different');
+    fillForm("Grace", "grace@example.com", "pw-one", "pw-TWO-different");
     submitForm();
 
-    expect(screen.getByRole('alert')).toHaveTextContent('Passwords do not match.');
+    expect(screen.getByRole("alert")).toHaveTextContent("Passwords do not match.");
     expect(registerMock).not.toHaveBeenCalled();
     expect(routerMock.push).not.toHaveBeenCalled();
   });
 
-  it('registers successfully: shows the success alert, then redirects to /login after 2s', async () => {
+  it("registers successfully: shows the success alert, then redirects to /login after 2s", async () => {
     vi.useFakeTimers();
     try {
       renderRegister();
-      registerMock.mockResolvedValueOnce({ user: undefined, message: 'ok' } as unknown as RegisterResponse);
+      registerMock.mockResolvedValueOnce({
+        user: undefined,
+        message: "ok",
+      } as unknown as RegisterResponse);
 
-      fillForm('Grace', 'grace@example.com', 'pw-one', 'pw-one');
+      fillForm("Grace", "grace@example.com", "pw-one", "pw-one");
       submitForm();
 
       // Flush the mocked promise + React state updates (fake timers freeze
@@ -132,90 +134,87 @@ describe('RegisterPage', () => {
       });
 
       expect(registerMock).toHaveBeenCalledWith({
-        username: 'Grace',
-        email: 'grace@example.com',
-        password: 'pw-one',
-        password2: 'pw-one',
+        username: "Grace",
+        email: "grace@example.com",
+        password: "pw-one",
+        password2: "pw-one",
       });
       expect(
-        screen.getByText('Registration successful! Redirecting to login...')
+        screen.getByText("Registration successful! Redirecting to login..."),
       ).toBeInTheDocument();
       expect(routerMock.push).not.toHaveBeenCalled();
 
       act(() => {
         vi.advanceTimersByTime(2000);
       });
-      expect(routerMock.push).toHaveBeenCalledWith('/login');
+      expect(routerMock.push).toHaveBeenCalledWith("/login");
     } finally {
       vi.useRealTimers();
     }
   });
 
-  it('shows a spinner and disables the submit button while registering', async () => {
+  it("shows a spinner and disables the submit button while registering", async () => {
     renderRegister();
     let resolveRegister!: (value: RegisterResponse) => void;
     registerMock.mockImplementationOnce(
-      () => new Promise<RegisterResponse>((resolve) => { resolveRegister = resolve; })
+      () =>
+        new Promise<RegisterResponse>((resolve) => {
+          resolveRegister = resolve;
+        }),
     );
 
-    fillForm('Grace', 'grace@example.com', 'pw-one', 'pw-one');
+    fillForm("Grace", "grace@example.com", "pw-one", "pw-one");
     // Hold the button reference before submitting: while isSubmitting is true
     // the label is replaced by a spinner, so a name-based query finds nothing.
-    const submitButton = screen.getByRole('button', { name: 'Register' });
+    const submitButton = screen.getByRole("button", { name: "Register" });
     fireEvent.click(submitButton);
 
     expect(submitButton).toBeDisabled();
-    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    expect(screen.getByRole("progressbar")).toBeInTheDocument();
 
     await act(async () => {
-      resolveRegister({ user: undefined, message: 'ok' } as unknown as RegisterResponse);
+      resolveRegister({ user: undefined, message: "ok" } as unknown as RegisterResponse);
       await Promise.resolve();
       await Promise.resolve();
     });
 
-    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
-    expect(screen.getByText('Registration successful! Redirecting to login...')).toBeInTheDocument();
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+    expect(
+      screen.getByText("Registration successful! Redirecting to login..."),
+    ).toBeInTheDocument();
   });
 
   it.each([
-    ['an Error with a message', new Error('Username already taken.'), 'Username already taken.'],
-    [
-      'an Error with an empty message',
-      new Error(''),
-      'Registration failed. Please try again.',
-    ],
-    [
-      'a non-Error rejection',
-      { status: 500 },
-      'Registration failed. Please try again.',
-    ],
-  ])('surfaces the API failure when the API rejects with %s', async (_label, rejection, expected) => {
+    ["an Error with a message", new Error("Username already taken."), "Username already taken."],
+    ["an Error with an empty message", new Error(""), "Registration failed. Please try again."],
+    ["a non-Error rejection", { status: 500 }, "Registration failed. Please try again."],
+  ])("surfaces the API failure when the API rejects with %s", async (_label, rejection, expected) => {
     const { unmount } = renderRegister();
     registerMock.mockRejectedValueOnce(rejection);
 
-    fillForm('Grace', 'grace@example.com', 'pw-one', 'pw-one');
+    fillForm("Grace", "grace@example.com", "pw-one", "pw-one");
     submitForm();
 
-    const alert = await screen.findByRole('alert');
+    const alert = await screen.findByRole("alert");
     expect(alert).toHaveTextContent(expected);
     expect(routerMock.push).not.toHaveBeenCalled();
     unmount();
   });
 
-  it('builds social-signup URLs from NEXT_PUBLIC_API_BASE when set', async () => {
-    vi.stubEnv('NEXT_PUBLIC_API_BASE', 'https://api.webcoder.example');
+  it("builds social-signup URLs from NEXT_PUBLIC_API_BASE when set", async () => {
+    vi.stubEnv("NEXT_PUBLIC_API_BASE", "https://api.webcoder.example");
     // API_BASE_URL is a module-level const in api-config.ts, captured at import
     // time, so vi.stubEnv alone cannot change it. Reset the graph and re-import.
     vi.resetModules();
-    const { default: FreshRegisterPage } = await import('./page');
+    const { default: FreshRegisterPage } = await import("./page");
     render(<FreshRegisterPage />);
-    expect(screen.getByRole('link', { name: 'Google' })).toHaveAttribute(
-      'href',
-      'https://api.webcoder.example/api/v1/auth/google/login/'
+    expect(screen.getByRole("link", { name: "Google" })).toHaveAttribute(
+      "href",
+      "https://api.webcoder.example/api/v1/auth/google/login/",
     );
-    expect(screen.getByRole('link', { name: 'GitHub' })).toHaveAttribute(
-      'href',
-      'https://api.webcoder.example/api/v1/auth/github/login/'
+    expect(screen.getByRole("link", { name: "GitHub" })).toHaveAttribute(
+      "href",
+      "https://api.webcoder.example/api/v1/auth/github/login/",
     );
   });
 });

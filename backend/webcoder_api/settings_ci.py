@@ -1,5 +1,16 @@
-from . import settings as base_settings
-from .settings import BASE_DIR
+import os as _os
+
+# Self-contained CI settings: base settings.py reads SECRET_KEY/DB_PASSWORD
+# fail-loud (os.environ[...]), but the lean quality gate runs a bare
+# `python -m pytest` with no job-level env (GitHub Actions forbids `env:` on a
+# job that calls a reusable workflow). Seed the same CI placeholders Django CI
+# injects BEFORE importing base settings; setdefault keeps a real environment
+# authoritative. Production (settings_prod / base settings) stays fail-loud.
+_os.environ.setdefault("SECRET_KEY", "ci-only-secret-key")
+_os.environ.setdefault("DB_PASSWORD", "ci-only-db-password")
+
+from . import settings as base_settings  # noqa: E402 (env must be seeded first)
+from .settings import BASE_DIR  # noqa: E402
 
 for _name in dir(base_settings):
     if _name.isupper():
@@ -11,11 +22,13 @@ for _name in dir(base_settings):
 # production signatures, so an env key below the floor is replaced by this
 # deterministic 64-char key; sign/verify within a test run stays
 # self-consistent because SIMPLE_JWT reads the same value.
-import os as _os
-
 if len(_os.environ.get("SECRET_KEY", "")) < 32:
     SECRET_KEY = "ci-only-signing-key-0123456789abcdef0123456789abcdef"
-    SIMPLE_JWT = {**SIMPLE_JWT, "SIGNING_KEY": SECRET_KEY, "VERIFYING_KEY": SECRET_KEY}
+    SIMPLE_JWT = {
+        **base_settings.SIMPLE_JWT,
+        "SIGNING_KEY": SECRET_KEY,
+        "VERIFYING_KEY": SECRET_KEY,
+    }
 
 # CI verify uses sqlite to avoid coupling governance checks to live Postgres credentials.
 DATABASES = {
@@ -35,7 +48,7 @@ PASSWORD_HASHERS = [
 # throttle MECHANISM is covered by dedicated tests that opt back in via
 # override_settings with shrunk rates and an isolated cache.
 REST_FRAMEWORK = {
-    **REST_FRAMEWORK,  # type: ignore[name-defined]  # imported via * above
+    **base_settings.REST_FRAMEWORK,
     "DEFAULT_THROTTLE_CLASSES": [],
     "DEFAULT_THROTTLE_RATES": {
         "anon": "10000/min",

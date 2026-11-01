@@ -4,15 +4,25 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('notifications', '0001_initial'),
+        ("notifications", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='notification',
-            name='verb',
-            field=models.CharField(choices=[('SUBMISSION_JUDGED', 'Submission judged'), ('THREAD_REPLY', 'Thread reply'), ('PROBLEM_APPROVED', 'Problem approved'), ('PROBLEM_REJECTED', 'Problem rejected'), ('ASSIGNMENT_PUBLISHED', 'Assignment published'), ('SYSTEM', 'System')], max_length=20, verbose_name='verb'),
+            model_name="notification",
+            name="verb",
+            field=models.CharField(
+                choices=[
+                    ("SUBMISSION_JUDGED", "Submission judged"),
+                    ("THREAD_REPLY", "Thread reply"),
+                    ("PROBLEM_APPROVED", "Problem approved"),
+                    ("PROBLEM_REJECTED", "Problem rejected"),
+                    ("ASSIGNMENT_PUBLISHED", "Assignment published"),
+                    ("SYSTEM", "System"),
+                ],
+                max_length=20,
+                verbose_name="verb",
+            ),
         ),
     ]

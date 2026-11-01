@@ -81,9 +81,13 @@ class ParseTemplateTests(TestCase):
             parse_template("int main() {}\n")
 
     def test_multiple_editable_regions_supported(self):
-        template = "a\nWC_EDIT_START\nb\nWC_EDIT_END\nc\nWC_EDIT_START\nd\nWC_EDIT_END\ne\n"
+        template = (
+            "a\nWC_EDIT_START\nb\nWC_EDIT_END\nc\nWC_EDIT_START\nd\nWC_EDIT_END\ne\n"
+        )
         segments = parse_template(template)
-        self.assertEqual([seg.locked for seg in segments], [True, False, True, False, True])
+        self.assertEqual(
+            [seg.locked for seg in segments], [True, False, True, False, True]
+        )
 
     def test_oversized_template_rejected(self):
         with self.assertRaises(TemplateError):
@@ -233,9 +237,7 @@ class JudgeTimeTemplateTests(TestCase):
         )
         judge_submission_task.run(submission.id)
         submission.refresh_from_db()
-        self.assertEqual(
-            submission.verdict, Submission.VerdictStatus.COMPILE_ERROR
-        )
+        self.assertEqual(submission.verdict, Submission.VerdictStatus.COMPILE_ERROR)
         self.assertIn("Template integrity", submission.detailed_feedback)
 
 

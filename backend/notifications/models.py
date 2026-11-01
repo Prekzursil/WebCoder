@@ -49,16 +49,12 @@ class Notification(models.Model):
         blank=True,
         verbose_name=_("target content type"),
     )
-    target_id = models.PositiveBigIntegerField(
-        _("target id"), null=True, blank=True
-    )
+    target_id = models.PositiveBigIntegerField(_("target id"), null=True, blank=True)
     target = GenericForeignKey("target_ct", "target_id")
     data = models.JSONField(
         _("data"), default=dict, blank=True
     )  # verdict, problem title, feedback excerpt, ...
-    read_at = models.DateTimeField(
-        _("read at"), null=True, blank=True
-    )  # null = unread
+    read_at = models.DateTimeField(_("read at"), null=True, blank=True)  # null = unread
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
     class Meta:

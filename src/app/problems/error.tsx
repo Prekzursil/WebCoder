@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 // App Router error boundary for the public problems routes — replaces the CRA
 // pages' red `<p>{error}</p>` returns (ProblemsListPage.tsx:33,
@@ -6,7 +6,7 @@
 // the API error message first, translated fallback second. The reset button
 // is the App Router addition (retries the failed server render).
 
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 
 interface ProblemsErrorProps {
   error: Error & { digest?: string };
@@ -18,15 +18,15 @@ export default function ProblemsError({ error, reset }: ProblemsErrorProps) {
 
   return (
     <div>
-      <p style={{ color: 'red' }}>
-        {error.message || t('error_loading_problems', 'Failed to load problems.')}
+      <p style={{ color: "red" }}>
+        {error.message || t("error_loading_problems", "Failed to load problems.")}
       </p>
       <button
         type="button"
         onClick={reset}
-        style={{ marginTop: '10px', padding: '10px 15px', cursor: 'pointer' }}
+        style={{ marginTop: "10px", padding: "10px 15px", cursor: "pointer" }}
       >
-        {t('try_again_button', 'Try Again')}
+        {t("try_again_button", "Try Again")}
       </button>
     </div>
   );

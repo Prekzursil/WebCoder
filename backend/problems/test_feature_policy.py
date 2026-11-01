@@ -4,12 +4,11 @@ submit-time 400 gate, judge-time enforcement, and the generated Python
 import guard executed for real.
 """
 
-import os
 import pathlib
 import tempfile
 import unittest
 
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from rest_framework.test import APIClient
 
 from problems.feature_policy import (
@@ -93,9 +92,7 @@ class PythonScannerTests(unittest.TestCase):
 
     def test_syntax_error_is_not_a_policy_violation(self):
         # Unparseable sources are the judge's CE, not this scanner's call.
-        self.assertEqual(
-            scan_policy_violations("def (", "python3", PY_BAN_RE), []
-        )
+        self.assertEqual(scan_policy_violations("def (", "python3", PY_BAN_RE), [])
 
     def test_string_index_bypass_detected(self):
         # The owner's canonical example: digit extraction shortcut by
@@ -118,9 +115,7 @@ class PythonScannerTests(unittest.TestCase):
             "    n //= 10\n"
             "print(total)\n"
         )
-        self.assertEqual(
-            scan_policy_violations(code, "python3", PY_NO_STRING), []
-        )
+        self.assertEqual(scan_policy_violations(code, "python3", PY_NO_STRING), [])
 
     def test_input_strip_chain_is_derived(self):
         # input().split() keeps the value string-derived (one hop).
@@ -131,20 +126,13 @@ class PythonScannerTests(unittest.TestCase):
         # Aliasing through a function boundary evades the static detector —
         # the documented reason feature bans are guardrails, not sandbox
         # boundaries (imports carry the hard enforcement).
-        code = (
-            "def get():\n"
-            "    return input()\n"
-            "s = get()\n"
-            "print(s[0])\n"
-        )
-        self.assertEqual(
-            scan_policy_violations(code, "python3", PY_NO_STRING), []
-        )
+        code = "def get():\n    return input()\ns = get()\nprint(s[0])\n"
+        self.assertEqual(scan_policy_violations(code, "python3", PY_NO_STRING), [])
 
 
 class CppScannerTests(unittest.TestCase):
     def test_boost_angle_include_detected(self):
-        code = '#include <boost/regex.hpp>\n#include <iostream>\nint main(){}\n'
+        code = "#include <boost/regex.hpp>\n#include <iostream>\nint main(){}\n"
         violations = scan_policy_violations(code, "cpp17", CPP_BAN_BOOST)
         self.assertEqual(len(violations), 1)
         self.assertIn("boost/regex.hpp", violations[0])
@@ -155,14 +143,12 @@ class CppScannerTests(unittest.TestCase):
 
     def test_standard_headers_pass(self):
         code = "#include <bits/stdc++.h>\nint main(){}\n"
-        self.assertEqual(
-            scan_policy_violations(code, "cpp17", CPP_BAN_BOOST), []
-        )
+        self.assertEqual(scan_policy_violations(code, "cpp17", CPP_BAN_BOOST), [])
 
     def test_c11_has_the_same_header_scanner(self):
         # Policy keys are exact language ids — an author banning Boost for
         # C submissions keys the policy under "c11".
-        code = '#include <boost/regex.hpp>\nint main(){}\n'
+        code = "#include <boost/regex.hpp>\nint main(){}\n"
         policy = {"c11": {"banned": ["boost"]}}
         self.assertTrue(scan_policy_violations(code, "c11", policy))
 
@@ -174,9 +160,7 @@ class JavaScannerTests(unittest.TestCase):
 
     def test_standard_imports_pass(self):
         code = "import java.util.Scanner;\npublic class Main {}\n"
-        self.assertEqual(
-            scan_policy_violations(code, "java11", JAVA_BAN_FOO), []
-        )
+        self.assertEqual(scan_policy_violations(code, "java11", JAVA_BAN_FOO), [])
 
 
 class ImportGuardTests(unittest.TestCase):
@@ -187,8 +171,7 @@ class ImportGuardTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             workdir = pathlib.Path(tmp)
             (workdir / "user_code.py").write_text(
-                "import importlib\n"
-                "importlib.import_module('re')\n",
+                "import importlib\nimportlib.import_module('re')\n",
                 encoding="utf-8",
             )
             (workdir / "_wc_guard.py").write_text(guard, encoding="utf-8")
@@ -270,9 +253,7 @@ class ProblemPolicyAuthoringTest(TestCase):
         )
         self.assertTrue(serializer.is_valid(), serializer.errors)
         problem = serializer.save(author=user)
-        self.assertEqual(
-            problem.library_policy["python3"]["banned_stdlib"], ["re"]
-        )
+        self.assertEqual(problem.library_policy["python3"]["banned_stdlib"], ["re"])
 
     def test_serializer_rejects_unknown_shape(self):
         serializer = ProblemSerializer(
@@ -326,9 +307,7 @@ class SubmitTimePolicyGateTest(TestCase):
         from unittest import mock
 
         with mock.patch("submissions.views.judge_task"):
-            resp = self._submit(
-                "n = int(input())\nprint(n % 10)\n"
-            )
+            resp = self._submit("n = int(input())\nprint(n % 10)\n")
         self.assertEqual(resp.status_code, 201, resp.data)
 
 
@@ -352,9 +331,7 @@ class JudgeTimePolicyTests(TestCase):
         )
         result = judge_submission_task.run(submission.id)
         submission.refresh_from_db()
-        self.assertEqual(
-            submission.verdict, Submission.VerdictStatus.COMPILE_ERROR
-        )
+        self.assertEqual(submission.verdict, Submission.VerdictStatus.COMPILE_ERROR)
         self.assertIn("policy violation", submission.detailed_feedback)
         self.assertIn("policy violation", result)
 
@@ -399,9 +376,7 @@ class CoverageCompletenessTests(unittest.TestCase):
 
     def test_scan_java_with_policy_for_other_language_only(self):
         code = "import foo.bar.Baz;\npublic class M {}\n"
-        self.assertEqual(
-            scan_policy_violations(code, "java11", {"python3": {}}), []
-        )
+        self.assertEqual(scan_policy_violations(code, "java11", {"python3": {}}), [])
 
     def test_scan_unsupported_language_family_is_noop(self):
         # pascal/go/... have no detectors yet — scan is a no-op, by design.
@@ -413,22 +388,16 @@ class CoverageCompletenessTests(unittest.TestCase):
     def test_non_name_assign_targets_ignored(self):
         # `x[0] = input()` / tuple unpacking are not simple derivations.
         code = "x = [0]\nx[0] = input()\nprint(x)\n"
-        self.assertEqual(
-            scan_policy_violations(code, "python3", PY_NO_STRING), []
-        )
+        self.assertEqual(scan_policy_violations(code, "python3", PY_NO_STRING), [])
 
     def test_relative_import_is_not_a_root_match(self):
         # `from . import x` has no absolute root — ignored by design.
         code = "from . import sibling\nprint(sibling)\n"
-        self.assertEqual(
-            scan_policy_violations(code, "python3", PY_BAN_RE), []
-        )
+        self.assertEqual(scan_policy_violations(code, "python3", PY_BAN_RE), [])
 
     def test_banned_lib_without_usage_is_clean(self):
         code = "import math\nprint(math.pi)\n"
-        self.assertEqual(
-            scan_policy_violations(code, "python3", PY_BAN_LIB), []
-        )
+        self.assertEqual(scan_policy_violations(code, "python3", PY_BAN_LIB), [])
 
     def test_feature_ban_with_no_input_usage_is_clean(self):
         self.assertEqual(
@@ -439,9 +408,7 @@ class CoverageCompletenessTests(unittest.TestCase):
     def test_derived_name_without_string_ops_is_clean(self):
         # Holding the raw input is fine; only indexing/str-methods flag.
         code = "s = input()\nprint(s)\n"
-        self.assertEqual(
-            scan_policy_violations(code, "python3", PY_NO_STRING), []
-        )
+        self.assertEqual(scan_policy_violations(code, "python3", PY_NO_STRING), [])
 
 
 class GuardedExecutionTests(TestCase):

@@ -4,7 +4,7 @@
 // ProblemDetailPage.tsx:91). Rendering the ported client spinner keeps the
 // visual identical to the CRA app.
 
-import LoadingSpinner from '@/components/common/LoadingSpinner';
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 export default function ProblemsLoading() {
   return <LoadingSpinner />;

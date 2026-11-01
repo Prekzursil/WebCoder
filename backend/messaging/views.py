@@ -76,12 +76,8 @@ def _visible_conversations(user):
     other participant blocked the viewer, the conversation vanishes
     from their list (and detail lookups 404).
     """
-    blocked_by_user1 = Block.objects.filter(
-        blocker=OuterRef("user1"), blocked=user
-    )
-    blocked_by_user2 = Block.objects.filter(
-        blocker=OuterRef("user2"), blocked=user
-    )
+    blocked_by_user1 = Block.objects.filter(blocker=OuterRef("user1"), blocked=user)
+    blocked_by_user2 = Block.objects.filter(blocker=OuterRef("user2"), blocked=user)
     return (
         Conversation.objects.filter(Q(user1=user) | Q(user2=user))
         .annotate(
@@ -89,8 +85,7 @@ def _visible_conversations(user):
             _hidden_2=Exists(blocked_by_user2),
         )
         .exclude(
-            (Q(user1=user) & Q(_hidden_2=True))
-            | (Q(user2=user) & Q(_hidden_1=True))
+            (Q(user1=user) & Q(_hidden_2=True)) | (Q(user2=user) & Q(_hidden_1=True))
         )
     )
 
@@ -104,9 +99,7 @@ def _resolve_target_user(serializer_validated, request):
     user_id = serializer_validated.get("user_id")
     if user_id is not None:
         return User.objects.filter(pk=user_id).first()
-    return User.objects.filter(
-        username=serializer_validated.get("username")
-    ).first()
+    return User.objects.filter(username=serializer_validated.get("username")).first()
 
 
 class ConversationListCreateView(generics.ListCreateAPIView):
@@ -145,21 +138,15 @@ class ConversationListCreateView(generics.ListCreateAPIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         try:
-            conversation, created = get_or_start_conversation(
-                request.user, target
-            )
+            conversation, created = get_or_start_conversation(request.user, target)
         except PolicyError as exc:
-            return Response(
-                {"detail": exc.code}, status=status.HTTP_403_FORBIDDEN
-            )
+            return Response({"detail": exc.code}, status=status.HTTP_403_FORBIDDEN)
         output = ConversationSerializer(
             conversation, context=self.get_serializer_context()
         )
         return Response(
             output.data,
-            status=(
-                status.HTTP_201_CREATED if created else status.HTTP_200_OK
-            ),
+            status=(status.HTTP_201_CREATED if created else status.HTTP_200_OK),
         )
 
 
@@ -170,9 +157,8 @@ class ConversationDetailView(generics.RetrieveAPIView):
     serializer_class = ConversationSerializer
 
     def get_queryset(self):
-        return (
-            _visible_conversations(self.request.user)
-            .select_related("user1", "user2")
+        return _visible_conversations(self.request.user).select_related(
+            "user1", "user2"
         )
 
 
@@ -207,9 +193,7 @@ class ThreadSendView(APIView):
             .first()
         )
         if conversation is None:
-            return Response(
-                {"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         serializer = MessageCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
@@ -217,12 +201,8 @@ class ThreadSendView(APIView):
                 request.user, conversation, serializer.validated_data["body"]
             )
         except PolicyError as exc:
-            return Response(
-                {"detail": exc.code}, status=status.HTTP_403_FORBIDDEN
-            )
-        return Response(
-            MessageSerializer(message).data, status=status.HTTP_201_CREATED
-        )
+            return Response({"detail": exc.code}, status=status.HTTP_403_FORBIDDEN)
+        return Response(MessageSerializer(message).data, status=status.HTTP_201_CREATED)
 
 
 class ThreadReadView(APIView):
@@ -231,15 +211,9 @@ class ThreadReadView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, thread_pk):
-        conversation = (
-            _visible_conversations(request.user)
-            .filter(pk=thread_pk)
-            .first()
-        )
+        conversation = _visible_conversations(request.user).filter(pk=thread_pk).first()
         if conversation is None:
-            return Response(
-                {"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         other = conversation.other_user(request.user)
         updated = Message.objects.filter(
             conversation=conversation,
@@ -259,26 +233,19 @@ class MessageReportView(generics.CreateAPIView):
         # Merge the URL's message pk into the payload; form-encoded
         # QueryDicts flatten via .dict() so values stay scalars.
         base = (
-            request.data.dict()
-            if hasattr(request.data, "dict")
-            else dict(request.data)
+            request.data.dict() if hasattr(request.data, "dict") else dict(request.data)
         )
-        serializer = self.get_serializer(
-            data={**base, "message": kwargs.get("pk")}
-        )
+        serializer = self.get_serializer(data={**base, "message": kwargs.get("pk")})
         serializer.is_valid(raise_exception=True)
         message = serializer.validated_data.get("message")
         # Only a participant of the thread may report inside it — a
         # leaked message id must not open a reporting channel.
         participant = message and (
             request.user == message.sender
-            or request.user
-            in (message.conversation.user1, message.conversation.user2)
+            or request.user in (message.conversation.user1, message.conversation.user2)
         )
         if not participant:
-            return Response(
-                {"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         if MessageReport.objects.filter(
             reporter=request.user, message=message
         ).exists():
@@ -317,15 +284,11 @@ class BlockListCreateView(generics.ListCreateAPIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         if target == request.user:
-            return Response(
-                {"detail": "self"}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"detail": "self"}, status=status.HTTP_400_BAD_REQUEST)
         block, _created = Block.objects.get_or_create(
             blocker=request.user, blocked=target
         )
-        return Response(
-            BlockSerializer(block).data, status=status.HTTP_201_CREATED
-        )
+        return Response(BlockSerializer(block).data, status=status.HTTP_201_CREATED)
 
 
 class BlockDestroyView(APIView):
@@ -338,9 +301,7 @@ class BlockDestroyView(APIView):
             blocker=request.user, blocked_id=user_id
         ).delete()
         if not deleted:
-            return Response(
-                {"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -369,9 +330,7 @@ class ModerationReportResolveView(APIView):
     def post(self, request, pk):
         report = MessageReport.objects.filter(pk=pk).first()
         if report is None:
-            return Response(
-                {"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         action = request.data.get("action")
         if action not in ("resolved", "dismissed"):
             return Response(
@@ -447,14 +406,10 @@ class AdminTranscriptView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, pk):
-        queryset = audit_visible_conversations(request.user).filter(
-            pk=pk
-        )
+        queryset = audit_visible_conversations(request.user).filter(pk=pk)
         conversation = queryset.first()
         if conversation is None:
-            return Response(
-                {"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         has_report = MessageReport.objects.filter(
             message__conversation=conversation
         ).exists()
@@ -466,9 +421,7 @@ class AdminTranscriptView(APIView):
         messages = conversation.messages.select_related("sender")
         return Response(
             {
-                "conversation": AdminConversationSerializer(
-                    conversation
-                ).data,
+                "conversation": AdminConversationSerializer(conversation).data,
                 "messages": TranscriptSerializer(messages, many=True).data,
             }
         )

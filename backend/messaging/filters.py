@@ -66,9 +66,7 @@ def normalize_text(text: str) -> str:
     'cati ani ai?'
     """
     folded = (
-        unicodedata.normalize("NFKD", text)
-        .encode("ascii", "ignore")
-        .decode("ascii")
+        unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
     )
     return re.sub(r"\s+", " ", folded).strip().lower()
 

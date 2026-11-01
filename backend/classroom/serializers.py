@@ -1,6 +1,5 @@
 """Classroom serializers (EDU-1/EDU-2)."""
 
-from django.utils import timezone
 from rest_framework import serializers
 
 from problems.models import Problem
@@ -16,6 +15,7 @@ from .models import (
     QuizSubmission,
     UploadedDeliverable,
 )
+
 
 class MCQItemSerializer(serializers.ModelSerializer):
     """EDU-8 item shape. Correct index is write-only (students never see it)."""
@@ -86,8 +86,21 @@ class QuizSubmissionSerializer(serializers.ModelSerializer):
 class UploadedDeliverableSerializer(serializers.ModelSerializer):
     class Meta:
         model = UploadedDeliverable
-        fields = ["id", "assignment", "student", "file", "original_filename", "uploaded_at"]
-        read_only_fields = ["id", "assignment", "student", "original_filename", "uploaded_at"]
+        fields = [
+            "id",
+            "assignment",
+            "student",
+            "file",
+            "original_filename",
+            "uploaded_at",
+        ]
+        read_only_fields = [
+            "id",
+            "assignment",
+            "student",
+            "original_filename",
+            "uploaded_at",
+        ]
 
 
 def _sync_quiz(assignment: Assignment, quiz_item_ids: list[int]) -> None:
@@ -112,9 +125,7 @@ class ClassRoomSerializer(serializers.ModelSerializer):
     ``join_password`` is write-only and stored hashed.
     """
 
-    teacher_username = serializers.CharField(
-        source="teacher.username", read_only=True
-    )
+    teacher_username = serializers.CharField(source="teacher.username", read_only=True)
     member_count = serializers.SerializerMethodField()
     assignment_count = serializers.SerializerMethodField()
     is_owner = serializers.SerializerMethodField()
@@ -243,9 +254,7 @@ class AssignmentSerializer(serializers.ModelSerializer):
         write_only=True,
         help_text="Ordered MCQItem ids for QUIZ assignments.",
     )
-    classroom_name = serializers.CharField(
-        source="classroom.name", read_only=True
-    )
+    classroom_name = serializers.CharField(source="classroom.name", read_only=True)
     state = serializers.SerializerMethodField()
 
     class Meta:
@@ -299,19 +308,17 @@ class AssignmentSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         user = getattr(request, "user", None)
         if user is None or not user.is_authenticated:
-            raise serializers.ValidationError(
-                {"classroom": "Authentication required."}
-            )
+            raise serializers.ValidationError({"classroom": "Authentication required."})
         if not (
             classroom.teacher_id == user.id
             or user.role == User.Roles.ADMIN
             or user.is_superuser
         ):
-            raise serializers.ValidationError(
-                {"classroom": "Not your classroom."}
-            )
+            raise serializers.ValidationError({"classroom": "Not your classroom."})
         # EDU-7 policy sanity + EDU-8 quiz-board references.
-        kind = attrs.get("kind", getattr(self.instance, "kind", Assignment.Kind.PROBLEMS))
+        kind = attrs.get(
+            "kind", getattr(self.instance, "kind", Assignment.Kind.PROBLEMS)
+        )
         max_mb = attrs.get("max_file_mb", getattr(self.instance, "max_file_mb", 10))
         if max_mb < 1 or max_mb > 50:
             raise serializers.ValidationError(

@@ -32,10 +32,18 @@ class AssignmentProblemInline(admin.TabularInline):
 
 @admin.register(Assignment)
 class AssignmentAdmin(admin.ModelAdmin):
-    list_display = ("__str__", "classroom", "available_from", "due_at", "late_until", "is_exam")
+    list_display = (
+        "__str__",
+        "classroom",
+        "available_from",
+        "due_at",
+        "late_until",
+        "is_exam",
+    )
     search_fields = ("classroom__name",)
     list_filter = ("is_exam",)
     inlines = [AssignmentProblemInline]
+
 
 @admin.register(MCQItem)
 class MCQItemAdmin(admin.ModelAdmin):

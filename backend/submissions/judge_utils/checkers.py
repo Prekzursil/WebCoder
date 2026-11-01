@@ -255,9 +255,7 @@ def run_prepared_checker(
                 for i_line in range(len(lines) - 1, -1, -1):
                     parts = lines[i_line].split()
                     if len(parts) >= 6 and parts[4].endswith("%"):
-                        checker_resource_msg = (
-                            f"\nChecker Resources: {lines[i_line]}"
-                        )
+                        checker_resource_msg = f"\nChecker Resources: {lines[i_line]}"
                         break
         feedback = (
             f"Checker STDOUT:\n{checker_stdout}\n"
@@ -288,9 +286,7 @@ def run_prepared_checker(
                 f"WA).\n{feedback}",
             )
         if exit_code == _EXIT_PARTIAL:
-            fraction, points_msg, parse_error = parse_points_payload(
-                checker_stdout
-            )
+            fraction, points_msg, parse_error = parse_points_payload(checker_stdout)
             if parse_error is not None:
                 return (
                     _VERDICT_INTERNAL_ERROR,
@@ -346,9 +342,7 @@ def run_custom_checker(
     :func:`run_prepared_checker` per test so the checker binary is
     compiled once per submission, not once per test (D-J7).
     """
-    print(
-        f"Running custom checker ({checker_language}) in {checker_submission_dir}"
-    )
+    print(f"Running custom checker ({checker_language}) in {checker_submission_dir}")
 
     compile_ok, compile_message, spec = compile_checker(
         checker_code, checker_language, checker_submission_dir

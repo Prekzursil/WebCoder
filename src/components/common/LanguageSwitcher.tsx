@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 // Full-locale language picker (i18n & translation platform wave).
 //
@@ -10,15 +10,15 @@
 // <html lang>) and syncs documentElement lang AND dir (RTL for ar/fa)
 // immediately.
 
-import React, { useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import {
   LOCALE_GROUPS,
   LOCALE_NATIVE_NAMES,
   localeDirection,
   normalizeUiLocale,
   type Locale,
-} from '@/i18n';
+} from "@/i18n";
 
 export interface LanguageSwitcherProps {
   /** CSS module class for the wrapper (each layout styles its own control). */
@@ -27,10 +27,7 @@ export interface LanguageSwitcherProps {
   onChange?: (locale: Locale) => void;
 }
 
-const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
-  className,
-  onChange,
-}) => {
+const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ className, onChange }) => {
   const { i18n, t } = useTranslation();
   const current = normalizeUiLocale(i18n.language);
 
@@ -38,7 +35,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     (event: React.ChangeEvent<HTMLSelectElement>) => {
       const next = normalizeUiLocale(event.target.value);
       i18n.changeLanguage(next);
-      if (typeof document !== 'undefined') {
+      if (typeof document !== "undefined") {
         // [Q5 + RTL] keep <html lang> and <html dir> in sync. ALSO write
         // the i18nextLng cookie ourselves: SSR (public-i18n getLocale) and
         // the providers post-hydration re-application BOTH read this
@@ -52,7 +49,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
       }
       onChange?.(next);
     },
-    [i18n, onChange]
+    [i18n, onChange],
   );
 
   return (
@@ -60,8 +57,8 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
       className={className}
       value={current}
       onChange={handleChange}
-      aria-label={t('nav_language_label', 'Language')}
-      title={t('nav_language_label', 'Language')}
+      aria-label={t("nav_language_label", "Language")}
+      title={t("nav_language_label", "Language")}
     >
       {LOCALE_GROUPS.map((group) => (
         <optgroup key={group.labelKey} label={t(group.labelKey)}>

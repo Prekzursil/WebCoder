@@ -101,9 +101,7 @@ class CuratorConfig:
             api_key=(env.get("AI_CURATOR_API_KEY") or "").strip(),
             model=(env.get("AI_CURATOR_MODEL") or "").strip(),
             timeout_s=timeout_s,
-            auto_approve=(env.get("AI_CURATOR_AUTO_APPROVE") or "")
-            .strip()
-            .lower()
+            auto_approve=(env.get("AI_CURATOR_AUTO_APPROVE") or "").strip().lower()
             in ("1", "true", "yes", "on"),
         )
 
@@ -111,11 +109,15 @@ class CuratorConfig:
 class AICurator(Protocol):
     """The provider-agnostic interface any curator implementation meets."""
 
-    def screen(self, *, problem_en: dict, proposal: dict) -> CuratorResult:  # pragma: no cover - interface
+    def screen(
+        self, *, problem_en: dict, proposal: dict
+    ) -> CuratorResult:  # pragma: no cover - interface
         ...
 
 
-def _default_transport(url: str, headers: dict, payload: dict, timeout_s: float) -> dict:
+def _default_transport(
+    url: str, headers: dict, payload: dict, timeout_s: float
+) -> dict:
     """POST to an OpenAI-compatible /chat/completions endpoint.
 
     Time-bounded by ``timeout_s`` on connect AND read — a hung curator

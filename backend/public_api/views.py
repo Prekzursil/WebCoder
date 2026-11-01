@@ -209,10 +209,9 @@ class PublicLeaderboard(APIView):
     throttle_classes = [PublicAPIThrottle]
 
     def get(self, request):
-        rows = (
-            LeaderboardEntry.objects.select_related("user")
-            .order_by("-total_points", "-solved_count", "last_solved_at")[:100]
-        )
+        rows = LeaderboardEntry.objects.select_related("user").order_by(
+            "-total_points", "-solved_count", "last_solved_at"
+        )[:100]
         return Response(
             {
                 "api": PUBLIC_API_NOTICE,
@@ -255,9 +254,7 @@ class PublicTags(APIView):
             {
                 "api": PUBLIC_API_NOTICE,
                 "count": len(tags),
-                "results": [
-                    {"slug": t.slug, "name_i18n": t.name_i18n} for t in tags
-                ],
+                "results": [{"slug": t.slug, "name_i18n": t.name_i18n} for t in tags],
             }
         )
 
@@ -282,4 +279,3 @@ class PublicRoot(APIView):
                 ],
             }
         )
-

@@ -94,8 +94,11 @@ class CookieAuthFlowTest(TestCase):
         client.get(CSRF)
         response = client.post(
             PASSWORD_CHANGE,
-            {"old_password": "BobPass-2026!x", "new_password1": "NewPass-2026!y",
-             "new_password2": "NewPass-2026!y"},
+            {
+                "old_password": "BobPass-2026!x",
+                "new_password1": "NewPass-2026!y",
+                "new_password2": "NewPass-2026!y",
+            },
             format="json",
         )
         self.assertEqual(response.status_code, 403)
@@ -104,8 +107,11 @@ class CookieAuthFlowTest(TestCase):
         csrf_token = client.cookies["csrftoken"].value
         response = client.post(
             PASSWORD_CHANGE,
-            {"old_password": "BobPass-2026!x", "new_password1": "NewPass-2026!y",
-             "new_password2": "NewPass-2026!y"},
+            {
+                "old_password": "BobPass-2026!x",
+                "new_password1": "NewPass-2026!y",
+                "new_password2": "NewPass-2026!y",
+            },
             format="json",
             HTTP_X_CSRFTOKEN=csrf_token,
         )
@@ -125,8 +131,11 @@ class CookieAuthFlowTest(TestCase):
         with override_settings(CSRF_TRUSTED_ORIGINS=[]):
             response = client.post(
                 PASSWORD_CHANGE,
-                {"old_password": "BobPass-2026!x", "new_password1": "NewPass-2026!y",
-                 "new_password2": "NewPass-2026!y"},
+                {
+                    "old_password": "BobPass-2026!x",
+                    "new_password1": "NewPass-2026!y",
+                    "new_password2": "NewPass-2026!y",
+                },
                 format="json",
                 HTTP_X_CSRFTOKEN=token,
                 HTTP_ORIGIN="http://localhost:3000",
@@ -137,8 +146,11 @@ class CookieAuthFlowTest(TestCase):
         with override_settings(CSRF_TRUSTED_ORIGINS=["http://localhost:3000"]):
             response = client.post(
                 PASSWORD_CHANGE,
-                {"old_password": "BobPass-2026!x", "new_password1": "NewPass-2026!y",
-                 "new_password2": "NewPass-2026!y"},
+                {
+                    "old_password": "BobPass-2026!x",
+                    "new_password1": "NewPass-2026!y",
+                    "new_password2": "NewPass-2026!y",
+                },
                 format="json",
                 HTTP_X_CSRFTOKEN=token,
                 HTTP_ORIGIN="http://localhost:3000",

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, {
   createContext,
@@ -8,9 +8,9 @@ import React, {
   useCallback,
   useRef,
   ReactNode,
-} from 'react';
-import { AuthService, setUnauthorizedHandler } from '@/services/ApiService';
-import { User } from '@/types';
+} from "react";
+import { AuthService, setUnauthorizedHandler } from "@/services/ApiService";
+import { User } from "@/types";
 
 // [SP1] httpOnly-cookie auth state. No tokens live in the browser's JS:
 // the wc_access/wc_refresh cookies are httpOnly, so this context tracks
@@ -39,7 +39,7 @@ interface AuthContextType {
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const USER_STORAGE_KEY = 'user';
+const USER_STORAGE_KEY = "user";
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -61,7 +61,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       AuthService.logout().catch(() => undefined);
     }
     setUser(null);
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       localStorage.removeItem(USER_STORAGE_KEY);
     }
   }, [user]);
@@ -81,7 +81,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     let cancelled = false;
     const storedUser =
-      typeof window !== 'undefined' ? localStorage.getItem(USER_STORAGE_KEY) : null;
+      typeof window !== "undefined" ? localStorage.getItem(USER_STORAGE_KEY) : null;
     if (storedUser) {
       try {
         setUser(JSON.parse(storedUser) as User);
@@ -101,14 +101,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // window guard keeps a LATE-settling promise (e.g. a test
         // environment torn down before the fetch settles) from dispatching
         // React state into a destroyed DOM.
-        if (!cancelled && typeof window !== 'undefined') {
+        if (!cancelled && typeof window !== "undefined") {
           setUser(null);
           localStorage.removeItem(USER_STORAGE_KEY);
         }
       } finally {
         // Same teardown guard as the catch arm: a late-settling promise
         // (test env torn down first) must not dispatch into a dead DOM.
-        if (!cancelled && typeof window !== 'undefined') {
+        if (!cancelled && typeof window !== "undefined") {
           setIsHydrated(true);
         }
       }
@@ -121,7 +121,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = useCallback((userData: User) => {
     logoutPostedRef.current = false; // a fresh session may log out again
     setUser(userData);
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
     }
   }, []);
@@ -131,7 +131,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const me = await AuthService.getMe();
       if (me) {
         setUser(me);
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(me));
         }
       }
@@ -160,7 +160,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

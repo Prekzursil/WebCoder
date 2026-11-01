@@ -67,9 +67,7 @@ def test_page_number_pagination_keeps_explicit_ordering():
 def test_ci_signing_key_meets_jwt_length_floor():
     """settings_ci must hand SIMPLE_JWT a ≥32-byte HMAC key."""
     key = settings.SIMPLE_JWT["SIGNING_KEY"]
-    assert len(key) >= 32, (
-        "PyJWT >= 2.10 warns on HMAC keys < 32 bytes (RFC 7518 §3.2)"
-    )
+    assert len(key) >= 32, "PyJWT >= 2.10 warns on HMAC keys < 32 bytes (RFC 7518 §3.2)"
     assert settings.SIMPLE_JWT["VERIFYING_KEY"] == key
 
 

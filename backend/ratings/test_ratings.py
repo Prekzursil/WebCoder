@@ -193,15 +193,13 @@ class RatingsServiceTests(RatingsServiceBase):
         # DQ'd participations never enter the map (prepare a second contest).
         contest2 = self.mk_rated_contest()
         self.seed_scores(contest2, {self.alice: 0, self.bob: 100})
-        ContestParticipation.objects.filter(
-            contest=contest2, user=self.bob
-        ).update(is_disqualified=True)
+        ContestParticipation.objects.filter(contest=contest2, user=self.bob).update(
+            is_disqualified=True
+        )
         result = compute_service(contest2)
         # Only alice left → <2 finishers.
         self.assertIn("<2 finishers", result)
-        self.assertEqual(
-            RatingHistory.objects.filter(user=self.alice).count(), 1
-        )
+        self.assertEqual(RatingHistory.objects.filter(user=self.alice).count(), 1)
 
     def test_compute_guards(self):
         # Not rated.
@@ -232,7 +230,9 @@ class RatingsServiceTests(RatingsServiceBase):
             rollback_contest_ratings_task,
         )
 
-        self.assertEqual(compute_contest_ratings_task(424242), "contest 424242 not found")
+        self.assertEqual(
+            compute_contest_ratings_task(424242), "contest 424242 not found"
+        )
         self.assertEqual(
             rollback_contest_ratings_task(424242), "contest 424242 not found"
         )
@@ -346,9 +346,7 @@ class RatingsEndpointTests(RatingsServiceBase):
         self.assertEqual(response.status_code, 200, response.data)
         self.assertEqual(RatingHistory.objects.count(), 0)
         self.assertEqual(
-            self.client.post(
-                "/api/v1/contests/424242/rating-rollback/"
-            ).status_code,
+            self.client.post("/api/v1/contests/424242/rating-rollback/").status_code,
             404,
         )
 
@@ -356,20 +354,18 @@ class RatingsEndpointTests(RatingsServiceBase):
 class FinalizeHookTests(RatingsServiceBase):
     def test_finalize_dispatches_rating_task_for_rated_contest(self):
         contest = self.mk_rated_contest()
-        with mock.patch(
-            "ratings.services.compute_contest_ratings_task"
-        ) as rating_mock, mock.patch(
-            "contests.tasks.rejudge_submissions_batch"
+        with (
+            mock.patch("ratings.services.compute_contest_ratings_task") as rating_mock,
+            mock.patch("contests.tasks.rejudge_submissions_batch"),
         ):
             finalize_contest(contest.id)
         rating_mock.delay.assert_called_once_with(contest.id)
 
     def test_finalize_skips_rating_task_for_unrated(self):
         contest = self.mk_rated_contest(is_rated=False)
-        with mock.patch(
-            "ratings.services.compute_contest_ratings_task"
-        ) as rating_mock, mock.patch(
-            "contests.tasks.rejudge_submissions_batch"
+        with (
+            mock.patch("ratings.services.compute_contest_ratings_task") as rating_mock,
+            mock.patch("contests.tasks.rejudge_submissions_batch"),
         ):
             finalize_contest(contest.id)
         rating_mock.delay.assert_not_called()
@@ -388,12 +384,16 @@ class CoverageEdgeTests(RatingsServiceBase):
         self.assertIn("+", str(history))  # signed delta
         self.assertEqual(history.rating_before, history.rating - history.delta)
 
-        summary = __import__("ratings.services", fromlist=["user_public_summary"]).user_public_summary(self.alice)
+        summary = __import__(
+            "ratings.services", fromlist=["user_public_summary"]
+        ).user_public_summary(self.alice)
         self.assertEqual(summary["contests_count"], 1)
         self.assertIn("name_en", summary["band"])
         self.assertIn("color", summary["band"])
         self.assertIsNone(
-            __import__("ratings.services", fromlist=["user_public_summary"]).user_public_summary(self.carol)
+            __import__(
+                "ratings.services", fromlist=["user_public_summary"]
+            ).user_public_summary(self.carol)
         )
 
 

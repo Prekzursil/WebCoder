@@ -1,7 +1,7 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
-import CommunityEditorialsPanel from './CommunityEditorialsPanel';
-import type { User } from '@/types';
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/react";
+import CommunityEditorialsPanel from "./CommunityEditorialsPanel";
+import type { User } from "@/types";
 
 // EDT-3/EDT-4 — community editorials on the problem page: visibility,
 // license line, lang filter, the creator write form.
@@ -11,22 +11,20 @@ const api = vi.hoisted(() => ({
   createCommunityEditorial: vi.fn(),
 }));
 
-vi.mock('@/services/ApiService', () => ({
+vi.mock("@/services/ApiService", () => ({
   CommunityService: api,
 }));
 
 const mocks = vi.hoisted(() => ({
   auth: {
     isAuthenticated: true,
-    user: { id: 7, username: 'creator', email: 'c@x.com', role: 'CREATOR' } as
-      | User
-      | null,
+    user: { id: 7, username: "creator", email: "c@x.com", role: "CREATOR" } as User | null,
     login: vi.fn(),
     logout: vi.fn(),
   },
 }));
 
-vi.mock('@/context/AuthContext', () => ({
+vi.mock("@/context/AuthContext", () => ({
   useAuth: () => mocks.auth,
   AuthContext: {
     // A render-prop-free stand-in: React reads .Provider/_currentValue at
@@ -45,16 +43,16 @@ const ROW = {
   id: 11,
   problem: 1,
   author: 7,
-  author_username: 'creator',
-  title: 'Two pointers, one pass',
-  body: 'Walk inward from both ends.',
-  lang: 'en' as const,
-  status: 'APPROVED' as const,
-  verifier_feedback: '',
+  author_username: "creator",
+  title: "Two pointers, one pass",
+  body: "Walk inward from both ends.",
+  lang: "en" as const,
+  status: "APPROVED" as const,
+  verifier_feedback: "",
   is_hidden: false,
-  license: 'CC BY-SA 4.0',
-  created_at: '2026-11-01T00:00:00Z',
-  updated_at: '2026-11-01T00:00:00Z',
+  license: "CC BY-SA 4.0",
+  created_at: "2026-11-01T00:00:00Z",
+  updated_at: "2026-11-01T00:00:00Z",
 };
 
 beforeEach(() => {
@@ -63,8 +61,8 @@ beforeEach(() => {
 
 afterEach(cleanup);
 
-describe('CommunityEditorialsPanel', () => {
-  it('lists rows with the license note and opens a body', async () => {
+describe("CommunityEditorialsPanel", () => {
+  it("lists rows with the license note and opens a body", async () => {
     api.getCommunityEditorials.mockResolvedValue({
       count: 1,
       next: null,
@@ -73,15 +71,13 @@ describe('CommunityEditorialsPanel', () => {
     });
     render(<CommunityEditorialsPanel problemId={1} />);
 
-    expect(await screen.findByTestId('ce-row-11')).toBeInTheDocument();
+    expect(await screen.findByTestId("ce-row-11")).toBeInTheDocument();
     expect(screen.getAllByText(/CC BY-SA 4\.0/i).length).toBeGreaterThan(0);
-    fireEvent.click(screen.getByTestId('ce-row-11'));
-    expect(await screen.findByTestId('ce-body-11')).toHaveTextContent(
-      'Walk inward'
-    );
+    fireEvent.click(screen.getByTestId("ce-row-11"));
+    expect(await screen.findByTestId("ce-body-11")).toHaveTextContent("Walk inward");
   });
 
-  it('refetches with the lang filter', async () => {
+  it("refetches with the lang filter", async () => {
     api.getCommunityEditorials.mockResolvedValue({
       count: 0,
       next: null,
@@ -90,13 +86,11 @@ describe('CommunityEditorialsPanel', () => {
     });
     render(<CommunityEditorialsPanel problemId={1} />);
     await screen.findByText(/No community editorials yet/i);
-    fireEvent.click(screen.getByTestId('ce-filter-ro'));
-    await waitFor(() =>
-      expect(api.getCommunityEditorials).toHaveBeenCalledWith(1, { lang: 'ro' })
-    );
+    fireEvent.click(screen.getByTestId("ce-filter-ro"));
+    await waitFor(() => expect(api.getCommunityEditorials).toHaveBeenCalledWith(1, { lang: "ro" }));
   });
 
-  it('offers the write form to creators and submits for review', async () => {
+  it("offers the write form to creators and submits for review", async () => {
     api.getCommunityEditorials.mockResolvedValue({
       count: 0,
       next: null,
@@ -106,33 +100,31 @@ describe('CommunityEditorialsPanel', () => {
     api.createCommunityEditorial.mockResolvedValue(ROW);
     render(<CommunityEditorialsPanel problemId={1} />);
 
-    fireEvent.click(await screen.findByTestId('ce-write-button'));
+    fireEvent.click(await screen.findByTestId("ce-write-button"));
     fireEvent.change(screen.getByLabelText(/title/i), {
-      target: { value: 'Two pointers, one pass' },
+      target: { value: "Two pointers, one pass" },
     });
     fireEvent.change(screen.getByLabelText(/body/i), {
-      target: { value: 'Walk inward.' },
+      target: { value: "Walk inward." },
     });
-    fireEvent.click(screen.getByTestId('ce-submit'));
+    fireEvent.click(screen.getByTestId("ce-submit"));
 
     await waitFor(() =>
       expect(api.createCommunityEditorial).toHaveBeenCalledWith(1, {
-        title: 'Two pointers, one pass',
-        body: 'Walk inward.',
-        lang: 'en',
-      })
+        title: "Two pointers, one pass",
+        body: "Walk inward.",
+        lang: "en",
+      }),
     );
-    expect(
-      await screen.findByText(/No community editorials yet/i)
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/No community editorials yet/i)).toBeInTheDocument();
   });
 
-  it('hides the write button from plain users', async () => {
+  it("hides the write button from plain users", async () => {
     mocks.auth.user = {
       id: 8,
-      username: 'stud',
-      email: 's@x.com',
-      role: 'BASIC',
+      username: "stud",
+      email: "s@x.com",
+      role: "BASIC",
     } as User;
     api.getCommunityEditorials.mockResolvedValue({
       count: 0,
@@ -142,12 +134,12 @@ describe('CommunityEditorialsPanel', () => {
     });
     render(<CommunityEditorialsPanel problemId={1} />);
     await screen.findByText(/No community editorials yet/i);
-    expect(screen.queryByTestId('ce-write-button')).not.toBeInTheDocument();
+    expect(screen.queryByTestId("ce-write-button")).not.toBeInTheDocument();
     mocks.auth.user = {
       id: 7,
-      username: 'creator',
-      email: 'c@x.com',
-      role: 'CREATOR',
+      username: "creator",
+      email: "c@x.com",
+      role: "CREATOR",
     } as User;
   });
 });

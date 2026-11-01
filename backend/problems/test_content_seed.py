@@ -147,7 +147,9 @@ class TestGimnaziuPack:
         response = client.get("/api/v1/problems/curriculum/")
         assert response.status_code == 200
         results = (
-            response.data if isinstance(response.data, list) else response.data["results"]
+            response.data
+            if isinstance(response.data, list)
+            else response.data["results"]
         )
         slugs = [grade["slug"] for grade in results]
         assert slugs[:4] == ["g5", "g6", "g7", "g8"]
@@ -158,9 +160,7 @@ class TestGimnaziuPack:
         response = client.get("/api/v1/public/problems/?difficulty=VERY_EASY")
         assert response.status_code == 200
         assert response.data["count"] == 10
-        assert all(
-            row["difficulty"] == "VERY_EASY" for row in response.data["results"]
-        )
+        assert all(row["difficulty"] == "VERY_EASY" for row in response.data["results"])
 
 
 class TestCurriculumAPI:
@@ -180,10 +180,13 @@ class TestCurriculumAPI:
         assert g9["kind"] == "GRADE"
         chapter_slugs = [child["slug"] for child in g9["children"]]
         assert "g9-elementary" in chapter_slugs and "g9-loops" in chapter_slugs
-        assert g9["problem_count"] == Problem.objects.filter(
-            curriculum_nodes__slug="g9",
-            status=Problem.ProblemStatus.APPROVED,
-        ).count()
+        assert (
+            g9["problem_count"]
+            == Problem.objects.filter(
+                curriculum_nodes__slug="g9",
+                status=Problem.ProblemStatus.APPROVED,
+            ).count()
+        )
 
     def test_chapter_problem_count_counts_approved_only(self):
         run_seed()
@@ -195,25 +198,20 @@ class TestCurriculumAPI:
         client = APIClient()
         response = client.get(f"/api/v1/problems/curriculum/{node.id}/")
         assert response.status_code == 200
-        expected = node.problems.filter(
-            status=Problem.ProblemStatus.APPROVED
-        ).count()
+        expected = node.problems.filter(status=Problem.ProblemStatus.APPROVED).count()
         assert response.data["problem_count"] == expected
 
     def test_problems_filter_by_curriculum_node(self):
         run_seed()
         node = CurriculumNode.objects.get(slug="g9-arrays")
         client = APIClient()
-        response = client.get(
-            f"/api/v1/problems/problems/?curriculum_node={node.id}"
-        )
+        response = client.get(f"/api/v1/problems/problems/?curriculum_node={node.id}")
         assert response.status_code == 200
         results = (
             response.data["results"] if "results" in response.data else response.data
         )
         expected_titles = {
-            p.title_i18n["en"]
-            for p in Problem.objects.filter(curriculum_nodes=node)
+            p.title_i18n["en"] for p in Problem.objects.filter(curriculum_nodes=node)
         }
         assert {r["title_i18n"]["en"] for r in results} == expected_titles
 
@@ -225,7 +223,6 @@ class TestStartersEndpoint:
         response = client.get("/api/v1/problems/problems/starters/")
         assert response.status_code == 200
         assert len(response.data) == 3
-        chapters = set()
         for problem in response.data:
             assert problem["difficulty"] == "EASY"
             assert problem["status"] == "APPROVED"

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { useEffect, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 // Ported from frontend/webcoder_ui/src/components/common/ConfirmationModal.tsx (CRA reference).
 //
@@ -38,11 +38,11 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     previouslyFocused.current = document.activeElement as HTMLElement | null;
     confirmRef.current?.focus();
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key === "Escape") onClose();
     };
-    document.addEventListener('keydown', onKey);
+    document.addEventListener("keydown", onKey);
     return () => {
-      document.removeEventListener('keydown', onKey);
+      document.removeEventListener("keydown", onKey);
       previouslyFocused.current?.focus?.();
     };
   }, [isOpen, onClose]);
@@ -54,15 +54,15 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   return (
     <div
       style={{
-        position: 'fixed',
+        position: "fixed",
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.55)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        backgroundColor: "rgba(0, 0, 0, 0.55)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         zIndex: 1000,
       }}
       onClick={onClose}
@@ -72,26 +72,31 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         aria-modal="true"
         aria-labelledby="confirmation-modal-title"
         style={{
-          backgroundColor: 'var(--surface)',
-          color: 'var(--foreground)',
-          border: '1px solid var(--border)',
-          padding: '20px',
-          borderRadius: 'var(--radius-lg)',
-          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.45)',
-          maxWidth: '400px',
-          width: '90%',
-          textAlign: 'center',
+          backgroundColor: "var(--surface)",
+          color: "var(--foreground)",
+          border: "1px solid var(--border)",
+          padding: "20px",
+          borderRadius: "var(--radius-lg)",
+          boxShadow: "0 12px 32px rgba(0, 0, 0, 0.45)",
+          maxWidth: "400px",
+          width: "90%",
+          textAlign: "center",
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 id="confirmation-modal-title" style={{ color: 'var(--foreground)', marginBottom: '0.5rem' }}>{title}</h3>
-        <p style={{ color: 'var(--muted)', lineHeight: 1.6 }}>{message}</p>
-        <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-around' }}>
+        <h3
+          id="confirmation-modal-title"
+          style={{ color: "var(--foreground)", marginBottom: "0.5rem" }}
+        >
+          {title}
+        </h3>
+        <p style={{ color: "var(--muted)", lineHeight: 1.6 }}>{message}</p>
+        <div style={{ marginTop: "20px", display: "flex", justifyContent: "space-around" }}>
           <button onClick={onClose} className="btn">
-            {cancelButtonText || t('cancel_button', 'Cancel')}
+            {cancelButtonText || t("cancel_button", "Cancel")}
           </button>
           <button ref={confirmRef} onClick={onConfirm} className="btn btn--primary">
-            {confirmButtonText || t('confirm_button', 'Confirm')}
+            {confirmButtonText || t("confirm_button", "Confirm")}
           </button>
         </div>
       </div>

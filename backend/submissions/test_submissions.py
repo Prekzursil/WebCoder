@@ -220,14 +220,10 @@ class ListFilterCoverageTest(TestCase):
             "/api/v1/submissions/submissions/", {"problemId": self.p1.id}
         )
         self.assertEqual(len(by_problem.json()["results"]), 1)
-        self.assertEqual(
-            by_problem.json()["results"][0]["problem"]["id"], self.p1.id
-        )
+        self.assertEqual(by_problem.json()["results"][0]["problem"]["id"], self.p1.id)
 
         by_language = self.client.get(
             "/api/v1/submissions/submissions/", {"language": "java11"}
         )
         self.assertEqual(len(by_language.json()["results"]), 1)
-        self.assertEqual(
-            by_language.json()["results"][0]["language"], "java11"
-        )
+        self.assertEqual(by_language.json()["results"][0]["language"], "java11")

@@ -25,21 +25,21 @@
 // extracted; the families they resolve into are pinned by the explicit
 // assertions above so they cannot silently raw-render.
 
-import { describe, expect, it } from 'vitest';
-import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { describe, expect, it } from "vitest";
+import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
+import { join, relative } from "node:path";
 import i18n, {
   LOCALE_GROUPS,
   RTL_LOCALES,
   SUPPORTED_LOCALES,
   localeDirection,
   type Locale,
-} from './i18n';
-import { MESSAGES, PUBLIC_LOCALES, PUBLIC_KEYS } from './app/_lib/public-messages';
+} from "./i18n";
+import { MESSAGES, PUBLIC_LOCALES, PUBLIC_KEYS } from "./app/_lib/public-messages";
 
 // jsdom gives import.meta.url an http scheme — resolve from the project cwd
 // (vitest always runs with cwd = package root) instead.
-const SRC_ROOT = join(process.cwd(), 'src');
+const SRC_ROOT = join(process.cwd(), "src");
 
 function listSourceFiles(dir: string): string[] {
   const out: string[] = [];
@@ -63,11 +63,11 @@ function scanCallsites(files: string[]): { keys: Map<string, string[]>; dynamic:
   // t(someVar / t(`prefix${…}` — cannot be resolved statically.
   const dynamicRe = /\bt\(\s*[^'"`]/g;
   for (const file of files) {
-    const text = readFileSync(file, 'utf8');
+    const text = readFileSync(file, "utf8");
     let m: RegExpExecArray | null;
     while ((m = staticRe.exec(text)) !== null) {
       const list = keys.get(m[2]) ?? [];
-      list.push(relative(SRC_ROOT, file).replace(/\\/g, '/'));
+      list.push(relative(SRC_ROOT, file).replace(/\\/g, "/"));
       keys.set(m[2], list);
     }
     while ((m = dynamicRe.exec(text)) !== null) {
@@ -79,24 +79,22 @@ function scanCallsites(files: string[]): { keys: Map<string, string[]>; dynamic:
 
 // Flatten nested namespaces (the catalogs carry `admin_dashboard.*` /
 // `errors.*` as nested objects; i18next resolves them with dot paths).
-function flatKeys(obj: unknown, prefix = ''): string[] {
-  if (typeof obj !== 'object' || obj === null) return prefix ? [prefix] : [];
-  return Object.entries(obj).flatMap(([k, v]) =>
-    flatKeys(v, prefix ? `${prefix}.${k}` : k)
-  );
+function flatKeys(obj: unknown, prefix = ""): string[] {
+  if (typeof obj !== "object" || obj === null) return prefix ? [prefix] : [];
+  return Object.entries(obj).flatMap(([k, v]) => flatKeys(v, prefix ? `${prefix}.${k}` : k));
 }
 
 const LOCALE_KEYS: Record<Locale, string[]> = Object.fromEntries(
-  SUPPORTED_LOCALES.map((code) => [code, flatKeys(i18n.getResourceBundle(code, 'translation'))])
+  SUPPORTED_LOCALES.map((code) => [code, flatKeys(i18n.getResourceBundle(code, "translation"))]),
 ) as Record<Locale, string[]>;
 const LOCALE_SETS: Record<Locale, Set<string>> = Object.fromEntries(
-  SUPPORTED_LOCALES.map((code) => [code, new Set(LOCALE_KEYS[code])])
+  SUPPORTED_LOCALES.map((code) => [code, new Set(LOCALE_KEYS[code])]),
 ) as Record<Locale, Set<string>>;
 
 // The i18n module + dictionaries themselves legitimately mention keys
 // without calling t(); exclude them from the callsite sweep.
 const scanned = listSourceFiles(SRC_ROOT).filter(
-  (f) => !/[\\/]i18n\.ts$|[\\/]public-messages\.ts$|[\\/]public-i18n\.ts$/.test(f)
+  (f) => !/[\\/]i18n\.ts$|[\\/]public-messages\.ts$|[\\/]public-i18n\.ts$/.test(f),
 );
 const { keys: callsites, dynamic } = scanCallsites(scanned);
 
@@ -104,17 +102,41 @@ function t(key: string, lng: Locale): string {
   return String(i18n.t(key, { lng } as never));
 }
 
-describe('i18n parity sweep [Q1 × full locale set]', () => {
-  it('ships exactly the agreed full locale set', () => {
+describe("i18n parity sweep [Q1 × full locale set]", () => {
+  it("ships exactly the agreed full locale set", () => {
     // English mandatory + home market + globals + the owner-directed
     // Asian/regional set (requirements of 2026-10-31; decision record in
     // backend/webcoder_api/languages.py). The union-bar remainder
     // (zh-Hant, ca, hr, kk, sr-Latn) lands in a follow-up PR.
     expect([...SUPPORTED_LOCALES]).toEqual([
-      'en', 'ro', 'es', 'fr', 'de', 'pt', 'it', 'ca',
-      'pl', 'hu', 'hr', 'sr-Latn', 'ru', 'uk', 'bg', 'el',
-      'zh-Hans', 'zh-Hant', 'ja', 'ko', 'hi', 'vi', 'th', 'id',
-      'tr', 'kk', 'ar', 'fa',
+      "en",
+      "ro",
+      "es",
+      "fr",
+      "de",
+      "pt",
+      "it",
+      "ca",
+      "pl",
+      "hu",
+      "hr",
+      "sr-Latn",
+      "ru",
+      "uk",
+      "bg",
+      "el",
+      "zh-Hans",
+      "zh-Hant",
+      "ja",
+      "ko",
+      "hi",
+      "vi",
+      "th",
+      "id",
+      "tr",
+      "kk",
+      "ar",
+      "fa",
     ]);
     // [union bar] with zh-Hant/ca/hr/sr-Latn/kk shipped, this set covers
     // every UI language any major judge offers (matrix in the registry
@@ -122,18 +144,18 @@ describe('i18n parity sweep [Q1 × full locale set]', () => {
     expect(PUBLIC_LOCALES).toEqual(SUPPORTED_LOCALES);
   });
 
-  it('RTL locales are exactly ar and fa, and direction is derivable', () => {
+  it("RTL locales are exactly ar and fa, and direction is derivable", () => {
     // [owner RTL requirement] Arabic and Persian render right-to-left;
     // every other locale is explicitly LTR so switching back from an RTL
     // locale can never leave a stale dir attribute.
-    expect(localeDirection('ar')).toBe('rtl');
-    expect(localeDirection('fa')).toBe('rtl');
-    expect(localeDirection('en')).toBe('ltr');
-    expect(localeDirection('ro')).toBe('ltr');
-    expect([...RTL_LOCALES].sort()).toEqual(['ar', 'fa']);
+    expect(localeDirection("ar")).toBe("rtl");
+    expect(localeDirection("fa")).toBe("rtl");
+    expect(localeDirection("en")).toBe("ltr");
+    expect(localeDirection("ro")).toBe("ltr");
+    expect([...RTL_LOCALES].sort()).toEqual(["ar", "fa"]);
   });
 
-  it('picker groups cover every locale exactly once with translated labels', () => {
+  it("picker groups cover every locale exactly once with translated labels", () => {
     // [owner grouped-picker requirement] the 23-locale picker renders
     // <optgroup>s by script/region; every locale must appear in exactly
     // one group and each group label key must exist in every catalog.
@@ -147,17 +169,17 @@ describe('i18n parity sweep [Q1 × full locale set]', () => {
       for (const code of SUPPORTED_LOCALES) {
         expect(
           LOCALE_SETS[code].has(group.labelKey),
-          `${group.labelKey} label translated in ${code}`
+          `${group.labelKey} label translated in ${code}`,
         ).toBe(true);
       }
     }
   });
 
-  it('every locale catalog carries an identical key set', () => {
+  it("every locale catalog carries an identical key set", () => {
     const enKeys = LOCALE_KEYS.en;
     expect(enKeys.length).toBeGreaterThan(1000); // the full catalog, not a stub
     for (const code of SUPPORTED_LOCALES) {
-      if (code === 'en') continue;
+      if (code === "en") continue;
       const onlyInEn = enKeys.filter((k) => !LOCALE_SETS[code].has(k));
       const onlyInLocale = LOCALE_KEYS[code].filter((k) => !LOCALE_SETS.en.has(k));
       expect(onlyInEn, `keys only in en (missing from ${code})`).toEqual([]);
@@ -165,33 +187,35 @@ describe('i18n parity sweep [Q1 × full locale set]', () => {
     }
   });
 
-  it('every static t(key) callsite under src resolves in ALL locales', () => {
+  it("every static t(key) callsite under src resolves in ALL locales", () => {
     expect(scanned.length).toBeGreaterThan(50); // sweep actually scanned the tree
     const missing: string[] = [];
     for (const [key, files] of callsites) {
       for (const code of SUPPORTED_LOCALES) {
         if (!LOCALE_SETS[code].has(key)) {
-          missing.push(`${key} missing from ${code} (used in ${files.join(', ')})`);
+          missing.push(`${key} missing from ${code} (used in ${files.join(", ")})`);
         }
       }
     }
-    expect(missing, `keys missing from a locale catalog:\n${missing.join('\n')}`).toEqual([]);
+    expect(missing, `keys missing from a locale catalog:\n${missing.join("\n")}`).toEqual([]);
   });
 
-  it('dynamic t() callsites are covered by explicit key families', () => {
+  it("dynamic t() callsites are covered by explicit key families", () => {
     // The sweep cannot extract template-literal keys; pin every family that
     // uses them so the count above cannot regress into raw-render territory
     // unnoticed. (forum report reasons, judge verdicts, home FAQ, /start.)
     expect(dynamic).toBeGreaterThan(0); // the dynamic detector still matches
     for (const code of SUPPORTED_LOCALES) {
-      for (const r of ['spam', 'abuse', 'off_topic', 'inappropriate', 'other']) {
-        expect(LOCALE_SETS[code].has(`report_reason_${r}`), `report_reason_${r} in ${code}`).toBe(true);
+      for (const r of ["spam", "abuse", "off_topic", "inappropriate", "other"]) {
+        expect(LOCALE_SETS[code].has(`report_reason_${r}`), `report_reason_${r} in ${code}`).toBe(
+          true,
+        );
       }
-      for (const v of ['ac', 'wa', 'tle', 'mle', 'ce', 're']) {
+      for (const v of ["ac", "wa", "tle", "mle", "ce", "re"]) {
         expect(LOCALE_SETS[code].has(`verdict_${v}`), `verdict_${v} in ${code}`).toBe(true);
       }
-      for (const step of ['pick', 'code', 'judged']) {
-        for (const part of ['label', 'title', 'body']) {
+      for (const step of ["pick", "code", "judged"]) {
+        for (const part of ["label", "title", "body"]) {
           const key = `start_step_${step}_${part}`;
           expect(LOCALE_SETS[code].has(key), `${key} in ${code}`).toBe(true);
         }
@@ -203,20 +227,20 @@ describe('i18n parity sweep [Q1 × full locale set]', () => {
     }
   });
 
-  it('no locale is an untranslated clone of English (machine-translation rot gate)', () => {
+  it("no locale is an untranslated clone of English (machine-translation rot gate)", () => {
     // Short enum-ish chips (OK/ID/C++), brand names and bare numerals are
     // legitimately identical across languages; a real localization differs
     // on the overwhelming majority of strings. Cognate-heavy languages (de,
     // pt) still differ far more often than not.
     const ignorable = (value: string) => value.length <= 3;
     for (const code of SUPPORTED_LOCALES) {
-      if (code === 'en') continue;
+      if (code === "en") continue;
       let total = 0;
       let identical = 0;
       for (const key of LOCALE_KEYS.en) {
-        const enValue = t(key, 'en');
+        const enValue = t(key, "en");
         const value = t(key, code);
-        if (typeof enValue !== 'string' || typeof value !== 'string') continue;
+        if (typeof enValue !== "string" || typeof value !== "string") continue;
         if (ignorable(enValue)) continue;
         total += 1;
         if (value === enValue) identical += 1;
@@ -225,15 +249,15 @@ describe('i18n parity sweep [Q1 × full locale set]', () => {
       // Allow a small cognate budget; fail whole-catalog copy-paste.
       expect(
         identical / total,
-        `${code}: ${(100 * (identical / total)).toFixed(1)}% of strings are identical to English`
+        `${code}: ${(100 * (identical / total)).toFixed(1)}% of strings are identical to English`,
       ).toBeLessThan(0.12);
     }
   });
 
-  it('server dictionary (MESSAGES) derives from the catalogs in all ten locales', () => {
+  it("server dictionary (MESSAGES) derives from the catalogs in all ten locales", () => {
     for (const code of SUPPORTED_LOCALES) {
       const dict = MESSAGES[code];
-      const expectedKeys = PUBLIC_KEYS.filter((k) => typeof t(k, 'en') === 'string');
+      const expectedKeys = PUBLIC_KEYS.filter((k) => typeof t(k, "en") === "string");
       expect(Object.keys(dict).sort()).toEqual([...expectedKeys].sort());
       // Values mirror the catalog exactly (derivation, not a copy that can drift).
       for (const key of expectedKeys) {
@@ -242,35 +266,35 @@ describe('i18n parity sweep [Q1 × full locale set]', () => {
     }
   });
 
-  it('server pages only use keys the public dictionary knows', () => {
+  it("server pages only use keys the public dictionary knows", () => {
     // The createTranslator flow has no inline-default safety outside the
     // given default — a missing MESSAGES entry renders the English default
     // even for other locales. Scan server page files (page.tsx under
     // src/app without 'use client') for t('key' calls and require MESSAGES
     // coverage.
     const serverPages = scanned.filter(
-      (f) => /[\\/]page\.tsx$/.test(f) && !readFileSync(f, 'utf8').startsWith("'use client'")
+      (f) => /[\\/]page\.tsx$/.test(f) && !readFileSync(f, "utf8").startsWith("'use client'"),
     );
     const { keys: serverKeys } = scanCallsites(serverPages);
     const missing: string[] = [];
     for (const [key, files] of serverKeys) {
       const known = SUPPORTED_LOCALES.every((code) => key in MESSAGES[code]);
       if (!known) {
-        missing.push(`${key} (used in ${files.join(', ')})`);
+        missing.push(`${key} (used in ${files.join(", ")})`);
       }
     }
-    expect(missing, `server-page keys missing from MESSAGES:\n${missing.join('\n')}`).toEqual([]);
+    expect(missing, `server-page keys missing from MESSAGES:\n${missing.join("\n")}`).toEqual([]);
   });
 
-  it('mobile copies under public/locales match the catalogs byte-for-byte', () => {
+  it("mobile copies under public/locales match the catalogs byte-for-byte", () => {
     // The later mobile phase consumes the same catalogs from
     // public/locales/*.json (scripts/export-locales.mjs copies them); a
     // stale copy fails here, never in the app store.
     for (const code of SUPPORTED_LOCALES) {
-      const path = join(process.cwd(), 'public', 'locales', `${code}.json`);
+      const path = join(process.cwd(), "public", "locales", `${code}.json`);
       expect(existsSync(path), `${path} exists (run scripts/export-locales.mjs)`).toBe(true);
-      const copy = JSON.parse(readFileSync(path, 'utf8'));
-      const catalog = i18n.getResourceBundle(code, 'translation');
+      const copy = JSON.parse(readFileSync(path, "utf8"));
+      const catalog = i18n.getResourceBundle(code, "translation");
       expect(copy).toEqual(catalog);
     }
   });

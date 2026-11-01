@@ -164,13 +164,10 @@ class LanguageSpec:
             return None
         argv = list(self.compile_command)
         if source_name is not None:
-            argv = [
-                source_name if tok == self.source_filename else tok for tok in argv
-            ]
+            argv = [source_name if tok == self.source_filename else tok for tok in argv]
         if artifact_name is not None and self.compile_artifact:
             argv = [
-                artifact_name if tok == self.compile_artifact else tok
-                for tok in argv
+                artifact_name if tok == self.compile_artifact else tok for tok in argv
             ]
         return tuple(argv)
 
@@ -189,9 +186,7 @@ class LanguageSpec:
         if source_name is not None:
             argv = [tok.replace(self.source_filename, source_name) for tok in argv]
         if artifact_name is not None and self.compile_artifact:
-            argv = [
-                tok.replace(self.compile_artifact, artifact_name) for tok in argv
-            ]
+            argv = [tok.replace(self.compile_artifact, artifact_name) for tok in argv]
         return tuple(argv)
 
 

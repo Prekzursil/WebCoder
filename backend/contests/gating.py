@@ -27,7 +27,9 @@ def contest_cooldown_seconds() -> int:
     )
 
 
-def check_contest_submission(contest: Contest, user, problem_id: int, now=None) -> tuple[bool, str]:
+def check_contest_submission(
+    contest: Contest, user, problem_id: int, now=None
+) -> tuple[bool, str]:
     """Validate a contest-bound submission at create time.
 
     Returns (ok, error). Rules:
@@ -43,7 +45,9 @@ def check_contest_submission(contest: Contest, user, problem_id: int, now=None) 
     from the ordinary problem page instead (CON-5 archive behaviour).
     """
     now = now or timezone.now()
-    if not ContestProblem.objects.filter(contest=contest, problem_id=problem_id).exists():
+    if not ContestProblem.objects.filter(
+        contest=contest, problem_id=problem_id
+    ).exists():
         return False, "This problem is not part of the contest."
     participation = ContestParticipation.for_submission(contest, user.id, now)
     if participation is None:
@@ -108,9 +112,7 @@ def practice_blocked_reason(problem, user, now=None) -> str | None:
     if getattr(user, "is_authenticated", False) and hasattr(user, "id"):
         if problem.verifier_id == user.id:
             return None
-    qs = ContestProblem.objects.filter(problem_id=problem.id).select_related(
-        "contest"
-    )
+    qs = ContestProblem.objects.filter(problem_id=problem.id).select_related("contest")
     for cp in qs:
         if cp.contest.upsolving_free_at() > now:
             return (

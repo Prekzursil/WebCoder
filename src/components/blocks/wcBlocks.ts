@@ -21,11 +21,11 @@ interface MinimalBlockly {
 let registered = false;
 
 /** Judge-compatible stdin reads in generated Python. */
-export const WC_PY_NUMBER = 'int(input())';
-export const WC_PY_LINE = 'input()';
+export const WC_PY_NUMBER = "int(input())";
+export const WC_PY_LINE = "input()";
 /** JS counterparts (preamble in BlockEditor defines the helpers). */
-export const WC_JS_NUMBER = 'wcReadNumber()';
-export const WC_JS_LINE = 'wcReadLine()';
+export const WC_JS_NUMBER = "wcReadNumber()";
+export const WC_JS_LINE = "wcReadLine()";
 
 /** Emitted once at the top of generated JS programs (stdin reader). */
 export const WC_JS_PREAMBLE = `const wcLines = require('fs').readFileSync(0, 'utf8').split('\\n');
@@ -45,26 +45,26 @@ export function registerBlockTypes(
 
   Blockly.defineBlocksWithJsonArray([
     {
-      type: 'wc_input_number',
-      message0: '%{BKY_WC_INPUT_NUMBER}',
-      output: 'Number',
-      colour: '%{BKY_TEXTS_HUE}',
-      tooltip: '%{BKY_WC_INPUT_NUMBER_TIP}',
+      type: "wc_input_number",
+      message0: "%{BKY_WC_INPUT_NUMBER}",
+      output: "Number",
+      colour: "%{BKY_TEXTS_HUE}",
+      tooltip: "%{BKY_WC_INPUT_NUMBER_TIP}",
     },
     {
-      type: 'wc_input_line',
-      message0: '%{BKY_WC_INPUT_LINE}',
-      output: 'String',
-      colour: '%{BKY_TEXTS_HUE}',
-      tooltip: '%{BKY_WC_INPUT_LINE_TIP}',
+      type: "wc_input_line",
+      message0: "%{BKY_WC_INPUT_LINE}",
+      output: "String",
+      colour: "%{BKY_TEXTS_HUE}",
+      tooltip: "%{BKY_WC_INPUT_LINE_TIP}",
     },
   ]);
 
   // Value blocks (they have an output) must return [code, precedence].
-  pythonGen.forBlock['wc_input_number'] = () => [WC_PY_NUMBER, ORDER_ATOMIC];
-  pythonGen.forBlock['wc_input_line'] = () => [WC_PY_LINE, ORDER_ATOMIC];
-  jsGen.forBlock['wc_input_number'] = () => [WC_JS_NUMBER, ORDER_ATOMIC];
-  jsGen.forBlock['wc_input_line'] = () => [WC_JS_LINE, ORDER_ATOMIC];
+  pythonGen.forBlock["wc_input_number"] = () => [WC_PY_NUMBER, ORDER_ATOMIC];
+  pythonGen.forBlock["wc_input_line"] = () => [WC_PY_LINE, ORDER_ATOMIC];
+  jsGen.forBlock["wc_input_number"] = () => [WC_JS_NUMBER, ORDER_ATOMIC];
+  jsGen.forBlock["wc_input_line"] = () => [WC_JS_LINE, ORDER_ATOMIC];
 }
 
 /** Reset module state (tests re-import with fresh generators). */

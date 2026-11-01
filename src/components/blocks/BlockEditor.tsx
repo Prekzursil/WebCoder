@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 // [judge-fairness wave D] Scratch on site: a Blockly block editor whose
 // generated source (Python or JavaScript) is submitted through the NORMAL
@@ -12,14 +12,14 @@
 // toolbox model that maps directly onto per-problem block sets.
 // scratch-vm fits a sprite-animation product, not a judge.
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { analyzeComplexity, hintMessage } from './complexity';
-import { useTranslation } from 'react-i18next';
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { analyzeComplexity, hintMessage } from "./complexity";
+import { useTranslation } from "react-i18next";
 
-import { WC_JS_PREAMBLE } from './wcBlocks';
-import { palette } from '@/theme/tokens';
+import { WC_JS_PREAMBLE } from "./wcBlocks";
+import { palette } from "@/theme/tokens";
 
-export type BlockGenerator = 'python3' | 'nodejs20';
+export type BlockGenerator = "python3" | "nodejs20";
 
 /** The default beginner toolbox: logic, loops, math, text, I/O, vars. */
 export const DEFAULT_TOOLBOX_XML = `
@@ -93,23 +93,23 @@ export function localizeToolbox(toolbox: string, labels: Record<string, string>)
 
 /** English strings for the two site blocks (appended to the msg pack). */
 export const WC_BLOCK_MESSAGES_EN = {
-  WC_INPUT_NUMBER: 'read a number from input',
-  WC_INPUT_NUMBER_TIP: 'Reads one integer from the standard input.',
-  WC_INPUT_LINE: 'read a line from input',
-  WC_INPUT_LINE_TIP: 'Reads one line of text from the standard input.',
+  WC_INPUT_NUMBER: "read a number from input",
+  WC_INPUT_NUMBER_TIP: "Reads one integer from the standard input.",
+  WC_INPUT_LINE: "read a line from input",
+  WC_INPUT_LINE_TIP: "Reads one line of text from the standard input.",
 } as const;
 
 export const WC_BLOCK_MESSAGES_RO = {
-  WC_INPUT_NUMBER: 'citește un număr de la intrare',
-  WC_INPUT_NUMBER_TIP: 'Citește un întreg de la intrarea standard.',
-  WC_INPUT_LINE: 'citește o linie de la intrare',
-  WC_INPUT_LINE_TIP: 'Citește o linie de text de la intrarea standard.',
+  WC_INPUT_NUMBER: "citește un număr de la intrare",
+  WC_INPUT_NUMBER_TIP: "Citește un întreg de la intrarea standard.",
+  WC_INPUT_LINE: "citește o linie de la intrare",
+  WC_INPUT_LINE_TIP: "Citește o linie de text de la intrarea standard.",
 } as const;
 
 /** Apply the site blocks' messages to a loaded Blockly bundle. */
 function applyWcMessages(Blockly: { Msg: Record<string, string> }, locale: string) {
   const msgs =
-    locale.startsWith('ro') || locale === 'ro' ? WC_BLOCK_MESSAGES_RO : WC_BLOCK_MESSAGES_EN;
+    locale.startsWith("ro") || locale === "ro" ? WC_BLOCK_MESSAGES_RO : WC_BLOCK_MESSAGES_EN;
   for (const [key, value] of Object.entries(msgs)) {
     Blockly.Msg[key] = value;
   }
@@ -125,7 +125,7 @@ export interface BlockEditorProps {
 }
 
 export default function BlockEditor({
-  generator = 'python3',
+  generator = "python3",
   toolboxXml,
   starterXml,
   height = 420,
@@ -136,7 +136,7 @@ export default function BlockEditor({
   const workspaceRef = useRef<unknown>(null);
   const genRef = useRef<((ws: unknown) => string) | null>(null);
   const [showCode, setShowCode] = useState(false);
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState("");
   const [hints, setHints] = useState<string[]>([]);
   const onChangeRef = useRef(onCodeChange);
   onChangeRef.current = onCodeChange;
@@ -159,32 +159,32 @@ export default function BlockEditor({
     (async () => {
       // Blockly touches the DOM heavily — import lazily so SSR never
       // loads it and the route bundle stays lean.
-      const Blockly = await import('blockly');
-      const { registerBlockTypes } = await import('./wcBlocks');
-      const { pythonGenerator } = await import('blockly/python');
-      const { javascriptGenerator } = await import('blockly/javascript');
+      const Blockly = await import("blockly");
+      const { registerBlockTypes } = await import("./wcBlocks");
+      const { pythonGenerator } = await import("blockly/python");
+      const { javascriptGenerator } = await import("blockly/javascript");
       if (cancelled || !containerRef.current) return;
 
       // RO/EN block labels come from Blockly's official message packs.
       // (The msg modules' `default` export interop differs across build
       // targets — normalize to the message record either way.)
-      const localeModule = await (i18n.language?.startsWith('ro')
-        ? import('blockly/msg/ro')
-        : import('blockly/msg/en'));
+      const localeModule = await (i18n.language?.startsWith("ro")
+        ? import("blockly/msg/ro")
+        : import("blockly/msg/en"));
       const locale = localeModule.default ?? localeModule;
       Blockly.setLocale(locale as Parameters<typeof Blockly.setLocale>[0]);
-      applyWcMessages(Blockly, i18n.language || 'en');
+      applyWcMessages(Blockly, i18n.language || "en");
       registerBlockTypes(Blockly, pythonGenerator, javascriptGenerator);
 
       const toolbox = localizeToolbox(toolboxXml ?? DEFAULT_TOOLBOX_XML, {
-        logic: t('blocks_cat_logic', 'Logic'),
-        loops: t('blocks_cat_loops', 'Loops'),
-        math: t('blocks_cat_math', 'Math'),
-        text: t('blocks_cat_text', 'Text'),
-        input: t('blocks_cat_input', 'Input'),
-        lists: t('blocks_cat_lists', 'Lists'),
-        variables: t('blocks_cat_variables', 'Variables'),
-        functions: t('blocks_cat_functions', 'Functions'),
+        logic: t("blocks_cat_logic", "Logic"),
+        loops: t("blocks_cat_loops", "Loops"),
+        math: t("blocks_cat_math", "Math"),
+        text: t("blocks_cat_text", "Text"),
+        input: t("blocks_cat_input", "Input"),
+        lists: t("blocks_cat_lists", "Lists"),
+        variables: t("blocks_cat_variables", "Variables"),
+        functions: t("blocks_cat_functions", "Functions"),
       });
 
       const workspace = Blockly.inject(containerRef.current, {
@@ -195,13 +195,11 @@ export default function BlockEditor({
       });
       workspaceRef.current = workspace;
       genRef.current =
-        generator === 'nodejs20'
+        generator === "nodejs20"
           ? (ws: unknown) => {
               const js = javascriptGenerator.workspaceToCode(ws as never);
               // The wc_* stdin helpers need their preamble exactly once.
-              return js.includes('wcRead')
-                ? `${WC_JS_PREAMBLE}\n${js}`
-                : js;
+              return js.includes("wcRead") ? `${WC_JS_PREAMBLE}\n${js}` : js;
             }
           : (ws: unknown) => pythonGenerator.workspaceToCode(ws as never);
 
@@ -227,11 +225,17 @@ export default function BlockEditor({
     <div>
       <div
         ref={containerRef}
-        style={{ width: '100%', height, borderRadius: 12, overflow: 'hidden', border: '1px solid var(--border)' }}
-        aria-label={t('blocks_editor_label', 'Block editor')}
+        style={{
+          width: "100%",
+          height,
+          borderRadius: 12,
+          overflow: "hidden",
+          border: "1px solid var(--border)",
+        }}
+        aria-label={t("blocks_editor_label", "Block editor")}
         data-testid="blockly-editor"
       />
-      <div style={{ display: 'flex', gap: '8px', marginTop: '8px', alignItems: 'center' }}>
+      <div style={{ display: "flex", gap: "8px", marginTop: "8px", alignItems: "center" }}>
         <button
           type="button"
           className="btn btn-outline"
@@ -241,22 +245,22 @@ export default function BlockEditor({
           }}
         >
           {showCode
-            ? t('blocks_hide_code', 'Hide generated code')
-            : t('blocks_show_code', 'Show generated code')}
+            ? t("blocks_hide_code", "Hide generated code")
+            : t("blocks_show_code", "Show generated code")}
         </button>
-        <span style={{ color: 'var(--text-tertiary)', fontSize: '0.78rem' }}>
-          {generator === 'nodejs20'
-            ? t('blocks_generates_js', 'generates JavaScript (Node.js 20)')
-            : t('blocks_generates_python', 'generates Python 3')}
+        <span style={{ color: "var(--text-tertiary)", fontSize: "0.78rem" }}>
+          {generator === "nodejs20"
+            ? t("blocks_generates_js", "generates JavaScript (Node.js 20)")
+            : t("blocks_generates_python", "generates Python 3")}
         </span>
       </div>
       {hints.length > 0 && (
         <div
           data-testid="complexity-hints"
           style={{
-            marginTop: '8px',
-            display: 'grid',
-            gap: '6px',
+            marginTop: "8px",
+            display: "grid",
+            gap: "6px",
           }}
         >
           {hints.map((hint) => (
@@ -264,12 +268,12 @@ export default function BlockEditor({
               key={hint}
               style={{
                 margin: 0,
-                padding: '8px 10px',
-                border: '1px solid var(--border)',
+                padding: "8px 10px",
+                border: "1px solid var(--border)",
                 borderRadius: 8,
-                background: 'var(--surface-2)',
-                color: 'var(--muted)',
-                fontSize: '0.78rem',
+                background: "var(--surface-2)",
+                color: "var(--muted)",
+                fontSize: "0.78rem",
               }}
             >
               ⚠ {hintMessage(hint as Parameters<typeof hintMessage>[0], t)}
@@ -281,18 +285,18 @@ export default function BlockEditor({
         <pre
           data-testid="generated-code"
           style={{
-            marginTop: '8px',
-            padding: '12px',
-            background: 'var(--surface-2)',
-            border: '1px solid var(--border)',
+            marginTop: "8px",
+            padding: "12px",
+            background: "var(--surface-2)",
+            border: "1px solid var(--border)",
             borderRadius: 8,
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.82rem',
-            color: 'var(--muted)',
-            whiteSpace: 'pre-wrap',
+            fontFamily: "var(--font-mono)",
+            fontSize: "0.82rem",
+            color: "var(--muted)",
+            whiteSpace: "pre-wrap",
           }}
         >
-{code || t('blocks_empty', '(no blocks yet)')}
+          {code || t("blocks_empty", "(no blocks yet)")}
         </pre>
       )}
     </div>

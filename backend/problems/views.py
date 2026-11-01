@@ -145,6 +145,7 @@ class ProblemViewSet(viewsets.ModelViewSet):
                 ],
             }
         )
+
     # permission_classes = [IsAuthorOrVerifierOrAdminOrReadOnly] # Replaced with more granular per-action
 
     def get_permissions(self):
@@ -350,7 +351,6 @@ class ProblemViewSet(viewsets.ModelViewSet):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-
     @action(detail=True, methods=["get", "put", "patch"], url_path="editorial")
     def editorial(self, request, pk=None):
         """Read (gated by publish policy) or write (author/verifier/admin).
@@ -419,7 +419,8 @@ class ProblemViewSet(viewsets.ModelViewSet):
         subs = Submission.objects.filter(problem=problem)
         tried = subs.count()
         verdict_distribution = {
-            row["verdict"]: row["n"] for row in subs.values("verdict").annotate(n=models.Count("id"))
+            row["verdict"]: row["n"]
+            for row in subs.values("verdict").annotate(n=models.Count("id"))
         }
         solved = (
             subs.filter(verdict=Submission.VerdictStatus.ACCEPTED)
@@ -485,9 +486,13 @@ class ProblemViewSet(viewsets.ModelViewSet):
         problems by creation order when no curriculum links exist yet.
         """
         picked_ids = []
-        chapters = CurriculumNode.objects.filter(
-            kind=CurriculumNode.NodeKind.CHAPTER, parent__isnull=False
-        ).select_related("parent").order_by("parent__order", "parent__id", "order", "id")
+        chapters = (
+            CurriculumNode.objects.filter(
+                kind=CurriculumNode.NodeKind.CHAPTER, parent__isnull=False
+            )
+            .select_related("parent")
+            .order_by("parent__order", "parent__id", "order", "id")
+        )
         for chapter in chapters:
             candidate = (
                 chapter.problems.filter(
@@ -523,7 +528,9 @@ class ProblemViewSet(viewsets.ModelViewSet):
             ),
         )
         data = sorted(qs, key=lambda p: picked_ids.index(p.id))
-        return Response(ProblemSerializer(data, many=True, context={"request": request}).data)
+        return Response(
+            ProblemSerializer(data, many=True, context={"request": request}).data
+        )
 
     @action(detail=True, methods=["post", "delete"], url_path="bookmark")
     def bookmark(self, request, pk=None):
@@ -537,8 +544,13 @@ class ProblemViewSet(viewsets.ModelViewSet):
             ProblemStar.objects.filter(user=request.user, problem=problem).delete()
         else:
             ProblemStar.objects.get_or_create(user=request.user, problem=problem)
-        return Response({"problem": problem.id, "starred": request.method == "POST",
-                         "star_count": problem.stars.count()})
+        return Response(
+            {
+                "problem": problem.id,
+                "starred": request.method == "POST",
+                "star_count": problem.stars.count(),
+            }
+        )
 
     @action(detail=False, methods=["get"], url_path="bookmarked")
     def bookmarked(self, request):

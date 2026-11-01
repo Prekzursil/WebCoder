@@ -28,7 +28,6 @@ from __future__ import annotations
 import argparse
 import json
 import random
-import statistics
 import sys
 import threading
 import time
@@ -161,8 +160,12 @@ def read_load(base: str, users: int, requests_per_user: int) -> list[float]:
 
     ok = len(latencies)
     total = users * requests_per_user
-    print(f"[read]      {percentiles(latencies)} throttled={throttled} errors={len(errors)}")
-    print(f"[read]      throughput={ok / wall:.1f} ok req/s over {wall:.1f}s ({total} requests, {users} users)")
+    print(
+        f"[read]      {percentiles(latencies)} throttled={throttled} errors={len(errors)}"
+    )
+    print(
+        f"[read]      throughput={ok / wall:.1f} ok req/s over {wall:.1f}s ({total} requests, {users} users)"
+    )
     for err in errors[:5]:
         print("[read]      error:", err)
     if errors:
@@ -187,7 +190,9 @@ def judge_roundtrip(base: str, username: str, password: str) -> None:
         sys.exit(1)
     problems = payload.get("results", [])
     if not problems:
-        print("[judge]     no problems in catalog — seed first (manage.py seed_problems)")
+        print(
+            "[judge]     no problems in catalog — seed first (manage.py seed_problems)"
+        )
         sys.exit(1)
     problem = problems[0]
 
@@ -206,7 +211,9 @@ def judge_roundtrip(base: str, username: str, password: str) -> None:
     verdict = None
     for _ in range(120):  # up to 120s
         time.sleep(1)
-        status, payload, _ = http(f"{base}/api/v1/submissions/submissions/{submission_id}/", jar=jar)
+        status, payload, _ = http(
+            f"{base}/api/v1/submissions/submissions/{submission_id}/", jar=jar
+        )
         if status == 200:
             verdict = payload.get("verdict")
             if verdict in TERMINAL_VERDICTS:
@@ -215,7 +222,9 @@ def judge_roundtrip(base: str, username: str, password: str) -> None:
     if verdict not in TERMINAL_VERDICTS:
         print(f"[judge]     no terminal verdict after {elapsed:.0f}s (last: {verdict})")
         sys.exit(1)
-    print(f"[judge]     submission {submission_id} -> {verdict} in {elapsed:.1f}s end-to-end")
+    print(
+        f"[judge]     submission {submission_id} -> {verdict} in {elapsed:.1f}s end-to-end"
+    )
 
 
 def main() -> None:
@@ -223,7 +232,9 @@ def main() -> None:
     parser.add_argument("--base", default="http://127.0.0.1:8010")
     parser.add_argument("--users", type=int, default=10)
     parser.add_argument("--requests", type=int, default=30, help="per user")
-    parser.add_argument("--judge", action="store_true", help="also run one judged round-trip")
+    parser.add_argument(
+        "--judge", action="store_true", help="also run one judged round-trip"
+    )
     parser.add_argument("--username", default="bob")
     parser.add_argument("--password", default="BobPass-2026!x")
     args = parser.parse_args()

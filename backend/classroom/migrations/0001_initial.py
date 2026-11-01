@@ -6,83 +6,237 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('problems', '0010_testcase_is_pretest'),
+        ("problems", "0010_testcase_is_pretest"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ClassRoom',
+            name="ClassRoom",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=120, verbose_name='name')),
-                ('school', models.CharField(blank=True, max_length=160, verbose_name='school')),
-                ('join_code', models.CharField(editable=False, help_text='Shareable code students use to self-join.', max_length=8, unique=True, verbose_name='join code')),
-                ('join_password', models.CharField(blank=True, default='', help_text='Optional second factor for joining; empty = code only.', max_length=128, verbose_name='join password (hashed)')),
-                ('is_open', models.BooleanField(default=True, help_text='Closed classes reject new self-joins; members stay.', verbose_name='open for joining')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('teacher', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='classrooms', to=settings.AUTH_USER_MODEL, verbose_name='teacher')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=120, verbose_name="name")),
+                (
+                    "school",
+                    models.CharField(blank=True, max_length=160, verbose_name="school"),
+                ),
+                (
+                    "join_code",
+                    models.CharField(
+                        editable=False,
+                        help_text="Shareable code students use to self-join.",
+                        max_length=8,
+                        unique=True,
+                        verbose_name="join code",
+                    ),
+                ),
+                (
+                    "join_password",
+                    models.CharField(
+                        blank=True,
+                        default="",
+                        help_text="Optional second factor for joining; empty = code only.",
+                        max_length=128,
+                        verbose_name="join password (hashed)",
+                    ),
+                ),
+                (
+                    "is_open",
+                    models.BooleanField(
+                        default=True,
+                        help_text="Closed classes reject new self-joins; members stay.",
+                        verbose_name="open for joining",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "teacher",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="classrooms",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="teacher",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'classroom',
-                'verbose_name_plural': 'classrooms',
-                'ordering': ['-created_at'],
+                "verbose_name": "classroom",
+                "verbose_name_plural": "classrooms",
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='Assignment',
+            name="Assignment",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title_i18n', models.JSONField(help_text="Assignment title per locale, e.g. {'en':…,'ro':…}", verbose_name='title (i18n)')),
-                ('description', models.TextField(blank=True, verbose_name='description')),
-                ('available_from', models.DateTimeField(verbose_name='available from')),
-                ('due_at', models.DateTimeField(verbose_name='due at')),
-                ('late_until', models.DateTimeField(blank=True, null=True, verbose_name='late until')),
-                ('is_exam', models.BooleanField(default=False, help_text='Flag only in this increment; lockdown lands with EDU-4.', verbose_name='exam mode')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('classroom', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='assignments', to='classroom.classroom')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "title_i18n",
+                    models.JSONField(
+                        help_text="Assignment title per locale, e.g. {'en':…,'ro':…}",
+                        verbose_name="title (i18n)",
+                    ),
+                ),
+                (
+                    "description",
+                    models.TextField(blank=True, verbose_name="description"),
+                ),
+                ("available_from", models.DateTimeField(verbose_name="available from")),
+                ("due_at", models.DateTimeField(verbose_name="due at")),
+                (
+                    "late_until",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="late until"
+                    ),
+                ),
+                (
+                    "is_exam",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Flag only in this increment; lockdown lands with EDU-4.",
+                        verbose_name="exam mode",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "classroom",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="assignments",
+                        to="classroom.classroom",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'assignment',
-                'verbose_name_plural': 'assignments',
-                'ordering': ['-available_from'],
+                "verbose_name": "assignment",
+                "verbose_name_plural": "assignments",
+                "ordering": ["-available_from"],
             },
         ),
         migrations.CreateModel(
-            name='AssignmentProblem',
+            name="AssignmentProblem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('order', models.PositiveIntegerField(default=0, help_text='Display order (0 = A).', verbose_name='order')),
-                ('label', models.CharField(blank=True, help_text='A, B, C…; auto-assigned.', max_length=8, verbose_name='label')),
-                ('points', models.PositiveIntegerField(default=100, help_text='Max points inside this assignment.', verbose_name='points')),
-                ('assignment', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='assignment_problems', to='classroom.assignment')),
-                ('problem', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='assignment_problems', to='problems.problem')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "order",
+                    models.PositiveIntegerField(
+                        default=0,
+                        help_text="Display order (0 = A).",
+                        verbose_name="order",
+                    ),
+                ),
+                (
+                    "label",
+                    models.CharField(
+                        blank=True,
+                        help_text="A, B, C…; auto-assigned.",
+                        max_length=8,
+                        verbose_name="label",
+                    ),
+                ),
+                (
+                    "points",
+                    models.PositiveIntegerField(
+                        default=100,
+                        help_text="Max points inside this assignment.",
+                        verbose_name="points",
+                    ),
+                ),
+                (
+                    "assignment",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="assignment_problems",
+                        to="classroom.assignment",
+                    ),
+                ),
+                (
+                    "problem",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="assignment_problems",
+                        to="problems.problem",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'assignment problem',
-                'verbose_name_plural': 'assignment problems',
-                'ordering': ['assignment', 'order', 'id'],
-                'constraints': [models.UniqueConstraint(fields=('assignment', 'problem'), name='unique_assignment_problem')],
+                "verbose_name": "assignment problem",
+                "verbose_name_plural": "assignment problems",
+                "ordering": ["assignment", "order", "id"],
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=("assignment", "problem"),
+                        name="unique_assignment_problem",
+                    )
+                ],
             },
         ),
         migrations.CreateModel(
-            name='ClassMembership',
+            name="ClassMembership",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('joined_at', models.DateTimeField(auto_now_add=True)),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='class_memberships', to=settings.AUTH_USER_MODEL)),
-                ('classroom', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='memberships', to='classroom.classroom')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("joined_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "student",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="class_memberships",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "classroom",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="memberships",
+                        to="classroom.classroom",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'class membership',
-                'verbose_name_plural': 'class memberships',
-                'ordering': ['joined_at'],
-                'constraints': [models.UniqueConstraint(fields=('classroom', 'student'), name='unique_classroom_student')],
+                "verbose_name": "class membership",
+                "verbose_name_plural": "class memberships",
+                "ordering": ["joined_at"],
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=("classroom", "student"), name="unique_classroom_student"
+                    )
+                ],
             },
         ),
     ]

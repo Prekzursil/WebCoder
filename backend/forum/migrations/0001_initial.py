@@ -7,101 +7,300 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('problems', '0005_alter_problem_author_alter_problem_verifier'),
+        ("problems", "0005_alter_problem_author_alter_problem_verifier"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Thread',
+            name="Thread",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=255, verbose_name='title')),
-                ('is_pinned', models.BooleanField(default=False, verbose_name='pinned')),
-                ('is_locked', models.BooleanField(default=False, verbose_name='locked')),
-                ('is_hidden', models.BooleanField(default=False, verbose_name='hidden')),
-                ('post_count', models.PositiveIntegerField(default=0, verbose_name='post count')),
-                ('last_activity', models.DateTimeField(default=django.utils.timezone.now, verbose_name='last activity')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
-                ('author', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='threads', to=settings.AUTH_USER_MODEL, verbose_name='author')),
-                ('problem', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='threads', to='problems.problem', verbose_name='problem')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=255, verbose_name="title")),
+                (
+                    "is_pinned",
+                    models.BooleanField(default=False, verbose_name="pinned"),
+                ),
+                (
+                    "is_locked",
+                    models.BooleanField(default=False, verbose_name="locked"),
+                ),
+                (
+                    "is_hidden",
+                    models.BooleanField(default=False, verbose_name="hidden"),
+                ),
+                (
+                    "post_count",
+                    models.PositiveIntegerField(default=0, verbose_name="post count"),
+                ),
+                (
+                    "last_activity",
+                    models.DateTimeField(
+                        default=django.utils.timezone.now, verbose_name="last activity"
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="created at"),
+                ),
+                (
+                    "author",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="threads",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="author",
+                    ),
+                ),
+                (
+                    "problem",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="threads",
+                        to="problems.problem",
+                        verbose_name="problem",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'thread',
-                'verbose_name_plural': 'threads',
-                'ordering': ['-is_pinned', '-last_activity'],
+                "verbose_name": "thread",
+                "verbose_name_plural": "threads",
+                "ordering": ["-is_pinned", "-last_activity"],
             },
         ),
         migrations.CreateModel(
-            name='Post',
+            name="Post",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('content', models.TextField(verbose_name='content')),
-                ('is_hidden', models.BooleanField(default=False, verbose_name='hidden')),
-                ('hidden_reason', models.CharField(blank=True, max_length=200, verbose_name='hidden reason')),
-                ('is_edited', models.BooleanField(default=False, verbose_name='edited')),
-                ('upvotes', models.IntegerField(default=0, verbose_name='upvotes')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='updated at')),
-                ('author', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='forum_posts', to=settings.AUTH_USER_MODEL, verbose_name='author')),
-                ('parent', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='replies', to='forum.post', verbose_name='parent post')),
-                ('thread', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='posts', to='forum.thread', verbose_name='thread')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("content", models.TextField(verbose_name="content")),
+                (
+                    "is_hidden",
+                    models.BooleanField(default=False, verbose_name="hidden"),
+                ),
+                (
+                    "hidden_reason",
+                    models.CharField(
+                        blank=True, max_length=200, verbose_name="hidden reason"
+                    ),
+                ),
+                (
+                    "is_edited",
+                    models.BooleanField(default=False, verbose_name="edited"),
+                ),
+                ("upvotes", models.IntegerField(default=0, verbose_name="upvotes")),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="created at"),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(auto_now=True, verbose_name="updated at"),
+                ),
+                (
+                    "author",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="forum_posts",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="author",
+                    ),
+                ),
+                (
+                    "parent",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="replies",
+                        to="forum.post",
+                        verbose_name="parent post",
+                    ),
+                ),
+                (
+                    "thread",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="posts",
+                        to="forum.thread",
+                        verbose_name="thread",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'post',
-                'verbose_name_plural': 'posts',
-                'ordering': ['created_at'],
+                "verbose_name": "post",
+                "verbose_name_plural": "posts",
+                "ordering": ["created_at"],
             },
         ),
         migrations.CreateModel(
-            name='PostVote',
+            name="PostVote",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('value', models.SmallIntegerField(choices=[(1, 'up'), (-1, 'down')], verbose_name='value')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
-                ('post', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='votes', to='forum.post', verbose_name='post')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='post_votes', to=settings.AUTH_USER_MODEL, verbose_name='user')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "value",
+                    models.SmallIntegerField(
+                        choices=[(1, "up"), (-1, "down")], verbose_name="value"
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="created at"),
+                ),
+                (
+                    "post",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="votes",
+                        to="forum.post",
+                        verbose_name="post",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="post_votes",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="user",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'post vote',
-                'verbose_name_plural': 'post votes',
-                'unique_together': {('user', 'post')},
+                "verbose_name": "post vote",
+                "verbose_name_plural": "post votes",
+                "unique_together": {("user", "post")},
             },
         ),
         migrations.CreateModel(
-            name='Report',
+            name="Report",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('reason', models.CharField(choices=[('SPAM', 'Spam'), ('ABUSE', 'Abuse'), ('OFF_TOPIC', 'Off topic'), ('OTHER', 'Other')], max_length=16, verbose_name='reason')),
-                ('details', models.TextField(blank=True, verbose_name='details')),
-                ('status', models.CharField(choices=[('OPEN', 'Open'), ('RESOLVED', 'Resolved'), ('DISMISSED', 'Dismissed')], default='OPEN', max_length=16, verbose_name='status')),
-                ('resolution_note', models.TextField(blank=True, verbose_name='resolution note')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
-                ('post', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reports', to='forum.post', verbose_name='post')),
-                ('reporter', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='filed_reports', to=settings.AUTH_USER_MODEL, verbose_name='reporter')),
-                ('resolved_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='resolved_reports', to=settings.AUTH_USER_MODEL, verbose_name='resolved by')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "reason",
+                    models.CharField(
+                        choices=[
+                            ("SPAM", "Spam"),
+                            ("ABUSE", "Abuse"),
+                            ("OFF_TOPIC", "Off topic"),
+                            ("OTHER", "Other"),
+                        ],
+                        max_length=16,
+                        verbose_name="reason",
+                    ),
+                ),
+                ("details", models.TextField(blank=True, verbose_name="details")),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("OPEN", "Open"),
+                            ("RESOLVED", "Resolved"),
+                            ("DISMISSED", "Dismissed"),
+                        ],
+                        default="OPEN",
+                        max_length=16,
+                        verbose_name="status",
+                    ),
+                ),
+                (
+                    "resolution_note",
+                    models.TextField(blank=True, verbose_name="resolution note"),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="created at"),
+                ),
+                (
+                    "post",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="reports",
+                        to="forum.post",
+                        verbose_name="post",
+                    ),
+                ),
+                (
+                    "reporter",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="filed_reports",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="reporter",
+                    ),
+                ),
+                (
+                    "resolved_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="resolved_reports",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="resolved by",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'report',
-                'verbose_name_plural': 'reports',
-                'ordering': ['-created_at'],
-                'unique_together': {('reporter', 'post')},
+                "verbose_name": "report",
+                "verbose_name_plural": "reports",
+                "ordering": ["-created_at"],
+                "unique_together": {("reporter", "post")},
             },
         ),
         migrations.AddIndex(
-            model_name='thread',
-            index=models.Index(fields=['problem', '-last_activity'], name='forum_threa_problem_09f49b_idx'),
+            model_name="thread",
+            index=models.Index(
+                fields=["problem", "-last_activity"],
+                name="forum_threa_problem_09f49b_idx",
+            ),
         ),
         migrations.AddIndex(
-            model_name='thread',
-            index=models.Index(fields=['-last_activity'], name='forum_threa_last_ac_6f5b38_idx'),
+            model_name="thread",
+            index=models.Index(
+                fields=["-last_activity"], name="forum_threa_last_ac_6f5b38_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='post',
-            index=models.Index(fields=['thread', 'created_at'], name='forum_post_thread__a619d5_idx'),
+            model_name="post",
+            index=models.Index(
+                fields=["thread", "created_at"], name="forum_post_thread__a619d5_idx"
+            ),
         ),
     ]

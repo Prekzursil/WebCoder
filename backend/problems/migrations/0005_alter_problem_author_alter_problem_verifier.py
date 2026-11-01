@@ -6,21 +6,34 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('problems', '0004_problem_verifier_feedback'),
+        ("problems", "0004_problem_verifier_feedback"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='problem',
-            name='author',
-            field=models.ForeignKey(blank=True, null=True, on_delete=models.SET(users.utils.get_sentinel_user), related_name='authored_problems', to=settings.AUTH_USER_MODEL, verbose_name='author'),
+            model_name="problem",
+            name="author",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=models.SET(users.utils.get_sentinel_user),
+                related_name="authored_problems",
+                to=settings.AUTH_USER_MODEL,
+                verbose_name="author",
+            ),
         ),
         migrations.AlterField(
-            model_name='problem',
-            name='verifier',
-            field=models.ForeignKey(blank=True, null=True, on_delete=models.SET(users.utils.get_sentinel_user), related_name='verified_problems', to=settings.AUTH_USER_MODEL, verbose_name='verifier'),
+            model_name="problem",
+            name="verifier",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=models.SET(users.utils.get_sentinel_user),
+                related_name="verified_problems",
+                to=settings.AUTH_USER_MODEL,
+                verbose_name="verifier",
+            ),
         ),
     ]

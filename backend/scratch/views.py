@@ -9,7 +9,6 @@ throttle and an audit-log row per run.
 
 import pathlib
 
-from django.conf import settings
 from rest_framework import permissions, serializers, status
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle

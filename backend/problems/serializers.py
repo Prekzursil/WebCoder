@@ -8,7 +8,6 @@ from .i18n_fields import (
 from .models import (
     CurriculumNode,
     ProblemEditorial,
-    ProblemRating,
     Tag,
     Problem,
     TestCase,
@@ -124,6 +123,7 @@ class ProblemSerializer(serializers.ModelSerializer):
             for lang in languages
             if lang in LANGUAGES or lang == SCRATCH_LANGUAGE_ID
         }
+
     # test_cases = TestCaseSerializer(many=True, read_only=True) # To show test cases when retrieving a problem
 
     class Meta:
@@ -198,8 +198,7 @@ class ProblemSerializer(serializers.ModelSerializer):
         unknown = [
             lang
             for lang in value
-            if get_language(str(lang)) is None
-            and str(lang) != SCRATCH_LANGUAGE_ID
+            if get_language(str(lang)) is None and str(lang) != SCRATCH_LANGUAGE_ID
         ]
         if unknown:
             raise serializers.ValidationError(
@@ -321,8 +320,7 @@ class ProblemSerializer(serializers.ModelSerializer):
                     isinstance(op, str) for op in blocks
                 ):
                     raise serializers.ValidationError(
-                        "block_config.scratch_blocks must be a list of "
-                        "opcode strings."
+                        "block_config.scratch_blocks must be a list of opcode strings."
                     )
                 unknown_ops = sorted(set(blocks) - KNOWN_OPCODES)
                 if unknown_ops:
@@ -388,9 +386,7 @@ class ProblemSerializer(serializers.ModelSerializer):
             for field in ("io_input_filename", "io_output_filename"):
                 name = attrs.get(field) or getattr(self.instance, field, "")
                 if name in (None, ""):
-                    attrs[field] = (
-                        Problem._meta.get_field(field).get_default()
-                    )
+                    attrs[field] = Problem._meta.get_field(field).get_default()
         # Wave E (partial-code): a skeleton implies its registry language.
         template = attrs.get(
             "code_template", getattr(self.instance, "code_template", "")
@@ -494,9 +490,7 @@ class ProblemDetailSerializer(ProblemSerializer):
         from translations.models import TranslationProposal
 
         rows = (
-            obj.translation_proposals.filter(
-                status=TranslationProposal.Status.APPROVED
-            )
+            obj.translation_proposals.filter(status=TranslationProposal.Status.APPROVED)
             .select_related("contributor")
             .order_by("language")
         )
