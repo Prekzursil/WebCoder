@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { createTranslator, getLocale } from '@/app/_lib/public-i18n';
 import { getProblemDetail } from '@/app/problems/_lib/problems-api';
+import { parseProblemId } from '../page';
 import TranslateForm from './TranslateForm';
 
 interface TranslatePageProps {
@@ -31,8 +32,12 @@ export default async function TranslateProblemPage({ params }: TranslatePageProp
   const t = createTranslator(await getLocale());
 
   let problem = null;
+  const pid = parseProblemId(problemId);
+  if (pid === null) {
+    notFound();
+  }
   try {
-    problem = await getProblemDetail(problemId);
+    problem = await getProblemDetail(pid);
   } catch {
     problem = null;
   }

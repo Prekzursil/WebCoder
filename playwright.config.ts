@@ -95,13 +95,6 @@ export default defineConfig({
           env: {
             ...process.env,
             NEXT_PUBLIC_API_BASE: `http://localhost:${MOCK_API_PORT}`,
-            // Mock-mode specs now MUTATE problem state too (translation
-            // approval promotes into title_i18n/statement_i18n), so the
-            // dev server's 60s problem-fetch cache must be off here as
-            // well — problems-api.ts keys on this env var. Runner-side
-            // real-mode detection (REAL_API_BASE above) already ran and is
-            // unaffected by a webServer's env block.
-            E2E_API_BASE: 'mock-cache-off',
           },
         },
       ],

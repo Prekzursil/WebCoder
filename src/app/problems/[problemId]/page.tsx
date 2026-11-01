@@ -50,6 +50,16 @@ function localizedTitle(problem: ProblemType, locale: PublicLocale, fallback: st
   return problem.title_i18n[locale] || problem.title_i18n.en || fallback;
 }
 
+/**
+ * Route-param hardening: problem ids are integers. A malformed id 404s
+ * locally instead of being interpolated into the API request URL
+ * (path-travel guard feeding the server-side detail fetch).
+ */
+export function parseProblemId(raw: string): number | null {
+  const id = Number.parseInt(raw, 10);
+  return Number.isInteger(id) && id > 0 ? id : null;
+}
+
 export async function generateMetadata({
   params,
 }: ProblemDetailPageProps): Promise<Metadata> {
@@ -57,9 +67,10 @@ export async function generateMetadata({
   const locale = await getLocale();
   const t = createTranslator(locale);
 
+  const pid = parseProblemId(problemId);
   let problem: ProblemType | null = null;
   try {
-    problem = await getProblemDetail(problemId);
+    problem = pid === null ? null : await getProblemDetail(pid);
   } catch {
     return { title: t('problem_not_found', 'Problem not found.') };
   }
@@ -102,8 +113,12 @@ export default async function ProblemDetailPage({
   const t = createTranslator(locale);
 
   let problem: ProblemType | null = null;
+  const pid = parseProblemId(problemId);
+  if (pid === null) {
+    notFound();
+  }
   try {
-    problem = await getProblemDetail(problemId);
+    problem = await getProblemDetail(pid);
   } catch (err) {
     return (
       <div className="page-container">
