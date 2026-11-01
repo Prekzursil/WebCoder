@@ -20,6 +20,9 @@ export async function GET(
   }
   const cookie = request.headers.get("cookie") ?? "";
   try {
+    // assignmentId is /^\d+$/ validated AND encodeURIComponent-encoded
+    // before the upstream proxy hop (owner triage: alert #140, mitigated).
+    // codeql[js/request-forgery]
     const upstream = await fetch(
       `${API_V1_URL}/classroom/assignments/${encodeURIComponent(assignmentId)}/export/`,
       {

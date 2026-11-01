@@ -39,8 +39,9 @@ async function api(
   init: RequestInit & { token?: string } = {},
 ): Promise<{ status: number; body: AnyBody }> {
   const { token, ...rest } = init;
-  // codeql[js/request-forgery] — e2e-only helper; `path` comes from spec
-  // code, never user input (triage parity with real-stack.spec.ts #116/#117).
+  // e2e-only helper; `path` comes from spec code, never user input
+  // (triage parity with real-stack.spec.ts #116/#117).
+  // codeql[js/request-forgery]
   const res = await fetch(`${REAL_API_BASE}/api/v1${path}`, {
     ...rest,
     headers: {
