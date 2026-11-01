@@ -701,3 +701,48 @@ export interface WeeklyBoardRow {
     solved: number;
     points: number;
 }
+
+// =================================
+// Community translations (i18n wave, owner rule (c))
+// =================================
+
+/** One entry of the translatable-language catalog (propose-form picker). */
+export interface TranslationLanguageEntry {
+    code: string;
+    endonym: string;
+    english: string;
+}
+
+export interface GetTranslationLanguagesResponse {
+    results: TranslationLanguageEntry[];
+}
+
+/** A translation proposal row — the curation queue and "mine" read shape. */
+export interface TranslationProposalRow {
+    id: number;
+    problem_id: number;
+    problem_title_en: string;
+    language: string;
+    language_name: string;
+    title: string;
+    statement: string;
+    status: 'PENDING' | 'APPROVED' | 'REJECTED';
+    contributor_username: string;
+    reviewer_username: string | null;
+    review_note: string;
+    reviewed_at: string | null;
+    ai_verdict: '' | 'approve' | 'flag' | 'error';
+    ai_confidence: number | null;
+    ai_notes: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export type GetTranslationProposalsResponse = PaginatedResponse<TranslationProposalRow>;
+
+/** Attribution for an approved community translation (problem page credit). */
+export interface TranslationAttribution {
+    language: string;
+    contributor_username: string;
+    reviewed_at: string | null;
+}

@@ -17,13 +17,25 @@ import { ProblemType } from '@/types';
 import { PaginatedResponse } from '@/types/api';
 import { apiUrl } from '@/lib/api-config';
 
+/**
+ * Fetch cache policy: ISR-style 60s revalidate in production, no-store in
+ * e2e. E2e (mock AND real modes) mutates problem state around specs — the
+ * translations curation flow promotes approved proposals straight into
+ * title_i18n/statement_i18n — so a 60s window would serve stale problems
+ * mid-suite. playwright.config sets E2E_API_BASE on the dev server in real
+ * mode and flags mock mode the same way for this reason.
+ */
+function e2eFetchCache(): RequestInit {
+  return process.env.E2E_API_BASE
+    ? ({ cache: 'no-store' } as RequestInit)
+    : ({ next: { revalidate: 60 } } as RequestInit);
+}
+
 async function fetchJson<T>(path: string): Promise<T> {
   // Real-backend e2e mode [Q13]: the suite seeds/unseeds problems around
   // each run and cannot tolerate the 60s ISR window — disable the cache
   // there (E2E_API_BASE is set on the dev server by playwright.config).
-  const cacheOpts = process.env.E2E_API_BASE
-    ? ({ cache: 'no-store' } as RequestInit)
-    : ({ next: { revalidate: 60 } } as RequestInit);
+  const cacheOpts = e2eFetchCache()
   const response = await fetch(apiUrl(path), cacheOpts);
   if (!response.ok) {
     const errorData: { detail?: string } = await response.json().catch(() => ({}));
@@ -101,9 +113,7 @@ export async function getProblems(): Promise<ProblemType[]> {
  * every other failure rejects with the shared Error(detail || statusText).
  */
 export async function getProblemDetail(id: string | number): Promise<ProblemType | null> {
-  const response = await fetch(apiUrl(`/problems/problems/${id}/`), {
-    next: { revalidate: 60 },
-  });
+  const response = await fetch(apiUrl(`/problems/problems/${id}/`), e2eFetchCache());
   if (response.status === 404) {
     return null;
   }

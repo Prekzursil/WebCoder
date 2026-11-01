@@ -78,6 +78,9 @@ import {
   GetBlocksResponse,
   GetMessageReportsResponse,
   GetAdminConversationsResponse,
+  GetTranslationLanguagesResponse,
+  GetTranslationProposalsResponse,
+  TranslationProposalRow,
 } from '@/types/api';
 import { TestCaseType, User } from '@/types';
 import { API_V1_URL } from '@/lib/api-config';
@@ -1009,4 +1012,69 @@ export const ClassroomService = {
     /** EDU-6: CSV gradebook download (browser navigates; auth cookie rides). */
     exportCsvUrl: (id: number | string) =>
         `${API_V1_URL}/classroom/assignments/${id}/export/`,
+};
+
+// =================================
+// Translations Service (i18n wave, owner rule (c))
+// =================================
+
+export const TranslationsService = {
+    /** The translatable-language catalog (propose-form picker; public). */
+    getLanguages: () => apiFetch<GetTranslationLanguagesResponse>('/translations/languages/'),
+    /** The curation queue (VERIFIER/ADMIN); filters optional. */
+    getProposals: (params: {
+        page?: number,
+        pageSize?: number,
+        status?: string,
+        language?: string,
+        problem?: number | string,
+    } = {}) => {
+        const search = new URLSearchParams();
+        if (params.page !== undefined) search.set('page', String(params.page));
+        if (params.pageSize !== undefined) search.set('page_size', String(params.pageSize));
+        if (params.status) search.set('status', params.status);
+        if (params.language) search.set('language', params.language);
+        if (params.problem !== undefined) search.set('problem', String(params.problem));
+        const qs = search.toString();
+        return apiFetch<GetTranslationProposalsResponse>(
+            `/translations/proposals/${qs ? `?${qs}` : ''}`
+        );
+    },
+    /** The viewer's own proposals with their decisions. */
+    getMine: (params: { page?: number, pageSize?: number } = {}) => {
+        const search = new URLSearchParams();
+        if (params.page !== undefined) search.set('page', String(params.page));
+        if (params.pageSize !== undefined) search.set('page_size', String(params.pageSize));
+        const qs = search.toString();
+        return apiFetch<GetTranslationProposalsResponse>(
+            `/translations/proposals/mine/${qs ? `?${qs}` : ''}`
+        );
+    },
+    /** Propose a translation (authenticated + rate-limited; 409 on a pending dup). */
+    propose: (data: {
+        problemId: number | string,
+        language: string,
+        title: string,
+        statement: string,
+    }) =>
+        apiFetch<TranslationProposalRow>('/translations/proposals/', {
+            method: 'POST',
+            body: JSON.stringify({
+                problem: data.problemId,
+                language: data.language,
+                title: data.title,
+                statement: data.statement,
+            }),
+        }),
+    /** Approve → promotes atomically into the problem (verifiers only). */
+    approve: (id: number | string) =>
+        apiFetch<TranslationProposalRow>(`/translations/proposals/${id}/approve/`, {
+            method: 'POST',
+        }),
+    /** Reject with an optional note shown to the contributor (verifiers only). */
+    reject: (id: number | string, note = '') =>
+        apiFetch<TranslationProposalRow>(`/translations/proposals/${id}/reject/`, {
+            method: 'POST',
+            body: JSON.stringify({ note }),
+        }),
 };

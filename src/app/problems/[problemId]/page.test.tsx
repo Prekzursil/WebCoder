@@ -353,4 +353,48 @@ describe('generateMetadata (problem detail)', () => {
 
     expect(metadata.title).toBe('Problem not found.');
   });
+
+  // i18n wave, owner rule (d): EN is the universal fallback — and the
+  // fallback is VISIBLE, with a help-translate affordance on the problem page.
+  it('shows the EN-fallback banner and translate link for a locale without a translation', async () => {
+    vi.mocked(getProblemDetail).mockResolvedValue(problem({}));
+    mockLocale('ro');
+    render(await ProblemDetailPage(pageProps()));
+
+    const banner = screen.getByTestId('i18n-fallback-banner');
+    expect(banner).toHaveTextContent(
+      'Această problemă nu există încă în limba ta — citești originalul în engleză.'
+    );
+    const help = screen.getByTestId('help-translate-link');
+    expect(help).toHaveTextContent('Ajută la traducere →');
+    expect(help.getAttribute('href')).toBe('/problems/7/translate');
+  });
+
+  it('credits the contributor and skips the banner once the locale translation exists', async () => {
+    vi.mocked(getProblemDetail).mockResolvedValue(
+      problem({
+        title_i18n: { en: 'Two Sum', ro: 'Suma a două numere', fr: 'Somme de deux nombres' },
+        statement_i18n: { en: 'Add two numbers.', ro: 'Adună două numere.' },
+        translations: [
+          { language: 'ro', contributor_username: 'alice', reviewed_at: '2026-10-31T09:00:00Z' },
+        ],
+      })
+    );
+    mockLocale('ro');
+    render(await ProblemDetailPage(pageProps()));
+
+    expect(screen.getByTestId('translation-attribution')).toHaveTextContent(
+      'tradus de @alice'
+    );
+    expect(screen.queryByTestId('i18n-fallback-banner')).not.toBeInTheDocument();
+    expect(screen.getByTestId('problem-available-languages')).toBeInTheDocument();
+  });
+
+  it('hides the fallback banner for English visitors', async () => {
+    vi.mocked(getProblemDetail).mockResolvedValue(problem({}));
+    mockLocale('en');
+    render(await ProblemDetailPage(pageProps()));
+
+    expect(screen.queryByTestId('i18n-fallback-banner')).not.toBeInTheDocument();
+  });
 });
