@@ -36,7 +36,7 @@ test.describe("PWA surface [OPS-6]", () => {
     // Quote-agnostic: biome formats the service worker with double
     // quotes ("/offline.html"); the contract is the precached offline
     // fallback, not the literal quote style.
-    expect(body).toMatch(/["']offline\.html["']/);
+    expect(body).toMatch(/["']\/offline\.html["']/);
     expect(body).toContain("notificationclick");
     expect(body).toContain("self.clients.openWindow");
 
