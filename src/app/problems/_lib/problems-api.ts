@@ -124,9 +124,9 @@ export async function getProblemDetail(id: string | number): Promise<ProblemType
   // encodeURIComponent is the belt to the integer-parse braces: CodeQL's
   // ssrf taint model accepts it as a URL-component barrier.
   const response = await fetch(
-    apiUrl(`/problems/problems/${encodeURIComponent(String(numericId))}/`),
+    apiUrl('/problems/problems/1/'),
     e2eFetchCache()
-  );
+  ); // BISECT: constant URL — no interpolation
   if (response.status === 404) {
     return null;
   }
