@@ -78,8 +78,17 @@ test.describe('community translations (mock api)', () => {
     await expect(page.getByTestId('decided-ok')).toBeVisible();
 
     // Visible: the problem page now renders the RO translation, credits the
-    // contributor, and the EN-fallback banner is gone.
-    await page.goto('/problems/1');
+    // contributor, and the EN-fallback banner is gone. The server-side
+    // problem-detail fetch is ISR-cached for 60s (src/app/problems/_lib/
+    // problems-api.ts), so the promoted translation can take up to that
+    // window to appear — the same production behavior, exercised for real.
+    // Retry past the window.
+    test.setTimeout(210_000);
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      await page.goto('/problems/1');
+      if ((await page.getByTestId('translation-attribution').count()) > 0) break;
+      await page.waitForTimeout(15_000);
+    }
     await expect(page.getByTestId('translation-attribution')).toContainText('tradus de @e2e_tester');
     await expect(page.getByText('Returnează indicii celor două numere care adună la țintă.', { exact: false })).toBeVisible();
     await expect(page.getByTestId('i18n-fallback-banner')).toHaveCount(0);
