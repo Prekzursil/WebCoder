@@ -121,7 +121,12 @@ export async function getProblemDetail(id: string | number): Promise<ProblemType
   if (!Number.isInteger(numericId) || numericId <= 0) {
     return null;
   }
-  const response = await fetch(apiUrl(`/problems/problems/${numericId}/`), e2eFetchCache());
+  // encodeURIComponent is the belt to the integer-parse braces: CodeQL's
+  // ssrf taint model accepts it as a URL-component barrier.
+  const response = await fetch(
+    apiUrl(`/problems/problems/${encodeURIComponent(String(numericId))}/`),
+    e2eFetchCache()
+  );
   if (response.status === 404) {
     return null;
   }
