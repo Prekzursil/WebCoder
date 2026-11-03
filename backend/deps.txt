@@ -18,7 +18,7 @@ requests-oauthlib==2.0.0
 oauthlib==3.3.1
 cryptography==50.0.2
 kombu==5.6.2
-packaging==25.0
+packaging==26.3
 prompt_toolkit==3.0.53
 psycopg2-binary==2.9.13
 PyJWT==2.15.1
