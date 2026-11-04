@@ -1151,5 +1151,21 @@
   "lang_group_turkic": "Turkijski jezici",
   "lang_group_right_to_left": "S desna na lijevo (arapsko pismo)",
   "privacy_mobile_title": "Mobile apps",
-  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere."
+  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere.",
+  "forgot_password_link": "Zaboravili ste lozinku?",
+  "forgot_password_title": "Resetirajte lozinku",
+  "forgot_password_intro": "Unesite e-poštu svog računa i poslat ćemo vam poveznicu za resetiranje.",
+  "forgot_password_email_label": "Adresa e-pošte",
+  "forgot_password_button": "Pošalji poveznicu za resetiranje",
+  "forgot_password_error": "Poveznicu za resetiranje nije bilo moguće poslati. Pokušajte ponovno.",
+  "forgot_password_sent": "Ako ta e-pošta pripada računu, poveznica za resetiranje je na putu. Provjerite ulaznu poštu (i mapu neželjene pošte).",
+  "forgot_password_back": "Natrag na prijavu",
+  "reset_password_title": "Odaberite novu lozinku",
+  "reset_password_new_label": "Nova lozinka",
+  "reset_password_confirm_label": "Potvrdite novu lozinku",
+  "reset_password_button": "Postavi novu lozinku",
+  "reset_password_done": "Lozinka je ažurirana. Sada se možete prijaviti.",
+  "reset_password_invalid": "Ova poveznica za resetiranje nevažeća je ili je istekla. Zatražite novu.",
+  "reset_password_request_new": "Zatraži novu poveznicu",
+  "reset_password_mismatch": "Dvije lozinke se ne podudaraju."
 }

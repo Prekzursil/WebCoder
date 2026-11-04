@@ -1151,5 +1151,21 @@
   "lang_group_turkic": "Тюркски езици",
   "lang_group_right_to_left": "Дясно наляво (арабска азбука)",
   "privacy_mobile_title": "Mobile apps",
-  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere."
+  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere.",
+  "forgot_password_link": "Забравена парола?",
+  "forgot_password_title": "Възстановяване на парола",
+  "forgot_password_intro": "Въведете имейла на акаунта си и ще ви изпратим линк за възстановяване.",
+  "forgot_password_email_label": "Имейл адрес",
+  "forgot_password_button": "Изпрати линк за възстановяване",
+  "forgot_password_error": "Линкът за възстановяване не можа да бъде изпратен. Опитайте отново.",
+  "forgot_password_sent": "Ако този имейл принадлежи на акаунт, линкът за възстановяване е на път. Проверете пощата (и папка „Спам“).",
+  "forgot_password_back": "Обратно към входа",
+  "reset_password_title": "Изберете нова парола",
+  "reset_password_new_label": "Нова парола",
+  "reset_password_confirm_label": "Потвърдете новата парола",
+  "reset_password_button": "Задайте новата парола",
+  "reset_password_done": "Паролата е обновена. Можете да влезете сега.",
+  "reset_password_invalid": "Този линк за възстановяване е невалиден или изтече. Заявете нов.",
+  "reset_password_request_new": "Заявете нов линк",
+  "reset_password_mismatch": "Двете пароли не съвпадат."
 }

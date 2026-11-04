@@ -1151,5 +1151,21 @@
   "lang_group_turkic": "Тюркські",
   "lang_group_right_to_left": "Справа наліво (арабське письмо)",
   "privacy_mobile_title": "Mobile apps",
-  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere."
+  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere.",
+  "forgot_password_link": "Забули пароль?",
+  "forgot_password_title": "Скидання пароля",
+  "forgot_password_intro": "Введіть email свого акаунта, і ми надішлемо вам посилання для скидання.",
+  "forgot_password_email_label": "Email-адреса",
+  "forgot_password_button": "Надіслати посилання для скидання",
+  "forgot_password_error": "Не вдалося надіслати посилання для скидання. Спробуйте ще раз.",
+  "forgot_password_sent": "Якщо цей email належить акаунту, посилання для скидання вже в дорозі. Перевірте вхідні (і папку зі спамом).",
+  "forgot_password_back": "Повернутися до входу",
+  "reset_password_title": "Виберіть новий пароль",
+  "reset_password_new_label": "Новий пароль",
+  "reset_password_confirm_label": "Підтвердьте новий пароль",
+  "reset_password_button": "Встановити новий пароль",
+  "reset_password_done": "Пароль оновлено. Тепер ви можете увійти.",
+  "reset_password_invalid": "Це посилання для скидання недійсне або застаріле. Запросіть нове.",
+  "reset_password_request_new": "Запросити нове посилання",
+  "reset_password_mismatch": "Паролі не співпадають."
 }

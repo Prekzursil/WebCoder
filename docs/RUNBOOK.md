@@ -302,6 +302,16 @@ The **weekly digest** (`notifications.tasks.weekly_digest_task`, beat
 last 7 days their attempted-but-unsolved problems plus each problem's
 first hint. It self-guards: with no `EMAIL_HOST` it logs and exits 0.
 
+**Password reset (ONB-1)** rides this transport: the login page links
+`/forgot-password` → `POST /api/v1/auth/password/reset/`, whose mail (via
+`REST_AUTH['PASSWORD_RESET_SERIALIZER'] = FrontendPasswordResetSerializer`)
+points at `{FRONTEND_ORIGIN}/reset-password?uid=…&token=…`, consumed by
+`POST /api/v1/auth/password/reset/confirm/`. `FRONTEND_ORIGIN` (env,
+default = the first `CORS_ALLOWED_ORIGINS` entry, i.e. dev
+`http://localhost:3000`) is the only knob; with the console backend the
+link prints in the backend container log — usable for manual recovery on
+the local stack. Tokens are allauth's email-aware single-use generator.
+
 **Deliverability groundwork (OPR-5) before pointing EMAIL_HOST at a
 provider:** publish SPF (`v=spf1 include:<provider> ~all`), DKIM
 (provider key, DNS TXT `_domainkey.*`), and `DMARC`

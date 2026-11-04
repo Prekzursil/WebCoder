@@ -1151,5 +1151,21 @@
   "lang_group_turkic": "Тюркские",
   "lang_group_right_to_left": "Справа налево (арабская письменность)",
   "privacy_mobile_title": "Mobile apps",
-  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere."
+  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere.",
+  "forgot_password_link": "Забыли пароль?",
+  "forgot_password_title": "Сброс пароля",
+  "forgot_password_intro": "Введите email своего аккаунта, и мы отправим вам ссылку для сброса.",
+  "forgot_password_email_label": "Email-адрес",
+  "forgot_password_button": "Отправить ссылку для сброса",
+  "forgot_password_error": "Не удалось отправить ссылку для сброса. Попробуйте ещё раз.",
+  "forgot_password_sent": "Если этот email принадлежит аккаунту, ссылка для сброса уже в пути. Проверьте входящие (и папку со спамом).",
+  "forgot_password_back": "Вернуться ко входу",
+  "reset_password_title": "Выберите новый пароль",
+  "reset_password_new_label": "Новый пароль",
+  "reset_password_confirm_label": "Подтвердите новый пароль",
+  "reset_password_button": "Установить новый пароль",
+  "reset_password_done": "Пароль обновлён. Теперь вы можете войти.",
+  "reset_password_invalid": "Эта ссылка для сброса недействительна или истекла. Запросите новую.",
+  "reset_password_request_new": "Запросить новую ссылку",
+  "reset_password_mismatch": "Пароли не совпадают."
 }

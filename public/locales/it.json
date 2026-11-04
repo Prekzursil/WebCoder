@@ -1151,5 +1151,21 @@
   "lang_group_turkic": "Lingue turche",
   "lang_group_right_to_left": "Da destra a sinistra (alfabeto arabo)",
   "privacy_mobile_title": "Mobile apps",
-  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere."
+  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere.",
+  "forgot_password_link": "Password dimenticata?",
+  "forgot_password_title": "Reimposta la password",
+  "forgot_password_intro": "Inserisci l'email del tuo account e ti invieremo un link di reimpostazione.",
+  "forgot_password_email_label": "Indirizzo email",
+  "forgot_password_button": "Invia link di reimpostazione",
+  "forgot_password_error": "Impossibile inviare il link di reimpostazione. Riprova.",
+  "forgot_password_sent": "Se quell'email appartiene a un account, un link di reimpostazione è in arrivo. Controlla la posta in arrivo (e lo spam).",
+  "forgot_password_back": "Torna al login",
+  "reset_password_title": "Scegli una nuova password",
+  "reset_password_new_label": "Nuova password",
+  "reset_password_confirm_label": "Conferma la nuova password",
+  "reset_password_button": "Imposta la nuova password",
+  "reset_password_done": "Password aggiornata. Ora puoi accedere.",
+  "reset_password_invalid": "Questo link di reimpostazione non è valido o è scaduto. Richiedine uno nuovo.",
+  "reset_password_request_new": "Richiedi un nuovo link",
+  "reset_password_mismatch": "Le due password non coincidono."
 }

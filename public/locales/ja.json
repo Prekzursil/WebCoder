@@ -1151,5 +1151,21 @@
   "lang_group_turkic": "テュルク諸語",
   "lang_group_right_to_left": "右から左へ（アラビア文字）",
   "privacy_mobile_title": "Mobile apps",
-  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere."
+  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere.",
+  "forgot_password_link": "パスワードをお忘れですか？",
+  "forgot_password_title": "パスワードをリセット",
+  "forgot_password_intro": "アカウントのメールアドレスを入力すると、リセット用リンクを送信します。",
+  "forgot_password_email_label": "メールアドレス",
+  "forgot_password_button": "リセット用リンクを送信",
+  "forgot_password_error": "リセット用リンクを送信できませんでした。もう一度お試しください。",
+  "forgot_password_sent": "そのメールアドレスがアカウントに属していれば、リセット用リンクは送信済みです。受信トレイ（とスパムフォルダ）を確認してください。",
+  "forgot_password_back": "ログインに戻る",
+  "reset_password_title": "新しいパスワードを選択",
+  "reset_password_new_label": "新しいパスワード",
+  "reset_password_confirm_label": "新しいパスワードの確認",
+  "reset_password_button": "新しいパスワードを設定",
+  "reset_password_done": "パスワードを更新しました。今すぐログインできます。",
+  "reset_password_invalid": "このリセット用リンクは無効か期限切れです。新しいリンクを請求してください。",
+  "reset_password_request_new": "新しいリンクを請求",
+  "reset_password_mismatch": "2つのパスワードが一致しません。"
 }

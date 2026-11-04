@@ -1151,5 +1151,21 @@
   "lang_group_turkic": "Türk dilleri",
   "lang_group_right_to_left": "Sağdan sola (Arap alfabesi)",
   "privacy_mobile_title": "Mobile apps",
-  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere."
+  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere.",
+  "forgot_password_link": "Şifreni mi unuttun?",
+  "forgot_password_title": "Şifreni sıfırla",
+  "forgot_password_intro": "Hesabının e-postasını gir, sana bir sıfırlama bağlantısı gönderelim.",
+  "forgot_password_email_label": "E-posta adresi",
+  "forgot_password_button": "Sıfırlama bağlantısı gönder",
+  "forgot_password_error": "Sıfırlama bağlantısı gönderilemedi. Lütfen tekrar dene.",
+  "forgot_password_sent": "Bu e-posta bir hesaba aitse sıfırlama bağlantısı yoldadır. Gelen kutunu (ve spam klasörünü) kontrol et.",
+  "forgot_password_back": "Girişe dön",
+  "reset_password_title": "Yeni bir şifre seç",
+  "reset_password_new_label": "Yeni şifre",
+  "reset_password_confirm_label": "Yeni şifreyi onayla",
+  "reset_password_button": "Yeni şifreyi ayarla",
+  "reset_password_done": "Şifre güncellendi. Artık giriş yapabilirsin.",
+  "reset_password_invalid": "Bu sıfırlama bağlantısı geçersiz veya süresi dolmuş. Yeni bir tane iste.",
+  "reset_password_request_new": "Yeni bağlantı iste",
+  "reset_password_mismatch": "İki şifre birbiriyle uyuşmuyor."
 }

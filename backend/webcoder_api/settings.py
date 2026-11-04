@@ -142,6 +142,14 @@ CORS_ALLOW_CREDENTIALS = True
 # 403s without the frontend origin here. Defaults to the CORS allowlist
 # (same scheme://host format); override via env for split deployments.
 CSRF_TRUSTED_ORIGINS = _env_list("CSRF_TRUSTED_ORIGINS", CORS_ALLOWED_ORIGINS)
+# [ONB-1] Origin of the frontend SPA — the target account mails link to
+# (password-reset mails carry {FRONTEND_ORIGIN}/reset-password?uid&token).
+# Default rides the first CORS origin (dev: http://localhost:3000); the
+# fallback guards the env-empty edge (CORS "" parses to []) so settings
+# still import — mails then just point at the dev origin.
+FRONTEND_ORIGIN = os.environ.get(
+    "FRONTEND_ORIGIN", (CORS_ALLOWED_ORIGINS or ["http://localhost:3000"])[0]
+)
 
 ROOT_URLCONF = "webcoder_api.urls"
 
@@ -412,6 +420,9 @@ REST_AUTH = {
     "JWT_AUTH_SECURE": _env_bool("JWT_AUTH_SECURE", "false"),
     "LOGIN_SERIALIZER": "users.serializers.CustomLoginSerializer",
     "SIGNUP_FIELDS": ACCOUNT_SIGNUP_FIELDS,
+    # [ONB-1] Password-reset mail links to the SPA route (the default
+    # generator reverses an unregistered URL name and 500s).
+    "PASSWORD_RESET_SERIALIZER": "users.serializers.FrontendPasswordResetSerializer",
 }
 
 # Celery Configuration Options
