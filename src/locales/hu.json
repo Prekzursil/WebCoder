@@ -1151,5 +1151,21 @@
   "lang_group_turkic": "Török nyelvek",
   "lang_group_right_to_left": "Jobbról balra (arab írás)",
   "privacy_mobile_title": "Mobile apps",
-  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere."
+  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere.",
+  "forgot_password_link": "Elfelejtett jelszó?",
+  "forgot_password_title": "Jelszó visszaállítása",
+  "forgot_password_intro": "Add meg a fiókod e-mail-címét, és küldünk egy visszaállító linket.",
+  "forgot_password_email_label": "E-mail-cím",
+  "forgot_password_button": "Visszaállító link küldése",
+  "forgot_password_error": "A visszaállító linket nem sikerült elküldeni. Próbáld újra.",
+  "forgot_password_sent": "Ha ez az e-mail egy fiókhoz tartozik, a visszaállító link úton van. Nézd meg a beérkezett üzeneteket (és a spamet).",
+  "forgot_password_back": "Vissza a bejelentkezéshez",
+  "reset_password_title": "Válassz új jelszót",
+  "reset_password_new_label": "Új jelszó",
+  "reset_password_confirm_label": "Új jelszó megerősítése",
+  "reset_password_button": "Új jelszó beállítása",
+  "reset_password_done": "A jelszó frissítve. Most már bejelentkezhetsz.",
+  "reset_password_invalid": "Ez a visszaállító link érvénytelen vagy lejárt. Kérj újat.",
+  "reset_password_request_new": "Új link kérése",
+  "reset_password_mismatch": "A két jelszó nem egyezik."
 }

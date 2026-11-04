@@ -1151,5 +1151,21 @@
   "lang_group_turkic": "Języki tureckie",
   "lang_group_right_to_left": "Od prawej do lewej (pismo arabskie)",
   "privacy_mobile_title": "Mobile apps",
-  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere."
+  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere.",
+  "forgot_password_link": "Nie pamiętasz hasła?",
+  "forgot_password_title": "Resetuj hasło",
+  "forgot_password_intro": "Podaj e-mail konta, a wyślemy Ci link do resetowania.",
+  "forgot_password_email_label": "Adres e-mail",
+  "forgot_password_button": "Wyślij link do resetowania",
+  "forgot_password_error": "Nie udało się wysłać linku do resetowania. Spróbuj ponownie.",
+  "forgot_password_sent": "Jeśli ten e-mail należy do konta, link do resetowania jest w drodze. Sprawdź skrzynkę (i folder spam).",
+  "forgot_password_back": "Wróć do logowania",
+  "reset_password_title": "Wybierz nowe hasło",
+  "reset_password_new_label": "Nowe hasło",
+  "reset_password_confirm_label": "Potwierdź nowe hasło",
+  "reset_password_button": "Ustaw nowe hasło",
+  "reset_password_done": "Hasło zostało zaktualizowane. Możesz się teraz zalogować.",
+  "reset_password_invalid": "Ten link do resetowania jest nieprawidłowy lub wygasł. Poproś o nowy.",
+  "reset_password_request_new": "Poproś o nowy link",
+  "reset_password_mismatch": "Hasła nie są identyczne."
 }

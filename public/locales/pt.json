@@ -1151,5 +1151,21 @@
   "lang_group_turkic": "Línguas túrquicas",
   "lang_group_right_to_left": "Da direita para a esquerda (alfabeto árabe)",
   "privacy_mobile_title": "Mobile apps",
-  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere."
+  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere.",
+  "forgot_password_link": "Esqueceu a senha?",
+  "forgot_password_title": "Redefinir sua senha",
+  "forgot_password_intro": "Informe o e-mail da sua conta e enviaremos um link de redefinição.",
+  "forgot_password_email_label": "Endereço de e-mail",
+  "forgot_password_button": "Enviar link de redefinição",
+  "forgot_password_error": "Não foi possível enviar o link de redefinição. Tente novamente.",
+  "forgot_password_sent": "Se esse e-mail pertence a uma conta, um link de redefinição está a caminho. Verifique sua caixa de entrada (e o spam).",
+  "forgot_password_back": "Voltar ao login",
+  "reset_password_title": "Escolha uma nova senha",
+  "reset_password_new_label": "Nova senha",
+  "reset_password_confirm_label": "Confirmar nova senha",
+  "reset_password_button": "Definir nova senha",
+  "reset_password_done": "Senha atualizada. Você já pode entrar.",
+  "reset_password_invalid": "Este link de redefinição é inválido ou expirou. Solicite um novo.",
+  "reset_password_request_new": "Solicitar novo link",
+  "reset_password_mismatch": "As duas senhas não coincidem."
 }

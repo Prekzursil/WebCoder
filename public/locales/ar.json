@@ -1151,5 +1151,21 @@
   "lang_group_turkic": "اللغات التركية",
   "lang_group_right_to_left": "من اليمين إلى اليسار (الحرف العربي)",
   "privacy_mobile_title": "Mobile apps",
-  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere."
+  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere.",
+  "forgot_password_link": "هل نسيت كلمة المرور؟",
+  "forgot_password_title": "أعد تعيين كلمة المرور",
+  "forgot_password_intro": "أدخل البريد الإلكتروني لحسابك وسنرسل لك رابط إعادة التعيين.",
+  "forgot_password_email_label": "البريد الإلكتروني",
+  "forgot_password_button": "أرسل رابط إعادة التعيين",
+  "forgot_password_error": "تعذر إرسال رابط إعادة التعيين. حاول مرة أخرى.",
+  "forgot_password_sent": "إذا كان هذا البريد يخص حسابًا، فإن رابط إعادة التعيين في الطريق. تحقق من صندوق الوارد (ومجلد الرسائل غير المرغوبة).",
+  "forgot_password_back": "العودة لتسجيل الدخول",
+  "reset_password_title": "اختر كلمة مرور جديدة",
+  "reset_password_new_label": "كلمة المرور الجديدة",
+  "reset_password_confirm_label": "أكّد كلمة المرور الجديدة",
+  "reset_password_button": "عيّن كلمة المرور الجديدة",
+  "reset_password_done": "تم تحديث كلمة المرور. يمكنك تسجيل الدخول الآن.",
+  "reset_password_invalid": "رابط إعادة التعيين غير صالح أو منتهي الصلاحية. اطلب رابطًا جديدًا.",
+  "reset_password_request_new": "اطلب رابطًا جديدًا",
+  "reset_password_mismatch": "كلمتا المرور غير متطابقتين."
 }

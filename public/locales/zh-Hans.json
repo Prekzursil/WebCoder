@@ -1151,5 +1151,21 @@
   "lang_group_turkic": "突厥语系",
   "lang_group_right_to_left": "从右到左（阿拉伯字母）",
   "privacy_mobile_title": "Mobile apps",
-  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere."
+  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere.",
+  "forgot_password_link": "忘记密码？",
+  "forgot_password_title": "重置密码",
+  "forgot_password_intro": "输入账户邮箱，我们会向你发送重置链接。",
+  "forgot_password_email_label": "电子邮箱地址",
+  "forgot_password_button": "发送重置链接",
+  "forgot_password_error": "无法发送重置链接，请重试。",
+  "forgot_password_sent": "如果该邮箱属于某个账户，重置链接已发出。请查看收件箱（和垃圾邮件文件夹）。",
+  "forgot_password_back": "返回登录",
+  "reset_password_title": "选择新密码",
+  "reset_password_new_label": "新密码",
+  "reset_password_confirm_label": "确认新密码",
+  "reset_password_button": "设置新密码",
+  "reset_password_done": "密码已更新，现在即可登录。",
+  "reset_password_invalid": "该重置链接无效或已过期，请重新申请。",
+  "reset_password_request_new": "申请新链接",
+  "reset_password_mismatch": "两次输入的密码不一致。"
 }

@@ -1151,5 +1151,21 @@
   "lang_group_turkic": "Langues turques",
   "lang_group_right_to_left": "De droite à gauche (alphabet arabe)",
   "privacy_mobile_title": "Mobile apps",
-  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere."
+  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere.",
+  "forgot_password_link": "Mot de passe oublié ?",
+  "forgot_password_title": "Réinitialiser votre mot de passe",
+  "forgot_password_intro": "Saisissez l'e-mail de votre compte et nous vous enverrons un lien de réinitialisation.",
+  "forgot_password_email_label": "Adresse e-mail",
+  "forgot_password_button": "Envoyer le lien de réinitialisation",
+  "forgot_password_error": "Impossible d'envoyer le lien de réinitialisation. Veuillez réessayer.",
+  "forgot_password_sent": "Si cet e-mail appartient à un compte, un lien de réinitialisation est en route. Vérifiez votre boîte de réception (et le dossier spam).",
+  "forgot_password_back": "Retour à la connexion",
+  "reset_password_title": "Choisissez un nouveau mot de passe",
+  "reset_password_new_label": "Nouveau mot de passe",
+  "reset_password_confirm_label": "Confirmer le nouveau mot de passe",
+  "reset_password_button": "Définir le nouveau mot de passe",
+  "reset_password_done": "Mot de passe mis à jour. Vous pouvez vous connecter.",
+  "reset_password_invalid": "Ce lien de réinitialisation est invalide ou a expiré. Demandez-en un nouveau.",
+  "reset_password_request_new": "Demander un nouveau lien",
+  "reset_password_mismatch": "Les deux mots de passe ne correspondent pas."
 }

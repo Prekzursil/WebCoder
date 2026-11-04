@@ -337,6 +337,19 @@ export const AuthService = {
         }),
     getUser: (userId: number | string) => apiFetch<User>(`/users/${userId}/`),
     changePassword: (passwordData: Record<string, unknown>) => apiFetch<{ detail?: string }>('/users/password/change/', { method: 'POST', body: JSON.stringify(passwordData) }),
+    // [ONB-1] Password reset (dj-rest-auth default include): request mails a
+    // single-use link; confirm consumes uid+token from that link. The
+    // request answers 200 even for unknown emails (no account enumeration).
+    requestPasswordReset: (email: string) =>
+        apiFetch<{ detail: string }>('/auth/password/reset/', {
+            method: 'POST',
+            body: JSON.stringify({ email }),
+        }),
+    confirmPasswordReset: (uid: string, token: string, newPassword1: string, newPassword2: string) =>
+        apiFetch<{ detail: string }>('/auth/password/reset/confirm/', {
+            method: 'POST',
+            body: JSON.stringify({ uid, token, new_password1: newPassword1, new_password2: newPassword2 }),
+        }),
     // [SP1] Cookie-mode logout: dj-rest-auth blacklists the rotated refresh
     // cookie and clears wc_access/wc_refresh. Fire-and-forget safe.
     logout: () => apiFetch<{ detail?: string }>(LOGOUT_ENDPOINT, { method: 'POST' }),

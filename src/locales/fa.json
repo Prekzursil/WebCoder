@@ -1151,5 +1151,21 @@
   "lang_group_turkic": "ترکی",
   "lang_group_right_to_left": "راست‌به‌چپ (خط عربی)",
   "privacy_mobile_title": "Mobile apps",
-  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere."
+  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere.",
+  "forgot_password_link": "رمز عبور را فراموش کرده‌اید؟",
+  "forgot_password_title": "بازنشانی رمز عبور",
+  "forgot_password_intro": "ایمیل حساب خود را وارد کنید تا پیوند بازنشانی برایتان بفرستیم.",
+  "forgot_password_email_label": "نشانی ایمیل",
+  "forgot_password_button": "ارسال پیوند بازنشانی",
+  "forgot_password_error": "ارسال پیوند بازنشانی ممکن نشد. دوباره تلاش کنید.",
+  "forgot_password_sent": "اگر این ایمیل به حسابی تعلق داشته باشد، پیوند بازنشانی در راه است. صندوق ورودی (و پوشه هرزنامه) را بررسی کنید.",
+  "forgot_password_back": "بازگشت به ورود",
+  "reset_password_title": "یک رمز عبور جدید انتخاب کنید",
+  "reset_password_new_label": "رمز عبور جدید",
+  "reset_password_confirm_label": "تأیید رمز عبور جدید",
+  "reset_password_button": "تنظیم رمز عبور جدید",
+  "reset_password_done": "رمز عبور به‌روزرسانی شد. اکنون می‌توانید وارد شوید.",
+  "reset_password_invalid": "این پیوند بازنشانی نامعتبر است یا منقضی شده است. پیوند جدید بگیرید.",
+  "reset_password_request_new": "درخواست پیوند جدید",
+  "reset_password_mismatch": "دو رمز عبور با هم مطابقت ندارند."
 }

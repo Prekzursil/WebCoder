@@ -1151,5 +1151,21 @@
   "lang_group_turkic": "Turcice",
   "lang_group_right_to_left": "De la dreapta la stânga (alfabet arab)",
   "privacy_mobile_title": "Aplicațiile mobile",
-  "privacy_mobile_body": "Aplicațiile mobile WebCoder (Google Play și App Store) folosesc același API ca acest site, prin HTTPS, cu același cont: token-urile de autentificare sunt stocate doar în keychain-ul/keystore-ul dispozitivului, niciodată în stocarea aplicației sau în clipboard. Aplicațiile nu colectează nimic în plus față de site — fără identificatori de publicitate, fără token-uri de notificări până activezi notificările și fără SDK-uri terțe. Ștergerea contului (din profilul web sau din aplicație) îl șterge peste tot."
+  "privacy_mobile_body": "Aplicațiile mobile WebCoder (Google Play și App Store) folosesc același API ca acest site, prin HTTPS, cu același cont: token-urile de autentificare sunt stocate doar în keychain-ul/keystore-ul dispozitivului, niciodată în stocarea aplicației sau în clipboard. Aplicațiile nu colectează nimic în plus față de site — fără identificatori de publicitate, fără token-uri de notificări până activezi notificările și fără SDK-uri terțe. Ștergerea contului (din profilul web sau din aplicație) îl șterge peste tot.",
+  "forgot_password_link": "Ai uitat parola?",
+  "forgot_password_title": "Resetează-ți parola",
+  "forgot_password_intro": "Introdu adresa de email a contului și îți trimitem un link de resetare.",
+  "forgot_password_email_label": "Adresa de email",
+  "forgot_password_button": "Trimite linkul de resetare",
+  "forgot_password_error": "Linkul de resetare nu a putut fi trimis. Încearcă din nou.",
+  "forgot_password_sent": "Dacă adresa aparține unui cont, un link de resetare este în drum. Verifică inboxul (și folderul Spam).",
+  "forgot_password_back": "Înapoi la autentificare",
+  "reset_password_title": "Alege o parolă nouă",
+  "reset_password_new_label": "Parola nouă",
+  "reset_password_confirm_label": "Confirmă parola nouă",
+  "reset_password_button": "Setează parola nouă",
+  "reset_password_done": "Parola a fost actualizată. Te poți autentifica acum.",
+  "reset_password_invalid": "Acest link de resetare este invalid sau a expirat. Cere unul nou.",
+  "reset_password_request_new": "Cere un link nou",
+  "reset_password_mismatch": "Cele două parole nu coincid."
 }
