@@ -72,7 +72,10 @@ def test_control_is_not_an_installed_django_app():
         return  # expected: no control app
     except AppRegistryNotReady:
         pytest.skip("django apps not populated in this context")
-    raise AssertionError(
-        f"a Django app labelled 'control' now exists ({app_config.name}); "
-        "this sentinel is stale - replace it with real tests"
-    )
+    else:
+        # Only reachable when get_app_config succeeded, so app_config
+        # is bound; the else-clause makes that provable to the checker.
+        raise AssertionError(
+            f"a Django app labelled 'control' now exists ({app_config.name}); "
+            "this sentinel is stale - replace it with real tests"
+        )

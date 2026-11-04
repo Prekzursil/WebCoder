@@ -39,7 +39,9 @@ PROPOSAL_FR = {
 }
 
 
-def _ok_transport(verdict="approve", confidence=0.93, notes="Faithful, fluent."):
+def _ok_transport(
+    verdict="approve", confidence: float | str = 0.93, notes="Faithful, fluent."
+):
     content = '{"verdict": "%s", "confidence": %s, "notes": "%s"}' % (
         verdict,
         confidence,
@@ -52,6 +54,18 @@ def _ok_transport(verdict="approve", confidence=0.93, notes="Faithful, fluent.")
     return transport
 
 
+def _config(env):
+    """CuratorConfig.from_env for envs that carry AI_CURATOR_URL.
+
+    from_env returns None only when the URL is absent; every caller
+    here passes one, so the bare assert narrows the Optional for the
+    checker and fails loudly if that contract ever drifts.
+    """
+    config = CuratorConfig.from_env(env)
+    assert config is not None
+    return config
+
+
 class CuratorConfigTests(TestCase):
     def test_off_when_url_missing(self):
         self.assertIsNone(CuratorConfig.from_env({}))
@@ -59,7 +73,7 @@ class CuratorConfigTests(TestCase):
         self.assertIsNone(CuratorConfig.from_env({"AI_CURATOR_MODEL": "gpt-x"}))
 
     def test_config_from_env(self):
-        config = CuratorConfig.from_env(
+        config = _config(
             {
                 "AI_CURATOR_URL": "http://curator.local/v1/",
                 "AI_CURATOR_API_KEY": "sekrit",
@@ -75,27 +89,23 @@ class CuratorConfigTests(TestCase):
         self.assertTrue(config.auto_approve)
 
     def test_timeout_clamped_to_hard_ceiling(self):
-        config = CuratorConfig.from_env(
-            {"AI_CURATOR_URL": "u", "AI_CURATOR_TIMEOUT_S": "9999"}
-        )
+        config = _config({"AI_CURATOR_URL": "u", "AI_CURATOR_TIMEOUT_S": "9999"})
         self.assertEqual(config.timeout_s, 30.0)
 
     def test_bad_timeout_falls_back_to_default(self):
-        config = CuratorConfig.from_env(
-            {"AI_CURATOR_URL": "u", "AI_CURATOR_TIMEOUT_S": "soon"}
-        )
+        config = _config({"AI_CURATOR_URL": "u", "AI_CURATOR_TIMEOUT_S": "soon"})
         self.assertEqual(config.timeout_s, 10.0)
 
     def test_auto_approve_default_false(self):
-        config = CuratorConfig.from_env({"AI_CURATOR_URL": "u"})
+        config = _config({"AI_CURATOR_URL": "u"})
         self.assertFalse(config.auto_approve)
         self.assertFalse(
-            CuratorConfig.from_env(
+            _config(
                 {"AI_CURATOR_URL": "u", "AI_CURATOR_AUTO_APPROVE": "false"}
             ).auto_approve
         )
         self.assertTrue(
-            CuratorConfig.from_env(
+            _config(
                 {"AI_CURATOR_URL": "u", "AI_CURATOR_AUTO_APPROVE": "1"}
             ).auto_approve
         )
@@ -130,7 +140,7 @@ class ExtractJsonTests(TestCase):
 
 class CuratorScreeningTests(TestCase):
     def _curator(self, transport, **env):
-        config = CuratorConfig.from_env(
+        config = _config(
             {
                 "AI_CURATOR_URL": "http://curator.local/v1",
                 "AI_CURATOR_MODEL": "m",
@@ -203,7 +213,7 @@ class CuratorScreeningTests(TestCase):
         self.assertEqual(result.verdict, "error")
 
     def test_missing_model_id_is_error(self):
-        config = CuratorConfig.from_env({"AI_CURATOR_URL": "http://x/v1"})
+        config = _config({"AI_CURATOR_URL": "http://x/v1"})
         curator = OpenAICompatibleCurator(config, transport=_ok_transport())
         result = curator.screen(problem_en=PROBLEM_EN, proposal=PROPOSAL_FR)
         self.assertEqual(result.verdict, "error")
@@ -248,7 +258,7 @@ class CuratorScreeningTests(TestCase):
                 ]
             }
 
-        config = CuratorConfig.from_env(
+        config = _config(
             {
                 "AI_CURATOR_URL": "http://x/v1",
                 "AI_CURATOR_MODEL": "m",
@@ -322,7 +332,7 @@ class ProposeWithCuratorTests(TestCase):
 
     def test_high_confidence_pass_marked_but_needs_human(self):
         curator = OpenAICompatibleCurator(
-            CuratorConfig.from_env(self._env()), transport=_ok_transport()
+            _config(self._env()), transport=_ok_transport()
         )
         with mock.patch("translations.views.curator_from_env", return_value=curator):
             response = self._propose()
@@ -338,7 +348,7 @@ class ProposeWithCuratorTests(TestCase):
 
     def test_auto_approve_promotes_immediately(self):
         curator = OpenAICompatibleCurator(
-            CuratorConfig.from_env(self._env(AI_CURATOR_AUTO_APPROVE="true")),
+            _config(self._env(AI_CURATOR_AUTO_APPROVE="true")),
             transport=_ok_transport(),
         )
         with mock.patch("translations.views.curator_from_env", return_value=curator):
@@ -352,7 +362,7 @@ class ProposeWithCuratorTests(TestCase):
 
     def test_auto_approve_does_not_promote_flagged_results(self):
         curator = OpenAICompatibleCurator(
-            CuratorConfig.from_env(self._env(AI_CURATOR_AUTO_APPROVE="true")),
+            _config(self._env(AI_CURATOR_AUTO_APPROVE="true")),
             transport=_ok_transport(verdict="flag"),
         )
         with mock.patch("translations.views.curator_from_env", return_value=curator):
@@ -369,9 +379,7 @@ class ProposeWithCuratorTests(TestCase):
         def boom(url, headers, payload, timeout_s):
             raise ConnectionError("curator down")
 
-        curator = OpenAICompatibleCurator(
-            CuratorConfig.from_env(self._env()), transport=boom
-        )
+        curator = OpenAICompatibleCurator(_config(self._env()), transport=boom)
         with mock.patch("translations.views.curator_from_env", return_value=curator):
             response = self._propose()
         self.assertEqual(
@@ -383,7 +391,7 @@ class ProposeWithCuratorTests(TestCase):
 
     def test_flagged_proposal_can_still_be_human_approved(self):
         curator = OpenAICompatibleCurator(
-            CuratorConfig.from_env(self._env()), transport=_ok_transport(verdict="flag")
+            _config(self._env()), transport=_ok_transport(verdict="flag")
         )
         with mock.patch("translations.views.curator_from_env", return_value=curator):
             self._propose()

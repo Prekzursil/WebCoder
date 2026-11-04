@@ -23,6 +23,7 @@ class SubmissionAdmin(admin.ModelAdmin):
     )
 
     # For ForeignKey fields, provide links to their admin pages
+    @admin.display(description="User")
     def user_link(self, obj):
         from django.urls import reverse
         from django.utils.html import format_html
@@ -38,8 +39,7 @@ class SubmissionAdmin(admin.ModelAdmin):
             pass
         return "N/A"
 
-    user_link.short_description = "User"
-
+    @admin.display(description="Problem")
     def problem_link(self, obj):
         from django.urls import reverse
         from django.utils.html import format_html
@@ -60,8 +60,6 @@ class SubmissionAdmin(admin.ModelAdmin):
         except ObjectDoesNotExist:
             pass
         return "N/A"
-
-    problem_link.short_description = "Problem"
 
     fieldsets = (
         (None, {"fields": ("user", "problem", "language", "submission_time")}),

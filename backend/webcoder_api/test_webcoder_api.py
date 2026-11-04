@@ -30,6 +30,7 @@ import importlib
 import io
 import os
 import pathlib
+from typing import Any
 from datetime import timedelta
 
 import pytest
@@ -53,7 +54,10 @@ def _exec_settings():
         project_settings.__file__,
         "exec",
     )
-    namespace = {
+    # The exec'd settings module binds heterogeneous values (dicts, lists,
+    # SimpleNamespaces); type the namespace accordingly so subscripting
+    # e.g. ns["DATABASES"]["default"] reflects reality.
+    namespace: dict[str, Any] = {
         "__file__": project_settings.__file__,
         "__name__": "webcoder_api.settings",
     }

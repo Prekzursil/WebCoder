@@ -188,7 +188,7 @@ class VirtualParticipationTests(ContestDepthBase):
             score=100,
         )
         row = record_verdict(submission)
-        self.assertIsNotNone(row)
+        assert row is not None
         self.assertEqual(row.participation_id, virtual.id)
         self.assertNotEqual(row.participation_id, official.id)
 

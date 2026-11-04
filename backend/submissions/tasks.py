@@ -34,8 +34,8 @@ from .judge_utils.checkers import (
     compile_checker,
     run_prepared_checker,
 )
-from leaderboard.aggregation import update_user_entry_task
-from contests.scoring import record_verdict_task
+from leaderboard.aggregation import update_user_entry_task as _update_user_entry_task
+from contests.scoring import record_verdict_task as _record_verdict_task
 from problems.scoring import aggregate_score
 from notifications.models import Notification
 from notifications.services import notify
@@ -96,9 +96,24 @@ class _CeleryTask(Protocol):
 
     def delay(self, *args: Any, **kwargs: Any) -> Any: ...
 
+    def apply(self, *args: Any, **kwargs: Any) -> Any: ...
+
     def apply_async(self, *args: Any, **kwargs: Any) -> Any: ...
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any: ...
+
+    def run(self, *args: Any, **kwargs: Any) -> Any: ...
+
+
+# Cross-module Celery tasks dispatched from this module. Same structural
+# pattern as ``judge_task`` below: ``celery.shared_task`` is untyped in the
+# type-check environment, so the decorated imports read as plain functions
+# and lose ``.delay``. The aliases restore the async-dispatch surface; at
+# runtime they are the very same Task objects (patch sites that target
+# ``submissions.tasks.record_verdict_task`` / ``...update_user_entry_task``
+# keep working, since the lambdas resolve these names as module attributes).
+record_verdict_task: _CeleryTask = cast(_CeleryTask, _record_verdict_task)
+update_user_entry_task: _CeleryTask = cast(_CeleryTask, _update_user_entry_task)
 
 
 @shared_task(bind=True)
@@ -429,15 +444,26 @@ def judge_submission_task(self, submission_id):
             io_files = (problem.io_input_filename, problem.io_output_filename)
 
         overall_verdict = Submission.VerdictStatus.ACCEPTED
-        scored_results: list[tuple[TestCase, bool]] = []
+        # J7: elements carry the checker protocol-v2 partial fraction
+        # (``float | None`` — None whenever the test was not a partial
+        # credit award), matching what aggregate_score consumes.
+        scored_results: list[tuple[TestCase, bool, float | None]] = []
         max_time_ms_overall = 0
         max_memory_kb_overall = 0
         # J7: partial checker award for the current test (reset each
         # iteration; rides into scored_results as a third element).
         checker_fraction = None
+        # Loop-invariant problem shape, computed once. Binding these as
+        # plain bools (the model field is untyped in the type-check
+        # environment, so the bare comparison stays Unknown) lets the
+        # per-test branches below prove — structurally, without enum
+        # narrowing — that tc_verdict / tc_time / tc_mem / tc_output /
+        # tc_error are bound on every path that uses them.
+        is_output_only = bool(problem.problem_type == Problem.ProblemType.OUTPUT_ONLY)
+        is_interactive = bool(problem.problem_type == Problem.ProblemType.INTERACTIVE)
 
         for i, tc in enumerate(test_cases):
-            if problem.problem_type == Problem.ProblemType.OUTPUT_ONLY:
+            if is_output_only:
                 # JDG-3: no execution — the answer text is the candidate
                 # output for this test; tc_verdict=ACCEPTED flows into the
                 # shared compare/checker section below unchanged.
@@ -456,102 +482,103 @@ def judge_submission_task(self, submission_id):
                 )
                 break
 
-            if problem.problem_type == Problem.ProblemType.INTERACTIVE:
-                # JDG-2: the submission and the interactor run as a
-                # connected pair; the interactor's exit code (checker
-                # protocol v2 on stderr) decides this test's verdict.
-                if interactive_spec is not None and interactive_dir is not None:
-                    with open(interactive_dir / INTERACTOR_INPUT_FILE, "w") as f:
-                        f.write(tc.input_data)
-                    with open(interactive_dir / INTERACTOR_ANSWER_FILE, "w") as f:
-                        f.write(tc.expected_output_data)
-                    user_spec = get_language(judge_language)
-                    user_run_argv = list(user_spec.run_command) if user_spec else []
-                    (
-                        pair_verdict,
-                        pair_time,
-                        pair_mem,
-                        pair_fraction,
-                        pair_feedback,
-                    ) = run_interactive_pair(
-                        user_run_argv,
-                        judge_language,
-                        submission_dir,
-                        interactive_spec,
-                        interactive_dir,
-                        eff_time_ms,
-                        eff_mem_kb,
+            else:
+                if is_interactive:
+                    # JDG-2: the submission and the interactor run as a
+                    # connected pair; the interactor's exit code (checker
+                    # protocol v2 on stderr) decides this test's verdict.
+                    if interactive_spec is not None and interactive_dir is not None:
+                        with open(interactive_dir / INTERACTOR_INPUT_FILE, "w") as f:
+                            f.write(tc.input_data)
+                        with open(interactive_dir / INTERACTOR_ANSWER_FILE, "w") as f:
+                            f.write(tc.expected_output_data)
+                        user_spec = get_language(judge_language)
+                        user_run_argv = list(user_spec.run_command) if user_spec else []
+                        (
+                            pair_verdict,
+                            pair_time,
+                            pair_mem,
+                            pair_fraction,
+                            pair_feedback,
+                        ) = run_interactive_pair(
+                            user_run_argv,
+                            judge_language,
+                            submission_dir,
+                            interactive_spec,
+                            interactive_dir,
+                            eff_time_ms,
+                            eff_mem_kb,
+                        )
+                        final_tc_verdict = pair_verdict
+                        tc_time = pair_time
+                        tc_mem = pair_mem
+                        tc_output = ""
+                        tc_error = (
+                            "Interactive Judgement:\n" + pair_feedback
+                            if pair_feedback
+                            else ""
+                        )
+                        if pair_fraction is not None and (
+                            final_tc_verdict == Submission.VerdictStatus.ACCEPTED
+                        ):
+                            checker_fraction = pair_fraction
+                    else:
+                        final_tc_verdict = Submission.VerdictStatus.INTERNAL_ERROR
+                        tc_time = -1
+                        tc_mem = -1
+                        tc_output = ""
+                        tc_error = "Error: INTERACTIVE problem without interactor code/language."
+                    max_time_ms_overall = max(
+                        max_time_ms_overall, tc_time if tc_time not in (None, -1) else 0
                     )
-                    final_tc_verdict = pair_verdict
-                    tc_time = pair_time
-                    tc_mem = pair_mem
-                    tc_output = ""
-                    tc_error = (
-                        "Interactive Judgement:\n" + pair_feedback
-                        if pair_feedback
-                        else ""
+                    max_memory_kb_overall = max(
+                        max_memory_kb_overall,
+                        tc_mem if tc_mem not in (None, -1) else 0,
                     )
-                    if pair_fraction is not None and (
-                        final_tc_verdict == Submission.VerdictStatus.ACCEPTED
-                    ):
-                        checker_fraction = pair_fraction
-                else:
-                    final_tc_verdict = Submission.VerdictStatus.INTERNAL_ERROR
-                    tc_time = -1
-                    tc_mem = -1
-                    tc_output = ""
-                    tc_error = (
-                        "Error: INTERACTIVE problem without interactor code/language."
+                    SubmissionTestResult.objects.create(
+                        submission=submission,
+                        test_case=tc,
+                        verdict=final_tc_verdict,
+                        execution_time_ms=tc_time if tc_time != -1 else None,
+                        memory_used_kb=tc_mem if tc_mem != -1 else None,
+                        actual_output="",
+                        error_output=tc_error[:10000],
                     )
-                max_time_ms_overall = max(
-                    max_time_ms_overall, tc_time if tc_time not in (None, -1) else 0
-                )
-                max_memory_kb_overall = max(
-                    max_memory_kb_overall,
-                    tc_mem if tc_mem not in (None, -1) else 0,
-                )
-                SubmissionTestResult.objects.create(
-                    submission=submission,
-                    test_case=tc,
-                    verdict=final_tc_verdict,
-                    execution_time_ms=tc_time if tc_time != -1 else None,
-                    memory_used_kb=tc_mem if tc_mem != -1 else None,
-                    actual_output="",
-                    error_output=tc_error[:10000],
-                )
-                scored_results.append(
-                    (
-                        tc,
-                        final_tc_verdict == Submission.VerdictStatus.ACCEPTED,
-                        checker_fraction
-                        if final_tc_verdict == Submission.VerdictStatus.ACCEPTED
-                        else None,
+                    scored_results.append(
+                        (
+                            tc,
+                            final_tc_verdict == Submission.VerdictStatus.ACCEPTED,
+                            checker_fraction
+                            if final_tc_verdict == Submission.VerdictStatus.ACCEPTED
+                            else None,
+                        )
                     )
-                )
-                checker_fraction = None
-                if final_tc_verdict != Submission.VerdictStatus.ACCEPTED:
-                    if overall_verdict == Submission.VerdictStatus.ACCEPTED:
-                        overall_verdict = final_tc_verdict
-                continue
+                    checker_fraction = None
+                    if final_tc_verdict != Submission.VerdictStatus.ACCEPTED:
+                        if overall_verdict == Submission.VerdictStatus.ACCEPTED:
+                            overall_verdict = final_tc_verdict
+                    continue
 
-            if problem.problem_type != Problem.ProblemType.OUTPUT_ONLY:
-                # JDG-3: OUTPUT_ONLY set the candidate output above and
-                # never reaches the sandbox.
-                if io_files:
-                    (submission_dir / io_files[0]).write_text(
-                        tc.input_data, encoding="utf-8"
+                else:
+                    # JDG-3: OUTPUT_ONLY set the candidate output above and
+                    # never reaches the sandbox.
+                    if io_files:
+                        (submission_dir / io_files[0]).write_text(
+                            tc.input_data, encoding="utf-8"
+                        )
+                    tc_verdict, tc_time, tc_mem, tc_output, tc_error = (
+                        run_code_in_sandbox(
+                            executable_path_str,
+                            judge_language,
+                            tc.input_data,
+                            eff_time_ms,
+                            eff_mem_kb,
+                            submission_dir,
+                            problem.custom_libraries_allowed,  # Pass custom libraries here as well
+                            io_files=io_files,
+                            banned_stdlib_modules=policy_banned_stdlib,
+                        )
                     )
-                tc_verdict, tc_time, tc_mem, tc_output, tc_error = run_code_in_sandbox(
-                    executable_path_str,
-                    judge_language,
-                    tc.input_data,
-                    eff_time_ms,
-                    eff_mem_kb,
-                    submission_dir,
-                    problem.custom_libraries_allowed,  # Pass custom libraries here as well
-                    io_files=io_files,
-                    banned_stdlib_modules=policy_banned_stdlib,
-                )
 
             max_time_ms_overall = max(
                 max_time_ms_overall, tc_time if tc_time is not None else 0

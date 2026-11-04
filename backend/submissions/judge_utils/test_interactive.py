@@ -46,7 +46,7 @@ class CompileInteractorTest(TestCase):
     def test_interpreter_language_compiles_without_a_step(self):
         ok, msg, spec = compile_interactor("print('hi')", "python3", self.dir)
         self.assertTrue(ok)
-        self.assertIsNotNone(spec)
+        assert spec is not None
         self.assertEqual(spec.language_id, "python3")
         # The interactor source is written under its own namespace so a
         # checker in the same workspace can never collide.
@@ -71,6 +71,7 @@ class CompileInteractorTest(TestCase):
         ) as step:
             ok, _msg, spec = compile_interactor("int main(){}", "cpp17", self.dir)
         self.assertTrue(ok)
+        assert spec is not None
         self.assertEqual(spec.language_id, "cpp17")
         # Retargeted names: interactor.cpp -> interactor_program.
         argv = step.call_args[0][0]
@@ -146,11 +147,15 @@ class WrapCommandTest(TestCase):
 
 class InteractorRunArgvTest(TestCase):
     def test_interpreted_spec_appends_evidence_files(self):
-        argv = interactive._interactor_run_argv(get_language("python3"))
+        py_spec = get_language("python3")
+        assert py_spec is not None
+        argv = interactive._interactor_run_argv(py_spec)
         self.assertEqual(argv, ["python", "interactor.py", "input.txt", "answer.txt"])
 
     def test_compiled_spec_retargets_artifact(self):
-        argv = interactive._interactor_run_argv(get_language("cpp17"))
+        cpp_spec = get_language("cpp17")
+        assert cpp_spec is not None
+        argv = interactive._interactor_run_argv(cpp_spec)
         self.assertEqual(argv, ["./interactor_program", "input.txt", "answer.txt"])
 
 
@@ -260,6 +265,7 @@ class RunInteractivePairTest(TestCase):
         patcher.start()
         self.addCleanup(patcher.stop)
         self.int_spec = get_language("python3")
+        assert self.int_spec is not None
         self.int_script = self.dir / "interactor.py"
 
     def _run(self, user_body: str, interactor_body: str, **overrides):
@@ -271,6 +277,7 @@ class RunInteractivePairTest(TestCase):
             "_interactor_run_argv",
             return_value=[PY, str(self.int_script)],
         ):
+            assert self.int_spec is not None
             return run_interactive_pair(
                 _user_script(user_body),
                 "python3",
@@ -464,6 +471,7 @@ class RunInteractivePairTest(TestCase):
             "_wrap_command",
             side_effect=FileNotFoundError("no docker"),
         ):
+            assert self.int_spec is not None
             verdict, _t, _m, _frac, feedback = run_interactive_pair(
                 [PY, "-c", "print(1)"],
                 "python3",
@@ -482,6 +490,7 @@ class RunInteractivePairTest(TestCase):
             "_wrap_command",
             side_effect=OSError("boom"),
         ):
+            assert self.int_spec is not None
             verdict, _t, _m, _frac, feedback = run_interactive_pair(
                 [PY, "-c", "print(1)"],
                 "python3",

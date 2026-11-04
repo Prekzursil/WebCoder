@@ -306,14 +306,14 @@ class TestCoverageCompletions:
         assert "streak_7" in payload["badges"]
 
     def test_purge_task_runs(self):
-        from users.tasks import purge_deleted_users_task
+        from users.tasks import purge_deleted_users
 
         user, _ = TestAccountControl()._user_with_content()
         soft_delete_account(user)
         User.objects.filter(id=user.id).update(
             scheduled_purge_at=timezone.now() - timedelta(days=1)
         )
-        result = purge_deleted_users_task.run()
+        result = purge_deleted_users.run()
         assert "purged 1" in result
 
 

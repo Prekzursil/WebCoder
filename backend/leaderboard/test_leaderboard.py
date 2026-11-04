@@ -221,7 +221,7 @@ class JudgeTaskHookTest(TestCase):
         )
 
     def _judge(self, run_result):
-        from submissions.tasks import judge_submission_task
+        from submissions.tasks import judge_task
 
         with (
             mock.patch(
@@ -233,7 +233,7 @@ class JudgeTaskHookTest(TestCase):
                 return_value=run_result,
             ),
         ):
-            return judge_submission_task.run(self.sub.id)
+            return judge_task.run(self.sub.id)
 
     def test_ac_dispatches_update_on_commit(self):
         # output must match the seeded test case's expected_output ("o")

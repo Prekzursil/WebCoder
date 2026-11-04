@@ -447,6 +447,7 @@ class CustomSocialAccountAdapterTests(SimpleTestCase):
     def test_no_user_with_email_redirects_to_registration(self):
         sociallogin = _RaisingUserSocialLogin({"email": "someone@example.com"})
         result = self.adapter.pre_social_login(None, sociallogin)
+        assert result is not None
         self.assertIsInstance(result, HttpResponseRedirect)
         # the redirect URL is a plain f-string: '@' is NOT percent-encoded
         self.assertIn("/complete-registration?email=someone@example.com", result.url)

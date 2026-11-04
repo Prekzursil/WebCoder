@@ -15,11 +15,31 @@ from celery import shared_task
 from django.db import transaction
 from django.utils import timezone
 
+from typing import Any, Protocol, cast
+
 from submissions.models import Submission
+from submissions import tasks as submissions_tasks
 
 from .models import Contest
 
 logger = logging.getLogger(__name__)
+
+
+class _CeleryTask(Protocol):
+    """Structural Celery-task type (see submissions.tasks._CeleryTask).
+
+    celery.shared_task is untyped in the type-check environment, so
+    decorated tasks read as plain functions and lose .delay/.apply_async.
+    """
+
+    def delay(self, *args: Any, **kwargs: Any) -> Any: ...
+
+    def apply_async(self, *args: Any, **kwargs: Any) -> Any: ...
+
+    def apply(self, *args: Any, **kwargs: Any) -> Any: ...
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any: ...
+
 
 #: Rejudge dispatch granularity: submissions per scheduled batch.
 REJUDGE_BATCH_SIZE = 5
@@ -72,7 +92,7 @@ def finalize_contest(contest_id: int) -> str:
         batch = submission_ids[index : index + REJUDGE_BATCH_SIZE]
         # Stagger: batch k starts at k * REJUDGE_STAGGER_SECONDS — bounded
         # ramp, contest lane stays dedicated (judge-contest queue).
-        rejudge_submissions_batch.apply_async(
+        cast(_CeleryTask, rejudge_submissions_batch).apply_async(
             args=[batch],
             countdown=(index // REJUDGE_BATCH_SIZE) * REJUDGE_STAGGER_SECONDS,
         )
@@ -92,7 +112,12 @@ def _schedule_ratings(contest):
         return
     from ratings.services import compute_contest_ratings_task
 
-    compute_contest_ratings_task.delay(contest.pk)
+    # Structural-task alias (same pattern as judge_task): the runtime
+    # object is the very same Celery task.
+    compute_contest_ratings_task_typed: _CeleryTask = cast(
+        _CeleryTask, compute_contest_ratings_task
+    )
+    compute_contest_ratings_task_typed.delay(contest.pk)
 
 
 @shared_task
@@ -102,7 +127,6 @@ def rejudge_submissions_batch(submission_ids):
     Per-test outcomes from the first execution are replaced (the pretest
     rows are deleted); verdict history stays on the submission row itself.
     """
-    from submissions.tasks import judge_submission_task  # local: avoid cycle
 
     reset = 0
     reset_ids = []
@@ -121,7 +145,11 @@ def rejudge_submissions_batch(submission_ids):
             reset += 1
             reset_ids.append(submission_id)
     for submission_id in reset_ids:
-        judge_submission_task.apply_async(args=[submission_id], queue="judge-contest")
+        # Attribute resolved at call time so tests patching
+        # submissions.tasks.judge_task intercept the dispatch.
+        submissions_tasks.judge_task.apply_async(
+            args=[submission_id], queue="judge-contest"
+        )
     return f"rejudged {reset} submissions"
 
 

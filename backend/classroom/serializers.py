@@ -305,6 +305,9 @@ class AssignmentSerializer(serializers.ModelSerializer):
         # `classroom` is a required field, so it is always present here
         # (create) or on the instance (update).
         classroom = attrs.get("classroom") or getattr(self.instance, "classroom", None)
+        # `classroom` is a required field, so exactly one of the two arms
+        # above is non-None; assert that invariant for the checker.
+        assert classroom is not None
         request = self.context.get("request")
         user = getattr(request, "user", None)
         if user is None or not user.is_authenticated:

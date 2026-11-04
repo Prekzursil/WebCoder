@@ -40,7 +40,7 @@ class NotifyServiceTest(TestCase):
             target=None,
             data={"post_id": 5},
         )
-        self.assertIsNotNone(n)
+        assert n is not None
         self.assertEqual(n.recipient, self.alice)
         self.assertEqual(n.actor, self.bob)
         self.assertEqual(n.data, {"post_id": 5})
@@ -54,6 +54,7 @@ class NotifyServiceTest(TestCase):
 
     def test_default_data_is_dict(self):
         n = notify(self.bob, Notification.Verb.SYSTEM)
+        assert n is not None
         self.assertEqual(n.data, {})
 
 
@@ -171,7 +172,7 @@ class JudgeEmissionTest(TestCase):
         )
 
     def _judge(self, run_result=None, compile_ok=True):
-        from submissions.tasks import judge_submission_task
+        from submissions.tasks import judge_task
 
         # The AC path also dispatches the leaderboard recompute task; its
         # .delay would hit the filesystem broker (kombu -> pywintypes on
@@ -186,7 +187,7 @@ class JudgeEmissionTest(TestCase):
                     return_value=run_result,
                 ):
                     with self.captureOnCommitCallbacks(execute=True):
-                        judge_submission_task.run(self.sub.id)
+                        judge_task.run(self.sub.id)
 
     def test_terminal_ac_produces_exactly_one_notification(self):
         self._judge(run_result=(Submission.VerdictStatus.ACCEPTED, 10, 512, "o", ""))
@@ -212,9 +213,9 @@ class JudgeEmissionTest(TestCase):
             side_effect=RuntimeError("boom"),
         ):
             with self.captureOnCommitCallbacks(execute=True):
-                from submissions.tasks import judge_submission_task
+                from submissions.tasks import judge_task
 
-                judge_submission_task.run(self.sub.id)
+                judge_task.run(self.sub.id)
         self.sub.refresh_from_db()
         self.assertEqual(self.sub.verdict, Submission.VerdictStatus.INTERNAL_ERROR)
         notes = Notification.objects.filter(recipient=self.user)

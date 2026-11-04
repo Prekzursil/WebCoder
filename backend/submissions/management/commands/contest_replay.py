@@ -31,7 +31,7 @@ from django.db import close_old_connections
 
 from contests.models import Contest, ContestParticipation, ContestProblem
 from submissions.models import Submission
-from submissions.tasks import judge_submission_task
+from submissions.tasks import judge_task
 from users.models import User
 
 #: The round-2 OPR-4 numeric gate.
@@ -40,9 +40,9 @@ GATE_MIN_USERS = 50  # the full gate; the command allows fewer for rehearsal
 
 SOLUTION = "print(int(input()) + int(input()))\n"
 TERMINAL = {
-    verdict.value
-    for verdict in Submission.VerdictStatus
-    if verdict.value not in ("PENDING", "COMPILING", "RUNNING")
+    value
+    for value in Submission.VerdictStatus.values
+    if value not in ("PENDING", "COMPILING", "RUNNING")
 }
 
 
@@ -113,7 +113,7 @@ class Command(BaseCommand):
                     code=SOLUTION,
                     contest=contest,
                 )
-                judge_submission_task.delay(submission.id)
+                judge_task.delay(submission.id)
                 verdict = None
                 while time.monotonic() - start < options["timeout"]:
                     time.sleep(options["poll_interval"])

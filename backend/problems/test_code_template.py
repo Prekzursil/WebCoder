@@ -13,7 +13,7 @@ from problems.code_template import (
 from problems.models import Problem
 from problems.serializers import ProblemSerializer
 from submissions.models import Submission
-from submissions.tasks import judge_submission_task
+from submissions.tasks import judge_task
 from users.models import User
 
 CPP_TEMPLATE = """#include <cstdio>
@@ -235,7 +235,7 @@ class JudgeTimeTemplateTests(TestCase):
             language="cpp17",
             code=CPP_SOLUTION.replace("scanf", "cin"),  # locked tamper
         )
-        judge_submission_task.run(submission.id)
+        judge_task.run(submission.id)
         submission.refresh_from_db()
         self.assertEqual(submission.verdict, Submission.VerdictStatus.COMPILE_ERROR)
         self.assertIn("Template integrity", submission.detailed_feedback)
@@ -316,7 +316,7 @@ class CoverageCompletenessTests(TestCase):
                 ),
             ),
         ):
-            judge_submission_task.run(submission.id)
+            judge_task.run(submission.id)
         submission.refresh_from_db()
         self.assertEqual(submission.verdict, Submission.VerdictStatus.ACCEPTED)
 

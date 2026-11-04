@@ -28,6 +28,7 @@ import subprocess
 import tempfile
 import unittest
 from types import SimpleNamespace
+from typing import cast
 from unittest.mock import patch
 
 from django.contrib import admin as dj_admin
@@ -55,7 +56,7 @@ from .serializers import (
     SubmissionTestResultSerializer,
 )
 from . import tasks as tasks_module
-from .tasks import judge_submission_task
+from .tasks import judge_task
 
 V = Submission.VerdictStatus
 AC = V.ACCEPTED
@@ -67,6 +68,15 @@ IE = V.INTERNAL_ERROR
 CE = V.COMPILE_ERROR
 
 CM = Problem.ComparisonMode
+# TextChoices members are str subclasses at runtime; without django-stubs
+# the type checker sees the raw (value, label) tuples instead, so bind the
+# member values through their runtime str form (identical at runtime:
+# a TextChoices member compares, hashes and serializes as its str value).
+CM_EXACT = str(CM.EXACT)
+CM_STRIP_EXACT = str(CM.STRIP_EXACT)
+CM_LINES_STRIP_EXACT = str(CM.LINES_STRIP_EXACT)
+CM_FLOAT_PRECISE = str(CM.FLOAT_PRECISE)
+CM_CUSTOM_CHECKER = str(CM.CUSTOM_CHECKER)
 
 # A /usr/bin/time -f "%U %S %M %x %P %e" style line: 30ms cpu, 5120 KB.
 RESOURCE_LINE = "0.01 0.02 5120 0 90.0% 0.03"
@@ -89,7 +99,7 @@ def make_problem(author=None, **kw):
         "statement_i18n": {"en": "Read a and b, print a+b."},
         "author": author,
         "status": Problem.ProblemStatus.APPROVED,
-        "comparison_mode": CM.LINES_STRIP_EXACT,
+        "comparison_mode": CM_LINES_STRIP_EXACT,
     }
     defaults.update(kw)
     return Problem.objects.create(**defaults)
@@ -386,42 +396,42 @@ class MigrationImportTests(unittest.TestCase):
 
 class CompareOutputsTests(unittest.TestCase):
     def test_exact_mode(self):
-        self.assertTrue(compare_outputs("3\n", "3\n", CM.EXACT))
-        self.assertFalse(compare_outputs("3\n", "3 \n", CM.EXACT))
+        self.assertTrue(compare_outputs("3\n", "3\n", CM_EXACT))
+        self.assertFalse(compare_outputs("3\n", "3 \n", CM_EXACT))
 
     def test_strip_exact_mode(self):
-        self.assertTrue(compare_outputs("  3\n ", "3", CM.STRIP_EXACT))
-        self.assertFalse(compare_outputs("3", "4", CM.STRIP_EXACT))
+        self.assertTrue(compare_outputs("  3\n ", "3", CM_STRIP_EXACT))
+        self.assertFalse(compare_outputs("3", "4", CM_STRIP_EXACT))
 
     def test_lines_strip_exact_matches_despite_noise(self):
-        self.assertTrue(compare_outputs(" 1 \r\n 2 \n\n", "1\n2", CM.LINES_STRIP_EXACT))
+        self.assertTrue(compare_outputs(" 1 \r\n 2 \n\n", "1\n2", CM_LINES_STRIP_EXACT))
 
     def test_lines_strip_exact_mismatch(self):
-        self.assertFalse(compare_outputs("1\n2\n", "1\n3\n", CM.LINES_STRIP_EXACT))
+        self.assertFalse(compare_outputs("1\n2\n", "1\n3\n", CM_LINES_STRIP_EXACT))
 
     def test_lines_strip_exact_all_empty_lines(self):
-        self.assertTrue(compare_outputs("\n\n\n", "", CM.LINES_STRIP_EXACT))
+        self.assertTrue(compare_outputs("\n\n\n", "", CM_LINES_STRIP_EXACT))
 
     def test_float_precise_match(self):
-        self.assertTrue(compare_outputs("1.0 2.5\n", "1.0 2.5\n", CM.FLOAT_PRECISE))
+        self.assertTrue(compare_outputs("1.0 2.5\n", "1.0 2.5\n", CM_FLOAT_PRECISE))
 
     def test_float_precise_default_epsilon_when_none(self):
-        self.assertTrue(compare_outputs("1.0000001\n", "1.0\n", CM.FLOAT_PRECISE, None))
-        self.assertFalse(compare_outputs("1.01\n", "1.0\n", CM.FLOAT_PRECISE, None))
+        self.assertTrue(compare_outputs("1.0000001\n", "1.0\n", CM_FLOAT_PRECISE, None))
+        self.assertFalse(compare_outputs("1.01\n", "1.0\n", CM_FLOAT_PRECISE, None))
 
     def test_float_precise_line_count_mismatch(self):
-        self.assertFalse(compare_outputs("1\n2\n", "1\n", CM.FLOAT_PRECISE))
+        self.assertFalse(compare_outputs("1\n2\n", "1\n", CM_FLOAT_PRECISE))
 
     def test_float_precise_token_count_mismatch(self):
-        self.assertFalse(compare_outputs("1 2\n", "1\n", CM.FLOAT_PRECISE))
+        self.assertFalse(compare_outputs("1 2\n", "1\n", CM_FLOAT_PRECISE))
 
     def test_float_precise_non_numeric_tokens(self):
-        self.assertTrue(compare_outputs("ok 1\n", "ok 1\n", CM.FLOAT_PRECISE))
-        self.assertFalse(compare_outputs("ok\n", "nope\n", CM.FLOAT_PRECISE))
+        self.assertTrue(compare_outputs("ok 1\n", "ok 1\n", CM_FLOAT_PRECISE))
+        self.assertFalse(compare_outputs("ok\n", "nope\n", CM_FLOAT_PRECISE))
 
     def test_float_precise_exception_returns_false(self):
         # generated_output=None -> AttributeError inside the try block.
-        self.assertFalse(compare_outputs(None, "1\n", CM.FLOAT_PRECISE))
+        self.assertFalse(compare_outputs(cast(str, None), "1\n", CM_FLOAT_PRECISE))
 
     def test_unknown_mode_falls_back_to_lines_strip(self):
         self.assertTrue(compare_outputs("1 \n2\n", "1\n2", "WEIRD-MODE"))
@@ -442,11 +452,13 @@ class CompilationTests(unittest.TestCase):
         ok, out, path = compile_code_in_sandbox("print(1)\n", "python3", self.dir)
         self.assertTrue(ok)
         self.assertIn("no compilation", out)
+        assert path is not None
         self.assertEqual(pathlib.Path(path).read_text(), "print(1)\n")
 
     def test_python3_with_empty_libs_list(self):
         ok, _, path = compile_code_in_sandbox("print(1)\n", "python3", self.dir, [])
         self.assertTrue(ok)
+        assert path is not None
         self.assertTrue(pathlib.Path(path).exists())
 
     def _compile_cpp(self, mock_result=None, side_effect=None, libs=None):
@@ -458,7 +470,7 @@ class CompilationTests(unittest.TestCase):
             else:
                 mock_run.return_value = mock_result
             result = compile_code_in_sandbox("int main(){}", "cpp17", self.dir, libs)
-            argv = mock_run.call_args[0][0] if mock_run.call_count else None
+            argv = mock_run.call_args[0][0] if mock_run.call_count else []
         return result, argv
 
     def test_cpp17_success(self):
@@ -558,7 +570,7 @@ class CompilationTests(unittest.TestCase):
             else:
                 mock_run.return_value = mock_result
             result = compile_code_in_sandbox("class Main{}", "java11", self.dir, [])
-            argv = mock_run.call_args[0][0] if mock_run.call_count else None
+            argv = mock_run.call_args[0][0] if mock_run.call_count else []
         return result, argv
 
     def test_java11_success(self):
@@ -647,8 +659,8 @@ class ExecutionTests(unittest.TestCase):
                 self.dir,
                 kwargs["libs"],
             )
-        argv = None
-        run_kwargs = None
+        argv: list = []
+        run_kwargs: dict = {}
         if mock_run.call_count:
             argv = mock_run.call_args[0][0]
             run_kwargs = mock_run.call_args[1]
@@ -996,10 +1008,10 @@ class CheckerTests(unittest.TestCase):
                 self.ans_path,
                 self.dir,
             )
-        argv = None
+        argv: list = []
         if mock_run.call_count:
             argv = mock_run.call_args[0][0]
-        compile_argv = None
+        compile_argv: list = []
         if mock_compile.call_count:
             compile_argv = mock_compile.call_args[0][0]
         # Protocol v2 returns (verdict, fraction, msg); these legacy
@@ -1133,7 +1145,7 @@ class JudgeSubmissionTaskTests(TestCase):
         self.submission = make_submission(self.user, self.problem)
 
     def _apply(self, submission_id):
-        return judge_submission_task.apply(args=[submission_id]).get()
+        return judge_task.apply(args=[submission_id]).get()
 
     def test_skips_submission_not_pending(self):
         self.submission.verdict = AC
@@ -1252,7 +1264,7 @@ class JudgeSubmissionTaskTests(TestCase):
     def test_custom_checker_flow(self):
         problem = make_problem(
             self.user,
-            comparison_mode=CM.CUSTOM_CHECKER,
+            comparison_mode=CM_CUSTOM_CHECKER,
             checker_code="print('judge me')",
             checker_language="python3",
         )
@@ -1299,7 +1311,7 @@ class JudgeSubmissionTaskTests(TestCase):
     def test_custom_checker_without_code_is_internal_error(self):
         problem = make_problem(
             self.user,
-            comparison_mode=CM.CUSTOM_CHECKER,
+            comparison_mode=CM_CUSTOM_CHECKER,
             checker_code=None,
             checker_language=None,
         )
@@ -1372,7 +1384,7 @@ class JudgeSubmissionTaskTests(TestCase):
             raise RuntimeError("kaboom")
 
         with patch("submissions.tasks.compile_code_in_sandbox", side_effect=boom):
-            message = judge_submission_task.apply(args=[submission_id]).get()
+            message = judge_task.apply(args=[submission_id]).get()
         self.assertEqual(message, "Judge internal error for sub %d." % submission_id)
 
 
@@ -1517,7 +1529,7 @@ class JudgeWorkspaceTests(TestCase):
             ),
             patch.object(tasks_module.tempfile, "TemporaryDirectory", fake_tempdir),
         ):
-            judge_submission_task.apply(args=[self.submission.id]).get()
+            judge_task.apply(args=[self.submission.id]).get()
         self.assertEqual(pathlib.Path(seen_dirs["dir"]), pathlib.Path(sandbox.name))
         self.assertTrue(seen_dirs["prefix"].startswith("submission_"))
 
@@ -1535,7 +1547,7 @@ class JudgeWorkspaceTests(TestCase):
             ),
             patch.object(tasks_module.tempfile, "TemporaryDirectory", fake_tempdir),
         ):
-            judge_submission_task.apply(args=[self.submission.id]).get()
+            judge_task.apply(args=[self.submission.id]).get()
         self.assertIsNone(seen_dirs["dir"])
 
     def test_validate_without_problem_skips_allowed_check(self):

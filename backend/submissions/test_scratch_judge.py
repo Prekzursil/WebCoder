@@ -18,7 +18,7 @@ from rest_framework.test import APIClient
 from users.models import User
 
 from .models import Submission
-from .tasks import judge_submission_task
+from .tasks import judge_task
 
 TASKS = "submissions.tasks"
 
@@ -70,7 +70,7 @@ def _project_json(say_text: str = "hi") -> str:
 
 
 def _call(submission_id):
-    return judge_submission_task.apply(args=[submission_id]).get()
+    return judge_task.apply(args=[submission_id]).get()
 
 
 class ScratchSubmitValidationTest(TestCase):

@@ -53,7 +53,7 @@ class TranslationProposalSerializer(serializers.ModelSerializer):
         return titles.get("en") or titles.get("ro") or f"Problem {obj.problem_id}"
 
     def get_language_name(self, obj) -> str:
-        return LANGUAGE_NAMES.get(obj.language, {}).get("english", obj.language)
+        return LANGUAGE_NAMES.get(obj.language, {}).get("english") or obj.language
 
 
 class TranslationProposalCreateSerializer(serializers.Serializer):

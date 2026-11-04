@@ -527,6 +527,7 @@ class SandboxTimeoutSignalTest(TestCase):
             tempfile.TemporaryDirectory() as tmp,
             mock.patch.object(ex.subprocess, "run", fake_run),
         ):
+            assert spec is not None
             ex.run_code_in_sandbox(
                 executable_path_str=str(spec.run_command[0]),
                 language="python3",

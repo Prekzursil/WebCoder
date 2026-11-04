@@ -104,11 +104,11 @@ def medal_for_rank(rank: int, field_size: int) -> str | None:
     silver = gold + max(0, math.ceil(SILVER_PERCENT * field_size))
     bronze = silver + max(0, math.ceil(BRONZE_PERCENT * field_size))
     if rank <= gold:
-        return ContestAward.Medal.GOLD
+        return str(ContestAward.Medal.GOLD)
     if rank <= silver:
-        return ContestAward.Medal.SILVER
+        return str(ContestAward.Medal.SILVER)
     if rank <= bronze:
-        return ContestAward.Medal.BRONZE
+        return str(ContestAward.Medal.BRONZE)
     return None
 
 

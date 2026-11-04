@@ -363,4 +363,7 @@ def run_custom_checker(
     _stage(user_output_file_path, CHECKER_USER_OUTPUT_FILE)
     _stage(answer_file_path, CHECKER_ANSWER_FILE)
 
+    # compile_checker returns (False, message, None) on failure — the
+    # only path with spec=None returned above, so spec is bound here.
+    assert spec is not None
     return run_prepared_checker(spec, checker_submission_dir)

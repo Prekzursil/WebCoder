@@ -22,6 +22,12 @@ TASKS = "submissions.tasks"
 SCRATCH = "scratch.views"
 
 CM = Problem.ComparisonMode
+# TextChoices members are str subclasses at runtime; without django-stubs
+# the checker sees the raw (value, label) tuples, so bind the values via
+# their runtime str form (identical comparisons/hashing/serialization).
+CM_TOKEN = str(CM.TOKEN)
+CM_EXACT = str(CM.EXACT)
+CM_LINES_STRIP_EXACT = str(CM.LINES_STRIP_EXACT)
 
 
 def _call(submission_id):
@@ -70,30 +76,30 @@ class ComparisonDetailedTest(TestCase):
     """J8: TOKEN mode, case-insensitivity, first-mismatch hints."""
 
     def test_token_mode_ignores_inner_whitespace(self):
-        ok, hint = compare_outputs_detailed("1  2\t3\n", "1 2 3\n", CM.TOKEN)
+        ok, hint = compare_outputs_detailed("1  2\t3\n", "1 2 3\n", CM_TOKEN)
         self.assertTrue(ok)
         self.assertIsNone(hint)
 
     def test_token_mode_detects_mismatch_with_line_hint(self):
-        ok, hint = compare_outputs_detailed("1 2\n3 9\n", "1 2\n3 4\n", CM.TOKEN)
+        ok, hint = compare_outputs_detailed("1 2\n3 9\n", "1 2\n3 4\n", CM_TOKEN)
         self.assertFalse(ok)
         self.assertIn("line 2", hint)
 
     def test_case_insensitive_exact(self):
         ok, _ = compare_outputs_detailed(
-            "Da\n", "DA\n", CM.EXACT, case_insensitive=True
+            "Da\n", "DA\n", CM_EXACT, case_insensitive=True
         )
         self.assertTrue(ok)
-        ok, _ = compare_outputs_detailed("Da\n", "DA\n", CM.EXACT)
+        ok, _ = compare_outputs_detailed("Da\n", "DA\n", CM_EXACT)
         self.assertFalse(ok)
 
     def test_lines_strip_gives_line_hint(self):
-        ok, hint = compare_outputs_detailed("a\nb\n", "a\nc\n", CM.LINES_STRIP_EXACT)
+        ok, hint = compare_outputs_detailed("a\nb\n", "a\nc\n", CM_LINES_STRIP_EXACT)
         self.assertFalse(ok)
         self.assertIn("line 2", hint)
 
     def test_line_count_hint(self):
-        ok, hint = compare_outputs_detailed("1\n2\n", "1\n", CM.LINES_STRIP_EXACT)
+        ok, hint = compare_outputs_detailed("1\n2\n", "1\n", CM_LINES_STRIP_EXACT)
         self.assertFalse(ok)
         self.assertIn("expected 1 line(s), got 2", hint)
 
@@ -178,7 +184,7 @@ class JudgeTaskWaveATest(TestCase):
         self.problem = Problem.objects.create(
             title_i18n={"en": "P"},
             statement_i18n={"en": "S"},
-            comparison_mode=CM.EXACT,
+            comparison_mode=CM_EXACT,
         )
         self.tc = ProblemTestCase.objects.create(
             problem=self.problem,
@@ -238,6 +244,7 @@ class JudgeTaskWaveATest(TestCase):
             banned_stdlib_modules=None,
         ):
             captured["io_files"] = io_files
+            assert io_files is not None  # FILES-mode fake: always called with names
             in_path = submission_dir / io_files[0]
             captured["input_written"] = in_path.read_text()
             # The real execution.py reads the output file back and returns

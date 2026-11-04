@@ -84,6 +84,9 @@ class ScratchRunView(APIView):
                     }
                 )
 
+            # compile_code_in_sandbox only yields a None executable when
+            # compile_ok is False, and every such path returned above.
+            assert executable_path is not None
             verdict, time_ms, mem_kb, output, error = run_code_in_sandbox(
                 executable_path,
                 language,

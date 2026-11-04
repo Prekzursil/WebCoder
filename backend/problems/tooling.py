@@ -57,7 +57,7 @@ def _run_compiled(
         workspace_dir,
         None,
     )
-    return verdict, output or ""
+    return str(verdict), output or ""
 
 
 class StressRequestSerializer(serializers.Serializer):

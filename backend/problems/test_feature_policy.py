@@ -19,8 +19,9 @@ from problems.feature_policy import (
 from problems.models import Problem
 from problems.serializers import ProblemSerializer
 from submissions.models import Submission
-from submissions.tasks import judge_submission_task
+from submissions.tasks import judge_task
 from users.models import User
+from typing import cast
 
 
 class PolicyShapeValidationTests(unittest.TestCase):
@@ -329,7 +330,7 @@ class JudgeTimePolicyTests(TestCase):
             language="python3",
             code="import re\n",
         )
-        result = judge_submission_task.run(submission.id)
+        result = judge_task.run(submission.id)
         submission.refresh_from_db()
         self.assertEqual(submission.verdict, Submission.VerdictStatus.COMPILE_ERROR)
         self.assertIn("policy violation", submission.detailed_feedback)
@@ -348,11 +349,14 @@ class CoverageCompletenessTests(unittest.TestCase):
             banned_stdlib_modules,
         )
 
-        self.assertEqual(banned_stdlib_modules(["nope"], "python3"), [])
-        self.assertEqual(banned_libraries("not-a-dict", "python3"), [])
-        self.assertEqual(allowed_libraries(42, "python3"), [])
-        self.assertEqual(banned_features(["x"]), [])
-        self.assertEqual(banned_features("not-a-dict"), [])
+        # Deliberately malformed policy fixtures: these exercise the
+        # defensive not-a-dict arms, so cast them to the declared type
+        # (the functions must tolerate arbitrary JSON shapes).
+        self.assertEqual(banned_stdlib_modules(cast(dict, ["nope"]), "python3"), [])
+        self.assertEqual(banned_libraries(cast(dict, "not-a-dict"), "python3"), [])
+        self.assertEqual(allowed_libraries(cast(dict, 42), "python3"), [])
+        self.assertEqual(banned_features(cast(dict, ["x"])), [])
+        self.assertEqual(banned_features(cast(dict, "not-a-dict")), [])
 
     def test_banned_features_non_list_shape_error(self):
         problems = validate_policy_shape({"banned_features": "nope"})
@@ -521,7 +525,7 @@ class GuardedExecutionTests(TestCase):
                 ),
             ),
         ):
-            judge_submission_task.run(self.sub.id)
+            judge_task.run(self.sub.id)
         self.sub.refresh_from_db()
         self.assertEqual(self.sub.verdict, Submission.VerdictStatus.ACCEPTED)
 
