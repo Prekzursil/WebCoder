@@ -21,12 +21,10 @@ export interface CursorPaginatedResponse<T> {
 }
 
 /** Extract the `cursor` query param from a DRF next/previous URL. */
-export function cursorParamFromUrl(
-  url: string | null | undefined
-): string | null {
+export function cursorParamFromUrl(url: string | null | undefined): string | null {
   if (!url) return null;
   try {
-    return new URL(url).searchParams.get('cursor');
+    return new URL(url).searchParams.get("cursor");
   } catch {
     return null;
   }
@@ -41,14 +39,14 @@ export interface User {
   username: string;
   email: string;
   role:
-    | 'BASIC'
-    | 'CREATOR'
-    | 'VERIFIER'
-    | 'TEACHER'
-    | 'ADMIN'
-    | 'BASIC_USER'
-    | 'PROBLEM_CREATOR'
-    | 'PROBLEM_VERIFIER';
+    | "BASIC"
+    | "CREATOR"
+    | "VERIFIER"
+    | "TEACHER"
+    | "ADMIN"
+    | "BASIC_USER"
+    | "PROBLEM_CREATOR"
+    | "PROBLEM_VERIFIER";
   two_factor_enabled?: boolean;
   two_factor_required?: boolean;
   county?: string;
@@ -125,8 +123,8 @@ export interface ProblemType {
   code_template_language?: string;
   translations?: TranslationAttribution[];
   block_config?: {
-    engine?: 'blockly' | 'scratch';
-    generator?: 'python3' | 'nodejs20';
+    engine?: "blockly" | "scratch";
+    generator?: "python3" | "nodejs20";
     toolbox?: string;
     starter?: string;
     scratch_project?: string;
@@ -259,11 +257,11 @@ export type GetForumPostsResponse = CursorPaginatedResponse<ForumPost>;
 // =================================
 
 export type NotificationVerb =
-  | 'submission_verdict'
-  | 'problem_approved'
-  | 'problem_rejected'
-  | 'forum_reply'
-  | 'thread_created'
+  | "submission_verdict"
+  | "problem_approved"
+  | "problem_rejected"
+  | "forum_reply"
+  | "thread_created"
   | string;
 
 export interface ApiNotification {
@@ -289,9 +287,9 @@ export interface Contest {
   id: number;
   title_i18n: LocalizedText;
   description_i18n: LocalizedText;
-  visibility: 'PUBLIC' | 'PRIVATE';
+  visibility: "PUBLIC" | "PRIVATE";
   is_rated: boolean;
-  format: 'IOI' | 'ICPC' | 'ATCODER';
+  format: "IOI" | "ICPC" | "ATCODER";
   start_at: string;
   end_at: string;
   freeze_at: string | null;
@@ -304,7 +302,7 @@ export interface Contest {
   created_by_username: string;
   sponsor_name?: string;
   sponsor_logo_url?: string;
-  state: 'UPCOMING' | 'RUNNING' | 'FINISHED';
+  state: "UPCOMING" | "RUNNING" | "FINISHED";
   problem_count: number;
   participant_count: number;
   contest_problems?: ContestProblemRow[];
@@ -352,7 +350,7 @@ export interface StandingsRow {
 export interface StandingsResponse extends PaginatedResponse<StandingsRow> {
   format: string;
   frozen: boolean;
-  section?: 'official' | 'virtual';
+  section?: "official" | "virtual";
 }
 
 // =================================
@@ -389,11 +387,11 @@ export interface ClassroomAssignment {
   due_at: string;
   late_until: string | null;
   is_exam: boolean;
-  kind: 'PROBLEMS' | 'QUIZ' | 'FILES';
+  kind: "PROBLEMS" | "QUIZ" | "FILES";
   quiz_shuffle: boolean;
   file_extensions: string;
   max_file_mb: number;
-  state: 'SCHEDULED' | 'OPEN' | 'CLOSED';
+  state: "SCHEDULED" | "OPEN" | "CLOSED";
   solved_count?: number;
   assignment_problems?: {
     id: number;
@@ -428,17 +426,16 @@ export interface TranslationProposalRow {
   language_name: string;
   title: string;
   statement: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: "PENDING" | "APPROVED" | "REJECTED";
   contributor_username: string;
   reviewer_username: string | null;
   review_note: string;
   reviewed_at: string | null;
-  ai_verdict: '' | 'approve' | 'flag' | 'error';
+  ai_verdict: "" | "approve" | "flag" | "error";
   ai_confidence: number | null;
   ai_notes: string;
   created_at: string;
   updated_at: string;
 }
 
-export type GetTranslationProposalsResponse =
-  PaginatedResponse<TranslationProposalRow>;
+export type GetTranslationProposalsResponse = PaginatedResponse<TranslationProposalRow>;

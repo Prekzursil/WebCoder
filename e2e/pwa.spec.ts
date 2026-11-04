@@ -77,41 +77,39 @@ test.describe("PWA surface [OPS-6]", () => {
   // [mobile wave] PNG icon set: richer Android install sheets + Safari
   // home-screen installs — the manifest must carry PNG entries (any +
   // maskable, 192/512) and every referenced file must actually serve.
-  test('PNG manifest icons are declared and served (install-from-browser)', async ({
-    request,
-  }) => {
-    const response = await request.get('/manifest.webmanifest');
+  test("PNG manifest icons are declared and served (install-from-browser)", async ({ request }) => {
+    const response = await request.get("/manifest.webmanifest");
     const manifest = (await response.json()) as {
       icons: { src: string; sizes: string; type: string; purpose: string }[];
     };
-    const pngIcons = manifest.icons.filter((i) => i.type === 'image/png');
+    const pngIcons = manifest.icons.filter((i) => i.type === "image/png");
     expect(pngIcons.length).toBeGreaterThanOrEqual(4);
     expect(pngIcons).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ sizes: '192x192', purpose: 'any' }),
-        expect.objectContaining({ sizes: '512x512', purpose: 'any' }),
-        expect.objectContaining({ sizes: '192x192', purpose: 'maskable' }),
-        expect.objectContaining({ sizes: '512x512', purpose: 'maskable' }),
-      ])
+        expect.objectContaining({ sizes: "192x192", purpose: "any" }),
+        expect.objectContaining({ sizes: "512x512", purpose: "any" }),
+        expect.objectContaining({ sizes: "192x192", purpose: "maskable" }),
+        expect.objectContaining({ sizes: "512x512", purpose: "maskable" }),
+      ]),
     );
     for (const icon of pngIcons) {
       const res = await request.get(icon.src);
       expect(res.status(), icon.src).toBe(200);
-      expect(res.headers()['content-type']).toContain('image/png');
+      expect(res.headers()["content-type"]).toContain("image/png");
     }
     // Safari home-screen icon (apple-touch-icon) is linked in the head.
-    const apple = await request.get('/icons/apple-touch-icon.png');
+    const apple = await request.get("/icons/apple-touch-icon.png");
     expect(apple.status()).toBe(200);
   });
 
   // [mobile wave] The store-facing privacy policy covers the mobile apps
   // (Play/App Store policy prerequisite: a public privacy URL whose text
   // addresses the app clients).
-  test('the privacy policy covers the mobile apps', async ({ page }) => {
-    await page.goto('/privacy');
-    await expect(page.getByRole('heading', { name: 'Mobile apps' })).toBeVisible();
-    const body = page.locator('body');
-    await expect(body).toContainText('keychain');
-    await expect(body).toContainText('Google Play');
+  test("the privacy policy covers the mobile apps", async ({ page }) => {
+    await page.goto("/privacy");
+    await expect(page.getByRole("heading", { name: "Mobile apps" })).toBeVisible();
+    const body = page.locator("body");
+    await expect(body).toContainText("keychain");
+    await expect(body).toContainText("Google Play");
   });
 });

@@ -1,7 +1,7 @@
 // Verdict + formatting helpers — mobile port of the web's shared
 // verdict→color map (src/app/submissions/[submissionId]/page.tsx) plus
 // the OLE verdict the backend added (JDG-7).
-import { palette } from '../theme/tokens';
+import { palette } from "../theme/tokens";
 
 export const VERDICT_COLORS: Record<string, string> = {
   AC: palette.success,
@@ -30,14 +30,12 @@ export function verdictColor(verdict: string | undefined): string {
 
 /** Verdicts that mean the judge has not finished — the polling predicate. */
 export function verdictInProgress(verdict: string | undefined): boolean {
-  return verdict === 'PENDING' || verdict === 'COMPILING' || verdict === 'RUNNING';
+  return verdict === "PENDING" || verdict === "COMPILING" || verdict === "RUNNING";
 }
 
 /** "2.4 s" / "850 ms" duration form. */
 export function formatMs(ms: number): string {
-  return ms >= 1000
-    ? `${(ms / 1000).toFixed(ms % 1000 === 0 ? 0 : 1)} s`
-    : `${ms} ms`;
+  return ms >= 1000 ? `${(ms / 1000).toFixed(ms % 1000 === 0 ? 0 : 1)} s` : `${ms} ms`;
 }
 
 /** "12 MB" / "900 KB" memory form. */
@@ -47,10 +45,10 @@ export function formatKb(kb: number): string {
 
 /** Locale-safe short date-time (2026-11-02 14:03). */
 export function formatDateTime(iso: string | null | undefined): string {
-  if (!iso) return '—';
+  if (!iso) return "—";
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;
-  const pad = (n: number) => String(n).padStart(2, '0');
+  const pad = (n: number) => String(n).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 

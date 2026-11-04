@@ -50,11 +50,11 @@ export default async function PrivacyPage() {
     },
 
     {
-      key: 'mobile',
-      title: t('privacy_mobile_title', 'Mobile apps'),
+      key: "mobile",
+      title: t("privacy_mobile_title", "Mobile apps"),
       body: t(
-        'privacy_mobile_body',
-        'The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere.'
+        "privacy_mobile_body",
+        "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere.",
       ),
     },
   ];
@@ -71,8 +71,8 @@ export default async function PrivacyPage() {
       >
         {t("privacy_title", "Privacy Policy")}
       </h1>
-      <p style={{ color: 'var(--muted)', fontSize: '0.85rem', margin: '0.5rem 0 2rem' }}>
-        {t('privacy_updated', 'Version 1.1 — updated November 2026')}
+      <p style={{ color: "var(--muted)", fontSize: "0.85rem", margin: "0.5rem 0 2rem" }}>
+        {t("privacy_updated", "Version 1.1 — updated November 2026")}
       </p>
       {sections.map((section) => (
         <section key={section.key} style={{ marginBottom: "1.75rem" }}>

@@ -1,16 +1,12 @@
 // Submit — language picker (the expanded 14-language registry), plain code
 // editor, or the locked-region partial-code editor for template problems
 // (judge-fairness wave E). Submission verdict is polled on the detail page.
-import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
-import {
-  ProblemService,
-  PublicService,
-  SubmissionService,
-} from '../../../src/services/services';
-import { useAuth } from '../../../src/state/AuthStore';
-import { useSettings } from '../../../src/state/SettingsStore';
+import { router, useLocalSearchParams } from "expo-router";
+import React, { useEffect, useMemo, useState } from "react";
+import { Pressable, ScrollView, View } from "react-native";
+import { ProblemService, PublicService, SubmissionService } from "../../../src/services/services";
+import { useAuth } from "../../../src/state/AuthStore";
+import { useSettings } from "../../../src/state/SettingsStore";
 import {
   Button,
   Card,
@@ -20,15 +16,15 @@ import {
   SectionLabel,
   Spinner,
   Txt,
-} from '../../../src/ui/primitives';
-import { palette, space } from '../../../src/theme/tokens';
+} from "../../../src/ui/primitives";
+import { palette, space } from "../../../src/theme/tokens";
 import {
   composeSubmission,
   initialSlots,
   isPartialCodeProblem,
   parseTemplate,
-} from '../../../src/utils/partialCode';
-import type { LanguageRow, ProblemType } from '../../../src/types/api';
+} from "../../../src/utils/partialCode";
+import type { LanguageRow, ProblemType } from "../../../src/types/api";
 
 export default function Submit() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -36,16 +32,13 @@ export default function Submit() {
   const { t } = useSettings();
   const [problem, setProblem] = useState<ProblemType | null>(null);
   const [registry, setRegistry] = useState<LanguageRow[]>([]);
-  const [language, setLanguage] = useState('');
-  const [code, setCode] = useState('');
+  const [language, setLanguage] = useState("");
+  const [code, setCode] = useState("");
   const [slots, setSlots] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const segments = useMemo(
-    () => parseTemplate(problem?.code_template),
-    [problem]
-  );
+  const segments = useMemo(() => parseTemplate(problem?.code_template), [problem]);
 
   useEffect(() => {
     (async () => {
@@ -61,19 +54,17 @@ export default function Submit() {
           ? langs.results.filter((l) => allowed.includes(l.id))
           : langs.results;
         const preferred =
-          choices.find(
-            (l) => l.id === detail.code_template_language
-          ) ?? choices.find((l) => l.id === 'python3') ?? choices[0];
-        setLanguage(preferred?.id ?? '');
+          choices.find((l) => l.id === detail.code_template_language) ??
+          choices.find((l) => l.id === "python3") ??
+          choices[0];
+        setLanguage(preferred?.id ?? "");
         if (isPartialCodeProblem(detail)) {
           setSlots(initialSlots(parseTemplate(detail.code_template)));
         } else {
-          setCode('// ' + t('code_placeholder'));
+          setCode("// " + t("code_placeholder"));
         }
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : t('problems_load_error')
-        );
+        setError(err instanceof Error ? err.message : t("problems_load_error"));
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -84,9 +75,7 @@ export default function Submit() {
     setBusy(true);
     setError(null);
     try {
-      const finalCode = isPartialCodeProblem(problem)
-        ? composeSubmission(segments, slots)
-        : code;
+      const finalCode = isPartialCodeProblem(problem) ? composeSubmission(segments, slots) : code;
       const created = await SubmissionService.createSubmission({
         problem: problem.id,
         language,
@@ -94,30 +83,24 @@ export default function Submit() {
       });
       router.replace(`/submissions/${created.id}` as never);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : t('error_code_empty')
-      );
+      setError(err instanceof Error ? err.message : t("error_code_empty"));
     } finally {
       setBusy(false);
     }
   };
 
-  if (status !== 'authenticated') {
+  if (status !== "authenticated") {
     return (
       <Screen>
         <Card>
-          <Txt variant="body">{t('error_auth_required_submission')}</Txt>
+          <Txt variant="body">{t("error_auth_required_submission")}</Txt>
         </Card>
       </Screen>
     );
   }
 
   if (!problem) {
-    return (
-      <Screen scroll={false}>
-        {error ? <ErrorBox message={error} /> : <Spinner />}
-      </Screen>
-    );
+    return <Screen scroll={false}>{error ? <ErrorBox message={error} /> : <Spinner />}</Screen>;
   }
 
   const partial = isPartialCodeProblem(problem);
@@ -125,15 +108,11 @@ export default function Submit() {
   return (
     <Screen scroll={false}>
       <Card>
-        <SectionLabel>{t('language_label')}</SectionLabel>
+        <SectionLabel>{t("language_label")}</SectionLabel>
         <ScrollView horizontal style={{ flexGrow: 0 }}>
-          <View style={{ flexDirection: 'row', gap: space[2] }}>
+          <View style={{ flexDirection: "row", gap: space[2] }}>
             {registry
-              .filter(
-                (l) =>
-                  !problem.allowed_languages ||
-                  problem.allowed_languages.includes(l.id)
-              )
+              .filter((l) => !problem.allowed_languages || problem.allowed_languages.includes(l.id))
               .map((l) => (
                 <Pressable key={l.id} onPress={() => setLanguage(l.id)}>
                   <View
@@ -142,12 +121,8 @@ export default function Submit() {
                       paddingHorizontal: 10,
                       borderRadius: 999,
                       borderWidth: 1,
-                      borderColor:
-                        language === l.id ? palette.accent : palette.border,
-                      backgroundColor:
-                        language === l.id
-                          ? palette.accent + '22'
-                          : 'transparent',
+                      borderColor: language === l.id ? palette.accent : palette.border,
+                      backgroundColor: language === l.id ? palette.accent + "22" : "transparent",
                     }}
                   >
                     <Txt
@@ -166,7 +141,7 @@ export default function Submit() {
       {partial ? (
         <View style={{ flex: 1, gap: space[2] }}>
           <Txt variant="caption">
-            {t('partial_code_hint', 'Locked regions are read-only — fill in the editable parts.')}
+            {t("partial_code_hint", "Locked regions are read-only — fill in the editable parts.")}
           </Txt>
           <ScrollView style={{ flex: 1 }} contentContainerStyle={{ gap: space[2] }}>
             {segments.map((segment, index) =>
@@ -180,24 +155,18 @@ export default function Submit() {
                 <Field
                   key={index}
                   multiline
-                  value={slots[
-                    segments
-                      .slice(0, index)
-                      .filter((s) => !s.locked).length
-                  ] ?? ''}
+                  value={slots[segments.slice(0, index).filter((s) => !s.locked).length] ?? ""}
                   onChangeText={(text) =>
                     setSlots((prev) => {
-                      const slotIndex = segments
-                        .slice(0, index)
-                        .filter((s) => !s.locked).length;
+                      const slotIndex = segments.slice(0, index).filter((s) => !s.locked).length;
                       const next = [...prev];
                       next[slotIndex] = text;
                       return next;
                     })
                   }
-                  style={{ minHeight: 80, textAlignVertical: 'top' }}
+                  style={{ minHeight: 80, textAlignVertical: "top" }}
                 />
-              )
+              ),
             )}
           </ScrollView>
         </View>
@@ -206,13 +175,13 @@ export default function Submit() {
           multiline
           value={code}
           onChangeText={setCode}
-          style={{ flex: 1, textAlignVertical: 'top', fontFamily: 'monospace' }}
+          style={{ flex: 1, textAlignVertical: "top", fontFamily: "monospace" }}
         />
       )}
 
       <ErrorBox message={error} />
       <Button
-        title={busy ? t('loading') : t('submit_button')}
+        title={busy ? t("loading") : t("submit_button")}
         onPress={submit}
         disabled={busy || !language}
       />

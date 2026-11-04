@@ -60,9 +60,7 @@ export function parseProblemId(raw: string): number | null {
   return Number.isInteger(id) && id > 0 ? id : null;
 }
 
-export async function generateMetadata({
-  params,
-}: ProblemDetailPageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: ProblemDetailPageProps): Promise<Metadata> {
   const { problemId } = await params;
   const locale = await getLocale();
   const t = createTranslator(locale);
@@ -168,15 +166,14 @@ export default async function ProblemDetailPage({ params, searchParams }: Proble
     locale,
     `${t("problem_id_label", "Problem ID")}: ${problem.id}`,
   );
-  const problemStatement =
-    problem.statement_i18n?.[locale] || problem.statement_i18n?.en || '';
+  const problemStatement = problem.statement_i18n?.[locale] || problem.statement_i18n?.en || "";
   // Owner rule (d): EN is the universal fallback — when the viewer's locale
   // has no approved translation yet, say so and invite them to help.
-  const missingInLocale = locale !== 'en' && !problem.statement_i18n?.[locale];
+  const missingInLocale = locale !== "en" && !problem.statement_i18n?.[locale];
   // "translated by @user" credit (owner rule (c)) + per-language availability.
   const attribution = problem.translations?.find((row) => row.language === locale);
   const otherLanguages = Object.keys(problem.title_i18n).filter(
-    (code) => code !== 'en' && code !== locale
+    (code) => code !== "en" && code !== locale,
   );
   const sampleTestCases = problem.test_cases?.filter((tc) => tc.is_sample) || [];
   const diffKey = problem.difficulty?.toLowerCase() ?? "medium";
@@ -378,33 +375,57 @@ export default async function ProblemDetailPage({ params, searchParams }: Proble
                 >
                   {problemTitle}
                 </h1>
-                {locale !== 'en' && attribution && !missingInLocale && (
+                {locale !== "en" && attribution && !missingInLocale && (
                   <p
                     data-testid="translation-attribution"
-                    style={{ marginTop: '0.4rem', marginBottom: 0, fontSize: '0.8rem', color: 'var(--muted)' }}
+                    style={{
+                      marginTop: "0.4rem",
+                      marginBottom: 0,
+                      fontSize: "0.8rem",
+                      color: "var(--muted)",
+                    }}
                   >
-                    {t('problem_translated_by', 'Translated by {{user}}', { user: `@${attribution.contributor_username}` })}
+                    {t("problem_translated_by", "Translated by {{user}}", {
+                      user: `@${attribution.contributor_username}`,
+                    })}
                   </p>
                 )}
                 {otherLanguages.length > 0 && (
                   <div
                     data-testid="problem-available-languages"
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '0.5rem' }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      flexWrap: "wrap",
+                      marginTop: "0.5rem",
+                    }}
                   >
-                    <span className="micro-label" style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', letterSpacing: '0.05em' }}>
-                      {t('problem_available_in', 'Also available in')}
+                    <span
+                      className="micro-label"
+                      style={{
+                        fontSize: "0.65rem",
+                        color: "var(--text-tertiary)",
+                        letterSpacing: "0.05em",
+                      }}
+                    >
+                      {t("problem_available_in", "Also available in")}
                     </span>
                     {otherLanguages.map((code) => (
                       <span
                         key={code}
                         style={{
-                          padding: '1px 8px', borderRadius: '999px', fontSize: '0.68rem', fontWeight: 600,
-                          color: 'var(--muted)', background: hexAlpha(palette.muted, 0.08),
+                          padding: "1px 8px",
+                          borderRadius: "999px",
+                          fontSize: "0.68rem",
+                          fontWeight: 600,
+                          color: "var(--muted)",
+                          background: hexAlpha(palette.muted, 0.08),
                           border: `1px solid ${hexAlpha(palette.muted, 0.2)}`,
-                          fontFamily: 'var(--font-mono)',
+                          fontFamily: "var(--font-mono)",
                         }}
                       >
-                        {t('problem_language_badge', '{{lang}}', { lang: code })}
+                        {t("problem_language_badge", "{{lang}}", { lang: code })}
                       </span>
                     ))}
                   </div>
@@ -579,33 +600,38 @@ export default async function ProblemDetailPage({ params, searchParams }: Proble
             <PrintButton />
           </div>
           <div style={card}>
-            {sectionHeader('var(--accent)', t('problem_statement_header', 'Problem Statement'))}
+            {sectionHeader("var(--accent)", t("problem_statement_header", "Problem Statement"))}
             {missingInLocale && (
               <div
                 data-testid="i18n-fallback-banner"
                 role="note"
                 style={{
-                  display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap',
-                  padding: '0.7rem 1rem', marginBottom: '1rem',
-                  borderRadius: 'var(--radius-lg)',
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  flexWrap: "wrap",
+                  padding: "0.7rem 1rem",
+                  marginBottom: "1rem",
+                  borderRadius: "var(--radius-lg)",
                   background: hexAlpha(palette.accent, 0.07),
                   border: `1px solid ${hexAlpha(palette.accent, 0.25)}`,
-                  fontSize: '0.85rem', color: 'var(--foreground)',
+                  fontSize: "0.85rem",
+                  color: "var(--foreground)",
                 }}
               >
                 <span>
                   {t(
-                    'problem_not_in_your_language',
-                    'This problem is not yet in your language — you are reading the English original.'
+                    "problem_not_in_your_language",
+                    "This problem is not yet in your language — you are reading the English original.",
                   )}
                 </span>
                 <Link
                   href={`/problems/${problem.id}/translate`}
                   className="btn"
                   data-testid="help-translate-link"
-                  style={{ padding: '4px 12px', fontSize: '0.8rem' }}
+                  style={{ padding: "4px 12px", fontSize: "0.8rem" }}
                 >
-                  {t('problem_help_translate', 'Help translate →')}
+                  {t("problem_help_translate", "Help translate →")}
                 </Link>
               </div>
             )}
