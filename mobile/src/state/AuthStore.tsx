@@ -1,23 +1,13 @@
 // AuthStore — the mobile counterpart of the web's AuthContext: bootstrap
 // from persisted tokens, login/register/logout, and the
 // unauthorized-handler wiring that force-logouts when a refresh fails.
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
-import {
-  setTokenStore,
-  setUnauthorizedHandler,
-} from '../services/ApiClient';
-import { AuthService, login as loginRequest } from '../services/AuthService';
-import type { User } from '../types/api';
-import { clearTokens, secureTokenStore } from './tokenStore';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { setTokenStore, setUnauthorizedHandler } from "../services/ApiClient";
+import { AuthService, login as loginRequest } from "../services/AuthService";
+import type { User } from "../types/api";
+import { clearTokens, secureTokenStore } from "./tokenStore";
 
-export type AuthStatus = 'bootstrapping' | 'authenticated' | 'anonymous';
+export type AuthStatus = "bootstrapping" | "authenticated" | "anonymous";
 
 export interface AuthState {
   status: AuthStatus;
@@ -42,7 +32,7 @@ const AuthContext = createContext<AuthState | null>(null);
 setTokenStore(secureTokenStore);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [status, setStatus] = useState<AuthStatus>('bootstrapping');
+  const [status, setStatus] = useState<AuthStatus>("bootstrapping");
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,17 +42,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       const access = await secureTokenStore.getAccess();
       if (!access) {
-        if (alive) setStatus('anonymous');
+        if (alive) setStatus("anonymous");
         return;
       }
       try {
         const me = await AuthService.getMe();
         if (alive) {
           setUser(me);
-          setStatus('authenticated');
+          setStatus("authenticated");
         }
       } catch {
-        if (alive) setStatus('anonymous');
+        if (alive) setStatus("anonymous");
       }
     })();
     return () => {
@@ -74,7 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const handler = () => {
       setUser(null);
-      setStatus('anonymous');
+      setStatus("anonymous");
       setError(null);
     };
     setUnauthorizedHandler(handler);
@@ -90,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await secureTokenStore.setRefresh(tokens.refresh);
       }
       setUser(me);
-      setStatus('authenticated');
+      setStatus("authenticated");
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       setError(message);
@@ -99,17 +89,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = useCallback(
-    async (data: {
-      username: string;
-      email: string;
-      password1: string;
-      password2: string;
-    }) => {
+    async (data: { username: string; email: string; password1: string; password2: string }) => {
       setError(null);
       await AuthService.register(data);
       await signIn(data.username, data.password1);
     },
-    [signIn]
+    [signIn],
   );
 
   const signOut = useCallback(async () => {
@@ -120,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     await clearTokens();
     setUser(null);
-    setStatus('anonymous');
+    setStatus("anonymous");
     setError(null);
   }, []);
 
@@ -139,7 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signOut,
       refreshUser,
     }),
-    [status, user, error, signIn, signUp, signOut, refreshUser]
+    [status, user, error, signIn, signUp, signOut, refreshUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -147,6 +132,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth(): AuthState {
   const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used inside <AuthProvider>');
+  if (!context) throw new Error("useAuth must be used inside <AuthProvider>");
   return context;
 }
