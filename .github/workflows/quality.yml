@@ -36,3 +36,7 @@ jobs:
     uses: Prekzursil/quality-zero-platform/.github/workflows/reusable-quality.yml@b4fbe38470fd2831f86f194df5b638a271bae8b8 # v1
     with:
       opengrep-paths: "backend src e2e"
+      # JS/TS lanes need the same toolchain as every other workflow in
+      # this repo (vitest 5 / jsdom 30 require node >=22; the platform
+      # default of 20 cannot start the forks workers at all).
+      node-version: "24"
