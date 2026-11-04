@@ -7,153 +7,144 @@ import ExamModeBanner from "@/components/common/ExamModeBanner";
 import "./globals.css";
 import { palette } from "@/theme/tokens";
 
-const siteUrl =
-	process.env.NEXT_PUBLIC_SITE_URL || "https://webcoder.momentstudio.ro";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://webcoder.momentstudio.ro";
 
 export const metadata: Metadata = {
-	// OPS-6 (Wave D): the PWA manifest — installable app shell, offline
-	// problem browsing via the service worker, app shortcuts.
-	manifest: "/manifest.webmanifest",
-	applicationName: "WebCoder",
-	// Mobile wave: PNG icons beside the SVG set — Safari's home-screen
-	// install (apple-touch-icon) and richer Android install sheets.
-	icons: {
-		icon: "/icons/icon.svg",
-		apple: "/icons/apple-touch-icon.png",
-	},
-	appleWebApp: {
-		capable: true,
-		title: "WebCoder",
-		statusBarStyle: "black-translucent",
-	},
-	title: {
-		default: "WebCoder — Competitive Programming Platform",
-		template: "%s | WebCoder",
-	},
-	description:
-		"WebCoder is an online judge and competitive programming platform. Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.",
-	metadataBase: new URL(siteUrl),
-	openGraph: {
-		type: "website",
-		locale: "en_US",
-		url: siteUrl,
-		siteName: "WebCoder",
-		title: "WebCoder — Competitive Programming Platform",
-		description:
-			"Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.",
-	},
-	twitter: {
-		card: "summary_large_image",
-		title: "WebCoder — Competitive Programming Platform",
-		description:
-			"Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.",
-	},
-	alternates: {
-		canonical: siteUrl,
-		// [OPS-4/Q5 + i18n wave] hreflang for all ten locales. (Locale is
-		// cookie-driven, so every language variant serves the same URL,
-		// like the RO/EN pair before it.)
-		languages: Object.fromEntries(
-			PUBLIC_LOCALES.map((code) => [code, siteUrl]),
-		),
-	},
+  // OPS-6 (Wave D): the PWA manifest — installable app shell, offline
+  // problem browsing via the service worker, app shortcuts.
+  manifest: "/manifest.webmanifest",
+  applicationName: "WebCoder",
+  // Mobile wave: PNG icons beside the SVG set — Safari's home-screen
+  // install (apple-touch-icon) and richer Android install sheets.
+  icons: {
+    icon: "/icons/icon.svg",
+    apple: "/icons/apple-touch-icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "WebCoder",
+    statusBarStyle: "black-translucent",
+  },
+  title: {
+    default: "WebCoder — Competitive Programming Platform",
+    template: "%s | WebCoder",
+  },
+  description:
+    "WebCoder is an online judge and competitive programming platform. Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.",
+  metadataBase: new URL(siteUrl),
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: siteUrl,
+    siteName: "WebCoder",
+    title: "WebCoder — Competitive Programming Platform",
+    description:
+      "Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "WebCoder — Competitive Programming Platform",
+    description:
+      "Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.",
+  },
+  alternates: {
+    canonical: siteUrl,
+    // [OPS-4/Q5 + i18n wave] hreflang for all ten locales. (Locale is
+    // cookie-driven, so every language variant serves the same URL,
+    // like the RO/EN pair before it.)
+    languages: Object.fromEntries(PUBLIC_LOCALES.map((code) => [code, siteUrl])),
+  },
 };
 
 // Next 15+: theme color lives in the separate Viewport export.
 export const viewport: Viewport = {
-	// Palette token, not a literal — the A2 design-token gate enforces this.
-	themeColor: palette.bg,
-	width: "device-width",
-	initialScale: 1,
+  // Palette token, not a literal — the A2 design-token gate enforces this.
+  themeColor: palette.bg,
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default async function RootLayout({
-	children,
+  children,
 }: Readonly<{
-	children: React.ReactNode;
+  children: React.ReactNode;
 }>) {
-	// [i18n wave/Q5] SSR renders <html lang> in the visitor's locale (the
-	// same i18next cookie the client picker writes); English before any
-	// choice. Providers re-applies the cached choice post-hydration.
-	// [RTL] <html dir> is derived from the locale registry (ar/fa are RTL);
-	// dir="ltr" is written explicitly for every other locale so switching
-	// back from an RTL locale can never leave a stale rtl attribute behind.
-	const locale = await getLocale();
-	const dir = localeDirection(locale);
-	const schemaOrg = {
-		"@context": "https://schema.org",
-		"@graph": [
-			{
-				"@type": "Organization",
-				"@id": `${siteUrl}/#organization`,
-				name: "WebCoder",
-				url: siteUrl,
-				description: "Online judge and competitive programming platform",
-			},
-			{
-				"@type": "WebSite",
-				"@id": `${siteUrl}/#website`,
-				url: siteUrl,
-				name: "WebCoder",
-				publisher: { "@id": `${siteUrl}/#organization` },
-				potentialAction: {
-					"@type": "SearchAction",
-					target: {
-						"@type": "EntryPoint",
-						urlTemplate: `${siteUrl}/problems?q={search_term_string}`,
-					},
-					"query-input": "required name=search_term_string",
-				},
-			},
-			{
-				"@type": "SoftwareApplication",
-				"@id": `${siteUrl}/#app`,
-				name: "WebCoder",
-				applicationCategory: "EducationalApplication",
-				operatingSystem: "Web",
-				url: siteUrl,
-				description:
-					"Competitive programming online judge supporting Python 3, C++17, and Java 11",
-				offers: {
-					"@type": "Offer",
-					price: "0",
-					priceCurrency: "USD",
-				},
-			},
-		],
-	};
+  // [i18n wave/Q5] SSR renders <html lang> in the visitor's locale (the
+  // same i18next cookie the client picker writes); English before any
+  // choice. Providers re-applies the cached choice post-hydration.
+  // [RTL] <html dir> is derived from the locale registry (ar/fa are RTL);
+  // dir="ltr" is written explicitly for every other locale so switching
+  // back from an RTL locale can never leave a stale rtl attribute behind.
+  const locale = await getLocale();
+  const dir = localeDirection(locale);
+  const schemaOrg = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${siteUrl}/#organization`,
+        name: "WebCoder",
+        url: siteUrl,
+        description: "Online judge and competitive programming platform",
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${siteUrl}/#website`,
+        url: siteUrl,
+        name: "WebCoder",
+        publisher: { "@id": `${siteUrl}/#organization` },
+        potentialAction: {
+          "@type": "SearchAction",
+          target: {
+            "@type": "EntryPoint",
+            urlTemplate: `${siteUrl}/problems?q={search_term_string}`,
+          },
+          "query-input": "required name=search_term_string",
+        },
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": `${siteUrl}/#app`,
+        name: "WebCoder",
+        applicationCategory: "EducationalApplication",
+        operatingSystem: "Web",
+        url: siteUrl,
+        description: "Competitive programming online judge supporting Python 3, C++17, and Java 11",
+        offers: {
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "USD",
+        },
+      },
+    ],
+  };
 
-	return (
-		<html lang={locale} dir={dir}>
-			<head>
-				<link rel="preconnect" href="https://fonts.googleapis.com" />
-				<link
-					rel="preconnect"
-					href="https://fonts.gstatic.com"
-					crossOrigin=""
-				/>
-				{/* eslint-disable-next-line @next/next/no-page-custom-font */}
-				<link
-					href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap"
-					rel="stylesheet"
-				/>
-				<script /* nosemgrep: js-dangerously-set-inner-html -- static JSON-LD constants; < escaped */
-					type="application/ld+json"
-					              JSON-LD (site config + constants); `<` escaped so no
-              </script> breakout is structurally possible. */
-					dangerouslySetInnerHTML={{
-						__html: JSON.stringify(schemaOrg).replace(/</g, "<"),
-					}}
-				/>
-				{/* [SPEC-GAPS A15] third-party rocket.new analytics scripts removed —
+  return (
+    <html lang={locale} dir={dir}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap"
+          rel="stylesheet"
+        />
+        <script
+          type="application/ld+json"
+          // nosemgrep: js-dangerously-set-inner-html -- static JSON-LD constants, `<` escaped
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(schemaOrg).replace(/</g, "\u003c"),
+          }}
+        />
+        {/* [SPEC-GAPS A15] third-party rocket.new analytics scripts removed —
             telemetry to an unrelated host, shipped on every page with no consent. */}
-			</head>
-			<body suppressHydrationWarning>
-				<Providers>
-					<ExamModeBanner />
-					{children}
-				</Providers>
-			</body>
-		</html>
-	);
+      </head>
+      <body suppressHydrationWarning>
+        <Providers>
+          <ExamModeBanner />
+          {children}
+        </Providers>
+      </body>
+    </html>
+  );
 }
