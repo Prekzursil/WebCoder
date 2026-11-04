@@ -118,7 +118,12 @@ def _run(source: str, stdin_text: str = "") -> str:
     try:
         with contextlib.redirect_stdout(out):
             try:
-                exec(source, {"__name__": "__main__"})  # noqa: S102
+                # The transpiler harness MUST execute its own compiler's
+                # generated output in-process (stdin/stdout redirected);
+                # the source is this repo's transpiler, never user input.
+                exec(  # nosemgrep: python-exec-use -- our-transpiler test harness; noqa: S102
+                    source, {"__name__": "__main__"}
+                )
             except SystemExit:
                 pass
     finally:

@@ -46,22 +46,19 @@ _DOTENV_CONTENT = (
 
 
 def _exec_settings():
-    """Re-execute settings.py in a fresh namespace, coverage-attributed."""
+    """Load settings.py afresh as its own module, coverage-attributed."""
+    import importlib.util
+
     import webcoder_api.settings as project_settings
 
-    code = compile(
-        pathlib.Path(project_settings.__file__).read_text(encoding="utf-8"),
-        project_settings.__file__,
-        "exec",
-    )
-    # The exec'd settings module binds heterogeneous values (dicts, lists,
+    src = pathlib.Path(project_settings.__file__)
+    spec = importlib.util.spec_from_file_location("webcoder_api.settings", src)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    # The settings module binds heterogeneous values (dicts, lists,
     # SimpleNamespaces); type the namespace accordingly so subscripting
     # e.g. ns["DATABASES"]["default"] reflects reality.
-    namespace: dict[str, Any] = {
-        "__file__": project_settings.__file__,
-        "__name__": "webcoder_api.settings",
-    }
-    exec(code, namespace)
+    namespace: dict[str, Any] = dict(vars(module))
     return namespace
 
 

@@ -20,10 +20,12 @@ def _exec_module(relpath, module_name):
     import webcoder_api.settings as project_settings
 
     src = pathlib.Path(project_settings.__file__).parent / relpath
-    code = compile(src.read_text(encoding="utf-8"), str(src), "exec")
-    namespace = {"__file__": str(src), "__name__": module_name}
-    exec(code, namespace)
-    return namespace
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(module_name, src)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return vars(module)
 
 
 def _exec_settings():
