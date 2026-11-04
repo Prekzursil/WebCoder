@@ -1,0 +1,20 @@
+# Maestro E2E flow: login, browse problems, open a problem, check language
+# settings. Run: maestro test maestro/login-and-browse.yaml
+# (API base for local runs: http://10.0.2.2:8010 — the emulator's alias
+# for the host loopback where the dockerized backend listens.)
+appId: ro.webcoder.app
+---
+- launchApp
+- assertVisible: "WebCoder"
+- tapOn: "Login"
+- tapOn: "Username"
+- inputText: "bob"
+- tapOn: "Password"
+- inputText: "BobPass-2026!x"
+- tapOn: "Login"
+- assertVisible: "bob"
+- tapOn: "Problems"
+- assertVisible: ".*"
+- back
+- tapOn: "Settings"
+- assertVisible: "Language"

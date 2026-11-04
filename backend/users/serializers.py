@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import User
 from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import gettext_lazy as _
-from dj_rest_auth.serializers import LoginSerializer
+from dj_rest_auth.serializers import LoginSerializer, PasswordResetSerializer
 import logging
 
 logger = logging.getLogger(__name__)
@@ -215,3 +215,33 @@ class PasswordChangeSerializer(serializers.Serializer):
         user.set_password(self.validated_data["new_password1"])
         user.save()
         return user
+
+
+def frontend_reset_url(request, user, temp_key):
+    """[ONB-1] The reset link mailed to users: the SPA route.
+
+    dj-rest-auth's default url_generator reverses Django's
+    ``password_reset_confirm`` URL name, which this API-only project never
+    registers — left alone, ``POST /auth/password/reset/`` dies with
+    NoReverseMatch (a 500). This generator instead points the link at the
+    frontend page that consumes the dj-rest-auth confirm endpoint:
+    ``{FRONTEND_ORIGIN}/reset-password?uid=...&token=...``.
+    """
+    from allauth.account.utils import user_pk_to_url_str
+    from django.conf import settings as dj_settings
+
+    origin = getattr(dj_settings, "FRONTEND_ORIGIN", "")
+    return f"{origin}/reset-password?uid={user_pk_to_url_str(user)}&token={temp_key}"
+
+
+class FrontendPasswordResetSerializer(PasswordResetSerializer):
+    """[ONB-1] PasswordResetSerializer with the SPA link generator.
+
+    Ridden via ``REST_AUTH['PASSWORD_RESET_SERIALIZER']``; the email/token
+    machinery (allauth's EmailAwarePasswordResetTokenGenerator, so tokens
+    rotate when the account's email set changes) stays dj-rest-auth's own —
+    only the mailed URL changes.
+    """
+
+    def get_email_options(self):
+        return {"url_generator": frontend_reset_url}

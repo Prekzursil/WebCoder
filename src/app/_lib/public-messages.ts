@@ -218,6 +218,8 @@ export const PUBLIC_KEYS: string[] = [
   'privacy_rights_body',
   'privacy_minors_title',
   'privacy_minors_body',
+  'privacy_mobile_title',
+  'privacy_mobile_body',
   'daily_problem_label',
   'editorial_header',
   'scratch_header',
