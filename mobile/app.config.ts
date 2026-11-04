@@ -27,6 +27,12 @@ const config: ExpoConfig = {
   },
   android: {
     package: 'ro.webcoder.app',
+    // NOTE: local dev/preview builds talk to the dockerized stack over
+    // http://10.0.2.2 (emulator alias for host loopback); Android 9+
+    // blocks cleartext. Expo 58 has no app-config knob for this, so
+    // scripts/wire-android-signing.mjs patches
+    // android:usesCleartextTraffic into the generated manifest
+    // post-prebuild (production API is HTTPS).
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#0f172a',

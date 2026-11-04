@@ -26,6 +26,23 @@ keytool -genkeypair -v `
 Record the SHA-1/SHA-256 (`keytool -list -v -keystore …`) — Play App
 Signing enrolls the key on first upload.
 
+### Windows deep-worktree note (this wave's build box)
+
+The mandated disposable-worktree location is ~200 chars deep; ninja hard-caps
+Windows paths at 260 and the five CMake-heavy native modules overflow.
+Two supported escapes:
+
+1. Build from a SHORT checkout (recommended, what this wave used):
+   git worktree add D:\wcm2 -b mobile-app-build mobile-app, then
+   cd mobile && npm ci && node scripts/copy-locales.mjs &&
+   npx expo prebuild -p android --no-install &&
+   node scripts/wire-android-signing.mjs && cd android && ./gradlew assembleRelease
+2. Or set WEBCODER_RELOCATE_NATIVE=1 and run
+   scripts/relocate-native-modules.cmd once (physically moves the five
+   packages to C:/rnreal/node_modules with junctions back), then build
+   from the deep tree — android/settings.gradle's opt-in table repoints
+   the gradle projectDirs at the short paths.
+
 ### Local release build with the keystore (what the CI/owner runs)
 
 ```bash
