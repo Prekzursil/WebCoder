@@ -34,6 +34,13 @@ test('requesting a reset shows the account-agnostic confirmation', async ({ page
 test('reset confirm consumes uid+token from the mailed link and lands on success', async ({
   page,
 }) => {
+  // Mock-only: the deterministic mock-uid/mock-token pair exists solely in
+  // the mock API; against the real stack the pair is (correctly) rejected.
+  // The real happy path is covered end-to-end by the backend round-trip
+  // pytest (users/test_password_reset.py) against real allauth tokens, and
+  // the UI side of the real stack is covered by the forged-token lane
+  // below.
+  test.skip(isRealStack, 'mock-only: deterministic mock uid/token pair');
   // The link the mail carries: /reset-password?uid=...&token=...
   await page?.goto('/reset-password?uid=mock-uid&token=mock-token');
 
