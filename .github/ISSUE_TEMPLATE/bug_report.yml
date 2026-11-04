@@ -1,0 +1,42 @@
+name: Bug report
+description: Something behaves incorrectly (backend, frontend, judge, or e2e).
+labels: ["type:bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Also state what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Exact commands, from a fresh clone.
+      value: |
+        1. git clone ...
+        2. python -m pip install -r backend/deps.txt pytest pytest-cov
+        3. python -m pytest -q
+        4. npm ci && npm run test
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Commit / release
+      description: SHA or tag you saw the behavior on.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - backend / API
+        - frontend / UI
+        - judge / submissions
+        - e2e / tooling
+        - CI / governance
+    validations:
+      required: true

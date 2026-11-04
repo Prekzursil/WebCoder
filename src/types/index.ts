@@ -20,6 +20,13 @@ export interface TagType {
   slug: string;
 }
 
+/** Attribution for an approved community translation ("translated by @user"). */
+export interface TranslationAttribution {
+  language: string;
+  contributor_username: string;
+  reviewed_at: string | null;
+}
+
 export interface ProblemType {
   id: number;
   title_i18n: { [key: string]: string };
@@ -60,6 +67,9 @@ export interface ProblemType {
   // Wave E: partial-code problems — full skeleton + locked regions.
   code_template?: string;
   code_template_language?: string;
+  // Community-translation attribution (i18n wave, owner rule (c)): the
+  // "translated by @user" credits, sourced from approved proposals.
+  translations?: TranslationAttribution[];
   // Wave D: block programming — BOTH engines (owner directive 2026-10-30).
   // engine 'blockly' (default): generator + toolbox/starter XML.
   // engine 'scratch': sb3 starter project JSON + curated opcode allowlist.

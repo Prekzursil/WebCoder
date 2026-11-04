@@ -1,0 +1,3 @@
+# Review routing. Default owner: everything falls to the repo owner until a
+# team is filled in. Security-labeled alerts auto-assign here too.
+* @Prekzursil
