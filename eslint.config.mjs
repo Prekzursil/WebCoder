@@ -14,6 +14,9 @@ const eslintConfig = [
   {
     ignores: [
       "node_modules/**",
+      // The Expo app (mobile/) has its own toolchain; the Next.js lint
+      // rules must not run against React Native sources.
+      "mobile/**",
       ".next/**",
       "out/**",
       "build/**",

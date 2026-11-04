@@ -1,0 +1,45 @@
+# WebCoder mobile release lanes. Run from mobile/fastlane.
+#
+# Android:  supply keystore + Play Store service-account JSON via env (see
+#           docs/ANDROID-RELEASE.md) — `fastlane android release`.
+# iOS:      requires macOS + Xcode (or use EAS cloud builds instead — see
+#           docs/IOS-RUNBOOK.md) — `fastlane ios release`.
+
+default_platform(:android)
+
+platform :android do
+  desc "Upload the release AAB to the Google Play internal track"
+  lane :release do |options|
+    aab = options[:aab] || "../android/app/build/outputs/bundle/release/app-release.aab"
+    upload_to_play_store(
+      track: "internal",
+      aab: aab,
+      json_key: ENV["PLAY_SERVICE_ACCOUNT_JSON"],
+      skip_upload_metadata: false,
+      skip_upload_images: false,
+      skip_upload_screenshots: false
+    )
+  end
+
+  desc "Capture/store metadata snapshot from Play Console (listing hygiene)"
+  lane :metadata do
+    download_from_play_store(
+      track: "internal",
+      json_key: ENV["PLAY_SERVICE_ACCOUNT_JSON"],
+      package_name: "ro.webcoder.app"
+    )
+  end
+end
+
+platform :ios do
+  desc "Build + upload to TestFlight (run on macOS with the Apple cert installed)"
+  lane :release do
+    setup_ci if ENV["CI"]
+    build_app(
+      workspace: "../ios/WebCoder.xcworkspace",
+      scheme: "WebCoder",
+      export_method: "app-store"
+    )
+    upload_to_testflight(skip_waiting_for_build_processing: true)
+  end
+end

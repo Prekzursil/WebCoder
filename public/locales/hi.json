@@ -1149,5 +1149,7 @@
   "lang_group_east_asian": "पूर्व एशियाई",
   "lang_group_south_southeast_asian": "दक्षिण व दक्षिण-पूर्व एशियाई",
   "lang_group_turkic": "तुर्किक",
-  "lang_group_right_to_left": "दाएँ-से-बाएँ (अरबी लिपि)"
+  "lang_group_right_to_left": "दाएँ-से-बाएँ (अरबी लिपि)",
+  "privacy_mobile_title": "Mobile apps",
+  "privacy_mobile_body": "The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere."
 }

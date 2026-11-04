@@ -14,6 +14,12 @@ export const metadata: Metadata = {
   // problem browsing via the service worker, app shortcuts.
   manifest: "/manifest.webmanifest",
   applicationName: "WebCoder",
+  // Mobile wave: PNG icons beside the SVG set — Safari's home-screen
+  // install (apple-touch-icon) and richer Android install sheets.
+  icons: {
+    icon: "/icons/icon.svg",
+    apple: "/icons/apple-touch-icon.png",
+  },
   appleWebApp: {
     capable: true,
     title: "WebCoder",

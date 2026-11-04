@@ -1149,5 +1149,7 @@
   "lang_group_east_asian": "Asiatică de Est",
   "lang_group_south_southeast_asian": "Asiatică de Sud și de Sud-Est",
   "lang_group_turkic": "Turcice",
-  "lang_group_right_to_left": "De la dreapta la stânga (alfabet arab)"
+  "lang_group_right_to_left": "De la dreapta la stânga (alfabet arab)",
+  "privacy_mobile_title": "Aplicațiile mobile",
+  "privacy_mobile_body": "Aplicațiile mobile WebCoder (Google Play și App Store) folosesc același API ca acest site, prin HTTPS, cu același cont: token-urile de autentificare sunt stocate doar în keychain-ul/keystore-ul dispozitivului, niciodată în stocarea aplicației sau în clipboard. Aplicațiile nu colectează nimic în plus față de site — fără identificatori de publicitate, fără token-uri de notificări până activezi notificările și fără SDK-uri terțe. Ștergerea contului (din profilul web sau din aplicație) îl șterge peste tot."
 }
