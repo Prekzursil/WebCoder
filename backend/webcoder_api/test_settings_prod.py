@@ -23,6 +23,7 @@ def _exec_module(relpath, module_name):
     import importlib.util
 
     spec = importlib.util.spec_from_file_location(module_name, src)
+    assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return vars(module)

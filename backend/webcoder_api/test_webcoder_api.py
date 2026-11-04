@@ -53,6 +53,7 @@ def _exec_settings():
 
     src = pathlib.Path(project_settings.__file__)
     spec = importlib.util.spec_from_file_location("webcoder_api.settings", src)
+    assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     # The settings module binds heterogeneous values (dicts, lists,
