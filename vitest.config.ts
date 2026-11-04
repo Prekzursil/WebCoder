@@ -14,7 +14,9 @@ export default defineConfig({
     // repo copies with their own configs; swept by the default include they
     // run against THIS tree's @/ alias (root src/), which mismatches their
     // branch's code and fails spuriously.
-    exclude: ["**/node_modules/**", "**/dist/**", "e2e/**", "wt-*/**"],
+    // mobile/ is the Expo app: its jest suites run under jest-expo (RN
+    // transform pipeline), not vitest's rolldown.
+    exclude: ["**/node_modules/**", "**/dist/**", "e2e/**", "wt-*/**", "mobile/**"],
     // Cap parallel workers: on many-core hosts with little free RAM (~1.5-3GB,
     // measured 2026-10-21) one jsdom worker per core thrashes the machine and
     // tests time out at 5s despite passing individually. Two workers keep

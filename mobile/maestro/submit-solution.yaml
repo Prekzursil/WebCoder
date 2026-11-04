@@ -1,0 +1,14 @@
+# Maestro E2E flow: open the first problem and submit a solution in the
+# editor, then watch the submission page poll to a verdict.
+appId: ro.webcoder.app
+---
+- launchApp
+- tapOn: "Problems"
+- tapOn: ".*#.*" # first problem card (id-prefixed title)
+- tapOn: ".*Submit.*"
+- tapOn: "Python 3" # expanded language picker
+- tapOn:
+    id: "code-editor"
+- inputText: "print('hello')"
+- tapOn: ".*Submit.*"
+- assertVisible: ".*#\d+.*"

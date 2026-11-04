@@ -301,84 +301,80 @@ export async function collectAllCursorPages<T>(
 }
 
 export const AuthService = {
-  register: (userData: Record<string, unknown>) =>
-    apiFetch<RegisterResponse>("/users/register/", {
-      method: "POST",
-      body: JSON.stringify(userData),
-    }),
-  login: (credentials: Record<string, unknown>) =>
-    apiFetch<LoginResponse>("/auth/login/", { method: "POST", body: JSON.stringify(credentials) }),
-  getMe: () => apiFetch<User>("/users/me/"),
-  /** RO-3/LEG-2: the self-service identity slice (county/school/is_minor). */
-  updateMe: (data: { county?: string; school?: string; isMinor?: boolean }) =>
-    apiFetch<User>("/users/me/", {
-      method: "PATCH",
-      body: JSON.stringify({
-        county: data.county,
-        school: data.school,
-        ...(data.isMinor !== undefined ? { is_minor: data.isMinor } : {}),
-      }),
-    }),
-  // [F5] Solved/attempted problem-id sets for the catalog indicator column.
-  getSolvedIds: () => apiFetch<{ solved: number[]; attempted: number[] }>("/users/me/solved-ids/"),
-  // [B5/RAT-4/5/6] Practice statistics + derivations for the profile page.
-  getMyStatistics: () =>
-    apiFetch<{
-      solved: number;
-      attempted: number;
-      total_submissions: number;
-      acceptance_rate: number | null;
-      per_difficulty: Record<string, { solved: number; attempted: number }>;
-      per_language: Record<string, number>;
-      active_dates_90d: string[];
-      current_streak: number;
-      max_streak: number;
-      total_active_days: number;
-      ladder: { points: number; level: number; next_level_points: number; progress: number };
-      badges: string[];
-      /** RAT-7: per-tag skill profile + practice-next strip. */
-      tag_profile: TagProfile;
-    }>("/users/me/statistics/"),
-  // [LEG-1/X5] GDPR account control.
-  exportAccount: () => apiFetch<{ detail?: string }>("/users/me/export/", { method: "POST" }),
-  deleteAccount: () =>
-    apiFetch<{ detail: string }>("/users/me/delete/", {
-      method: "POST",
-      body: JSON.stringify({ confirm: "DELETE" }),
-    }),
-  getUser: (userId: number | string) => apiFetch<User>(`/users/${userId}/`),
-  changePassword: (passwordData: Record<string, unknown>) =>
-    apiFetch<{ detail?: string }>("/users/password/change/", {
-      method: "POST",
-      body: JSON.stringify(passwordData),
-    }),
-  // [SP1] Cookie-mode logout: dj-rest-auth blacklists the rotated refresh
-  // cookie and clears wc_access/wc_refresh. Fire-and-forget safe.
-  logout: () => apiFetch<{ detail?: string }>(LOGOUT_ENDPOINT, { method: "POST" }),
-  // [OPS-2 Wave D] TOTP two-factor enrollment lifecycle.
-  totpBegin: () =>
-    apiFetch<{ secret: string; otpauth_uri: string }>("/users/me/totp/begin/", { method: "POST" }),
-  totpVerify: (code: string) =>
-    apiFetch<{ detail: string }>("/users/me/totp/verify/", {
-      method: "POST",
-      body: JSON.stringify({ code }),
-    }),
-  totpDisable: (code: string, currentPassword: string) =>
-    apiFetch<{ detail: string }>("/users/me/totp/disable/", {
-      method: "POST",
-      body: JSON.stringify({ code, current_password: currentPassword }),
-    }),
-  // [OPS-2 Wave D] Personal API tokens (public-API companion credential).
-  getApiTokens: () =>
-    apiFetch<{ count: number; results: { key_hint: string; created: string }[] }>(
-      "/users/me/tokens/",
-    ),
-  createApiToken: () =>
-    apiFetch<{ detail: string; key: string; created: string }>("/users/me/tokens/", {
-      method: "POST",
-      body: JSON.stringify({}),
-    }),
-  revokeApiToken: () => apiFetch<{ detail: string }>("/users/me/tokens/", { method: "DELETE" }),
+    register: (userData: Record<string, unknown>) => apiFetch<RegisterResponse>('/users/register/', { method: 'POST', body: JSON.stringify(userData) }),
+    login: (credentials: Record<string, unknown>) => apiFetch<LoginResponse>('/auth/login/', { method: 'POST', body: JSON.stringify(credentials) }),
+    getMe: () => apiFetch<User>('/users/me/'),
+    /** RO-3/LEG-2: the self-service identity slice (county/school/is_minor). */
+    updateMe: (data: { county?: string; school?: string; isMinor?: boolean }) =>
+        apiFetch<User>('/users/me/', {
+            method: 'PATCH',
+            body: JSON.stringify({
+                county: data.county,
+                school: data.school,
+                ...(data.isMinor !== undefined ? { is_minor: data.isMinor } : {}),
+            }),
+        }),
+    // [F5] Solved/attempted problem-id sets for the catalog indicator column.
+    getSolvedIds: () =>
+        apiFetch<{ solved: number[]; attempted: number[] }>('/users/me/solved-ids/'),
+    // [B5/RAT-4/5/6] Practice statistics + derivations for the profile page.
+    getMyStatistics: () =>
+        apiFetch<{
+            solved: number;
+            attempted: number;
+            total_submissions: number;
+            acceptance_rate: number | null;
+            per_difficulty: Record<string, { solved: number; attempted: number }>;
+            per_language: Record<string, number>;
+            active_dates_90d: string[];
+            current_streak: number;
+            max_streak: number;
+            total_active_days: number;
+            ladder: { points: number; level: number; next_level_points: number; progress: number };
+            badges: string[];
+            /** RAT-7: per-tag skill profile + practice-next strip. */
+            tag_profile: TagProfile;
+        }>('/users/me/statistics/'),
+    // [LEG-1/X5] GDPR account control.
+    exportAccount: () =>
+        apiFetch<{ detail?: string }>('/users/me/export/', { method: 'POST' }),
+    deleteAccount: () =>
+        apiFetch<{ detail: string }>('/users/me/delete/', {
+            method: 'POST',
+            body: JSON.stringify({ confirm: 'DELETE' }),
+        }),
+    getUser: (userId: number | string) => apiFetch<User>(`/users/${userId}/`),
+    changePassword: (passwordData: Record<string, unknown>) => apiFetch<{ detail?: string }>('/users/password/change/', { method: 'POST', body: JSON.stringify(passwordData) }),
+    // [ONB-1] Password reset (dj-rest-auth default include): request mails a
+    // single-use link; confirm consumes uid+token from that link. The
+    // request answers 200 even for unknown emails (no account enumeration).
+    requestPasswordReset: (email: string) =>
+        apiFetch<{ detail: string }>('/auth/password/reset/', {
+            method: 'POST',
+            body: JSON.stringify({ email }),
+        }),
+    confirmPasswordReset: (uid: string, token: string, newPassword1: string, newPassword2: string) =>
+        apiFetch<{ detail: string }>('/auth/password/reset/confirm/', {
+            method: 'POST',
+            body: JSON.stringify({ uid, token, new_password1: newPassword1, new_password2: newPassword2 }),
+        }),
+    // [SP1] Cookie-mode logout: dj-rest-auth blacklists the rotated refresh
+    // cookie and clears wc_access/wc_refresh. Fire-and-forget safe.
+    logout: () => apiFetch<{ detail?: string }>(LOGOUT_ENDPOINT, { method: 'POST' }),
+    // [OPS-2 Wave D] TOTP two-factor enrollment lifecycle.
+    totpBegin: () =>
+        apiFetch<{ secret: string; otpauth_uri: string }>('/users/me/totp/begin/', { method: 'POST' }),
+    totpVerify: (code: string) =>
+        apiFetch<{ detail: string }>('/users/me/totp/verify/', { method: 'POST', body: JSON.stringify({ code }) }),
+    totpDisable: (code: string, currentPassword: string) =>
+        apiFetch<{ detail: string }>('/users/me/totp/disable/', { method: 'POST', body: JSON.stringify({ code, current_password: currentPassword }) }),
+    // [OPS-2 Wave D] Personal API tokens (public-API companion credential).
+    getApiTokens: () =>
+        apiFetch<{ count: number; results: { key_hint: string; created: string }[] }>('/users/me/tokens/'),
+    createApiToken: () =>
+        apiFetch<{ detail: string; key: string; created: string }>('/users/me/tokens/', { method: 'POST', body: JSON.stringify({}) }),
+    revokeApiToken: () =>
+        apiFetch<{ detail: string }>('/users/me/tokens/', { method: 'DELETE' }),
 };
 
 export const ToolingService = {

@@ -1231,7 +1231,37 @@ const server = createServer((req, res) => {
     return;
   }
 
-  if (req.method === "POST" && path === "/api/v1/auth/token/refresh/") {
+  // [ONB-1] Password reset (dj-rest-auth defaults). Deterministic mock
+  // pair: uid=mock-uid & token=mock-token confirm; anything else 400s so
+  // the expired-link UI path is drivable in mock mode. The request
+  // answers 200 regardless of the address (no account enumeration).
+  if (req.method === 'POST' && path === '/api/v1/auth/password/reset/') {
+    json(res, 200, { detail: 'Password reset e-mail has been sent.' });
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/api/v1/auth/password/reset/confirm/') {
+    let raw = '';
+    req.on('data', (chunk) => {
+      raw += chunk;
+    });
+    req.on('end', () => {
+      let body = {};
+      try {
+        body = JSON.parse(raw || '{}');
+      } catch {
+        body = {};
+      }
+      if (body.uid === 'mock-uid' && body.token === 'mock-token') {
+        json(res, 200, { detail: 'Password has been reset.' });
+      } else {
+        json(res, 400, { uid: ['Invalid value.'], token: ['Invalid value.'] });
+      }
+    });
+    return;
+  }
+
+  if (req.method === 'POST' && path === '/api/v1/auth/token/refresh/') {
     // dj-rest-auth cookie refresh: empty body, wc_refresh cookie in play.
     if (!cookieValue(req, "wc_refresh")) {
       json(res, 401, { detail: "No valid refresh token found." });

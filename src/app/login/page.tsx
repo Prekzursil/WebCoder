@@ -117,6 +117,13 @@ const LoginPage: React.FC = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+          {/* [ONB-1] self-service recovery — the reset-request page keeps the
+              login page from being a dead end for a forgotten password. */}
+          <Typography variant="body2" align="right" sx={{ mt: 1 }}>
+            <Link component={NextLink} href="/forgot-password" variant="body2">
+              {t('forgot_password_link', 'Forgot password?')}
+            </Link>
+          </Typography>
           <Button
             type="submit"
             fullWidth
