@@ -65,12 +65,9 @@ class SubmissionViewSet(viewsets.ReadOnlyModelViewSet):
                 "pk", flat=True
             )
             if organized:
-                qs = (
-                    qs
-                    | Submission.objects.filter(
-                        contest_id__in=organized
-                    ).select_related("user", "problem", "contest")
-                )
+                qs = qs | Submission.objects.filter(
+                    contest_id__in=organized
+                ).select_related("user", "problem", "contest")
         params = self.request.query_params
         contest_id = params.get("contestId")
         if contest_id:
@@ -145,9 +142,7 @@ class SubmissionCreateView(generics.CreateAPIView):
         # live contest (and vice versa); operators size worker concurrency
         # per queue.
         if getattr(submission_instance, "contest_id", None):
-            judge_task.apply_async(
-                args=[submission_instance.id], queue="judge-contest"
-            )
+            judge_task.apply_async(args=[submission_instance.id], queue="judge-contest")
         else:
             judge_task.delay(submission_instance.id)
         print(

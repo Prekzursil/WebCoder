@@ -28,6 +28,7 @@ import subprocess
 import tempfile
 import unittest
 from types import SimpleNamespace
+from typing import cast
 from unittest.mock import patch
 
 from django.contrib import admin as dj_admin
@@ -55,7 +56,7 @@ from .serializers import (
     SubmissionTestResultSerializer,
 )
 from . import tasks as tasks_module
-from .tasks import judge_submission_task
+from .tasks import judge_task
 
 V = Submission.VerdictStatus
 AC = V.ACCEPTED
@@ -67,6 +68,15 @@ IE = V.INTERNAL_ERROR
 CE = V.COMPILE_ERROR
 
 CM = Problem.ComparisonMode
+# TextChoices members are str subclasses at runtime; without django-stubs
+# the type checker sees the raw (value, label) tuples instead, so bind the
+# member values through their runtime str form (identical at runtime:
+# a TextChoices member compares, hashes and serializes as its str value).
+CM_EXACT = str(CM.EXACT)
+CM_STRIP_EXACT = str(CM.STRIP_EXACT)
+CM_LINES_STRIP_EXACT = str(CM.LINES_STRIP_EXACT)
+CM_FLOAT_PRECISE = str(CM.FLOAT_PRECISE)
+CM_CUSTOM_CHECKER = str(CM.CUSTOM_CHECKER)
 
 # A /usr/bin/time -f "%U %S %M %x %P %e" style line: 30ms cpu, 5120 KB.
 RESOURCE_LINE = "0.01 0.02 5120 0 90.0% 0.03"
@@ -89,7 +99,7 @@ def make_problem(author=None, **kw):
         "statement_i18n": {"en": "Read a and b, print a+b."},
         "author": author,
         "status": Problem.ProblemStatus.APPROVED,
-        "comparison_mode": CM.LINES_STRIP_EXACT,
+        "comparison_mode": CM_LINES_STRIP_EXACT,
     }
     defaults.update(kw)
     return Problem.objects.create(**defaults)
@@ -145,9 +155,7 @@ class SubmissionModelTests(TestCase):
         p = make_problem(u)
         s = make_submission(u, p)
         tc = make_test_case(p, order=2)
-        r = SubmissionTestResult.objects.create(
-            submission=s, test_case=tc, verdict=AC
-        )
+        r = SubmissionTestResult.objects.create(submission=s, test_case=tc, verdict=AC)
         text = str(r)
         self.assertIn(str(s.id), text)
         self.assertIn(str(tc.id), text)
@@ -296,7 +304,11 @@ class SubmissionViewTests(TestCase):
         with patch("submissions.views.judge_task") as mock_task:
             resp = client.post(
                 reverse(self.CREATE_URL_NAME),
-                {"problem": self.problem.id, "language": "python3", "code": "print(42)"},
+                {
+                    "problem": self.problem.id,
+                    "language": "python3",
+                    "code": "print(42)",
+                },
                 format="json",
             )
         self.assertEqual(resp.status_code, 201, resp.content)
@@ -304,9 +316,7 @@ class SubmissionViewTests(TestCase):
         self.assertEqual(resp.data["verdict"], "PENDING")
         self.assertEqual(resp.data["user"]["username"], "viewowner")
         mock_task.delay.assert_called_once_with(sub_id)
-        self.assertTrue(
-            Submission.objects.filter(id=sub_id, user=self.owner).exists()
-        )
+        self.assertTrue(Submission.objects.filter(id=sub_id, user=self.owner).exists())
 
     def test_create_invalid_payload(self):
         client = self._api(self.owner)
@@ -374,9 +384,7 @@ class SubmissionAdminTests(TestCase):
 class MigrationImportTests(unittest.TestCase):
     def test_migrations_import_cleanly(self):
         m1 = importlib.import_module("submissions.migrations.0001_initial")
-        m2 = importlib.import_module(
-            "submissions.migrations.0002_submissiontestresult"
-        )
+        m2 = importlib.import_module("submissions.migrations.0002_submissiontestresult")
         self.assertTrue(hasattr(m1, "Migration"))
         self.assertTrue(hasattr(m2, "Migration"))
 
@@ -388,48 +396,42 @@ class MigrationImportTests(unittest.TestCase):
 
 class CompareOutputsTests(unittest.TestCase):
     def test_exact_mode(self):
-        self.assertTrue(compare_outputs("3\n", "3\n", CM.EXACT))
-        self.assertFalse(compare_outputs("3\n", "3 \n", CM.EXACT))
+        self.assertTrue(compare_outputs("3\n", "3\n", CM_EXACT))
+        self.assertFalse(compare_outputs("3\n", "3 \n", CM_EXACT))
 
     def test_strip_exact_mode(self):
-        self.assertTrue(compare_outputs("  3\n ", "3", CM.STRIP_EXACT))
-        self.assertFalse(compare_outputs("3", "4", CM.STRIP_EXACT))
+        self.assertTrue(compare_outputs("  3\n ", "3", CM_STRIP_EXACT))
+        self.assertFalse(compare_outputs("3", "4", CM_STRIP_EXACT))
 
     def test_lines_strip_exact_matches_despite_noise(self):
-        self.assertTrue(
-            compare_outputs(" 1 \r\n 2 \n\n", "1\n2", CM.LINES_STRIP_EXACT)
-        )
+        self.assertTrue(compare_outputs(" 1 \r\n 2 \n\n", "1\n2", CM_LINES_STRIP_EXACT))
 
     def test_lines_strip_exact_mismatch(self):
-        self.assertFalse(
-            compare_outputs("1\n2\n", "1\n3\n", CM.LINES_STRIP_EXACT)
-        )
+        self.assertFalse(compare_outputs("1\n2\n", "1\n3\n", CM_LINES_STRIP_EXACT))
 
     def test_lines_strip_exact_all_empty_lines(self):
-        self.assertTrue(compare_outputs("\n\n\n", "", CM.LINES_STRIP_EXACT))
+        self.assertTrue(compare_outputs("\n\n\n", "", CM_LINES_STRIP_EXACT))
 
     def test_float_precise_match(self):
-        self.assertTrue(compare_outputs("1.0 2.5\n", "1.0 2.5\n", CM.FLOAT_PRECISE))
+        self.assertTrue(compare_outputs("1.0 2.5\n", "1.0 2.5\n", CM_FLOAT_PRECISE))
 
     def test_float_precise_default_epsilon_when_none(self):
-        self.assertTrue(
-            compare_outputs("1.0000001\n", "1.0\n", CM.FLOAT_PRECISE, None)
-        )
-        self.assertFalse(compare_outputs("1.01\n", "1.0\n", CM.FLOAT_PRECISE, None))
+        self.assertTrue(compare_outputs("1.0000001\n", "1.0\n", CM_FLOAT_PRECISE, None))
+        self.assertFalse(compare_outputs("1.01\n", "1.0\n", CM_FLOAT_PRECISE, None))
 
     def test_float_precise_line_count_mismatch(self):
-        self.assertFalse(compare_outputs("1\n2\n", "1\n", CM.FLOAT_PRECISE))
+        self.assertFalse(compare_outputs("1\n2\n", "1\n", CM_FLOAT_PRECISE))
 
     def test_float_precise_token_count_mismatch(self):
-        self.assertFalse(compare_outputs("1 2\n", "1\n", CM.FLOAT_PRECISE))
+        self.assertFalse(compare_outputs("1 2\n", "1\n", CM_FLOAT_PRECISE))
 
     def test_float_precise_non_numeric_tokens(self):
-        self.assertTrue(compare_outputs("ok 1\n", "ok 1\n", CM.FLOAT_PRECISE))
-        self.assertFalse(compare_outputs("ok\n", "nope\n", CM.FLOAT_PRECISE))
+        self.assertTrue(compare_outputs("ok 1\n", "ok 1\n", CM_FLOAT_PRECISE))
+        self.assertFalse(compare_outputs("ok\n", "nope\n", CM_FLOAT_PRECISE))
 
     def test_float_precise_exception_returns_false(self):
         # generated_output=None -> AttributeError inside the try block.
-        self.assertFalse(compare_outputs(None, "1\n", CM.FLOAT_PRECISE))
+        self.assertFalse(compare_outputs(cast(str, None), "1\n", CM_FLOAT_PRECISE))
 
     def test_unknown_mode_falls_back_to_lines_strip(self):
         self.assertTrue(compare_outputs("1 \n2\n", "1\n2", "WEIRD-MODE"))
@@ -450,29 +452,25 @@ class CompilationTests(unittest.TestCase):
         ok, out, path = compile_code_in_sandbox("print(1)\n", "python3", self.dir)
         self.assertTrue(ok)
         self.assertIn("no compilation", out)
+        assert path is not None
         self.assertEqual(pathlib.Path(path).read_text(), "print(1)\n")
 
     def test_python3_with_empty_libs_list(self):
-        ok, _, path = compile_code_in_sandbox(
-            "print(1)\n", "python3", self.dir, []
-        )
+        ok, _, path = compile_code_in_sandbox("print(1)\n", "python3", self.dir, [])
         self.assertTrue(ok)
+        assert path is not None
         self.assertTrue(pathlib.Path(path).exists())
 
     def _compile_cpp(self, mock_result=None, side_effect=None, libs=None):
         exe = self.dir / "user_program"
         exe.write_text("")
-        with patch(
-            "submissions.judge_utils.compilation.subprocess.run"
-        ) as mock_run:
+        with patch("submissions.judge_utils.compilation.subprocess.run") as mock_run:
             if side_effect is not None:
                 mock_run.side_effect = side_effect
             else:
                 mock_run.return_value = mock_result
-            result = compile_code_in_sandbox(
-                "int main(){}", "cpp17", self.dir, libs
-            )
-            argv = mock_run.call_args[0][0] if mock_run.call_count else None
+            result = compile_code_in_sandbox("int main(){}", "cpp17", self.dir, libs)
+            argv = mock_run.call_args[0][0] if mock_run.call_count else []
         return result, argv
 
     def test_cpp17_success(self):
@@ -481,10 +479,22 @@ class CompilationTests(unittest.TestCase):
         self.assertTrue(ok)
         self.assertEqual(path, str(self.dir / "user_program"))
         for expected in (
-            "docker", "run", "--rm", "--user", "1000:1000",
-            "--cap-drop=ALL", "--security-opt=no-new-privileges",
-            "--network", "none", "-w", "/app", "gcc:latest",
-            "g++", "user_code.cpp", "-o", "user_program",
+            "docker",
+            "run",
+            "--rm",
+            "--user",
+            "1000:1000",
+            "--cap-drop=ALL",
+            "--security-opt=no-new-privileges",
+            "--network",
+            "none",
+            "-w",
+            "/app",
+            "gcc:latest",
+            "g++",
+            "user_code.cpp",
+            "-o",
+            "user_program",
             "-std=c++17",
         ):
             self.assertIn(expected, argv)
@@ -532,7 +542,7 @@ class CompilationTests(unittest.TestCase):
         self.assertTrue(ok)
         self.assertIn(
             ["-v", "%s:%s:ro" % (boost_tmp.name, CONTAINER_BOOST_INCLUDE_PATH)],
-            [argv[i:i + 2] for i in range(len(argv) - 1)],
+            [argv[i : i + 2] for i in range(len(argv) - 1)],
         )
         self.assertIn("-I%s" % CONTAINER_BOOST_INCLUDE_PATH, argv)
 
@@ -554,17 +564,13 @@ class CompilationTests(unittest.TestCase):
 
     def _compile_java(self, mock_result=None, side_effect=None):
         (self.dir / "Main.class").write_text("")
-        with patch(
-            "submissions.judge_utils.compilation.subprocess.run"
-        ) as mock_run:
+        with patch("submissions.judge_utils.compilation.subprocess.run") as mock_run:
             if side_effect is not None:
                 mock_run.side_effect = side_effect
             else:
                 mock_run.return_value = mock_result
-            result = compile_code_in_sandbox(
-                "class Main{}", "java11", self.dir, []
-            )
-            argv = mock_run.call_args[0][0] if mock_run.call_count else None
+            result = compile_code_in_sandbox("class Main{}", "java11", self.dir, [])
+            argv = mock_run.call_args[0][0] if mock_run.call_count else []
         return result, argv
 
     def test_java11_success(self):
@@ -635,16 +641,15 @@ class ExecutionTests(unittest.TestCase):
             executable = str(self.dir)
         else:
             executable = str(self.dir / "user_code.py")
-        ctx = (
-            override_settings(JUDGE_BACKEND=backend)
-            if backend
-            else _null_context()
-        )
-        with ctx, patch(
-            "submissions.judge_utils.execution.subprocess.run",
-            side_effect=run_exc,
-            return_value=run_result,
-        ) as mock_run:
+        ctx = override_settings(JUDGE_BACKEND=backend) if backend else _null_context()
+        with (
+            ctx,
+            patch(
+                "submissions.judge_utils.execution.subprocess.run",
+                side_effect=run_exc,
+                return_value=run_result,
+            ) as mock_run,
+        ):
             result = run_code_in_sandbox(
                 executable,
                 kwargs["language"],
@@ -654,8 +659,8 @@ class ExecutionTests(unittest.TestCase):
                 self.dir,
                 kwargs["libs"],
             )
-        argv = None
-        run_kwargs = None
+        argv: list = []
+        run_kwargs: dict = {}
         if mock_run.call_count:
             argv = mock_run.call_args[0][0]
             run_kwargs = mock_run.call_args[1]
@@ -676,7 +681,7 @@ class ExecutionTests(unittest.TestCase):
         self.assertIn(mount, argv)
         self.assertIn(
             ["--network", "none"],
-            [argv[i:i + 2] for i in range(len(argv) - 1)],
+            [argv[i : i + 2] for i in range(len(argv) - 1)],
         )
         self.assertEqual(
             run_kwargs,
@@ -699,7 +704,7 @@ class ExecutionTests(unittest.TestCase):
         self.assertIn(mount, argv)
         self.assertIn(
             ["--network", "none"],
-            [argv[i:i + 2] for i in range(len(argv) - 1)],
+            [argv[i : i + 2] for i in range(len(argv) - 1)],
         )
         sh_index = argv.index("sh")
         self.assertEqual(argv[sh_index + 1], "-c")
@@ -875,9 +880,7 @@ class ExecutionTests(unittest.TestCase):
         self.assertIn(mount, argv)
 
     def test_java11_libs_dir_missing(self):
-        with override_settings(
-            JUDGE_JAVA_LIBS_DIR_HOST=str(self.dir / "no_such_libs")
-        ):
+        with override_settings(JUDGE_JAVA_LIBS_DIR_HOST=str(self.dir / "no_such_libs")):
             (verdict, _, _, _, _), argv, _ = self._run(
                 run_result=_run_result(0, "", RESOURCE_LINE),
                 language="java11",
@@ -923,16 +926,12 @@ class ExecutionTests(unittest.TestCase):
         self.assertIn("Communicate timeout after 4.0s", err)
 
     def test_docker_not_found(self):
-        (verdict, _, _, out, err), _, _ = self._run(
-            run_exc=FileNotFoundError("docker")
-        )
+        (verdict, _, _, out, err), _, _ = self._run(run_exc=FileNotFoundError("docker"))
         self.assertEqual(verdict, IE)
         self.assertIn("Docker command not found", err)
 
     def test_generic_execution_error(self):
-        (verdict, _, _, out, err), _, _ = self._run(
-            run_exc=OSError("spawn failed")
-        )
+        (verdict, _, _, out, err), _, _ = self._run(run_exc=OSError("spawn failed"))
         self.assertEqual(verdict, IE)
         self.assertIn("Execution error for python3", err)
 
@@ -957,6 +956,7 @@ class ExecutionTests(unittest.TestCase):
         self.assertIn("2.00s", argv)
         self.assertEqual(run_kwargs["timeout"], 4.0)
 
+
 # judge_utils.checkers (subprocess.run mocked)
 # ---------------------------------------------------------------------------
 
@@ -972,24 +972,26 @@ class CheckerTests(unittest.TestCase):
         self.user_out_path = self.dir / "user_output.txt"
         self.ans_path = self.dir / "answer.txt"
 
-    def _checker(self, run_result=None, run_side_effect=None,
-                 compile_result=None, compile_side_effect=None,
-                 language="python3", checker_code="print('ok')",
-                 backend=None):
-        ctx = (
-            override_settings(JUDGE_BACKEND=backend)
-            if backend
-            else _null_context()
-        )
+    def _checker(
+        self,
+        run_result=None,
+        run_side_effect=None,
+        compile_result=None,
+        compile_side_effect=None,
+        language="python3",
+        checker_code="print('ok')",
+        backend=None,
+    ):
+        ctx = override_settings(JUDGE_BACKEND=backend) if backend else _null_context()
         # NOTE: checkers.subprocess and compilation.subprocess are the same
         # module, so the compile step is patched at its call site in the
         # checkers namespace (run_compile_step) — not via a second
         # subprocess.run patch that would stack on the same attribute.
-        with ctx, patch(
-            "submissions.judge_utils.checkers.subprocess.run"
-        ) as mock_run, patch(
-            "submissions.judge_utils.checkers.run_compile_step"
-        ) as mock_compile:
+        with (
+            ctx,
+            patch("submissions.judge_utils.checkers.subprocess.run") as mock_run,
+            patch("submissions.judge_utils.checkers.run_compile_step") as mock_compile,
+        ):
             if run_side_effect is not None:
                 mock_run.side_effect = run_side_effect
             else:
@@ -1006,10 +1008,10 @@ class CheckerTests(unittest.TestCase):
                 self.ans_path,
                 self.dir,
             )
-        argv = None
+        argv: list = []
         if mock_run.call_count:
             argv = mock_run.call_args[0][0]
-        compile_argv = None
+        compile_argv: list = []
         if mock_compile.call_count:
             compile_argv = mock_compile.call_args[0][0]
         # Protocol v2 returns (verdict, fraction, msg); these legacy
@@ -1028,32 +1030,29 @@ class CheckerTests(unittest.TestCase):
         self.assertEqual(
             argv[-5:],
             [
-                "python", "checker.py",
-                "input.txt", "user_output.txt", "answer.txt",
+                "python",
+                "checker.py",
+                "input.txt",
+                "user_output.txt",
+                "answer.txt",
             ],
         )
         self.assertEqual((self.dir / "checker.py").read_text(), "print('ok')")
 
     def test_python_checker_times_out(self):
-        (verdict, msg), _, _ = self._checker(
-            run_result=_run_result(124, "", "")
-        )
+        (verdict, msg), _, _ = self._checker(run_result=_run_result(124, "", ""))
         self.assertEqual(verdict, IE)
         self.assertIn("Checker timed out", msg)
 
     def test_python_checker_signals_wrong_answer(self):
-        (verdict, msg), _, _ = self._checker(
-            run_result=_run_result(1, "", "")
-        )
+        (verdict, msg), _, _ = self._checker(run_result=_run_result(1, "", ""))
         self.assertEqual(verdict, WA)
         self.assertIn("code 1", msg)
 
     def test_python_checker_unexpected_exit_is_ie(self):
         # Protocol v2 (J7): exits outside testlib's 0/1/2/7 are checker
         # crashes, judged IE — never a silent WA.
-        (verdict, msg), _, _ = self._checker(
-            run_result=_run_result(5, "", "")
-        )
+        (verdict, msg), _, _ = self._checker(run_result=_run_result(5, "", ""))
         self.assertEqual(verdict, IE)
         self.assertIn("unexpected code 5", msg)
 
@@ -1072,24 +1071,18 @@ class CheckerTests(unittest.TestCase):
         self.assertIn("Docker/checker cmd not found", msg)
 
     def test_python_checker_generic_error(self):
-        (verdict, msg), _, _ = self._checker(
-            run_side_effect=ValueError("bad")
-        )
+        (verdict, msg), _, _ = self._checker(run_side_effect=ValueError("bad"))
         self.assertEqual(verdict, IE)
         self.assertIn("Checker run error", msg)
 
     def test_checker_plain_stderr_no_resource_line(self):
-        (verdict, msg), _, _ = self._checker(
-            run_result=_run_result(0, "", "note")
-        )
+        (verdict, msg), _, _ = self._checker(run_result=_run_result(0, "", "note"))
         self.assertEqual(verdict, AC)
         self.assertIn("note", msg)
         self.assertNotIn("Checker Resources", msg)
 
     def test_checker_empty_stderr(self):
-        (verdict, msg), _, _ = self._checker(
-            run_result=_run_result(0, "", "")
-        )
+        (verdict, msg), _, _ = self._checker(run_result=_run_result(0, "", ""))
         self.assertEqual(verdict, AC)
 
     def test_cpp_checker_success(self):
@@ -1140,6 +1133,7 @@ class CheckerTests(unittest.TestCase):
         self.assertNotIn("-v", argv)
         self.assertIn("checker.py", argv)
 
+
 # tasks.judge_submission_task (sandbox helpers mocked, compare_outputs real)
 # ---------------------------------------------------------------------------
 
@@ -1151,7 +1145,7 @@ class JudgeSubmissionTaskTests(TestCase):
         self.submission = make_submission(self.user, self.problem)
 
     def _apply(self, submission_id):
-        return judge_submission_task.apply(args=[submission_id]).get()
+        return judge_task.apply(args=[submission_id]).get()
 
     def test_skips_submission_not_pending(self):
         self.submission.verdict = AC
@@ -1176,12 +1170,15 @@ class JudgeSubmissionTaskTests(TestCase):
 
     def test_all_accepted_with_compiler_output(self):
         tc = make_test_case(self.problem, expected="3\n", points=10)
-        with patch(
-            "submissions.tasks.compile_code_in_sandbox",
-            return_value=(True, "done", "fake-exe"),
-        ), patch(
-            "submissions.tasks.run_code_in_sandbox",
-            return_value=(AC, 30, 5120, "3\n", ""),
+        with (
+            patch(
+                "submissions.tasks.compile_code_in_sandbox",
+                return_value=(True, "done", "fake-exe"),
+            ),
+            patch(
+                "submissions.tasks.run_code_in_sandbox",
+                return_value=(AC, 30, 5120, "3\n", ""),
+            ),
         ):
             message = self._apply(self.submission.id)
         self.assertIn("judged", message)
@@ -1190,12 +1187,8 @@ class JudgeSubmissionTaskTests(TestCase):
         self.assertEqual(self.submission.score, 10)
         self.assertEqual(self.submission.execution_time_ms, 30)
         self.assertEqual(self.submission.memory_used_kb, 5120)
-        self.assertIn(
-            "Compiler Output:\ndone", self.submission.detailed_feedback
-        )
-        self.assertIn(
-            "Overall Verdict: Accepted", self.submission.detailed_feedback
-        )
+        self.assertIn("Compiler Output:\ndone", self.submission.detailed_feedback)
+        self.assertIn("Overall Verdict: Accepted", self.submission.detailed_feedback)
         result = SubmissionTestResult.objects.get(submission=self.submission)
         self.assertEqual(result.verdict, AC)
         self.assertEqual(result.test_case_id, tc.id)
@@ -1229,12 +1222,15 @@ class JudgeSubmissionTaskTests(TestCase):
 
     def test_wrong_answer_via_comparison(self):
         make_test_case(self.problem, expected="7\n")
-        with patch(
-            "submissions.tasks.compile_code_in_sandbox",
-            return_value=(True, "ok", "fake-exe"),
-        ), patch(
-            "submissions.tasks.run_code_in_sandbox",
-            return_value=(AC, -1, -1, "3\n", ""),
+        with (
+            patch(
+                "submissions.tasks.compile_code_in_sandbox",
+                return_value=(True, "ok", "fake-exe"),
+            ),
+            patch(
+                "submissions.tasks.run_code_in_sandbox",
+                return_value=(AC, -1, -1, "3\n", ""),
+            ),
         ):
             self._apply(self.submission.id)
         self.submission.refresh_from_db()
@@ -1247,15 +1243,17 @@ class JudgeSubmissionTaskTests(TestCase):
 
     def test_test_case_verdict_not_accepted_skips_comparison(self):
         make_test_case(self.problem, expected="3\n")
-        with patch(
-            "submissions.tasks.compile_code_in_sandbox",
-            return_value=(True, "ok", "fake-exe"),
-        ), patch(
-            "submissions.tasks.run_code_in_sandbox",
-            return_value=(WA, 30, 100, "3\n", "partial mismatch"),
-        ), patch(
-            "submissions.tasks.compare_outputs_detailed"
-        ) as mock_compare:
+        with (
+            patch(
+                "submissions.tasks.compile_code_in_sandbox",
+                return_value=(True, "ok", "fake-exe"),
+            ),
+            patch(
+                "submissions.tasks.run_code_in_sandbox",
+                return_value=(WA, 30, 100, "3\n", "partial mismatch"),
+            ),
+            patch("submissions.tasks.compare_outputs_detailed") as mock_compare,
+        ):
             self._apply(self.submission.id)
         self.assertFalse(mock_compare.called)
         self.submission.refresh_from_db()
@@ -1266,7 +1264,7 @@ class JudgeSubmissionTaskTests(TestCase):
     def test_custom_checker_flow(self):
         problem = make_problem(
             self.user,
-            comparison_mode=CM.CUSTOM_CHECKER,
+            comparison_mode=CM_CUSTOM_CHECKER,
             checker_code="print('judge me')",
             checker_language="python3",
         )
@@ -1275,55 +1273,59 @@ class JudgeSubmissionTaskTests(TestCase):
         make_test_case(problem, order=2, expected="4\n", points=6)
         from submissions.judge_utils.languages import get_language
 
-        with patch(
-            "submissions.tasks.compile_code_in_sandbox",
-            return_value=(True, "ok", "fake-exe"),
-        ), patch(
-            "submissions.tasks.run_code_in_sandbox",
-            side_effect=[(AC, 10, 100, "o1", ""), (AC, 10, 100, "o2", "warn")],
-        ), patch(
-            "submissions.tasks.compile_checker",
-            return_value=(True, "ready", get_language("python3")),
-        ), patch(
-            "submissions.tasks.run_prepared_checker",
-            side_effect=[
-                (AC, None, "fine"),
-                (WA, None, "nope"),
-            ],
-        ) as mock_checker:
+        with (
+            patch(
+                "submissions.tasks.compile_code_in_sandbox",
+                return_value=(True, "ok", "fake-exe"),
+            ),
+            patch(
+                "submissions.tasks.run_code_in_sandbox",
+                side_effect=[(AC, 10, 100, "o1", ""), (AC, 10, 100, "o2", "warn")],
+            ),
+            patch(
+                "submissions.tasks.compile_checker",
+                return_value=(True, "ready", get_language("python3")),
+            ),
+            patch(
+                "submissions.tasks.run_prepared_checker",
+                side_effect=[
+                    (AC, None, "fine"),
+                    (WA, None, "nope"),
+                ],
+            ) as mock_checker,
+        ):
             message = self._apply(submission.id)
         self.assertIn("judged", message)
         submission.refresh_from_db()
         self.assertEqual(submission.verdict, WA)
         self.assertEqual(submission.score, 4)
         self.assertEqual(mock_checker.call_count, 2)
-        results = SubmissionTestResult.objects.filter(
-            submission=submission
-        ).order_by("test_case__order")
+        results = SubmissionTestResult.objects.filter(submission=submission).order_by(
+            "test_case__order"
+        )
         self.assertEqual(results[0].verdict, AC)
-        self.assertIn(
-            "Custom Checker Feedback:\nfine", results[0].error_output
-        )
+        self.assertIn("Custom Checker Feedback:\nfine", results[0].error_output)
         self.assertEqual(results[1].verdict, WA)
-        self.assertIn(
-            "warn\nCustom Checker Feedback:\nnope", results[1].error_output
-        )
+        self.assertIn("warn\nCustom Checker Feedback:\nnope", results[1].error_output)
 
     def test_custom_checker_without_code_is_internal_error(self):
         problem = make_problem(
             self.user,
-            comparison_mode=CM.CUSTOM_CHECKER,
+            comparison_mode=CM_CUSTOM_CHECKER,
             checker_code=None,
             checker_language=None,
         )
         submission = make_submission(self.user, problem)
         make_test_case(problem)
-        with patch(
-            "submissions.tasks.compile_code_in_sandbox",
-            return_value=(True, "ok", "fake-exe"),
-        ), patch(
-            "submissions.tasks.run_code_in_sandbox",
-            return_value=(AC, 10, 100, "o", ""),
+        with (
+            patch(
+                "submissions.tasks.compile_code_in_sandbox",
+                return_value=(True, "ok", "fake-exe"),
+            ),
+            patch(
+                "submissions.tasks.run_code_in_sandbox",
+                return_value=(AC, 10, 100, "o", ""),
+            ),
         ):
             self._apply(submission.id)
         submission.refresh_from_db()
@@ -1334,23 +1336,24 @@ class JudgeSubmissionTaskTests(TestCase):
     def test_second_failure_keeps_first_verdict(self):
         make_test_case(self.problem, order=1)
         make_test_case(self.problem, order=2)
-        with patch(
-            "submissions.tasks.compile_code_in_sandbox",
-            return_value=(True, "ok", "fake-exe"),
-        ), patch(
-            "submissions.tasks.run_code_in_sandbox",
-            side_effect=[
-                (WA, 10, 100, "o1", "e1"),
-                (TLE, 10, 100, "o2", "e2"),
-            ],
+        with (
+            patch(
+                "submissions.tasks.compile_code_in_sandbox",
+                return_value=(True, "ok", "fake-exe"),
+            ),
+            patch(
+                "submissions.tasks.run_code_in_sandbox",
+                side_effect=[
+                    (WA, 10, 100, "o1", "e1"),
+                    (TLE, 10, 100, "o2", "e2"),
+                ],
+            ),
         ):
             self._apply(self.submission.id)
         self.submission.refresh_from_db()
         self.assertEqual(self.submission.verdict, WA)
         self.assertEqual(
-            SubmissionTestResult.objects.filter(
-                submission=self.submission
-            ).count(),
+            SubmissionTestResult.objects.filter(submission=self.submission).count(),
             2,
         )
 
@@ -1380,13 +1383,9 @@ class JudgeSubmissionTaskTests(TestCase):
             Submission.objects.filter(id=submission_id).delete()
             raise RuntimeError("kaboom")
 
-        with patch(
-            "submissions.tasks.compile_code_in_sandbox", side_effect=boom
-        ):
-            message = judge_submission_task.apply(args=[submission_id]).get()
-        self.assertEqual(
-            message, "Judge internal error for sub %d." % submission_id
-        )
+        with patch("submissions.tasks.compile_code_in_sandbox", side_effect=boom):
+            message = judge_task.apply(args=[submission_id]).get()
+        self.assertEqual(message, "Judge internal error for sub %d." % submission_id)
 
 
 # ---------------------------------------------------------------------------
@@ -1422,9 +1421,7 @@ class SubmissionLanguageValidationTests(TestCase):
     def test_allowed_languages_enforced(self):
         ser = self._ser(self.restricted, "python3")
         self.assertFalse(ser.is_valid())
-        self.assertIn(
-            "not allowed for this problem", str(ser.errors["language"])
-        )
+        self.assertIn("not allowed for this problem", str(ser.errors["language"]))
         # A listed language passes.
         ser_ok = self._ser(self.restricted, "cpp17")
         self.assertTrue(ser_ok.is_valid(), ser_ok.errors)
@@ -1452,9 +1449,7 @@ class SubmissionLanguageValidationTests(TestCase):
         self.assertIn("language", resp.data)
         # Nothing was created nor judged.
         self.assertFalse(
-            Submission.objects.filter(
-                user=self.user, problem=self.restricted
-            ).exists()
+            Submission.objects.filter(user=self.user, problem=self.restricted).exists()
         )
 
 
@@ -1534,7 +1529,7 @@ class JudgeWorkspaceTests(TestCase):
             ),
             patch.object(tasks_module.tempfile, "TemporaryDirectory", fake_tempdir),
         ):
-            judge_submission_task.apply(args=[self.submission.id]).get()
+            judge_task.apply(args=[self.submission.id]).get()
         self.assertEqual(pathlib.Path(seen_dirs["dir"]), pathlib.Path(sandbox.name))
         self.assertTrue(seen_dirs["prefix"].startswith("submission_"))
 
@@ -1552,7 +1547,7 @@ class JudgeWorkspaceTests(TestCase):
             ),
             patch.object(tasks_module.tempfile, "TemporaryDirectory", fake_tempdir),
         ):
-            judge_submission_task.apply(args=[self.submission.id]).get()
+            judge_task.apply(args=[self.submission.id]).get()
         self.assertIsNone(seen_dirs["dir"])
 
     def test_validate_without_problem_skips_allowed_check(self):

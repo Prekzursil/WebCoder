@@ -14,7 +14,7 @@ from django.utils import timezone
 
 from submissions.models import Submission
 
-from .models import User
+from .models import OwnerWeeklySnapshot, User
 
 
 def _first_submission_times():
@@ -35,9 +35,7 @@ def activation_snapshot() -> dict:
 
     first_ac = {
         row["user_id"]: row["first_ac"]
-        for row in Submission.objects.filter(
-            verdict=Submission.VerdictStatus.ACCEPTED
-        )
+        for row in Submission.objects.filter(verdict=Submission.VerdictStatus.ACCEPTED)
         .values("user_id")
         .annotate(first_ac=Min("submission_time"))
         if row["first_ac"] is not None

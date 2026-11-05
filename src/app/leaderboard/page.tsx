@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import React, { useCallback, useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { LeaderboardService } from '@/services/ApiService';
-import { MyLeaderboardEntry } from '@/types/api';
-import { useAuth } from '@/context/AuthContext';
-import { palette, hexAlpha } from '@/theme/tokens';
-import EmptyState from '@/components/common/EmptyState';
-import PageHeader from '@/components/common/PageHeader';
-import WeeklyBoard from '@/components/common/WeeklyBoard';
+import React, { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { LeaderboardService } from "@/services/ApiService";
+import { MyLeaderboardEntry } from "@/types/api";
+import { useAuth } from "@/context/AuthContext";
+import { palette, hexAlpha } from "@/theme/tokens";
+import EmptyState from "@/components/common/EmptyState";
+import PageHeader from "@/components/common/PageHeader";
+import WeeklyBoard from "@/components/common/WeeklyBoard";
 
 // Leaderboard wired to the real standings endpoint (backend leaderboard app,
 // PR #186): GET /api/v1/leaderboard/ is public, page-number paginated (50
@@ -30,13 +30,13 @@ interface Row {
 }
 
 const badgeColors: { color: string; label: string }[] = [
-  { color: palette.warn, label: '🥇' },
-  { color: palette.muted, label: '🥈' },
+  { color: palette.warn, label: "🥇" },
+  { color: palette.muted, label: "🥈" },
   // Bronze has no design token — allowlisted in design-tokens.gate.test.ts.
-  { color: '#b47c3c', label: '🥉' },
+  { color: "#b47c3c", label: "🥉" },
 ];
 
-type SortKey = 'rank' | 'total_points' | 'solved_count' | 'success_rate';
+type SortKey = "rank" | "total_points" | "solved_count" | "success_rate";
 
 const percent = (rate: number): number => Math.round(rate * 1000) / 10;
 
@@ -52,25 +52,34 @@ export default function LeaderboardPage() {
   const [myEntry, setMyEntry] = useState<MyLeaderboardEntry | null>(null);
   const [myEntryError, setMyEntryError] = useState(false);
 
-  const [sortKey, setSortKey] = useState<SortKey>('rank');
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
-  const [search, setSearch] = useState('');
+  const [sortKey, setSortKey] = useState<SortKey>("rank");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [search, setSearch] = useState("");
   // COM-4: friends-only board (viewer + followed).
   const [friendsOnly, setFriendsOnly] = useState(false);
   // RO-3: county/school segment filters (Olympiad geography).
-  const [county, setCounty] = useState('');
-  const [school, setSchool] = useState('');
+  const [county, setCounty] = useState("");
+  const [school, setSchool] = useState("");
 
   const loadFirstPage = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await LeaderboardService.getLeaderboard({ page: 1, friends: friendsOnly, county: county.trim() || undefined, school: school.trim() || undefined });
+      const response = await LeaderboardService.getLeaderboard({
+        page: 1,
+        friends: friendsOnly,
+        county: county.trim() || undefined,
+        school: school.trim() || undefined,
+      });
       setRows(response.results);
       setTotalCount(response.count);
       setNextCursorPage(response.next ? 2 : null);
     } catch (err) {
-      setError(err instanceof Error && err.message ? err.message : t('leaderboard_load_error', 'Failed to load leaderboard.'));
+      setError(
+        err instanceof Error && err.message
+          ? err.message
+          : t("leaderboard_load_error", "Failed to load leaderboard."),
+      );
     } finally {
       setLoading(false);
     }
@@ -110,14 +119,23 @@ export default function LeaderboardPage() {
     if (nextCursorPage === null || loadingMore) return;
     setLoadingMore(true);
     try {
-      const response = await LeaderboardService.getLeaderboard({ page: nextCursorPage, friends: friendsOnly, county: county.trim() || undefined, school: school.trim() || undefined });
+      const response = await LeaderboardService.getLeaderboard({
+        page: nextCursorPage,
+        friends: friendsOnly,
+        county: county.trim() || undefined,
+        school: school.trim() || undefined,
+      });
       setRows((prev) => {
         const seen = new Set(prev.map((r) => r.username));
         return [...prev, ...response.results.filter((r) => !seen.has(r.username))];
       });
       setNextCursorPage(response.next ? nextCursorPage + 1 : null);
     } catch (err) {
-      setError(err instanceof Error && err.message ? err.message : t('leaderboard_load_more_error', 'Failed to load more entries.'));
+      setError(
+        err instanceof Error && err.message
+          ? err.message
+          : t("leaderboard_load_more_error", "Failed to load more entries."),
+      );
     } finally {
       setLoadingMore(false);
     }
@@ -125,57 +143,61 @@ export default function LeaderboardPage() {
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
-      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     } else {
       setSortKey(key);
-      setSortDir(key === 'rank' ? 'asc' : 'desc');
+      setSortDir(key === "rank" ? "asc" : "desc");
     }
   };
 
   const filtered = rows
     .filter((e) => e.username.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => {
-      const mul = sortDir === 'asc' ? 1 : -1;
+      const mul = sortDir === "asc" ? 1 : -1;
       return (a[sortKey] - b[sortKey]) * mul;
     });
 
   const SortIcon = ({ col }: { col: SortKey }) => {
-    if (sortKey !== col) return <span style={{ color: 'var(--text-tertiary)', marginLeft: 4 }}>↕</span>;
-    return <span style={{ color: 'var(--accent)', marginLeft: 4 }}>{sortDir === 'asc' ? '↑' : '↓'}</span>;
+    if (sortKey !== col)
+      return <span style={{ color: "var(--text-tertiary)", marginLeft: 4 }}>↕</span>;
+    return (
+      <span style={{ color: "var(--accent)", marginLeft: 4 }}>{sortDir === "asc" ? "↑" : "↓"}</span>
+    );
   };
 
   const podium = rows.slice(0, 3);
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem 1.5rem' }}>
+    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "2rem 1.5rem" }}>
       <PageHeader
-        title={t('leaderboard_header', 'Leaderboard')}
-        subtitle={t('leaderboard_subtitle', 'Top competitive programmers ranked by total score.')}
+        title={t("leaderboard_header", "Leaderboard")}
+        subtitle={t("leaderboard_subtitle", "Top competitive programmers ranked by total score.")}
       />
 
       <WeeklyBoard />
 
       {/* Loading / error states keep the page usable when the API fails */}
       {loading ? (
-        <div role="status" style={{ padding: '3rem', textAlign: 'center', color: 'var(--muted)' }}>
-          {t('leaderboard_loading', 'Loading leaderboard…')}
+        <div role="status" style={{ padding: "3rem", textAlign: "center", color: "var(--muted)" }}>
+          {t("leaderboard_loading", "Loading leaderboard…")}
         </div>
       ) : error && rows.length === 0 ? (
         <div
           role="alert"
           style={{
-            padding: '1.25rem 1.5rem',
-            borderRadius: 'var(--radius-md)',
+            padding: "1.25rem 1.5rem",
+            borderRadius: "var(--radius-md)",
             background: hexAlpha(palette.danger, 0.08),
             border: `1px solid ${hexAlpha(palette.danger, 0.2)}`,
-            color: 'var(--danger)',
-            marginBottom: '1.5rem',
+            color: "var(--danger)",
+            marginBottom: "1.5rem",
           }}
         >
-          {t('could_not_load_leaderboard', 'Could not load leaderboard: ')}{error}
-          <div style={{ marginTop: '0.75rem' }}>
+          {t("could_not_load_leaderboard", "Could not load leaderboard: ")}
+          {error}
+          <div style={{ marginTop: "0.75rem" }}>
             <button onClick={loadFirstPage} className="btn">
-              {t('retry_button', 'Retry')}
+              {t("retry_button", "Retry")}
             </button>
           </div>
         </div>
@@ -183,82 +205,125 @@ export default function LeaderboardPage() {
         <>
           <div
             role="group"
-            aria-label={t('leaderboard_segments', 'County / school segment')}
-            style={{ display: 'inline-flex', gap: '0.5rem', alignItems: 'center', margin: '0.5rem 0 0.5rem 0.75rem', flexWrap: 'wrap' }}
+            aria-label={t("leaderboard_segments", "County / school segment")}
+            style={{
+              display: "inline-flex",
+              gap: "0.5rem",
+              alignItems: "center",
+              margin: "0.5rem 0 0.5rem 0.75rem",
+              flexWrap: "wrap",
+            }}
           >
             <input
               value={county}
               onChange={(e) => setCounty(e.target.value)}
-              placeholder={t('leaderboard_county', 'County')}
-              aria-label={t('leaderboard_county', 'County')}
+              placeholder={t("leaderboard_county", "County")}
+              aria-label={t("leaderboard_county", "County")}
               data-testid="segment-county"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--foreground)', padding: '6px 10px', fontSize: '0.8rem', width: 130 }}
+              style={{
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid var(--border)",
+                borderRadius: "8px",
+                color: "var(--foreground)",
+                padding: "6px 10px",
+                fontSize: "0.8rem",
+                width: 130,
+              }}
             />
             <input
               value={school}
               onChange={(e) => setSchool(e.target.value)}
-              placeholder={t('leaderboard_school', 'School')}
-              aria-label={t('leaderboard_school', 'School')}
+              placeholder={t("leaderboard_school", "School")}
+              aria-label={t("leaderboard_school", "School")}
               data-testid="segment-school"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--foreground)', padding: '6px 10px', fontSize: '0.8rem', width: 150 }}
+              style={{
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid var(--border)",
+                borderRadius: "8px",
+                color: "var(--foreground)",
+                padding: "6px 10px",
+                fontSize: "0.8rem",
+                width: 150,
+              }}
             />
           </div>
           {auth.isAuthenticated && (
             <label
               data-testid="friends-only-toggle"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', color: 'var(--muted)', margin: '0.5rem 0' }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.4rem",
+                fontSize: "0.85rem",
+                color: "var(--muted)",
+                margin: "0.5rem 0",
+              }}
             >
               <input
                 type="checkbox"
                 checked={friendsOnly}
                 onChange={(e) => setFriendsOnly(e.target.checked)}
               />
-              {t('leaderboard_friends_only', 'Friends only')}
+              {t("leaderboard_friends_only", "Friends only")}
             </label>
           )}
           {/* Own-rank card (authenticated) — best-effort */}
           {auth.isAuthenticated && myEntry && (
             <div
               style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '1.5rem',
-                alignItems: 'center',
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "1.5rem",
+                alignItems: "center",
                 background: hexAlpha(palette.accent, 0.06),
-                border: '1px solid rgba(56,189,248,0.25)',
-                borderRadius: 'var(--radius-lg)',
-                padding: '1rem 1.5rem',
-                marginBottom: '1.5rem',
+                border: "1px solid rgba(56,189,248,0.25)",
+                borderRadius: "var(--radius-lg)",
+                padding: "1rem 1.5rem",
+                marginBottom: "1.5rem",
               }}
             >
               <div>
-                <div className="micro-label" style={{ color: 'var(--muted)' }}>{t('leaderboard_your_rank', 'Your rank')}</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--accent)' }}>#{myEntry.rank}</div>
+                <div className="micro-label" style={{ color: "var(--muted)" }}>
+                  {t("leaderboard_your_rank", "Your rank")}
+                </div>
+                <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--accent)" }}>
+                  #{myEntry.rank}
+                </div>
               </div>
               <div>
-                <div className="micro-label" style={{ color: 'var(--muted)' }}>{t('leaderboard_points', 'Points')}</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: palette.warn }}>
+                <div className="micro-label" style={{ color: "var(--muted)" }}>
+                  {t("leaderboard_points", "Points")}
+                </div>
+                <div style={{ fontSize: "1.1rem", fontWeight: 700, color: palette.warn }}>
                   {myEntry.total_points.toLocaleString()}
                 </div>
               </div>
               <div>
-                <div className="micro-label" style={{ color: 'var(--muted)' }}>{t('leaderboard_solved', 'Solved')}</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--success)' }}>{myEntry.solved_count}</div>
+                <div className="micro-label" style={{ color: "var(--muted)" }}>
+                  {t("leaderboard_solved", "Solved")}
+                </div>
+                <div style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--success)" }}>
+                  {myEntry.solved_count}
+                </div>
               </div>
               <div>
-                <div className="micro-label" style={{ color: 'var(--muted)' }}>{t('leaderboard_submissions', 'Submissions')}</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--foreground)' }}>
+                <div className="micro-label" style={{ color: "var(--muted)" }}>
+                  {t("leaderboard_submissions", "Submissions")}
+                </div>
+                <div style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--foreground)" }}>
                   {myEntry.total_submissions}
                 </div>
               </div>
-              <div style={{ marginLeft: 'auto', fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>
-                {t('leaderboard_success_rate', 'Success rate')} {percent(myEntry.success_rate)}%
+              <div
+                style={{ marginLeft: "auto", fontSize: "0.78rem", color: "var(--text-tertiary)" }}
+              >
+                {t("leaderboard_success_rate", "Success rate")} {percent(myEntry.success_rate)}%
               </div>
             </div>
           )}
           {auth.isAuthenticated && !myEntry && myEntryError && (
-            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', marginBottom: '1rem' }}>
-              {t('leaderboard_rank_card_unavailable', 'Your rank card is unavailable right now.')}
+            <p style={{ color: "var(--text-tertiary)", fontSize: "0.8rem", marginBottom: "1rem" }}>
+              {t("leaderboard_rank_card_unavailable", "Your rank card is unavailable right now.")}
             </p>
           )}
 
@@ -266,10 +331,10 @@ export default function LeaderboardPage() {
           {podium.length > 0 && (
             <div
               style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: '1rem',
-                marginBottom: '2rem',
+                display: "grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gap: "1rem",
+                marginBottom: "2rem",
               }}
             >
               {podium.map((entry, idx) => {
@@ -278,52 +343,58 @@ export default function LeaderboardPage() {
                   <div
                     key={entry.username}
                     style={{
-                      background: 'var(--surface)',
+                      background: "var(--surface)",
                       border: `1px solid ${hexAlpha(badge.color, 0.19)}`,
-                      borderRadius: '12px',
-                      padding: '1.5rem',
-                      textAlign: 'center',
-                      position: 'relative',
-                      overflow: 'hidden',
+                      borderRadius: "12px",
+                      padding: "1.5rem",
+                      textAlign: "center",
+                      position: "relative",
+                      overflow: "hidden",
                     }}
                   >
                     <div
                       style={{
-                        position: 'absolute',
+                        position: "absolute",
                         top: 0,
                         left: 0,
                         right: 0,
-                        height: '3px',
+                        height: "3px",
                         background: `linear-gradient(90deg, transparent, ${badge.color}, transparent)`,
                       }}
                     />
-                    <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{badge.label}</div>
+                    <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>{badge.label}</div>
                     <div
                       style={{
-                        fontSize: '1rem',
+                        fontSize: "1rem",
                         fontWeight: 700,
-                        color: 'var(--foreground)',
-                        marginBottom: '0.25rem',
+                        color: "var(--foreground)",
+                        marginBottom: "0.25rem",
                       }}
                     >
                       {entry.username}
                     </div>
                     <div
                       style={{
-                        fontSize: '1.5rem',
+                        fontSize: "1.5rem",
                         fontWeight: 800,
                         color: badge.color,
-                        marginBottom: '0.5rem',
+                        marginBottom: "0.5rem",
                       }}
                     >
                       {entry.total_points.toLocaleString()}
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
-                        <span style={{ color: 'var(--success)', fontWeight: 600 }}>{entry.solved_count}</span> {t('leaderboard_solved_short', 'solved')}
+                    <div style={{ display: "flex", justifyContent: "center", gap: "1rem" }}>
+                      <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
+                        <span style={{ color: "var(--success)", fontWeight: 600 }}>
+                          {entry.solved_count}
+                        </span>{" "}
+                        {t("leaderboard_solved_short", "solved")}
                       </span>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
-                        <span style={{ color: 'var(--accent)', fontWeight: 600 }}>{percent(entry.success_rate)}%</span> {t('leaderboard_rate_short', 'rate')}
+                      <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
+                        <span style={{ color: "var(--accent)", fontWeight: 600 }}>
+                          {percent(entry.success_rate)}%
+                        </span>{" "}
+                        {t("leaderboard_rate_short", "rate")}
                       </span>
                     </div>
                   </div>
@@ -333,24 +404,24 @@ export default function LeaderboardPage() {
           )}
 
           {/* Search bar */}
-          <div style={{ marginBottom: '1rem' }}>
+          <div style={{ marginBottom: "1rem" }}>
             <input
               type="text"
-              placeholder={t('leaderboard_search_placeholder', 'Search by username…')}
-              aria-label={t('leaderboard_search_label', 'Search by username')}
+              placeholder={t("leaderboard_search_placeholder", "Search by username…")}
+              aria-label={t("leaderboard_search_label", "Search by username")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="input"
               style={{
-                width: '100%',
-                maxWidth: '320px',
-                background: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderRadius: '8px',
-                color: 'var(--foreground)',
-                padding: '8px 14px',
-                fontSize: '0.875rem',
-                outline: 'none',
+                width: "100%",
+                maxWidth: "320px",
+                background: "var(--surface)",
+                border: "1px solid var(--border)",
+                borderRadius: "8px",
+                color: "var(--foreground)",
+                padding: "8px 14px",
+                fontSize: "0.875rem",
+                outline: "none",
               }}
             />
           </div>
@@ -358,39 +429,45 @@ export default function LeaderboardPage() {
           {/* Table */}
           <div
             style={{
-              background: 'var(--surface)',
-              borderRadius: '12px',
-              border: '1px solid var(--border)',
-              overflow: 'hidden',
+              background: "var(--surface)",
+              borderRadius: "12px",
+              border: "1px solid var(--border)",
+              overflow: "hidden",
             }}
           >
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                <tr style={{ borderBottom: "1px solid var(--border)" }}>
                   {(
                     [
-                      { key: 'rank', label: t('leaderboard_th_rank', 'Rank') },
-                      { key: null, label: t('leaderboard_th_user', 'User') },
-                      { key: 'total_points', label: t('leaderboard_th_score', 'Score') },
-                      { key: 'solved_count', label: t('leaderboard_th_solved', 'Solved') },
-                      { key: null, label: t('leaderboard_th_success_rate', 'Success Rate') },
+                      { key: "rank", label: t("leaderboard_th_rank", "Rank") },
+                      { key: null, label: t("leaderboard_th_user", "User") },
+                      { key: "total_points", label: t("leaderboard_th_score", "Score") },
+                      { key: "solved_count", label: t("leaderboard_th_solved", "Solved") },
+                      { key: null, label: t("leaderboard_th_success_rate", "Success Rate") },
                     ] as { key: SortKey | null; label: string }[]
                   ).map(({ key, label }) => (
                     <th
                       key={label}
                       onClick={key ? () => handleSort(key) : undefined}
-                      aria-sort={key && sortKey === key ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
+                      aria-sort={
+                        key && sortKey === key
+                          ? sortDir === "asc"
+                            ? "ascending"
+                            : "descending"
+                          : "none"
+                      }
                       style={{
-                        padding: '12px 20px',
-                        textAlign: 'left',
-                        fontSize: '0.72rem',
+                        padding: "12px 20px",
+                        textAlign: "left",
+                        fontSize: "0.72rem",
                         fontWeight: 600,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.07em',
-                        color: 'var(--muted)',
-                        cursor: key ? 'pointer' : 'default',
-                        userSelect: 'none',
-                        whiteSpace: 'nowrap',
+                        textTransform: "uppercase",
+                        letterSpacing: "0.07em",
+                        color: "var(--muted)",
+                        cursor: key ? "pointer" : "default",
+                        userSelect: "none",
+                        whiteSpace: "nowrap",
                       }}
                     >
                       {label}
@@ -405,13 +482,13 @@ export default function LeaderboardPage() {
                     <td
                       colSpan={5}
                       style={{
-                        padding: '3rem',
-                        textAlign: 'center',
-                        color: 'var(--muted)',
-                        fontSize: '0.9rem',
+                        padding: "3rem",
+                        textAlign: "center",
+                        color: "var(--muted)",
+                        fontSize: "0.9rem",
                       }}
                     >
-                      {t('leaderboard_no_users', 'No users found.')}
+                      {t("leaderboard_no_users", "No users found.")}
                     </td>
                   </tr>
                 ) : (
@@ -419,96 +496,119 @@ export default function LeaderboardPage() {
                     const badge = badgeColors[entry.rank - 1] ?? null;
                     const rate = percent(entry.success_rate);
                     return (
-                      <tr key={entry.username} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                        <td style={{ padding: '14px 20px' }}>
+                      <tr
+                        key={entry.username}
+                        style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+                      >
+                        <td style={{ padding: "14px 20px" }}>
                           <span
                             style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              width: '28px',
-                              height: '28px',
-                              borderRadius: '6px',
-                              background: badge ? hexAlpha(badge.color, 0.09) : 'rgba(255,255,255,0.04)',
-                              border: `1px solid ${badge ? hexAlpha(badge.color, 0.19) : 'rgba(255,255,255,0.06)'}`,
-                              fontSize: '0.8rem',
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              width: "28px",
+                              height: "28px",
+                              borderRadius: "6px",
+                              background: badge
+                                ? hexAlpha(badge.color, 0.09)
+                                : "rgba(255,255,255,0.04)",
+                              border: `1px solid ${badge ? hexAlpha(badge.color, 0.19) : "rgba(255,255,255,0.06)"}`,
+                              fontSize: "0.8rem",
                               fontWeight: 700,
-                              color: badge ? badge.color : 'var(--muted)',
+                              color: badge ? badge.color : "var(--muted)",
                             }}
                           >
                             {entry.rank}
                           </span>
                         </td>
-                        <td style={{ padding: '14px 20px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <td style={{ padding: "14px 20px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                             <div
                               style={{
-                                width: '32px',
-                                height: '32px',
-                                borderRadius: '50%',
+                                width: "32px",
+                                height: "32px",
+                                borderRadius: "50%",
                                 background: `hsl(${(entry.username.charCodeAt(0) * 37) % 360}, 55%, 35%)`,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '0.8rem',
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "0.8rem",
                                 fontWeight: 700,
-                                color: '#fff',
+                                color: "#fff",
                                 flexShrink: 0,
                               }}
                             >
                               {entry.username[0].toUpperCase()}
                             </div>
-                            <span style={{ color: 'var(--foreground)', fontWeight: 500, fontSize: '0.9rem' }}>
+                            <span
+                              style={{
+                                color: "var(--foreground)",
+                                fontWeight: 500,
+                                fontSize: "0.9rem",
+                              }}
+                            >
                               {entry.username}
                             </span>
-                            {badge && <span style={{ fontSize: '0.85rem' }}>{badge.label}</span>}
+                            {badge && <span style={{ fontSize: "0.85rem" }}>{badge.label}</span>}
                           </div>
                         </td>
-                        <td style={{ padding: '14px 20px' }}>
-                          <span style={{ color: palette.warn, fontWeight: 700, fontSize: '0.95rem' }}>
+                        <td style={{ padding: "14px 20px" }}>
+                          <span
+                            style={{ color: palette.warn, fontWeight: 700, fontSize: "0.95rem" }}
+                          >
                             {entry.total_points.toLocaleString()}
                           </span>
                         </td>
-                        <td style={{ padding: '14px 20px' }}>
+                        <td style={{ padding: "14px 20px" }}>
                           <span
                             style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              padding: '2px 10px',
-                              borderRadius: '999px',
-                              fontSize: '0.75rem',
+                              display: "inline-flex",
+                              alignItems: "center",
+                              padding: "2px 10px",
+                              borderRadius: "999px",
+                              fontSize: "0.75rem",
                               fontWeight: 600,
-                              color: 'var(--success)',
+                              color: "var(--success)",
                               background: hexAlpha(palette.success, 0.1),
-                              border: '1px solid rgba(74,222,128,0.2)',
+                              border: "1px solid rgba(74,222,128,0.2)",
                             }}
                           >
                             {entry.solved_count}
                           </span>
                         </td>
-                        <td style={{ padding: '14px 20px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <td style={{ padding: "14px 20px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                             <div
                               style={{
                                 flex: 1,
-                                maxWidth: '80px',
-                                height: '4px',
-                                background: 'rgba(255,255,255,0.08)',
-                                borderRadius: '2px',
-                                overflow: 'hidden',
+                                maxWidth: "80px",
+                                height: "4px",
+                                background: "rgba(255,255,255,0.08)",
+                                borderRadius: "2px",
+                                overflow: "hidden",
                               }}
                             >
                               <div
                                 style={{
-                                  height: '100%',
-                                  borderRadius: '2px',
+                                  height: "100%",
+                                  borderRadius: "2px",
                                   width: `${Math.min(100, rate)}%`,
                                   background:
-                                    rate >= 70 ? palette.success : rate >= 50 ? palette.warn : palette.danger,
+                                    rate >= 70
+                                      ? palette.success
+                                      : rate >= 50
+                                        ? palette.warn
+                                        : palette.danger,
                                 }}
                               />
                             </div>
-                            <span style={{ fontSize: '0.8rem', color: 'var(--muted)', whiteSpace: 'nowrap' }}>
+                            <span
+                              style={{
+                                fontSize: "0.8rem",
+                                color: "var(--muted)",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
                               {rate}%
                             </span>
                           </div>
@@ -523,28 +623,56 @@ export default function LeaderboardPage() {
 
           {/* Paged loading */}
           {nextCursorPage !== null && (
-            <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+            <div style={{ textAlign: "center", marginTop: "1rem" }}>
               <button onClick={loadMore} disabled={loadingMore} className="btn">
-                {loadingMore ? t('loading_more', 'Loading…') : t('load_more_button', 'Load more')}
+                {loadingMore ? t("loading_more", "Loading…") : t("load_more_button", "Load more")}
               </button>
             </div>
           )}
           {error && rows.length > 0 && (
-            <p role="alert" style={{ marginTop: '0.75rem', color: 'var(--danger)', fontSize: '0.8rem', textAlign: 'center' }}>
-              {t('could_not_load_more_entries', 'Could not load more entries: ')}{error}
+            <p
+              role="alert"
+              style={{
+                marginTop: "0.75rem",
+                color: "var(--danger)",
+                fontSize: "0.8rem",
+                textAlign: "center",
+              }}
+            >
+              {t("could_not_load_more_entries", "Could not load more entries: ")}
+              {error}
             </p>
           )}
           {totalCount !== null && (
-            <p style={{ marginTop: '1rem', fontSize: '0.75rem', color: 'var(--text-tertiary)', textAlign: 'center' }}>
-              {t('leaderboard_showing_info', 'Showing {{shown}} of {{total}} ranked users.', { shown: rows.length, total: totalCount.toLocaleString() })}{' '}
-              {t('leaderboard_ranking_note', 'Rankings based on accepted submissions over approved problems.')}
+            <p
+              style={{
+                marginTop: "1rem",
+                fontSize: "0.75rem",
+                color: "var(--text-tertiary)",
+                textAlign: "center",
+              }}
+            >
+              {t("leaderboard_showing_info", "Showing {{shown}} of {{total}} ranked users.", {
+                shown: rows.length,
+                total: totalCount.toLocaleString(),
+              })}{" "}
+              {t(
+                "leaderboard_ranking_note",
+                "Rankings based on accepted submissions over approved problems.",
+              )}
             </p>
           )}
         </>
       )}
 
       {rows.length === 0 && !loading && !error && (
-        <EmptyState title={t('leaderboard_empty_title', 'No ranked users yet.')} description={t('leaderboard_empty_description', 'Solve an approved problem to appear on the leaderboard.')} />
+        <EmptyState
+          title={t("leaderboard_empty_title", "No ranked users yet.")}
+          description={t(
+            "leaderboard_empty_description",
+            "Solve an approved problem to appear on the leaderboard.",
+          )}
+        />
       )}
     </div>
   );

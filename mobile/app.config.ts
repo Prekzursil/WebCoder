@@ -1,4 +1,4 @@
-import type { ExpoConfig } from 'expo/config';
+import type { ExpoConfig } from "expo/config";
 
 /**
  * WebCoder mobile app configuration (Expo — one codebase, both stores).
@@ -9,15 +9,15 @@ import type { ExpoConfig } from 'expo/config';
  * from an emulator via 10.0.2.2).
  */
 const config: ExpoConfig = {
-  name: 'WebCoder',
-  slug: 'webcoder',
-  version: '1.0.0',
-  orientation: 'portrait',
-  icon: './assets/icon.png',
-  userInterfaceStyle: 'dark',
-  scheme: 'webcoder',
+  name: "WebCoder",
+  slug: "webcoder",
+  version: "1.0.0",
+  orientation: "portrait",
+  icon: "./assets/icon.png",
+  userInterfaceStyle: "dark",
+  scheme: "webcoder",
   ios: {
-    bundleIdentifier: 'ro.webcoder.app',
+    bundleIdentifier: "ro.webcoder.app",
     supportsTablet: true,
     infoPlist: {
       NSAppTransportSecurity: {
@@ -26,7 +26,7 @@ const config: ExpoConfig = {
     },
   },
   android: {
-    package: 'ro.webcoder.app',
+    package: "ro.webcoder.app",
     // NOTE: local dev/preview builds talk to the dockerized stack over
     // http://10.0.2.2 (emulator alias for host loopback); Android 9+
     // blocks cleartext. Expo 58 has no app-config knob for this, so
@@ -34,22 +34,22 @@ const config: ExpoConfig = {
     // android:usesCleartextTraffic into the generated manifest
     // post-prebuild (production API is HTTPS).
     adaptiveIcon: {
-      foregroundImage: './assets/adaptive-icon.png',
-      backgroundColor: '#0f172a',
+      foregroundImage: "./assets/adaptive-icon.png",
+      backgroundColor: "#0f172a",
     },
   },
   web: {
-    favicon: './assets/favicon.png',
+    favicon: "./assets/favicon.png",
   },
   plugins: [
-    'expo-router',
+    "expo-router",
     [
-      'expo-splash-screen',
+      "expo-splash-screen",
       {
-        image: './assets/splash.png',
+        image: "./assets/splash.png",
         imageWidth: 200,
-        resizeMode: 'contain',
-        backgroundColor: '#0f172a',
+        resizeMode: "contain",
+        backgroundColor: "#0f172a",
       },
     ],
   ],
@@ -59,10 +59,9 @@ const config: ExpoConfig = {
   extra: {
     // 10.0.2.2 = host loopback from the Android emulator; iOS simulators
     // share the host network so 127.0.0.1 works there.
-    apiBase:
-      process.env.EXPO_PUBLIC_API_BASE ?? 'http://10.0.2.2:8010/api/v1',
+    apiBase: process.env.EXPO_PUBLIC_API_BASE ?? "http://10.0.2.2:8010/api/v1",
     eas: {
-      projectId: '', // filled by `eas init` (owner step — see docs/IOS-RUNBOOK.md)
+      projectId: "", // filled by `eas init` (owner step — see docs/IOS-RUNBOOK.md)
     },
   },
 };

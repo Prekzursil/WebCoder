@@ -1,19 +1,19 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, cleanup } from '@testing-library/react';
-import type { ProblemType } from '@/types';
-import EditProblemPage from './page';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, waitFor, cleanup } from "@testing-library/react";
+import type { ProblemType } from "@/types";
+import EditProblemPage from "./page";
 
 const authState = vi.hoisted(() => ({
   isAuthenticated: true,
   user: {
     id: 7,
-    username: 'verifier',
-    email: 'verifier@example.com',
-    role: 'PROBLEM_VERIFIER',
+    username: "verifier",
+    email: "verifier@example.com",
+    role: "PROBLEM_VERIFIER",
   } as { id: number; username: string; email: string; role: string } | null,
 }));
 
-vi.mock('@/context/AuthContext', () => ({
+vi.mock("@/context/AuthContext", () => ({
   useAuth: () => authState,
 }));
 
@@ -23,7 +23,7 @@ const nav = vi.hoisted(() => ({
   params: vi.fn(() => ({})),
 }));
 
-vi.mock('next/navigation', () => ({
+vi.mock("next/navigation", () => ({
   useParams: () => nav.params(),
   useRouter: () => ({
     push: nav.push,
@@ -33,7 +33,7 @@ vi.mock('next/navigation', () => ({
     forward: vi.fn(),
     prefetch: vi.fn(),
   }),
-  usePathname: () => '/problems/12/edit',
+  usePathname: () => "/problems/12/edit",
 }));
 
 const api = vi.hoisted(() => ({
@@ -43,8 +43,8 @@ const api = vi.hoisted(() => ({
   updateProblem: vi.fn(),
 }));
 
-vi.mock('@/services/ApiService', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/services/ApiService')>();
+vi.mock("@/services/ApiService", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/services/ApiService")>();
   return {
     ...actual,
     // single-page passthrough — these tests provide one page of envelope data
@@ -67,16 +67,21 @@ vi.mock('@/services/ApiService', async (importOriginal) => {
 
 const DETAIL = {
   id: 12,
-  title_i18n: { en: 'Edit Me', ro: 'Editează-mă' },
-  difficulty: 'EASY',
-  status: 'DRAFT',
+  title_i18n: { en: "Edit Me", ro: "Editează-mă" },
+  difficulty: "EASY",
+  status: "DRAFT",
 } as unknown as ProblemType;
 
 beforeEach(() => {
   vi.clearAllMocks();
-  nav.params.mockReturnValue({ problemId: '12' });
+  nav.params.mockReturnValue({ problemId: "12" });
   authState.isAuthenticated = true;
-  authState.user = { id: 7, username: 'verifier', email: 'verifier@example.com', role: 'PROBLEM_VERIFIER' };
+  authState.user = {
+    id: 7,
+    username: "verifier",
+    email: "verifier@example.com",
+    role: "PROBLEM_VERIFIER",
+  };
   api.getTags.mockResolvedValue({ count: 0, next: null, previous: null, results: [] });
   api.getProblemDetail.mockResolvedValue(DETAIL);
 });
@@ -87,22 +92,24 @@ afterEach(() => {
   cleanup();
 });
 
-describe('Edit problem route (/problems/[problemId]/edit)', () => {
-  it('renders the edit form prefetched from the route param', async () => {
+describe("Edit problem route (/problems/[problemId]/edit)", () => {
+  it("renders the edit form prefetched from the route param", async () => {
     render(<EditProblemPage />);
 
-    expect(await screen.findByText('Edit Problem')).toBeInTheDocument();
-    expect(api.getProblemDetail).toHaveBeenCalledWith('12');
-    expect((await screen.findByLabelText('Title (English):') as HTMLInputElement).value).toBe('Edit Me');
-    expect(screen.getByRole('button', { name: 'Save Changes' })).toBeInTheDocument();
+    expect(await screen.findByText("Edit Problem")).toBeInTheDocument();
+    expect(api.getProblemDetail).toHaveBeenCalledWith("12");
+    expect(((await screen.findByLabelText("Title (English):")) as HTMLInputElement).value).toBe(
+      "Edit Me",
+    );
+    expect(screen.getByRole("button", { name: "Save Changes" })).toBeInTheDocument();
   });
 
-  it('redirects to /login and skips data loading when there is no user', async () => {
+  it("redirects to /login and skips data loading when there is no user", async () => {
     authState.user = null;
     render(<EditProblemPage />);
 
-    await waitFor(() => expect(nav.replace).toHaveBeenCalledWith('/login'));
-    expect(screen.queryByText('Edit Problem')).not.toBeInTheDocument();
+    await waitFor(() => expect(nav.replace).toHaveBeenCalledWith("/login"));
+    expect(screen.queryByText("Edit Problem")).not.toBeInTheDocument();
     expect(api.getProblemDetail).not.toHaveBeenCalled();
     expect(api.getTags).not.toHaveBeenCalled();
   });

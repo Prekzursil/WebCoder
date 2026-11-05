@@ -1,11 +1,10 @@
 """Wave C authoring & integrity tests (JDG-11 stress, JDG-13 export,
 UXP-3 samples, UXP-4 revisions, CNT-2 ledger)."""
 
-import os
 from datetime import timedelta
 from unittest import mock
 
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -94,7 +93,11 @@ class StressTests(ToolingBase):
         compile_mock.return_value = (True, "", "/tmp/fake.exe")
         gen_outputs = iter([("AC", 10, 1024, "3\n", "")] * 10)
         prog_outputs = iter([("AC", 10, 1024, "4\n", "")] * 10)
-        run_mock.side_effect = lambda *a, **k: next(gen_outputs) if a[0] == "/tmp/fake.exe" and not a[2] else next(prog_outputs)
+        run_mock.side_effect = lambda *a, **k: (
+            next(gen_outputs)
+            if a[0] == "/tmp/fake.exe" and not a[2]
+            else next(prog_outputs)
+        )
         # simpler deterministic mapping by call order: gen, sol, ref per iter
         calls = iter(
             [
@@ -161,7 +164,8 @@ class StressTests(ToolingBase):
             [
                 ("AC", 10, 1024, "5\n", ""),
                 ("RE", 10, 1024, "", "sol died"),
-            ] * 50
+            ]
+            * 50
         )
         run_mock.side_effect = lambda *a, **k: next(calls2)
         response2 = self.client.post(
@@ -235,9 +239,7 @@ class SolutionsExportTests(ToolingBase):
         self.assertIn("stud,", ok.data["csv"])
         self.assertIn("verdict", ok.data["csv"])
 
-        missing = self.client.get(
-            "/api/v1/problems/tools/assignment-solutions/99999/"
-        )
+        missing = self.client.get("/api/v1/problems/tools/assignment-solutions/99999/")
         self.assertEqual(missing.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_window_rule_respected(self):
@@ -314,9 +316,7 @@ class RevisionTests(ToolingBase):
         self.assertEqual(history[0].note, "clarified constraints")
         # Banner predicate.
         self.assertFalse(changed_since(problem, timezone.now()))
-        self.assertTrue(
-            changed_since(problem, timezone.now() - timedelta(days=1))
-        )
+        self.assertTrue(changed_since(problem, timezone.now() - timedelta(days=1)))
 
     def test_endpoint_exposes_history(self):
         problem = _mk_problem("Feed")
@@ -347,7 +347,9 @@ class ImportLedgerTests(ToolingBase):
         self.assertTrue(source.allows_publication)
         self.assertIn("GRANTED", str(source))
 
-        problem = _mk_problem("Imported", import_source=source, source_contest="OJI 2024")
+        problem = _mk_problem(
+            "Imported", import_source=source, source_contest="OJI 2024"
+        )
         self.assertEqual(problem.import_source.name, "OJI 2024 county round")
         self.assertEqual(problem.source_contest, "OJI 2024")
 

@@ -360,12 +360,14 @@ def run_code_in_sandbox(
         # file is resolved to RUNTIME_ERROR below the verdict chain, with a
         # message naming the file, instead of a silent empty-output WA.
         missing_output_file = False
+        missing_output_name: str | None = None
         if io_files and returncode == 0:
             output_path = submission_dir / io_files[1]
             if output_path.exists():
                 final_output = output_path.read_text(encoding="utf-8")
             else:
                 missing_output_file = True
+                missing_output_name = io_files[1]
                 final_output = ""
 
         if returncode == 124:
@@ -377,8 +379,7 @@ def run_code_in_sandbox(
         elif returncode in OOM_EXIT_CODES:
             final_verdict = Submission.VerdictStatus.MEMORY_LIMIT_EXCEEDED
             final_error = (
-                parsed_stderr
-                + f"\nMemory limit exceeded (exit code {returncode} — "
+                parsed_stderr + f"\nMemory limit exceeded (exit code {returncode} — "
                 f"process was killed, typically the OOM killer)."
             )
             if final_mem_kb and final_mem_kb > 0:
@@ -396,8 +397,7 @@ def run_code_in_sandbox(
         ):
             final_verdict = Submission.VerdictStatus.MEMORY_LIMIT_EXCEEDED
             final_error = (
-                parsed_stderr
-                + f"\nMemory limit exceeded ({actual_mem_kb}KB > "
+                parsed_stderr + f"\nMemory limit exceeded ({actual_mem_kb}KB > "
                 f"{memory_limit_kb}KB)."
             )
         elif (
@@ -430,9 +430,8 @@ def run_code_in_sandbox(
         if missing_output_file:
             final_verdict = Submission.VerdictStatus.RUNTIME_ERROR
             final_error = (
-                parsed_stderr
-                + f"\nProgram exited normally but did not create the "
-                f"required output file '{io_files[1]}'."
+                parsed_stderr + f"\nProgram exited normally but did not create the "
+                f"required output file '{missing_output_name}'."
             )
 
     except subprocess.TimeoutExpired:

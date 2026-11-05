@@ -25,6 +25,7 @@ DJANGO_SECRET_KEY — are informational; errors fail the gate).
 
 import os
 
+from . import settings as _base
 from .settings import *  # noqa: F401,F403
 from .settings import _env_bool, _env_list
 
@@ -61,9 +62,9 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 # A dedicated secret so rotating the web SECRET_KEY does not invalidate
 # issued tokens (and vice versa). Falls back to SECRET_KEY only when the
 # dedicated env var is absent — set JWT_SECRET_KEY in production.
-JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY") or SECRET_KEY
+JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY") or _base.SECRET_KEY
 SIMPLE_JWT = {
-    **SIMPLE_JWT,  # type: ignore[name-defined]  # imported via * above
+    **_base.SIMPLE_JWT,
     "SIGNING_KEY": JWT_SECRET_KEY,
     "VERIFYING_KEY": JWT_SECRET_KEY,
 }
@@ -73,14 +74,14 @@ SIMPLE_JWT = {
 # SameSite stays env-driven ('Lax' same-site; cross-site frontends set
 # JWT_AUTH_SAMESITE=None which the browser only honors together with Secure).
 REST_AUTH = {
-    **REST_AUTH,  # type: ignore[name-defined]  # imported via * above
+    **_base.REST_AUTH,
     "JWT_AUTH_SECURE": _env_bool("JWT_AUTH_SECURE", "true"),
 }
 
 # Rate limiting behind a reverse proxy: trust exactly one X-Forwarded-For
 # hop so throttling keys on the real client IP, not the proxy's (SP4).
 REST_FRAMEWORK = {
-    **REST_FRAMEWORK,  # type: ignore[name-defined]  # imported via * above
+    **_base.REST_FRAMEWORK,
     "NUM_PROXIES": 1,
 }
 
@@ -88,7 +89,7 @@ REST_FRAMEWORK = {
 # GitHub 'repo' grants private-repo WRITE — massively over-scoped for login.
 # Needs only re-consent from already-connected users.
 SOCIALACCOUNT_PROVIDERS = {
-    **SOCIALACCOUNT_PROVIDERS,  # type: ignore[name-defined]
+    **_base.SOCIALACCOUNT_PROVIDERS,
     "github": {
         "SCOPE": [
             "user",

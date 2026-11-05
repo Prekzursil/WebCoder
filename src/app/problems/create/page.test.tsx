@@ -1,19 +1,19 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, cleanup } from '@testing-library/react';
-import CreateProblemPage from './page';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, waitFor, cleanup } from "@testing-library/react";
+import CreateProblemPage from "./page";
 
 const authState = vi.hoisted(() => ({
   isAuthenticated: true,
-  refreshToken: 'refresh-1' as string | null,
+  refreshToken: "refresh-1" as string | null,
   user: {
     id: 7,
-    username: 'creator',
-    email: 'creator@example.com',
-    role: 'PROBLEM_CREATOR',
+    username: "creator",
+    email: "creator@example.com",
+    role: "PROBLEM_CREATOR",
   } as { id: number; username: string; email: string; role: string } | null,
 }));
 
-vi.mock('@/context/AuthContext', () => ({
+vi.mock("@/context/AuthContext", () => ({
   useAuth: () => authState,
 }));
 
@@ -23,7 +23,7 @@ const nav = vi.hoisted(() => ({
   params: vi.fn(() => ({})),
 }));
 
-vi.mock('next/navigation', () => ({
+vi.mock("next/navigation", () => ({
   useParams: () => nav.params(),
   useRouter: () => ({
     push: nav.push,
@@ -33,7 +33,7 @@ vi.mock('next/navigation', () => ({
     forward: vi.fn(),
     prefetch: vi.fn(),
   }),
-  usePathname: () => '/problems/create',
+  usePathname: () => "/problems/create",
 }));
 
 const api = vi.hoisted(() => ({
@@ -43,8 +43,8 @@ const api = vi.hoisted(() => ({
   updateProblem: vi.fn(),
 }));
 
-vi.mock('@/services/ApiService', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/services/ApiService')>();
+vi.mock("@/services/ApiService", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/services/ApiService")>();
   return {
     ...actual,
     // single-page passthrough — these tests provide one page of envelope data
@@ -69,8 +69,13 @@ beforeEach(() => {
   vi.clearAllMocks();
   nav.params.mockReturnValue({});
   authState.isAuthenticated = true;
-  authState.refreshToken = 'refresh-1';
-  authState.user = { id: 7, username: 'creator', email: 'creator@example.com', role: 'PROBLEM_CREATOR' };
+  authState.refreshToken = "refresh-1";
+  authState.user = {
+    id: 7,
+    username: "creator",
+    email: "creator@example.com",
+    role: "PROBLEM_CREATOR",
+  };
   api.getTags.mockResolvedValue({ count: 0, next: null, previous: null, results: [] });
 });
 
@@ -80,31 +85,31 @@ afterEach(() => {
   cleanup();
 });
 
-describe('Create problem route (/problems/create)', () => {
-  it('renders the create form for an authorized problem creator', async () => {
+describe("Create problem route (/problems/create)", () => {
+  it("renders the create form for an authorized problem creator", async () => {
     render(<CreateProblemPage />);
 
-    expect(await screen.findByText('Create New Problem')).toBeInTheDocument();
+    expect(await screen.findByText("Create New Problem")).toBeInTheDocument();
     expect(api.getTags).toHaveBeenCalledTimes(1);
     // Create mode: no problem detail fetch, create-style submit button.
     expect(api.getProblemDetail).not.toHaveBeenCalled();
-    expect(screen.getByRole('button', { name: 'Create Problem' })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Create Problem" })).toBeInTheDocument();
   });
 
-  it('redirects to /login and renders nothing when there is no user', async () => {
+  it("redirects to /login and renders nothing when there is no user", async () => {
     authState.user = null;
     render(<CreateProblemPage />);
 
-    await waitFor(() => expect(nav.replace).toHaveBeenCalledWith('/login'));
-    expect(screen.queryByText('Create New Problem')).not.toBeInTheDocument();
+    await waitFor(() => expect(nav.replace).toHaveBeenCalledWith("/login"));
+    expect(screen.queryByText("Create New Problem")).not.toBeInTheDocument();
     expect(api.getTags).not.toHaveBeenCalled();
   });
 
-  it('redirects to / when the role is not authorized', async () => {
-    authState.user = { id: 8, username: 'basic', email: 'b@example.com', role: 'BASIC_USER' };
+  it("redirects to / when the role is not authorized", async () => {
+    authState.user = { id: 8, username: "basic", email: "b@example.com", role: "BASIC_USER" };
     render(<CreateProblemPage />);
 
-    await waitFor(() => expect(nav.replace).toHaveBeenCalledWith('/'));
-    expect(screen.queryByText('Create New Problem')).not.toBeInTheDocument();
+    await waitFor(() => expect(nav.replace).toHaveBeenCalledWith("/"));
+    expect(screen.queryByText("Create New Problem")).not.toBeInTheDocument();
   });
 });

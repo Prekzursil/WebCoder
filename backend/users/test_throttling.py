@@ -149,9 +149,7 @@ class SubmissionThrottleTest(TestCase):
             "language": "python3",
             "code": "print(1)",
         }
-        with mock.patch("submissions.views.judge_task"), _shrink_rates(
-            submit="2/hour"
-        ):
+        with mock.patch("submissions.views.judge_task"), _shrink_rates(submit="2/hour"):
             self.assertEqual(
                 client.post(SUBMIT, payload, format="json", **ip).status_code, 201
             )

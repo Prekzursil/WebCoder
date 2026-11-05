@@ -1,24 +1,12 @@
 // Thread detail — posts (cursor, oldest-first) + reply composer.
-import { useLocalSearchParams } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
-import { ForumService } from '../../src/services/services';
-import { useAuth } from '../../src/state/AuthStore';
-import { useSettings } from '../../src/state/SettingsStore';
-import {
-  Button,
-  Card,
-  ErrorBox,
-  Field,
-  Screen,
-  Spinner,
-  Txt,
-} from '../../src/ui/primitives';
-import { formatDateTime } from '../../src/utils/verdict';
-import {
-  cursorParamFromUrl,
-  type ForumPost,
-  type ForumThread,
-} from '../../src/types/api';
+import { useLocalSearchParams } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
+import { ForumService } from "../../src/services/services";
+import { useAuth } from "../../src/state/AuthStore";
+import { useSettings } from "../../src/state/SettingsStore";
+import { Button, Card, ErrorBox, Field, Screen, Spinner, Txt } from "../../src/ui/primitives";
+import { formatDateTime } from "../../src/utils/verdict";
+import { cursorParamFromUrl, type ForumPost, type ForumThread } from "../../src/types/api";
 
 export default function ThreadDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -29,7 +17,7 @@ export default function ThreadDetail() {
   const [cursor, setCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [reply, setReply] = useState('');
+  const [reply, setReply] = useState("");
   const [posting, setPosting] = useState(false);
 
   const load = useCallback(
@@ -42,17 +30,15 @@ export default function ThreadDetail() {
           ForumService.getPosts(id, { cursor: nextCursor }),
         ]);
         setThread(threadDetail);
-        setPosts((prev) =>
-          nextCursor ? [...prev, ...feed.results] : feed.results
-        );
+        setPosts((prev) => (nextCursor ? [...prev, ...feed.results] : feed.results));
         setCursor(cursorParamFromUrl(feed.next));
       } catch (err) {
-        setError(err instanceof Error ? err.message : t('forum_load_error'));
+        setError(err instanceof Error ? err.message : t("forum_load_error"));
       } finally {
         setLoading(false);
       }
     },
-    [id, thread, t]
+    [id, thread, t],
   );
 
   useEffect(() => {
@@ -65,10 +51,10 @@ export default function ThreadDetail() {
     setError(null);
     try {
       await ForumService.createPost(id, { content: reply });
-      setReply('');
+      setReply("");
       await load(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('error_label'));
+      setError(err instanceof Error ? err.message : t("error_label"));
     } finally {
       setPosting(false);
     }
@@ -77,10 +63,10 @@ export default function ThreadDetail() {
   return (
     <Screen>
       <Card>
-        <Txt variant="title">{thread?.title ?? '…'}</Txt>
+        <Txt variant="title">{thread?.title ?? "…"}</Txt>
         {thread?.problem ? (
           <Txt variant="caption">
-            {t('nav_problems')}: #{thread.problem.id}
+            {t("nav_problems")}: #{thread.problem.id}
           </Txt>
         ) : null}
       </Card>
@@ -91,35 +77,33 @@ export default function ThreadDetail() {
       {posts.map((post) => (
         <Card key={post.id}>
           <Txt variant="caption">
-            {post.author ?? '—'} · {formatDateTime(post.created_at)}
+            {post.author ?? "—"} · {formatDateTime(post.created_at)}
           </Txt>
           <Txt variant="body">{post.content}</Txt>
-          {post.is_spoiler ? (
-            <Txt variant="micro">spoiler</Txt>
-          ) : null}
+          {post.is_spoiler ? <Txt variant="micro">spoiler</Txt> : null}
         </Card>
       ))}
 
       {cursor ? (
         <Button
-          title={loading ? t('loading_more') : t('load_more')}
+          title={loading ? t("loading_more") : t("load_more")}
           onPress={() => load(cursor)}
           variant="ghost"
           disabled={loading}
         />
       ) : null}
 
-      {status === 'authenticated' && thread && !thread.is_locked ? (
+      {status === "authenticated" && thread && !thread.is_locked ? (
         <Card>
           <Field
-            placeholder={t('forum_reply_placeholder', 'Write your reply…')}
+            placeholder={t("forum_reply_placeholder", "Write your reply…")}
             value={reply}
             onChangeText={setReply}
             multiline
-            style={{ minHeight: 80, textAlignVertical: 'top' }}
+            style={{ minHeight: 80, textAlignVertical: "top" }}
           />
           <Button
-            title={posting ? t('loading') : t('forum_reply_button', 'Reply')}
+            title={posting ? t("loading") : t("forum_reply_button", "Reply")}
             onPress={postReply}
             disabled={posting || !reply}
           />

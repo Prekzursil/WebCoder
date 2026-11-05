@@ -10,7 +10,8 @@ def is_moderator(user) -> bool:
         and user.is_authenticated
         and (
             user.is_staff
-            or getattr(user, "role", "") in (User.Roles.PROBLEM_VERIFIER, User.Roles.ADMIN)
+            or getattr(user, "role", "")
+            in (User.Roles.PROBLEM_VERIFIER, User.Roles.ADMIN)
         )
     )
 

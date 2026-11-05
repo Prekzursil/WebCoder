@@ -326,9 +326,7 @@ class CheckerProtocolV2Test(TestCase):
         self.assertIn("out of range", msg)
 
     def test_exit7_leading_blank_lines_tolerated(self):
-        verdict, fraction, _ = self._run(
-            returncode=7, stdout="\n\nPOINTS 0.25\n\n"
-        )
+        verdict, fraction, _ = self._run(returncode=7, stdout="\n\nPOINTS 0.25\n\n")
         self.assertEqual(verdict, _VERDICT_ACCEPTED)
         self.assertEqual(fraction, 0.25)
 
@@ -363,9 +361,7 @@ class CheckerProtocolV2Test(TestCase):
         with mock.patch.object(
             checkers, "run_compile_step", return_value=(True, "ok")
         ) as compile_mock:
-            ok, _msg, spec = checkers.compile_checker(
-                "int main(){}", "cpp17", self.dir
-            )
+            ok, _msg, spec = checkers.compile_checker("int main(){}", "cpp17", self.dir)
         self.assertTrue(ok)
         self.assertIsNotNone(spec)
         self.assertEqual(compile_mock.call_count, 1)
@@ -391,9 +387,7 @@ class CheckerProtocolV2Test(TestCase):
         self.assertIn("compile error", msg)
 
     def test_run_prepared_checker_accepts_precompiled_spec(self):
-        ok, _msg, spec = checkers.compile_checker(
-            "print('ok')", "python3", self.dir
-        )
+        ok, _msg, spec = checkers.compile_checker("print('ok')", "python3", self.dir)
         assert ok and spec is not None
         with mock.patch.object(
             checkers.subprocess, "run", return_value=_fake_completed(returncode=0)

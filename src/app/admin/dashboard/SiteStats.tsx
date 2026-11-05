@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { AdminService } from '@/services/ApiService';
-import LoadingSpinner from '@/components/common/LoadingSpinner';
-import type { AdminStatsResponse } from '@/types/api';
+import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { AdminService } from "@/services/ApiService";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
+import type { AdminStatsResponse } from "@/types/api";
 
 // Ported from frontend/webcoder_ui/src/pages/admin/SiteStats.tsx (CRA reference).
 // Not a route: embedded by the admin dashboard page (CRA AdminDashboardPage.tsx:67).
@@ -21,24 +21,24 @@ import type { AdminStatsResponse } from '@/types/api';
 //   identical to the reference.
 
 const cardStyle: React.CSSProperties = {
-  background: '#fff',
-  padding: '24px',
-  borderRadius: '8px',
-  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)',
+  background: "#fff",
+  padding: "24px",
+  borderRadius: "8px",
+  boxShadow: "0 1px 3px rgba(0, 0, 0, 0.12)",
 };
 
 const cardTitleStyle: React.CSSProperties = {
-  fontSize: '1.125rem',
+  fontSize: "1.125rem",
   fontWeight: 500,
-  color: 'var(--on-accent)',
+  color: "var(--on-accent)",
   margin: 0,
 };
 
 const cardValueStyle: React.CSSProperties = {
-  marginTop: '8px',
-  fontSize: '1.875rem',
+  marginTop: "8px",
+  fontSize: "1.875rem",
   fontWeight: 700,
-  color: 'var(--on-accent)',
+  color: "var(--on-accent)",
 };
 
 export default function SiteStats() {
@@ -52,7 +52,7 @@ export default function SiteStats() {
         const response = await AdminService.getStats();
         setStats(response);
       } catch {
-        setError('Failed to fetch site statistics.');
+        setError("Failed to fetch site statistics.");
       }
     };
 
@@ -60,7 +60,7 @@ export default function SiteStats() {
   }, []);
 
   if (error) {
-    return <div style={{ color: 'red' }}>{error}</div>;
+    return <div style={{ color: "red" }}>{error}</div>;
   }
 
   if (!stats) {
@@ -68,17 +68,23 @@ export default function SiteStats() {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+        gap: "16px",
+      }}
+    >
       <div style={cardStyle}>
-        <h3 style={cardTitleStyle}>{t('stats_total_users', 'Total Users')}</h3>
+        <h3 style={cardTitleStyle}>{t("stats_total_users", "Total Users")}</h3>
         <p style={cardValueStyle}>{stats.user_count}</p>
       </div>
       <div style={cardStyle}>
-        <h3 style={cardTitleStyle}>{t('stats_total_problems', 'Total Problems')}</h3>
+        <h3 style={cardTitleStyle}>{t("stats_total_problems", "Total Problems")}</h3>
         <p style={cardValueStyle}>{stats.problem_count}</p>
       </div>
       <div style={cardStyle}>
-        <h3 style={cardTitleStyle}>{t('stats_total_submissions', 'Total Submissions')}</h3>
+        <h3 style={cardTitleStyle}>{t("stats_total_submissions", "Total Submissions")}</h3>
         <p style={cardValueStyle}>{stats.submission_count}</p>
       </div>
     </div>

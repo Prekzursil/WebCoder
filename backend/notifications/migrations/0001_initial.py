@@ -6,33 +6,103 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('contenttypes', '0002_remove_content_type_name'),
+        ("contenttypes", "0002_remove_content_type_name"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Notification',
+            name="Notification",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('verb', models.CharField(choices=[('SUBMISSION_JUDGED', 'Submission judged'), ('THREAD_REPLY', 'Thread reply'), ('PROBLEM_APPROVED', 'Problem approved'), ('PROBLEM_REJECTED', 'Problem rejected'), ('SYSTEM', 'System')], max_length=20, verbose_name='verb')),
-                ('target_id', models.PositiveBigIntegerField(blank=True, null=True, verbose_name='target id')),
-                ('data', models.JSONField(blank=True, default=dict, verbose_name='data')),
-                ('read_at', models.DateTimeField(blank=True, null=True, verbose_name='read at')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
-                ('actor', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='actor_notifications', to=settings.AUTH_USER_MODEL, verbose_name='actor')),
-                ('recipient', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='notifications', to=settings.AUTH_USER_MODEL, verbose_name='recipient')),
-                ('target_ct', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='contenttypes.contenttype', verbose_name='target content type')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "verb",
+                    models.CharField(
+                        choices=[
+                            ("SUBMISSION_JUDGED", "Submission judged"),
+                            ("THREAD_REPLY", "Thread reply"),
+                            ("PROBLEM_APPROVED", "Problem approved"),
+                            ("PROBLEM_REJECTED", "Problem rejected"),
+                            ("SYSTEM", "System"),
+                        ],
+                        max_length=20,
+                        verbose_name="verb",
+                    ),
+                ),
+                (
+                    "target_id",
+                    models.PositiveBigIntegerField(
+                        blank=True, null=True, verbose_name="target id"
+                    ),
+                ),
+                (
+                    "data",
+                    models.JSONField(blank=True, default=dict, verbose_name="data"),
+                ),
+                (
+                    "read_at",
+                    models.DateTimeField(blank=True, null=True, verbose_name="read at"),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="created at"),
+                ),
+                (
+                    "actor",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="actor_notifications",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="actor",
+                    ),
+                ),
+                (
+                    "recipient",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="notifications",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="recipient",
+                    ),
+                ),
+                (
+                    "target_ct",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="contenttypes.contenttype",
+                        verbose_name="target content type",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'notification',
-                'verbose_name_plural': 'notifications',
-                'ordering': ['-created_at'],
-                'indexes': [models.Index(fields=['recipient', '-created_at'], name='notificatio_recipie_a972ce_idx'), models.Index(fields=['recipient', 'read_at'], name='notificatio_recipie_564b1f_idx')],
+                "verbose_name": "notification",
+                "verbose_name_plural": "notifications",
+                "ordering": ["-created_at"],
+                "indexes": [
+                    models.Index(
+                        fields=["recipient", "-created_at"],
+                        name="notificatio_recipie_a972ce_idx",
+                    ),
+                    models.Index(
+                        fields=["recipient", "read_at"],
+                        name="notificatio_recipie_564b1f_idx",
+                    ),
+                ],
             },
         ),
     ]

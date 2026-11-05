@@ -82,9 +82,7 @@ class AggregationTest(TestCase):
         _sub(self.alice, p1, Submission.VerdictStatus.ACCEPTED)
         _sub(self.alice, p2, Submission.VerdictStatus.ACCEPTED)
         recompute_all_leaderboards()
-        self.assertEqual(
-            LeaderboardEntry.objects.get(user=self.alice).total_points, 40
-        )
+        self.assertEqual(LeaderboardEntry.objects.get(user=self.alice).total_points, 40)
 
     def test_recompute_idempotent(self):
         p = _mk_problem()
@@ -106,9 +104,7 @@ class AggregationTest(TestCase):
         _sub(self.bob, p, Submission.VerdictStatus.WRONG_ANSWER)
         update_user_entry(self.alice.pk)
         update_user_entry(self.alice.pk)
-        self.assertEqual(
-            LeaderboardEntry.objects.filter(user=self.alice).count(), 1
-        )
+        self.assertEqual(LeaderboardEntry.objects.filter(user=self.alice).count(), 1)
         # bob was never recomputed -> no row yet; the full pass also omits
         # him (no solves), but the per-user recompute (what /me/ uses)
         # backfills totals for the success-rate column.
@@ -225,7 +221,7 @@ class JudgeTaskHookTest(TestCase):
         )
 
     def _judge(self, run_result):
-        from submissions.tasks import judge_submission_task
+        from submissions.tasks import judge_task
 
         with (
             mock.patch(
@@ -237,7 +233,7 @@ class JudgeTaskHookTest(TestCase):
                 return_value=run_result,
             ),
         ):
-            return judge_submission_task.run(self.sub.id)
+            return judge_task.run(self.sub.id)
 
     def test_ac_dispatches_update_on_commit(self):
         # output must match the seeded test case's expected_output ("o")
@@ -289,9 +285,7 @@ class CoverageClosureTest(TestCase):
     def test_leaderboard_entry_str(self):
         user = User.objects.create_user(username="cc-str", password="p")
         entry = LeaderboardEntry(user=user, total_points=42, solved_count=3)
-        self.assertEqual(
-            str(entry), f"LeaderboardEntry(user={user.id}, points=42)"
-        )
+        self.assertEqual(str(entry), f"LeaderboardEntry(user={user.id}, points=42)")
 
     def test_success_rate_zero_without_submissions(self):
         from leaderboard.serializers import LeaderboardEntrySerializer

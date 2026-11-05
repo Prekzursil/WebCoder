@@ -126,13 +126,11 @@ class ModelTests(ClassroomBase):
         membership = ClassMembership.objects.create(
             classroom=classroom, student=self.alice
         )
-        self.assertEqual(
-            str(membership), f"{self.alice.id}@{classroom.id}"
-        )
+        self.assertEqual(str(membership), f"{self.alice.id}@{classroom.id}")
         self.assertEqual(str(classroom), f"IX-A ({self.teacher.id})")
 
     def test_assignment_state_and_association(self):
-        problem = self.mk_problem("P")
+        self.mk_problem("P")
         assignment = Assignment(
             classroom=ClassRoom(name="X", teacher=self.teacher),
             title_i18n=_localized("T"),
@@ -246,9 +244,7 @@ class GridAndExportTests(ClassroomBase):
         self.assertNotIn((self.bob.id, self.problem_a.id), grid["cells"])
 
     def test_grid_pending_scores_count_as_zero(self):
-        self.mk_submission(
-            self.alice, self.problem_a, score=None, verdict="PENDING"
-        )
+        self.mk_submission(self.alice, self.problem_a, score=None, verdict="PENDING")
         grid = assignment_grid(self.assignment)
         cell = grid["cells"][(self.alice.id, self.problem_a.id)]
         self.assertEqual(cell["best_score"], 0)
@@ -347,9 +343,7 @@ class SerializerTests(ClassroomBase):
         self.assertTrue(s.is_valid(), s.errors)
         assignment = s.save()
         self.assertEqual(assignment.assignment_problems.count(), 2)
-        labels = list(
-            assignment.assignment_problems.values_list("label", flat=True)
-        )
+        labels = list(assignment.assignment_problems.values_list("label", flat=True))
         self.assertEqual(labels, ["A", "B"])
         self.assertEqual(
             assignment.assignment_problems.get(problem=problem_b).points, 55
@@ -377,9 +371,7 @@ class ApiTests(ClassroomBase):
         self.assignment = self.mk_assignment(
             classroom=self.classroom, problem=self.problem
         )
-        ClassMembership.objects.create(
-            classroom=self.classroom, student=self.alice
-        )
+        ClassMembership.objects.create(classroom=self.classroom, student=self.alice)
 
     def auth(self, user):
         self.client.force_authenticate(user=user)
@@ -392,7 +384,9 @@ class ApiTests(ClassroomBase):
             "school": "Liceul X",
             "join_password": "pw123",
         }
-        response = self.client.post("/api/v1/classroom/classes/", payload, format="json")
+        response = self.client.post(
+            "/api/v1/classroom/classes/", payload, format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
         classroom_id = response.data["id"]
         self.assertEqual(response.data["member_count"], 0)
@@ -463,9 +457,7 @@ class ApiTests(ClassroomBase):
 
     def test_delete_class(self):
         self.auth(self.teacher)
-        response = self.client.delete(
-            f"/api/v1/classroom/classes/{self.classroom.id}/"
-        )
+        response = self.client.delete(f"/api/v1/classroom/classes/{self.classroom.id}/")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_join_flow(self):
@@ -551,9 +543,7 @@ class ApiTests(ClassroomBase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Delete.
-        response = self.client.delete(
-            f"/api/v1/classroom/assignments/{new_id}/"
-        )
+        response = self.client.delete(f"/api/v1/classroom/assignments/{new_id}/")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_teacher_cannot_publish_into_foreign_classroom(self):
@@ -612,8 +602,8 @@ class ApiTests(ClassroomBase):
         }
         with self.captureOnCommitCallbacks(execute=True) as captured:
             response = self.client.post(
-            "/api/v1/classroom/assignments/", payload, format="json"
-        )
+                "/api/v1/classroom/assignments/", payload, format="json"
+            )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(captured)
         notification = Notification.objects.filter(

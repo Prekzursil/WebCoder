@@ -207,10 +207,10 @@ class Assignment(models.Model):
     def state(self, now=None) -> str:
         now = now or timezone.now()
         if now < self.available_from:
-            return self.State.SCHEDULED
+            return str(self.State.SCHEDULED)
         if now <= self.effective_due_at:
-            return self.State.OPEN
-        return self.State.CLOSED
+            return str(self.State.OPEN)
+        return str(self.State.CLOSED)
 
     def association(self, submission_time) -> str | None:
         """EDU-3 soft-expiry rule, verbatim.

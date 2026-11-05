@@ -3,9 +3,9 @@
 // The side-effect import below makes this file an external module — required
 // for `declare module` to AUGMENT the existing types instead of shadowing
 // them.
-import '@mui/material/styles';
+import "@mui/material/styles";
 
-declare module '@mui/material/styles' {
+declare module "@mui/material/styles" {
   interface TypographyVariants {
     pageTitle: {
       fontSize: string;
@@ -15,26 +15,26 @@ declare module '@mui/material/styles' {
     sectionLabel: {
       fontSize: string;
       fontWeight: number;
-      textTransform: 'uppercase';
+      textTransform: "uppercase";
       letterSpacing: string;
     } & React.CSSProperties;
     microLabel: {
       fontSize: string;
       fontWeight: number;
-      textTransform: 'uppercase';
+      textTransform: "uppercase";
       letterSpacing: string;
     } & React.CSSProperties;
   }
 
   interface TypographyVariantsOptions {
-    pageTitle?: TypographyVariants['pageTitle'];
-    sectionLabel?: TypographyVariants['sectionLabel'];
-    microLabel?: TypographyVariants['microLabel'];
+    pageTitle?: TypographyVariants["pageTitle"];
+    sectionLabel?: TypographyVariants["sectionLabel"];
+    microLabel?: TypographyVariants["microLabel"];
   }
 }
 
 // Allow the variants on <Typography variant="pageTitle"> as well.
-declare module '@mui/material/Typography/Typography' {
+declare module "@mui/material/Typography/Typography" {
   interface TypographyPropsVariantOverrides {
     pageTitle: true;
     sectionLabel: true;

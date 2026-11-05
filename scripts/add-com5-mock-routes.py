@@ -29,7 +29,9 @@ s = s.replace(anchor, helper, 1)
 # 2) COM-5 mock state after the OPS-2 state block.
 anchor = """const totpState = { secret: '', enabled: false };
 const apiTokenState = { key: null };"""
-addition = anchor + """
+addition = (
+    anchor
+    + """
 
 // COM-5 mock state: one live conversation (e2e_tester <-> admin_e2e) plus
 // the reporting/moderation flow's mutable pieces (reports queue, blocks,
@@ -64,6 +66,7 @@ const messagingState = {
     },
   ],
 };"""
+)
 assert anchor in s
 s = s.replace(anchor, addition, 1)
 

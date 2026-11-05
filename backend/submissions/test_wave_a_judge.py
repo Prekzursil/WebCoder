@@ -6,14 +6,14 @@ hints, file-I/O mode, and the scratch endpoint.
 
 from unittest import mock
 
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from rest_framework.test import APIClient
 
 from problems.models import Problem, TestCase as ProblemTestCase
-from problems.scoring import aggregate_score, full_score_for
+from problems.scoring import aggregate_score
 from scratch.models import ScratchRun
 from submissions.judge_utils.comparison import compare_outputs_detailed
-from submissions.judge_utils.languages import effective_limits, get_language
+from submissions.judge_utils.languages import effective_limits
 from submissions.models import Submission, SubmissionTestResult
 from submissions.tasks import judge_submission_task
 from users.models import User
@@ -22,6 +22,12 @@ TASKS = "submissions.tasks"
 SCRATCH = "scratch.views"
 
 CM = Problem.ComparisonMode
+# TextChoices members are str subclasses at runtime; without django-stubs
+# the checker sees the raw (value, label) tuples, so bind the values via
+# their runtime str form (identical comparisons/hashing/serialization).
+CM_TOKEN = str(CM.TOKEN)
+CM_EXACT = str(CM.EXACT)
+CM_LINES_STRIP_EXACT = str(CM.LINES_STRIP_EXACT)
 
 
 def _call(submission_id):
@@ -70,28 +76,30 @@ class ComparisonDetailedTest(TestCase):
     """J8: TOKEN mode, case-insensitivity, first-mismatch hints."""
 
     def test_token_mode_ignores_inner_whitespace(self):
-        ok, hint = compare_outputs_detailed("1  2\t3\n", "1 2 3\n", CM.TOKEN)
+        ok, hint = compare_outputs_detailed("1  2\t3\n", "1 2 3\n", CM_TOKEN)
         self.assertTrue(ok)
         self.assertIsNone(hint)
 
     def test_token_mode_detects_mismatch_with_line_hint(self):
-        ok, hint = compare_outputs_detailed("1 2\n3 9\n", "1 2\n3 4\n", CM.TOKEN)
+        ok, hint = compare_outputs_detailed("1 2\n3 9\n", "1 2\n3 4\n", CM_TOKEN)
         self.assertFalse(ok)
         self.assertIn("line 2", hint)
 
     def test_case_insensitive_exact(self):
-        ok, _ = compare_outputs_detailed("Da\n", "DA\n", CM.EXACT, case_insensitive=True)
+        ok, _ = compare_outputs_detailed(
+            "Da\n", "DA\n", CM_EXACT, case_insensitive=True
+        )
         self.assertTrue(ok)
-        ok, _ = compare_outputs_detailed("Da\n", "DA\n", CM.EXACT)
+        ok, _ = compare_outputs_detailed("Da\n", "DA\n", CM_EXACT)
         self.assertFalse(ok)
 
     def test_lines_strip_gives_line_hint(self):
-        ok, hint = compare_outputs_detailed("a\nb\n", "a\nc\n", CM.LINES_STRIP_EXACT)
+        ok, hint = compare_outputs_detailed("a\nb\n", "a\nc\n", CM_LINES_STRIP_EXACT)
         self.assertFalse(ok)
         self.assertIn("line 2", hint)
 
     def test_line_count_hint(self):
-        ok, hint = compare_outputs_detailed("1\n2\n", "1\n", CM.LINES_STRIP_EXACT)
+        ok, hint = compare_outputs_detailed("1\n2\n", "1\n", CM_LINES_STRIP_EXACT)
         self.assertFalse(ok)
         self.assertIn("expected 1 line(s), got 2", hint)
 
@@ -176,7 +184,7 @@ class JudgeTaskWaveATest(TestCase):
         self.problem = Problem.objects.create(
             title_i18n={"en": "P"},
             statement_i18n={"en": "S"},
-            comparison_mode=CM.EXACT,
+            comparison_mode=CM_EXACT,
         )
         self.tc = ProblemTestCase.objects.create(
             problem=self.problem,
@@ -224,8 +232,19 @@ class JudgeTaskWaveATest(TestCase):
         sub = self._sub()
         captured = {}
 
-        def fake_run(exe, lang, input_data, t, m, submission_dir, libs, io_files=None, banned_stdlib_modules=None):
+        def fake_run(
+            exe,
+            lang,
+            input_data,
+            t,
+            m,
+            submission_dir,
+            libs,
+            io_files=None,
+            banned_stdlib_modules=None,
+        ):
             captured["io_files"] = io_files
+            assert io_files is not None  # FILES-mode fake: always called with names
             in_path = submission_dir / io_files[0]
             captured["input_written"] = in_path.read_text()
             # The real execution.py reads the output file back and returns
@@ -270,7 +289,6 @@ class JudgeTaskWaveATest(TestCase):
         self.assertIn("outputs differ", result.error_output)
 
     def test_submission_serializer_exposes_max_score(self):
-        from submissions.serializers import SubmissionSerializer
 
         sub = self._sub()
         sub.verdict = Submission.VerdictStatus.ACCEPTED
@@ -517,9 +535,7 @@ class CheckerProtocolV2TaskTest(TestCase):
         self.assertEqual(sub.verdict, Submission.VerdictStatus.INTERNAL_ERROR)
         self.assertIn("syntax", sub.detailed_feedback)
         # No test rows were produced — the failure precedes the loop.
-        self.assertEqual(
-            SubmissionTestResult.objects.filter(submission=sub).count(), 0
-        )
+        self.assertEqual(SubmissionTestResult.objects.filter(submission=sub).count(), 0)
 
     def test_missing_checker_code_yields_per_test_ie(self):
         self.problem.checker_code = ""
@@ -540,9 +556,7 @@ class CheckerProtocolV2TaskTest(TestCase):
         sub.refresh_from_db()
         self.assertEqual(sub.verdict, Submission.VerdictStatus.INTERNAL_ERROR)
         c.assert_not_called()  # nothing to compile without checker source
-        self.assertEqual(
-            SubmissionTestResult.objects.filter(submission=sub).count(), 3
-        )
+        self.assertEqual(SubmissionTestResult.objects.filter(submission=sub).count(), 3)
 
 
 class AggregateScoreFractionTest(TestCase):
@@ -554,12 +568,18 @@ class AggregateScoreFractionTest(TestCase):
             statement_i18n={"en": "S"},
         )
         self.t1 = ProblemTestCase.objects.create(
-            problem=self.problem, input_data="a", expected_output_data="b",
-            points=10, order=0,
+            problem=self.problem,
+            input_data="a",
+            expected_output_data="b",
+            points=10,
+            order=0,
         )
         self.t2 = ProblemTestCase.objects.create(
-            problem=self.problem, input_data="a", expected_output_data="b",
-            points=10, order=1,
+            problem=self.problem,
+            input_data="a",
+            expected_output_data="b",
+            points=10,
+            order=1,
         )
 
     def test_partial_credit_sums_fractions(self):

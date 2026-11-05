@@ -18,7 +18,7 @@ from rest_framework.test import APIClient
 from users.models import User
 
 from .models import Submission
-from .tasks import judge_submission_task
+from .tasks import judge_task
 
 TASKS = "submissions.tasks"
 
@@ -70,7 +70,7 @@ def _project_json(say_text: str = "hi") -> str:
 
 
 def _call(submission_id):
-    return judge_submission_task.apply(args=[submission_id]).get()
+    return judge_task.apply(args=[submission_id]).get()
 
 
 class ScratchSubmitValidationTest(TestCase):
@@ -93,7 +93,11 @@ class ScratchSubmitValidationTest(TestCase):
         with mock.patch("submissions.views.judge_task") as task:
             resp = self.client.post(
                 "/api/v1/submissions/submit/",
-                {"problem": self.problem.id, "language": "scratch", "code": _project_json()},
+                {
+                    "problem": self.problem.id,
+                    "language": "scratch",
+                    "code": _project_json(),
+                },
                 format="json",
             )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
@@ -212,9 +216,7 @@ class ScratchJudgeTaskTest(TestCase):
                 f"{TASKS}.run_code_in_sandbox",
                 return_value=(Submission.VerdictStatus.ACCEPTED, 5, 100, "hi", ""),
             ),
-            mock.patch(
-                f"{TASKS}.compare_outputs_detailed", return_value=(True, None)
-            ),
+            mock.patch(f"{TASKS}.compare_outputs_detailed", return_value=(True, None)),
         ):
             compile_mock.return_value = (True, "ok", "/tmp/exe")
             msg = _call(sub.id)
@@ -299,9 +301,7 @@ class ScratchProblemSerializerTest(TestCase):
         self.assertTrue(ok, errors)
 
     def test_bad_engine_rejected(self):
-        ok, errors = self._check(
-            self._data(block_config={"engine": "scratchjr"})
-        )
+        ok, errors = self._check(self._data(block_config={"engine": "scratchjr"}))
         self.assertFalse(ok)
         self.assertIn("block_config", errors)
 

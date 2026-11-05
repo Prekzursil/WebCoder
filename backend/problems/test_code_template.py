@@ -13,7 +13,7 @@ from problems.code_template import (
 from problems.models import Problem
 from problems.serializers import ProblemSerializer
 from submissions.models import Submission
-from submissions.tasks import judge_submission_task
+from submissions.tasks import judge_task
 from users.models import User
 
 CPP_TEMPLATE = """#include <cstdio>
@@ -81,9 +81,13 @@ class ParseTemplateTests(TestCase):
             parse_template("int main() {}\n")
 
     def test_multiple_editable_regions_supported(self):
-        template = "a\nWC_EDIT_START\nb\nWC_EDIT_END\nc\nWC_EDIT_START\nd\nWC_EDIT_END\ne\n"
+        template = (
+            "a\nWC_EDIT_START\nb\nWC_EDIT_END\nc\nWC_EDIT_START\nd\nWC_EDIT_END\ne\n"
+        )
         segments = parse_template(template)
-        self.assertEqual([seg.locked for seg in segments], [True, False, True, False, True])
+        self.assertEqual(
+            [seg.locked for seg in segments], [True, False, True, False, True]
+        )
 
     def test_oversized_template_rejected(self):
         with self.assertRaises(TemplateError):
@@ -231,11 +235,9 @@ class JudgeTimeTemplateTests(TestCase):
             language="cpp17",
             code=CPP_SOLUTION.replace("scanf", "cin"),  # locked tamper
         )
-        judge_submission_task.run(submission.id)
+        judge_task.run(submission.id)
         submission.refresh_from_db()
-        self.assertEqual(
-            submission.verdict, Submission.VerdictStatus.COMPILE_ERROR
-        )
+        self.assertEqual(submission.verdict, Submission.VerdictStatus.COMPILE_ERROR)
         self.assertIn("Template integrity", submission.detailed_feedback)
 
 
@@ -314,7 +316,7 @@ class CoverageCompletenessTests(TestCase):
                 ),
             ),
         ):
-            judge_submission_task.run(submission.id)
+            judge_task.run(submission.id)
         submission.refresh_from_db()
         self.assertEqual(submission.verdict, Submission.VerdictStatus.ACCEPTED)
 

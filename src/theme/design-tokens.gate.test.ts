@@ -1,5 +1,5 @@
-import { execSync } from 'node:child_process';
-import { describe, expect, it } from 'vitest';
+import { execSync } from "node:child_process";
+import { describe, expect, it } from "vitest";
 
 // [SPEC-GAPS A2] Design-token drift gate: raw hex colors must not appear in
 // component/view TSX. Components use `var(--*)` (via globals.css) or import
@@ -15,18 +15,14 @@ import { describe, expect, it } from 'vitest';
 //   - src/theme/tokens.ts — the SSOT itself (must be .ts; kept out of the
 //     tsx grep anyway, listed here for documentation)
 
-const ALLOWED = [
-  'src/app/leaderboard/page.tsx',
-  'src/theme/tokens.ts',
-];
+const ALLOWED = ["src/app/leaderboard/page.tsx", "src/theme/tokens.ts"];
 
 function hexOffenders(): string[] {
   let out: string;
   try {
-    out = execSync(
-      'git grep -nE "#[0-9a-fA-F]{6}\\b" -- "src/**/*.tsx" "src/**/*.ts"',
-      { encoding: 'utf8' }
-    );
+    out = execSync('git grep -nE "#[0-9a-fA-F]{6}\\b" -- "src/**/*.tsx" "src/**/*.ts"', {
+      encoding: "utf8",
+    });
   } catch (err) {
     // git grep exits 1 on zero matches — that is the desired green state.
     const status = (err as { status?: number }).status;
@@ -34,24 +30,24 @@ function hexOffenders(): string[] {
     throw err;
   }
   return out
-    .split('\n')
+    .split("\n")
     .filter((line) => line.trim().length > 0)
     .filter((line) => {
-      const file = line.split(':')[0];
-      return !ALLOWED.includes(file) && !file.endsWith('.test.tsx') && !file.endsWith('.test.ts');
+      const file = line.split(":")[0];
+      return !ALLOWED.includes(file) && !file.endsWith(".test.tsx") && !file.endsWith(".test.ts");
     });
 }
 
-describe('design-token gate: no raw hex in components [A2]', () => {
-  it('reports no hardcoded hex colors outside the allowlist', { timeout: 30_000 }, () => {
+describe("design-token gate: no raw hex in components [A2]", () => {
+  it("reports no hardcoded hex colors outside the allowlist", { timeout: 30_000 }, () => {
     const offenders = hexOffenders();
     expect(
       offenders,
-      `Raw hex found (use var(--*) or '@/theme/tokens' instead):\n${offenders.join('\n')}`
+      `Raw hex found (use var(--*) or '@/theme/tokens' instead):\n${offenders.join("\n")}`,
     ).toEqual([]);
   });
 
-  it('keeps the allowlist free of hex too (shrink it when waves land)', { timeout: 30_000 }, () => {
+  it("keeps the allowlist free of hex too (shrink it when waves land)", { timeout: 30_000 }, () => {
     // Guard against the allowlist becoming a dumping ground: every allowlisted
     // file must genuinely still contain hex, otherwise remove it here.
     const stillDirty = ALLOWED.filter((file) => {
@@ -63,7 +59,7 @@ describe('design-token gate: no raw hex in components [A2]', () => {
         return false;
       }
     });
-    const stale = ALLOWED.filter((f) => !stillDirty.includes(f) && f !== 'src/theme/tokens.ts');
+    const stale = ALLOWED.filter((f) => !stillDirty.includes(f) && f !== "src/theme/tokens.ts");
     expect(stale, `allowlisted files with no hex left — remove from ALLOWED: ${stale}`).toEqual([]);
   });
 });

@@ -18,12 +18,12 @@
 // Everything is re-exported so existing `from './public-i18n'` imports keep
 // working.
 
-import { cookies } from 'next/headers';
-import { normalizeLocale, type PublicLocale } from './public-messages';
+import { cookies } from "next/headers";
+import { normalizeLocale, type PublicLocale } from "./public-messages";
 
-export * from './public-messages';
+export * from "./public-messages";
 
-const LOCALE_COOKIE_NAME = 'i18nextLng';
+const LOCALE_COOKIE_NAME = "i18nextLng";
 
 /** Resolve the render locale from the i18next cookie (default: English). */
 export async function getLocale(): Promise<PublicLocale> {

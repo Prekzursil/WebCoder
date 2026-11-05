@@ -18,56 +18,56 @@
 
 export const palette = {
   /** App background. */
-  bg: '#0f172a',
+  bg: "#0f172a",
   /** Card / panel background. */
-  surface: '#1e293b',
+  surface: "#1e293b",
   /** Raised surface (code blocks, inset wells, scrollbars). */
-  surface2: '#334155',
+  surface2: "#334155",
   /** Hairline border on dark surfaces. */
-  border: 'rgba(255, 255, 255, 0.08)',
+  border: "rgba(255, 255, 255, 0.08)",
   /** Emphasized border (hover states, ghost buttons). */
-  borderStrong: 'rgba(255, 255, 255, 0.12)',
+  borderStrong: "rgba(255, 255, 255, 0.12)",
 
   /** Primary text. */
-  foreground: '#f1f5f9',
+  foreground: "#f1f5f9",
   /** Statement / long-form body text. */
-  body: '#cbd5e1',
+  body: "#cbd5e1",
   /** Secondary text (labels, captions) — AA on surface. */
-  muted: '#94a3b8',
+  muted: "#94a3b8",
   /** Tertiary micro-label text — AA on surface. */
-  textTertiary: '#8b9cb6',
+  textTertiary: "#8b9cb6",
 
   /** Brand accent (links, primary actions, focus ring). */
-  accent: '#38bdf8',
-  accentHover: '#7dd3fc',
+  accent: "#38bdf8",
+  accentHover: "#7dd3fc",
   /** Ink used on accent-colored fills. */
-  onAccent: '#0f172a',
+  onAccent: "#0f172a",
 
-  danger: '#f87171',
-  success: '#4ade80',
-  warn: '#fbbf24',
+  danger: "#f87171",
+  success: "#4ade80",
+  warn: "#fbbf24",
   /** Tag / language-chip color. */
-  violet: '#a78bfa',
-  violetSoft: '#818cf8',
-  orange: '#fb923c',
-  pink: '#f472b6',
-  blue: '#3b82f6',
+  violet: "#a78bfa",
+  violetSoft: "#818cf8",
+  orange: "#fb923c",
+  pink: "#f472b6",
+  blue: "#3b82f6",
 
   /** Navbar logo / brand mark gradient. [SPEC-GAPS A2: dedicated token] */
-  brandGradient: 'linear-gradient(135deg, #38bdf8 0%, #818cf8 100%)',
+  brandGradient: "linear-gradient(135deg, #38bdf8 0%, #818cf8 100%)",
 } as const;
 
 /** RAT-3 rating-band colors (Wave B): mirrors backend
  * ratings/glicko.RATING_BANDS — the SSOT for handle colors everywhere
  * (UserChip on standings, the ratings ladder, leaderboards). */
 export const RATING_BAND_COLORS: { min: number; color: string }[] = [
-  { min: 2300, color: '#8b0000' },
-  { min: 2100, color: '#cc0000' },
-  { min: 1900, color: '#ff6600' },
-  { min: 1600, color: '#aa00aa' },
-  { min: 1400, color: '#0000ff' },
-  { min: 1200, color: '#008000' },
-  { min: 0, color: '#808080' },
+  { min: 2300, color: "#8b0000" },
+  { min: 2100, color: "#cc0000" },
+  { min: 1900, color: "#ff6600" },
+  { min: 1600, color: "#aa00aa" },
+  { min: 1400, color: "#0000ff" },
+  { min: 1200, color: "#008000" },
+  { min: 0, color: "#808080" },
 ];
 
 export const fontFamily = {
@@ -78,28 +78,28 @@ export const fontFamily = {
 /** Shared type ramp — end of copy-pasted ad-hoc page titles. [SPEC-GAPS A12] */
 export const typeRamp = {
   pageTitle: {
-    fontSize: '1.75rem',
+    fontSize: "1.75rem",
     fontWeight: 800,
-    letterSpacing: '-0.03em',
+    letterSpacing: "-0.03em",
   },
   sectionTitle: {
-    fontSize: '1.25rem',
+    fontSize: "1.25rem",
     fontWeight: 800,
-    letterSpacing: '-0.02em',
+    letterSpacing: "-0.02em",
   },
   /** Uppercase card section headers ("PROBLEM STATEMENT"). */
   sectionLabel: {
-    fontSize: '0.8rem',
+    fontSize: "0.8rem",
     fontWeight: 700,
-    textTransform: 'uppercase',
-    letterSpacing: '0.07em',
+    textTransform: "uppercase",
+    letterSpacing: "0.07em",
   },
   /** Tiny uppercase stat labels ("TIME LIMIT"). */
   microLabel: {
-    fontSize: '0.7rem',
+    fontSize: "0.7rem",
     fontWeight: 600,
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
+    textTransform: "uppercase",
+    letterSpacing: "0.05em",
   },
 } as const;
 
@@ -127,31 +127,31 @@ export const space = {
  * asserts globals.css declares exactly these names with exactly these values.
  */
 export const cssVars: Record<string, string> = {
-  '--background': palette.bg,
-  '--foreground': palette.foreground,
-  '--surface': palette.surface,
-  '--surface-2': palette.surface2,
-  '--border': palette.border,
-  '--border-strong': palette.borderStrong,
-  '--body': palette.body,
-  '--muted': palette.muted,
-  '--text-tertiary': palette.textTertiary,
-  '--accent': palette.accent,
-  '--accent-hover': palette.accentHover,
-  '--on-accent': palette.onAccent,
-  '--danger': palette.danger,
-  '--success': palette.success,
-  '--warn': palette.warn,
-  '--violet': palette.violet,
-  '--orange': palette.orange,
-  '--pink': palette.pink,
-  '--blue': palette.blue,
-  '--brand-gradient': palette.brandGradient,
-  '--font-sans': fontFamily.sans,
-  '--font-mono': fontFamily.mono,
-  '--radius-sm': `${radius.sm}px`,
-  '--radius-md': `${radius.md}px`,
-  '--radius-lg': `${radius.lg}px`,
+  "--background": palette.bg,
+  "--foreground": palette.foreground,
+  "--surface": palette.surface,
+  "--surface-2": palette.surface2,
+  "--border": palette.border,
+  "--border-strong": palette.borderStrong,
+  "--body": palette.body,
+  "--muted": palette.muted,
+  "--text-tertiary": palette.textTertiary,
+  "--accent": palette.accent,
+  "--accent-hover": palette.accentHover,
+  "--on-accent": palette.onAccent,
+  "--danger": palette.danger,
+  "--success": palette.success,
+  "--warn": palette.warn,
+  "--violet": palette.violet,
+  "--orange": palette.orange,
+  "--pink": palette.pink,
+  "--blue": palette.blue,
+  "--brand-gradient": palette.brandGradient,
+  "--font-sans": fontFamily.sans,
+  "--font-mono": fontFamily.mono,
+  "--radius-sm": `${radius.sm}px`,
+  "--radius-md": `${radius.md}px`,
+  "--radius-lg": `${radius.lg}px`,
 };
 
 /** Append an alpha channel to a #rrggbb token: hexAlpha('#38bdf8', 0.12) → '#38bdf81f'. */
@@ -160,5 +160,5 @@ export function hexAlpha(hex: string, alpha: number): string {
     throw new Error(`hexAlpha expects a #rrggbb token, got: ${hex}`);
   }
   const a = Math.round(Math.min(Math.max(alpha, 0), 1) * 255);
-  return `${hex}${a.toString(16).padStart(2, '0')}`;
+  return `${hex}${a.toString(16).padStart(2, "0")}`;
 }

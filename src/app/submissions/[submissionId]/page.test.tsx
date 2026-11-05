@@ -1,8 +1,8 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, act, cleanup, fireEvent } from '@testing-library/react';
-import i18n from '@/i18n';
-import type { DetailedSubmissionType, SubmissionTestResultType } from '@/types';
-import SubmissionDetailPage from './page';
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, act, cleanup, fireEvent } from "@testing-library/react";
+import i18n from "@/i18n";
+import type { DetailedSubmissionType, SubmissionTestResultType } from "@/types";
+import SubmissionDetailPage from "./page";
 
 // Page tests for the /submissions/[submissionId] port (restyled to the card
 // language in the appearance wave — same behavior matrix, new DOM):
@@ -17,30 +17,30 @@ import SubmissionDetailPage from './page';
 const mocks = vi.hoisted(() => ({
   auth: {
     isAuthenticated: true,
-    token: 'test-access-token' as string | null,
+    token: "test-access-token" as string | null,
     user: {
       id: 1,
-      username: 'tester',
-      email: 'tester@example.com',
-      role: 'BASIC_USER',
+      username: "tester",
+      email: "tester@example.com",
+      role: "BASIC_USER",
     } as object | null,
     login: vi.fn(),
     logout: vi.fn(),
   },
-  params: { submissionId: '42' } as Record<string, string>,
+  params: { submissionId: "42" } as Record<string, string>,
   getSubmissionDetail: vi.fn(),
 }));
 
-vi.mock('@/context/AuthContext', () => ({
+vi.mock("@/context/AuthContext", () => ({
   useAuth: () => mocks.auth,
 }));
 
-vi.mock('@/services/ApiService', () => ({
+vi.mock("@/services/ApiService", () => ({
   SubmissionService: { getSubmissionDetail: mocks.getSubmissionDetail },
 }));
 
-vi.mock('next/navigation', () => ({
-  usePathname: () => '/submissions/42',
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/submissions/42",
   useParams: () => mocks.params,
   useRouter: () => ({
     push: vi.fn(),
@@ -52,7 +52,7 @@ vi.mock('next/navigation', () => ({
   }),
 }));
 
-vi.mock('react-syntax-highlighter', () => ({
+vi.mock("react-syntax-highlighter", () => ({
   Prism: (props: { language?: string; children?: React.ReactNode }) => (
     <pre data-testid="code-block" data-language={props.language}>
       {props.children}
@@ -60,93 +60,100 @@ vi.mock('react-syntax-highlighter', () => ({
   ),
 }));
 
-vi.mock('react-syntax-highlighter/dist/cjs/styles/prism', () => ({
+vi.mock("react-syntax-highlighter/dist/cjs/styles/prism", () => ({
   vscDarkPlus: {},
 }));
 
 const baseDetail = (over: Partial<DetailedSubmissionType> = {}): DetailedSubmissionType => ({
   id: 42,
-  problem: { id: 7, title_i18n: { en: 'Problem One' } },
-  user: { username: 'alice', id: 2 },
-  language: 'python3',
-  verdict: 'AC',
-  submission_time: '2026-01-15T10:30:00Z',
+  problem: { id: 7, title_i18n: { en: "Problem One" } },
+  user: { username: "alice", id: 2 },
+  language: "python3",
+  verdict: "AC",
+  submission_time: "2026-01-15T10:30:00Z",
   score: 100,
   code: 'print("hi")',
   execution_time_ms: 120,
   memory_used_kb: 2048,
-  detailed_feedback: 'All good',
+  detailed_feedback: "All good",
   test_results: [],
   ...over,
 });
 
 function setAuth(over: Partial<typeof mocks.auth> = {}) {
   mocks.auth.isAuthenticated = true;
-  mocks.auth.token = 'test-access-token';
-  mocks.auth.user = { id: 1, username: 'tester', email: 'tester@example.com', role: 'BASIC_USER' };
+  mocks.auth.token = "test-access-token";
+  mocks.auth.user = { id: 1, username: "tester", email: "tester@example.com", role: "BASIC_USER" };
   Object.assign(mocks.auth, over);
 }
 
 const pollingBadge = () =>
   screen.queryAllByText(
-    (_, el) => !!el && el.tagName === 'SPAN' && (el.textContent ?? '').includes('Polling for updates')
+    (_, el) =>
+      !!el && el.tagName === "SPAN" && (el.textContent ?? "").includes("Polling for updates"),
   );
 
-const norm = (s: string | null | undefined) => (s ?? '').replace(/\s+/g, ' ').trim();
+const norm = (s: string | null | undefined) => (s ?? "").replace(/\s+/g, " ").trim();
 
 const findPre = (content: string) =>
-  typeof window !== 'undefined'
-    ? Array.from(document.querySelectorAll('pre')).find((el) => norm(el.textContent) === content)
+  typeof window !== "undefined"
+    ? Array.from(document.querySelectorAll("pre")).find((el) => norm(el.textContent) === content)
     : undefined;
 
 beforeEach(async () => {
   vi.clearAllMocks();
   setAuth();
-  mocks.params = { submissionId: '42' };
-  if (typeof window !== 'undefined') localStorage.clear();
-  await i18n.changeLanguage('en');
+  mocks.params = { submissionId: "42" };
+  if (typeof window !== "undefined") localStorage.clear();
+  await i18n.changeLanguage("en");
   mocks.getSubmissionDetail.mockResolvedValue(baseDetail());
 });
 
 // vitest runs without globals, so RTL cannot register its auto-cleanup.
 afterEach(cleanup);
 
-describe('SubmissionDetailPage', () => {
-  it('requires auth: shows the error with a back link and never fetches when signed out', async () => {
+describe("SubmissionDetailPage", () => {
+  it("requires auth: shows the error with a back link and never fetches when signed out", async () => {
     setAuth({ isAuthenticated: false });
     render(<SubmissionDetailPage />);
-    const el = await screen.findByText('Authentication required to view submission details.');
+    const el = await screen.findByText("Authentication required to view submission details.");
     expect(el).toBeInTheDocument();
     // The dead-end fix: a way back, and no retry when signed out.
-    expect(screen.getByRole('link', { name: 'Back to My Submissions' })).toHaveAttribute('href', '/my-submissions');
-    expect(screen.queryByRole('button', { name: 'Try Again' })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Back to My Submissions" })).toHaveAttribute(
+      "href",
+      "/my-submissions",
+    );
+    expect(screen.queryByRole("button", { name: "Try Again" })).not.toBeInTheDocument();
     expect(mocks.getSubmissionDetail).not.toHaveBeenCalled();
   });
 
-  it('keeps showing the spinner when the route param is missing but signed in', async () => {
+  it("keeps showing the spinner when the route param is missing but signed in", async () => {
     mocks.params = {};
     render(<SubmissionDetailPage />);
     await act(async () => {});
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(screen.getByText("Loading...")).toBeInTheDocument();
     expect(mocks.getSubmissionDetail).not.toHaveBeenCalled();
   });
 
-  it('shows the loading spinner while the first fetch is in flight', async () => {
+  it("shows the loading spinner while the first fetch is in flight", async () => {
     mocks.getSubmissionDetail.mockReturnValue(new Promise(() => {}));
     render(<SubmissionDetailPage />);
     await act(async () => {});
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
-    expect(screen.queryByText('Submission not found.')).not.toBeInTheDocument();
+    expect(screen.getByText("Loading...")).toBeInTheDocument();
+    expect(screen.queryByText("Submission not found.")).not.toBeInTheDocument();
   });
 
-  it('renders the fetch error with back link + working retry when the detail request fails', async () => {
-    mocks.getSubmissionDetail.mockRejectedValueOnce(new Error('Boom'));
+  it("renders the fetch error with back link + working retry when the detail request fails", async () => {
+    mocks.getSubmissionDetail.mockRejectedValueOnce(new Error("Boom"));
     render(<SubmissionDetailPage />);
     expect(await screen.findByText(/Boom/)).toBeInTheDocument();
 
-    expect(screen.getByRole('link', { name: 'Back to My Submissions' })).toHaveAttribute('href', '/my-submissions');
-    const retry = screen.getByRole('button', { name: 'Try Again' });
-    mocks.getSubmissionDetail.mockRejectedValueOnce(new Error('Boom 2'));
+    expect(screen.getByRole("link", { name: "Back to My Submissions" })).toHaveAttribute(
+      "href",
+      "/my-submissions",
+    );
+    const retry = screen.getByRole("button", { name: "Try Again" });
+    mocks.getSubmissionDetail.mockRejectedValueOnce(new Error("Boom 2"));
     await act(async () => {
       fireEvent.click(retry);
     });
@@ -154,90 +161,95 @@ describe('SubmissionDetailPage', () => {
     expect(await screen.findByText(/Boom 2/)).toBeInTheDocument();
   });
 
-  it('falls back to the default error text when the error has no message', async () => {
-    mocks.getSubmissionDetail.mockRejectedValue(new Error(''));
+  it("falls back to the default error text when the error has no message", async () => {
+    mocks.getSubmissionDetail.mockRejectedValue(new Error(""));
     render(<SubmissionDetailPage />);
-    await screen.findByText('Failed to load submission details.');
+    await screen.findByText("Failed to load submission details.");
   });
 
   it('renders "Submission not found." when the API resolves with no data', async () => {
     mocks.getSubmissionDetail.mockResolvedValue(null);
     render(<SubmissionDetailPage />);
-    await screen.findByText('Submission not found.');
-    expect(mocks.getSubmissionDetail).toHaveBeenCalledWith('42');
+    await screen.findByText("Submission not found.");
+    expect(mocks.getSubmissionDetail).toHaveBeenCalledWith("42");
   });
 
-  it('renders a full terminal (AC) submission', async () => {
+  it("renders a full terminal (AC) submission", async () => {
     render(<SubmissionDetailPage />);
-    await screen.findByText('Submission Detail #42');
+    await screen.findByText("Submission Detail #42");
 
     // No polling badge for a terminal verdict.
     expect(pollingBadge()).toHaveLength(0);
 
     // Verdict appears in the title pill and the meta cell.
-    expect(screen.getAllByText('AC', { selector: 'span' }).length).toBe(2);
+    expect(screen.getAllByText("AC", { selector: "span" }).length).toBe(2);
 
-    expect(screen.getByRole('link', { name: 'Problem One' })).toHaveAttribute('href', '/problems/7');
-    expect(screen.getByText('alice')).toBeInTheDocument();
-    expect(screen.getByText('python3')).toBeInTheDocument();
-    expect(screen.getByText('100')).toBeInTheDocument();
-    expect(screen.getByText('120 ms')).toBeInTheDocument();
-    expect(screen.getByText('2048 KB')).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Problem One" })).toHaveAttribute(
+      "href",
+      "/problems/7",
+    );
+    expect(screen.getByText("alice")).toBeInTheDocument();
+    expect(screen.getByText("python3")).toBeInTheDocument();
+    expect(screen.getByText("100")).toBeInTheDocument();
+    expect(screen.getByText("120 ms")).toBeInTheDocument();
+    expect(screen.getByText("2048 KB")).toBeInTheDocument();
 
     // Meta labels are rendered as uppercase micro-labels.
-    expect(screen.getByText('Execution Time (Overall)')).toBeInTheDocument();
-    expect(screen.getByText('Memory Used (Overall)')).toBeInTheDocument();
+    expect(screen.getByText("Execution Time (Overall)")).toBeInTheDocument();
+    expect(screen.getByText("Memory Used (Overall)")).toBeInTheDocument();
 
     // Code block with the mapped syntax language (python3 -> python) + copy.
-    const code = screen.getByTestId('code-block');
-    expect(code).toHaveAttribute('data-language', 'python');
+    const code = screen.getByTestId("code-block");
+    expect(code).toHaveAttribute("data-language", "python");
     expect(code).toHaveTextContent('print("hi")');
-    expect(screen.getByRole('button', { name: 'Copy code' })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Copy code" })).toBeInTheDocument();
     // Header back link (F20 dead-end fix).
-    expect(screen.getAllByRole('link', { name: 'Back to My Submissions' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("link", { name: "Back to My Submissions" }).length).toBeGreaterThan(
+      0,
+    );
 
     // Empty test_results -> no results header; feedback pre present.
-    expect(screen.queryByText('Test Case Results')).not.toBeInTheDocument();
-    expect(findPre('All good')).toBeDefined();
+    expect(screen.queryByText("Test Case Results")).not.toBeInTheDocument();
+    expect(findPre("All good")).toBeDefined();
   });
 
-  it('hides optional sections when fields are absent and maps unknown languages to plaintext', async () => {
+  it("hides optional sections when fields are absent and maps unknown languages to plaintext", async () => {
     mocks.getSubmissionDetail.mockResolvedValue(
       baseDetail({
         user: undefined,
-        language: 'ruby',
+        language: "ruby",
         score: null,
         execution_time_ms: null,
         memory_used_kb: null,
         detailed_feedback: undefined,
         test_results: undefined,
-      })
+      }),
     );
     render(<SubmissionDetailPage />);
-    await screen.findByText('Submission Detail #42');
+    await screen.findByText("Submission Detail #42");
 
-    expect(screen.queryByText('User', { exact: false })).not.toBeInTheDocument();
-    expect(screen.getByText('—')).toBeInTheDocument(); // null score
-    expect(screen.queryByText('Execution Time (Overall)')).not.toBeInTheDocument();
-    expect(screen.queryByText('Memory Used (Overall)')).not.toBeInTheDocument();
+    expect(screen.queryByText("User", { exact: false })).not.toBeInTheDocument();
+    expect(screen.getByText("—")).toBeInTheDocument(); // null score
+    expect(screen.queryByText("Execution Time (Overall)")).not.toBeInTheDocument();
+    expect(screen.queryByText("Memory Used (Overall)")).not.toBeInTheDocument();
     expect(screen.queryByText("Judge's Summary")).not.toBeInTheDocument();
-    expect(screen.queryByText('Test Case Results')).not.toBeInTheDocument();
-    expect(screen.getByTestId('code-block')).toHaveAttribute('data-language', 'plaintext');
+    expect(screen.queryByText("Test Case Results")).not.toBeInTheDocument();
+    expect(screen.getByTestId("code-block")).toHaveAttribute("data-language", "plaintext");
   });
 
-  it('maps cpp17 -> cpp for the syntax highlighter', async () => {
-    mocks.getSubmissionDetail.mockResolvedValue(baseDetail({ language: 'cpp17' }));
+  it("maps cpp17 -> cpp for the syntax highlighter", async () => {
+    mocks.getSubmissionDetail.mockResolvedValue(baseDetail({ language: "cpp17" }));
     render(<SubmissionDetailPage />);
-    await screen.findByText('Submission Detail #42');
-    expect(screen.getByTestId('code-block')).toHaveAttribute('data-language', 'cpp');
+    await screen.findByText("Submission Detail #42");
+    expect(screen.getByTestId("code-block")).toHaveAttribute("data-language", "cpp");
   });
 
-  it('renders test-case cards with verdict pills, sample chips, and conditional outputs', async () => {
+  it("renders test-case cards with verdict pills, sample chips, and conditional outputs", async () => {
     const tr = (over: Partial<SubmissionTestResultType>): SubmissionTestResultType =>
       ({
         id: 1,
         test_case_details: { id: 11, order: 1, is_sample: true, points: 10 },
-        verdict: 'WA',
+        verdict: "WA",
         execution_time_ms: 5,
         memory_used_kb: 512,
         actual_output: null,
@@ -247,118 +259,135 @@ describe('SubmissionDetailPage', () => {
 
     const results: SubmissionTestResultType[] = [
       // WA + long actual output -> shown, truncated to 200 chars with ellipsis.
-      tr({ id: 1, actual_output: 'x'.repeat(250) }),
+      tr({ id: 1, actual_output: "x".repeat(250) }),
       // RE + short actual output (no ellipsis) + long error output (truncated);
       // no order -> falls back to test-case id; null exec time / undefined memory.
       tr({
         id: 2,
         test_case_details: { id: 12, is_sample: false, points: 5 },
-        verdict: 'RE',
+        verdict: "RE",
         execution_time_ms: null,
         memory_used_kb: undefined,
-        actual_output: 'short',
-        error_output: 'e'.repeat(250),
+        actual_output: "short",
+        error_output: "e".repeat(250),
       }),
       // CE -> actual hidden, short error shown.
       tr({
         id: 3,
         test_case_details: { id: 13, order: 3, is_sample: false, points: 5 },
-        verdict: 'CE',
+        verdict: "CE",
         execution_time_ms: 7,
         memory_used_kb: 100,
-        actual_output: 'hidden-ce',
-        error_output: 'compile error short',
+        actual_output: "hidden-ce",
+        error_output: "compile error short",
       }),
       // IE -> error shown; null actual hidden.
       tr({
         id: 4,
         test_case_details: { id: 14, order: 4, is_sample: false, points: 2 },
-        verdict: 'IE',
+        verdict: "IE",
         execution_time_ms: 1,
         memory_used_kb: 3,
         actual_output: null,
-        error_output: 'ie-error',
+        error_output: "ie-error",
       }),
       // AC -> both outputs hidden despite being present; null memory hidden.
       tr({
         id: 5,
         test_case_details: { id: 15, order: 5, is_sample: false, points: 1 },
-        verdict: 'AC',
+        verdict: "AC",
         execution_time_ms: 2,
         memory_used_kb: null,
-        actual_output: 'ac-actual',
-        error_output: 'ac-error',
+        actual_output: "ac-actual",
+        error_output: "ac-error",
       }),
       // WA + undefined execution time (present-check second operand false).
-      tr({ id: 6, test_case_details: { id: 16, order: 6, is_sample: false, points: 1 }, execution_time_ms: undefined, memory_used_kb: 4 }),
+      tr({
+        id: 6,
+        test_case_details: { id: 16, order: 6, is_sample: false, points: 1 },
+        execution_time_ms: undefined,
+        memory_used_kb: 4,
+      }),
       // RE + null error output -> hidden.
-      tr({ id: 7, test_case_details: { id: 17, order: 7, is_sample: false, points: 1 }, verdict: 'RE', execution_time_ms: 9, memory_used_kb: 5, error_output: null }),
+      tr({
+        id: 7,
+        test_case_details: { id: 17, order: 7, is_sample: false, points: 1 },
+        verdict: "RE",
+        execution_time_ms: 9,
+        memory_used_kb: 5,
+        error_output: null,
+      }),
     ];
 
-    mocks.getSubmissionDetail.mockResolvedValue(baseDetail({ verdict: 'WA', language: 'cpp17', test_results: results }));
+    mocks.getSubmissionDetail.mockResolvedValue(
+      baseDetail({ verdict: "WA", language: "cpp17", test_results: results }),
+    );
     render(<SubmissionDetailPage />);
-    await screen.findByText('Test Case Results');
+    await screen.findByText("Test Case Results");
 
     // Card header: order number + sample chip + verdict pill.
-    expect(screen.getByText('Test Case #1')).toBeInTheDocument();
-    expect(screen.getByText('Sample', { selector: 'span' })).toBeInTheDocument();
+    expect(screen.getByText("Test Case #1")).toBeInTheDocument();
+    expect(screen.getByText("Sample", { selector: "span" })).toBeInTheDocument();
     // Verdict pills: header pill + one per test-case card (rows 1 & 6 are WA
     // by the tr() default; the tr default on row 5 was overridden to AC).
-    expect(screen.getAllByText('WA', { selector: 'span' }).length).toBe(4); // title pill + verdict meta + 2 WA cards
-    expect(screen.getAllByText('RE', { selector: 'span' }).length).toBe(2);
+    expect(screen.getAllByText("WA", { selector: "span" }).length).toBe(4); // title pill + verdict meta + 2 WA cards
+    expect(screen.getAllByText("RE", { selector: "span" }).length).toBe(2);
     // No order -> id fallback; not a sample.
-    expect(screen.getByText('Test Case #12')).toBeInTheDocument();
+    expect(screen.getByText("Test Case #12")).toBeInTheDocument();
 
     // Truncation behavior.
-    expect(findPre('x'.repeat(200) + '...')).toBeDefined();
-    expect(findPre('short')).toBeDefined();
-    expect(findPre('e'.repeat(200) + '...')).toBeDefined();
-    expect(findPre('compile error short')).toBeDefined();
-    expect(findPre('ie-error')).toBeDefined();
+    expect(findPre("x".repeat(200) + "...")).toBeDefined();
+    expect(findPre("short")).toBeDefined();
+    expect(findPre("e".repeat(200) + "...")).toBeDefined();
+    expect(findPre("compile error short")).toBeDefined();
+    expect(findPre("ie-error")).toBeDefined();
     // Hidden outputs never render.
-    expect(findPre('hidden-ce')).toBeUndefined();
-    expect(findPre('ac-actual')).toBeUndefined();
-    expect(findPre('ac-error')).toBeUndefined();
+    expect(findPre("hidden-ce")).toBeUndefined();
+    expect(findPre("ac-actual")).toBeUndefined();
+    expect(findPre("ac-error")).toBeUndefined();
 
     // Points + time/memory meta values.
-    expect(screen.getByText('10')).toBeInTheDocument();
-    expect(screen.getByText('5 ms')).toBeInTheDocument();
-    expect(screen.getByText('512 KB')).toBeInTheDocument();
+    expect(screen.getByText("10")).toBeInTheDocument();
+    expect(screen.getByText("5 ms")).toBeInTheDocument();
+    expect(screen.getByText("512 KB")).toBeInTheDocument();
     // Null/undefined time+memory are omitted (row 2 has none).
-    expect(screen.queryByText('undefined', { exact: false })).not.toBeInTheDocument();
+    expect(screen.queryByText("undefined", { exact: false })).not.toBeInTheDocument();
   });
 
-  it('falls back to the English problem title under the ro locale (java11 -> java)', async () => {
-    await i18n.changeLanguage('ro');
+  it("falls back to the English problem title under the ro locale (java11 -> java)", async () => {
+    await i18n.changeLanguage("ro");
     mocks.getSubmissionDetail.mockResolvedValue(
-      baseDetail({ problem: { id: 9, title_i18n: { en: 'English Only' } }, language: 'java11' })
+      baseDetail({ problem: { id: 9, title_i18n: { en: "English Only" } }, language: "java11" }),
     );
     const { unmount } = render(<SubmissionDetailPage />);
-    await screen.findByText('Detaliile Submisiei #42');
-    expect(screen.getByRole('link', { name: 'English Only' })).toHaveAttribute('href', '/problems/9');
-    expect(screen.getByTestId('code-block')).toHaveAttribute('data-language', 'java');
+    await screen.findByText("Detaliile Submisiei #42");
+    expect(screen.getByRole("link", { name: "English Only" })).toHaveAttribute(
+      "href",
+      "/problems/9",
+    );
+    expect(screen.getByTestId("code-block")).toHaveAttribute("data-language", "java");
     unmount();
 
     // Title map completely empty -> "ID: n" fallback.
     mocks.getSubmissionDetail.mockResolvedValue(baseDetail({ problem: { id: 9, title_i18n: {} } }));
     render(<SubmissionDetailPage />);
-    expect(await screen.findByRole('link', { name: 'ID: 9' })).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: "ID: 9" })).toBeInTheDocument();
   });
 
-  it('polls every 3s while PENDING and stops on a terminal verdict', async () => {
+  it("polls every 3s while PENDING and stops on a terminal verdict", async () => {
     vi.useFakeTimers();
     try {
       mocks.getSubmissionDetail
-        .mockResolvedValueOnce(baseDetail({ verdict: 'PENDING' }))
-        .mockResolvedValueOnce(baseDetail({ verdict: 'PENDING' }))
-        .mockResolvedValueOnce(baseDetail({ verdict: 'AC' }));
+        .mockResolvedValueOnce(baseDetail({ verdict: "PENDING" }))
+        .mockResolvedValueOnce(baseDetail({ verdict: "PENDING" }))
+        .mockResolvedValueOnce(baseDetail({ verdict: "AC" }));
       render(<SubmissionDetailPage />);
       await act(async () => {
         await vi.advanceTimersByTimeAsync(0);
       });
       expect(mocks.getSubmissionDetail).toHaveBeenCalledTimes(1);
       expect(pollingBadge()).toHaveLength(1);
-      expect(screen.queryByText('Loading...')).not.toBeInTheDocument(); // data already rendered
+      expect(screen.queryByText("Loading...")).not.toBeInTheDocument(); // data already rendered
 
       await act(async () => {
         await vi.advanceTimersByTimeAsync(3000);
@@ -381,12 +410,12 @@ describe('SubmissionDetailPage', () => {
     }
   });
 
-  it('starts and stops polling for a COMPILING verdict', async () => {
+  it("starts and stops polling for a COMPILING verdict", async () => {
     vi.useFakeTimers();
     try {
       mocks.getSubmissionDetail
-        .mockResolvedValueOnce(baseDetail({ verdict: 'COMPILING' }))
-        .mockResolvedValueOnce(baseDetail({ verdict: 'AC' }));
+        .mockResolvedValueOnce(baseDetail({ verdict: "COMPILING" }))
+        .mockResolvedValueOnce(baseDetail({ verdict: "AC" }));
       render(<SubmissionDetailPage />);
       await act(async () => {
         await vi.advanceTimersByTimeAsync(0);
@@ -402,12 +431,12 @@ describe('SubmissionDetailPage', () => {
     }
   });
 
-  it('starts and stops polling for a RUNNING verdict', async () => {
+  it("starts and stops polling for a RUNNING verdict", async () => {
     vi.useFakeTimers();
     try {
       mocks.getSubmissionDetail
-        .mockResolvedValueOnce(baseDetail({ verdict: 'RUNNING' }))
-        .mockResolvedValueOnce(baseDetail({ verdict: 'AC' }));
+        .mockResolvedValueOnce(baseDetail({ verdict: "RUNNING" }))
+        .mockResolvedValueOnce(baseDetail({ verdict: "AC" }));
       render(<SubmissionDetailPage />);
       await act(async () => {
         await vi.advanceTimersByTimeAsync(0);
@@ -423,12 +452,12 @@ describe('SubmissionDetailPage', () => {
     }
   });
 
-  it('stops polling and shows the orange note when a poll fails mid-flight', async () => {
+  it("stops polling and shows the orange note when a poll fails mid-flight", async () => {
     vi.useFakeTimers();
     try {
       mocks.getSubmissionDetail
-        .mockResolvedValueOnce(baseDetail({ verdict: 'RUNNING' }))
-        .mockRejectedValueOnce(new Error('judge exploded'));
+        .mockResolvedValueOnce(baseDetail({ verdict: "RUNNING" }))
+        .mockRejectedValueOnce(new Error("judge exploded"));
       render(<SubmissionDetailPage />);
       await act(async () => {
         await vi.advanceTimersByTimeAsync(0);
@@ -440,7 +469,7 @@ describe('SubmissionDetailPage', () => {
       });
       expect(mocks.getSubmissionDetail).toHaveBeenCalledTimes(2);
       expect(pollingBadge()).toHaveLength(0); // catch path stops polling
-      expect(screen.getByText('Note: judge exploded')).toBeInTheDocument();
+      expect(screen.getByText("Note: judge exploded")).toBeInTheDocument();
       // Submission data from the previous successful fetch is still rendered.
       expect(screen.getByText(/Submission Detail #42/)).toBeInTheDocument();
     } finally {

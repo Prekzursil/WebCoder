@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, ReactElement } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+import { useEffect, ReactElement } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 // Ported from frontend/webcoder_ui/src/components/common/ProtectedRoute.tsx (CRA reference).
 // Next.js adaptation: react-router's <Navigate> declarative redirect is
@@ -25,9 +25,9 @@ export default function ProtectedRoute({ children, roles = [] }: ProtectedRouteP
     // without the flag (older test mocks) hydrate instantly by convention.
     if (isHydrated === false) return;
     if (!user) {
-      router.replace('/login');
+      router.replace("/login");
     } else if (roles.length > 0 && !roles.includes(user.role)) {
-      router.replace('/');
+      router.replace("/");
     }
   }, [user, roles, router, isHydrated]);
 

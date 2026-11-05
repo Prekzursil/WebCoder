@@ -7,7 +7,7 @@ import ExamModeBanner from "@/components/common/ExamModeBanner";
 import "./globals.css";
 import { palette } from "@/theme/tokens";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://webcoder.momentstudio.ro';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://webcoder.momentstudio.ro";
 
 export const metadata: Metadata = {
   // OPS-6 (Wave D): the PWA manifest — installable app shell, offline
@@ -29,20 +29,23 @@ export const metadata: Metadata = {
     default: "WebCoder — Competitive Programming Platform",
     template: "%s | WebCoder",
   },
-  description: "WebCoder is an online judge and competitive programming platform. Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.",
+  description:
+    "WebCoder is an online judge and competitive programming platform. Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.",
   metadataBase: new URL(siteUrl),
   openGraph: {
-    type: 'website',
-    locale: 'en_US',
+    type: "website",
+    locale: "en_US",
     url: siteUrl,
-    siteName: 'WebCoder',
-    title: 'WebCoder — Competitive Programming Platform',
-    description: 'Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.',
+    siteName: "WebCoder",
+    title: "WebCoder — Competitive Programming Platform",
+    description:
+      "Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.",
   },
   twitter: {
-    card: 'summary_large_image',
-    title: 'WebCoder — Competitive Programming Platform',
-    description: 'Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.',
+    card: "summary_large_image",
+    title: "WebCoder — Competitive Programming Platform",
+    description:
+      "Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.",
   },
   alternates: {
     canonical: siteUrl,
@@ -75,42 +78,42 @@ export default async function RootLayout({
   const locale = await getLocale();
   const dir = localeDirection(locale);
   const schemaOrg = {
-    '@context': 'https://schema.org',
-    '@graph': [
+    "@context": "https://schema.org",
+    "@graph": [
       {
-        '@type': 'Organization',
-        '@id': `${siteUrl}/#organization`,
-        name: 'WebCoder',
+        "@type": "Organization",
+        "@id": `${siteUrl}/#organization`,
+        name: "WebCoder",
         url: siteUrl,
-        description: 'Online judge and competitive programming platform',
+        description: "Online judge and competitive programming platform",
       },
       {
-        '@type': 'WebSite',
-        '@id': `${siteUrl}/#website`,
+        "@type": "WebSite",
+        "@id": `${siteUrl}/#website`,
         url: siteUrl,
-        name: 'WebCoder',
-        publisher: { '@id': `${siteUrl}/#organization` },
+        name: "WebCoder",
+        publisher: { "@id": `${siteUrl}/#organization` },
         potentialAction: {
-          '@type': 'SearchAction',
+          "@type": "SearchAction",
           target: {
-            '@type': 'EntryPoint',
+            "@type": "EntryPoint",
             urlTemplate: `${siteUrl}/problems?q={search_term_string}`,
           },
-          'query-input': 'required name=search_term_string',
+          "query-input": "required name=search_term_string",
         },
       },
       {
-        '@type': 'SoftwareApplication',
-        '@id': `${siteUrl}/#app`,
-        name: 'WebCoder',
-        applicationCategory: 'EducationalApplication',
-        operatingSystem: 'Web',
+        "@type": "SoftwareApplication",
+        "@id": `${siteUrl}/#app`,
+        name: "WebCoder",
+        applicationCategory: "EducationalApplication",
+        operatingSystem: "Web",
         url: siteUrl,
-        description: 'Competitive programming online judge supporting Python 3, C++17, and Java 11',
+        description: "Competitive programming online judge supporting Python 3, C++17, and Java 11",
         offers: {
-          '@type': 'Offer',
-          price: '0',
-          priceCurrency: 'USD',
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "USD",
         },
       },
     ],
@@ -126,10 +129,12 @@ export default async function RootLayout({
           href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap"
           rel="stylesheet"
         />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaOrg) }}
-        />
+        <script type="application/ld+json">
+          {/* <script> is a raw-text element: a string child is inserted verbatim,
+        	    so the JSON-LD needs no dangerouslySetInnerHTML. `<` is escaped to
+        	    make a </script> breakout structurally impossible. */}
+          {JSON.stringify(schemaOrg).replace(/</g, "\\u003c")}
+        </script>
         {/* [SPEC-GAPS A15] third-party rocket.new analytics scripts removed —
             telemetry to an unrelated host, shipped on every page with no consent. */}
       </head>

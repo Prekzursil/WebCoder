@@ -39,15 +39,31 @@ PROPOSAL_FR = {
 }
 
 
-def _ok_transport(verdict="approve", confidence=0.93, notes="Faithful, fluent."):
-    content = (
-        '{"verdict": "%s", "confidence": %s, "notes": "%s"}' % (verdict, confidence, notes)
+def _ok_transport(
+    verdict="approve", confidence: float | str = 0.93, notes="Faithful, fluent."
+):
+    content = '{"verdict": "%s", "confidence": %s, "notes": "%s"}' % (
+        verdict,
+        confidence,
+        notes,
     )
 
     def transport(url, headers, payload, timeout_s):
         return {"choices": [{"message": {"content": content}}]}
 
     return transport
+
+
+def _config(env):
+    """CuratorConfig.from_env for envs that carry AI_CURATOR_URL.
+
+    from_env returns None only when the URL is absent; every caller
+    here passes one, so the bare assert narrows the Optional for the
+    checker and fails loudly if that contract ever drifts.
+    """
+    config = CuratorConfig.from_env(env)
+    assert config is not None
+    return config
 
 
 class CuratorConfigTests(TestCase):
@@ -57,7 +73,7 @@ class CuratorConfigTests(TestCase):
         self.assertIsNone(CuratorConfig.from_env({"AI_CURATOR_MODEL": "gpt-x"}))
 
     def test_config_from_env(self):
-        config = CuratorConfig.from_env(
+        config = _config(
             {
                 "AI_CURATOR_URL": "http://curator.local/v1/",
                 "AI_CURATOR_API_KEY": "sekrit",
@@ -73,27 +89,23 @@ class CuratorConfigTests(TestCase):
         self.assertTrue(config.auto_approve)
 
     def test_timeout_clamped_to_hard_ceiling(self):
-        config = CuratorConfig.from_env(
-            {"AI_CURATOR_URL": "u", "AI_CURATOR_TIMEOUT_S": "9999"}
-        )
+        config = _config({"AI_CURATOR_URL": "u", "AI_CURATOR_TIMEOUT_S": "9999"})
         self.assertEqual(config.timeout_s, 30.0)
 
     def test_bad_timeout_falls_back_to_default(self):
-        config = CuratorConfig.from_env(
-            {"AI_CURATOR_URL": "u", "AI_CURATOR_TIMEOUT_S": "soon"}
-        )
+        config = _config({"AI_CURATOR_URL": "u", "AI_CURATOR_TIMEOUT_S": "soon"})
         self.assertEqual(config.timeout_s, 10.0)
 
     def test_auto_approve_default_false(self):
-        config = CuratorConfig.from_env({"AI_CURATOR_URL": "u"})
+        config = _config({"AI_CURATOR_URL": "u"})
         self.assertFalse(config.auto_approve)
         self.assertFalse(
-            CuratorConfig.from_env(
+            _config(
                 {"AI_CURATOR_URL": "u", "AI_CURATOR_AUTO_APPROVE": "false"}
             ).auto_approve
         )
         self.assertTrue(
-            CuratorConfig.from_env(
+            _config(
                 {"AI_CURATOR_URL": "u", "AI_CURATOR_AUTO_APPROVE": "1"}
             ).auto_approve
         )
@@ -105,7 +117,9 @@ class CuratorConfigTests(TestCase):
 
 class ExtractJsonTests(TestCase):
     def test_plain_object(self):
-        self.assertEqual(_extract_json('{"verdict": "approve"}'), {"verdict": "approve"})
+        self.assertEqual(
+            _extract_json('{"verdict": "approve"}'), {"verdict": "approve"}
+        )
 
     def test_code_fenced(self):
         self.assertEqual(
@@ -126,8 +140,12 @@ class ExtractJsonTests(TestCase):
 
 class CuratorScreeningTests(TestCase):
     def _curator(self, transport, **env):
-        config = CuratorConfig.from_env(
-            {"AI_CURATOR_URL": "http://curator.local/v1", "AI_CURATOR_MODEL": "m", **env}
+        config = _config(
+            {
+                "AI_CURATOR_URL": "http://curator.local/v1",
+                "AI_CURATOR_MODEL": "m",
+                **env,
+            }
         )
         return OpenAICompatibleCurator(config, transport=transport)
 
@@ -157,9 +175,9 @@ class CuratorScreeningTests(TestCase):
         self.assertEqual(result.confidence, 0.0)
 
     def test_non_numeric_confidence_becomes_zero(self):
-        result = self._curator(
-            _ok_transport(confidence='"high"')
-        ).screen(problem_en=PROBLEM_EN, proposal=PROPOSAL_FR)
+        result = self._curator(_ok_transport(confidence='"high"')).screen(
+            problem_en=PROBLEM_EN, proposal=PROPOSAL_FR
+        )
         self.assertEqual(result.confidence, 0.0)
 
     def test_unknown_verdict_is_error_fail_open(self):
@@ -180,18 +198,22 @@ class CuratorScreeningTests(TestCase):
         def garbage(url, headers, payload, timeout_s):
             return {"choices": [{"message": {"content": "I cannot judge this."}}]}
 
-        result = self._curator(garbage).screen(problem_en=PROBLEM_EN, proposal=PROPOSAL_FR)
+        result = self._curator(garbage).screen(
+            problem_en=PROBLEM_EN, proposal=PROPOSAL_FR
+        )
         self.assertEqual(result.verdict, "error")
 
     def test_http_structure_mismatch_fails_open(self):
         def weird(url, headers, payload, timeout_s):
             return {"unexpected": True}
 
-        result = self._curator(weird).screen(problem_en=PROBLEM_EN, proposal=PROPOSAL_FR)
+        result = self._curator(weird).screen(
+            problem_en=PROBLEM_EN, proposal=PROPOSAL_FR
+        )
         self.assertEqual(result.verdict, "error")
 
     def test_missing_model_id_is_error(self):
-        config = CuratorConfig.from_env({"AI_CURATOR_URL": "http://x/v1"})
+        config = _config({"AI_CURATOR_URL": "http://x/v1"})
         curator = OpenAICompatibleCurator(config, transport=_ok_transport())
         result = curator.screen(problem_en=PROBLEM_EN, proposal=PROPOSAL_FR)
         self.assertEqual(result.verdict, "error")
@@ -202,7 +224,15 @@ class CuratorScreeningTests(TestCase):
 
         def recorder(url, headers, payload, timeout_s):
             seen.update(url=url, headers=headers, payload=payload, timeout_s=timeout_s)
-            return {"choices": [{"message": {"content": '{"verdict": "approve", "confidence": 1, "notes": "ok"}'}}]}
+            return {
+                "choices": [
+                    {
+                        "message": {
+                            "content": '{"verdict": "approve", "confidence": 1, "notes": "ok"}'
+                        }
+                    }
+                ]
+            }
 
         self._curator(recorder).screen(problem_en=PROBLEM_EN, proposal=PROPOSAL_FR)
         self.assertEqual(seen["url"], "http://curator.local/v1/chat/completions")
@@ -218,10 +248,22 @@ class CuratorScreeningTests(TestCase):
 
         def recorder(url, headers, payload, timeout_s):
             seen["headers"] = headers
-            return {"choices": [{"message": {"content": '{"verdict": "approve", "confidence": 1, "notes": "ok"}'}}]}
+            return {
+                "choices": [
+                    {
+                        "message": {
+                            "content": '{"verdict": "approve", "confidence": 1, "notes": "ok"}'
+                        }
+                    }
+                ]
+            }
 
-        config = CuratorConfig.from_env(
-            {"AI_CURATOR_URL": "http://x/v1", "AI_CURATOR_MODEL": "m", "AI_CURATOR_API_KEY": "k1"}
+        config = _config(
+            {
+                "AI_CURATOR_URL": "http://x/v1",
+                "AI_CURATOR_MODEL": "m",
+                "AI_CURATOR_API_KEY": "k1",
+            }
         )
         OpenAICompatibleCurator(config, transport=recorder).screen(
             problem_en=PROBLEM_EN, proposal=PROPOSAL_FR
@@ -235,11 +277,15 @@ class ProposeWithCuratorTests(TestCase):
     def setUp(self):
         self.alice = User.objects.create_user(username="alice", password="pw-12345678")
         self.verifier = User.objects.create_user(
-            username="verifier", password="pw-12345678", role=User.Roles.PROBLEM_VERIFIER
+            username="verifier",
+            password="pw-12345678",
+            role=User.Roles.PROBLEM_VERIFIER,
         )
         self.problem = Problem.objects.create(
             title_i18n={"en": "Two Sum"},
-            statement_i18n={"en": "Return indices of the two numbers adding up to target."},
+            statement_i18n={
+                "en": "Return indices of the two numbers adding up to target."
+            },
             status=Problem.ProblemStatus.APPROVED,
         )
         self.client = APIClient()
@@ -268,23 +314,31 @@ class ProposeWithCuratorTests(TestCase):
         with mock.patch.dict("os.environ", {}, clear=False):
             import os
 
-            saved = {k: os.environ.pop(k, None) for k in list(os.environ) if k.startswith("AI_CURATOR_")}
+            saved = {
+                k: os.environ.pop(k, None)
+                for k in list(os.environ)
+                if k.startswith("AI_CURATOR_")
+            }
             try:
                 response = self._propose()
             finally:
                 for k, v in saved.items():
                     if v is not None:
                         os.environ[k] = v
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        self.assertEqual(
+            response.status_code, status.HTTP_201_CREATED, response.content
+        )
         self.assertEqual(response.data["ai_verdict"], "")
 
     def test_high_confidence_pass_marked_but_needs_human(self):
         curator = OpenAICompatibleCurator(
-            CuratorConfig.from_env(self._env()), transport=_ok_transport()
+            _config(self._env()), transport=_ok_transport()
         )
         with mock.patch("translations.views.curator_from_env", return_value=curator):
             response = self._propose()
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        self.assertEqual(
+            response.status_code, status.HTTP_201_CREATED, response.content
+        )
         self.assertEqual(response.data["ai_verdict"], "approve")
         self.assertEqual(response.data["ai_confidence"], 0.93)
         # Default policy: humans confirm — still PENDING, problem untouched.
@@ -294,24 +348,28 @@ class ProposeWithCuratorTests(TestCase):
 
     def test_auto_approve_promotes_immediately(self):
         curator = OpenAICompatibleCurator(
-            CuratorConfig.from_env(self._env(AI_CURATOR_AUTO_APPROVE="true")),
+            _config(self._env(AI_CURATOR_AUTO_APPROVE="true")),
             transport=_ok_transport(),
         )
         with mock.patch("translations.views.curator_from_env", return_value=curator):
             response = self._propose()
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        self.assertEqual(
+            response.status_code, status.HTTP_201_CREATED, response.content
+        )
         self.assertEqual(response.data["status"], "APPROVED")
         self.problem.refresh_from_db()
         self.assertEqual(self.problem.title_i18n["fr"], "Somme de deux")
 
     def test_auto_approve_does_not_promote_flagged_results(self):
         curator = OpenAICompatibleCurator(
-            CuratorConfig.from_env(self._env(AI_CURATOR_AUTO_APPROVE="true")),
+            _config(self._env(AI_CURATOR_AUTO_APPROVE="true")),
             transport=_ok_transport(verdict="flag"),
         )
         with mock.patch("translations.views.curator_from_env", return_value=curator):
             response = self._propose()
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        self.assertEqual(
+            response.status_code, status.HTTP_201_CREATED, response.content
+        )
         self.assertEqual(response.data["status"], "PENDING")
         self.assertEqual(response.data["ai_verdict"], "flag")
         self.problem.refresh_from_db()
@@ -321,19 +379,19 @@ class ProposeWithCuratorTests(TestCase):
         def boom(url, headers, payload, timeout_s):
             raise ConnectionError("curator down")
 
-        curator = OpenAICompatibleCurator(
-            CuratorConfig.from_env(self._env()), transport=boom
-        )
+        curator = OpenAICompatibleCurator(_config(self._env()), transport=boom)
         with mock.patch("translations.views.curator_from_env", return_value=curator):
             response = self._propose()
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        self.assertEqual(
+            response.status_code, status.HTTP_201_CREATED, response.content
+        )
         self.assertEqual(response.data["status"], "PENDING")
         self.assertEqual(response.data["ai_verdict"], "error")
         self.assertIn("unavailable", response.data["ai_notes"])
 
     def test_flagged_proposal_can_still_be_human_approved(self):
         curator = OpenAICompatibleCurator(
-            CuratorConfig.from_env(self._env()), transport=_ok_transport(verdict="flag")
+            _config(self._env()), transport=_ok_transport(verdict="flag")
         )
         with mock.patch("translations.views.curator_from_env", return_value=curator):
             self._propose()

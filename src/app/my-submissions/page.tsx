@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import Link from 'next/link';
-import { useTranslation } from 'react-i18next';
-import { ProblemService, SubmissionService, collectAllPages } from '@/services/ApiService';
-import { cursorParamFromUrl } from '@/types/api';
-import { useAuth } from '@/context/AuthContext';
-import { ProblemType, SubmissionType } from '@/types';
-import LoadingSpinner from '@/components/common/LoadingSpinner';
-import ProtectedRoute from '@/components/common/ProtectedRoute';
-import TableScroll from '@/components/common/TableScroll';
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import Link from "next/link";
+import { useTranslation } from "react-i18next";
+import { ProblemService, SubmissionService, collectAllPages } from "@/services/ApiService";
+import { cursorParamFromUrl } from "@/types/api";
+import { useAuth } from "@/context/AuthContext";
+import { ProblemType, SubmissionType } from "@/types";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
+import ProtectedRoute from "@/components/common/ProtectedRoute";
+import TableScroll from "@/components/common/TableScroll";
 
 // Ported from frontend/webcoder_ui/src/pages/submissions/MySubmissionsPage.tsx
 // (CRA reference). Route mirrors react-router's /my-submissions (App.tsx:40),
@@ -42,11 +42,11 @@ function MySubmissionsPageContent() {
   const [error, setError] = useState<string | null>(null);
   const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
 
-  const [problemFilter, setProblemFilter] = useState<string>('');
-  const [languageFilter, setLanguageFilter] = useState<string>('');
+  const [problemFilter, setProblemFilter] = useState<string>("");
+  const [languageFilter, setLanguageFilter] = useState<string>("");
 
-  const [sortKey, setSortKey] = useState<string>('submission_time');
-  const [sortOrder, setSortOrder] = useState<string>('desc');
+  const [sortKey, setSortKey] = useState<string>("submission_time");
+  const [sortOrder, setSortOrder] = useState<string>("desc");
 
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage, setItemsPerPage] = useState<number>(10);
@@ -64,7 +64,7 @@ function MySubmissionsPageContent() {
       .then((problems: ProblemType[]) => {
         if (!cancelled) setProblemsForFilter(problems);
       })
-      .catch((err) => console.error('Failed to load problems for filter', err));
+      .catch((err) => console.error("Failed to load problems for filter", err));
     return () => {
       cancelled = true;
     };
@@ -85,13 +85,19 @@ function MySubmissionsPageContent() {
         }
 
         try {
-          const response = await SubmissionService.getSubmissions(filters, { pageSize: SUBMISSIONS_PAGE_SIZE });
+          const response = await SubmissionService.getSubmissions(filters, {
+            pageSize: SUBMISSIONS_PAGE_SIZE,
+          });
           setSubmissions(response.results);
           nextCursorRef.current = cursorParamFromUrl(response.next);
           setMoreAvailable(Boolean(nextCursorRef.current));
           setCurrentPage(1); // Reset to first page on new filter/fetch
         } catch (err) {
-          setError(err instanceof Error && err.message ? err.message : t('error_loading_submissions', 'Failed to load submissions.'));
+          setError(
+            err instanceof Error && err.message
+              ? err.message
+              : t("error_loading_submissions", "Failed to load submissions."),
+          );
         } finally {
           setLoading(false);
         }
@@ -100,7 +106,7 @@ function MySubmissionsPageContent() {
     } else {
       setLoading(false);
       setSubmissions([]);
-      setError(t('please_login_to_view_submissions', 'Please login to view submissions.'));
+      setError(t("please_login_to_view_submissions", "Please login to view submissions."));
     }
   }, [auth.isAuthenticated, auth.user, t, problemFilter, languageFilter]);
 
@@ -117,7 +123,10 @@ function MySubmissionsPageContent() {
       filters.language = languageFilter.trim();
     }
     try {
-      const response = await SubmissionService.getSubmissions(filters, { cursor, pageSize: SUBMISSIONS_PAGE_SIZE });
+      const response = await SubmissionService.getSubmissions(filters, {
+        cursor,
+        pageSize: SUBMISSIONS_PAGE_SIZE,
+      });
       setSubmissions((prev) => {
         const seen = new Set(prev.map((s) => s.id));
         return [...prev, ...response.results.filter((s) => !seen.has(s.id))];
@@ -125,7 +134,11 @@ function MySubmissionsPageContent() {
       nextCursorRef.current = cursorParamFromUrl(response.next);
       setMoreAvailable(Boolean(nextCursorRef.current));
     } catch (err) {
-      setLoadMoreError(err instanceof Error && err.message ? err.message : t('error_loading_submissions', 'Failed to load submissions.'));
+      setLoadMoreError(
+        err instanceof Error && err.message
+          ? err.message
+          : t("error_loading_submissions", "Failed to load submissions."),
+      );
     } finally {
       setLoadingMore(false);
     }
@@ -134,23 +147,23 @@ function MySubmissionsPageContent() {
   const sortedSubmissions = useMemo(() => {
     const sorted = [...submissions];
     sorted.sort((a, b) => {
-      const key = sortKey as 'submission_time' | 'score' | 'language' | 'verdict';
+      const key = sortKey as "submission_time" | "score" | "language" | "verdict";
       let valA: string | number;
       let valB: string | number;
 
-      if (sortKey === 'submission_time') {
+      if (sortKey === "submission_time") {
         valA = new Date(a[key] as string).getTime();
         valB = new Date(b[key] as string).getTime();
-      } else if (sortKey === 'score') {
+      } else if (sortKey === "score") {
         valA = a[key] ?? -Infinity;
         valB = b[key] ?? -Infinity;
       } else {
-        valA = a[key] ?? '';
-        valB = b[key] ?? '';
+        valA = a[key] ?? "";
+        valB = b[key] ?? "";
       }
 
-      if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
-      if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+      if (valA < valB) return sortOrder === "asc" ? -1 : 1;
+      if (valA > valB) return sortOrder === "asc" ? 1 : -1;
       return 0;
     });
     return sorted;
@@ -170,23 +183,35 @@ function MySubmissionsPageContent() {
   if (!auth.isAuthenticated)
     return (
       <p>
-        {t('please_login_to_view_submissions', 'Please login to view submissions.')}{' '}
-        <Link href="/login">{t('nav_login', 'Login')}</Link>
+        {t("please_login_to_view_submissions", "Please login to view submissions.")}{" "}
+        <Link href="/login">{t("nav_login", "Login")}</Link>
       </p>
     );
   if (loading) return <LoadingSpinner />;
-  if (error) return <p style={{ color: 'red' }}>{error}</p>;
+  if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
     <div>
-      <h2>{t('my_submissions_header', 'My Submissions')}</h2>
-      <div style={{ marginBottom: '20px', display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'center' }}>
+      <h2>{t("my_submissions_header", "My Submissions")}</h2>
+      <div
+        style={{
+          marginBottom: "20px",
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "15px",
+          alignItems: "center",
+        }}
+      >
         <div>
-          <label htmlFor="problemFilter" style={{ marginRight: '5px' }}>
-            {t('filter_by_problem_label', 'Filter by Problem:')}
+          <label htmlFor="problemFilter" style={{ marginRight: "5px" }}>
+            {t("filter_by_problem_label", "Filter by Problem:")}
           </label>
-          <select id="problemFilter" value={problemFilter} onChange={(e) => setProblemFilter(e.target.value)}>
-            <option value="">{t('all_problems_option', 'All Problems')}</option>
+          <select
+            id="problemFilter"
+            value={problemFilter}
+            onChange={(e) => setProblemFilter(e.target.value)}
+          >
+            <option value="">{t("all_problems_option", "All Problems")}</option>
             {problemsForFilter.map((p: ProblemType) => (
               <option key={p.id} value={p.id.toString()}>
                 {p.title_i18n[i18n.language] || p.title_i18n.en || `ID: ${p.id}`}
@@ -195,40 +220,40 @@ function MySubmissionsPageContent() {
           </select>
         </div>
         <div>
-          <label htmlFor="languageFilter" style={{ marginRight: '5px' }}>
-            {t('filter_by_language_label', 'Filter by Language:')}
+          <label htmlFor="languageFilter" style={{ marginRight: "5px" }}>
+            {t("filter_by_language_label", "Filter by Language:")}
           </label>
           <input
             type="text"
             id="languageFilter"
             value={languageFilter}
             onChange={(e) => setLanguageFilter(e.target.value)}
-            placeholder={t('language_filter_placeholder', 'e.g., python3')}
+            placeholder={t("language_filter_placeholder", "e.g., python3")}
           />
         </div>
         <div>
-          <label htmlFor="sortKey" style={{ marginRight: '5px' }}>
-            {t('sort_by_label', 'Sort by:')}
+          <label htmlFor="sortKey" style={{ marginRight: "5px" }}>
+            {t("sort_by_label", "Sort by:")}
           </label>
           <select id="sortKey" value={sortKey} onChange={(e) => setSortKey(e.target.value)}>
-            <option value="submission_time">{t('sort_option_time', 'Time')}</option>
-            <option value="score">{t('sort_option_score', 'Score')}</option>
-            <option value="language">{t('sort_option_language', 'Language')}</option>
-            <option value="verdict">{t('sort_option_verdict', 'Verdict')}</option>
+            <option value="submission_time">{t("sort_option_time", "Time")}</option>
+            <option value="score">{t("sort_option_score", "Score")}</option>
+            <option value="language">{t("sort_option_language", "Language")}</option>
+            <option value="verdict">{t("sort_option_verdict", "Verdict")}</option>
           </select>
         </div>
         <div>
-          <label htmlFor="sortOrder" style={{ marginRight: '5px' }}>
-            {t('sort_order_label', 'Order:')}
+          <label htmlFor="sortOrder" style={{ marginRight: "5px" }}>
+            {t("sort_order_label", "Order:")}
           </label>
           <select id="sortOrder" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
-            <option value="asc">{t('sort_order_asc', 'Ascending')}</option>
-            <option value="desc">{t('sort_order_desc', 'Descending')}</option>
+            <option value="asc">{t("sort_order_asc", "Ascending")}</option>
+            <option value="desc">{t("sort_order_desc", "Descending")}</option>
           </select>
         </div>
         <div>
-          <label htmlFor="itemsPerPage" style={{ marginRight: '5px' }}>
-            {t('items_per_page_label', 'Items per page:')}
+          <label htmlFor="itemsPerPage" style={{ marginRight: "5px" }}>
+            {t("items_per_page_label", "Items per page:")}
           </label>
           <select
             id="itemsPerPage"
@@ -245,67 +270,79 @@ function MySubmissionsPageContent() {
         </div>
       </div>
       {paginatedSubmissions.length === 0 ? (
-        <p>{t('no_submissions_yet', 'You have no submissions yet.')}</p>
+        <p>{t("no_submissions_yet", "You have no submissions yet.")}</p>
       ) : (
         <>
           <TableScroll>
             <table>
-            <thead>
-              <tr>
-                <th>{t('submission_id_th', 'ID')}</th>
-                <th>{t('problem_th', 'Problem')}</th>
-                <th>{t('language_th', 'Language')}</th>
-                <th>{t('verdict_th', 'Verdict')}</th>
-                <th>{t('score_th', 'Score')}</th>
-                <th>{t('time_th', 'Time')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedSubmissions.map((sub) => (
-                <tr key={sub.id}>
-                  <td>
-                    <Link href={`/submissions/${sub.id}`}>{sub.id}</Link>
-                  </td>
-                  <td>
-                    <Link href={`/problems/${sub.problem.id}`}>
-                      {sub.problem.title_i18n[i18n.language] || sub.problem.title_i18n.en || `ID: ${sub.problem.id}`}
-                    </Link>
-                  </td>
-                  <td>{sub.language}</td>
-                  <td>{t(`verdict_${sub.verdict}`, sub.verdict)}</td>
-                  <td>{sub.score ?? '-'}</td>
-                  <td>{new Date(sub.submission_time).toLocaleString(i18n.language)}</td>
+              <thead>
+                <tr>
+                  <th>{t("submission_id_th", "ID")}</th>
+                  <th>{t("problem_th", "Problem")}</th>
+                  <th>{t("language_th", "Language")}</th>
+                  <th>{t("verdict_th", "Verdict")}</th>
+                  <th>{t("score_th", "Score")}</th>
+                  <th>{t("time_th", "Time")}</th>
                 </tr>
-              ))}
-            </tbody>
+              </thead>
+              <tbody>
+                {paginatedSubmissions.map((sub) => (
+                  <tr key={sub.id}>
+                    <td>
+                      <Link href={`/submissions/${sub.id}`}>{sub.id}</Link>
+                    </td>
+                    <td>
+                      <Link href={`/problems/${sub.problem.id}`}>
+                        {sub.problem.title_i18n[i18n.language] ||
+                          sub.problem.title_i18n.en ||
+                          `ID: ${sub.problem.id}`}
+                      </Link>
+                    </td>
+                    <td>{sub.language}</td>
+                    <td>{t(`verdict_${sub.verdict}`, sub.verdict)}</td>
+                    <td>{sub.score ?? "-"}</td>
+                    <td>{new Date(sub.submission_time).toLocaleString(i18n.language)}</td>
+                  </tr>
+                ))}
+              </tbody>
             </table>
           </TableScroll>
           {totalPages > 1 && (
-            <div style={{ marginTop: '20px', textAlign: 'center' }}>
-              <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
-                {t('pagination_previous', 'Previous')}
+            <div style={{ marginTop: "20px", textAlign: "center" }}>
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                {t("pagination_previous", "Previous")}
               </button>
-              <span style={{ margin: '0 10px' }}>
-                {t('pagination_page_info', {
-                  defaultValue: 'Page {{currentPage}} of {{totalPages}}',
+              <span style={{ margin: "0 10px" }}>
+                {t("pagination_page_info", {
+                  defaultValue: "Page {{currentPage}} of {{totalPages}}",
                   currentPage,
                   totalPages,
                 })}
               </span>
-              <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
-                {t('pagination_next', 'Next')}
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                {t("pagination_next", "Next")}
               </button>
             </div>
           )}
           {/* Paged loading (frontend wiring wave): the backend list is now
               cursor-paginated; older submissions load on demand. */}
           {(moreAvailable || loadMoreError) && (
-            <div style={{ marginTop: '15px', textAlign: 'center' }}>
+            <div style={{ marginTop: "15px", textAlign: "center" }}>
               {loadMoreError && (
-                <p role="alert" style={{ color: 'red', marginBottom: '8px' }}>{loadMoreError}</p>
+                <p role="alert" style={{ color: "red", marginBottom: "8px" }}>
+                  {loadMoreError}
+                </p>
               )}
               <button onClick={loadMore} disabled={loadingMore}>
-                {loadingMore ? t('loading_more', 'Loading…') : t('load_older_submissions', 'Load older submissions')}
+                {loadingMore
+                  ? t("loading_more", "Loading…")
+                  : t("load_older_submissions", "Load older submissions")}
               </button>
             </div>
           )}
@@ -317,7 +354,7 @@ function MySubmissionsPageContent() {
 
 export default function MySubmissionsPage() {
   return (
-    <ProtectedRoute roles={['ADMIN', 'PROBLEM_CREATOR', 'PROBLEM_VERIFIER', 'BASIC_USER']}>
+    <ProtectedRoute roles={["ADMIN", "PROBLEM_CREATOR", "PROBLEM_VERIFIER", "BASIC_USER"]}>
       <MySubmissionsPageContent />
     </ProtectedRoute>
   );

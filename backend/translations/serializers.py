@@ -47,11 +47,13 @@ class TranslationProposalSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     def get_problem_title_en(self, obj) -> str:
-        titles = obj.problem.title_i18n if isinstance(obj.problem.title_i18n, dict) else {}
+        titles = (
+            obj.problem.title_i18n if isinstance(obj.problem.title_i18n, dict) else {}
+        )
         return titles.get("en") or titles.get("ro") or f"Problem {obj.problem_id}"
 
     def get_language_name(self, obj) -> str:
-        return LANGUAGE_NAMES.get(obj.language, {}).get("english", obj.language)
+        return LANGUAGE_NAMES.get(obj.language, {}).get("english") or obj.language
 
 
 class TranslationProposalCreateSerializer(serializers.Serializer):
@@ -86,6 +88,4 @@ class LanguageCatalogEntrySerializer(serializers.Serializer):
 
 
 def language_catalog():
-    return [
-        {"code": code, **LANGUAGE_NAMES[code]} for code in TRANSLATABLE_LANGUAGES
-    ]
+    return [{"code": code, **LANGUAGE_NAMES[code]} for code in TRANSLATABLE_LANGUAGES]

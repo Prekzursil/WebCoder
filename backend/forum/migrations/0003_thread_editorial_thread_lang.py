@@ -5,21 +5,34 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('forum', '0002_thread_is_announcement'),
-        ('problems', '0011_article_communityeditorial'),
+        ("forum", "0002_thread_is_announcement"),
+        ("problems", "0011_article_communityeditorial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='thread',
-            name='editorial',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='threads', to='problems.communityeditorial', verbose_name='community editorial'),
+            model_name="thread",
+            name="editorial",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="threads",
+                to="problems.communityeditorial",
+                verbose_name="community editorial",
+            ),
         ),
         migrations.AddField(
-            model_name='thread',
-            name='lang',
-            field=models.CharField(blank=True, choices=[('ro', 'Romanian'), ('en', 'English')], default='', help_text='Writing language; posts inherit it (EDT-4 filter axis).', max_length=2, verbose_name='language'),
+            model_name="thread",
+            name="lang",
+            field=models.CharField(
+                blank=True,
+                choices=[("ro", "Romanian"), ("en", "English")],
+                default="",
+                help_text="Writing language; posts inherit it (EDT-4 filter axis).",
+                max_length=2,
+                verbose_name="language",
+            ),
         ),
     ]

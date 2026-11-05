@@ -13,7 +13,7 @@
 // browser build, set PLAYWRIGHT_CHROME_CHANNEL=chrome to use the
 // installed Google Chrome instead.
 
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from "@playwright/test";
 
 const APP_PORT = 3311;
 const MOCK_API_PORT = 8901;
@@ -33,33 +33,33 @@ const MOCK_API_PORT = 8901;
 // The real stack must allow the dev-server origin in CORS_ALLOWED_ORIGINS
 // (see docs/RUNBOOK.md § e2e) and, for the seeded fixtures, expose the
 // admin credentials via E2E_ADMIN_USER / E2E_ADMIN_PASS.
-const REAL_API_BASE = process.env.E2E_API_BASE || '';
+const REAL_API_BASE = process.env.E2E_API_BASE || "";
 const isRealMode = REAL_API_BASE.length > 0;
 
 export default defineConfig({
-  testDir: './e2e',
-  testMatch: '**/*.spec.ts',
+  testDir: "./e2e",
+  testMatch: "**/*.spec.ts",
   // Host has ~2 GB free RAM: no parallelism, single worker, one browser.
   fullyParallel: false,
   workers: 1,
   retries: 0,
   timeout: 30_000,
   expect: { timeout: 10_000 },
-  reporter: [['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]],
-  outputDir: 'test-results',
+  reporter: [["list"], ["html", { open: "never", outputFolder: "playwright-report" }]],
+  outputDir: "test-results",
   // Real mode: delete the seeded fixture pair once after all files finish
   // (never per-file — see e2e/lib/realStack.ts).
-  globalTeardown: isRealMode ? './e2e/lib/realStack.teardown.ts' : undefined,
+  globalTeardown: isRealMode ? "./e2e/lib/realStack.teardown.ts" : undefined,
   use: {
     baseURL: `http://localhost:${APP_PORT}`,
     headless: true,
-    trace: 'retain-on-failure',
+    trace: "retain-on-failure",
   },
   projects: [
     {
-      name: 'chromium',
+      name: "chromium",
       use: {
-        ...devices?.['Desktop Chrome'],
+        ...devices?.["Desktop Chrome"],
         channel: process.env.PLAYWRIGHT_CHROME_CHANNEL || undefined,
       },
     },
@@ -82,7 +82,7 @@ export default defineConfig({
       ]
     : [
         {
-          command: 'node e2e/mock-api/server.mjs',
+          command: "node e2e/mock-api/server.mjs",
           url: `http://127.0.0.1:${MOCK_API_PORT}/healthz`,
           reuseExistingServer: false,
           timeout: 30_000,

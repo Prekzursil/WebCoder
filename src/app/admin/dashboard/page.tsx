@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import TwoFactorBanner from '@/components/common/TwoFactorBanner';
-import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import toast from 'react-hot-toast';
-import { useAuth } from '@/context/AuthContext';
-import { AdminService, collectAllPages } from '@/services/ApiService';
-import { AdminUserType } from '@/types';
-import LoadingSpinner from '@/components/common/LoadingSpinner';
-import ProtectedRoute from '@/components/common/ProtectedRoute';
-import SiteStats from './SiteStats';
-import OwnerAnalytics from './OwnerAnalytics';
+import TwoFactorBanner from "@/components/common/TwoFactorBanner";
+import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import toast from "react-hot-toast";
+import { useAuth } from "@/context/AuthContext";
+import { AdminService, collectAllPages } from "@/services/ApiService";
+import { AdminUserType } from "@/types";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
+import ProtectedRoute from "@/components/common/ProtectedRoute";
+import SiteStats from "./SiteStats";
+import OwnerAnalytics from "./OwnerAnalytics";
 
 // Ported from frontend/webcoder_ui/src/pages/admin/AdminDashboardPage.tsx (CRA reference).
 // Route: /admin/dashboard (CRA App.tsx:43) — ADMIN only.
@@ -40,12 +40,12 @@ export function AdminDashboardPage() {
         try {
           setLoading(true);
           const response = await collectAllPages((page) =>
-            AdminService.getUsers({ page, pageSize: 100 })
+            AdminService.getUsers({ page, pageSize: 100 }),
           );
           setUsers(response);
           setError(null);
         } catch (err) {
-          setError(errorMessage(err, t('errors.failed_to_fetch_users', 'Failed to fetch users.')));
+          setError(errorMessage(err, t("errors.failed_to_fetch_users", "Failed to fetch users.")));
         } finally {
           setLoading(false);
         }
@@ -59,10 +59,16 @@ export function AdminDashboardPage() {
     if (auth.isAuthenticated) {
       try {
         await AdminService.updateUser(userId, { role: newRole });
-        setUsers(users.map(user => (user.id === userId ? { ...user, role: newRole as AdminUserType['role'] } : user)));
-        toast.success(t('admin_dashboard.update_role_success', 'Role updated successfully.'));
+        setUsers(
+          users.map((user) =>
+            user.id === userId ? { ...user, role: newRole as AdminUserType["role"] } : user,
+          ),
+        );
+        toast.success(t("admin_dashboard.update_role_success", "Role updated successfully."));
       } catch (err) {
-        toast.error(t('errors.failed_to_update_role', 'Failed to update role: ') + errorMessage(err, ''));
+        toast.error(
+          t("errors.failed_to_update_role", "Failed to update role: ") + errorMessage(err, ""),
+        );
       }
     }
   };
@@ -71,10 +77,14 @@ export function AdminDashboardPage() {
     if (auth.isAuthenticated) {
       try {
         await AdminService.updateUser(userId, { is_active: isActive });
-        setUsers(users.map(user => (user.id === userId ? { ...user, is_active: isActive } : user)));
-        toast.success(t('admin_dashboard.update_status_success', 'Status updated successfully.'));
+        setUsers(
+          users.map((user) => (user.id === userId ? { ...user, is_active: isActive } : user)),
+        );
+        toast.success(t("admin_dashboard.update_status_success", "Status updated successfully."));
       } catch (err) {
-        toast.error(t('errors.failed_to_update_status', 'Failed to update status: ') + errorMessage(err, ''));
+        toast.error(
+          t("errors.failed_to_update_status", "Failed to update status: ") + errorMessage(err, ""),
+        );
       }
     }
   };
@@ -82,39 +92,39 @@ export function AdminDashboardPage() {
   return (
     <div className="page-container">
       <TwoFactorBanner />
-      <h2>{t('admin_dashboard_header', 'Admin Dashboard')}</h2>
+      <h2>{t("admin_dashboard_header", "Admin Dashboard")}</h2>
 
       <section>
-        <h3>{t('site_statistics_title', 'Site Statistics')}</h3>
+        <h3>{t("site_statistics_title", "Site Statistics")}</h3>
         <SiteStats />
       </section>
 
       {/* [ANA-1 Wave D] Owner analytics: funnel, D1/D7, 30-day volume,
           weekly frozen trend. */}
-      <section style={{ marginTop: '2rem' }}>
-        <h3>{t('owner_analytics_title', 'Owner Analytics')}</h3>
+      <section style={{ marginTop: "2rem" }}>
+        <h3>{t("owner_analytics_title", "Owner Analytics")}</h3>
         <OwnerAnalytics />
       </section>
 
-      <section style={{ marginTop: '2rem' }}>
-        <h3>{t('user_management_title', 'User Management')}</h3>
+      <section style={{ marginTop: "2rem" }}>
+        <h3>{t("user_management_title", "User Management")}</h3>
         {loading && <LoadingSpinner />}
-        {error && <p style={{ color: 'var(--danger)' }}>{error}</p>}
+        {error && <p style={{ color: "var(--danger)" }}>{error}</p>}
         {!loading && !error && (
-          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <div className="card" style={{ padding: 0, overflow: "hidden" }}>
             <table>
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>{t('username', 'Username')}</th>
-                  <th>{t('email', 'Email')}</th>
-                  <th>{t('role', 'Role')}</th>
-                  <th>{t('status', 'Status')}</th>
-                  <th>{t('date_joined', 'Date Joined')}</th>
+                  <th>{t("username", "Username")}</th>
+                  <th>{t("email", "Email")}</th>
+                  <th>{t("role", "Role")}</th>
+                  <th>{t("status", "Status")}</th>
+                  <th>{t("date_joined", "Date Joined")}</th>
                 </tr>
               </thead>
               <tbody>
-                {users.map(user => (
+                {users.map((user) => (
                   <tr key={user.id}>
                     <td>{user.id}</td>
                     <td>{user.username}</td>
@@ -133,8 +143,8 @@ export function AdminDashboardPage() {
                     </td>
                     <td>
                       <select
-                        value={user.is_active ? 'Active' : 'Inactive'}
-                        onChange={(e) => handleStatusChange(user.id, e.target.value === 'Active')}
+                        value={user.is_active ? "Active" : "Inactive"}
+                        onChange={(e) => handleStatusChange(user.id, e.target.value === "Active")}
                         disabled={user.id === auth.user?.id}
                       >
                         <option value="Active">Active</option>
@@ -156,7 +166,7 @@ export function AdminDashboardPage() {
 // Route composition from CRA App.tsx:43 — ADMIN only.
 export default function AdminDashboardPageRoute() {
   return (
-    <ProtectedRoute roles={['ADMIN']}>
+    <ProtectedRoute roles={["ADMIN"]}>
       <AdminDashboardPage />
     </ProtectedRoute>
   );

@@ -65,7 +65,9 @@ def _final_rank_map(contest: Contest) -> dict[int, int] | None:
     if len(entries) < 2:
         return None
     standings = rank_contest(contest, entries)
-    return {standing.user_id: position for position, standing in enumerate(standings, 1)}
+    return {
+        standing.user_id: position for position, standing in enumerate(standings, 1)
+    }
 
 
 def compute_contest_ratings(contest: Contest, *, notify_users: bool = True) -> str:
@@ -160,10 +162,7 @@ def rollback_contest_ratings(contest: Contest) -> str:
             replayed += 1
     if not had:
         return f"contest {contest.id} was never rated; nothing to roll back"
-    return (
-        f"contest {contest.id} discarded (was rated); "
-        f"{replayed} contests replayed"
-    )
+    return f"contest {contest.id} discarded (was rated); {replayed} contests replayed"
 
 
 @shared_task

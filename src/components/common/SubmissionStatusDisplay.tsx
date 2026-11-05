@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { useTranslation } from 'react-i18next';
-import { palette, hexAlpha } from '@/theme/tokens';
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { palette, hexAlpha } from "@/theme/tokens";
 
 // Ported from frontend/webcoder_ui/src/components/common/SubmissionStatusDisplay.tsx (CRA reference).
 //
@@ -24,7 +24,14 @@ const SubmissionStatusDisplay: React.FC<SubmissionStatusDisplayProps> = ({ statu
   }
 
   return (
-    <div style={{ marginTop: '15px', padding: '10px', borderRadius: 'var(--radius-md)', border: '1px solid transparent' }}>
+    <div
+      style={{
+        marginTop: "15px",
+        padding: "10px",
+        borderRadius: "var(--radius-md)",
+        border: "1px solid transparent",
+      }}
+    >
       {status && (
         <p
           role="status"
@@ -33,8 +40,8 @@ const SubmissionStatusDisplay: React.FC<SubmissionStatusDisplayProps> = ({ statu
             color: palette.success,
             backgroundColor: hexAlpha(palette.success, 0.1),
             borderColor: hexAlpha(palette.success, 0.25),
-            padding: '10px',
-            borderRadius: 'var(--radius-md)',
+            padding: "10px",
+            borderRadius: "var(--radius-md)",
             margin: 0,
           }}
         >
@@ -48,12 +55,12 @@ const SubmissionStatusDisplay: React.FC<SubmissionStatusDisplayProps> = ({ statu
             color: palette.danger,
             backgroundColor: hexAlpha(palette.danger, 0.1),
             borderColor: hexAlpha(palette.danger, 0.25),
-            padding: '10px',
-            borderRadius: 'var(--radius-md)',
-            margin: status ? '10px 0 0 0' : 0,
+            padding: "10px",
+            borderRadius: "var(--radius-md)",
+            margin: status ? "10px 0 0 0" : 0,
           }}
         >
-          <strong>{t('error_label', 'Error')}:</strong> {error}
+          <strong>{t("error_label", "Error")}:</strong> {error}
         </p>
       )}
     </div>

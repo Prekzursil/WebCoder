@@ -1,7 +1,5 @@
 """Statement revision history + import-source helpers (UXP-4 / CNT-2)."""
 
-from django.db import transaction
-
 from .models import Problem, StatementRevision
 
 

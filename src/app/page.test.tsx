@@ -1,30 +1,30 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
-import { cookies } from 'next/headers';
-import { useAuth } from '@/context/AuthContext';
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { cookies } from "next/headers";
+import { useAuth } from "@/context/AuthContext";
 
-vi.mock('next/headers', () => ({
+vi.mock("next/headers", () => ({
   cookies: vi.fn(),
 }));
 
-vi.mock('./problems/_lib/problems-api', () => ({
+vi.mock("./problems/_lib/problems-api", () => ({
   getProblems: vi.fn().mockResolvedValue([
-    { id: 1, title_i18n: { en: 'Two Sum' }, difficulty: 'EASY' },
-    { id: 2, title_i18n: { en: 'N-Queens' }, difficulty: 'HARD' },
+    { id: 1, title_i18n: { en: "Two Sum" }, difficulty: "EASY" },
+    { id: 2, title_i18n: { en: "N-Queens" }, difficulty: "HARD" },
   ]),
 }));
 
-vi.mock('@/context/AuthContext', () => ({
+vi.mock("@/context/AuthContext", () => ({
   useAuth: vi.fn(),
 }));
 
-import Home from './page';
-import { metadata } from './page';
+import Home from "./page";
+import { metadata } from "./page";
 
 function mockLocale(value: string | undefined) {
   vi.mocked(cookies).mockResolvedValue({
     get: (name: string) =>
-      name === 'i18nextLng' ? (value === undefined ? undefined : { value }) : undefined,
+      name === "i18nextLng" ? (value === undefined ? undefined : { value }) : undefined,
   } as Awaited<ReturnType<typeof cookies>>);
 }
 
@@ -42,35 +42,39 @@ beforeEach(() => {
 });
 
 describe('HomePage (route "/")', () => {
-  it('renders the welcome copy and both CTAs in English by default', async () => {
+  it("renders the welcome copy and both CTAs in English by default", async () => {
     mockLocale(undefined);
     render(await Home());
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Welcome to WebCoder' })).toBeInTheDocument();
     expect(
-      screen.getByText('The ultimate platform for competitive programming.')
+      screen.getByRole("heading", { level: 1, name: "Welcome to WebCoder" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("The ultimate platform for competitive programming."),
     ).toBeInTheDocument();
     expect(screen.getByText(/compete with a community of developers/i)).toBeInTheDocument();
 
-    const viewProblems = screen.getByRole('link', { name: /View Problems/ });
-    expect(viewProblems.getAttribute('href')).toBe('/problems');
-    const signUp = screen.getByRole('link', { name: 'Sign Up' });
-    expect(signUp.getAttribute('href')).toBe('/register');
+    const viewProblems = screen.getByRole("link", { name: /View Problems/ });
+    expect(viewProblems.getAttribute("href")).toBe("/problems");
+    const signUp = screen.getByRole("link", { name: "Sign Up" });
+    expect(signUp.getAttribute("href")).toBe("/register");
   });
 
-  it('renders the localized welcome when the i18next cookie is Romanian', async () => {
-    mockLocale('ro');
+  it("renders the localized welcome when the i18next cookie is Romanian", async () => {
+    mockLocale("ro");
     render(await Home());
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Bun venit la WebCoder' })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Bun venit la WebCoder" }),
+    ).toBeInTheDocument();
     // Subtitle now carries a Romanian value in the shared resources.
     expect(
-      screen.getByText('Platforma definitivă pentru programare competitivă.')
+      screen.getByText("Platforma definitivă pentru programare competitivă."),
     ).toBeInTheDocument();
   });
 
-  it('exports static SEO metadata', () => {
-    expect(metadata.title).toBe('WebCoder — Competitive Programming Platform');
+  it("exports static SEO metadata", () => {
+    expect(metadata.title).toBe("WebCoder — Competitive Programming Platform");
     expect(metadata.description).toMatch(/compete with a community of developers/i);
   });
 });

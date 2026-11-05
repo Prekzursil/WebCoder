@@ -54,7 +54,10 @@ describe("Root layout (smoke)", () => {
     expect(within(pickers[0]).getByRole("option", { name: "Română" })).toBeInTheDocument();
     expect(within(pickers[0]).getByRole("option", { name: "العربية" })).toBeInTheDocument();
     // App shell: skip link + single main landmark + footer (Q11/A13).
-    expect(screen.getByRole("link", { name: "Skip to content" })).toHaveAttribute("href", "#main-content");
+    expect(screen.getByRole("link", { name: "Skip to content" })).toHaveAttribute(
+      "href",
+      "#main-content",
+    );
     expect(document.getElementById("main-content")).toBeInTheDocument();
     expect(screen.getByRole("contentinfo")).toHaveAttribute("aria-label", "Site footer");
   });

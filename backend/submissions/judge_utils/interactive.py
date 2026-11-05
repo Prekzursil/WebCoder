@@ -240,9 +240,7 @@ def run_interactive_pair(
     user_spec = get_language(user_language)
     user_image = user_spec.docker_image if user_spec else "python:3.11-slim"
 
-    wall_cap_s = min(
-        max(2 * (time_limit_ms / 1000.0), WALL_CAP_MIN_S), WALL_CAP_MAX_S
-    )
+    wall_cap_s = min(max(2 * (time_limit_ms / 1000.0), WALL_CAP_MIN_S), WALL_CAP_MAX_S)
 
     feedback_parts: list[str] = []
     p_user = p_int = None
@@ -279,6 +277,9 @@ def run_interactive_pair(
         )
         # The parent's copies of the crossed pipe ends must close so each
         # side sees EOF when the other exits (the children own them now).
+        # stdout/stdin are PIPE-backed above, hence never None here.
+        assert p_user.stdout is not None
+        assert p_user.stdin is not None
         p_user.stdout.close()
         p_user.stdin.close()
 
@@ -362,17 +363,14 @@ def run_interactive_pair(
         )
         return _VERDICT_MLE, cpu_ms, rss_kb, None, _feedback(feedback_parts)
     if cpu_ms and time_limit_ms and cpu_ms > time_limit_ms:
-        feedback_parts.append(
-            f"Submission used {cpu_ms} ms > {time_limit_ms} ms CPU."
-        )
+        feedback_parts.append(f"Submission used {cpu_ms} ms > {time_limit_ms} ms CPU.")
         return _VERDICT_TLE, cpu_ms, rss_kb, None, _feedback(feedback_parts)
     if not user_killed and user_rc != 0:
         # Reported, never verdict-override: after the interactor closes
         # the conversation a submission may see EOF/BrokenPipe — the
         # interactor owns the verdict (documented protocol).
         feedback_parts.append(
-            f"Note: submission exited with code {user_rc} after the "
-            "conversation ended."
+            f"Note: submission exited with code {user_rc} after the conversation ended."
         )
 
     # --- interactor verdict mapping (checker protocol v2 on stderr) -----
