@@ -129,13 +129,12 @@ export default async function RootLayout({
           href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap"
           rel="stylesheet"
         />
-        <script
-          type="application/ld+json"
-          // nosemgrep: js-dangerously-set-inner-html -- static JSON-LD constants, `<` escaped
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(schemaOrg).replace(/</g, "\u003c"),
-          }}
-        />
+        <script type="application/ld+json">
+          {/* <script> is a raw-text element: a string child is inserted verbatim,
+        	    so the JSON-LD needs no dangerouslySetInnerHTML. `<` is escaped to
+        	    make a </script> breakout structurally impossible. */}
+          {JSON.stringify(schemaOrg).replace(/</g, "\u003c")}
+        </script>
         {/* [SPEC-GAPS A15] third-party rocket.new analytics scripts removed —
             telemetry to an unrelated host, shipped on every page with no consent. */}
       </head>

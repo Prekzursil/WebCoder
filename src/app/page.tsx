@@ -69,13 +69,12 @@ export default async function HomePage() {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        // nosemgrep: js-dangerously-set-inner-html -- static JSON-LD constants, `<` escaped
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(faqSchema).replace(/</g, "\u003c"),
-        }}
-      />
+      <script type="application/ld+json">
+        {/* <script> is a raw-text element: a string child is inserted verbatim,
+      	    so the JSON-LD needs no dangerouslySetInnerHTML. `<` is escaped to
+      	    make a </script> breakout structurally impossible. */}
+        {JSON.stringify(faqSchema).replace(/</g, "\u003c")}
+      </script>
       {/* [Q11] the app shell in providers.tsx owns the single <main> landmark;
           this page-level wrapper is purely presentational. */}
       <div className={styles.home} aria-label="WebCoder home page">
