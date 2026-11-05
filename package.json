@@ -68,8 +68,6 @@
   },
   "overrides": {
     "katex": "^0.19.1",
-    "minimatch": "11.0.1",
-    "glob": "14.0.2",
     "decode-uri-component": "0.5.1",
     "qs": "6.16.0",
     "form-data": "2.5.6",
@@ -81,7 +79,16 @@
     "got": "11.8.5",
     "hull.js": "1.0.6",
     "scratch-blocks": {
-      "scratch-l10n": "6.2.3"
+      "scratch-l10n": "6.2.3",
+      "glob": "14.0.2",
+      "minimatch": "11.0.1"
+    },
+    "scratch-l10n": {
+      "glob": "14.0.2",
+      "minimatch": "11.0.1"
+    },
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "11.0.1"
     }
   }
 }
