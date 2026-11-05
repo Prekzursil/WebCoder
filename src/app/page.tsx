@@ -73,7 +73,7 @@ export default async function HomePage() {
         {/* <script> is a raw-text element: a string child is inserted verbatim,
       	    so the JSON-LD needs no dangerouslySetInnerHTML. `<` is escaped to
       	    make a </script> breakout structurally impossible. */}
-        {JSON.stringify(faqSchema).replace(/</g, "\u003c")}
+        {JSON.stringify(faqSchema).replace(/</g, "\\u003c")}
       </script>
       {/* [Q11] the app shell in providers.tsx owns the single <main> landmark;
           this page-level wrapper is purely presentational. */}

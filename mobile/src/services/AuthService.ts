@@ -15,6 +15,11 @@ export async function login(credentials: {
   username: string;
   password: string;
 }): Promise<{ user: User; tokens: SessionTokens | null }> {
+  // URL is module constants over the validated API origin; no user
+  // input (mirrors the web ApiService triage, alerts #120-122,
+  // 2026-10-27): the base collapses to URL.origin in config.ts and
+  // the path segments are fixed string literals.
+  // codeql[js/request-forgery]
   const response = await fetch(`${API_V1_URL}/auth/login/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

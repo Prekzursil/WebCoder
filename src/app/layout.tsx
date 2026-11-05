@@ -133,7 +133,7 @@ export default async function RootLayout({
           {/* <script> is a raw-text element: a string child is inserted verbatim,
         	    so the JSON-LD needs no dangerouslySetInnerHTML. `<` is escaped to
         	    make a </script> breakout structurally impossible. */}
-          {JSON.stringify(schemaOrg).replace(/</g, "\u003c")}
+          {JSON.stringify(schemaOrg).replace(/</g, "\\u003c")}
         </script>
         {/* [SPEC-GAPS A15] third-party rocket.new analytics scripts removed —
             telemetry to an unrelated host, shipped on every page with no consent. */}

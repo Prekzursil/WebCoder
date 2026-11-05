@@ -92,6 +92,11 @@ async function refreshTokens(): Promise<boolean> {
       const refresh = await tokenStore!.getRefresh();
       if (!refresh) return false;
       try {
+        // URL is module constants over the validated API origin; no user
+        // input (mirrors the web ApiService triage, alerts #120-122,
+        // 2026-10-27): the base collapses to URL.origin in config.ts and
+        // the path segments are fixed string literals.
+        // codeql[js/request-forgery]
         const response = await fetch(`${API_V1_URL}${REFRESH_ENDPOINT}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -141,6 +146,11 @@ async function authenticatedFetch(url: string, options: ApiFetchOptions): Promis
     const access = await tokenStore.getAccess();
     if (access) headers["Authorization"] = `Bearer ${access}`;
   }
+  // URL is module constants over the validated API origin; no user
+  // input (mirrors the web ApiService triage, alerts #120-122,
+  // 2026-10-27): the base collapses to URL.origin in config.ts and
+  // the path segments are fixed string literals.
+  // codeql[js/request-forgery]
   return fetch(`${API_V1_URL}${url}`, {
     method: options.method ?? "GET",
     headers,
