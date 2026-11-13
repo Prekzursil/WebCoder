@@ -95,7 +95,10 @@ describe('apiFetch refresh flow (cookie model)', () => {
   it('when the refresh fails, calls the unauthorized handler and throws the original error without retrying', async () => {
     const fetchMock = mockFetch(async (input) => {
       if (String(input) === REFRESH_URL) {
-        return jsonResponse({ detail: 'Token is invalid or expired' }, { status: 401, statusText: 'Unauthorized' });
+        return jsonResponse(
+          { detail: 'Token is invalid or expired' },
+          { status: 401, statusText: 'Unauthorized' },
+        );
       }
       return unauthorized();
     });
@@ -141,7 +144,9 @@ describe('apiFetch refresh flow (cookie model)', () => {
   });
 
   it('does not attempt a refresh for non-401 errors', async () => {
-    const fetchMock = mockFetch(async () => jsonResponse({ detail: 'Service unavailable' }, { status: 503 }));
+    const fetchMock = mockFetch(async () =>
+      jsonResponse({ detail: 'Service unavailable' }, { status: 503 }),
+    );
 
     await expect(AuthService.getMe()).rejects.toThrow('Service unavailable');
 
@@ -264,7 +269,9 @@ describe('apiFetch baseline behavior (cookie + CSRF)', () => {
     const csrfCall = fetchMock.mock.calls.find(([input]) => String(input) === CSRF_URL);
     expect(csrfCall).toBeDefined();
     expect(csrfCall?.[1]?.credentials).toBe('include');
-    const loginCall = fetchMock.mock.calls.find(([input]) => String(input) === `${API_BASE}/auth/login/`);
+    const loginCall = fetchMock.mock.calls.find(
+      ([input]) => String(input) === `${API_BASE}/auth/login/`,
+    );
     expect(loginCall).toBeDefined();
     expect(new Headers(loginCall?.[1]?.headers).get('X-CSRFToken')).toBeNull();
   });
@@ -308,11 +315,11 @@ describe('apiFetch baseline behavior (cookie + CSRF)', () => {
     mockFetch(async () =>
       jsonResponse(
         { non_field_errors: ['Unable to log in with provided credentials.'] },
-        { status: 400, statusText: 'Bad Request' }
-      )
+        { status: 400, statusText: 'Bad Request' },
+      ),
     );
     await expect(AuthService.login({ username: 'x', password: 'y' })).rejects.toThrow(
-      'Unable to log in with provided credentials.'
+      'Unable to log in with provided credentials.',
     );
   });
 
@@ -320,8 +327,8 @@ describe('apiFetch baseline behavior (cookie + CSRF)', () => {
     mockFetch(async () =>
       jsonResponse(
         { password1: ['This password is too common.'] },
-        { status: 400, statusText: 'Bad Request' }
-      )
+        { status: 400, statusText: 'Bad Request' },
+      ),
     );
     await expect(AuthService.getMe()).rejects.toThrow('This password is too common.');
   });
@@ -330,8 +337,8 @@ describe('apiFetch baseline behavior (cookie + CSRF)', () => {
     mockFetch(async () =>
       jsonResponse(
         { detail: 'Not found.', non_field_errors: ['ignored'] },
-        { status: 404, statusText: 'Not Found' }
-      )
+        { status: 404, statusText: 'Not Found' },
+      ),
     );
     await expect(AuthService.getMe()).rejects.toThrow('Not found.');
   });

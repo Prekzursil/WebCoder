@@ -35,9 +35,7 @@ export function verdictInProgress(verdict: string | undefined): boolean {
 
 /** "2.4 s" / "850 ms" duration form. */
 export function formatMs(ms: number): string {
-  return ms >= 1000
-    ? `${(ms / 1000).toFixed(ms % 1000 === 0 ? 0 : 1)} s`
-    : `${ms} ms`;
+  return ms >= 1000 ? `${(ms / 1000).toFixed(ms % 1000 === 0 ? 0 : 1)} s` : `${ms} ms`;
 }
 
 /** "12 MB" / "900 KB" memory form. */

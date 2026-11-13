@@ -1,18 +1,8 @@
 // AuthStore — the mobile counterpart of the web's AuthContext: bootstrap
 // from persisted tokens, login/register/logout, and the
 // unauthorized-handler wiring that force-logouts when a refresh fails.
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
-import {
-  setTokenStore,
-  setUnauthorizedHandler,
-} from '../services/ApiClient';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { setTokenStore, setUnauthorizedHandler } from '../services/ApiClient';
 import { AuthService, login as loginRequest } from '../services/AuthService';
 import type { User } from '../types/api';
 import { clearTokens, secureTokenStore } from './tokenStore';
@@ -99,17 +89,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = useCallback(
-    async (data: {
-      username: string;
-      email: string;
-      password1: string;
-      password2: string;
-    }) => {
+    async (data: { username: string; email: string; password1: string; password2: string }) => {
       setError(null);
       await AuthService.register(data);
       await signIn(data.username, data.password1);
     },
-    [signIn]
+    [signIn],
   );
 
   const signOut = useCallback(async () => {
@@ -139,7 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signOut,
       refreshUser,
     }),
-    [status, user, error, signIn, signUp, signOut, refreshUser]
+    [status, user, error, signIn, signUp, signOut, refreshUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -67,7 +67,7 @@ describe('IdentityCard (RO-3)', () => {
         county: 'Cluj',
         school: '',
         isMinor: true,
-      })
+      }),
     );
     await waitFor(() => expect(screen.getByText(/saved/i)).toBeTruthy());
   });
@@ -86,7 +86,12 @@ describe('IdentityCard (RO-3)', () => {
     expect(container).toBeEmptyDOMElement();
     mocks.auth.isAuthenticated = true;
     mocks.auth.user = {
-      id: 7, username: 'me', email: 'm@x.com', role: 'BASIC', county: '', school: '',
+      id: 7,
+      username: 'me',
+      email: 'm@x.com',
+      role: 'BASIC',
+      county: '',
+      school: '',
     };
   });
 });
@@ -101,17 +106,20 @@ describe('TagProfilePanel (RAT-7)', () => {
             { tag: 'dp', solved: 0, attempted: 1, covered: false, points: 0 },
           ],
           practice_next: [
-            { id: 2, title_i18n: { en: 'Longest Substring' }, difficulty: 'MEDIUM', tags: ['strings'] },
+            {
+              id: 2,
+              title_i18n: { en: 'Longest Substring' },
+              difficulty: 'MEDIUM',
+              tags: ['strings'],
+            },
           ],
         }}
-      />
+      />,
     );
     expect(screen.getByTestId('tag-row-arrays')).toBeTruthy();
     // Uncovered tags render dimmed but honest.
     expect(screen.getByTestId('tag-row-dp')).toBeTruthy();
-    expect(screen.getByTestId('practice-next').textContent).toContain(
-      'Longest Substring'
-    );
+    expect(screen.getByTestId('practice-next').textContent).toContain('Longest Substring');
   });
 
   it('renders nothing without a profile', () => {
@@ -135,9 +143,7 @@ describe('SolutionsDiffPanel (JDG-13)', () => {
   it('shows the locked hint when the teacher gate refuses', async () => {
     api.getAssignmentSolutionsJson.mockRejectedValue(new Error('403'));
     render(<SolutionsDiffPanel assignmentId={1} />);
-    await waitFor(() =>
-      expect(screen.getByText(/only the teacher can compare/i)).toBeTruthy()
-    );
+    await waitFor(() => expect(screen.getByText(/only the teacher can compare/i)).toBeTruthy());
   });
 
   it('renders two selected solutions side by side', async () => {
@@ -145,13 +151,23 @@ describe('SolutionsDiffPanel (JDG-13)', () => {
       count: 2,
       results: [
         {
-          id: 101, username: 'a', problem_id: 1, verdict: 'AC', score: 100,
-          language: 'python3', submission_time: '2026-10-25T10:00:00Z',
+          id: 101,
+          username: 'a',
+          problem_id: 1,
+          verdict: 'AC',
+          score: 100,
+          language: 'python3',
+          submission_time: '2026-10-25T10:00:00Z',
           code: 'print(1)',
         },
         {
-          id: 102, username: 'b', problem_id: 1, verdict: 'AC', score: 100,
-          language: 'python3', submission_time: '2026-10-25T10:05:00Z',
+          id: 102,
+          username: 'b',
+          problem_id: 1,
+          verdict: 'AC',
+          score: 100,
+          language: 'python3',
+          submission_time: '2026-10-25T10:05:00Z',
           code: 'print(2)',
         },
       ],

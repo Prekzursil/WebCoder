@@ -27,21 +27,33 @@ vi.mock('@/context/AuthContext', () => ({
 }));
 
 const mocks = vi.hoisted(() => ({
-  auth: { user: { id: 1, username: 'alice', role: 'BASIC' }, isAuthenticated: true, isHydrated: true },
+  auth: {
+    user: { id: 1, username: 'alice', role: 'BASIC' },
+    isAuthenticated: true,
+    isHydrated: true,
+  },
 }));
 
 vi.mock('next/navigation', () => ({
   useParams: () => ({ threadId: '3' }),
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn(), back: vi.fn(), forward: vi.fn(), prefetch: vi.fn() }),
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    refresh: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    prefetch: vi.fn(),
+  }),
 }));
 // next/link is mocked to a plain anchor so the page renders without a live
 // App Router context (the real Link expects one).
 vi.mock('next/link', () => ({
   default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => (
-    <a href={href} {...rest}>{children}</a>
+    <a href={href} {...rest}>
+      {children}
+    </a>
   ),
 }));
-
 
 const CONVERSATION = {
   id: 3,
@@ -60,9 +72,15 @@ const message = (id: number, senderId: number, body: string) => ({
   read_at: null,
 });
 
-function setup(messages = [message(10, 1, 'hello bob'), message(11, 2, '<script>alert(1)</script>')]) {
+function setup(
+  messages = [message(10, 1, 'hello bob'), message(11, 2, '<script>alert(1)</script>')],
+) {
   api.getThread.mockResolvedValue(CONVERSATION);
-  api.getMessages.mockResolvedValue({ next: null, previous: null, results: [...messages].reverse() });
+  api.getMessages.mockResolvedValue({
+    next: null,
+    previous: null,
+    results: [...messages].reverse(),
+  });
   api.markRead.mockResolvedValue({ marked_read: 1 });
 }
 
@@ -101,7 +119,9 @@ describe('MessageThreadPage (chat)', () => {
     const box = await screen.findByLabelText('Write a message');
     fireEvent.change(box, { target: { value: 'try' } });
     fireEvent.click(screen.getByTestId('msg-send'));
-    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent(/no longer message this user/i));
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent(/no longer message this user/i),
+    );
   });
 
   it('reports a received message with a picked reason', async () => {
@@ -111,7 +131,7 @@ describe('MessageThreadPage (chat)', () => {
     fireEvent.click(await screen.findByTestId('msg-report-reason-GROOMING'));
     await waitFor(() => expect(api.reportMessage).toHaveBeenCalledWith(11, { reason: 'GROOMING' }));
     await waitFor(() =>
-      expect(screen.getByTestId('msg-notice')).toHaveTextContent(/A moderator will review/i)
+      expect(screen.getByTestId('msg-notice')).toHaveTextContent(/A moderator will review/i),
     );
   });
 
@@ -121,7 +141,7 @@ describe('MessageThreadPage (chat)', () => {
     fireEvent.click(await screen.findByTestId('msg-report-btn-11'));
     fireEvent.click(await screen.findByTestId('msg-report-reason-ABUSE'));
     await waitFor(() =>
-      expect(screen.getByTestId('msg-notice')).toHaveTextContent(/already reported/i)
+      expect(screen.getByTestId('msg-notice')).toHaveTextContent(/already reported/i),
     );
   });
 
@@ -163,7 +183,9 @@ describe('MessageThreadPage (chat)', () => {
     });
     render(<MessageThreadPage />);
     fireEvent.click(await screen.findByText('Load older messages'));
-    await waitFor(() => expect(api.getMessages).toHaveBeenCalledWith(3, { cursor: 'abc', pageSize: 30 }));
+    await waitFor(() =>
+      expect(api.getMessages).toHaveBeenCalledWith(3, { cursor: 'abc', pageSize: 30 }),
+    );
     await waitFor(() => expect(screen.getByText('oldest')).toBeInTheDocument());
   });
 });

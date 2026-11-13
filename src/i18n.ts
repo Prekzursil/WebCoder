@@ -178,7 +178,7 @@ const LOCALE_ALIASES: Record<string, Locale> = {
   'zh-hant': 'zh-Hant',
   // Serbian also written in Cyrillic → the Latin script we ship.
   'sr-cyrl': 'sr-Latn',
-  'sr': 'sr-Latn',
+  sr: 'sr-Latn',
 };
 
 /**
@@ -239,26 +239,35 @@ if (typeof window !== 'undefined') {
 
 // Passes i18n down to react-i18next
 i18n?.use(initReactI18next)?.init({
-    resources,
-    lng: 'en', // Pin initial language to English on both server and client to prevent SSR/hydration mismatch
-    supportedLngs: SUPPORTED_LOCALES as unknown as string[],
-    fallbackLng: 'en', // English is the universal fallback (owner rule (d))
-    interpolation: {
-      escapeValue: false, // React already safes from xss
-    },
-    detection: {
-      // Order and from where user language should be detected
-      order: ['querystring', 'cookie', 'localStorage', 'sessionStorage', 'navigator', 'htmlTag', 'path', 'subdomain'],
-      // NOTE on cookie persistence: the detector's DEFAULT cookie name is
-      // 'i18next', while SSR (public-i18n getLocale) and the providers
-      // post-hydration re-application read 'i18nextLng'. Do NOT pin
-      // lookupCookie here — i18next caches the INIT-pinned 'en' through
-      // the detector, which would clobber the visitor's incoming
-      // i18nextLng cookie before providers re-apply it. The picker
-      // (LanguageSwitcher) writes i18nextLng explicitly on every switch;
-      // that is the one cookie everything reads.
-      caches: ['localStorage', 'cookie'], // Where to cache detected language
-    }
-  });
+  resources,
+  lng: 'en', // Pin initial language to English on both server and client to prevent SSR/hydration mismatch
+  supportedLngs: SUPPORTED_LOCALES as unknown as string[],
+  fallbackLng: 'en', // English is the universal fallback (owner rule (d))
+  interpolation: {
+    escapeValue: false, // React already safes from xss
+  },
+  detection: {
+    // Order and from where user language should be detected
+    order: [
+      'querystring',
+      'cookie',
+      'localStorage',
+      'sessionStorage',
+      'navigator',
+      'htmlTag',
+      'path',
+      'subdomain',
+    ],
+    // NOTE on cookie persistence: the detector's DEFAULT cookie name is
+    // 'i18next', while SSR (public-i18n getLocale) and the providers
+    // post-hydration re-application read 'i18nextLng'. Do NOT pin
+    // lookupCookie here — i18next caches the INIT-pinned 'en' through
+    // the detector, which would clobber the visitor's incoming
+    // i18nextLng cookie before providers re-apply it. The picker
+    // (LanguageSwitcher) writes i18nextLng explicitly on every switch;
+    // that is the one cookie everything reads.
+    caches: ['localStorage', 'cookie'], // Where to cache detected language
+  },
+});
 
 export default i18n;

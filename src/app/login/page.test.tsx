@@ -52,7 +52,12 @@ vi.mock('@/services/ApiService', () => ({
   },
 }));
 
-const validUser: User = { id: 7, username: 'porter', email: 'porter@example.com', role: 'BASIC_USER' };
+const validUser: User = {
+  id: 7,
+  username: 'porter',
+  email: 'porter@example.com',
+  role: 'BASIC_USER',
+};
 // [SP1] cookie login response: user profile + httpOnly cookies (not in the
 // body); access stays during the migration window but is not consumed.
 const fullLogin: LoginResponse = { access: 'access-token', user: validUser };
@@ -96,13 +101,16 @@ describe('LoginPage', () => {
     // MUI Button with href renders an <a> (implicit link role), not a button.
     expect(screen.getByRole('link', { name: 'Google' })).toHaveAttribute(
       'href',
-      'http://localhost:8000/accounts/google/login/'
+      'http://localhost:8000/accounts/google/login/',
     );
     expect(screen.getByRole('link', { name: 'GitHub' })).toHaveAttribute(
       'href',
-      'http://localhost:8000/accounts/github/login/'
+      'http://localhost:8000/accounts/github/login/',
     );
-    expect(screen.getByRole('link', { name: 'Register here' })).toHaveAttribute('href', '/register');
+    expect(screen.getByRole('link', { name: 'Register here' })).toHaveAttribute(
+      'href',
+      '/register',
+    );
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
@@ -135,7 +143,11 @@ describe('LoginPage', () => {
   it('[Q13] enriches the stored user from /users/me/ when the login payload lacks the role', async () => {
     renderLogin();
     // dj-rest-auth login payload: pk/username/email only — no id/role.
-    const bareUser = { pk: 7, username: 'porter', email: 'porter@example.com' } as unknown as typeof fullLogin.user;
+    const bareUser = {
+      pk: 7,
+      username: 'porter',
+      email: 'porter@example.com',
+    } as unknown as typeof fullLogin.user;
     loginMock.mockResolvedValueOnce({ ...fullLogin, user: bareUser });
     const enriched: User = { ...validUser, role: 'ADMIN' };
     getMeMock.mockResolvedValueOnce(enriched);
@@ -150,7 +162,11 @@ describe('LoginPage', () => {
 
   it('[Q13] still logs in with the bare payload when /users/me/ fails', async () => {
     renderLogin();
-    const bareUser = { pk: 7, username: 'porter', email: 'porter@example.com' } as unknown as typeof fullLogin.user;
+    const bareUser = {
+      pk: 7,
+      username: 'porter',
+      email: 'porter@example.com',
+    } as unknown as typeof fullLogin.user;
     loginMock.mockResolvedValueOnce({ ...fullLogin, user: bareUser });
     getMeMock.mockRejectedValueOnce(new Error('boom'));
 
@@ -165,7 +181,10 @@ describe('LoginPage', () => {
     renderLogin();
     let resolveLogin!: (value: LoginResponse) => void;
     loginMock.mockImplementationOnce(
-      () => new Promise<LoginResponse>((resolve) => { resolveLogin = resolve; })
+      () =>
+        new Promise<LoginResponse>((resolve) => {
+          resolveLogin = resolve;
+        }),
     );
 
     // Hold the button reference before submitting: while isSubmitting is true
@@ -209,11 +228,7 @@ describe('LoginPage', () => {
       new Error(''),
       'Login failed. Please check your credentials.',
     ],
-    [
-      'a non-Error rejection',
-      'network down',
-      'Login failed. Please check your credentials.',
-    ],
+    ['a non-Error rejection', 'network down', 'Login failed. Please check your credentials.'],
   ])('surfaces the API failure when the API rejects with %s', async (_label, rejection, expected) => {
     const { unmount } = renderLogin();
     loginMock.mockRejectedValueOnce(rejection);
@@ -236,11 +251,11 @@ describe('LoginPage', () => {
     render(<FreshLoginPage />);
     expect(screen.getByRole('link', { name: 'Google' })).toHaveAttribute(
       'href',
-      'https://api.webcoder.example/accounts/google/login/'
+      'https://api.webcoder.example/accounts/google/login/',
     );
     expect(screen.getByRole('link', { name: 'GitHub' })).toHaveAttribute(
       'href',
-      'https://api.webcoder.example/accounts/github/login/'
+      'https://api.webcoder.example/accounts/github/login/',
     );
   });
 });

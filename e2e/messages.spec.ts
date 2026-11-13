@@ -21,7 +21,9 @@ test.describe('COM-5 private messaging (mock api)', () => {
     await expect(page.getByLabel('1 unread')).toBeVisible();
   });
 
-  test('chat renders bodies as literal text and clears the unread badge on open', async ({ page }) => {
+  test('chat renders bodies as literal text and clears the unread badge on open', async ({
+    page,
+  }) => {
     await page.goto('/login');
     await page.fill('#login-username', 'e2e_tester');
     await page.fill('#login-password', 'correct-horse-battery-staple');
@@ -53,7 +55,10 @@ test.describe('COM-5 private messaging (mock api)', () => {
     // 2) NOTIFICATION: the bell count includes the seeded MESSAGE_RECEIVED,
     //    and the notifications page renders it with the actor + link.
     await page.goto('/notifications');
-    const row = page.locator('li, article, div').filter({ hasText: 'admin_e2e sent you a message' }).first();
+    const row = page
+      .locator('li, article, div')
+      .filter({ hasText: 'admin_e2e sent you a message' })
+      .first();
     await expect(row).toBeVisible();
     await expect(row).toContainText('third message');
 
@@ -67,13 +72,23 @@ test.describe('COM-5 private messaging (mock api)', () => {
     //    localStorage pattern — the moderator is the OTHER party here, so a
     //    plain re-login would collide with the open page session).
     await page.context().clearCookies();
-    await page.context().addCookies([
-      { name: 'wc_access', value: 'e2e-admin-access', domain: 'localhost', path: '/' },
-    ]);
-    await page.evaluate(() => localStorage.setItem(
-      'user',
-      JSON.stringify({ id: 2, username: 'admin_e2e', email: 'admin@e2e.local', role: 'ADMIN', two_factor_enabled: false })
-    ));
+    await page
+      .context()
+      .addCookies([
+        { name: 'wc_access', value: 'e2e-admin-access', domain: 'localhost', path: '/' },
+      ]);
+    await page.evaluate(() =>
+      localStorage.setItem(
+        'user',
+        JSON.stringify({
+          id: 2,
+          username: 'admin_e2e',
+          email: 'admin@e2e.local',
+          role: 'ADMIN',
+          two_factor_enabled: false,
+        }),
+      ),
+    );
     await page.goto('/messages');
     const reportRow = page.getByTestId('msg-mod-queue').locator('li').first();
     await expect(reportRow).toContainText('GROOMING');

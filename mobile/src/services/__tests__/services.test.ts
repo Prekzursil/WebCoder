@@ -32,11 +32,11 @@ describe('ProblemService', () => {
   it('lists APPROVED problems with search + difficulty + paging', async () => {
     await ProblemService.getProblems(
       { search: 'sum', difficulty: 'EASY', status: 'APPROVED' },
-      { page: 2, pageSize: 20 }
+      { page: 2, pageSize: 20 },
     );
     const [url, init] = calls()[0];
     expect(url).toContain(
-      '/problems/problems/?search=sum&difficulty=EASY&status=APPROVED&page=2&page_size=20'
+      '/problems/problems/?search=sum&difficulty=EASY&status=APPROVED&page=2&page_size=20',
     );
     expect(init.method).toBe('GET');
   });
@@ -69,10 +69,10 @@ describe('SubmissionService', () => {
 
     await SubmissionService.getSubmissions(
       { problemId: 5, language: 'cpp17' },
-      { cursor: 'abc', pageSize: 10 }
+      { cursor: 'abc', pageSize: 10 },
     );
     expect(calls()[1][0]).toContain(
-      '/submissions/submissions/?problemId=5&language=cpp17&cursor=abc&page_size=10'
+      '/submissions/submissions/?problemId=5&language=cpp17&cursor=abc&page_size=10',
     );
     await SubmissionService.getSubmissionDetail(9);
     expect(calls()[2][0]).toContain('/submissions/submissions/9/');
@@ -91,9 +91,7 @@ describe('LeaderboardService + PublicService', () => {
 describe('ForumService', () => {
   it('threads list carries filters; posts paginate by cursor', async () => {
     await ForumService.getThreads({ page: 2, problemId: 7, lang: 'en' });
-    expect(calls()[0][0]).toContain(
-      '/forum/threads/?page=2&problem_id=7&lang=en'
-    );
+    expect(calls()[0][0]).toContain('/forum/threads/?page=2&problem_id=7&lang=en');
     await ForumService.getThread(3);
     expect(calls()[1][0]).toContain('/forum/threads/3/');
     await ForumService.createThread({ title: 'T', content: 'C' });
@@ -176,33 +174,22 @@ describe('ClassroomService + TranslationsService', () => {
 
 describe('optional-parameter branches', () => {
   it('hits every defaulted filter/pager branch once', async () => {
-    await SubmissionService.getSubmissions(
-      { userId: 3, language: 'c11' },
-      { pageSize: 5 }
-    );
+    await SubmissionService.getSubmissions({ userId: 3, language: 'c11' }, { pageSize: 5 });
     expect(calls().at(-1)![0]).toContain(
-      '/submissions/submissions/?userId=3&language=c11&page_size=5'
+      '/submissions/submissions/?userId=3&language=c11&page_size=5',
     );
     await ForumService.getThreads({ problemId: 9, pageSize: 10, topic: 'problem' });
-    expect(calls().at(-1)![0]).toContain(
-      '/forum/threads/?page_size=10&problem_id=9&topic=problem'
-    );
+    expect(calls().at(-1)![0]).toContain('/forum/threads/?page_size=10&problem_id=9&topic=problem');
     await NotificationService.getNotifications({ pageSize: 7, cursor: 'c9' });
-    expect(calls().at(-1)![0]).toContain(
-      '/notifications/?cursor=c9&page_size=7'
-    );
+    expect(calls().at(-1)![0]).toContain('/notifications/?cursor=c9&page_size=7');
     await LeaderboardService.getLeaderboard({ pageSize: 25 });
     expect(calls().at(-1)![0]).toContain('/leaderboard/?page_size=25');
     await ContestService.getContests({ state: 'UPCOMING' }, { pageSize: 8 });
-    expect(calls().at(-1)![0]).toContain(
-      '/contests/contests/?state=UPCOMING&page_size=8'
-    );
+    expect(calls().at(-1)![0]).toContain('/contests/contests/?state=UPCOMING&page_size=8');
     await ForumService.getPosts(1, { pageSize: 4 });
     expect(calls().at(-1)![0]).toContain('/forum/threads/1/posts/?page_size=4');
     await TranslationsService.getMine({ pageSize: 6 });
-    expect(calls().at(-1)![0]).toContain(
-      '/translations/proposals/mine/?page_size=6'
-    );
+    expect(calls().at(-1)![0]).toContain('/translations/proposals/mine/?page_size=6');
     await ClassroomService.getMyAssignments();
     expect(calls().at(-1)![0]).toContain('/classroom/assignments/my-assignments/');
   });

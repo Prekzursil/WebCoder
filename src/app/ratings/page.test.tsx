@@ -26,7 +26,12 @@ vi.mock('@/context/AuthContext', () => ({
   useAuth: () => mocks.auth,
 }));
 
-const row = (id: number, username: string, rating: number, partial: Record<string, unknown> = {}) => ({
+const row = (
+  id: number,
+  username: string,
+  rating: number,
+  partial: Record<string, unknown> = {},
+) => ({
   user: { id, username },
   rating,
   internal_rating: rating,
@@ -66,7 +71,12 @@ describe('RatingsPage', () => {
   });
 
   it('unrated callers see the unrated hint, not an error', async () => {
-    api.getLadder.mockResolvedValue({ count: 1, next: null, previous: null, results: [row(2, 'alice', 1500)] });
+    api.getLadder.mockResolvedValue({
+      count: 1,
+      next: null,
+      previous: null,
+      results: [row(2, 'alice', 1500)],
+    });
     api.getMyRating.mockResolvedValue({
       rated: false,
       rating: null,

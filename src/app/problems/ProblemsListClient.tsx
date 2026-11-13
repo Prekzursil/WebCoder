@@ -65,7 +65,14 @@ const DIFFICULTY_ORDER: Record<string, number> = {
   hard: 3,
 };
 
-export default function ProblemsListClient({ problems, totalCount, hasMore, fetchError, locale, curriculum }: ProblemsListClientProps) {
+export default function ProblemsListClient({
+  problems,
+  totalCount,
+  hasMore,
+  fetchError,
+  locale,
+  curriculum,
+}: ProblemsListClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const auth = useAuth();
@@ -143,7 +150,10 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
     try {
       // Status facet filters client-side (the backend list has no ?status=
       // query support), so pages are fetched unfiltered and appended here.
-      const response = await ProblemService.getProblems({}, { page: nextPageRef.current, pageSize: 100 });
+      const response = await ProblemService.getProblems(
+        {},
+        { page: nextPageRef.current, pageSize: 100 },
+      );
       setRows((prev) => {
         const seen = new Set(prev.map((p) => p.id));
         return [...prev, ...response.results.filter((p) => !seen.has(p.id))];
@@ -152,7 +162,9 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
       setMoreAvailable(Boolean(response.next));
     } catch (err) {
       setMoreAvailable(true); // retry stays possible
-      setMoreError(err instanceof Error && err.message ? err.message : 'Failed to load more problems.');
+      setMoreError(
+        err instanceof Error && err.message ? err.message : 'Failed to load more problems.',
+      );
     } finally {
       setLoadingMore(false);
     }
@@ -172,7 +184,7 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
   const [difficultyFilter, setDifficultyFilter] = useState(urlDifficulty);
   const [statusFilter, setStatusFilter] = useState(urlStatus);
   const [tagFilter, setTagFilter] = useState<Set<number>>(
-    () => new Set(urlTags.split(',').filter(Boolean).map(Number))
+    () => new Set(urlTags.split(',').filter(Boolean).map(Number)),
   );
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>('asc');
@@ -187,17 +199,29 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
   }, [urlSearch, urlDifficulty, urlStatus, urlTags]);
 
   // Push filter changes into the URL (replace, no scroll jump). [F3]
-  const syncUrl = (next: { q?: string; difficulty?: string; status?: string; tags?: string; curriculum?: string }) => {
+  const syncUrl = (next: {
+    q?: string;
+    difficulty?: string;
+    status?: string;
+    tags?: string;
+    curriculum?: string;
+  }) => {
     const params = new URLSearchParams(searchParams.toString());
     const setOrDelete = (name: string, value: string | undefined) => {
       if (value) params.set(name, value);
       else params.delete(name);
     };
     setOrDelete('q', next.q !== undefined ? next.q : urlSearch || undefined);
-    setOrDelete('difficulty', next.difficulty !== undefined ? next.difficulty : urlDifficulty || undefined);
+    setOrDelete(
+      'difficulty',
+      next.difficulty !== undefined ? next.difficulty : urlDifficulty || undefined,
+    );
     setOrDelete('status', next.status !== undefined ? next.status : urlStatus || undefined);
     setOrDelete('tags', next.tags !== undefined ? next.tags : urlTags || undefined);
-    setOrDelete('curriculum', next.curriculum !== undefined ? next.curriculum : urlCurriculum || undefined);
+    setOrDelete(
+      'curriculum',
+      next.curriculum !== undefined ? next.curriculum : urlCurriculum || undefined,
+    );
     const qs = params.toString();
     router.replace(qs ? `/problems?${qs}` : '/problems', { scroll: false });
   };
@@ -210,7 +234,7 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
   // The status facet only makes sense for roles that can see non-approved
   // problems. [F7]
   const showStatusFacet = Boolean(
-    auth.user && ['ADMIN', 'PROBLEM_VERIFIER', 'PROBLEM_CREATOR'].includes(auth.user.role)
+    auth.user && ['ADMIN', 'PROBLEM_VERIFIER', 'PROBLEM_CREATOR'].includes(auth.user.role),
   );
 
   const filtered = useMemo(() => {
@@ -220,15 +244,12 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
       const matchesDiff = difficultyFilter
         ? p.difficulty?.toLowerCase() === difficultyFilter
         : true;
-      const matchesStatus = statusFilter
-        ? p.status?.toLowerCase() === statusFilter
-        : true;
+      const matchesStatus = statusFilter ? p.status?.toLowerCase() === statusFilter : true;
       // [F4] multi-tag AND facet
-      const matchesTags = tagFilter.size === 0
-        ? true
-        : Array.from(tagFilter).every((tagId) =>
-            p.tags?.some((tag) => tag.id === tagId)
-          );
+      const matchesTags =
+        tagFilter.size === 0
+          ? true
+          : Array.from(tagFilter).every((tagId) => p.tags?.some((tag) => tag.id === tagId));
       // [F5] optional "hide solved"
       const matchesHideSolved = hideSolved && solvedIds ? !solvedIds.has(p.id) : true;
       return matchesSearch && matchesDiff && matchesStatus && matchesTags && matchesHideSolved;
@@ -243,15 +264,27 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
         const bt = (b.title_i18n[locale] || b.title_i18n.en || '').toLowerCase();
         cmp = at.localeCompare(bt);
       } else if (sortKey === 'difficulty') {
-        cmp = (DIFFICULTY_ORDER[a.difficulty?.toLowerCase() ?? ''] ?? 3)
-          - (DIFFICULTY_ORDER[b.difficulty?.toLowerCase() ?? ''] ?? 3);
+        cmp =
+          (DIFFICULTY_ORDER[a.difficulty?.toLowerCase() ?? ''] ?? 3) -
+          (DIFFICULTY_ORDER[b.difficulty?.toLowerCase() ?? ''] ?? 3);
       } else {
         cmp = (a.status ?? '').localeCompare(b.status ?? '');
       }
       if (cmp === 0) cmp = a.id - b.id;
       return cmp * dir;
     });
-  }, [rows, search, difficultyFilter, statusFilter, tagFilter, hideSolved, solvedIds, locale, sortKey, sortDir]);
+  }, [
+    rows,
+    search,
+    difficultyFilter,
+    statusFilter,
+    tagFilter,
+    hideSolved,
+    solvedIds,
+    locale,
+    sortKey,
+    sortDir,
+  ]);
 
   const hasActiveFilters = search || difficultyFilter || statusFilter || tagFilter.size > 0;
 
@@ -298,7 +331,10 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
       {/* Page header */}
       <PageHeader
         title={t('problem_list_header', 'Problems')}
-        subtitle={t('problems_page_description', 'Browse the public competitive programming problem catalog.')}
+        subtitle={t(
+          'problems_page_description',
+          'Browse the public competitive programming problem catalog.',
+        )}
       />
 
       {/* [roadmap ONB-1] first-run path: the /start trio */}
@@ -323,17 +359,19 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
       </Link>
 
       {/* Filter bar */}
-      <div style={{
-        background: 'var(--surface)',
-        border: '1px solid var(--border)',
-        borderRadius: 'var(--radius-lg)',
-        padding: '1rem 1.25rem',
-        marginBottom: '1.25rem',
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '0.75rem',
-        alignItems: 'center',
-      }}>
+      <div
+        style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius-lg)',
+          padding: '1rem 1.25rem',
+          marginBottom: '1.25rem',
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '0.75rem',
+          alignItems: 'center',
+        }}
+      >
         {/* Search */}
         <div style={{ position: 'relative', flex: '1 1 200px', minWidth: '160px' }}>
           <input
@@ -362,25 +400,46 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
             {t('difficulty_label', 'Difficulty')}:
           </span>
           <button
-            onClick={() => { setDifficultyFilter(''); syncUrl({ difficulty: '' }); }}
+            onClick={() => {
+              setDifficultyFilter('');
+              syncUrl({ difficulty: '' });
+            }}
             className="chip"
             aria-pressed={!difficultyFilter}
-            style={difficultyFilter ? undefined : { borderColor: 'var(--accent)', color: 'var(--accent)', background: hexAlpha(palette.accent, 0.12) }}
-          >{t('all_option', 'All')}</button>
+            style={
+              difficultyFilter
+                ? undefined
+                : {
+                    borderColor: 'var(--accent)',
+                    color: 'var(--accent)',
+                    background: hexAlpha(palette.accent, 0.12),
+                  }
+            }
+          >
+            {t('all_option', 'All')}
+          </button>
           {DIFFICULTIES.map((d) => {
             const color = difficultyColor[d] ?? palette.muted;
             const active = difficultyFilter === d;
             return (
               <button
                 key={d}
-                onClick={() => { const next = active ? '' : d; setDifficultyFilter(next); syncUrl({ difficulty: next }); }}
+                onClick={() => {
+                  const next = active ? '' : d;
+                  setDifficultyFilter(next);
+                  syncUrl({ difficulty: next });
+                }}
                 className="chip"
                 aria-pressed={active}
-                style={active ? {
-                  borderColor: color,
-                  color,
-                  background: hexAlpha(color, 0.09),
-                } : undefined}
+                style={
+                  active
+                    ? {
+                        borderColor: color,
+                        color,
+                        background: hexAlpha(color, 0.09),
+                      }
+                    : undefined
+                }
               >
                 {t(`difficulty_${d}`, d)}
               </button>
@@ -395,24 +454,45 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
               {t('status_label', 'Status')}:
             </span>
             <button
-              onClick={() => { setStatusFilter(''); syncUrl({ status: '' }); }}
+              onClick={() => {
+                setStatusFilter('');
+                syncUrl({ status: '' });
+              }}
               className="chip"
               aria-pressed={!statusFilter}
-              style={statusFilter ? undefined : { borderColor: 'var(--accent)', color: 'var(--accent)', background: hexAlpha(palette.accent, 0.12) }}
-            >{t('all_option', 'All')}</button>
+              style={
+                statusFilter
+                  ? undefined
+                  : {
+                      borderColor: 'var(--accent)',
+                      color: 'var(--accent)',
+                      background: hexAlpha(palette.accent, 0.12),
+                    }
+              }
+            >
+              {t('all_option', 'All')}
+            </button>
             {STATUSES.map((s) => {
               const active = statusFilter === s;
               return (
                 <button
                   key={s}
-                  onClick={() => { const next = active ? '' : s; setStatusFilter(next); syncUrl({ status: next }); }}
+                  onClick={() => {
+                    const next = active ? '' : s;
+                    setStatusFilter(next);
+                    syncUrl({ status: next });
+                  }}
                   className="chip"
                   aria-pressed={active}
-                  style={active ? {
-                    borderColor: 'rgba(148,163,184,0.5)',
-                    color: 'var(--muted)',
-                    background: 'rgba(148,163,184,0.12)',
-                  } : undefined}
+                  style={
+                    active
+                      ? {
+                          borderColor: 'rgba(148,163,184,0.5)',
+                          color: 'var(--muted)',
+                          background: 'rgba(148,163,184,0.12)',
+                        }
+                      : undefined
+                  }
                 >
                   {t(`status_${s}`, s)}
                 </button>
@@ -434,11 +514,15 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
             onClick={() => setHideSolved((v) => !v)}
             className="chip"
             aria-pressed={hideSolved}
-            style={hideSolved ? {
-              borderColor: 'var(--success)',
-              color: 'var(--success)',
-              background: hexAlpha(palette.success, 0.1),
-            } : undefined}
+            style={
+              hideSolved
+                ? {
+                    borderColor: 'var(--success)',
+                    color: 'var(--success)',
+                    background: hexAlpha(palette.success, 0.1),
+                  }
+                : undefined
+            }
           >
             {t('hide_solved_toggle', 'Hide solved')}
           </button>
@@ -449,13 +533,15 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
           appear under the active grade. ?curriculum=<nodeId> refilters
           server-side (the backend supports ?curriculum_node= natively). */}
       {curriculum && curriculum.length > 0 && (
-        <div style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-lg)',
-          padding: '0.85rem 1.25rem',
-          marginBottom: '1.25rem',
-        }}>
+        <div
+          style={{
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '0.85rem 1.25rem',
+            marginBottom: '1.25rem',
+          }}
+        >
           <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
             <span className="micro-label" style={{ color: 'var(--muted)' }}>
               {t('curriculum_label', 'Curriculum')}:
@@ -464,11 +550,15 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
               onClick={() => syncUrl({ curriculum: '' })}
               className="chip"
               aria-pressed={!urlCurriculum}
-              style={!urlCurriculum ? {
-                borderColor: 'var(--accent)',
-                color: 'var(--accent)',
-                background: hexAlpha(palette.accent, 0.12),
-              } : undefined}
+              style={
+                !urlCurriculum
+                  ? {
+                      borderColor: 'var(--accent)',
+                      color: 'var(--accent)',
+                      background: hexAlpha(palette.accent, 0.12),
+                    }
+                  : undefined
+              }
             >
               {t('all_option', 'All')}
             </button>
@@ -476,38 +566,59 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
               const childrenActive = grade.children.some((c) => String(c.id) === urlCurriculum);
               const gradeActive = String(grade.id) === urlCurriculum || childrenActive;
               return (
-                <span key={grade.id} style={{ display: 'inline-flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <span
+                  key={grade.id}
+                  style={{
+                    display: 'inline-flex',
+                    gap: '6px',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                  }}
+                >
                   <button
                     onClick={() => syncUrl({ curriculum: String(grade.id) })}
                     className="chip"
                     aria-pressed={gradeActive}
-                    style={gradeActive ? {
-                      borderColor: 'var(--violet)',
-                      color: 'var(--violet)',
-                      background: hexAlpha(palette.violet, 0.1),
-                    } : undefined}
+                    style={
+                      gradeActive
+                        ? {
+                            borderColor: 'var(--violet)',
+                            color: 'var(--violet)',
+                            background: hexAlpha(palette.violet, 0.1),
+                          }
+                        : undefined
+                    }
                   >
                     {grade.name_i18n[locale] || grade.name_i18n.en || grade.slug}
                   </button>
-                  {(childrenActive || String(grade.id) === urlCurriculum) && grade.children.map((chapter) => {
-                    const active = String(chapter.id) === urlCurriculum;
-                    return (
-                      <button
-                        key={chapter.id}
-                        onClick={() => syncUrl({ curriculum: active ? String(grade.id) : String(chapter.id) })}
-                        className="chip"
-                        aria-pressed={active}
-                        style={active ? {
-                          borderColor: 'var(--violet)',
-                          color: 'var(--violet)',
-                          background: hexAlpha(palette.violet, 0.14),
-                        } : undefined}
-                      >
-                        {chapter.name_i18n[locale] || chapter.name_i18n.en || chapter.slug}
-                        <span aria-hidden="true" style={{ opacity: 0.6, marginLeft: '4px' }}>{chapter.problem_count}</span>
-                      </button>
-                    );
-                  })}
+                  {(childrenActive || String(grade.id) === urlCurriculum) &&
+                    grade.children.map((chapter) => {
+                      const active = String(chapter.id) === urlCurriculum;
+                      return (
+                        <button
+                          key={chapter.id}
+                          onClick={() =>
+                            syncUrl({ curriculum: active ? String(grade.id) : String(chapter.id) })
+                          }
+                          className="chip"
+                          aria-pressed={active}
+                          style={
+                            active
+                              ? {
+                                  borderColor: 'var(--violet)',
+                                  color: 'var(--violet)',
+                                  background: hexAlpha(palette.violet, 0.14),
+                                }
+                              : undefined
+                          }
+                        >
+                          {chapter.name_i18n[locale] || chapter.name_i18n.en || chapter.slug}
+                          <span aria-hidden="true" style={{ opacity: 0.6, marginLeft: '4px' }}>
+                            {chapter.problem_count}
+                          </span>
+                        </button>
+                      );
+                    })}
                 </span>
               );
             })}
@@ -517,12 +628,23 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
 
       {/* [F4] Tag facet */}
       {allTags.length > 0 && (
-        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: '6px',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            marginBottom: '1.25rem',
+          }}
+        >
           <span className="micro-label" style={{ color: 'var(--muted)' }}>
             {t('tags_label', 'Tags')}:
           </span>
           <button
-            onClick={() => { setTagFilter(new Set()); syncUrl({ tags: '' }); }}
+            onClick={() => {
+              setTagFilter(new Set());
+              syncUrl({ tags: '' });
+            }}
             className="chip"
             aria-pressed={tagFilter.size === 0}
           >
@@ -542,11 +664,15 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
                 }}
                 className="chip"
                 aria-pressed={active}
-                style={active ? {
-                  borderColor: 'var(--violet)',
-                  color: 'var(--violet)',
-                  background: hexAlpha(palette.violet, 0.1),
-                } : undefined}
+                style={
+                  active
+                    ? {
+                        borderColor: 'var(--violet)',
+                        color: 'var(--violet)',
+                        background: hexAlpha(palette.violet, 0.1),
+                      }
+                    : undefined
+                }
               >
                 {tag.name_i18n[locale] || tag.name_i18n.en || tag.slug}
               </button>
@@ -559,7 +685,10 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
       {!fetchError && rows.length > 0 && (
         <div style={{ marginBottom: '0.75rem', fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
           {hasActiveFilters
-            ? t('showing_problems_info', 'Showing {{shown}} of {{total}} problem(s)', { shown: filtered.length, total: rows.length })
+            ? t('showing_problems_info', 'Showing {{shown}} of {{total}} problem(s)', {
+                shown: filtered.length,
+                total: rows.length,
+              })
             : `${filtered.length} ${filtered.length === 1 ? 'problem' : 'problems'}`}
           {totalCount > rows.length ? ` · ${totalCount.toLocaleString()} in the full catalog` : ''}
         </div>
@@ -578,7 +707,8 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
             fontSize: '0.9rem',
           }}
         >
-          {t('problems_load_error', 'Could not load problems: ')}{fetchError}
+          {t('problems_load_error', 'Could not load problems: ')}
+          {fetchError}
         </div>
       ) : filtered.length === 0 ? (
         hasActiveFilters ? (
@@ -591,26 +721,32 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
             }
           />
         ) : (
-          <EmptyState
-            title={t('no_problems_available', 'No problems available at the moment.')}
-          />
+          <EmptyState title={t('no_problems_available', 'No problems available at the moment.')} />
         )
       ) : (
-        <div style={{
-          background: 'var(--surface)',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--border)',
-        }}>
+        <div
+          style={{
+            background: 'var(--surface)',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--border)',
+          }}
+        >
           <TableScroll>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border)' }}>
                   {solvedIds && (
-                    <th scope="col" style={{ padding: '12px 20px', width: '44px' }} aria-label={t('solved_column_th', 'Solved')}>
+                    <th
+                      scope="col"
+                      style={{ padding: '12px 20px', width: '44px' }}
+                      aria-label={t('solved_column_th', 'Solved')}
+                    >
                       <span aria-hidden="true">&#10003;</span>
                     </th>
                   )}
-                  <th scope="col" style={{ padding: '12px 20px', width: '60px' }}>#</th>
+                  <th scope="col" style={{ padding: '12px 20px', width: '60px' }}>
+                    #
+                  </th>
                   {sortableTh('title', t('problem_title_th', 'Title'))}
                   {sortableTh('difficulty', t('problem_difficulty_th', 'Difficulty'))}
                   {showStatusFacet && sortableTh('status', t('problem_status_th', 'Status'))}
@@ -621,7 +757,10 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
                   const diff = problem.difficulty?.toLowerCase() ?? '';
                   const diffColor = difficultyColor[diff] ?? palette.muted;
                   return (
-                    <tr key={problem.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                    <tr
+                      key={problem.id}
+                      style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                    >
                       {solvedIds && (
                         <td style={{ padding: '14px 20px' }}>
                           <span
@@ -641,50 +780,69 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
                               fontSize: '0.9rem',
                             }}
                           >
-                            {solvedIds.has(problem.id) ? '✓' : attemptedIds.has(problem.id) ? '•' : ''}
+                            {solvedIds.has(problem.id)
+                              ? '✓'
+                              : attemptedIds.has(problem.id)
+                                ? '•'
+                                : ''}
                           </span>
                         </td>
                       )}
-                      <td style={{ padding: '14px 20px', color: 'var(--text-tertiary)', fontSize: '0.8rem' }}>
+                      <td
+                        style={{
+                          padding: '14px 20px',
+                          color: 'var(--text-tertiary)',
+                          fontSize: '0.8rem',
+                        }}
+                      >
                         {problem.id}
                       </td>
                       <td style={{ padding: '14px 20px' }}>
-                        <Link href={`/problems/${problem.id}`} style={{
-                          color: 'var(--foreground)',
-                          fontWeight: 500,
-                          fontSize: '0.9rem',
-                        }}>
-                          {problem.title_i18n[locale] || problem.title_i18n.en || `Problem #${problem.id}`}
+                        <Link
+                          href={`/problems/${problem.id}`}
+                          style={{
+                            color: 'var(--foreground)',
+                            fontWeight: 500,
+                            fontSize: '0.9rem',
+                          }}
+                        >
+                          {problem.title_i18n[locale] ||
+                            problem.title_i18n.en ||
+                            `Problem #${problem.id}`}
                         </Link>
                       </td>
                       <td style={{ padding: '14px 20px' }}>
-                        <span style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          padding: '2px 10px',
-                          borderRadius: '999px',
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
-                          color: diffColor,
-                          background: hexAlpha(diffColor, 0.09),
-                          border: `1px solid ${hexAlpha(diffColor, 0.19)}`,
-                        }}>
-                          {t(`difficulty_${diff}`, problem.difficulty)}
-                        </span>
-                      </td>
-                      {showStatusFacet && (
-                        <td style={{ padding: '14px 20px' }}>
-                          <span style={{
+                        <span
+                          style={{
                             display: 'inline-flex',
                             alignItems: 'center',
                             padding: '2px 10px',
                             borderRadius: '999px',
                             fontSize: '0.75rem',
-                            fontWeight: 500,
-                            color: 'var(--muted)',
-                            background: 'rgba(148,163,184,0.08)',
-                            border: '1px solid rgba(148,163,184,0.15)',
-                          }}>
+                            fontWeight: 600,
+                            color: diffColor,
+                            background: hexAlpha(diffColor, 0.09),
+                            border: `1px solid ${hexAlpha(diffColor, 0.19)}`,
+                          }}
+                        >
+                          {t(`difficulty_${diff}`, problem.difficulty)}
+                        </span>
+                      </td>
+                      {showStatusFacet && (
+                        <td style={{ padding: '14px 20px' }}>
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              padding: '2px 10px',
+                              borderRadius: '999px',
+                              fontSize: '0.75rem',
+                              fontWeight: 500,
+                              color: 'var(--muted)',
+                              background: 'rgba(148,163,184,0.08)',
+                              border: '1px solid rgba(148,163,184,0.15)',
+                            }}
+                          >
                             {t(`status_${problem.status?.toLowerCase()}`, problem.status)}
                           </span>
                         </td>
@@ -702,12 +860,17 @@ export default function ProblemsListClient({ problems, totalCount, hasMore, fetc
       {!fetchError && rows.length > 0 && (moreAvailable || moreError) && (
         <div style={{ textAlign: 'center', marginTop: '1rem' }}>
           {moreError && (
-            <p role="alert" style={{ color: 'var(--danger)', fontSize: '0.8rem', marginBottom: '0.5rem' }}>
+            <p
+              role="alert"
+              style={{ color: 'var(--danger)', fontSize: '0.8rem', marginBottom: '0.5rem' }}
+            >
               {moreError}
             </p>
           )}
           <button onClick={loadMore} disabled={loadingMore} className="btn">
-            {loadingMore ? t('loading_more', 'Loading…') : t('load_more_problems', 'Load more problems')}
+            {loadingMore
+              ? t('loading_more', 'Loading…')
+              : t('load_more_problems', 'Load more problems')}
           </button>
         </div>
       )}

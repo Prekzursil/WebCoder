@@ -46,9 +46,11 @@ describe('HomePage (route "/")', () => {
     mockLocale(undefined);
     render(await Home());
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Welcome to WebCoder' })).toBeInTheDocument();
     expect(
-      screen.getByText('The ultimate platform for competitive programming.')
+      screen.getByRole('heading', { level: 1, name: 'Welcome to WebCoder' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('The ultimate platform for competitive programming.'),
     ).toBeInTheDocument();
     expect(screen.getByText(/compete with a community of developers/i)).toBeInTheDocument();
 
@@ -62,10 +64,12 @@ describe('HomePage (route "/")', () => {
     mockLocale('ro');
     render(await Home());
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Bun venit la WebCoder' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Bun venit la WebCoder' }),
+    ).toBeInTheDocument();
     // Subtitle now carries a Romanian value in the shared resources.
     expect(
-      screen.getByText('Platforma definitivă pentru programare competitivă.')
+      screen.getByText('Platforma definitivă pentru programare competitivă.'),
     ).toBeInTheDocument();
   });
 

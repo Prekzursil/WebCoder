@@ -43,11 +43,11 @@ const CATALOG_PAGE_SIZE = 100;
  */
 export function getProblemsPage(
   page = 1,
-  filters: { curriculumNode?: number | string } = {}
+  filters: { curriculumNode?: number | string } = {},
 ): Promise<PaginatedResponse<ProblemType>> {
   const nodeQs = filters.curriculumNode ? `&curriculum_node=${filters.curriculumNode}` : '';
   return fetchJson<PaginatedResponse<ProblemType>>(
-    `/problems/problems/?page=${page}&page_size=${CATALOG_PAGE_SIZE}${nodeQs}`
+    `/problems/problems/?page=${page}&page_size=${CATALOG_PAGE_SIZE}${nodeQs}`,
   );
 }
 

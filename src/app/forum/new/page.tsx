@@ -56,7 +56,11 @@ export default function NewThreadPage() {
       });
       router.push(`/forum/${thread.id}`);
     } catch (err) {
-      setError(err instanceof Error && err.message ? err.message : t('forum_create_error', 'Failed to create thread.'));
+      setError(
+        err instanceof Error && err.message
+          ? err.message
+          : t('forum_create_error', 'Failed to create thread.'),
+      );
       setSubmitting(false);
     }
   };
@@ -64,7 +68,16 @@ export default function NewThreadPage() {
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem 1.5rem' }}>
       {/* Breadcrumb */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.5rem', fontSize: '0.8rem', color: 'var(--muted)' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          marginBottom: '1.5rem',
+          fontSize: '0.8rem',
+          color: 'var(--muted)',
+        }}
+      >
         <Link href="/forum" style={{ color: 'var(--accent)' }}>
           Forum
         </Link>
@@ -73,7 +86,15 @@ export default function NewThreadPage() {
       </div>
 
       <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--foreground)', marginBottom: '0.4rem' }}>
+        <h1
+          style={{
+            fontSize: '1.5rem',
+            fontWeight: 800,
+            letterSpacing: '-0.03em',
+            color: 'var(--foreground)',
+            marginBottom: '0.4rem',
+          }}
+        >
           {t('forum_new_header', 'Create New Thread')}
         </h1>
         <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>
@@ -116,7 +137,10 @@ export default function NewThreadPage() {
                   letterSpacing: '0.05em',
                 }}
               >
-                {t('forum_linked_problem_label', 'Linked problem')} <span style={{ color: 'var(--text-tertiary)' }}>{t('optional_suffix', '(optional)')}</span>
+                {t('forum_linked_problem_label', 'Linked problem')}{' '}
+                <span style={{ color: 'var(--text-tertiary)' }}>
+                  {t('optional_suffix', '(optional)')}
+                </span>
               </label>
               <select
                 id="thread-problem"
@@ -132,10 +156,13 @@ export default function NewThreadPage() {
                   fontSize: '0.9rem',
                 }}
               >
-                <option value="">{t('forum_general_thread_option', 'General thread (no problem)')}</option>
+                <option value="">
+                  {t('forum_general_thread_option', 'General thread (no problem)')}
+                </option>
                 {problems.map((p) => (
                   <option key={p.id} value={p.id}>
-                    #{p.id} — {p.title_i18n?.en ?? t('problem_id_label', 'Problem ID') + ' #' + p.id}
+                    #{p.id} —{' '}
+                    {p.title_i18n?.en ?? t('problem_id_label', 'Problem ID') + ' #' + p.id}
                   </option>
                 ))}
               </select>
@@ -162,7 +189,10 @@ export default function NewThreadPage() {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder={t('forum_title_placeholder', 'Be specific and descriptive (min. 10 characters)')}
+                placeholder={t(
+                  'forum_title_placeholder',
+                  'Be specific and descriptive (min. 10 characters)',
+                )}
                 style={{
                   width: '100%',
                   background: 'var(--surface)',
@@ -195,13 +225,17 @@ export default function NewThreadPage() {
                   letterSpacing: '0.05em',
                 }}
               >
-                {t('forum_content_label', 'Content')} <span style={{ color: 'var(--danger)' }}>*</span>
+                {t('forum_content_label', 'Content')}{' '}
+                <span style={{ color: 'var(--danger)' }}>*</span>
               </label>
               <textarea
                 id="thread-body"
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
-                placeholder={t('forum_content_placeholder', 'Describe your question or topic in detail.')}
+                placeholder={t(
+                  'forum_content_placeholder',
+                  'Describe your question or topic in detail.',
+                )}
                 rows={10}
                 style={{
                   width: '100%',
@@ -218,9 +252,15 @@ export default function NewThreadPage() {
               />
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
                 {body.length > 0 && body.length < 20 && (
-                  <p style={{ fontSize: '0.72rem', color: 'var(--danger)' }}>{t('forum_content_too_short', 'Content must be at least 20 characters.')}</p>
+                  <p style={{ fontSize: '0.72rem', color: 'var(--danger)' }}>
+                    {t('forum_content_too_short', 'Content must be at least 20 characters.')}
+                  </p>
                 )}
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', marginLeft: 'auto' }}>{t('forum_chars_count', '{{count}} chars', { count: body.length })}</span>
+                <span
+                  style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', marginLeft: 'auto' }}
+                >
+                  {t('forum_chars_count', '{{count}} chars', { count: body.length })}
+                </span>
               </div>
             </div>
 
@@ -231,7 +271,14 @@ export default function NewThreadPage() {
             )}
 
             {/* Actions */}
-            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', paddingTop: '0.5rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                gap: '0.75rem',
+                justifyContent: 'flex-end',
+                paddingTop: '0.5rem',
+              }}
+            >
               <Link
                 href="/forum"
                 style={{
@@ -255,7 +302,9 @@ export default function NewThreadPage() {
                 className="btn btn--primary"
                 style={{ opacity: isValid && !submitting ? 1 : 0.5 }}
               >
-                {submitting ? t('forum_posting', 'Posting…') : t('forum_post_thread', 'Post Thread')}
+                {submitting
+                  ? t('forum_posting', 'Posting…')
+                  : t('forum_post_thread', 'Post Thread')}
               </button>
             </div>
           </div>

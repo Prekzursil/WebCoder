@@ -108,7 +108,14 @@ export default function SubmissionDetail() {
         <Card>
           <SectionLabel>{t('tests_label', 'Tests')}</SectionLabel>
           {data.test_results.map((result, index) => (
-            <View key={result.id} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: space[1] }}>
+            <View
+              key={result.id}
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                paddingVertical: space[1],
+              }}
+            >
               <Txt variant="mono">#{result.test_case_details.order ?? index + 1}</Txt>
               <Txt variant="mono" color={verdictColor(result.verdict)}>
                 {result.verdict}

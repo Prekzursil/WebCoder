@@ -53,7 +53,15 @@ export default function ScratchPanel({
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: '0.5rem',
+          alignItems: 'center',
+          marginBottom: '0.5rem',
+          flexWrap: 'wrap',
+        }}
+      >
         <select
           aria-label={t('scratch_language_label', 'Custom test language')}
           value={language}
@@ -88,7 +96,12 @@ export default function ScratchPanel({
         <label
           htmlFor="scratch-input"
           className="micro-label"
-          style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', display: 'block', marginBottom: '4px' }}
+          style={{
+            fontSize: '0.7rem',
+            color: 'var(--text-tertiary)',
+            display: 'block',
+            marginBottom: '4px',
+          }}
         >
           {t('scratch_input_label', 'Custom input (stdin)')}
         </label>

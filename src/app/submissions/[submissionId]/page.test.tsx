@@ -89,7 +89,8 @@ function setAuth(over: Partial<typeof mocks.auth> = {}) {
 
 const pollingBadge = () =>
   screen.queryAllByText(
-    (_, el) => !!el && el.tagName === 'SPAN' && (el.textContent ?? '').includes('Polling for updates')
+    (_, el) =>
+      !!el && el.tagName === 'SPAN' && (el.textContent ?? '').includes('Polling for updates'),
   );
 
 const norm = (s: string | null | undefined) => (s ?? '').replace(/\s+/g, ' ').trim();
@@ -118,7 +119,10 @@ describe('SubmissionDetailPage', () => {
     const el = await screen.findByText('Authentication required to view submission details.');
     expect(el).toBeInTheDocument();
     // The dead-end fix: a way back, and no retry when signed out.
-    expect(screen.getByRole('link', { name: 'Back to My Submissions' })).toHaveAttribute('href', '/my-submissions');
+    expect(screen.getByRole('link', { name: 'Back to My Submissions' })).toHaveAttribute(
+      'href',
+      '/my-submissions',
+    );
     expect(screen.queryByRole('button', { name: 'Try Again' })).not.toBeInTheDocument();
     expect(mocks.getSubmissionDetail).not.toHaveBeenCalled();
   });
@@ -144,7 +148,10 @@ describe('SubmissionDetailPage', () => {
     render(<SubmissionDetailPage />);
     expect(await screen.findByText(/Boom/)).toBeInTheDocument();
 
-    expect(screen.getByRole('link', { name: 'Back to My Submissions' })).toHaveAttribute('href', '/my-submissions');
+    expect(screen.getByRole('link', { name: 'Back to My Submissions' })).toHaveAttribute(
+      'href',
+      '/my-submissions',
+    );
     const retry = screen.getByRole('button', { name: 'Try Again' });
     mocks.getSubmissionDetail.mockRejectedValueOnce(new Error('Boom 2'));
     await act(async () => {
@@ -177,7 +184,10 @@ describe('SubmissionDetailPage', () => {
     // Verdict appears in the title pill and the meta cell.
     expect(screen.getAllByText('AC', { selector: 'span' }).length).toBe(2);
 
-    expect(screen.getByRole('link', { name: 'Problem One' })).toHaveAttribute('href', '/problems/7');
+    expect(screen.getByRole('link', { name: 'Problem One' })).toHaveAttribute(
+      'href',
+      '/problems/7',
+    );
     expect(screen.getByText('alice')).toBeInTheDocument();
     expect(screen.getByText('python3')).toBeInTheDocument();
     expect(screen.getByText('100')).toBeInTheDocument();
@@ -194,7 +204,9 @@ describe('SubmissionDetailPage', () => {
     expect(code).toHaveTextContent('print("hi")');
     expect(screen.getByRole('button', { name: 'Copy code' })).toBeInTheDocument();
     // Header back link (F20 dead-end fix).
-    expect(screen.getAllByRole('link', { name: 'Back to My Submissions' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('link', { name: 'Back to My Submissions' }).length).toBeGreaterThan(
+      0,
+    );
 
     // Empty test_results -> no results header; feedback pre present.
     expect(screen.queryByText('Test Case Results')).not.toBeInTheDocument();
@@ -211,7 +223,7 @@ describe('SubmissionDetailPage', () => {
         memory_used_kb: null,
         detailed_feedback: undefined,
         test_results: undefined,
-      })
+      }),
     );
     render(<SubmissionDetailPage />);
     await screen.findByText('Submission Detail #42');
@@ -290,12 +302,26 @@ describe('SubmissionDetailPage', () => {
         error_output: 'ac-error',
       }),
       // WA + undefined execution time (present-check second operand false).
-      tr({ id: 6, test_case_details: { id: 16, order: 6, is_sample: false, points: 1 }, execution_time_ms: undefined, memory_used_kb: 4 }),
+      tr({
+        id: 6,
+        test_case_details: { id: 16, order: 6, is_sample: false, points: 1 },
+        execution_time_ms: undefined,
+        memory_used_kb: 4,
+      }),
       // RE + null error output -> hidden.
-      tr({ id: 7, test_case_details: { id: 17, order: 7, is_sample: false, points: 1 }, verdict: 'RE', execution_time_ms: 9, memory_used_kb: 5, error_output: null }),
+      tr({
+        id: 7,
+        test_case_details: { id: 17, order: 7, is_sample: false, points: 1 },
+        verdict: 'RE',
+        execution_time_ms: 9,
+        memory_used_kb: 5,
+        error_output: null,
+      }),
     ];
 
-    mocks.getSubmissionDetail.mockResolvedValue(baseDetail({ verdict: 'WA', language: 'cpp17', test_results: results }));
+    mocks.getSubmissionDetail.mockResolvedValue(
+      baseDetail({ verdict: 'WA', language: 'cpp17', test_results: results }),
+    );
     render(<SubmissionDetailPage />);
     await screen.findByText('Test Case Results');
 
@@ -331,11 +357,14 @@ describe('SubmissionDetailPage', () => {
   it('falls back to the English problem title under the ro locale (java11 -> java)', async () => {
     await i18n.changeLanguage('ro');
     mocks.getSubmissionDetail.mockResolvedValue(
-      baseDetail({ problem: { id: 9, title_i18n: { en: 'English Only' } }, language: 'java11' })
+      baseDetail({ problem: { id: 9, title_i18n: { en: 'English Only' } }, language: 'java11' }),
     );
     const { unmount } = render(<SubmissionDetailPage />);
     await screen.findByText('Detaliile Submisiei #42');
-    expect(screen.getByRole('link', { name: 'English Only' })).toHaveAttribute('href', '/problems/9');
+    expect(screen.getByRole('link', { name: 'English Only' })).toHaveAttribute(
+      'href',
+      '/problems/9',
+    );
     expect(screen.getByTestId('code-block')).toHaveAttribute('data-language', 'java');
     unmount();
 

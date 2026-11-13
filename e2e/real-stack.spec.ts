@@ -19,14 +19,16 @@ import {
   E2E_USER_PASS,
 } from './lib/realStack';
 
-test.skip(!isRealStack, `real-stack mode only — set E2E_API_BASE to the API origin with the SAME hostname as the dev server (http://localhost:8010; cookies are SameSite=Lax)`);
+test.skip(
+  !isRealStack,
+  `real-stack mode only — set E2E_API_BASE to the API origin with the SAME hostname as the dev server (http://localhost:8010; cookies are SameSite=Lax)`,
+);
 
 let seeded: { twoSumId: number; reverseId: number };
 
 test.beforeAll(async () => {
   seeded = await ensureRealStackFixtures();
 });
-
 
 test('real login issues JWTs and shows the authenticated navbar', async ({ page, context }) => {
   await page?.goto('/login');
@@ -93,7 +95,10 @@ test('API-seeded problem: submit through the UI → Celery judges → verdict AC
   // Fill the submit form: language + code, then confirm in the modal.
   await page?.locator('select').selectOption('python3');
   await page?.fill('#code-editor', 'print("[0,1]")');
-  await page?.getByRole('button', { name: /submit/i }).first().click();
+  await page
+    ?.getByRole('button', { name: /submit/i })
+    .first()
+    .click();
   await page?.getByRole('dialog').getByRole('button', { name: 'Confirm' }).click();
 
   // [F14] success block: the submit form clears its transient status (the

@@ -10,7 +10,14 @@ import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 
-const PRIVILEGED_ROLES = new Set(['CREATOR', 'VERIFIER', 'TEACHER', 'ADMIN', 'PROBLEM_CREATOR', 'PROBLEM_VERIFIER']);
+const PRIVILEGED_ROLES = new Set([
+  'CREATOR',
+  'VERIFIER',
+  'TEACHER',
+  'ADMIN',
+  'PROBLEM_CREATOR',
+  'PROBLEM_VERIFIER',
+]);
 
 export default function TwoFactorBanner() {
   const { t } = useTranslation();
@@ -19,8 +26,7 @@ export default function TwoFactorBanner() {
   if (user.two_factor_enabled) return null;
   // The backend computes the same flag (two_factor_required on /users/me/)
   // — mirror it client-side so the banner also works for a stale snapshot.
-  const privileged =
-    user.two_factor_required === true || PRIVILEGED_ROLES.has(user.role);
+  const privileged = user.two_factor_required === true || PRIVILEGED_ROLES.has(user.role);
   if (!privileged) return null;
 
   return (
@@ -45,7 +51,7 @@ export default function TwoFactorBanner() {
       <span>
         {t(
           'two_factor_banner_text',
-          'Two-factor authentication is required for your role. Enable it to keep your access.'
+          'Two-factor authentication is required for your role. Enable it to keep your access.',
         )}{' '}
         <Link href="/profile" style={{ color: 'var(--accent)', fontWeight: 600 }}>
           {t('two_factor_banner_link', 'Enable it in Profile → Security')}

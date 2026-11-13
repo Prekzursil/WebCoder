@@ -79,22 +79,20 @@ function scanCallsites(files: string[]): { keys: Map<string, string[]>; dynamic:
 // `errors.*` as nested objects; i18next resolves them with dot paths).
 function flatKeys(obj: unknown, prefix = ''): string[] {
   if (typeof obj !== 'object' || obj === null) return prefix ? [prefix] : [];
-  return Object.entries(obj).flatMap(([k, v]) =>
-    flatKeys(v, prefix ? `${prefix}.${k}` : k)
-  );
+  return Object.entries(obj).flatMap(([k, v]) => flatKeys(v, prefix ? `${prefix}.${k}` : k));
 }
 
 const LOCALE_KEYS: Record<Locale, string[]> = Object.fromEntries(
-  SUPPORTED_LOCALES.map((code) => [code, flatKeys(i18n.getResourceBundle(code, 'translation'))])
+  SUPPORTED_LOCALES.map((code) => [code, flatKeys(i18n.getResourceBundle(code, 'translation'))]),
 ) as Record<Locale, string[]>;
 const LOCALE_SETS: Record<Locale, Set<string>> = Object.fromEntries(
-  SUPPORTED_LOCALES.map((code) => [code, new Set(LOCALE_KEYS[code])])
+  SUPPORTED_LOCALES.map((code) => [code, new Set(LOCALE_KEYS[code])]),
 ) as Record<Locale, Set<string>>;
 
 // The i18n module + dictionaries themselves legitimately mention keys
 // without calling t(); exclude them from the callsite sweep.
 const scanned = listSourceFiles(SRC_ROOT).filter(
-  (f) => !/[\\/]i18n\.ts$|[\\/]public-messages\.ts$|[\\/]public-i18n\.ts$/.test(f)
+  (f) => !/[\\/]i18n\.ts$|[\\/]public-messages\.ts$|[\\/]public-i18n\.ts$/.test(f),
 );
 const { keys: callsites, dynamic } = scanCallsites(scanned);
 
@@ -109,10 +107,34 @@ describe('i18n parity sweep [Q1 × full locale set]', () => {
     // backend/webcoder_api/languages.py). The union-bar remainder
     // (zh-Hant, ca, hr, kk, sr-Latn) lands in a follow-up PR.
     expect([...SUPPORTED_LOCALES]).toEqual([
-      'en', 'ro', 'es', 'fr', 'de', 'pt', 'it', 'ca',
-      'pl', 'hu', 'hr', 'sr-Latn', 'ru', 'uk', 'bg', 'el',
-      'zh-Hans', 'zh-Hant', 'ja', 'ko', 'hi', 'vi', 'th', 'id',
-      'tr', 'kk', 'ar', 'fa',
+      'en',
+      'ro',
+      'es',
+      'fr',
+      'de',
+      'pt',
+      'it',
+      'ca',
+      'pl',
+      'hu',
+      'hr',
+      'sr-Latn',
+      'ru',
+      'uk',
+      'bg',
+      'el',
+      'zh-Hans',
+      'zh-Hant',
+      'ja',
+      'ko',
+      'hi',
+      'vi',
+      'th',
+      'id',
+      'tr',
+      'kk',
+      'ar',
+      'fa',
     ]);
     // [union bar] with zh-Hant/ca/hr/sr-Latn/kk shipped, this set covers
     // every UI language any major judge offers (matrix in the registry
@@ -145,7 +167,7 @@ describe('i18n parity sweep [Q1 × full locale set]', () => {
       for (const code of SUPPORTED_LOCALES) {
         expect(
           LOCALE_SETS[code].has(group.labelKey),
-          `${group.labelKey} label translated in ${code}`
+          `${group.labelKey} label translated in ${code}`,
         ).toBe(true);
       }
     }
@@ -183,7 +205,9 @@ describe('i18n parity sweep [Q1 × full locale set]', () => {
     expect(dynamic).toBeGreaterThan(0); // the dynamic detector still matches
     for (const code of SUPPORTED_LOCALES) {
       for (const r of ['spam', 'abuse', 'off_topic', 'inappropriate', 'other']) {
-        expect(LOCALE_SETS[code].has(`report_reason_${r}`), `report_reason_${r} in ${code}`).toBe(true);
+        expect(LOCALE_SETS[code].has(`report_reason_${r}`), `report_reason_${r} in ${code}`).toBe(
+          true,
+        );
       }
       for (const v of ['ac', 'wa', 'tle', 'mle', 'ce', 're']) {
         expect(LOCALE_SETS[code].has(`verdict_${v}`), `verdict_${v} in ${code}`).toBe(true);
@@ -223,7 +247,7 @@ describe('i18n parity sweep [Q1 × full locale set]', () => {
       // Allow a small cognate budget; fail whole-catalog copy-paste.
       expect(
         identical / total,
-        `${code}: ${(100 * (identical / total)).toFixed(1)}% of strings are identical to English`
+        `${code}: ${(100 * (identical / total)).toFixed(1)}% of strings are identical to English`,
       ).toBeLessThan(0.12);
     }
   });
@@ -247,7 +271,7 @@ describe('i18n parity sweep [Q1 × full locale set]', () => {
     // src/app without 'use client') for t('key' calls and require MESSAGES
     // coverage.
     const serverPages = scanned.filter(
-      (f) => /[\\/]page\.tsx$/.test(f) && !readFileSync(f, 'utf8').startsWith("'use client'")
+      (f) => /[\\/]page\.tsx$/.test(f) && !readFileSync(f, 'utf8').startsWith("'use client'"),
     );
     const { keys: serverKeys } = scanCallsites(serverPages);
     const missing: string[] = [];

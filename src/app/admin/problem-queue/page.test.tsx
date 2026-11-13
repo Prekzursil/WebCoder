@@ -24,7 +24,9 @@ vi.mock('next/navigation', () => ({
 // next/link is mocked to a plain anchor so the queue table renders without a
 // live App Router context (the real Link expects one).
 vi.mock('next/link', () => ({
-  default: ({ href, children }: { href: string; children: ReactNode }) => <a href={href}>{children}</a>,
+  default: ({ href, children }: { href: string; children: ReactNode }) => (
+    <a href={href}>{children}</a>
+  ),
 }));
 
 vi.mock('@/services/ApiService', async (importOriginal) => {
@@ -46,7 +48,12 @@ vi.mock('@/context/AuthContext', () => ({ useAuth: vi.fn() }));
 // its auto-cleanup — without this, rendered bodies accumulate across tests.
 afterEach(cleanup);
 
-const verifier: User = { id: 3, username: 'ver', email: 'ver@example.com', role: 'PROBLEM_VERIFIER' };
+const verifier: User = {
+  id: 3,
+  username: 'ver',
+  email: 'ver@example.com',
+  role: 'PROBLEM_VERIFIER',
+};
 
 const problemA: ProblemType = {
   id: 5,
@@ -87,14 +94,19 @@ describe('ProblemVerificationQueuePage (/admin/problem-queue)', () => {
     vi.clearAllMocks();
     await i18n.changeLanguage('en');
     vi.mocked(useAuth).mockReturnValue(authed());
-    vi.mocked(ProblemService.getProblems).mockResolvedValue({ count: 2, next: null, previous: null, results: [problemA, problemB] });
+    vi.mocked(ProblemService.getProblems).mockResolvedValue({
+      count: 2,
+      next: null,
+      previous: null,
+      results: [problemA, problemB],
+    });
     vi.mocked(ProblemService.approveProblem).mockResolvedValue({ ...problemA });
     vi.mocked(ProblemService.rejectProblem).mockResolvedValue({ ...problemA });
   });
 
   it('renders nothing and redirects to / for a role outside ADMIN/PROBLEM_VERIFIER (route guard)', () => {
     vi.mocked(useAuth).mockReturnValue(
-      authed({ user: { ...verifier, role: 'BASIC_USER' }, isAuthenticated: false })
+      authed({ user: { ...verifier, role: 'BASIC_USER' }, isAuthenticated: false }),
     );
     const { container } = render(<ProblemVerificationQueuePageRoute />);
     expect(container).toBeEmptyDOMElement();
@@ -135,9 +147,16 @@ describe('ProblemVerificationQueuePage (/admin/problem-queue)', () => {
   });
 
   it('renders the empty state when nothing is pending approval', async () => {
-    vi.mocked(ProblemService.getProblems).mockResolvedValue({ count: 0, next: null, previous: null, results: [] });
+    vi.mocked(ProblemService.getProblems).mockResolvedValue({
+      count: 0,
+      next: null,
+      previous: null,
+      results: [],
+    });
     render(<ProblemVerificationQueuePageRoute />);
-    expect(await screen.findByText('No problems are currently pending approval.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('No problems are currently pending approval.'),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
 
@@ -164,7 +183,7 @@ describe('ProblemVerificationQueuePage (/admin/problem-queue)', () => {
     const rowA = await rowFor('Two Sum');
     fireEvent.click(within(rowA).getByRole('button', { name: 'Approve' }));
     await waitFor(() =>
-      expect(ProblemService.approveProblem).toHaveBeenCalledWith(5, { feedback: undefined })
+      expect(ProblemService.approveProblem).toHaveBeenCalledWith(5, { feedback: undefined }),
     );
     expect(await screen.findByText('Problem approved successfully!')).toBeInTheDocument();
     await waitFor(() => expect(ProblemService.getProblems).toHaveBeenCalledTimes(2));
@@ -177,11 +196,15 @@ describe('ProblemVerificationQueuePage (/admin/problem-queue)', () => {
       target: { value: 'looks good' },
     });
     fireEvent.click(within(rowA).getByRole('button', { name: 'Approve' }));
-    await waitFor(() => expect(ProblemService.approveProblem).toHaveBeenCalledWith(5, { feedback: 'looks good' }));
+    await waitFor(() =>
+      expect(ProblemService.approveProblem).toHaveBeenCalledWith(5, { feedback: 'looks good' }),
+    );
     // Feedback field is cleared after a successful action.
     await waitFor(async () => {
       const row = await rowFor('Two Sum');
-      expect((within(row).getByPlaceholderText('Required for rejection') as HTMLTextAreaElement).value).toBe('');
+      expect(
+        (within(row).getByPlaceholderText('Required for rejection') as HTMLTextAreaElement).value,
+      ).toBe('');
     });
   });
 
@@ -219,7 +242,9 @@ describe('ProblemVerificationQueuePage (/admin/problem-queue)', () => {
       target: { value: 'bad problem' },
     });
     fireEvent.click(within(rowA).getByRole('button', { name: 'Reject' }));
-    await waitFor(() => expect(ProblemService.rejectProblem).toHaveBeenCalledWith(5, { feedback: 'bad problem' }));
+    await waitFor(() =>
+      expect(ProblemService.rejectProblem).toHaveBeenCalledWith(5, { feedback: 'bad problem' }),
+    );
     expect(await screen.findByText('Problem rejected successfully!')).toBeInTheDocument();
     await waitFor(() => expect(ProblemService.getProblems).toHaveBeenCalledTimes(2));
   });
@@ -254,12 +279,16 @@ describe('ProblemVerificationQueuePage (/admin/problem-queue)', () => {
     // The fetch itself is not role-gated (only auth-gated); the render guard
     // is what blocks non-verifiers, so the queue is fetched and then hidden.
     expect(ProblemService.getProblems).toHaveBeenCalledTimes(1);
-    expect(await screen.findByText('You are not authorized to view this page.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('You are not authorized to view this page.'),
+    ).toBeInTheDocument();
   });
 
   it('shows the unauthorized message when there is no user object', async () => {
     vi.mocked(useAuth).mockReturnValue(authed({ user: null }));
     render(<ProblemVerificationQueuePage />);
-    expect(await screen.findByText('You are not authorized to view this page.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('You are not authorized to view this page.'),
+    ).toBeInTheDocument();
   });
 });

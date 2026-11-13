@@ -62,7 +62,12 @@ beforeEach(() => {
   vi.clearAllMocks();
   api.getClass.mockResolvedValue(CLASSROOM);
   api.getMembers.mockRejectedValue(new Error('forbidden'));
-  api.getAssignments.mockResolvedValue({ count: 1, next: null, previous: null, results: [ASSIGNMENT] });
+  api.getAssignments.mockResolvedValue({
+    count: 1,
+    next: null,
+    previous: null,
+    results: [ASSIGNMENT],
+  });
 });
 
 afterEach(cleanup);

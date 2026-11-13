@@ -5,12 +5,7 @@ vi.mock('next/headers', () => ({
   cookies: vi.fn(),
 }));
 
-import {
-  createTranslator,
-  getLocale,
-  interpolate,
-  normalizeLocale,
-} from './public-i18n';
+import { createTranslator, getLocale, interpolate, normalizeLocale } from './public-i18n';
 
 function mockCookie(value: string | undefined) {
   vi.mocked(cookies).mockResolvedValue({

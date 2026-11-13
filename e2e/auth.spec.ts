@@ -2,7 +2,12 @@
 // + src/context/AuthContext.tsx). The login POST goes browser -> mock API.
 
 import { test, expect } from '@playwright/test';
-import { isRealStack, ensureRealStackFixtures, E2E_ADMIN_USER, E2E_ADMIN_PASS } from './lib/realStack';
+import {
+  isRealStack,
+  ensureRealStackFixtures,
+  E2E_ADMIN_USER,
+  E2E_ADMIN_PASS,
+} from './lib/realStack';
 
 // Real-backend mode: the login round-trip is login POST + /users/me/ (with
 // DB hits) on a stack that may share a loaded host with the dev server —
@@ -13,9 +18,7 @@ if (isRealStack) {
   test.setTimeout(90_000);
 }
 
-test('login form rejects bad credentials with the API error', async ({
-  page,
-}) => {
+test('login form rejects bad credentials with the API error', async ({ page }) => {
   await page?.goto('/login');
 
   await page?.fill('#login-username', 'bad_user');
@@ -27,9 +30,9 @@ test('login form rejects bad credentials with the API error', async ({
   // says "Invalid credentials."; real dj-rest-auth surfaces
   // non_field_errors ("Unable to log in with provided credentials.") —
   // apiFetch extracts both since the Q13 real-stack mode.
-  const errorAlert = page
-    ?.getByRole('alert')
-    ?.filter({ hasText: isRealStack ? 'Unable to log in with provided credentials.' : 'Invalid credentials.' });
+  const errorAlert = page?.getByRole('alert')?.filter({
+    hasText: isRealStack ? 'Unable to log in with provided credentials.' : 'Invalid credentials.',
+  });
   await expect(errorAlert)?.toBeVisible();
 });
 
@@ -78,10 +81,7 @@ test('successful login sets httpOnly session cookies and shows the authenticated
   expect(leaked?.refresh).toBeNull();
 });
 
-test('hydrated admin session derives role-gated navbar links', async ({
-  page,
-  context,
-}) => {
+test('hydrated admin session derives role-gated navbar links', async ({ page, context }) => {
   if (isRealStack) {
     // Real stack: log in for real as the stack admin and derive the gated
     // links from a live session.
@@ -108,7 +108,7 @@ test('hydrated admin session derives role-gated navbar links', async ({
           username: 'admin_e2e',
           email: 'admin@e2e.local',
           role: 'ADMIN',
-        })
+        }),
       );
     });
     await page?.goto('/');

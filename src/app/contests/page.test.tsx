@@ -70,7 +70,12 @@ describe('ContestsPage', () => {
   });
 
   it('counts down to the next upcoming contest', async () => {
-    api.getContests.mockResolvedValue({ count: 1, next: null, previous: null, results: [contest(9, { state: 'UPCOMING', start_at: '2999-01-01T00:00:00Z' })] });
+    api.getContests.mockResolvedValue({
+      count: 1,
+      next: null,
+      previous: null,
+      results: [contest(9, { state: 'UPCOMING', start_at: '2999-01-01T00:00:00Z' })],
+    });
     render(<ContestsPage />);
     expect(await screen.findByTestId('next-contest-countdown')).toBeInTheDocument();
   });
@@ -81,7 +86,7 @@ describe('ContestsPage', () => {
     await waitFor(() => expect(api.getContests).toHaveBeenCalledWith({}, { page: 1 }));
     fireEvent.click(screen.getByRole('button', { name: 'Running' }));
     await waitFor(() =>
-      expect(api.getContests).toHaveBeenCalledWith({ state: 'RUNNING' }, { page: 1 })
+      expect(api.getContests).toHaveBeenCalledWith({ state: 'RUNNING' }, { page: 1 }),
     );
   });
 

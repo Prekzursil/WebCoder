@@ -4,15 +4,28 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('notifications', '0003_alter_notification_verb'),
+        ("notifications", "0003_alter_notification_verb"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='notification',
-            name='verb',
-            field=models.CharField(choices=[('SUBMISSION_JUDGED', 'Submission judged'), ('THREAD_REPLY', 'Thread reply'), ('PROBLEM_APPROVED', 'Problem approved'), ('PROBLEM_REJECTED', 'Problem rejected'), ('ASSIGNMENT_PUBLISHED', 'Assignment published'), ('MESSAGE_RECEIVED', 'Message received'), ('TRANSLATION_APPROVED', 'Translation approved'), ('TRANSLATION_REJECTED', 'Translation rejected'), ('SYSTEM', 'System')], max_length=20, verbose_name='verb'),
+            model_name="notification",
+            name="verb",
+            field=models.CharField(
+                choices=[
+                    ("SUBMISSION_JUDGED", "Submission judged"),
+                    ("THREAD_REPLY", "Thread reply"),
+                    ("PROBLEM_APPROVED", "Problem approved"),
+                    ("PROBLEM_REJECTED", "Problem rejected"),
+                    ("ASSIGNMENT_PUBLISHED", "Assignment published"),
+                    ("MESSAGE_RECEIVED", "Message received"),
+                    ("TRANSLATION_APPROVED", "Translation approved"),
+                    ("TRANSLATION_REJECTED", "Translation rejected"),
+                    ("SYSTEM", "System"),
+                ],
+                max_length=20,
+                verbose_name="verb",
+            ),
         ),
     ]

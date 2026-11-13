@@ -26,7 +26,10 @@ function jsonResponse(body: unknown, init?: ResponseInit): Response {
 }
 
 function unauthorized(): Response {
-  return jsonResponse({ detail: 'Given token not valid' }, { status: 401, statusText: 'Unauthorized' });
+  return jsonResponse(
+    { detail: 'Given token not valid' },
+    { status: 401, statusText: 'Unauthorized' },
+  );
 }
 
 function seedSession(): void {
@@ -57,17 +60,20 @@ describe('AuthContext <-> ApiService session-expiry wiring (cookie model)', () =
       'fetch',
       vi.fn(async (input: unknown) => {
         if (String(input) === REFRESH_URL) {
-          return jsonResponse({ detail: 'Token is invalid or expired' }, { status: 401, statusText: 'Unauthorized' });
+          return jsonResponse(
+            { detail: 'Token is invalid or expired' },
+            { status: 401, statusText: 'Unauthorized' },
+          );
         }
         return unauthorized();
-      })
+      }),
     );
 
     seedSession();
     render(
       <AuthProvider>
         <AuthStateProbe />
-      </AuthProvider>
+      </AuthProvider>,
     );
 
     // The hydration me round-trip fails, the refresh fails -> provider logout.
@@ -99,7 +105,7 @@ describe('AuthContext <-> ApiService session-expiry wiring (cookie model)', () =
     render(
       <AuthProvider>
         <AuthStateProbe />
-      </AuthProvider>
+      </AuthProvider>,
     );
     await screen.findByText('anon');
 
@@ -130,14 +136,14 @@ describe('AuthContext <-> ApiService session-expiry wiring (cookie model)', () =
         }
         const auth = new Headers(init?.headers).get('Authorization');
         return auth === null ? jsonResponse([{ id: 3, name: 'arrays' }]) : unauthorized();
-      })
+      }),
     );
 
     seedSession();
     render(
       <AuthProvider>
         <AuthStateProbe />
-      </AuthProvider>
+      </AuthProvider>,
     );
     await screen.findByText('authed');
 
@@ -164,14 +170,14 @@ describe('AuthContext <-> ApiService session-expiry wiring (cookie model)', () =
           return jsonResponse({ detail: 'expired' }, { status: 401, statusText: 'Unauthorized' });
         }
         return unauthorized();
-      })
+      }),
     );
 
     seedSession();
     const { unmount } = render(
       <AuthProvider>
         <AuthStateProbe />
-      </AuthProvider>
+      </AuthProvider>,
     );
     await screen.findByText('anon');
     unmount();

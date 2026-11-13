@@ -17,7 +17,9 @@ test.describe('monetization groundwork [OPS-7]', () => {
     // Groundwork honesty: mailto CTAs, not checkout flows.
     const ctas = page.getByRole('link', { name: /email|sponsor|hosting|donating/i });
     expect(await ctas.count()).toBeGreaterThanOrEqual(3);
-    for (const href of await ctas.evaluateAll((els) => els.map((el) => el.getAttribute('href') ?? ''))) {
+    for (const href of await ctas.evaluateAll((els) =>
+      els.map((el) => el.getAttribute('href') ?? ''),
+    )) {
       expect(href.startsWith('mailto:')).toBe(true);
     }
     await expect(page.getByText(/this page processes no payments/i)).toBeVisible();
@@ -29,17 +31,13 @@ test.describe('monetization groundwork [OPS-7]', () => {
     await expect(rail).toBeVisible();
     await expect(rail.getByText('Sponsored by')).toBeVisible();
     await expect(rail.getByText('CJ Cluj Tech')).toBeVisible();
-    await expect(rail.locator('img')).toHaveAttribute(
-      'src',
-      'https://example.com/cj-cluj.png'
-    );
+    await expect(rail.locator('img')).toHaveAttribute('src', 'https://example.com/cj-cluj.png');
   });
 
   test('the footer links to /support', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByRole('contentinfo').getByRole('link', { name: 'Support us' })).toHaveAttribute(
-      'href',
-      '/support'
-    );
+    await expect(
+      page.getByRole('contentinfo').getByRole('link', { name: 'Support us' }),
+    ).toHaveAttribute('href', '/support');
   });
 });

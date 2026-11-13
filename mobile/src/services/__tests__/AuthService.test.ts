@@ -24,8 +24,7 @@ const loginResponse = () => ({
     refresh: '',
     user: { id: 2, username: 'bob', email: 'b@x', role: 'BASIC' },
   }),
-  headers: { get: (name: string) =>
-    name.toLowerCase() === 'set-cookie' ? LOGIN_COOKIES : null },
+  headers: { get: (name: string) => (name.toLowerCase() === 'set-cookie' ? LOGIN_COOKIES : null) },
 });
 
 describe('login', () => {
@@ -63,9 +62,9 @@ describe('login', () => {
       }),
       headers: { get: () => null },
     });
-    await expect(
-      login({ username: 'x', password: 'y' })
-    ).rejects.toThrow('Unable to log in with provided credentials.');
+    await expect(login({ username: 'x', password: 'y' })).rejects.toThrow(
+      'Unable to log in with provided credentials.',
+    );
   });
 
   it('falls back to statusText when the error body is unparseable', async () => {
@@ -78,9 +77,7 @@ describe('login', () => {
       },
       headers: { get: () => null },
     });
-    await expect(login({ username: 'x', password: 'y' })).rejects.toThrow(
-      'Service Unavailable'
-    );
+    await expect(login({ username: 'x', password: 'y' })).rejects.toThrow('Service Unavailable');
   });
 });
 

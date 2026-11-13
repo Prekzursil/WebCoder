@@ -83,14 +83,21 @@ describe('NotificationsPage (live events)', () => {
 
     // SUBMISSION_JUDGED -> verdict chip, derived title/body, submission link.
     expect(await screen.findByText('Submission AC')).toBeInTheDocument();
-    expect(screen.getByText(/Your submission #101 on problem #5 was judged AC/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Your submission #101 on problem #5 was judged AC/),
+    ).toBeInTheDocument();
     const link = screen.getByRole('link', { name: /Submission AC/ });
     expect(link).toHaveAttribute('href', '/submissions/101');
     expect(screen.getByText('Verdict')).toBeInTheDocument();
 
     // THREAD_REPLY -> reply chip with actor, thread link.
-    expect(screen.getByText('mihai_dev replied to your thread "Dijkstra help"')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /mihai_dev replied/ })).toHaveAttribute('href', '/forum/3');
+    expect(
+      screen.getByText('mihai_dev replied to your thread "Dijkstra help"'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /mihai_dev replied/ })).toHaveAttribute(
+      'href',
+      '/forum/3',
+    );
 
     // Unread badge shows the unread count (1 of 2).
     expect(screen.getByText('1 new')).toBeInTheDocument();
@@ -105,14 +112,20 @@ describe('NotificationsPage (live events)', () => {
   });
 
   it('marks one notification read through the endpoint', async () => {
-    api.getNotifications.mockResolvedValue({ next: null, previous: null, results: [NOTIFICATIONS[0]] });
+    api.getNotifications.mockResolvedValue({
+      next: null,
+      previous: null,
+      results: [NOTIFICATIONS[0]],
+    });
     api.markRead.mockResolvedValue({ ...NOTIFICATIONS[0], read_at: '2026-10-21T01:00:00Z' });
     render(<NotificationsPage />);
 
     expect(await screen.findByText('Submission AC')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '✓ Read' }));
     await waitFor(() => expect(api.markRead).toHaveBeenCalledWith(1));
-    await waitFor(() => expect(screen.queryByRole('button', { name: '✓ Read' })).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: '✓ Read' })).not.toBeInTheDocument(),
+    );
   });
 
   it('marks everything read through the bulk endpoint', async () => {
@@ -130,9 +143,13 @@ describe('NotificationsPage (live events)', () => {
     api.getNotifications.mockResolvedValue({ next: null, previous: null, results: [] });
     render(<NotificationsPage />);
 
-    await waitFor(() => expect(api.getNotifications).toHaveBeenLastCalledWith({ unreadOnly: false, pageSize: 25 }));
+    await waitFor(() =>
+      expect(api.getNotifications).toHaveBeenLastCalledWith({ unreadOnly: false, pageSize: 25 }),
+    );
     fireEvent.click(screen.getByRole('button', { name: 'Unread only' }));
-    await waitFor(() => expect(api.getNotifications).toHaveBeenLastCalledWith({ unreadOnly: true, pageSize: 25 }));
+    await waitFor(() =>
+      expect(api.getNotifications).toHaveBeenLastCalledWith({ unreadOnly: true, pageSize: 25 }),
+    );
   });
 
   it('loads the next cursor page on Load more', async () => {
@@ -145,21 +162,37 @@ describe('NotificationsPage (live events)', () => {
       .mockResolvedValueOnce({
         next: null,
         previous: null,
-        results: [notif(3, { verb: 'PROBLEM_APPROVED', actor: 'verifier', target_type: 'problem', target_id: 7, data: { problem_id: 7 } })],
+        results: [
+          notif(3, {
+            verb: 'PROBLEM_APPROVED',
+            actor: 'verifier',
+            target_type: 'problem',
+            target_id: 7,
+            data: { problem_id: 7 },
+          }),
+        ],
       });
     render(<NotificationsPage />);
 
     expect(await screen.findByText('Submission AC')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Load more' }));
-    await waitFor(() => expect(screen.getByText('verifier approved your problem')).toBeInTheDocument());
-    expect(api.getNotifications).toHaveBeenLastCalledWith({ cursor: 'cur1', unreadOnly: false, pageSize: 25 });
+    await waitFor(() =>
+      expect(screen.getByText('verifier approved your problem')).toBeInTheDocument(),
+    );
+    expect(api.getNotifications).toHaveBeenLastCalledWith({
+      cursor: 'cur1',
+      unreadOnly: false,
+      pageSize: 25,
+    });
   });
 
   it('renders the error card with retry when the API fails', async () => {
     api.getNotifications.mockRejectedValue(new Error('Unauthorized'));
     render(<NotificationsPage />);
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Could not load notifications: Unauthorized');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Could not load notifications: Unauthorized',
+    );
     expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
   });
 

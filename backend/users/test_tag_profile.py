@@ -94,14 +94,19 @@ class TagSkillProfileTest(TestCase):
         self.assertEqual(ids, [self.a1.id, self.a2.id, self.a3.id])
 
     def test_draft_problems_never_enter_the_pool(self):
-        _problem("draft", Problem.DifficultyLevel.EASY, ["arrays"],
-                 status=Problem.ProblemStatus.DRAFT)
+        _problem(
+            "draft",
+            Problem.DifficultyLevel.EASY,
+            ["arrays"],
+            status=Problem.ProblemStatus.DRAFT,
+        )
         data = self._stats()
         rows = {row["tag"]: row for row in data["tags"]}
         # arrays still covered (3 APPROVED); the DRAFT problem is absent.
-        ids = [row["id"] for row in data["practice_next"]]
         self.assertTrue(rows["arrays"]["covered"])
-        self.assertNotIn("draft", [r["title_i18n"]["en"] for r in data["practice_next"]])
+        self.assertNotIn(
+            "draft", [r["title_i18n"]["en"] for r in data["practice_next"]]
+        )
 
     def test_payload_rides_users_me_statistics(self):
         _sub(self.user, self.a1, Submission.VerdictStatus.ACCEPTED)

@@ -2,23 +2,11 @@
 // device locale) plus the `t()` React binding. RTL locales flip
 // I18nManager so the whole layout mirrors (owner rule: every shipped
 // language selectable; ar/fa are right-to-left).
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { I18nManager } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getLocales } from 'expo-localization';
-import {
-  localeDirection,
-  normalizeUiLocale,
-  translate,
-  type Locale,
-} from '../i18n';
+import { localeDirection, normalizeUiLocale, translate, type Locale } from '../i18n';
 
 const LOCALE_KEY = 'wc_ui_locale';
 
@@ -27,10 +15,7 @@ export interface SettingsState {
   setLocale: (locale: Locale) => Promise<void>;
   /** translate() bound to the active locale; a string 2nd arg is a
    * fallback used when the key is missing from every catalog. */
-  t: (
-    key: string,
-    varsOrFallback?: Record<string, string | number> | string
-  ) => string;
+  t: (key: string, varsOrFallback?: Record<string, string | number> | string) => string;
   isRTL: boolean;
 }
 
@@ -73,10 +58,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     () => ({
       locale,
       setLocale,
-      t: (
-        key: string,
-        varsOrFallback?: Record<string, string | number> | string
-      ) =>
+      t: (key: string, varsOrFallback?: Record<string, string | number> | string) =>
         typeof varsOrFallback === 'string'
           ? translate(locale, key) === key
             ? varsOrFallback
@@ -84,17 +66,14 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
           : translate(locale, key, varsOrFallback),
       isRTL: localeDirection(locale) === 'rtl',
     }),
-    [locale, setLocale]
+    [locale, setLocale],
   );
 
-  return (
-    <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>
-  );
+  return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
 }
 
 export function useSettings(): SettingsState {
   const context = useContext(SettingsContext);
-  if (!context)
-    throw new Error('useSettings must be used inside <SettingsProvider>');
+  if (!context) throw new Error('useSettings must be used inside <SettingsProvider>');
   return context;
 }

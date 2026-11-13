@@ -18,18 +18,17 @@ export function computeEffectiveLimit(
     ProblemType,
     'default_time_limit_ms' | 'default_memory_limit_kb' | 'limit_overrides'
   >,
-  language: LanguageRow
+  language: LanguageRow,
 ): EffectiveLimit {
   const override = problem.limit_overrides?.[language.id] ?? {};
   const baseTime = override.time_ms ?? problem.default_time_limit_ms ?? 1000;
-  const baseMemory =
-    override.memory_kb ?? problem.default_memory_limit_kb ?? 262144;
+  const baseMemory = override.memory_kb ?? problem.default_memory_limit_kb ?? 262144;
   return {
     language: language.id,
     timeMs: Math.round(baseTime * language.time_multiplier),
     memoryKb: Math.max(
       Math.round(baseMemory * language.memory_multiplier),
-      language.memory_floor_kb
+      language.memory_floor_kb,
     ),
   };
 }
@@ -42,7 +41,7 @@ export function computeEffectiveLimit(
  */
 export function effectiveLimitsForProblem(
   problem: ProblemType,
-  registry: LanguageRow[]
+  registry: LanguageRow[],
 ): EffectiveLimit[] {
   const allowed = problem.allowed_languages;
   return registry

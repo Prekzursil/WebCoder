@@ -59,9 +59,7 @@ describe('OwnerAnalytics [ANA-1]', () => {
     render(<OwnerAnalytics />);
     // 42 also appears in the weekly trend row — assert presence, not
     // uniqueness, for the shared numbers.
-    await waitFor(() =>
-      expect(screen.getAllByText('42').length).toBeGreaterThan(0)
-    );
+    await waitFor(() => expect(screen.getAllByText('42').length).toBeGreaterThan(0));
     expect(screen.getAllByText('25').length).toBeGreaterThan(0);
     expect(screen.getAllByText('18').length).toBeGreaterThan(0);
     // Rates render as percentages.
@@ -72,9 +70,7 @@ describe('OwnerAnalytics [ANA-1]', () => {
 
   it('renders one bar per active day in the 30-day strip', async () => {
     render(<OwnerAnalytics />);
-    await waitFor(() =>
-      expect(screen.getByTitle('2026-10-29: 15')).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByTitle('2026-10-29: 15')).toBeInTheDocument());
     expect(screen.getByTitle('2026-10-27: 12')).toBeInTheDocument();
     expect(screen.getByTitle('2026-10-28: 7')).toBeInTheDocument();
   });
@@ -92,13 +88,13 @@ describe('OwnerAnalytics [ANA-1]', () => {
     });
     render(<OwnerAnalytics />);
     await waitFor(() =>
-      expect(screen.getByText(/No weekly snapshots captured yet/i)).toBeInTheDocument()
+      expect(screen.getByText(/No weekly snapshots captured yet/i)).toBeInTheDocument(),
     );
   });
 
   it('surfaces the API error instead of metrics', async () => {
     vi.spyOn(ApiService.AdminService, 'getActivation').mockRejectedValue(
-      new Error('analytics down')
+      new Error('analytics down'),
     );
     render(<OwnerAnalytics />);
     await waitFor(() => expect(screen.getByText('analytics down')).toBeInTheDocument());
@@ -107,8 +103,6 @@ describe('OwnerAnalytics [ANA-1]', () => {
 
   it('notes the cookie-light derivation', async () => {
     render(<OwnerAnalytics />);
-    await waitFor(() =>
-      expect(screen.getByText(/no third-party trackers/i)).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText(/no third-party trackers/i)).toBeInTheDocument());
   });
 });

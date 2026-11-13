@@ -43,7 +43,11 @@ function Metric({ label, value, sub }: { label: string; value: string | number; 
     <div style={cardStyle}>
       <div style={labelStyle}>{label}</div>
       <div style={valueStyle}>{value}</div>
-      {sub && <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', marginTop: 2 }}>{sub}</div>}
+      {sub && (
+        <div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', marginTop: 2 }}>
+          {sub}
+        </div>
+      )}
     </div>
   );
 }
@@ -76,7 +80,12 @@ export default function OwnerAnalytics() {
     };
   }, []);
 
-  if (error) return <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>;
+  if (error)
+    return (
+      <Alert severity="error" sx={{ mt: 2 }}>
+        {error}
+      </Alert>
+    );
   if (!live) return <LoadingSpinner />;
 
   const pct = (rate: number | null) => (rate == null ? '—' : `${(rate * 100).toFixed(1)}%`);
@@ -159,7 +168,10 @@ export default function OwnerAnalytics() {
         <div style={labelStyle}>{t('analytics_weekly_trend', 'Weekly snapshots (Mondays)')}</div>
         {history.length === 0 ? (
           <p style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>
-            {t('analytics_no_snapshots', 'No weekly snapshots captured yet — the beat task runs Monday 06:30.')}
+            {t(
+              'analytics_no_snapshots',
+              'No weekly snapshots captured yet — the beat task runs Monday 06:30.',
+            )}
           </p>
         ) : (
           <table
@@ -175,7 +187,9 @@ export default function OwnerAnalytics() {
               <tr style={{ color: 'var(--muted)', textAlign: 'left' }}>
                 <th style={{ padding: '0.5rem 0.75rem' }}>{t('analytics_week', 'Week')}</th>
                 <th style={{ padding: '0.5rem 0.75rem' }}>{t('analytics_total_users', 'Users')}</th>
-                <th style={{ padding: '0.5rem 0.75rem' }}>{t('analytics_activation', 'Made a submission')}</th>
+                <th style={{ padding: '0.5rem 0.75rem' }}>
+                  {t('analytics_activation', 'Made a submission')}
+                </th>
                 <th style={{ padding: '0.5rem 0.75rem' }}>{t('analytics_first_ac', 'First AC')}</th>
                 <th style={{ padding: '0.5rem 0.75rem' }}>{t('analytics_d1', 'D1')}</th>
                 <th style={{ padding: '0.5rem 0.75rem' }}>{t('analytics_d7', 'D7')}</th>
@@ -184,7 +198,9 @@ export default function OwnerAnalytics() {
             <tbody>
               {history.map((row) => (
                 <tr key={row.week} style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                  <td style={{ padding: '0.4rem 0.75rem', color: 'var(--foreground)' }}>{row.week}</td>
+                  <td style={{ padding: '0.4rem 0.75rem', color: 'var(--foreground)' }}>
+                    {row.week}
+                  </td>
                   <td style={{ padding: '0.4rem 0.75rem' }}>{row.total_users}</td>
                   <td style={{ padding: '0.4rem 0.75rem' }}>{row.users_with_submission}</td>
                   <td style={{ padding: '0.4rem 0.75rem' }}>{row.users_with_ac}</td>
@@ -200,7 +216,7 @@ export default function OwnerAnalytics() {
       <p style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', marginTop: '1rem' }}>
         {t(
           'analytics_cookie_light_note',
-          'Derived server-side from platform data — no third-party trackers, no cookies (ANA-1).'
+          'Derived server-side from platform data — no third-party trackers, no cookies (ANA-1).',
         )}
       </p>
     </div>

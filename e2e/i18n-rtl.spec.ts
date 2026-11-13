@@ -23,9 +23,7 @@ const rtlCases: Array<{ code: string; hero: RegExp; problems: RegExp }> = [
 for (const { code, hero, problems } of rtlCases) {
   test.describe(`RTL locale ${code}`, () => {
     test.beforeEach(async ({ context }) => {
-      await context.addCookies([
-        { name: 'i18nextLng', value: code, url: 'http://localhost:3311' },
-      ]);
+      await context.addCookies([{ name: 'i18nextLng', value: code, url: 'http://localhost:3311' }]);
     });
 
     test('SSR renders the localized hero with dir=rtl on <html>', async ({ page }) => {
@@ -40,7 +38,7 @@ for (const { code, hero, problems } of rtlCases) {
       await page.goto('/problems');
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
       const overflow = await page.evaluate(
-        () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
       );
       expect(overflow).toBeLessThanOrEqual(1); // 1px tolerance for subpixel rounding
     });
@@ -56,9 +54,7 @@ for (const { code, hero, problems } of rtlCases) {
       // NOTE: the picker's accessible name is itself localized (اللغة /
       // زبان), so match by role only — it is the sole combobox in the nav
       // (the search box exposes role searchbox).
-      const picker = page
-        .getByRole('navigation', { name: 'Main' })
-        .getByRole('combobox');
+      const picker = page.getByRole('navigation', { name: 'Main' }).getByRole('combobox');
       await expect(picker).toHaveValue(code);
       await picker.selectOption('en');
       await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
@@ -86,9 +82,7 @@ test('grouped picker exposes the RTL group in every locale', async ({ page }) =>
   // <optgroup> renders no box of its own, so visibility assertions are
   // meaningless on it — assert presence and its child option instead.
   // Scoped to the nav picker: the footer renders a second switcher.
-  const navGroup = page.locator(
-    'nav select optgroup[label="Right-to-left (Arabic script)"]'
-  );
+  const navGroup = page.locator('nav select optgroup[label="Right-to-left (Arabic script)"]');
   await expect(navGroup).toHaveCount(1);
   await expect(navGroup.locator('option', { hasText: 'العربية' })).toHaveCount(1);
 });

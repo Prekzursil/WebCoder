@@ -62,9 +62,7 @@ def run_compile_step(
         *compile_argv,
     ]
     if get_judge_backend() == CONTAINER:
-        argv = build_command(
-            wrapped_command, backend=CONTAINER, workdir=str(workdir)
-        )
+        argv = build_command(wrapped_command, backend=CONTAINER, workdir=str(workdir))
     else:
         argv = build_docker_run_command(
             wrapped_command,

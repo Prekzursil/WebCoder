@@ -37,14 +37,19 @@ def active_exam(user):
     """
     if user is None or not getattr(user, "is_authenticated", False):
         return None
-    if user.is_staff or user.is_superuser or getattr(user, "role", "") in (
-        "TEACHER",
-        "ADMIN",
+    if (
+        user.is_staff
+        or user.is_superuser
+        or getattr(user, "role", "")
+        in (
+            "TEACHER",
+            "ADMIN",
+        )
     ):
         return None
     from django.utils import timezone
 
-    from .models import Assignment, ClassMembership
+    from .models import Assignment
 
     now = timezone.now()
     return (
@@ -63,7 +68,7 @@ def exam_problem_ids(user) -> set[int]:
     """Problem ids visible to the sitting student (union over open exams)."""
     from django.utils import timezone
 
-    from .models import Assignment, ClassMembership
+    from .models import Assignment
 
     now = timezone.now()
     return set(
@@ -72,8 +77,7 @@ def exam_problem_ids(user) -> set[int]:
             is_exam=True,
             available_from__lte=now,
             due_at__gt=now,
-        )
-        .values_list("assignment_problems__problem_id", flat=True)
+        ).values_list("assignment_problems__problem_id", flat=True)
     ) - {None}
 
 

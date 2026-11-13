@@ -36,16 +36,19 @@ type AnyBody = any;
 
 async function api(
   path: string,
-  init: RequestInit & { token?: string } = {}
+  init: RequestInit & { token?: string } = {},
 ): Promise<{ status: number; body: AnyBody }> {
   const { token, ...rest } = init;
+  // Built imperatively: a conditional/empty-object spread fallback is exactly
+  // what unicorn/no-useless-fallback-in-spread rejects (the lean gate runs
+  // oxlint with --deny-warnings), and Object.assign skips a missing
+  // rest.headers without one.
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  Object.assign(headers, rest.headers);
+  if (token) headers.Authorization = `Bearer ${token}`;
   const res = await fetch(`${REAL_API_BASE}/api/v1${path}`, {
     ...rest,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(rest.headers ?? {}),
-    },
+    headers,
   });
   const text = await res.text();
   return { status: res.status, body: text ? JSON.parse(text) : {} };
@@ -125,7 +128,7 @@ async function seedOnce(): Promise<{ twoSumId: number; reverseId: number }> {
   const twoSumId = await createProblem(
     SEED_TITLES.twoSum,
     'EASY',
-    'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.'
+    'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.',
   );
   const reverseId = await createProblem(SEED_TITLES.reverse, 'MEDIUM', 'Reverse the input string.');
 
@@ -141,7 +144,8 @@ async function seedOnce(): Promise<{ twoSumId: number; reverseId: number }> {
       points: 10,
     }),
   });
-  if (tc.status !== 201) throw new Error(`seed testcase -> ${tc.status}: ${JSON.stringify(tc.body)}`);
+  if (tc.status !== 201)
+    throw new Error(`seed testcase -> ${tc.status}: ${JSON.stringify(tc.body)}`);
 
   return { twoSumId, reverseId };
 }

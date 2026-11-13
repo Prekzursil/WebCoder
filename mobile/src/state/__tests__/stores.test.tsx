@@ -76,7 +76,7 @@ describe('signIn', () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce(
       okJson({ access: 'A', user }, 200, {
         'set-cookie': 'wc_refresh=R; Path=/',
-      })
+      }),
     );
     const { result } = await harness();
     await waitFor(() => expect(result.current.status).toBe('anonymous'));
@@ -89,9 +89,7 @@ describe('signIn', () => {
   });
 
   it('surfaces login errors without changing state', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce(
-      okJson({ non_field_errors: ['nope'] }, 400)
-    );
+    (global.fetch as jest.Mock).mockResolvedValueOnce(okJson({ non_field_errors: ['nope'] }, 400));
     const { result } = await harness();
     await waitFor(() => expect(result.current.status).toBe('anonymous'));
     let caught: unknown = null;
@@ -114,7 +112,7 @@ describe('signUp + signOut + refreshUser', () => {
     (global.fetch as jest.Mock)
       .mockResolvedValueOnce(okJson({ user, message: 'ok' }))
       .mockResolvedValueOnce(
-        okJson({ access: 'A', user }, 200, { 'set-cookie': 'wc_refresh=R; Path=/' })
+        okJson({ access: 'A', user }, 200, { 'set-cookie': 'wc_refresh=R; Path=/' }),
       );
     const { result } = await harness();
     await waitFor(() => expect(result.current.status).toBe('anonymous'));
@@ -164,7 +162,7 @@ describe('signUp + signOut + refreshUser', () => {
 describe('unauthorized handler wiring', () => {
   it('force-logouts when a refresh fails mid-session', async () => {
     (SecureStore.getItemAsync as jest.Mock).mockImplementation(async (k: string) =>
-      k === 'wc_access' ? 'STALE' : 'DEAD_REFRESH'
+      k === 'wc_access' ? 'STALE' : 'DEAD_REFRESH',
     );
     // bootstrap: /users/me/ → 401, refresh → 401 → anonymous
     (global.fetch as jest.Mock)
@@ -188,7 +186,7 @@ describe('AuthProvider render smoke', () => {
     const rendered = await render(
       <AuthProvider>
         <></>
-      </AuthProvider>
+      </AuthProvider>,
     );
     expect(rendered).toBeTruthy();
   });

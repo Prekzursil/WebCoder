@@ -23,7 +23,7 @@ test.describe('PWA surface [OPS-6]', () => {
     // App shortcuts expose the three core destinations.
     const shortcuts = manifest['shortcuts'] as { url: string }[];
     expect(shortcuts.map((s) => s.url)).toEqual(
-      expect.arrayContaining(['/problems', '/leaderboard'])
+      expect.arrayContaining(['/problems', '/leaderboard']),
     );
   });
 
@@ -35,7 +35,7 @@ test.describe('PWA surface [OPS-6]', () => {
     // the offline fallback precached and notification deep links wired.
     expect(body).toContain("'/offline.html'");
     expect(body).toContain('notificationclick');
-    expect(body).toContain("self.clients.openWindow");
+    expect(body).toContain('self.clients.openWindow');
 
     const offline = await request.get('/offline.html');
     expect(offline.status()).toBe(200);
@@ -58,9 +58,10 @@ test.describe('PWA surface [OPS-6]', () => {
     // (mobile-web-app-capable) plus the apple-* companions.
     const appleMeta = page.locator('meta[name="mobile-web-app-capable"]');
     await expect(appleMeta).toHaveAttribute('content', 'yes');
-    await expect(
-      page.locator('meta[name="apple-mobile-web-app-title"]')
-    ).toHaveAttribute('content', 'WebCoder');
+    await expect(page.locator('meta[name="apple-mobile-web-app-title"]')).toHaveAttribute(
+      'content',
+      'WebCoder',
+    );
   });
 
   test('PWA icons resolve', async ({ request }) => {
@@ -73,9 +74,7 @@ test.describe('PWA surface [OPS-6]', () => {
   // [mobile wave] PNG icon set: richer Android install sheets + Safari
   // home-screen installs — the manifest must carry PNG entries (any +
   // maskable, 192/512) and every referenced file must actually serve.
-  test('PNG manifest icons are declared and served (install-from-browser)', async ({
-    request,
-  }) => {
+  test('PNG manifest icons are declared and served (install-from-browser)', async ({ request }) => {
     const response = await request.get('/manifest.webmanifest');
     const manifest = (await response.json()) as {
       icons: { src: string; sizes: string; type: string; purpose: string }[];
@@ -88,7 +87,7 @@ test.describe('PWA surface [OPS-6]', () => {
         expect.objectContaining({ sizes: '512x512', purpose: 'any' }),
         expect.objectContaining({ sizes: '192x192', purpose: 'maskable' }),
         expect.objectContaining({ sizes: '512x512', purpose: 'maskable' }),
-      ])
+      ]),
     );
     for (const icon of pngIcons) {
       const res = await request.get(icon.src);

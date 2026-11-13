@@ -136,8 +136,10 @@ class ClassRoomViewSet(viewsets.ModelViewSet):
         )
         if not created:
             return Response(
-                {"detail": "Already a member of this class.",
-                 "classroom_id": classroom.id},
+                {
+                    "detail": "Already a member of this class.",
+                    "classroom_id": classroom.id,
+                },
                 status=status.HTTP_200_OK,
             )
         return Response(
@@ -297,9 +299,9 @@ class AssignmentViewSet(viewsets.ModelViewSet):
         assignment, state derived (SCHEDULED/OPEN/CLOSED), plus per-problem
         best score so the teme page needs no extra round-trip.
         """
-        memberships = ClassMembership.objects.filter(
-            student=request.user
-        ).values_list("classroom_id", flat=True)
+        memberships = ClassMembership.objects.filter(student=request.user).values_list(
+            "classroom_id", flat=True
+        )
         assignments = (
             Assignment.objects.filter(classroom_id__in=list(memberships))
             .select_related("classroom")
@@ -355,6 +357,7 @@ class AssignmentViewSet(viewsets.ModelViewSet):
 # Wave C: EDU-7 quiz/file teme + EDU-8 MCQ bank + EDU-4 exam status
 # ---------------------------------------------------------------------------
 
+
 class MCQItemViewSet(viewsets.ModelViewSet):
     """EDU-8 — the Bacalaureat-style MCQ bank.
 
@@ -396,9 +399,7 @@ def _quiz_payload(assignment, request):
     correct indices; teachers additionally receive them for review."""
     from .quiz import shuffle_order
 
-    links = list(
-        assignment.quiz_items.select_related("item").order_by("order", "id")
-    )
+    links = list(assignment.quiz_items.select_related("item").order_by("order", "id"))
     items = []
     for link in links:
         order = shuffle_order(assignment, request.user.id)
@@ -425,9 +426,6 @@ def _quiz_payload(assignment, request):
     }
 
 
-
-
-
 def _fetch_assignment_or_404(pk, user):
     """Assignment visible to *user* (teacher of the class, member, or admin)."""
     from django.shortcuts import get_object_or_404
@@ -452,9 +450,7 @@ def assignment_quiz_view(request, assignment_id):
     if assignment is None:
         return Response({"detail": "Not found."}, status=404)
     if assignment.kind != Assignment.Kind.QUIZ:
-        return Response(
-            {"detail": "This assignment is not a quiz."}, status=400
-        )
+        return Response({"detail": "This assignment is not a quiz."}, status=400)
     return Response(_quiz_payload(assignment, request))
 
 
@@ -475,9 +471,7 @@ def quiz_submit_view(request, assignment_id):
         )
     answers = request.data.get("answers")
     if not isinstance(answers, dict):
-        return Response(
-            {"answers": "Send {item_id: chosen_index}."}, status=400
-        )
+        return Response({"answers": "Send {item_id: chosen_index}."}, status=400)
     from .quiz import grade_answers
     from .serializers import QuizSubmissionSerializer
 
@@ -502,9 +496,7 @@ def quiz_stats_view(request, assignment_id):
         )
     from .quiz import item_stats
 
-    return Response(
-        {"assignment": assignment.id, "items": item_stats(assignment)}
-    )
+    return Response({"assignment": assignment.id, "items": item_stats(assignment)})
 
 
 @api_view(["GET", "POST"])
@@ -543,9 +535,7 @@ def deliverables_view(request, assignment_id):
         )
     # POST: policy-validated upload (member only, OPEN window).
     if is_teacher_view:
-        return Response(
-            {"detail": "Teachers cannot submit deliverables."}, status=403
-        )
+        return Response({"detail": "Teachers cannot submit deliverables."}, status=403)
     if assignment.state() != Assignment.State.OPEN:
         return Response(
             {"detail": "The upload window is closed (late work is ignored)."},

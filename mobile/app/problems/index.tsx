@@ -4,16 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { ProblemService } from '../../src/services/services';
 import { useSettings } from '../../src/state/SettingsStore';
-import {
-  Button,
-  Card,
-  ErrorBox,
-  Field,
-  Pill,
-  Screen,
-  Spinner,
-  Txt,
-} from '../../src/ui/primitives';
+import { Button, Card, ErrorBox, Field, Pill, Screen, Spinner, Txt } from '../../src/ui/primitives';
 import { palette, space } from '../../src/theme/tokens';
 import { problemTitle } from '../../src/utils/statement';
 import type { ProblemType } from '../../src/types/api';
@@ -37,22 +28,18 @@ export default function Problems() {
       try {
         const response = await ProblemService.getProblems(
           { search, difficulty, status: 'APPROVED' },
-          { page: targetPage, pageSize: 20 }
+          { page: targetPage, pageSize: 20 },
         );
-        setItems((prev) =>
-          append ? [...prev, ...response.results] : response.results
-        );
+        setItems((prev) => (append ? [...prev, ...response.results] : response.results));
         setHasMore(Boolean(response.next));
         setPage(targetPage);
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : t('problems_load_error')
-        );
+        setError(err instanceof Error ? err.message : t('problems_load_error'));
       } finally {
         setLoading(false);
       }
     },
-    [search, difficulty, t]
+    [search, difficulty, t],
   );
 
   useEffect(() => {
@@ -74,11 +61,7 @@ export default function Problems() {
         {DIFFICULTIES.map((d) => (
           <Pressable key={d || 'all'} onPress={() => setDifficulty(d)}>
             <Pill
-              label={
-                d === ''
-                  ? t('forum_filter_all')
-                  : t(`difficulty_${d.toLowerCase()}`)
-              }
+              label={d === '' ? t('forum_filter_all') : t(`difficulty_${d.toLowerCase()}`)}
               color={difficulty === d ? palette.accent : palette.muted}
             />
           </Pressable>
@@ -110,10 +93,7 @@ export default function Problems() {
                 }
               />
               {problem.tags?.slice(0, 2).map((tag) => (
-                <Pill
-                  key={tag.id}
-                  label={tag.name_i18n[locale] ?? tag.name_i18n.en ?? tag.slug}
-                />
+                <Pill key={tag.id} label={tag.name_i18n[locale] ?? tag.name_i18n.en ?? tag.slug} />
               ))}
             </View>
           </Card>

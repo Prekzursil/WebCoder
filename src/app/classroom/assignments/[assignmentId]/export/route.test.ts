@@ -7,9 +7,9 @@ import type { NextRequest } from 'next/server';
 // origin (the CodeQL js/xss + redirection fix).
 
 const makeRequest = (cookie?: string) =>
-    ({
-        headers: new Headers(cookie ? { cookie } : {}),
-    }) as unknown as NextRequest;
+  ({
+    headers: new Headers(cookie ? { cookie } : {}),
+  }) as unknown as NextRequest;
 
 describe('gradebook export proxy route', () => {
   beforeEach(() => {
@@ -27,26 +27,20 @@ describe('gradebook export proxy route', () => {
   it('streams the CSV with a download disposition', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue(
-        new Response('student,verdict\nalice,AC', { status: 200 })
-      )
+      vi.fn().mockResolvedValue(new Response('student,verdict\nalice,AC', { status: 200 })),
     );
     const response = await GET(makeRequest('session=1'), {
       params: Promise.resolve({ assignmentId: '3' }),
     });
     expect(response.status).toBe(200);
-    expect(response.headers.get('Content-Disposition')).toContain(
-      'assignment-3-grades.csv'
-    );
+    expect(response.headers.get('Content-Disposition')).toContain('assignment-3-grades.csv');
     expect(await response.text()).toContain('alice,AC');
     const calledUrl = (fetch as ReturnType<typeof vi.fn>).mock.calls[0][0];
     expect(calledUrl).toContain('/classroom/assignments/3/export/');
   });
 
   it('forwards the browser cookie header to the backend', async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValue(new Response('x', { status: 200 }));
+    const fetchMock = vi.fn().mockResolvedValue(new Response('x', { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
     await GET(makeRequest('wc_access=tok'), {
       params: Promise.resolve({ assignmentId: '3' }),

@@ -1,6 +1,6 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { FlatCompat } from '@eslint/eslintrc';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -10,29 +10,29 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  ...compat.extends('next/core-web-vitals', 'next/typescript'),
   {
     ignores: [
-      "node_modules/**",
+      'node_modules/**',
       // The Expo app (mobile/) has its own toolchain; the Next.js lint
       // rules must not run against React Native sources.
-      "mobile/**",
-      ".next/**",
-      "out/**",
-      "build/**",
-      "next-env.d.ts",
+      'mobile/**',
+      '.next/**',
+      'out/**',
+      'build/**',
+      'next-env.d.ts',
       // Generated e2e artifacts (report bundles + failure traces contain
       // bundled vendor JS that must not be linted).
-      "playwright-report/**",
-      "test-results/**",
+      'playwright-report/**',
+      'test-results/**',
       // Linked git worktrees (parallel agent waves) are full repo copies —
       // including, in some, a Python .venv and coverage HTML — none of which
       // belongs to this tree's lint surface.
-      "wt-*/**",
+      'wt-*/**',
       // Backend pytest coverage HTML (scripts/verify generates backend/htmlcov
       // in the SAME job, right before `npm run lint` runs — generated vendor
       // JS must never enter the lint surface).
-      "backend/htmlcov/**",
+      'backend/htmlcov/**',
     ],
   },
 ];

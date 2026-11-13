@@ -22,48 +22,62 @@ export default async function AccessibilityPage() {
       key: 'standard',
       body: t(
         'accessibility_standard',
-        'We aim to conform to WCAG 2.1 level AA. Every page in the interface is scanned automatically on each change (the axe-core accessibility gate in our continuous integration), and a change that introduces a critical or serious violation does not ship.'
+        'We aim to conform to WCAG 2.1 level AA. Every page in the interface is scanned automatically on each change (the axe-core accessibility gate in our continuous integration), and a change that introduces a critical or serious violation does not ship.',
       ),
     },
     {
       key: 'keyboard',
       body: t(
         'accessibility_keyboard',
-        'The whole submission flow — finding a problem, writing code in the editor, submitting and reading the verdict — is operable by keyboard alone. Focus is always visible, and pages expose a skip link to the main content.'
+        'The whole submission flow — finding a problem, writing code in the editor, submitting and reading the verdict — is operable by keyboard alone. Focus is always visible, and pages expose a skip link to the main content.',
       ),
     },
     {
       key: 'screenreaders',
       body: t(
         'accessibility_screenreaders',
-        'Problem pages, standings tables and forms use semantic landmarks, labels and table headers so screen readers can navigate them. Colour is never the only signal: verdicts carry text, and rating colour bands are always accompanied by numbers.'
+        'Problem pages, standings tables and forms use semantic landmarks, labels and table headers so screen readers can navigate them. Colour is never the only signal: verdicts carry text, and rating colour bands are always accompanied by numbers.',
       ),
     },
     {
       key: 'contrast',
       body: t(
         'accessibility_contrast',
-        'The interface palette is tested for contrast at the AA ratio on both light and dark surfaces.'
+        'The interface palette is tested for contrast at the AA ratio on both light and dark surfaces.',
       ),
     },
     {
       key: 'feedback',
       body: t(
         'accessibility_feedback',
-        'If something on WebCoder is hard or impossible for you to use, write to us and we will treat it as a bug: accessibility@webcoder.example. Feedback from teachers and students using assistive technology drives this page.'
+        'If something on WebCoder is hard or impossible for you to use, write to us and we will treat it as a bug: accessibility@webcoder.example. Feedback from teachers and students using assistive technology drives this page.',
       ),
     },
   ];
 
   return (
     <div className="page-container" style={{ paddingTop: '2.5rem', maxWidth: '760px' }}>
-      <h1 style={{ fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--foreground)' }}>
+      <h1
+        style={{
+          fontSize: '1.75rem',
+          fontWeight: 800,
+          letterSpacing: '-0.02em',
+          color: 'var(--foreground)',
+        }}
+      >
         {t('accessibility_title', 'Accessibility statement')}
       </h1>
-      <p style={{ color: 'var(--muted)', fontSize: '0.9rem', margin: '0.5rem 0 2rem', lineHeight: 1.7 }}>
+      <p
+        style={{
+          color: 'var(--muted)',
+          fontSize: '0.9rem',
+          margin: '0.5rem 0 2rem',
+          lineHeight: 1.7,
+        }}
+      >
         {t(
           'accessibility_intro',
-          'WebCoder is built for schools and students, so it has to work for everyone. This page states what we commit to and how it is enforced — not an aspiration, a gate in our pipeline.'
+          'WebCoder is built for schools and students, so it has to work for everyone. This page states what we commit to and how it is enforced — not an aspiration, a gate in our pipeline.',
         )}
       </p>
 

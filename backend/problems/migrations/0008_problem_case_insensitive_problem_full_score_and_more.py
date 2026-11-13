@@ -4,55 +4,116 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('problems', '0007_problem_difficulty_source_curriculumnode'),
+        ("problems", "0007_problem_difficulty_source_curriculumnode"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='problem',
-            name='case_insensitive',
-            field=models.BooleanField(default=False, help_text='Lowercase both outputs before text comparison modes.', verbose_name='case-insensitive comparison'),
+            model_name="problem",
+            name="case_insensitive",
+            field=models.BooleanField(
+                default=False,
+                help_text="Lowercase both outputs before text comparison modes.",
+                verbose_name="case-insensitive comparison",
+            ),
         ),
         migrations.AddField(
-            model_name='problem',
-            name='full_score',
-            field=models.PositiveIntegerField(default=0, help_text='Cached total score across tests/subtasks.', verbose_name='full score'),
+            model_name="problem",
+            name="full_score",
+            field=models.PositiveIntegerField(
+                default=0,
+                help_text="Cached total score across tests/subtasks.",
+                verbose_name="full score",
+            ),
         ),
         migrations.AddField(
-            model_name='problem',
-            name='io_input_filename',
-            field=models.CharField(blank=True, default='input.txt', max_length=64, verbose_name='input filename (FILES mode)'),
+            model_name="problem",
+            name="io_input_filename",
+            field=models.CharField(
+                blank=True,
+                default="input.txt",
+                max_length=64,
+                verbose_name="input filename (FILES mode)",
+            ),
         ),
         migrations.AddField(
-            model_name='problem',
-            name='io_mode',
-            field=models.CharField(choices=[('STDIO', 'Standard input/output'), ('FILES', 'Files (.in/.out)')], default='STDIO', max_length=6, verbose_name='I/O mode'),
+            model_name="problem",
+            name="io_mode",
+            field=models.CharField(
+                choices=[
+                    ("STDIO", "Standard input/output"),
+                    ("FILES", "Files (.in/.out)"),
+                ],
+                default="STDIO",
+                max_length=6,
+                verbose_name="I/O mode",
+            ),
         ),
         migrations.AddField(
-            model_name='problem',
-            name='io_output_filename',
-            field=models.CharField(blank=True, default='output.txt', max_length=64, verbose_name='output filename (FILES mode)'),
+            model_name="problem",
+            name="io_output_filename",
+            field=models.CharField(
+                blank=True,
+                default="output.txt",
+                max_length=64,
+                verbose_name="output filename (FILES mode)",
+            ),
         ),
         migrations.AddField(
-            model_name='problem',
-            name='limit_overrides',
-            field=models.JSONField(blank=True, default=dict, help_text='Optional map of language id -> {time_ms, memory_kb} overrides.', verbose_name='per-language limit overrides'),
+            model_name="problem",
+            name="limit_overrides",
+            field=models.JSONField(
+                blank=True,
+                default=dict,
+                help_text="Optional map of language id -> {time_ms, memory_kb} overrides.",
+                verbose_name="per-language limit overrides",
+            ),
         ),
         migrations.AddField(
-            model_name='problem',
-            name='scoring_mode',
-            field=models.CharField(choices=[('PARTIAL_PER_TEST', 'Partial (per test)'), ('BINARY', 'Binary (all or nothing)'), ('SUBTASKS', 'Subtask groups')], default='PARTIAL_PER_TEST', max_length=20, verbose_name='scoring mode'),
+            model_name="problem",
+            name="scoring_mode",
+            field=models.CharField(
+                choices=[
+                    ("PARTIAL_PER_TEST", "Partial (per test)"),
+                    ("BINARY", "Binary (all or nothing)"),
+                    ("SUBTASKS", "Subtask groups"),
+                ],
+                default="PARTIAL_PER_TEST",
+                max_length=20,
+                verbose_name="scoring mode",
+            ),
         ),
         migrations.AddField(
-            model_name='testcase',
-            name='subtask',
-            field=models.CharField(blank=True, default='', help_text='Group key; tests in one group pass or fail together.', max_length=64, verbose_name='subtask group'),
+            model_name="testcase",
+            name="subtask",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Group key; tests in one group pass or fail together.",
+                max_length=64,
+                verbose_name="subtask group",
+            ),
         ),
         migrations.AlterField(
-            model_name='problem',
-            name='comparison_mode',
-            field=models.CharField(choices=[('EXACT', 'Exact Match'), ('STRIP_EXACT', 'Exact Match (Ignore Leading/Trailing Whitespace)'), ('LINES_STRIP_EXACT', 'Line-by-Line Exact Match (Ignore Line Whitespace & Empty Lines)'), ('FLOAT_PRECISE', 'Floating Point (Precise up to Epsilon)'), ('TOKEN', 'Token-based (whitespace-insensitive)'), ('CUSTOM_CHECKER', 'Use Custom Checker Program')], default='LINES_STRIP_EXACT', help_text="How to compare user's output with expected output.", max_length=20, verbose_name='output comparison mode'),
+            model_name="problem",
+            name="comparison_mode",
+            field=models.CharField(
+                choices=[
+                    ("EXACT", "Exact Match"),
+                    ("STRIP_EXACT", "Exact Match (Ignore Leading/Trailing Whitespace)"),
+                    (
+                        "LINES_STRIP_EXACT",
+                        "Line-by-Line Exact Match (Ignore Line Whitespace & Empty Lines)",
+                    ),
+                    ("FLOAT_PRECISE", "Floating Point (Precise up to Epsilon)"),
+                    ("TOKEN", "Token-based (whitespace-insensitive)"),
+                    ("CUSTOM_CHECKER", "Use Custom Checker Program"),
+                ],
+                default="LINES_STRIP_EXACT",
+                help_text="How to compare user's output with expected output.",
+                max_length=20,
+                verbose_name="output comparison mode",
+            ),
         ),
     ]

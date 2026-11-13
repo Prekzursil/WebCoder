@@ -24,7 +24,14 @@ const SubmissionStatusDisplay: React.FC<SubmissionStatusDisplayProps> = ({ statu
   }
 
   return (
-    <div style={{ marginTop: '15px', padding: '10px', borderRadius: 'var(--radius-md)', border: '1px solid transparent' }}>
+    <div
+      style={{
+        marginTop: '15px',
+        padding: '10px',
+        borderRadius: 'var(--radius-md)',
+        border: '1px solid transparent',
+      }}
+    >
       {status && (
         <p
           role="status"

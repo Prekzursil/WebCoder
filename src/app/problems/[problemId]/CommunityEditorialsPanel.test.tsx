@@ -18,9 +18,7 @@ vi.mock('@/services/ApiService', () => ({
 const mocks = vi.hoisted(() => ({
   auth: {
     isAuthenticated: true,
-    user: { id: 7, username: 'creator', email: 'c@x.com', role: 'CREATOR' } as
-      | User
-      | null,
+    user: { id: 7, username: 'creator', email: 'c@x.com', role: 'CREATOR' } as User | null,
     login: vi.fn(),
     logout: vi.fn(),
   },
@@ -76,9 +74,7 @@ describe('CommunityEditorialsPanel', () => {
     expect(await screen.findByTestId('ce-row-11')).toBeInTheDocument();
     expect(screen.getAllByText(/CC BY-SA 4\.0/i).length).toBeGreaterThan(0);
     fireEvent.click(screen.getByTestId('ce-row-11'));
-    expect(await screen.findByTestId('ce-body-11')).toHaveTextContent(
-      'Walk inward'
-    );
+    expect(await screen.findByTestId('ce-body-11')).toHaveTextContent('Walk inward');
   });
 
   it('refetches with the lang filter', async () => {
@@ -91,9 +87,7 @@ describe('CommunityEditorialsPanel', () => {
     render(<CommunityEditorialsPanel problemId={1} />);
     await screen.findByText(/No community editorials yet/i);
     fireEvent.click(screen.getByTestId('ce-filter-ro'));
-    await waitFor(() =>
-      expect(api.getCommunityEditorials).toHaveBeenCalledWith(1, { lang: 'ro' })
-    );
+    await waitFor(() => expect(api.getCommunityEditorials).toHaveBeenCalledWith(1, { lang: 'ro' }));
   });
 
   it('offers the write form to creators and submits for review', async () => {
@@ -120,11 +114,9 @@ describe('CommunityEditorialsPanel', () => {
         title: 'Two pointers, one pass',
         body: 'Walk inward.',
         lang: 'en',
-      })
+      }),
     );
-    expect(
-      await screen.findByText(/No community editorials yet/i)
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/No community editorials yet/i)).toBeInTheDocument();
   });
 
   it('hides the write button from plain users', async () => {

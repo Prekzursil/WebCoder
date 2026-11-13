@@ -18,7 +18,6 @@ from forum.models import Post
 from problems.models import Article, CommunityEditorial, Problem
 from submissions.models import Submission
 
-from leaderboard.models import LeaderboardEntry
 
 #: RAT-10 day-one rules (Codeforces precedent, cf. blog/entry/76361 + 8963):
 #: votes count only from accounts with at least one accepted submission;
@@ -32,13 +31,11 @@ def user_has_ac(user) -> bool:
     """≥1 accepted submission on an APPROVED problem (the vote trust floor)."""
     if user is None or not getattr(user, "is_authenticated", False):
         return False
-    return (
-        Submission.objects.filter(
-            user=user,
-            verdict=Submission.VerdictStatus.ACCEPTED,
-            problem__status=Problem.ProblemStatus.APPROVED,
-        ).exists()
-    )
+    return Submission.objects.filter(
+        user=user,
+        verdict=Submission.VerdictStatus.ACCEPTED,
+        problem__status=Problem.ProblemStatus.APPROVED,
+    ).exists()
 
 
 def effective_score(raw: int) -> int:
@@ -93,15 +90,18 @@ def weekly_rows(limit: int = 50):
     )
     points_map = {
         row["problem_id"]: int(row["points"] or 0)
-        for row in TestCase.objects.values("problem_id").annotate(
-            points=Sum("points")
-        )
+        for row in TestCase.objects.values("problem_id").annotate(points=Sum("points"))
     }
     totals: dict[int, dict] = {}
     for row in solves:
         entry = totals.setdefault(
             row["user_id"],
-            {"user_id": row["user_id"], "username": row["user__username"], "solved": 0, "points": 0},
+            {
+                "user_id": row["user_id"],
+                "username": row["user__username"],
+                "solved": 0,
+                "points": 0,
+            },
         )
         entry["solved"] += 1
         entry["points"] += points_map.get(row["problem_id"], 0)
@@ -145,9 +145,9 @@ def user_honor(user) -> dict:
     # Post upvotes: net-positive posts only, capped per post at 10 so one
     # viral answer cannot dominate the counter (Codewars-style damping).
     upvote_sum = (
-        Post.objects.filter(author=user, upvotes__gt=0).aggregate(
-            total=Sum("upvotes")
-        )["total"]
+        Post.objects.filter(author=user, upvotes__gt=0).aggregate(total=Sum("upvotes"))[
+            "total"
+        ]
         or 0
     )
     post_count = Post.objects.filter(author=user, upvotes__gt=0).count()
@@ -159,9 +159,7 @@ def user_honor(user) -> dict:
         "approved_article": articles,
         "post_upvote": capped_upvotes,
     }
-    honor = sum(
-        breakdown[key] * HONOR_WEIGHTS[key] for key in HONOR_WEIGHTS
-    )
+    honor = sum(breakdown[key] * HONOR_WEIGHTS[key] for key in HONOR_WEIGHTS)
     return {
         "honor": honor,
         "breakdown": breakdown,
@@ -206,9 +204,7 @@ def recent_feed(limit: int = 25):
     """COM-3: the public activity feed — verdict metadata only, code never
     included (the serializer is metadata-only by construction)."""
     rows = (
-        Submission.objects.filter(
-            problem__status=Problem.ProblemStatus.APPROVED
-        )
+        Submission.objects.filter(problem__status=Problem.ProblemStatus.APPROVED)
         .exclude(user__is_minor=True)  # LEG-2: minors stay out of public feeds
         .select_related("user", "problem")
         .order_by("-submission_time")[:limit]

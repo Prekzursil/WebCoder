@@ -20,10 +20,7 @@ test.beforeAll(async () => {
   if (isRealStack) seeded = await ensureRealStackFixtures();
 });
 
-
-test('catalog lists mocked problems with difficulty and status', async ({
-  page,
-}) => {
+test('catalog lists mocked problems with difficulty and status', async ({ page }) => {
   await page?.goto('/problems');
 
   const twoSumRow = page?.getByRole('row').filter({ hasText: 'Two Sum' });
@@ -46,9 +43,7 @@ test('catalog items link to the problem detail page', async ({ page }) => {
   await expect(page)?.toHaveURL(new RegExp(`/problems/${seeded.twoSumId}$`));
 });
 
-test('problem detail renders statement, limits and sample test cases', async ({
-  page,
-}) => {
+test('problem detail renders statement, limits and sample test cases', async ({ page }) => {
   await page?.goto(`/problems/${seeded.twoSumId}`);
 
   await expect(page?.getByRole('heading', { level: 1 }))?.toHaveText('Two Sum');
@@ -56,20 +51,14 @@ test('problem detail renders statement, limits and sample test cases', async ({
   await expect(page?.getByText('1000 ms'))?.toBeVisible();
   await expect(page?.getByText('Memory Limit'))?.toBeVisible();
   await expect(page?.getByText('65536 KB'))?.toBeVisible();
-  await expect(
-    page?.getByText(/Given an array of integers nums/)
-  )?.toBeVisible();
-  await expect(
-    page?.getByRole('heading', { name: 'Sample Test Cases' })
-  )?.toBeVisible();
+  await expect(page?.getByText(/Given an array of integers nums/))?.toBeVisible();
+  await expect(page?.getByRole('heading', { name: 'Sample Test Cases' }))?.toBeVisible();
   await expect(page?.getByText('Example 1'))?.toBeVisible();
 });
 
 // --- Wave A learning layer --------------------------------------------------
 
-test('problem detail renders markdown statement, hints ladder and editorial', async ({
-  page,
-}) => {
+test('problem detail renders markdown statement, hints ladder and editorial', async ({ page }) => {
   await page?.goto(`/problems/${seeded.reverseId}`);
 
   // A7: markdown **Input:** renders as bold, math as KaTeX. <strong> has no
@@ -109,9 +98,7 @@ test('INTERACTIVE problem detail shows the interactive badge and flush notice', 
   const badge = page?.getByText('Interactive', { exact: true });
   await expect(badge)?.toBeVisible();
   await expect(badge)?.toHaveAttribute('title', /flush/i);
-  await expect(
-    page?.getByRole('heading', { name: 'Guess the Number' })
-  )?.toBeVisible();
+  await expect(page?.getByRole('heading', { name: 'Guess the Number' }))?.toBeVisible();
 });
 
 test('/start onboarding page renders the starter trio [ONB-1]', async ({ page }) => {

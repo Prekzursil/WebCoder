@@ -5,9 +5,7 @@ import { test, expect } from '@playwright/test';
 // strip, and the Terms page's school DPA section.
 
 test.describe('community content (Wave C, mock api)', () => {
-  test('problem page shows community editorials + related reading', async ({
-    page,
-  }) => {
+  test('problem page shows community editorials + related reading', async ({ page }) => {
     await page.goto('/problems/1');
 
     const panel = page.getByTestId('community-editorials');
@@ -18,9 +16,7 @@ test.describe('community content (Wave C, mock api)', () => {
     await page.getByTestId('ce-row-11').click();
     await expect(page.getByTestId('ce-body-11')).toContainText('Walk inward');
 
-    await expect(page.getByTestId('related-articles')).toContainText(
-      'Hash tables 101'
-    );
+    await expect(page.getByTestId('related-articles')).toContainText('Hash tables 101');
   });
 
   test('/articles lists the hub with license + tag chips', async ({ page }) => {
@@ -34,32 +30,23 @@ test.describe('community content (Wave C, mock api)', () => {
   test('article detail renders the bilingual body', async ({ page }) => {
     await page.goto('/articles/1');
 
-    await expect(page.getByTestId('article-body')).toContainText(
-      'Open addressing vs chaining.'
-    );
+    await expect(page.getByTestId('article-body')).toContainText('Open addressing vs chaining.');
   });
 
-  test('terms page mentions the school data-processing template', async ({
-    page,
-  }) => {
+  test('terms page mentions the school data-processing template', async ({ page }) => {
     await page.goto('/terms');
     await expect(page.getByText(/data-processing agreement/i)).toBeVisible();
   });
 });
 
-
 test.describe('authoring & integrity (Wave C JDG/UXP, mock api)', () => {
-  test('problem page shows the statement-change banner and feed (UXP-4)', async ({
-    page,
-  }) => {
+  test('problem page shows the statement-change banner and feed (UXP-4)', async ({ page }) => {
     await page.goto('/problems/1');
 
     const banner = page.getByTestId('statement-history');
     await expect(banner).toBeVisible();
     await expect(banner).toContainText(/change history/i);
     await banner.getByRole('button').click();
-    await expect(page.getByTestId('statement-history-feed')).toContainText(
-      'clarified constraints'
-    );
+    await expect(page.getByTestId('statement-history-feed')).toContainText('clarified constraints');
   });
 });

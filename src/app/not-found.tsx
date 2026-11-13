@@ -42,17 +42,33 @@ export default async function NotFoundPage() {
         >
           {t('not_found_code', '404')}
         </div>
-        <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--foreground)', marginBottom: '0.5rem' }}>
+        <h1
+          style={{
+            fontSize: '1.25rem',
+            fontWeight: 700,
+            color: 'var(--foreground)',
+            marginBottom: '0.5rem',
+          }}
+        >
           {t('not_found_default_header', '404 - Page Not Found')}
         </h1>
-        <p style={{ color: 'var(--muted)', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '1.5rem' }}>
+        <p
+          style={{
+            color: 'var(--muted)',
+            fontSize: '0.9rem',
+            lineHeight: 1.6,
+            marginBottom: '1.5rem',
+          }}
+        >
           {t(
             'not_found_default_message',
-            'The page you are looking for does not exist or you may not have permission to view it.'
+            'The page you are looking for does not exist or you may not have permission to view it.',
           )}
         </p>
 
-        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+        <div
+          style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}
+        >
           <Link href="/problems" className="btn btn--primary">
             {t('not_found_browse_problems', 'Browse Problems')}
           </Link>

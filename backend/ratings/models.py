@@ -38,9 +38,7 @@ class UserRating(models.Model):
         related_name="rating_state",
         verbose_name=_("user"),
     )
-    rating = models.PositiveIntegerField(
-        _("internal rating"), default=DEFAULT_RATING
-    )
+    rating = models.PositiveIntegerField(_("internal rating"), default=DEFAULT_RATING)
     rd = models.FloatField(_("rating deviation"), default=DEFAULT_RD)
     contests_count = models.PositiveIntegerField(default=0)
     last_competition_at = models.DateTimeField(null=True, blank=True)
@@ -105,7 +103,9 @@ class RatingHistory(models.Model):
         verbose_name_plural = _("rating history entries")
         ordering = ["-contest__end_at", "rank"]
         constraints = [
-            models.UniqueConstraint(fields=["user", "contest"], name="unique_user_contest_rating")
+            models.UniqueConstraint(
+                fields=["user", "contest"], name="unique_user_contest_rating"
+            )
         ]
 
     def __str__(self):

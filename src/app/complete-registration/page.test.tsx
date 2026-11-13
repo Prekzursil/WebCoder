@@ -101,9 +101,7 @@ describe('CompleteRegistrationPage', () => {
   it('renders a disabled prefilled email field and an editable username field', () => {
     renderCompleteRegistration();
 
-    expect(
-      screen.getByRole('heading', { name: 'Complete Your Registration' })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Complete Your Registration' })).toBeInTheDocument();
     // Anchored regex: MUI `required` labels append an (aria-hidden) asterisk.
     const emailInput = screen.getByLabelText(/^Email Address/) as HTMLInputElement;
     expect(emailInput).toBeDisabled();
@@ -138,7 +136,7 @@ describe('CompleteRegistrationPage', () => {
       () =>
         new Promise<RegisterResponse>((resolve) => {
           resolveRegister = resolve;
-        }) as unknown as Promise<never>
+        }) as unknown as Promise<never>,
     );
 
     // Hold the button reference before submitting: while isSubmitting is true
@@ -174,17 +172,13 @@ describe('CompleteRegistrationPage', () => {
   });
 
   it.each([
-    ['an Error with a message', new Error('Username already registered.'), 'Username already registered.'],
     [
-      'an Error with an empty message',
-      new Error(''),
-      'Failed to complete registration.',
+      'an Error with a message',
+      new Error('Username already registered.'),
+      'Username already registered.',
     ],
-    [
-      'a non-Error rejection',
-      'oauth provider offline',
-      'Failed to complete registration.',
-    ],
+    ['an Error with an empty message', new Error(''), 'Failed to complete registration.'],
+    ['a non-Error rejection', 'oauth provider offline', 'Failed to complete registration.'],
   ])('surfaces the API failure when the API rejects with %s', async (_label, rejection, expected) => {
     const { unmount } = renderCompleteRegistration();
     registerMock.mockRejectedValueOnce(rejection);

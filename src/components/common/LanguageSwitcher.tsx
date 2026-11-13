@@ -27,10 +27,7 @@ export interface LanguageSwitcherProps {
   onChange?: (locale: Locale) => void;
 }
 
-const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
-  className,
-  onChange,
-}) => {
+const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ className, onChange }) => {
   const { i18n, t } = useTranslation();
   const current = normalizeUiLocale(i18n.language);
 
@@ -52,7 +49,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
       }
       onChange?.(next);
     },
-    [i18n, onChange]
+    [i18n, onChange],
   );
 
   return (

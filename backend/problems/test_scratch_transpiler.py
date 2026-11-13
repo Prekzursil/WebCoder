@@ -120,6 +120,8 @@ def _run(source: str, stdin_text: str = "") -> str:
             try:
                 exec(source, {"__name__": "__main__"})  # noqa: S102
             except SystemExit:
+                # Scratch programs may call stop; the exit aborts only the
+                # transpiled run, which is exactly the boundary under test.
                 pass
     finally:
         sys.stdin = old_stdin
@@ -407,7 +409,6 @@ class TestComparisons:
         assert out == "true\n"
 
     def test_equals_case_insensitive_strings(self):
-        left = _op("operator_join", {"STRING1": [1, [3, "A"]]})
         # Use literals through text compare: "A" == "a" in Scratch.
         cond = _op(
             "operator_equals",
@@ -687,7 +688,6 @@ class TestControl:
         assert out == "2\n"
 
     def test_while_until_until_mode(self):
-        cond = _compare("operator_lt", 5, 2)  # always false → until runs once?
         # repeat-until with always-false condition would loop forever; use
         # "until 5 < 2" (never true) is unsafe. Instead: until NOT(true)=false
         # → use a comparison that is TRUE so the until body never runs.
@@ -808,9 +808,7 @@ class TestScriptStructure:
                     "isStage": False,
                     "name": "Sprite1",
                     "variables": {},
-                    "blocks": {
-                        "loose": {**_var_reporter("n"), "topLevel": True}
-                    },
+                    "blocks": {"loose": {**_var_reporter("n"), "topLevel": True}},
                 },
             ]
         }
@@ -956,9 +954,7 @@ class TestValidateProject:
         errors = validate_project(
             json.dumps(project), allowed_opcodes=["event_whenflagclicked"]
         )
-        assert any(
-            "does not allow" in e and "looks_say" in e for e in errors
-        )
+        assert any("does not allow" in e and "looks_say" in e for e in errors)
 
     def test_missing_flag_script_flagged(self):
         project = {
@@ -968,9 +964,7 @@ class TestValidateProject:
                     "isStage": False,
                     "name": "Sprite1",
                     "variables": {},
-                    "blocks": {
-                        "loose": {**_var_reporter("n"), "topLevel": True}
-                    },
+                    "blocks": {"loose": {**_var_reporter("n"), "topLevel": True}},
                 },
             ]
         }
@@ -1066,10 +1060,7 @@ class TestTranspileMessageHelper:
     def test_static_message_from_args(self):
         from .scratch_transpiler import TranspileError, _transpile_message
 
-        assert (
-            _transpile_message(TranspileError("bad block 'x'"))
-            == "bad block 'x'"
-        )
+        assert _transpile_message(TranspileError("bad block 'x'")) == "bad block 'x'"
 
     def test_fallback_without_args(self):
         from .scratch_transpiler import TranspileError, _transpile_message

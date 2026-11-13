@@ -70,7 +70,12 @@ beforeEach(() => {
   nav.params.mockReturnValue({});
   authState.isAuthenticated = true;
   authState.refreshToken = 'refresh-1';
-  authState.user = { id: 7, username: 'creator', email: 'creator@example.com', role: 'PROBLEM_CREATOR' };
+  authState.user = {
+    id: 7,
+    username: 'creator',
+    email: 'creator@example.com',
+    role: 'PROBLEM_CREATOR',
+  };
   api.getTags.mockResolvedValue({ count: 0, next: null, previous: null, results: [] });
 });
 

@@ -62,8 +62,8 @@ export default function CodeEditor({
                 return true;
               },
             },
-          ])
-        )
+          ]),
+        ),
       );
     }
     return exts;

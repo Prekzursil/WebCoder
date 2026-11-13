@@ -12,9 +12,7 @@ test.beforeEach(async ({ context, page }) => {
   // public-i18n getLocale. Verified manually: SSR renders RO only when the
   // cookie rides the document request, so it must be set on the context
   // BEFORE the first goto.
-  await context.addCookies([
-    { name: 'i18nextLng', value: 'ro', url: 'http://localhost:3311' },
-  ]);
+  await context.addCookies([{ name: 'i18nextLng', value: 'ro', url: 'http://localhost:3311' }]);
   await page?.addInitScript(() => localStorage.setItem('i18nextLng', 'ro'));
 });
 
@@ -57,7 +55,10 @@ test('switching to RO via the switcher survives a reload', async ({ page }) => {
   // Scoped to the nav — the footer carries a second language switcher.
   // [i18n wave] the two-button toggle is now the shared ten-locale
   // <select>; selectValue flips it (and writes the i18next cookie).
-  await page?.getByRole('navigation', { name: 'Main' }).getByRole('combobox', { name: 'Language' })?.selectOption('ro');
+  await page
+    ?.getByRole('navigation', { name: 'Main' })
+    .getByRole('combobox', { name: 'Language' })
+    ?.selectOption('ro');
   await expect(page?.getByRole('heading', { level: 1 }))?.toHaveText('Bun venit la WebCoder');
 
   // …then reload: the cached choice must survive for BOTH server pages

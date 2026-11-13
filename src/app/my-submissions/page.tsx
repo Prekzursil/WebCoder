@@ -85,13 +85,19 @@ function MySubmissionsPageContent() {
         }
 
         try {
-          const response = await SubmissionService.getSubmissions(filters, { pageSize: SUBMISSIONS_PAGE_SIZE });
+          const response = await SubmissionService.getSubmissions(filters, {
+            pageSize: SUBMISSIONS_PAGE_SIZE,
+          });
           setSubmissions(response.results);
           nextCursorRef.current = cursorParamFromUrl(response.next);
           setMoreAvailable(Boolean(nextCursorRef.current));
           setCurrentPage(1); // Reset to first page on new filter/fetch
         } catch (err) {
-          setError(err instanceof Error && err.message ? err.message : t('error_loading_submissions', 'Failed to load submissions.'));
+          setError(
+            err instanceof Error && err.message
+              ? err.message
+              : t('error_loading_submissions', 'Failed to load submissions.'),
+          );
         } finally {
           setLoading(false);
         }
@@ -117,7 +123,10 @@ function MySubmissionsPageContent() {
       filters.language = languageFilter.trim();
     }
     try {
-      const response = await SubmissionService.getSubmissions(filters, { cursor, pageSize: SUBMISSIONS_PAGE_SIZE });
+      const response = await SubmissionService.getSubmissions(filters, {
+        cursor,
+        pageSize: SUBMISSIONS_PAGE_SIZE,
+      });
       setSubmissions((prev) => {
         const seen = new Set(prev.map((s) => s.id));
         return [...prev, ...response.results.filter((s) => !seen.has(s.id))];
@@ -125,7 +134,11 @@ function MySubmissionsPageContent() {
       nextCursorRef.current = cursorParamFromUrl(response.next);
       setMoreAvailable(Boolean(nextCursorRef.current));
     } catch (err) {
-      setLoadMoreError(err instanceof Error && err.message ? err.message : t('error_loading_submissions', 'Failed to load submissions.'));
+      setLoadMoreError(
+        err instanceof Error && err.message
+          ? err.message
+          : t('error_loading_submissions', 'Failed to load submissions.'),
+      );
     } finally {
       setLoadingMore(false);
     }
@@ -180,12 +193,24 @@ function MySubmissionsPageContent() {
   return (
     <div>
       <h2>{t('my_submissions_header', 'My Submissions')}</h2>
-      <div style={{ marginBottom: '20px', display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'center' }}>
+      <div
+        style={{
+          marginBottom: '20px',
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '15px',
+          alignItems: 'center',
+        }}
+      >
         <div>
           <label htmlFor="problemFilter" style={{ marginRight: '5px' }}>
             {t('filter_by_problem_label', 'Filter by Problem:')}
           </label>
-          <select id="problemFilter" value={problemFilter} onChange={(e) => setProblemFilter(e.target.value)}>
+          <select
+            id="problemFilter"
+            value={problemFilter}
+            onChange={(e) => setProblemFilter(e.target.value)}
+          >
             <option value="">{t('all_problems_option', 'All Problems')}</option>
             {problemsForFilter.map((p: ProblemType) => (
               <option key={p.id} value={p.id.toString()}>
@@ -250,39 +275,44 @@ function MySubmissionsPageContent() {
         <>
           <TableScroll>
             <table>
-            <thead>
-              <tr>
-                <th>{t('submission_id_th', 'ID')}</th>
-                <th>{t('problem_th', 'Problem')}</th>
-                <th>{t('language_th', 'Language')}</th>
-                <th>{t('verdict_th', 'Verdict')}</th>
-                <th>{t('score_th', 'Score')}</th>
-                <th>{t('time_th', 'Time')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedSubmissions.map((sub) => (
-                <tr key={sub.id}>
-                  <td>
-                    <Link href={`/submissions/${sub.id}`}>{sub.id}</Link>
-                  </td>
-                  <td>
-                    <Link href={`/problems/${sub.problem.id}`}>
-                      {sub.problem.title_i18n[i18n.language] || sub.problem.title_i18n.en || `ID: ${sub.problem.id}`}
-                    </Link>
-                  </td>
-                  <td>{sub.language}</td>
-                  <td>{t(`verdict_${sub.verdict}`, sub.verdict)}</td>
-                  <td>{sub.score ?? '-'}</td>
-                  <td>{new Date(sub.submission_time).toLocaleString(i18n.language)}</td>
+              <thead>
+                <tr>
+                  <th>{t('submission_id_th', 'ID')}</th>
+                  <th>{t('problem_th', 'Problem')}</th>
+                  <th>{t('language_th', 'Language')}</th>
+                  <th>{t('verdict_th', 'Verdict')}</th>
+                  <th>{t('score_th', 'Score')}</th>
+                  <th>{t('time_th', 'Time')}</th>
                 </tr>
-              ))}
-            </tbody>
+              </thead>
+              <tbody>
+                {paginatedSubmissions.map((sub) => (
+                  <tr key={sub.id}>
+                    <td>
+                      <Link href={`/submissions/${sub.id}`}>{sub.id}</Link>
+                    </td>
+                    <td>
+                      <Link href={`/problems/${sub.problem.id}`}>
+                        {sub.problem.title_i18n[i18n.language] ||
+                          sub.problem.title_i18n.en ||
+                          `ID: ${sub.problem.id}`}
+                      </Link>
+                    </td>
+                    <td>{sub.language}</td>
+                    <td>{t(`verdict_${sub.verdict}`, sub.verdict)}</td>
+                    <td>{sub.score ?? '-'}</td>
+                    <td>{new Date(sub.submission_time).toLocaleString(i18n.language)}</td>
+                  </tr>
+                ))}
+              </tbody>
             </table>
           </TableScroll>
           {totalPages > 1 && (
             <div style={{ marginTop: '20px', textAlign: 'center' }}>
-              <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
                 {t('pagination_previous', 'Previous')}
               </button>
               <span style={{ margin: '0 10px' }}>
@@ -292,7 +322,10 @@ function MySubmissionsPageContent() {
                   totalPages,
                 })}
               </span>
-              <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
                 {t('pagination_next', 'Next')}
               </button>
             </div>
@@ -302,10 +335,14 @@ function MySubmissionsPageContent() {
           {(moreAvailable || loadMoreError) && (
             <div style={{ marginTop: '15px', textAlign: 'center' }}>
               {loadMoreError && (
-                <p role="alert" style={{ color: 'red', marginBottom: '8px' }}>{loadMoreError}</p>
+                <p role="alert" style={{ color: 'red', marginBottom: '8px' }}>
+                  {loadMoreError}
+                </p>
               )}
               <button onClick={loadMore} disabled={loadingMore}>
-                {loadingMore ? t('loading_more', 'Loading…') : t('load_older_submissions', 'Load older submissions')}
+                {loadingMore
+                  ? t('loading_more', 'Loading…')
+                  : t('load_older_submissions', 'Load older submissions')}
               </button>
             </div>
           )}

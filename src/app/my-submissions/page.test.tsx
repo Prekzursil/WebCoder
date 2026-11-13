@@ -49,10 +49,17 @@ vi.mock('@/services/ApiService', async (importOriginal) => {
 });
 
 // Envelope builders matching the paginated backend (SPEC-GAPS B4).
-const pageOf = <T,>(results: T[]): { count: number; next: null; previous: null; results: T[] } =>
-  ({ count: results.length, next: null, previous: null, results });
-const cursorPageOf = <T,>(results: T[]): { next: null; previous: null; results: T[] } =>
-  ({ next: null, previous: null, results });
+const pageOf = <T,>(results: T[]): { count: number; next: null; previous: null; results: T[] } => ({
+  count: results.length,
+  next: null,
+  previous: null,
+  results,
+});
+const cursorPageOf = <T,>(results: T[]): { next: null; previous: null; results: T[] } => ({
+  next: null,
+  previous: null,
+  results,
+});
 
 vi.mock('next/navigation', () => ({
   usePathname: () => '/my-submissions',
@@ -123,25 +130,30 @@ describe('MySubmissionsPage', () => {
   });
 
   it('shows the loading spinner while fetching, then renders the table with rows', async () => {
-    let resolveFetch: (v: { next: null; previous: null; results: SubmissionType[] }) => void = () => {};
+    let resolveFetch: (v: { next: null; previous: null; results: SubmissionType[] }) => void =
+      () => {};
     mocks.getSubmissions.mockReturnValue(
       new Promise<{ next: null; previous: null; results: SubmissionType[] }>((res) => {
         resolveFetch = res;
-      })
+      }),
     );
     render(<MySubmissionsPage />);
     expect(screen.getByText('Loading...')).toBeInTheDocument();
 
-    resolveFetch({ next: null, previous: null, results: [
-      submission(101),
-      submission(102, {
-        problem: { id: 1, title_i18n: { en: 'Problem One' } },
-        language: 'cpp17',
-        verdict: 'WA',
-        score: null,
-      }),
-      submission(103, { problem: { id: 5, title_i18n: {} }, score: 42 }),
-    ] });
+    resolveFetch({
+      next: null,
+      previous: null,
+      results: [
+        submission(101),
+        submission(102, {
+          problem: { id: 1, title_i18n: { en: 'Problem One' } },
+          language: 'cpp17',
+          verdict: 'WA',
+          score: null,
+        }),
+        submission(103, { problem: { id: 5, title_i18n: {} }, score: 42 }),
+      ],
+    });
     await waitFor(() => expect(screen.getByRole('table')).toBeInTheDocument());
 
     expect(screen.getByText('My Submissions')).toBeInTheDocument();
@@ -181,9 +193,13 @@ describe('MySubmissionsPage', () => {
   });
 
   it('populates the problem filter dropdown with localized titles and ID fallbacks', async () => {
-    mocks.getProblems.mockResolvedValue(pageOf([problem(1, { en: 'Problem One' }), problem(2, {})]));
+    mocks.getProblems.mockResolvedValue(
+      pageOf([problem(1, { en: 'Problem One' }), problem(2, {})]),
+    );
     render(<MySubmissionsPage />);
-    await waitFor(() => expect(screen.getByRole('option', { name: 'Problem One' })).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByRole('option', { name: 'Problem One' })).toBeInTheDocument(),
+    );
     expect(screen.getByRole('option', { name: 'ID: 2' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'All Problems' })).toBeInTheDocument();
   });
@@ -191,11 +207,15 @@ describe('MySubmissionsPage', () => {
   it('falls back to the English title when the active locale is missing (ro)', async () => {
     await i18n.changeLanguage('ro');
     mocks.getProblems.mockResolvedValue(pageOf([problem(1, { en: 'English Only Title' })]));
-    mocks.getSubmissions.mockResolvedValue(cursorPageOf([
-      submission(101, { problem: { id: 1, title_i18n: { en: 'English Only Title' } } }),
-    ]));
+    mocks.getSubmissions.mockResolvedValue(
+      cursorPageOf([
+        submission(101, { problem: { id: 1, title_i18n: { en: 'English Only Title' } } }),
+      ]),
+    );
     render(<MySubmissionsPage />);
-    await waitFor(() => expect(screen.getByRole('option', { name: 'English Only Title' })).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByRole('option', { name: 'English Only Title' })).toBeInTheDocument(),
+    );
     expect(screen.getByRole('link', { name: 'English Only Title' })).toBeInTheDocument();
   });
 
@@ -204,26 +224,39 @@ describe('MySubmissionsPage', () => {
     render(<MySubmissionsPage />);
     await screen.findByRole('option', { name: 'Second Problem' });
     fireEvent.change(screen.getByLabelText('Filter by Problem:'), { target: { value: '2' } });
-    await waitFor(() => expect(mocks.getSubmissions).toHaveBeenLastCalledWith({ problemId: 2 }, { pageSize: 25 }));
+    await waitFor(() =>
+      expect(mocks.getSubmissions).toHaveBeenLastCalledWith({ problemId: 2 }, { pageSize: 25 }),
+    );
   });
 
   it('passes a trimmed language filter and ignores whitespace-only input', async () => {
     render(<MySubmissionsPage />);
     await waitFor(() => expect(mocks.getSubmissions).toHaveBeenCalledTimes(1));
-    fireEvent.change(screen.getByLabelText('Filter by Language:'), { target: { value: ' python3 ' } });
-    await waitFor(() => expect(mocks.getSubmissions).toHaveBeenLastCalledWith({ language: 'python3' }, { pageSize: 25 }));
+    fireEvent.change(screen.getByLabelText('Filter by Language:'), {
+      target: { value: ' python3 ' },
+    });
+    await waitFor(() =>
+      expect(mocks.getSubmissions).toHaveBeenLastCalledWith(
+        { language: 'python3' },
+        { pageSize: 25 },
+      ),
+    );
     fireEvent.change(screen.getByLabelText('Filter by Language:'), { target: { value: '   ' } });
-    await waitFor(() => expect(mocks.getSubmissions).toHaveBeenLastCalledWith({}, { pageSize: 25 }));
+    await waitFor(() =>
+      expect(mocks.getSubmissions).toHaveBeenLastCalledWith({}, { pageSize: 25 }),
+    );
   });
 
   it('sorts by every key in both directions', async () => {
     const t1 = '2026-01-01T10:00:00Z';
     const t2 = '2026-01-02T10:00:00Z';
-    mocks.getSubmissions.mockResolvedValue(cursorPageOf([
-      submission(1, { language: 'python3', verdict: 'WA', submission_time: t1, score: 50 }),
-      submission(2, { language: 'cpp17', verdict: 'AC', submission_time: t2, score: null }),
-      submission(3, { language: 'python3', verdict: 'TLE', submission_time: t2, score: 10 }),
-    ]));
+    mocks.getSubmissions.mockResolvedValue(
+      cursorPageOf([
+        submission(1, { language: 'python3', verdict: 'WA', submission_time: t1, score: 50 }),
+        submission(2, { language: 'cpp17', verdict: 'AC', submission_time: t2, score: null }),
+        submission(3, { language: 'python3', verdict: 'TLE', submission_time: t2, score: 10 }),
+      ]),
+    );
     render(<MySubmissionsPage />);
     await waitFor(() => expect(screen.getByRole('table')).toBeInTheDocument());
 
@@ -255,10 +288,15 @@ describe('MySubmissionsPage', () => {
 
   it('treats a nullish language as empty string when sorting (first operand)', async () => {
     // Comparator sees (nullish, 'python3'): the `?? ''` fallback fires for valA.
-    mocks.getSubmissions.mockResolvedValue(cursorPageOf([
-      submission(1, { language: null as unknown as string, submission_time: '2026-01-01T10:00:00Z' }),
-      submission(2, { language: 'python3', submission_time: '2026-01-02T10:00:00Z' }),
-    ]));
+    mocks.getSubmissions.mockResolvedValue(
+      cursorPageOf([
+        submission(1, {
+          language: null as unknown as string,
+          submission_time: '2026-01-01T10:00:00Z',
+        }),
+        submission(2, { language: 'python3', submission_time: '2026-01-02T10:00:00Z' }),
+      ]),
+    );
     render(<MySubmissionsPage />);
     await waitFor(() => expect(screen.getByRole('table')).toBeInTheDocument());
     fireEvent.change(screen.getByLabelText('Sort by:'), { target: { value: 'language' } });
@@ -268,10 +306,15 @@ describe('MySubmissionsPage', () => {
 
   it('treats a nullish language as empty string when sorting (second operand)', async () => {
     // Comparator sees ('python3', nullish): the `?? ''` fallback fires for valB.
-    mocks.getSubmissions.mockResolvedValue(cursorPageOf([
-      submission(1, { language: 'python3', submission_time: '2026-01-01T10:00:00Z' }),
-      submission(2, { language: null as unknown as string, submission_time: '2026-01-02T10:00:00Z' }),
-    ]));
+    mocks.getSubmissions.mockResolvedValue(
+      cursorPageOf([
+        submission(1, { language: 'python3', submission_time: '2026-01-01T10:00:00Z' }),
+        submission(2, {
+          language: null as unknown as string,
+          submission_time: '2026-01-02T10:00:00Z',
+        }),
+      ]),
+    );
     render(<MySubmissionsPage />);
     await waitFor(() => expect(screen.getByRole('table')).toBeInTheDocument());
     fireEvent.change(screen.getByLabelText('Sort by:'), { target: { value: 'language' } });
@@ -286,7 +329,7 @@ describe('MySubmissionsPage', () => {
         problem: { id: 1, title_i18n: { en: 'P' } },
         submission_time: new Date(Date.UTC(2026, 0, i + 1)).toISOString(),
         score: 0,
-      })
+      }),
     );
     mocks.getSubmissions.mockResolvedValue(cursorPageOf(subs));
     render(<MySubmissionsPage />);

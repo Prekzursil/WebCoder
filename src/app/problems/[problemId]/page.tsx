@@ -60,9 +60,7 @@ export function parseProblemId(raw: string): number | null {
   return Number.isInteger(id) && id > 0 ? id : null;
 }
 
-export async function generateMetadata({
-  params,
-}: ProblemDetailPageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: ProblemDetailPageProps): Promise<Metadata> {
   const { problemId } = await params;
   const locale = await getLocale();
   const t = createTranslator(locale);
@@ -82,10 +80,9 @@ export async function generateMetadata({
   const title = localizedTitle(
     problem,
     locale,
-    `${t('problem_id_label', 'Problem ID')}: ${problem.id}`
+    `${t('problem_id_label', 'Problem ID')}: ${problem.id}`,
   );
-  const statement =
-    problem.statement_i18n?.[locale] || problem.statement_i18n?.en || '';
+  const statement = problem.statement_i18n?.[locale] || problem.statement_i18n?.en || '';
   const description =
     statement.replace(/\s+/g, ' ').trim().slice(0, 160) ||
     t('solve_problem_description', 'Solve this problem on WebCoder.');
@@ -99,10 +96,7 @@ const difficultyConfig: Record<string, { color: string }> = {
   hard: { color: palette.danger },
 };
 
-export default async function ProblemDetailPage({
-  params,
-  searchParams,
-}: ProblemDetailPageProps) {
+export default async function ProblemDetailPage({ params, searchParams }: ProblemDetailPageProps) {
   const { problemId } = await params;
   // CON-1: arriving from a running contest carries the contest id so the
   // submit form routes through the contest gate + judge-contest lane.
@@ -170,30 +164,30 @@ export default async function ProblemDetailPage({
   const problemTitle = localizedTitle(
     problem,
     locale,
-    `${t('problem_id_label', 'Problem ID')}: ${problem.id}`
+    `${t('problem_id_label', 'Problem ID')}: ${problem.id}`,
   );
-  const problemStatement =
-    problem.statement_i18n?.[locale] || problem.statement_i18n?.en || '';
+  const problemStatement = problem.statement_i18n?.[locale] || problem.statement_i18n?.en || '';
   // Owner rule (d): EN is the universal fallback — when the viewer's locale
   // has no approved translation yet, say so and invite them to help.
   const missingInLocale = locale !== 'en' && !problem.statement_i18n?.[locale];
   // "translated by @user" credit (owner rule (c)) + per-language availability.
   const attribution = problem.translations?.find((row) => row.language === locale);
   const otherLanguages = Object.keys(problem.title_i18n).filter(
-    (code) => code !== 'en' && code !== locale
+    (code) => code !== 'en' && code !== locale,
   );
   const sampleTestCases = problem.test_cases?.filter((tc) => tc.is_sample) || [];
   const diffKey = problem.difficulty?.toLowerCase() ?? 'medium';
   const diffCfg = difficultyConfig[diffKey] ?? difficultyConfig.medium;
 
-  const sectionBar = (color: string) => ({
-    width: '3px',
-    height: '14px',
-    background: color,
-    borderRadius: '2px',
-    display: 'inline-block',
-    flexShrink: 0,
-  } as CSSProperties);
+  const sectionBar = (color: string) =>
+    ({
+      width: '3px',
+      height: '14px',
+      background: color,
+      borderRadius: '2px',
+      display: 'inline-block',
+      flexShrink: 0,
+    }) as CSSProperties;
 
   const sectionHeader = (color: string, label: string) => (
     <h2
@@ -214,13 +208,11 @@ export default async function ProblemDetailPage({
     </h2>
   );
 
-  const statBlock = (
-    icon: ReactNode,
-    label: string,
-    children: ReactNode
-  ) => (
+  const statBlock = (icon: ReactNode, label: string, children: ReactNode) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-      <span style={{ color: 'var(--muted)', display: 'inline-flex' }} aria-hidden="true">{icon}</span>
+      <span style={{ color: 'var(--muted)', display: 'inline-flex' }} aria-hidden="true">
+        {icon}
+      </span>
       <div>
         <div
           className="micro-label"
@@ -228,7 +220,9 @@ export default async function ProblemDetailPage({
         >
           {label}
         </div>
-        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--foreground)' }}>{children}</div>
+        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--foreground)' }}>
+          {children}
+        </div>
       </div>
     </div>
   );
@@ -244,10 +238,32 @@ export default async function ProblemDetailPage({
   return (
     <div className="page-container">
       {/* Breadcrumb + share [A18] */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.5rem', fontSize: '0.8rem', color: 'var(--muted)', flexWrap: 'wrap' }}>
-        <Link href="/problems" style={{ color: 'var(--accent)' }}>Problems</Link>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          marginBottom: '1.5rem',
+          fontSize: '0.8rem',
+          color: 'var(--muted)',
+          flexWrap: 'wrap',
+        }}
+      >
+        <Link href="/problems" style={{ color: 'var(--accent)' }}>
+          Problems
+        </Link>
         <span aria-hidden="true">›</span>
-        <span style={{ color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '300px' }}>{problemTitle}</span>
+        <span
+          style={{
+            color: 'var(--muted)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            maxWidth: '300px',
+          }}
+        >
+          {problemTitle}
+        </span>
         <span style={{ marginLeft: 'auto' }}>
           <CopyButton shareLink label={t('copy_link_button', 'Copy link')} />
         </span>
@@ -259,22 +275,54 @@ export default async function ProblemDetailPage({
         <div>
           {/* Problem header card */}
           <div style={card}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'space-between',
+                gap: '1rem',
+                flexWrap: 'wrap',
+                marginBottom: '1rem',
+              }}
+            >
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
-                  <span className="micro-label" style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>#{problem.id}</span>
-                  <span style={{
-                    padding: '2px 10px', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 700,
-                    color: diffCfg.color, background: hexAlpha(diffCfg.color, 0.1), border: `1px solid ${hexAlpha(diffCfg.color, 0.25)}`,
-                    textTransform: 'capitalize',
-                  }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginBottom: '0.5rem',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  <span
+                    className="micro-label"
+                    style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}
+                  >
+                    #{problem.id}
+                  </span>
+                  <span
+                    style={{
+                      padding: '2px 10px',
+                      borderRadius: '999px',
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      color: diffCfg.color,
+                      background: hexAlpha(diffCfg.color, 0.1),
+                      border: `1px solid ${hexAlpha(diffCfg.color, 0.25)}`,
+                      textTransform: 'capitalize',
+                    }}
+                  >
                     {t(`difficulty_${diffKey}`, problem.difficulty)}
                   </span>
                   {problem.problem_type === 'INTERACTIVE' && (
                     <span
                       title={t('problem_interactive_flush_notice')}
                       style={{
-                        padding: '2px 10px', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 700,
+                        padding: '2px 10px',
+                        borderRadius: '999px',
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
                         color: palette.violet,
                         background: hexAlpha(palette.violet, 0.1),
                         border: `1px solid ${hexAlpha(palette.violet, 0.25)}`,
@@ -300,38 +348,79 @@ export default async function ProblemDetailPage({
                   ) : null}
                   <BookmarkButton problemId={problemId} />
                   {problem.status && (
-                    <span style={{
-                      padding: '2px 10px', borderRadius: '999px', fontSize: '0.72rem', fontWeight: 600,
-                      color: 'var(--muted)', background: hexAlpha(palette.muted, 0.1), border: `1px solid ${hexAlpha(palette.muted, 0.2)}`,
-                      textTransform: 'capitalize',
-                    }}>{problem.status}</span>
+                    <span
+                      style={{
+                        padding: '2px 10px',
+                        borderRadius: '999px',
+                        fontSize: '0.72rem',
+                        fontWeight: 600,
+                        color: 'var(--muted)',
+                        background: hexAlpha(palette.muted, 0.1),
+                        border: `1px solid ${hexAlpha(palette.muted, 0.2)}`,
+                        textTransform: 'capitalize',
+                      }}
+                    >
+                      {problem.status}
+                    </span>
                   )}
                 </div>
-                <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--foreground)', letterSpacing: '-0.02em', lineHeight: 1.3 }}>
+                <h1
+                  style={{
+                    fontSize: '1.5rem',
+                    fontWeight: 800,
+                    color: 'var(--foreground)',
+                    letterSpacing: '-0.02em',
+                    lineHeight: 1.3,
+                  }}
+                >
                   {problemTitle}
                 </h1>
                 {locale !== 'en' && attribution && !missingInLocale && (
                   <p
                     data-testid="translation-attribution"
-                    style={{ marginTop: '0.4rem', marginBottom: 0, fontSize: '0.8rem', color: 'var(--muted)' }}
+                    style={{
+                      marginTop: '0.4rem',
+                      marginBottom: 0,
+                      fontSize: '0.8rem',
+                      color: 'var(--muted)',
+                    }}
                   >
-                    {t('problem_translated_by', 'Translated by {{user}}', { user: `@${attribution.contributor_username}` })}
+                    {t('problem_translated_by', 'Translated by {{user}}', {
+                      user: `@${attribution.contributor_username}`,
+                    })}
                   </p>
                 )}
                 {otherLanguages.length > 0 && (
                   <div
                     data-testid="problem-available-languages"
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '0.5rem' }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      flexWrap: 'wrap',
+                      marginTop: '0.5rem',
+                    }}
                   >
-                    <span className="micro-label" style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', letterSpacing: '0.05em' }}>
+                    <span
+                      className="micro-label"
+                      style={{
+                        fontSize: '0.65rem',
+                        color: 'var(--text-tertiary)',
+                        letterSpacing: '0.05em',
+                      }}
+                    >
                       {t('problem_available_in', 'Also available in')}
                     </span>
                     {otherLanguages.map((code) => (
                       <span
                         key={code}
                         style={{
-                          padding: '1px 8px', borderRadius: '999px', fontSize: '0.68rem', fontWeight: 600,
-                          color: 'var(--muted)', background: hexAlpha(palette.muted, 0.08),
+                          padding: '1px 8px',
+                          borderRadius: '999px',
+                          fontSize: '0.68rem',
+                          fontWeight: 600,
+                          color: 'var(--muted)',
+                          background: hexAlpha(palette.muted, 0.08),
                           border: `1px solid ${hexAlpha(palette.muted, 0.2)}`,
                           fontFamily: 'var(--font-mono)',
                         }}
@@ -345,25 +434,29 @@ export default async function ProblemDetailPage({
             </div>
 
             {/* Stats bar */}
-            <div style={{
-              display: 'flex', gap: '1.5rem', flexWrap: 'wrap',
-              paddingTop: '1rem', borderTop: '1px solid var(--border)',
-            }}>
-              {problem.default_time_limit_ms != null && (
+            <div
+              style={{
+                display: 'flex',
+                gap: '1.5rem',
+                flexWrap: 'wrap',
+                paddingTop: '1rem',
+                borderTop: '1px solid var(--border)',
+              }}
+            >
+              {problem.default_time_limit_ms != null &&
                 statBlock(
                   <TimerOutlinedIcon fontSize="small" />,
                   t('time_limit_label', 'Time Limit'),
-                  <>{problem.default_time_limit_ms} ms</>
-                )
-              )}
-              {problem.default_memory_limit_kb != null && (
+                  <>{problem.default_time_limit_ms} ms</>,
+                )}
+              {problem.default_memory_limit_kb != null &&
                 statBlock(
                   <MemoryOutlinedIcon fontSize="small" />,
                   t('memory_limit_label', 'Memory Limit'),
-                  <>{problem.default_memory_limit_kb} KB</>
-                )
-              )}
-              {problem.allowed_languages && problem.allowed_languages.length > 0 && (
+                  <>{problem.default_memory_limit_kb} KB</>,
+                )}
+              {problem.allowed_languages &&
+                problem.allowed_languages.length > 0 &&
                 statBlock(
                   <CodeOutlinedIcon fontSize="small" />,
                   t('problem_form_allowed_languages', 'Languages'),
@@ -375,38 +468,58 @@ export default async function ProblemDetailPage({
                           key={lang}
                           title={
                             eff
-                              ? t('effective_limit_for', 'Effective limit for {{lang}}: {{time}} ms / {{memory}} KB', { lang, time: eff.time_ms, memory: eff.memory_kb })
+                              ? t(
+                                  'effective_limit_for',
+                                  'Effective limit for {{lang}}: {{time}} ms / {{memory}} KB',
+                                  { lang, time: eff.time_ms, memory: eff.memory_kb },
+                                )
                               : undefined
                           }
                           style={{
-                            fontSize: '0.7rem', fontWeight: 700, padding: '1px 7px', borderRadius: '4px',
-                            color: 'var(--violet)', background: hexAlpha(palette.violet, 0.1), border: `1px solid ${hexAlpha(palette.violet, 0.2)}`,
+                            fontSize: '0.7rem',
+                            fontWeight: 700,
+                            padding: '1px 7px',
+                            borderRadius: '4px',
+                            color: 'var(--violet)',
+                            background: hexAlpha(palette.violet, 0.1),
+                            border: `1px solid ${hexAlpha(palette.violet, 0.2)}`,
                             fontFamily: 'var(--font-mono)',
                           }}
                         >
                           {lang}
-                          {eff ? <span style={{ opacity: 0.75, fontWeight: 600 }}> · {eff.time_ms} ms</span> : null}
+                          {eff ? (
+                            <span style={{ opacity: 0.75, fontWeight: 600 }}>
+                              {' '}
+                              · {eff.time_ms} ms
+                            </span>
+                          ) : null}
                         </span>
                       );
                     })}
-                  </div>
-                )
-              )}
-              {problem.io_mode === 'FILES' ? (
-                statBlock(
-                  <DescriptionOutlinedIcon fontSize="small" />,
-                  t('problem_io_mode_label', 'I/O'),
-                  <span style={{ fontWeight: 600, color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-                    {problem.io_input_filename || 'input.txt'} → {problem.io_output_filename || 'output.txt'}
-                  </span>
-                )
-              ) : (
-                statBlock(
-                  <TerminalOutlinedIcon fontSize="small" />,
-                  t('problem_io_mode_label', 'I/O'),
-                  <span style={{ fontWeight: 600, color: 'var(--muted)' }}>{t('problem_io_stdio', 'stdin / stdout')}</span>
-                )
-              )}
+                  </div>,
+                )}
+              {problem.io_mode === 'FILES'
+                ? statBlock(
+                    <DescriptionOutlinedIcon fontSize="small" />,
+                    t('problem_io_mode_label', 'I/O'),
+                    <span
+                      style={{
+                        fontWeight: 600,
+                        color: 'var(--muted)',
+                        fontFamily: 'var(--font-mono)',
+                      }}
+                    >
+                      {problem.io_input_filename || 'input.txt'} →{' '}
+                      {problem.io_output_filename || 'output.txt'}
+                    </span>,
+                  )
+                : statBlock(
+                    <TerminalOutlinedIcon fontSize="small" />,
+                    t('problem_io_mode_label', 'I/O'),
+                    <span style={{ fontWeight: 600, color: 'var(--muted)' }}>
+                      {t('problem_io_stdio', 'stdin / stdout')}
+                    </span>,
+                  )}
               {(() => {
                 // Wave C: surface the creator's library/feature bans so the
                 // restrictions are visible BEFORE submitting (a 400 surprise
@@ -415,32 +528,59 @@ export default async function ProblemDetailPage({
                 const bans: string[] = [];
                 const py = policy?.python3;
                 if (py?.banned_stdlib?.length)
-                  bans.push(t('problem_restriction_banned', 'banned: {{items}}', { items: `python3: ${py.banned_stdlib.join(', ')}` }));
+                  bans.push(
+                    t('problem_restriction_banned', 'banned: {{items}}', {
+                      items: `python3: ${py.banned_stdlib.join(', ')}`,
+                    }),
+                  );
                 if (py?.banned?.length)
-                  bans.push(t('problem_restriction_banned', 'banned: {{items}}', { items: `python3 libs: ${py.banned.join(', ')}` }));
+                  bans.push(
+                    t('problem_restriction_banned', 'banned: {{items}}', {
+                      items: `python3 libs: ${py.banned.join(', ')}`,
+                    }),
+                  );
                 const cppBans = [...(policy?.cpp17?.banned || []), ...(policy?.c11?.banned || [])];
                 if (cppBans.length)
-                  bans.push(t('problem_restriction_banned', 'banned: {{items}}', { items: `C/C++: ${[...new Set(cppBans)].join(', ')}` }));
+                  bans.push(
+                    t('problem_restriction_banned', 'banned: {{items}}', {
+                      items: `C/C++: ${[...new Set(cppBans)].join(', ')}`,
+                    }),
+                  );
                 if (policy?.banned_features?.includes('py-no-string-ops'))
-                  bans.push(t('problem_restriction_no_string_ops', 'the input must not be treated as a string (no s[i] / string methods)'));
+                  bans.push(
+                    t(
+                      'problem_restriction_no_string_ops',
+                      'the input must not be treated as a string (no s[i] / string methods)',
+                    ),
+                  );
                 if (!bans.length) return null;
                 return statBlock(
                   <BlockOutlinedIcon fontSize="small" />,
                   t('problem_restrictions_label', 'Restrictions'),
-                  <ul style={{ margin: 0, paddingLeft: '1.1rem', color: 'var(--muted)', fontSize: '0.8rem' }}>
+                  <ul
+                    style={{
+                      margin: 0,
+                      paddingLeft: '1.1rem',
+                      color: 'var(--muted)',
+                      fontSize: '0.8rem',
+                    }}
+                  >
                     {bans.map((b, i) => (
-                      <li key={i} style={{ fontFamily: 'var(--font-mono)' }}>{b}</li>
+                      <li key={i} style={{ fontFamily: 'var(--font-mono)' }}>
+                        {b}
+                      </li>
                     ))}
-                  </ul>
+                  </ul>,
                 );
               })()}
-              {problem.author && (
+              {problem.author &&
                 statBlock(
                   <PersonOutlineOutlinedIcon fontSize="small" />,
                   t('problem_author_label', 'Author'),
-                  <span style={{ fontWeight: 600, color: 'var(--muted)' }}>{problem.author.username}</span>
-                )
-              )}
+                  <span style={{ fontWeight: 600, color: 'var(--muted)' }}>
+                    {problem.author.username}
+                  </span>,
+                )}
             </div>
           </div>
 
@@ -466,18 +606,23 @@ export default async function ProblemDetailPage({
                 data-testid="i18n-fallback-banner"
                 role="note"
                 style={{
-                  display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap',
-                  padding: '0.7rem 1rem', marginBottom: '1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  flexWrap: 'wrap',
+                  padding: '0.7rem 1rem',
+                  marginBottom: '1rem',
                   borderRadius: 'var(--radius-lg)',
                   background: hexAlpha(palette.accent, 0.07),
                   border: `1px solid ${hexAlpha(palette.accent, 0.25)}`,
-                  fontSize: '0.85rem', color: 'var(--foreground)',
+                  fontSize: '0.85rem',
+                  color: 'var(--foreground)',
                 }}
               >
                 <span>
                   {t(
                     'problem_not_in_your_language',
-                    'This problem is not yet in your language — you are reading the English original.'
+                    'This problem is not yet in your language — you are reading the English original.',
                   )}
                 </span>
                 <Link
@@ -524,40 +669,85 @@ export default async function ProblemDetailPage({
               {sectionHeader(palette.warn, t('sample_test_cases_header', 'Sample Test Cases'))}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {sampleTestCases.map((tc, index) => (
-                  <div key={index} style={{
-                    border: '1px solid var(--border)',
-                    borderRadius: 'var(--radius-md)',
-                    overflow: 'hidden',
-                  }}>
-                    <div className={styles.sampleHead} style={{
-                      padding: '6px 14px', background: 'rgba(255,255,255,0.03)',
-                      borderBottom: '1px solid var(--border)',
-                    }}>
-                      <span className="micro-label" style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--muted)', letterSpacing: '0.06em' }}>
+                  <div
+                    key={index}
+                    style={{
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius-md)',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <div
+                      className={styles.sampleHead}
+                      style={{
+                        padding: '6px 14px',
+                        background: 'rgba(255,255,255,0.03)',
+                        borderBottom: '1px solid var(--border)',
+                      }}
+                    >
+                      <span
+                        className="micro-label"
+                        style={{
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
+                          color: 'var(--muted)',
+                          letterSpacing: '0.06em',
+                        }}
+                      >
                         {t('example_label', 'Example {{n}}', { n: index + 1 })}
                       </span>
                       <CopyButton text={tc.input_data} style={{}} />
                     </div>
                     <div className={styles.sampleGrid}>
                       <div style={{ padding: '1rem', borderRight: '1px solid var(--border)' }}>
-                        <div className="micro-label" style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-tertiary)', marginBottom: '0.5rem' }}>
+                        <div
+                          className="micro-label"
+                          style={{
+                            fontSize: '0.7rem',
+                            fontWeight: 700,
+                            color: 'var(--text-tertiary)',
+                            marginBottom: '0.5rem',
+                          }}
+                        >
                           {t('sample_input_label', 'Input')}
                         </div>
-                        <pre style={{
-                          margin: 0, fontSize: '0.82rem', color: 'var(--foreground)',
-                          fontFamily: 'var(--font-mono)',
-                          whiteSpace: 'pre-wrap', wordBreak: 'break-all',
-                        }}>{tc.input_data}</pre>
+                        <pre
+                          style={{
+                            margin: 0,
+                            fontSize: '0.82rem',
+                            color: 'var(--foreground)',
+                            fontFamily: 'var(--font-mono)',
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-all',
+                          }}
+                        >
+                          {tc.input_data}
+                        </pre>
                       </div>
                       <div style={{ padding: '1rem' }}>
-                        <div className="micro-label" style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-tertiary)', marginBottom: '0.5rem' }}>
+                        <div
+                          className="micro-label"
+                          style={{
+                            fontSize: '0.7rem',
+                            fontWeight: 700,
+                            color: 'var(--text-tertiary)',
+                            marginBottom: '0.5rem',
+                          }}
+                        >
                           {t('sample_output_label', 'Output')}
                         </div>
-                        <pre style={{
-                          margin: 0, fontSize: '0.82rem', color: 'var(--success)',
-                          fontFamily: 'var(--font-mono)',
-                          whiteSpace: 'pre-wrap', wordBreak: 'break-all',
-                        }}>{tc.expected_output_data}</pre>
+                        <pre
+                          style={{
+                            margin: 0,
+                            fontSize: '0.82rem',
+                            color: 'var(--success)',
+                            fontFamily: 'var(--font-mono)',
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-all',
+                          }}
+                        >
+                          {tc.expected_output_data}
+                        </pre>
                       </div>
                     </div>
                   </div>
@@ -572,10 +762,18 @@ export default async function ProblemDetailPage({
               {sectionHeader(palette.violet, t('tags_header', 'Tags'))}
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                 {problem.tags.map((tag) => (
-                  <span key={tag.id} style={{
-                    padding: '4px 12px', borderRadius: '999px', fontSize: '0.78rem', fontWeight: 600,
-                    color: 'var(--violet)', background: hexAlpha(palette.violet, 0.1), border: `1px solid ${hexAlpha(palette.violet, 0.2)}`,
-                  }}>
+                  <span
+                    key={tag.id}
+                    style={{
+                      padding: '4px 12px',
+                      borderRadius: '999px',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      color: 'var(--violet)',
+                      background: hexAlpha(palette.violet, 0.1),
+                      border: `1px solid ${hexAlpha(palette.violet, 0.2)}`,
+                    }}
+                  >
                     {tag.name_i18n[locale] || tag.name_i18n.en || tag.slug}
                   </span>
                 ))}
@@ -585,13 +783,23 @@ export default async function ProblemDetailPage({
 
           {/* Prev / next navigation [A18] */}
           {(prevId != null || nextId != null) && (
-            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+            <div
+              style={{
+                display: 'flex',
+                gap: '0.75rem',
+                justifyContent: 'space-between',
+                marginBottom: '1.25rem',
+                flexWrap: 'wrap',
+              }}
+            >
               {prevId != null ? (
                 <Link href={`/problems/${prevId}`} className="btn">
                   <ArrowBackIcon fontSize="small" />
                   {t('previous_problem', 'Previous problem')}
                 </Link>
-              ) : <span />}
+              ) : (
+                <span />
+              )}
               {nextId != null && (
                 <Link href={`/problems/${nextId}`} className="btn">
                   {t('next_problem', 'Next problem')}
@@ -602,26 +810,42 @@ export default async function ProblemDetailPage({
           )}
 
           {/* Forum link */}
-          <div style={{
-            background: hexAlpha(palette.accent, 0.05),
-            border: `1px solid ${hexAlpha(palette.accent, 0.15)}`,
-            borderRadius: 'var(--radius-md)',
-            padding: '1rem 1.25rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '1rem',
-            flexWrap: 'wrap',
-          }}>
+          <div
+            style={{
+              background: hexAlpha(palette.accent, 0.05),
+              border: `1px solid ${hexAlpha(palette.accent, 0.15)}`,
+              borderRadius: 'var(--radius-md)',
+              padding: '1rem 1.25rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '1rem',
+              flexWrap: 'wrap',
+            }}
+          >
             <div>
-              <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--foreground)', marginBottom: '0.2rem' }}>
+              <div
+                style={{
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  color: 'var(--foreground)',
+                  marginBottom: '0.2rem',
+                }}
+              >
                 {t('discuss_problem_title', 'Discuss this problem')}
               </div>
               <div style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>
-                {t('discuss_problem_body', 'Ask for hints or share your approach in the community forum.')}
+                {t(
+                  'discuss_problem_body',
+                  'Ask for hints or share your approach in the community forum.',
+                )}
               </div>
             </div>
-            <Link href="/forum?category=help" className="btn btn--primary" style={{ whiteSpace: 'nowrap' }}>
+            <Link
+              href="/forum?category=help"
+              className="btn btn--primary"
+              style={{ whiteSpace: 'nowrap' }}
+            >
               {t('go_to_forum_button', 'Go to Forum →')}
             </Link>
           </div>
@@ -638,8 +862,7 @@ export default async function ProblemDetailPage({
               contestId={contestId}
               blockConfig={
                 problem.block_config &&
-                (problem.block_config.engine === 'scratch' ||
-                  problem.block_config.generator)
+                (problem.block_config.engine === 'scratch' || problem.block_config.generator)
                   ? {
                       engine: problem.block_config.engine,
                       generator: problem.block_config.generator,
@@ -662,24 +885,53 @@ export default async function ProblemDetailPage({
                 registry languages. */}
             <ScratchPanel
               allowedLanguages={(problem.allowed_languages || []).filter(
-                (lang: string) => lang !== 'scratch'
+                (lang: string) => lang !== 'scratch',
               )}
             />
           </div>
 
           {/* Quick links */}
           <div style={{ ...card, padding: '1.25rem', marginTop: '1rem' }}>
-            <div className="micro-label" style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-tertiary)', marginBottom: '0.75rem' }}>
+            <div
+              className="micro-label"
+              style={{
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                color: 'var(--text-tertiary)',
+                marginBottom: '0.75rem',
+              }}
+            >
               {t('quick_links_header', 'Quick Links')}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
               {[
-                { href: '/my-submissions', label: t('quick_link_my_submissions', 'My Submissions'), color: 'var(--accent)' },
-                { href: '/submission-history', label: t('quick_link_submission_history', 'Submission History'), color: 'var(--violet)' },
-                { href: '/leaderboard', label: t('quick_link_leaderboard', 'Leaderboard'), color: 'var(--warn)' },
-                { href: '/forum', label: t('quick_link_forum', 'Community Forum'), color: 'var(--success)' },
+                {
+                  href: '/my-submissions',
+                  label: t('quick_link_my_submissions', 'My Submissions'),
+                  color: 'var(--accent)',
+                },
+                {
+                  href: '/submission-history',
+                  label: t('quick_link_submission_history', 'Submission History'),
+                  color: 'var(--violet)',
+                },
+                {
+                  href: '/leaderboard',
+                  label: t('quick_link_leaderboard', 'Leaderboard'),
+                  color: 'var(--warn)',
+                },
+                {
+                  href: '/forum',
+                  label: t('quick_link_forum', 'Community Forum'),
+                  color: 'var(--success)',
+                },
               ].map((link) => (
-                <Link key={link.href} href={link.href} className="nav-link" style={{ color: link.color, fontSize: '0.8rem', minHeight: '38px' }}>
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="nav-link"
+                  style={{ color: link.color, fontSize: '0.8rem', minHeight: '38px' }}
+                >
                   {link.label}
                 </Link>
               ))}

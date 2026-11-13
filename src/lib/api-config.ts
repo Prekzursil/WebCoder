@@ -11,8 +11,7 @@
  */
 
 /** Base URL of the backend API server (no trailing slash). */
-export const API_BASE_URL: string =
-  process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:8000';
+export const API_BASE_URL: string = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:8000';
 
 /** Full base for all /api/v1 endpoints. */
 export const API_V1_URL: string = `${API_BASE_URL}/api/v1`;

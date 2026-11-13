@@ -21,7 +21,6 @@ from submissions.models import Submission
 
 from .models import User
 from problems.models import Problem
-from submissions.models import Submission
 from .permissions import IsAdminUser, IsOwnerOrAdminForUser
 from django.utils.translation import gettext_lazy as _
 
@@ -319,7 +318,9 @@ class AccountExportView(APIView):
 
         filename, body = export_as_attachment(request.user)
         response = HttpResponse(
-            body, content_type="application/json", headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+            body,
+            content_type="application/json",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
         )
         return response
 

@@ -24,7 +24,9 @@ def _mk_problem(title, status=Problem.ProblemStatus.APPROVED, **kw):
     return problem
 
 
-@override_settings(REST_FRAMEWORK={"DEFAULT_THROTTLE_RATES": {"public_api": "1000/min"}})
+@override_settings(
+    REST_FRAMEWORK={"DEFAULT_THROTTLE_RATES": {"public_api": "1000/min"}}
+)
 class PublicAPITests(TestCase):
     def setUp(self):
         self.client = APIClient()
@@ -58,9 +60,7 @@ class PublicAPITests(TestCase):
         easy = self.client.get("/api/v1/public/problems/?difficulty=MEDIUM")
         self.assertTrue(all(r["difficulty"] == "MEDIUM" for r in easy.data["results"]))
         search = self.client.get("/api/v1/public/problems/?search=two")
-        self.assertEqual(
-            [r["id"] for r in search.data["results"]], [self.problem.id]
-        )
+        self.assertEqual([r["id"] for r in search.data["results"]], [self.problem.id])
 
     def test_problem_detail_metadata_only(self):
         response = self.client.get(f"/api/v1/public/problems/{self.problem.id}/")
@@ -75,7 +75,10 @@ class PublicAPITests(TestCase):
 
     def test_leaderboard_and_tags(self):
         LeaderboardEntry.objects.create(
-            user=self.alice, solved_count=3, total_points=300, total_submissions=10,
+            user=self.alice,
+            solved_count=3,
+            total_points=300,
+            total_submissions=10,
             ac_submissions=5,
         )
         board = self.client.get("/api/v1/public/leaderboard/")

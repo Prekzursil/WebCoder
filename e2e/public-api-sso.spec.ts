@@ -3,9 +3,7 @@ import { test, expect } from '@playwright/test';
 // OPS-1 public API (mock) + OPS-3 Microsoft SSO button.
 
 test.describe('public api + microsoft sso (Wave C, mock api)', () => {
-  test('the public API directory and problem list answer unauthenticated', async ({
-    request,
-  }) => {
+  test('the public API directory and problem list answer unauthenticated', async ({ request }) => {
     const root = await request.get('http://localhost:8901/api/v1/public/');
     expect(root.ok()).toBeTruthy();
     const body = await root.json();
@@ -22,7 +20,7 @@ test.describe('public api + microsoft sso (Wave C, mock api)', () => {
     await page.goto('/login');
     await expect(page.getByTestId('microsoft-login-button')).toHaveAttribute(
       'href',
-      /\/accounts\/microsoft\/login\/$/
+      /\/accounts\/microsoft\/login\/$/,
     );
   });
 });

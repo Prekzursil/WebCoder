@@ -21,8 +21,7 @@ import PageHeader from '@/components/common/PageHeader';
 
 /** Verifiers + admins curate; matches the backend IsProblemVerifier cohort. */
 function isVerifier(role?: string): boolean {
-  return role === 'ADMIN' || role === 'VERIFIER'
-    || role === 'PROBLEM_VERIFIER';
+  return role === 'ADMIN' || role === 'VERIFIER' || role === 'PROBLEM_VERIFIER';
 }
 
 const CARD: React.CSSProperties = {
@@ -58,11 +57,12 @@ function statusChip(t: ReturnType<typeof useTranslation>['t'], row: TranslationP
     APPROVED: { color: palette.success, background: hexAlpha(palette.success, 0.12) },
     REJECTED: { color: palette.danger, background: hexAlpha(palette.danger, 0.12) },
   };
-  const label = row.status === 'PENDING'
-    ? t('translations_status_pending', 'Pending')
-    : row.status === 'APPROVED'
-      ? t('translations_status_approved', 'Approved')
-      : t('translations_status_rejected', 'Rejected');
+  const label =
+    row.status === 'PENDING'
+      ? t('translations_status_pending', 'Pending')
+      : row.status === 'APPROVED'
+        ? t('translations_status_approved', 'Approved')
+        : t('translations_status_rejected', 'Rejected');
   return (
     <span style={{ ...CHIP, ...styles[row.status] }} data-testid={`proposal-status-${row.id}`}>
       {label}
@@ -72,12 +72,19 @@ function statusChip(t: ReturnType<typeof useTranslation>['t'], row: TranslationP
 
 function aiChip(t: ReturnType<typeof useTranslation>['t'], row: TranslationProposalRow) {
   if (!row.ai_verdict) {
-    return <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{t('translations_ai_none', 'not screened')}</span>;
+    return (
+      <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+        {t('translations_ai_none', 'not screened')}
+      </span>
+    );
   }
   const map: Record<string, { label: string; color: string }> = {
     approve: { label: t('translations_ai_approve', 'AI: looks good'), color: palette.success },
     flag: { label: t('translations_ai_flag', 'AI: needs a human'), color: palette.warn },
-    error: { label: t('translations_ai_error', 'AI: unavailable (human review)'), color: palette.danger },
+    error: {
+      label: t('translations_ai_error', 'AI: unavailable (human review)'),
+      color: palette.danger,
+    },
   };
   const entry = map[row.ai_verdict] ?? map.error;
   return (
@@ -86,7 +93,9 @@ function aiChip(t: ReturnType<typeof useTranslation>['t'], row: TranslationPropo
       style={{ ...CHIP, color: entry.color, background: hexAlpha(palette.muted, 0.1) }}
     >
       {entry.label}
-      {row.ai_confidence !== null ? ` · ${t('translations_confidence', 'confidence {{n}}', { n: row.ai_confidence.toFixed(2) })}` : ''}
+      {row.ai_confidence !== null
+        ? ` · ${t('translations_confidence', 'confidence {{n}}', { n: row.ai_confidence.toFixed(2) })}`
+        : ''}
     </span>
   );
 }
@@ -109,11 +118,29 @@ function ProposalCard({
   const { t } = useTranslation();
   return (
     <article style={CARD} data-testid={`proposal-row-${row.id}`}>
-      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'baseline', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
-        <Link href={`/problems/${row.problem_id}`} style={{ color: 'var(--accent)', fontWeight: 700, fontSize: '0.95rem' }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: '0.75rem',
+          alignItems: 'baseline',
+          flexWrap: 'wrap',
+          marginBottom: '0.5rem',
+        }}
+      >
+        <Link
+          href={`/problems/${row.problem_id}`}
+          style={{ color: 'var(--accent)', fontWeight: 700, fontSize: '0.95rem' }}
+        >
           #{row.problem_id} · {row.problem_title_en}
         </Link>
-        <span style={{ ...CHIP, color: palette.violet, background: hexAlpha(palette.violet, 0.1), fontFamily: 'var(--font-mono)' }}>
+        <span
+          style={{
+            ...CHIP,
+            color: palette.violet,
+            background: hexAlpha(palette.violet, 0.1),
+            fontFamily: 'var(--font-mono)',
+          }}
+        >
           {row.language}
         </span>
         {statusChip(t, row)}
@@ -124,10 +151,27 @@ function ProposalCard({
         </span>
       </div>
       <p style={{ margin: '0 0 0.35rem', fontWeight: 700, fontSize: '0.9rem' }}>{row.title}</p>
-      <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--muted)', whiteSpace: 'pre-wrap', maxHeight: '6rem', overflow: 'hidden' }}>
+      <p
+        style={{
+          margin: 0,
+          fontSize: '0.85rem',
+          color: 'var(--muted)',
+          whiteSpace: 'pre-wrap',
+          maxHeight: '6rem',
+          overflow: 'hidden',
+        }}
+      >
         {row.statement}
       </p>
-      <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap', marginTop: '0.6rem' }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: '0.6rem',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          marginTop: '0.6rem',
+        }}
+      >
         {aiChip(t, row)}
       </div>
       {row.status === 'REJECTED' && row.review_note && (
@@ -136,14 +180,30 @@ function ProposalCard({
         </p>
       )}
       {mode === 'queue' && row.status === 'PENDING' && (
-        <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap', marginTop: '0.9rem', paddingTop: '0.9rem', borderTop: '1px solid var(--border)' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: '0.6rem',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            marginTop: '0.9rem',
+            paddingTop: '0.9rem',
+            borderTop: '1px solid var(--border)',
+          }}
+        >
           <input
             type="text"
-            placeholder={t('translations_reject_note_label', 'Note to the contributor (shown on rejection)')}
+            placeholder={t(
+              'translations_reject_note_label',
+              'Note to the contributor (shown on rejection)',
+            )}
             value={note}
             onChange={(event) => setNote(row.id, event.target.value)}
             style={{ ...FIELD, flex: '1 1 220px' }}
-            aria-label={t('translations_reject_note_label', 'Note to the contributor (shown on rejection)')}
+            aria-label={t(
+              'translations_reject_note_label',
+              'Note to the contributor (shown on rejection)',
+            )}
             data-testid="reject-note-input"
           />
           <button
@@ -191,9 +251,10 @@ export default function TranslationsPage() {
 
   const load = useCallback(() => {
     setLoading(true);
-    const fetcher = tab === 'queue' && verifier
-      ? TranslationsService.getProposals({ status: statusFilter || undefined, pageSize: 50 })
-      : TranslationsService.getMine({ pageSize: 50 });
+    const fetcher =
+      tab === 'queue' && verifier
+        ? TranslationsService.getProposals({ status: statusFilter || undefined, pageSize: 50 })
+        : TranslationsService.getMine({ pageSize: 50 });
     fetcher
       .then((response) => {
         setRows(response.results);
@@ -241,7 +302,11 @@ export default function TranslationsPage() {
         <EmptyState
           title={t('translations_queue_login', 'Log in as a verifier to curate translations.')}
           description={t('translate_login_hint', 'Log in to propose a translation.')}
-          action={<Link href="/login" className="btn">{t('login_button', 'Login')}</Link>}
+          action={
+            <Link href="/login" className="btn">
+              {t('login_button', 'Login')}
+            </Link>
+          }
         />
       </main>
     );
@@ -253,7 +318,15 @@ export default function TranslationsPage() {
       onClick={() => setTab(which)}
       aria-current={tab === which}
       className="btn"
-      style={tab === which ? undefined : { background: 'var(--surface)', color: 'var(--muted)', border: '1px solid var(--border)' }}
+      style={
+        tab === which
+          ? undefined
+          : {
+              background: 'var(--surface)',
+              color: 'var(--muted)',
+              border: '1px solid var(--border)',
+            }
+      }
     >
       {label}
     </button>
@@ -262,15 +335,22 @@ export default function TranslationsPage() {
   return (
     <main className="page-container">
       <PageHeader
-        title={tab === 'queue' && verifier
-          ? t('translations_queue_header', 'Translation queue')
-          : t('translations_my_header', 'My translations')}
-        subtitle={tab === 'queue' && verifier
-          ? t(
-              'translations_queue_subtitle',
-              'Community translation proposals, newest first. Approving publishes the translation with attribution on the problem page.'
-            )
-          : t('translations_my_hint', 'Propose a translation from any problem page ("Help translate") and follow its decision here.')}
+        title={
+          tab === 'queue' && verifier
+            ? t('translations_queue_header', 'Translation queue')
+            : t('translations_my_header', 'My translations')
+        }
+        subtitle={
+          tab === 'queue' && verifier
+            ? t(
+                'translations_queue_subtitle',
+                'Community translation proposals, newest first. Approving publishes the translation with attribution on the problem page.',
+              )
+            : t(
+                'translations_my_hint',
+                'Propose a translation from any problem page ("Help translate") and follow its decision here.',
+              )
+        }
         action={
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             {verifier && tabButton('queue', t('translations_queue_header', 'Translation queue'))}
@@ -281,7 +361,15 @@ export default function TranslationsPage() {
 
       {tab === 'queue' && verifier && (
         <div style={{ marginBottom: '1rem' }}>
-          <label htmlFor="translation-status-filter" style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--muted)', marginRight: '0.5rem' }}>
+          <label
+            htmlFor="translation-status-filter"
+            style={{
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              color: 'var(--muted)',
+              marginRight: '0.5rem',
+            }}
+          >
             {t('translations_filter_status', 'Status')}
           </label>
           <select
@@ -300,12 +388,18 @@ export default function TranslationsPage() {
 
       {tab === 'queue' && !verifier && (
         <div style={CARD} role="note">
-          <p style={{ margin: 0 }}>{t('translations_forbidden', 'Only verifiers and admins can curate translations.')}</p>
+          <p style={{ margin: 0 }}>
+            {t('translations_forbidden', 'Only verifiers and admins can curate translations.')}
+          </p>
         </div>
       )}
 
       {decided === 'ok' && (
-        <p role="status" style={{ color: palette.success, fontWeight: 700 }} data-testid="decided-ok">
+        <p
+          role="status"
+          style={{ color: palette.success, fontWeight: 700 }}
+          data-testid="decided-ok"
+        >
           {t('translations_decided_ok', 'Decision saved.')}
         </p>
       )}
@@ -323,13 +417,14 @@ export default function TranslationsPage() {
         </p>
       ) : rows.length === 0 ? (
         tab === 'queue' ? (
-          <EmptyState
-            title={t('translations_queue_empty', 'No pending translation proposals.')}
-          />
+          <EmptyState title={t('translations_queue_empty', 'No pending translation proposals.')} />
         ) : (
           <EmptyState
             title={t('translations_my_empty', 'You have not proposed any translations yet.')}
-            description={t('translations_my_hint', 'Propose a translation from any problem page ("Help translate") and follow its decision here.')}
+            description={t(
+              'translations_my_hint',
+              'Propose a translation from any problem page ("Help translate") and follow its decision here.',
+            )}
           />
         )
       ) : (

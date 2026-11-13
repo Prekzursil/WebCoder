@@ -4,20 +4,10 @@ import { Pressable, View } from 'react-native';
 import { NotificationService } from '../src/services/services';
 import { useAuth } from '../src/state/AuthStore';
 import { useSettings } from '../src/state/SettingsStore';
-import {
-  Button,
-  Card,
-  ErrorBox,
-  Screen,
-  Spinner,
-  Txt,
-} from '../src/ui/primitives';
+import { Button, Card, ErrorBox, Screen, Spinner, Txt } from '../src/ui/primitives';
 import { palette, space } from '../src/theme/tokens';
 import { formatDateTime } from '../src/utils/verdict';
-import {
-  cursorParamFromUrl,
-  type ApiNotification,
-} from '../src/types/api';
+import { cursorParamFromUrl, type ApiNotification } from '../src/types/api';
 
 export default function Notifications() {
   const { status } = useAuth();
@@ -35,19 +25,15 @@ export default function Notifications() {
         const response = await NotificationService.getNotifications({
           cursor: nextCursor,
         });
-        setItems((prev) =>
-          nextCursor ? [...prev, ...response.results] : response.results
-        );
+        setItems((prev) => (nextCursor ? [...prev, ...response.results] : response.results));
         setCursor(cursorParamFromUrl(response.next));
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : t('notifications_load_error')
-        );
+        setError(err instanceof Error ? err.message : t('notifications_load_error'));
       } finally {
         setLoading(false);
       }
     },
-    [t]
+    [t],
   );
 
   useEffect(() => {
@@ -59,12 +45,10 @@ export default function Notifications() {
     try {
       await NotificationService.markAllRead();
       setItems((prev) =>
-        prev.map((n) => ({ ...n, read_at: n.read_at ?? new Date().toISOString() }))
+        prev.map((n) => ({ ...n, read_at: n.read_at ?? new Date().toISOString() })),
       );
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : t('notifications_mark_all_error')
-      );
+      setError(err instanceof Error ? err.message : t('notifications_mark_all_error'));
     }
   };
 
@@ -74,10 +58,8 @@ export default function Notifications() {
       await NotificationService.markRead(notification.id);
       setItems((prev) =>
         prev.map((n) =>
-          n.id === notification.id
-            ? { ...n, read_at: new Date().toISOString() }
-            : n
-        )
+          n.id === notification.id ? { ...n, read_at: new Date().toISOString() } : n,
+        ),
       );
     } catch {
       // Non-fatal: the badge refreshes on next load.
@@ -106,17 +88,13 @@ export default function Notifications() {
         <Pressable key={notification.id} onPress={() => markOne(notification)}>
           <Card
             style={{
-              borderColor: notification.read_at
-                ? palette.border
-                : palette.accent + '66',
+              borderColor: notification.read_at ? palette.border : palette.accent + '66',
             }}
           >
             <View style={{ flexDirection: 'row', gap: space[2] }}>
               <Txt variant="body" style={{ flex: 1 }}>
                 {String(
-                  notification.data.title ??
-                    notification.data.feedback ??
-                    t('nav_notifications')
+                  notification.data.title ?? notification.data.feedback ?? t('nav_notifications'),
                 )}
               </Txt>
               <Txt variant="micro" color={palette.accent}>
