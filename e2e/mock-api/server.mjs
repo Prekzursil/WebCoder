@@ -1353,6 +1353,50 @@ const server = createServer((req, res) => {
     return;
   }
 
+  // RAT-1: public per-user rating history (profile rating graph).
+  const ratingHistory = path.match(/^\/api\/v1\/ratings\/ratings\/users\/([^/]+)\/$/);
+  if (req.method === 'GET' && ratingHistory) {
+    const username = decodeURIComponent(ratingHistory[1]);
+    if (username !== 'e2e_tester') {
+      json(res, 404, { detail: 'Not found.' });
+      return;
+    }
+    json(res, 200, {
+      username: 'e2e_tester',
+      rating: {
+        rated: true,
+        rating: 1512,
+        internal_rating: 1560,
+        rd: 40,
+        contests_count: 2,
+        band: { min: 1400, name_en: 'Specialist', name_ro: 'Specialist', color: '#0000ff' },
+      },
+      history: [
+        {
+          contest: 1,
+          contest_title: { en: 'WebCoder demo contest', ro: 'Concurs demonstrativ WebCoder' },
+          end_at: '2026-11-01T12:00:00Z',
+          rank: 3,
+          rating: 1480,
+          display_rating: 1480,
+          delta: -20,
+          rating_before: 1500,
+        },
+        {
+          contest: 2,
+          contest_title: { en: 'Second demo round', ro: 'A doua rundă demonstrativă' },
+          end_at: '2026-11-08T12:00:00Z',
+          rank: 2,
+          rating: 1512,
+          display_rating: 1512,
+          delta: 32,
+          rating_before: 1480,
+        },
+      ],
+    });
+    return;
+  }
+
   if (req.method === 'GET' && path === '/api/v1/classroom/classes/my-classes/') {
     if (!sessionUser(req)) {
       json(res, 401, { detail: 'Authentication credentials were not provided.' });

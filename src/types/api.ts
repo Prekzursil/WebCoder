@@ -488,6 +488,25 @@ export interface MyRating {
     band: RatingBand;
 }
 
+/** One point on the per-user rating chart (RAT-1 profile graph). */
+export interface RatingHistoryEntry {
+    contest: number;
+    contest_title: Record<string, string> | null;
+    end_at: string;
+    rank: number;
+    rating: number;
+    display_rating: number;
+    delta: number;
+    rating_before: number;
+}
+
+/** GET /ratings/ratings/users/{username}/ — public rating profile block. */
+export interface UserRatingHistory {
+    username: string;
+    rating: MyRating;
+    history: RatingHistoryEntry[];
+}
+
 // =================================
 // Classroom (backend classroom app, Wave B EDU-1/2/3/5/6)
 // =================================

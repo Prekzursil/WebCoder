@@ -629,7 +629,7 @@ function StandingsBoard({ standings, t }: StandingsBoardProps) {
                                 <td style={{ padding: 8 }}>
                                     <UserChip
                                         username={row.user.username}
-                                        href={`/profile/${row.user.id}`}
+                                        href={`/profile/${row.user.username}`}
                                     />{' '}
                                     <FollowButton username={row.user.username} />
                                 </td>
