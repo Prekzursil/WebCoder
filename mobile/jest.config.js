@@ -7,24 +7,24 @@
  * are reported by `npm run test:coverage` but not gated.
  */
 module.exports = {
-  preset: 'jest-expo',
+  preset: "jest-expo",
   transformIgnorePatterns: [
-    'node_modules/(?!((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg)|react-native-safe-area-context|react-native-screens)',
+    "node_modules/(?!((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg)|react-native-safe-area-context|react-native-screens)",
   ],
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
+    "^@/(.*)$": "<rootDir>/src/$1",
   },
   collectCoverageFrom: [
-    'src/services/**/*.{ts,tsx}',
-    'src/state/**/*.{ts,tsx}',
-    'src/utils/**/*.{ts,tsx}',
-    'src/i18n/index.ts',
+    "src/services/**/*.{ts,tsx}",
+    "src/state/**/*.{ts,tsx}",
+    "src/utils/**/*.{ts,tsx}",
+    "src/i18n/index.ts",
   ],
   coverageThreshold: {
     global: {
       lines: 100,
     },
   },
-  testPathIgnorePatterns: ['/node_modules/', '/android/', '/ios/'],
+  testPathIgnorePatterns: ["/node_modules/", "/android/", "/ios/"],
 };

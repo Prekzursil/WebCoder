@@ -16,11 +16,11 @@
 //    refresh from Set-Cookie (rotation + blacklist means the previously
 //    stored refresh is single-use), retries the original request once;
 //  - refresh is single-flight: concurrent 401s await the same promise.
-import { API_V1_URL } from './config';
-import type { CursorPaginatedResponse, PaginatedResponse } from '../types/api';
-import { cursorParamFromUrl } from '../types/api';
+import { API_V1_URL } from "./config";
+import type { CursorPaginatedResponse, PaginatedResponse } from "../types/api";
+import { cursorParamFromUrl } from "../types/api";
 
-const REFRESH_ENDPOINT = '/auth/token/refresh/';
+const REFRESH_ENDPOINT = "/auth/token/refresh/";
 
 /** Credential storage seam — expo-secure-store in production, injected in tests. */
 export interface TokenStore {
@@ -58,20 +58,19 @@ export function cookieFromResponse(
       map?: Record<string, string | string[]>;
     };
   },
-  name: string
+  name: string,
 ): string | null {
   const get = response.headers.get?.bind(response.headers);
   let raw: string | string[] | null = null;
   if (get) {
-    raw = get('set-cookie');
+    raw = get("set-cookie");
     // Some fetch impls return the array under headers.map only.
     if (raw === null && response.headers.map) {
-      const mapValue =
-        response.headers.map['set-cookie'] ?? response.headers.map['Set-Cookie'];
+      const mapValue = response.headers.map["set-cookie"] ?? response.headers.map["Set-Cookie"];
       raw = mapValue ?? null;
     }
   } else if (response.headers.map) {
-    raw = response.headers.map['set-cookie'] ?? null;
+    raw = response.headers.map["set-cookie"] ?? null;
   }
   if (!raw) return null;
   const parts: string[] = Array.isArray(raw)
@@ -94,8 +93,8 @@ async function refreshTokens(): Promise<boolean> {
       if (!refresh) return false;
       try {
         const response = await fetch(`${API_V1_URL}${REFRESH_ENDPOINT}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ refresh }),
         });
         if (!response.ok) return false;
@@ -103,7 +102,7 @@ async function refreshTokens(): Promise<boolean> {
           access?: string;
         };
         if (!body.access) return false;
-        const rotatedRefresh = cookieFromResponse(response, 'wc_refresh');
+        const rotatedRefresh = cookieFromResponse(response, "wc_refresh");
         await tokenStore!.setAccess(body.access);
         // Rotation blacklisted the presented refresh; a missing rotated
         // cookie means the session dies at the next access expiry — treat
@@ -135,18 +134,15 @@ export interface ApiFetchOptions {
 }
 
 /** Raw fetch with the Bearer header attached. */
-async function authenticatedFetch(
-  url: string,
-  options: ApiFetchOptions
-): Promise<Response> {
+async function authenticatedFetch(url: string, options: ApiFetchOptions): Promise<Response> {
   const headers: Record<string, string> = {};
-  if (options.body !== undefined) headers['Content-Type'] = 'application/json';
+  if (options.body !== undefined) headers["Content-Type"] = "application/json";
   if (!options.anonymous && tokenStore) {
     const access = await tokenStore.getAccess();
-    if (access) headers['Authorization'] = `Bearer ${access}`;
+    if (access) headers["Authorization"] = `Bearer ${access}`;
   }
   return fetch(`${API_V1_URL}${url}`, {
-    method: options.method ?? 'GET',
+    method: options.method ?? "GET",
     headers,
     body: options.body,
   });
@@ -157,10 +153,7 @@ async function authenticatedFetch(
  * typed Error with the human-readable DRF message (detail >
  * non_field_errors > first field error — [Q13], ported verbatim).
  */
-export async function apiFetch<T>(
-  url: string,
-  options: ApiFetchOptions = {}
-): Promise<T> {
+export async function apiFetch<T>(url: string, options: ApiFetchOptions = {}): Promise<T> {
   let response = await authenticatedFetch(url, options);
   if (response.status === 401 && !options.anonymous) {
     const refreshed = await refreshTokens();
@@ -173,7 +166,7 @@ export async function apiFetch<T>(
   if (!response.ok) {
     const errorData = (await response.json().catch(() => ({}))) as unknown;
     throw new Error(
-      extractErrorMessage(errorData) || response.statusText || `HTTP ${response.status}`
+      extractErrorMessage(errorData) || response.statusText || `HTTP ${response.status}`,
     );
   }
   if (response.status === 204) return {} as T;
@@ -182,17 +175,17 @@ export async function apiFetch<T>(
 
 /** Human-readable message from a DRF error body (ported verbatim). */
 export function extractErrorMessage(errorData: unknown): string {
-  if (typeof errorData !== 'object' || errorData === null) return '';
+  if (typeof errorData !== "object" || errorData === null) return "";
   const data = errorData as Record<string, unknown>;
-  if (typeof data.detail === 'string') return data.detail;
+  if (typeof data.detail === "string") return data.detail;
   const nonField = data.non_field_errors;
   if (Array.isArray(nonField) && nonField.length > 0) return String(nonField[0]);
   for (const value of Object.values(data)) {
-    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string') {
+    if (Array.isArray(value) && value.length > 0 && typeof value[0] === "string") {
       return value[0];
     }
   }
-  return '';
+  return "";
 }
 
 /** Hard ceiling for the collect-all helpers (B4, ported). */
@@ -200,7 +193,7 @@ const COLLECT_ALL_MAX_PAGES = 50;
 
 /** Follow page-number `next` links until exhausted or the 50-page cap. */
 export async function collectAllPages<T>(
-  fetchPage: (page: number) => Promise<PaginatedResponse<T>>
+  fetchPage: (page: number) => Promise<PaginatedResponse<T>>,
 ): Promise<T[]> {
   const out: T[] = [];
   for (let page = 1; page <= COLLECT_ALL_MAX_PAGES; page += 1) {
@@ -213,7 +206,7 @@ export async function collectAllPages<T>(
 
 /** Follow cursor `next` links until exhausted or the 50-page cap. */
 export async function collectAllCursorPages<T>(
-  fetchPage: (cursor: string | null) => Promise<CursorPaginatedResponse<T>>
+  fetchPage: (cursor: string | null) => Promise<CursorPaginatedResponse<T>>,
 ): Promise<T[]> {
   const out: T[] = [];
   let cursor: string | null = null;
