@@ -137,7 +137,7 @@ export default function RatingsPage() {
                                     <UserChip
                                         username={row.user.username}
                                         rating={row.rating}
-                                        href={`/profile/${row.user.id}`}
+                                        href={`/profile/${row.user.username}`}
                                     />
                                 </td>
                                 <td style={{ padding: 8, fontWeight: 700 }}>{row.rating}</td>

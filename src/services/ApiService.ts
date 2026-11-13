@@ -59,6 +59,7 @@ import {
   RatingChangeRow,
   RatingLadderRow,
   RegisterResponse,
+  UserRatingHistory,
   ContestAwardsResponse,
     StandingsResponse,
   UpdateProblemResponse,
@@ -929,6 +930,10 @@ export const RatingService = {
         apiFetch<PaginatedResponse<RatingLadderRow>>(`/ratings/ratings/?page=${page}`),
     getColors: () => apiFetch<{ bands: RatingBand[] }>('/ratings/ratings/colors/'),
     getMyRating: () => apiFetch<MyRating>('/ratings/ratings/me/'),
+    getRatingHistory: (username: string) =>
+        apiFetch<UserRatingHistory>(
+            `/ratings/ratings/users/${encodeURIComponent(username)}/`
+        ),
 };
 
 // =================================

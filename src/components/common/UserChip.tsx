@@ -23,7 +23,8 @@ interface UserChipProps {
     username: string;
     /** Display rating (RAT-2 suppression already applied server-side). */
     rating?: number | null;
-    /** Render as a link to a route (e.g. /profile/3). Omit for plain text. */
+    /** Render as a link to a route (e.g. /profile/handle — the public
+     *  rating profile). Omit for plain text. */
     href?: string;
     bold?: boolean;
 }

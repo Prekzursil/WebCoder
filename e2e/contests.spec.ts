@@ -56,6 +56,22 @@ test.describe('contests surface (mock api)', () => {
     await expect(page.getByTestId('rating-row-e2e_tester')).toContainText('1512');
   });
 
+  test('ladder handle → public rating profile with the RAT-1 graph', async ({ page }) => {
+    await page.goto('/ratings');
+
+    // The ladder's UserChip links by username to the public rating profile.
+    await page.getByTestId('rating-row-e2e_tester').getByRole('link', { name: /e2e_tester/ }).click();
+    await expect(page).toHaveURL(/\/profile\/e2e_tester$/);
+
+    // Band-colored summary + the SVG rating curve + the history table.
+    await expect(page.getByTestId('rating-profile-summary')).toContainText('1512');
+    const line = page.getByTestId('rating-profile-line');
+    await expect(line).toBeVisible();
+    await expect(line).toHaveAttribute('points', /.+,.+/);
+    await expect(page.getByTestId('rating-history-row-1')).toContainText('-20');
+    await expect(page.getByTestId('rating-history-row-2')).toContainText('+32');
+  });
+
   test('navbar exposes Contests and Ratings (CON-1/RAT-1 surface)', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByRole('link', { name: 'Contests' })).toBeVisible();
