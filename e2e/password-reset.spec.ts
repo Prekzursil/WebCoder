@@ -34,6 +34,15 @@ test("requesting a reset shows the account-agnostic confirmation", async ({ page
 test("reset confirm consumes uid+token from the mailed link and lands on success", async ({
   page,
 }) => {
+  // Mock contract: the canned handler accepts uid=mock-uid/token=mock-token.
+  // In real mode the live dj-rest-auth stack rightly rejects that pair (the
+  // real-lane tests below cover the real request/invalid paths; the real
+  // token round-trip is pinned by backend users/test_password_reset.py).
+  test.skip(
+    isRealStack,
+    'mock contract: the real API rejects the canned mock uid/token pair'
+  );
+
   // The link the mail carries: /reset-password?uid=...&token=...
   await page?.goto("/reset-password?uid=mock-uid&token=mock-token");
 
