@@ -70,9 +70,7 @@ function scanCallsites(files: string[]): { keys: Map<string, string[]>; dynamic:
       list.push(relative(SRC_ROOT, file).replace(/\\/g, '/'));
       keys.set(m[2], list);
     }
-    for (const _match of text.matchAll(dynamicRe)) {
-      dynamic += 1;
-    }
+    dynamic += [...text.matchAll(dynamicRe)].length;
   }
   return { keys, dynamic };
 }
