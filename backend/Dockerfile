@@ -1,6 +1,6 @@
 # WebCoder API backend (Django 5.2 + DRF + Celery).
 # Used by the repo-root docker-compose.yml `backend` service.
-FROM python:3.11-slim
+FROM python:3.15-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

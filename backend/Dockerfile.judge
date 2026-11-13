@@ -26,7 +26,7 @@
 #                 is itself a judge feature — see languages.py rationale)
 #   - /usr/bin/time -> `time` package, used for the
 #                 "%U %S %M %x %P %e" resource-usage line format
-FROM python:3.11-slim
+FROM python:3.15-slim
 
 # Kotlin: version- AND sha256-pinned compiler archive so a tampered mirror
 # fails the build instead of silently changing the toolchain.
