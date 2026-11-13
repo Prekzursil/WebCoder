@@ -1,6 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act, cleanup } from '@testing-library/react';
-import type React from 'react';
 import { AuthService } from '@/services/ApiService';
 import type { RegisterResponse } from '@/types/api';
 import RegisterPage from './page';

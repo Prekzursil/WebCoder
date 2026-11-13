@@ -39,13 +39,16 @@ async function api(
   init: RequestInit & { token?: string } = {}
 ): Promise<{ status: number; body: AnyBody }> {
   const { token, ...rest } = init;
+  // Built imperatively: a conditional/empty-object spread fallback is exactly
+  // what unicorn/no-useless-fallback-in-spread rejects (the lean gate runs
+  // oxlint with --deny-warnings), and Object.assign skips a missing
+  // rest.headers without one.
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  Object.assign(headers, rest.headers);
+  if (token) headers.Authorization = `Bearer ${token}`;
   const res = await fetch(`${REAL_API_BASE}/api/v1${path}`, {
     ...rest,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(rest.headers ?? {}),
-    },
+    headers,
   });
   const text = await res.text();
   return { status: res.status, body: text ? JSON.parse(text) : {} };

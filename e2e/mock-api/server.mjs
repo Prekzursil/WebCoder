@@ -589,7 +589,7 @@ function corsHeaders(req) {
 function json(res, status, body, extraHeaders = {}) {
   res.writeHead(status, {
     'Content-Type': 'application/json',
-    ...(res._corsHeaders ?? {}),
+    ...res._corsHeaders,
     ...extraHeaders,
   });
   res.end(JSON.stringify(body));
