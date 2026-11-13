@@ -62,7 +62,7 @@ describe('ForgotPasswordPage', () => {
     expect(requestMock).toHaveBeenCalledWith('learner@example.com');
     // No enumeration leak: the same copy regardless of the backend outcome.
     expect(
-      screen.getByText(/If that email belongs to an account, a reset link is on its way/)
+      screen.getByText(/If that email belongs to an account, a reset link is on its way/),
     ).toBeInTheDocument();
   });
 
@@ -75,9 +75,7 @@ describe('ForgotPasswordPage', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Send reset link' }));
     });
-    expect(screen.getByTestId('forgot-password-error').textContent).to.contain(
-      'SMTP relay down'
-    );
+    expect(screen.getByTestId('forgot-password-error').textContent).to.contain('SMTP relay down');
     // The form is still there — the user can retry.
     expect(screen.getByRole('button', { name: 'Send reset link' })).toBeInTheDocument();
     expect(requestMock).toHaveBeenCalledTimes(1);
@@ -90,7 +88,7 @@ describe('ForgotPasswordPage', () => {
   it('links back to login', () => {
     render(<ForgotPasswordPage />);
     expect(screen.getByRole('link', { name: 'Back to login' }).getAttribute('href')).to.equal(
-      '/login'
+      '/login',
     );
   });
 });

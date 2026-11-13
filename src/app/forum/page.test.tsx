@@ -29,7 +29,11 @@ const thread = (id: number, partial: Record<string, unknown> = {}) => ({
 
 const THREADS = [
   thread(1, { title: 'Pinned welcome', is_pinned: true, author: 'admin' }),
-  thread(2, { title: 'Dijkstra help', problem: { id: 7, title_i18n: { en: 'Graph Shortest Path' } }, author: 'mihai_dev' }),
+  thread(2, {
+    title: 'Dijkstra help',
+    problem: { id: 7, title_i18n: { en: 'Graph Shortest Path' } },
+    author: 'mihai_dev',
+  }),
   thread(3, { title: 'Locked bug thread', is_locked: true }),
 ];
 
@@ -106,7 +110,9 @@ describe('ForumPage (live threads)', () => {
     api.getThreads.mockRejectedValue(new Error('Service unavailable'));
     render(<ForumPage />);
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Could not load threads: Service unavailable');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Could not load threads: Service unavailable',
+    );
     fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
     await waitFor(() => expect(api.getThreads).toHaveBeenCalledTimes(2));
   });

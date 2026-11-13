@@ -22,14 +22,17 @@ async function login(page: Page, username: string) {
 }
 
 test.describe('community translations (mock api)', () => {
-  test('EN fallback: RO locale on an EN-only problem shows the banner, EN statement and the translate affordance', async ({ page, context }) => {
+  test('EN fallback: RO locale on an EN-only problem shows the banner, EN statement and the translate affordance', async ({
+    page,
+    context,
+  }) => {
     await context.addCookies([{ name: 'i18nextLng', value: 'ro', url: BASE }]);
     await page.goto('/problems/1');
 
     // Owner rule (d): EN is the universal fallback, and the fallback is VISIBLE.
     await expect(page.getByTestId('i18n-fallback-banner')).toBeVisible();
     await expect(page.getByTestId('i18n-fallback-banner')).toContainText(
-      'Această problemă nu există încă în limba ta'
+      'Această problemă nu există încă în limba ta',
     );
     // The English original statement renders (not a blank, not a key).
     await expect(page.getByText('Given an array of integers nums', { exact: false })).toBeVisible();
@@ -40,7 +43,10 @@ test.describe('community translations (mock api)', () => {
     await expect(help).toHaveAttribute('href', '/problems/1/translate');
   });
 
-  test('propose → curate → visible: contributor proposes, verifier approves, problem page shows the RO translation with attribution', async ({ page, context }) => {
+  test('propose → curate → visible: contributor proposes, verifier approves, problem page shows the RO translation with attribution', async ({
+    page,
+    context,
+  }) => {
     // Log in with the EN chrome first, then switch the UI to Romanian.
     await login(page, 'e2e_tester');
     await context.addCookies([{ name: 'i18nextLng', value: 'ro', url: BASE }]);
@@ -54,7 +60,10 @@ test.describe('community translations (mock api)', () => {
     // The viewer's UI locale (ro) is preselected in the picker.
     await expect(page.locator('#translate-language')).toHaveValue('ro');
     await page.fill('#translate-title', 'Suma a două numere');
-    await page.fill('#translate-statement', 'Returnează indicii celor două numere care adună la țintă.');
+    await page.fill(
+      '#translate-statement',
+      'Returnează indicii celor două numere care adună la țintă.',
+    );
     await page.getByRole('button', { name: 'Trimite traducerea' }).click();
     await expect(page.getByTestId('translate-submitted')).toBeVisible();
 
@@ -89,8 +98,12 @@ test.describe('community translations (mock api)', () => {
       if ((await page.getByTestId('translation-attribution').count()) > 0) break;
       await page.waitForTimeout(15_000);
     }
-    await expect(page.getByTestId('translation-attribution')).toContainText('tradus de @e2e_tester');
-    await expect(page.getByText('Returnează indicii celor două numere care adună la țintă.', { exact: false })).toBeVisible();
+    await expect(page.getByTestId('translation-attribution')).toContainText(
+      'tradus de @e2e_tester',
+    );
+    await expect(
+      page.getByText('Returnează indicii celor două numere care adună la țintă.', { exact: false }),
+    ).toBeVisible();
     await expect(page.getByTestId('i18n-fallback-banner')).toHaveCount(0);
   });
 

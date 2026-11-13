@@ -4,21 +4,9 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ForumService } from '../../src/services/services';
 import { useAuth } from '../../src/state/AuthStore';
 import { useSettings } from '../../src/state/SettingsStore';
-import {
-  Button,
-  Card,
-  ErrorBox,
-  Field,
-  Screen,
-  Spinner,
-  Txt,
-} from '../../src/ui/primitives';
+import { Button, Card, ErrorBox, Field, Screen, Spinner, Txt } from '../../src/ui/primitives';
 import { formatDateTime } from '../../src/utils/verdict';
-import {
-  cursorParamFromUrl,
-  type ForumPost,
-  type ForumThread,
-} from '../../src/types/api';
+import { cursorParamFromUrl, type ForumPost, type ForumThread } from '../../src/types/api';
 
 export default function ThreadDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -42,9 +30,7 @@ export default function ThreadDetail() {
           ForumService.getPosts(id, { cursor: nextCursor }),
         ]);
         setThread(threadDetail);
-        setPosts((prev) =>
-          nextCursor ? [...prev, ...feed.results] : feed.results
-        );
+        setPosts((prev) => (nextCursor ? [...prev, ...feed.results] : feed.results));
         setCursor(cursorParamFromUrl(feed.next));
       } catch (err) {
         setError(err instanceof Error ? err.message : t('forum_load_error'));
@@ -52,7 +38,7 @@ export default function ThreadDetail() {
         setLoading(false);
       }
     },
-    [id, thread, t]
+    [id, thread, t],
   );
 
   useEffect(() => {
@@ -94,9 +80,7 @@ export default function ThreadDetail() {
             {post.author ?? '—'} · {formatDateTime(post.created_at)}
           </Txt>
           <Txt variant="body">{post.content}</Txt>
-          {post.is_spoiler ? (
-            <Txt variant="micro">spoiler</Txt>
-          ) : null}
+          {post.is_spoiler ? <Txt variant="micro">spoiler</Txt> : null}
         </Card>
       ))}
 

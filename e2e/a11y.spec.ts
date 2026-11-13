@@ -34,14 +34,17 @@ test.describe('axe accessibility scan', () => {
         .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
         .analyze();
 
-      const serious = results.violations.filter((v) =>
-        v.impact === 'critical' || v.impact === 'serious'
+      const serious = results.violations.filter(
+        (v) => v.impact === 'critical' || v.impact === 'serious',
       );
       const details = serious
         .map(
           (v) =>
             `${v.id} (${v.impact}) on ${v.nodes.length} node(s): ` +
-            v.nodes.slice(0, 3).map((n) => n.target.join(' ')).join(' | ')
+            v.nodes
+              .slice(0, 3)
+              .map((n) => n.target.join(' '))
+              .join(' | '),
         )
         .join('\n');
       expect(serious, `${path} axe violations:\n${details}`).toEqual([]);

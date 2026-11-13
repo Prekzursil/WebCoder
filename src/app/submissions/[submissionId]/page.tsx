@@ -74,24 +74,38 @@ function SubmissionDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [isPolling, setIsPolling] = useState<boolean>(false);
 
-  const languageMap: { [key: string]: string } = { python3: 'python', cpp17: 'cpp', java11: 'java' };
+  const languageMap: { [key: string]: string } = {
+    python3: 'python',
+    cpp17: 'cpp',
+    java11: 'java',
+  };
   const getSyntaxHighlighterLanguage = (langIdentifier: string): string =>
     languageMap[langIdentifier.toLowerCase()] || 'plaintext';
 
-  const fetchDetails = useCallback(async (currentSubmissionId: string) => {
-    try {
-      const data = await SubmissionService.getSubmissionDetail(currentSubmissionId);
-      setSubmission(data);
-      if (data && (data.verdict === 'PENDING' || data.verdict === 'COMPILING' || data.verdict === 'RUNNING')) {
-        setIsPolling(true);
-      } else {
+  const fetchDetails = useCallback(
+    async (currentSubmissionId: string) => {
+      try {
+        const data = await SubmissionService.getSubmissionDetail(currentSubmissionId);
+        setSubmission(data);
+        if (
+          data &&
+          (data.verdict === 'PENDING' || data.verdict === 'COMPILING' || data.verdict === 'RUNNING')
+        ) {
+          setIsPolling(true);
+        } else {
+          setIsPolling(false);
+        }
+      } catch (err) {
+        setError(
+          err instanceof Error && err.message
+            ? err.message
+            : t('error_loading_submission_detail', 'Failed to load submission details.'),
+        );
         setIsPolling(false);
       }
-    } catch (err) {
-      setError(err instanceof Error && err.message ? err.message : t('error_loading_submission_detail', 'Failed to load submission details.'));
-      setIsPolling(false);
-    }
-  }, [t]);
+    },
+    [t],
+  );
 
   useEffect(() => {
     if (submissionId && auth.isAuthenticated) {
@@ -99,10 +113,12 @@ function SubmissionDetailPage() {
       setError(null);
       fetchDetails(submissionId).finally(() => setLoading(false));
     } else if (!auth.isAuthenticated) {
-      setError(t('error_auth_required_submission', 'Authentication required to view submission details.'));
+      setError(
+        t('error_auth_required_submission', 'Authentication required to view submission details.'),
+      );
       setLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [submissionId, auth.isAuthenticated, t]);
 
   useEffect(() => {
@@ -115,7 +131,7 @@ function SubmissionDetailPage() {
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPolling, submissionId, auth.isAuthenticated, t]);
 
   const microLabel: React.CSSProperties = {
@@ -176,15 +192,24 @@ function SubmissionDetailPage() {
       </div>
     );
   }
-  if (!submission) return <div className="page-container"><p>{t('submission_not_found', 'Submission not found.')}</p></div>;
+  if (!submission)
+    return (
+      <div className="page-container">
+        <p>{t('submission_not_found', 'Submission not found.')}</p>
+      </div>
+    );
 
   const problemTitle =
-    submission.problem.title_i18n[i18n.language] || submission.problem.title_i18n.en || `ID: ${submission.problem.id}`;
+    submission.problem.title_i18n[i18n.language] ||
+    submission.problem.title_i18n.en ||
+    `ID: ${submission.problem.id}`;
 
   const metaCell = (label: string, children: React.ReactNode) => (
     <div style={{ minWidth: 0 }}>
       <div style={microLabel}>{label}</div>
-      <div style={{ fontSize: '0.85rem', color: 'var(--foreground)', fontWeight: 500 }}>{children}</div>
+      <div style={{ fontSize: '0.85rem', color: 'var(--foreground)', fontWeight: 500 }}>
+        {children}
+      </div>
     </div>
   );
 
@@ -202,7 +227,8 @@ function SubmissionDetailPage() {
           }}
         >
           <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--foreground)' }}>
-            {t('test_case_label', 'Test Case')} #{result.test_case_details?.order ?? result.test_case_details?.id}
+            {t('test_case_label', 'Test Case')} #
+            {result.test_case_details?.order ?? result.test_case_details?.id}
             {result.test_case_details?.is_sample && (
               <span
                 style={{
@@ -227,12 +253,12 @@ function SubmissionDetailPage() {
 
         <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
           {metaCell(t('points_label', 'Points'), <>{result.test_case_details?.points ?? '—'}</>)}
-          {result.execution_time_ms !== null && result.execution_time_ms !== undefined && (
-            metaCell(t('time_label', 'Time'), <>{result.execution_time_ms} ms</>)
-          )}
-          {result.memory_used_kb !== null && result.memory_used_kb !== undefined && (
-            metaCell(t('memory_label', 'Memory'), <>{result.memory_used_kb} KB</>)
-          )}
+          {result.execution_time_ms !== null &&
+            result.execution_time_ms !== undefined &&
+            metaCell(t('time_label', 'Time'), <>{result.execution_time_ms} ms</>)}
+          {result.memory_used_kb !== null &&
+            result.memory_used_kb !== undefined &&
+            metaCell(t('memory_label', 'Memory'), <>{result.memory_used_kb} KB</>)}
         </div>
 
         {result.actual_output && (result.verdict === 'WA' || result.verdict === 'RE') && (
@@ -258,29 +284,30 @@ function SubmissionDetailPage() {
             </pre>
           </div>
         )}
-        {result.error_output && (result.verdict === 'RE' || result.verdict === 'CE' || result.verdict === 'IE') && (
-          <div style={{ marginTop: '0.75rem' }}>
-            <div style={microLabel}>{t('error_output_label', 'Error Output (truncated)')}</div>
-            <pre
-              style={{
-                background: 'var(--surface-2)',
-                padding: '10px',
-                marginTop: '4px',
-                maxHeight: '100px',
-                overflowY: 'auto',
-                whiteSpace: 'pre-wrap',
-                wordWrap: 'break-word',
-                borderRadius: 'var(--radius-sm)',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '0.8rem',
-                color: 'var(--danger)',
-              }}
-            >
-              {result.error_output.substring(0, 200)}
-              {result.error_output.length > 200 ? '...' : ''}
-            </pre>
-          </div>
-        )}
+        {result.error_output &&
+          (result.verdict === 'RE' || result.verdict === 'CE' || result.verdict === 'IE') && (
+            <div style={{ marginTop: '0.75rem' }}>
+              <div style={microLabel}>{t('error_output_label', 'Error Output (truncated)')}</div>
+              <pre
+                style={{
+                  background: 'var(--surface-2)',
+                  padding: '10px',
+                  marginTop: '4px',
+                  maxHeight: '100px',
+                  overflowY: 'auto',
+                  whiteSpace: 'pre-wrap',
+                  wordWrap: 'break-word',
+                  borderRadius: 'var(--radius-sm)',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.8rem',
+                  color: 'var(--danger)',
+                }}
+              >
+                {result.error_output.substring(0, 200)}
+                {result.error_output.length > 200 ? '...' : ''}
+              </pre>
+            </div>
+          )}
       </div>
     );
   };
@@ -297,7 +324,18 @@ function SubmissionDetailPage() {
           marginBottom: '1.5rem',
         }}
       >
-        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--foreground)', display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <h1
+          style={{
+            fontSize: '1.75rem',
+            fontWeight: 800,
+            letterSpacing: '-0.03em',
+            color: 'var(--foreground)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            flexWrap: 'wrap',
+          }}
+        >
           {t('submission_detail_header', 'Submission Detail')} #{submission.id}
           <VerdictPill verdict={submission.verdict} />
           {isPolling && (
@@ -313,32 +351,52 @@ function SubmissionDetailPage() {
       </div>
 
       {error && (
-        <p style={{ color: 'var(--accent)', fontStyle: 'italic', marginBottom: '1rem' }}>Note: {error}</p>
+        <p style={{ color: 'var(--accent)', fontStyle: 'italic', marginBottom: '1rem' }}>
+          Note: {error}
+        </p>
       )}
 
       <div style={card}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: '1rem',
+          }}
+        >
           {metaCell(
             t('problem_label', 'Problem'),
             <Link href={`/problems/${submission.problem.id}`} style={{ color: 'var(--accent)' }}>
               {problemTitle}
-            </Link>
+            </Link>,
           )}
           {submission.user && metaCell(t('user_label', 'User'), <>{submission.user.username}</>)}
-          {metaCell(t('language_label', 'Language'), <span style={{ fontFamily: 'var(--font-mono)' }}>{submission.language}</span>)}
+          {metaCell(
+            t('language_label', 'Language'),
+            <span style={{ fontFamily: 'var(--font-mono)' }}>{submission.language}</span>,
+          )}
           {metaCell(
             t('verdict_label', 'Verdict'),
-            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: verdictColor(submission.verdict) }}>
+            <span
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontWeight: 700,
+                color: verdictColor(submission.verdict),
+              }}
+            >
               {submission.verdict}
-            </span>
+            </span>,
           )}
           {metaCell(t('score_label', 'Score'), <>{submission.score ?? '—'}</>)}
           {metaCell(
             t('submission_time_label', 'Submission Time'),
-            <>{new Date(submission.submission_time).toLocaleString(i18n.language)}</>
+            <>{new Date(submission.submission_time).toLocaleString(i18n.language)}</>,
           )}
           {submission.execution_time_ms !== null &&
-            metaCell(t('execution_time_label', 'Execution Time (Overall)'), <>{submission.execution_time_ms} ms</>)}
+            metaCell(
+              t('execution_time_label', 'Execution Time (Overall)'),
+              <>{submission.execution_time_ms} ms</>,
+            )}
           {/* Matrix row 61: faster than X% of AC runs (same problem+language). */}
           {submission.runtime_percentile !== null &&
             submission.runtime_percentile !== undefined &&
@@ -348,30 +406,87 @@ function SubmissionDetailPage() {
                 {t('runtime_beats', 'faster than {{pct}}% of accepted solutions', {
                   pct: Math.round(submission.runtime_percentile * 100),
                 })}
-              </>
+              </>,
             )}
           {submission.memory_used_kb !== null &&
-            metaCell(t('memory_used_label', 'Memory Used (Overall)'), <>{submission.memory_used_kb} KB</>)}
+            metaCell(
+              t('memory_used_label', 'Memory Used (Overall)'),
+              <>{submission.memory_used_kb} KB</>,
+            )}
         </div>
       </div>
 
-      <h2 className="micro-label" style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--muted)', letterSpacing: '0.07em', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span style={{ width: '3px', height: '14px', background: 'var(--accent)', borderRadius: '2px', display: 'inline-block' }} aria-hidden="true" />
+      <h2
+        className="micro-label"
+        style={{
+          fontSize: '0.8rem',
+          fontWeight: 700,
+          color: 'var(--muted)',
+          letterSpacing: '0.07em',
+          marginBottom: '0.75rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+        }}
+      >
+        <span
+          style={{
+            width: '3px',
+            height: '14px',
+            background: 'var(--accent)',
+            borderRadius: '2px',
+            display: 'inline-block',
+          }}
+          aria-hidden="true"
+        />
         {t('submitted_code_header', 'Submitted Code')}
       </h2>
-      <div style={{ fontSize: '0.9em', maxWidth: '100%', overflowX: 'auto', marginBottom: '1.5rem', position: 'relative' }}>
+      <div
+        style={{
+          fontSize: '0.9em',
+          maxWidth: '100%',
+          overflowX: 'auto',
+          marginBottom: '1.5rem',
+          position: 'relative',
+        }}
+      >
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '4px' }}>
           <CopyButton text={submission.code} label={t('copy_code_button', 'Copy code')} />
         </div>
-        <SyntaxHighlighter language={getSyntaxHighlighterLanguage(submission.language)} style={vscDarkPlus} showLineNumbers>
+        <SyntaxHighlighter
+          language={getSyntaxHighlighterLanguage(submission.language)}
+          style={vscDarkPlus}
+          showLineNumbers
+        >
           {submission.code}
         </SyntaxHighlighter>
       </div>
 
       {submission.test_results && submission.test_results.length > 0 && (
         <>
-          <h2 className="micro-label" style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--muted)', letterSpacing: '0.07em', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ width: '3px', height: '14px', background: palette.warn, borderRadius: '2px', display: 'inline-block' }} aria-hidden="true" />
+          <h2
+            className="micro-label"
+            style={{
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              color: 'var(--muted)',
+              letterSpacing: '0.07em',
+              marginBottom: '0.75rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            <span
+              style={{
+                width: '3px',
+                height: '14px',
+                background: palette.warn,
+                borderRadius: '2px',
+                display: 'inline-block',
+              }}
+              aria-hidden="true"
+            />
             {t('test_case_results_header', 'Test Case Results')}
           </h2>
           {submission.test_results.map(renderTestResult)}
@@ -380,8 +495,29 @@ function SubmissionDetailPage() {
 
       {submission.detailed_feedback && (
         <>
-          <h2 className="micro-label" style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--muted)', letterSpacing: '0.07em', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ width: '3px', height: '14px', background: palette.violet, borderRadius: '2px', display: 'inline-block' }} aria-hidden="true" />
+          <h2
+            className="micro-label"
+            style={{
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              color: 'var(--muted)',
+              letterSpacing: '0.07em',
+              marginBottom: '0.75rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            <span
+              style={{
+                width: '3px',
+                height: '14px',
+                background: palette.violet,
+                borderRadius: '2px',
+                display: 'inline-block',
+              }}
+              aria-hidden="true"
+            />
             {t('judge_feedback_header', "Judge's Summary")}
           </h2>
           <pre

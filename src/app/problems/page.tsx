@@ -30,7 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: t('problem_list_header', 'Problems'),
     description: t(
       'problems_page_description',
-      'Browse the public competitive programming problem catalog on WebCoder.'
+      'Browse the public competitive programming problem catalog on WebCoder.',
     ),
   };
 }
@@ -69,8 +69,7 @@ export default async function ProblemsListPage({ searchParams }: ProblemsListPag
     hasMore = Boolean(firstPage.next);
   } catch (err) {
     await curriculumFetch.catch(() => undefined);
-    fetchError =
-      err instanceof Error ? err.message : 'Failed to load problems.';
+    fetchError = err instanceof Error ? err.message : 'Failed to load problems.';
   }
 
   return (

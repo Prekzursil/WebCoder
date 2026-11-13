@@ -67,7 +67,7 @@ const LoginPage: React.FC = () => {
       setError(
         err instanceof Error && err.message
           ? err.message
-          : t('login_failed', 'Login failed. Please check your credentials.')
+          : t('login_failed', 'Login failed. Please check your credentials.'),
       );
     } finally {
       setIsSubmitting(false);

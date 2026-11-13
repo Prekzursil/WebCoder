@@ -6,11 +6,7 @@ import { describe, expect, it, beforeEach } from 'vitest';
 import * as Blockly from 'blockly';
 import { pythonGenerator } from 'blockly/python';
 import { javascriptGenerator } from 'blockly/javascript';
-import {
-  DEFAULT_STARTER_XML,
-  DEFAULT_TOOLBOX_XML,
-  localizeToolbox,
-} from './BlockEditor';
+import { DEFAULT_STARTER_XML, DEFAULT_TOOLBOX_XML, localizeToolbox } from './BlockEditor';
 import { registerBlockTypes, WC_JS_PREAMBLE, _resetRegistration } from './wcBlocks';
 
 type Registerable = Parameters<typeof registerBlockTypes>[1];
@@ -20,7 +16,7 @@ beforeEach(() => {
   registerBlockTypes(
     Blockly,
     pythonGenerator as unknown as Registerable,
-    javascriptGenerator as unknown as Registerable
+    javascriptGenerator as unknown as Registerable,
   );
 });
 

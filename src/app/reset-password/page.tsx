@@ -59,8 +59,8 @@ function ResetPasswordForm(): React.ReactElement {
         detail ||
           t(
             'reset_password_invalid',
-            'This reset link is invalid or has expired. Request a new one.'
-          )
+            'This reset link is invalid or has expired. Request a new one.',
+          ),
       );
     } finally {
       setIsSubmitting(false);
@@ -84,7 +84,7 @@ function ResetPasswordForm(): React.ReactElement {
         {error ||
           t(
             'reset_password_invalid',
-            'This reset link is invalid or has expired. Request a new one.'
+            'This reset link is invalid or has expired. Request a new one.',
           )}{' '}
         <Link component={NextLink} href="/forgot-password" sx={{ cursor: 'pointer' }}>
           {t('reset_password_request_new', 'Request a new link')}

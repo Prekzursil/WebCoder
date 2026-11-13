@@ -2,11 +2,7 @@
 // API endpoint display, and account actions.
 import React, { useState } from 'react';
 import { Pressable, View } from 'react-native';
-import {
-  LOCALE_GROUPS,
-  LOCALE_NATIVE_NAMES,
-  SUPPORTED_LOCALES,
-} from '../src/i18n';
+import { LOCALE_GROUPS, LOCALE_NATIVE_NAMES, SUPPORTED_LOCALES } from '../src/i18n';
 import { useAuth } from '../src/state/AuthStore';
 import { useSettings } from '../src/state/SettingsStore';
 import { Button, Card, Screen, SectionLabel, Txt } from '../src/ui/primitives';
@@ -16,7 +12,7 @@ import { API_V1_URL } from '../src/services/config';
 export default function Settings() {
   const { locale, setLocale, t } = useSettings();
   const { status, signOut } = useAuth();
-  const [saving, setSaving] = useState< string | null>(null);
+  const [saving, setSaving] = useState<string | null>(null);
 
   const pick = async (code: (typeof SUPPORTED_LOCALES)[number]) => {
     setSaving(code);
@@ -44,14 +40,10 @@ export default function Settings() {
                     borderRadius: 999,
                     borderWidth: 1,
                     borderColor: locale === code ? palette.accent : palette.border,
-                    backgroundColor:
-                      locale === code ? palette.accent + '22' : 'transparent',
+                    backgroundColor: locale === code ? palette.accent + '22' : 'transparent',
                   }}
                 >
-                  <Txt
-                    variant="caption"
-                    color={locale === code ? palette.accent : palette.body}
-                  >
+                  <Txt variant="caption" color={locale === code ? palette.accent : palette.body}>
                     {LOCALE_NATIVE_NAMES[code]}
                     {saving === code ? ' …' : ''}
                   </Txt>

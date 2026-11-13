@@ -7,29 +7,21 @@ import { test, expect } from '@playwright/test';
 // statement print route.
 
 test.describe('policy & docs pages (parity audit)', () => {
-  test('/accessibility states the WCAG commitment (OPS-5)', async ({
-    page,
-  }) => {
+  test('/accessibility states the WCAG commitment (OPS-5)', async ({ page }) => {
     await page.goto('/accessibility');
     await expect(page.getByRole('heading', { name: /accessibility/i })).toBeVisible();
     await expect(page.getByText(/WCAG 2\.1 level AA/)).toBeVisible();
     await expect(page.getByText(/axe-core/)).toBeVisible();
   });
 
-  test('/policies/ai publishes the rated-contest rules (SAF-2)', async ({
-    page,
-  }) => {
+  test('/policies/ai publishes the rated-contest rules (SAF-2)', async ({ page }) => {
     await page.goto('/policies/ai');
-    await expect(
-      page.getByRole('heading', { name: /conduct & AI policy/i })
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: /conduct & AI policy/i })).toBeVisible();
     await expect(page.getByText(/generative AI/i).first()).toBeVisible();
     await expect(page.getByText(/disqualification/i).first()).toBeVisible();
   });
 
-  test('/help/judge lists the live language registry (JDG-9)', async ({
-    page,
-  }) => {
+  test('/help/judge lists the live language registry (JDG-9)', async ({ page }) => {
     await page.goto('/help/judge');
     await expect(page.getByRole('table').getByText('Python 3')).toBeVisible();
     await expect(page.getByRole('table').getByText('C++17')).toBeVisible();
@@ -47,16 +39,12 @@ test.describe('profile & leaderboard (parity audit)', () => {
     await expect(page.getByText('e2e_tester', { exact: true })).toBeVisible();
   });
 
-  test('skill profile + practice next render from the statistics (RAT-7)', async ({
-    page,
-  }) => {
+  test('skill profile + practice next render from the statistics (RAT-7)', async ({ page }) => {
     await page.goto('/profile');
     const panel = page.getByTestId('tag-profile');
     await expect(panel).toBeVisible();
     await expect(panel.getByText('arrays')).toBeVisible();
-    await expect(page.getByTestId('practice-next')).toContainText(
-      'Longest Substring'
-    );
+    await expect(page.getByTestId('practice-next')).toContainText('Longest Substring');
   });
 
   test('identity card saves county/school (RO-3)', async ({ page }) => {
@@ -70,9 +58,7 @@ test.describe('profile & leaderboard (parity audit)', () => {
     await expect(card.getByText(/saved/i)).toBeVisible();
   });
 
-  test('leaderboard county segment input drives the fetch (RO-3)', async ({
-    page,
-  }) => {
+  test('leaderboard county segment input drives the fetch (RO-3)', async ({ page }) => {
     await page.goto('/leaderboard');
     await page.getByTestId('segment-county').fill('Cluj');
     await page.waitForTimeout(400); // debounce-free controlled refetch
@@ -81,9 +67,7 @@ test.describe('profile & leaderboard (parity audit)', () => {
 });
 
 test.describe('teacher & statement surfaces (parity audit)', () => {
-  test('assignment page offers the side-by-side diff (JDG-13)', async ({
-    page,
-  }) => {
+  test('assignment page offers the side-by-side diff (JDG-13)', async ({ page }) => {
     await page.goto('/login');
     await page.fill('#login-username', 'admin_e2e');
     await page.fill('#login-password', 'correct-horse-battery-staple');
@@ -100,21 +84,15 @@ test.describe('teacher & statement surfaces (parity audit)', () => {
     await expect(columns).toContainText('print(int(input()) + int(input()))');
   });
 
-  test('problem page exposes the print / PDF statement route (UXP-3)', async ({
-    page,
-  }) => {
+  test('problem page exposes the print / PDF statement route (UXP-3)', async ({ page }) => {
     await page.goto('/problems/1');
     await expect(page.getByTestId('print-statement')).toBeVisible();
   });
 });
 
-test('contribute page publishes the authoring program (EDU-11)', async ({
-  page,
-}) => {
+test('contribute page publishes the authoring program (EDU-11)', async ({ page }) => {
   await page.goto('/contribute');
-  await expect(
-    page.getByRole('heading', { name: /authoring program/i })
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: /authoring program/i })).toBeVisible();
   await expect(page.getByText(/DRAFT → PENDING → APPROVED/)).toBeVisible();
   await expect(page.getByText(/honor/i).first()).toBeVisible();
 });

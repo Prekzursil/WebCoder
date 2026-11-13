@@ -76,7 +76,12 @@ beforeEach(() => {
   vi.clearAllMocks();
   nav.params.mockReturnValue({ problemId: '12' });
   authState.isAuthenticated = true;
-  authState.user = { id: 7, username: 'verifier', email: 'verifier@example.com', role: 'PROBLEM_VERIFIER' };
+  authState.user = {
+    id: 7,
+    username: 'verifier',
+    email: 'verifier@example.com',
+    role: 'PROBLEM_VERIFIER',
+  };
   api.getTags.mockResolvedValue({ count: 0, next: null, previous: null, results: [] });
   api.getProblemDetail.mockResolvedValue(DETAIL);
 });
@@ -93,7 +98,9 @@ describe('Edit problem route (/problems/[problemId]/edit)', () => {
 
     expect(await screen.findByText('Edit Problem')).toBeInTheDocument();
     expect(api.getProblemDetail).toHaveBeenCalledWith('12');
-    expect((await screen.findByLabelText('Title (English):') as HTMLInputElement).value).toBe('Edit Me');
+    expect(((await screen.findByLabelText('Title (English):')) as HTMLInputElement).value).toBe(
+      'Edit Me',
+    );
     expect(screen.getByRole('button', { name: 'Save Changes' })).toBeInTheDocument();
   });
 

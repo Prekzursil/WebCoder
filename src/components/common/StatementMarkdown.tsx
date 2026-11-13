@@ -25,7 +25,10 @@ const schema = {
 
 export default function StatementMarkdown({ markdown }: { markdown: string }) {
   return (
-    <div className="statement-md" style={{ fontSize: '0.9rem', color: 'var(--body)', lineHeight: 1.8 }}>
+    <div
+      className="statement-md"
+      style={{ fontSize: '0.9rem', color: 'var(--body)', lineHeight: 1.8 }}
+    >
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeSanitize(schema) as never, rehypeKatex]}

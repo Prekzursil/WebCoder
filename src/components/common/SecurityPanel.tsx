@@ -29,7 +29,11 @@ const headerStyle: React.CSSProperties = {
   marginBottom: '1rem',
 };
 
-export function TwoFactorCard({ onEnabledChange }: { onEnabledChange?: (enabled: boolean) => void }) {
+export function TwoFactorCard({
+  onEnabledChange,
+}: {
+  onEnabledChange?: (enabled: boolean) => void;
+}) {
   const { t } = useTranslation();
   const { user, refreshUser } = useAuth();
   const enabled = user?.two_factor_enabled ?? false;
@@ -81,7 +85,12 @@ export function TwoFactorCard({ onEnabledChange }: { onEnabledChange?: (enabled:
       onEnabledChange?.(false);
       await refreshUser?.();
     } catch (err) {
-      setError(errorMessage(err, t('totp_disable_failed', 'Could not disable — check your code and password.')));
+      setError(
+        errorMessage(
+          err,
+          t('totp_disable_failed', 'Could not disable — check your code and password.'),
+        ),
+      );
     } finally {
       setBusy(false);
     }
@@ -92,36 +101,66 @@ export function TwoFactorCard({ onEnabledChange }: { onEnabledChange?: (enabled:
       <div id="totp-card-header" style={headerStyle}>
         {t('two_factor_header', 'Two-Factor Authentication (TOTP)')}
       </div>
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-      {notice && <Alert severity="success" sx={{ mb: 2 }}>{notice}</Alert>}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+      {notice && (
+        <Alert severity="success" sx={{ mb: 2 }}>
+          {notice}
+        </Alert>
+      )}
 
       {enabled ? (
-        <Box component="form" noValidate aria-label={t('totp_disable_form_label', 'Disable two-factor')}>
+        <Box
+          component="form"
+          noValidate
+          aria-label={t('totp_disable_form_label', 'Disable two-factor')}
+        >
           <Alert severity="info" sx={{ mb: 2 }}>
-            {t('totp_enabled_status', 'Your account requires a TOTP code from your authenticator app.')}
+            {t(
+              'totp_enabled_status',
+              'Your account requires a TOTP code from your authenticator app.',
+            )}
           </Alert>
           <TextField
-            margin="normal" required fullWidth size="small"
+            margin="normal"
+            required
+            fullWidth
+            size="small"
             label={t('totp_code_label', 'Authenticator code')}
             value={code}
             onChange={(e) => setCode(e.target.value)}
             slotProps={{ htmlInput: { inputMode: 'numeric', pattern: '[0-9]*', maxLength: 6 } }}
           />
           <TextField
-            margin="normal" required fullWidth size="small" type="password"
+            margin="normal"
+            required
+            fullWidth
+            size="small"
+            type="password"
             label={t('current_password_label', 'Current Password')}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-
           />
-          <Button variant="outlined" color="error" sx={{ mt: 2 }} disabled={busy || !code || !password} onClick={disable}>
+          <Button
+            variant="outlined"
+            color="error"
+            sx={{ mt: 2 }}
+            disabled={busy || !code || !password}
+            onClick={disable}
+          >
             {busy ? <CircularProgress size={20} /> : t('totp_disable_button', 'Disable two-factor')}
           </Button>
         </Box>
       ) : pending ? (
         <Box aria-label={t('totp_enroll_form_label', 'Confirm enrollment')}>
           <p style={{ color: 'var(--muted)', fontSize: '0.85rem', marginTop: 0 }}>
-            {t('totp_scan_hint', 'Add this secret to your authenticator app (Google Authenticator, Aegis, 1Password…), then enter the current 6-digit code.')}
+            {t(
+              'totp_scan_hint',
+              'Add this secret to your authenticator app (Google Authenticator, Aegis, 1Password…), then enter the current 6-digit code.',
+            )}
           </p>
           <Box
             data-testid="totp-secret"
@@ -138,24 +177,42 @@ export function TwoFactorCard({ onEnabledChange }: { onEnabledChange?: (enabled:
           >
             {pending.secret}
           </Box>
-          <Box sx={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', mb: 2, wordBreak: 'break-all' }}>
+          <Box
+            sx={{
+              fontSize: '0.72rem',
+              color: 'var(--text-tertiary)',
+              mb: 2,
+              wordBreak: 'break-all',
+            }}
+          >
             {pending.otpauth_uri}
           </Box>
           <TextField
-            margin="normal" required fullWidth size="small"
+            margin="normal"
+            required
+            fullWidth
+            size="small"
             label={t('totp_code_label', 'Authenticator code')}
             value={code}
             onChange={(e) => setCode(e.target.value)}
             slotProps={{ htmlInput: { inputMode: 'numeric', pattern: '[0-9]*', maxLength: 6 } }}
           />
-          <Button variant="contained" sx={{ mt: 2 }} disabled={busy || code.length !== 6} onClick={verify}>
+          <Button
+            variant="contained"
+            sx={{ mt: 2 }}
+            disabled={busy || code.length !== 6}
+            onClick={verify}
+          >
             {busy ? <CircularProgress size={20} /> : t('totp_verify_button', 'Verify and enable')}
           </Button>
         </Box>
       ) : (
         <Box>
           <p style={{ color: 'var(--muted)', fontSize: '0.85rem', marginTop: 0 }}>
-            {t('totp_pitch', 'Protect your account with a time-based one-time code from an authenticator app. Recommended for creators, verifiers, teachers and admins.')}
+            {t(
+              'totp_pitch',
+              'Protect your account with a time-based one-time code from an authenticator app. Recommended for creators, verifiers, teachers and admins.',
+            )}
           </p>
           <Button variant="contained" onClick={begin} disabled={busy}>
             {busy ? <CircularProgress size={20} /> : t('totp_begin_button', 'Enable two-factor')}
@@ -220,21 +277,33 @@ export function ApiTokenCard() {
       <div id="api-token-card-header" style={headerStyle}>
         {t('api_token_header', 'Personal API Token')}
       </div>
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
       <p style={{ color: 'var(--muted)', fontSize: '0.85rem', marginTop: 0 }}>
-        {t('api_token_pitch', 'Use the public read API (240/min instead of 60/min) with "Authorization: Token <key>". The key is shown only once.')}
+        {t(
+          'api_token_pitch',
+          'Use the public read API (240/min instead of 60/min) with "Authorization: Token <key>". The key is shown only once.',
+        )}
       </p>
 
       {freshKey && (
         <Alert severity="success" sx={{ mb: 2 }} data-testid="fresh-token">
           {t('api_token_fresh_notice', 'Store this key now — it will not be shown again:')}
-          <Box sx={{ fontFamily: 'var(--font-mono, monospace)', mt: 0.5, wordBreak: 'break-all' }}>{freshKey}</Box>
+          <Box sx={{ fontFamily: 'var(--font-mono, monospace)', mt: 0.5, wordBreak: 'break-all' }}>
+            {freshKey}
+          </Box>
         </Alert>
       )}
 
       {tokens && tokens.length > 0 ? (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-          <span data-testid="token-hint" style={{ fontFamily: 'var(--font-mono, monospace)', color: 'var(--foreground)' }}>
+          <span
+            data-testid="token-hint"
+            style={{ fontFamily: 'var(--font-mono, monospace)', color: 'var(--foreground)' }}
+          >
             {tokens[0].key_hint}
           </span>
           <Button variant="outlined" color="error" size="small" onClick={revoke} disabled={busy}>

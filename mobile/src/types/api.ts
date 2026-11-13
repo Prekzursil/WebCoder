@@ -21,9 +21,7 @@ export interface CursorPaginatedResponse<T> {
 }
 
 /** Extract the `cursor` query param from a DRF next/previous URL. */
-export function cursorParamFromUrl(
-  url: string | null | undefined
-): string | null {
+export function cursorParamFromUrl(url: string | null | undefined): string | null {
   if (!url) return null;
   try {
     return new URL(url).searchParams.get('cursor');
@@ -440,5 +438,4 @@ export interface TranslationProposalRow {
   updated_at: string;
 }
 
-export type GetTranslationProposalsResponse =
-  PaginatedResponse<TranslationProposalRow>;
+export type GetTranslationProposalsResponse = PaginatedResponse<TranslationProposalRow>;

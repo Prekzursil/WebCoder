@@ -58,7 +58,7 @@ export function cookieFromResponse(
       map?: Record<string, string | string[]>;
     };
   },
-  name: string
+  name: string,
 ): string | null {
   const get = response.headers.get?.bind(response.headers);
   let raw: string | string[] | null = null;
@@ -66,8 +66,7 @@ export function cookieFromResponse(
     raw = get('set-cookie');
     // Some fetch impls return the array under headers.map only.
     if (raw === null && response.headers.map) {
-      const mapValue =
-        response.headers.map['set-cookie'] ?? response.headers.map['Set-Cookie'];
+      const mapValue = response.headers.map['set-cookie'] ?? response.headers.map['Set-Cookie'];
       raw = mapValue ?? null;
     }
   } else if (response.headers.map) {
@@ -135,10 +134,7 @@ export interface ApiFetchOptions {
 }
 
 /** Raw fetch with the Bearer header attached. */
-async function authenticatedFetch(
-  url: string,
-  options: ApiFetchOptions
-): Promise<Response> {
+async function authenticatedFetch(url: string, options: ApiFetchOptions): Promise<Response> {
   const headers: Record<string, string> = {};
   if (options.body !== undefined) headers['Content-Type'] = 'application/json';
   if (!options.anonymous && tokenStore) {
@@ -157,10 +153,7 @@ async function authenticatedFetch(
  * typed Error with the human-readable DRF message (detail >
  * non_field_errors > first field error — [Q13], ported verbatim).
  */
-export async function apiFetch<T>(
-  url: string,
-  options: ApiFetchOptions = {}
-): Promise<T> {
+export async function apiFetch<T>(url: string, options: ApiFetchOptions = {}): Promise<T> {
   let response = await authenticatedFetch(url, options);
   if (response.status === 401 && !options.anonymous) {
     const refreshed = await refreshTokens();
@@ -173,7 +166,7 @@ export async function apiFetch<T>(
   if (!response.ok) {
     const errorData = (await response.json().catch(() => ({}))) as unknown;
     throw new Error(
-      extractErrorMessage(errorData) || response.statusText || `HTTP ${response.status}`
+      extractErrorMessage(errorData) || response.statusText || `HTTP ${response.status}`,
     );
   }
   if (response.status === 204) return {} as T;
@@ -200,7 +193,7 @@ const COLLECT_ALL_MAX_PAGES = 50;
 
 /** Follow page-number `next` links until exhausted or the 50-page cap. */
 export async function collectAllPages<T>(
-  fetchPage: (page: number) => Promise<PaginatedResponse<T>>
+  fetchPage: (page: number) => Promise<PaginatedResponse<T>>,
 ): Promise<T[]> {
   const out: T[] = [];
   for (let page = 1; page <= COLLECT_ALL_MAX_PAGES; page += 1) {
@@ -213,7 +206,7 @@ export async function collectAllPages<T>(
 
 /** Follow cursor `next` links until exhausted or the 50-page cap. */
 export async function collectAllCursorPages<T>(
-  fetchPage: (cursor: string | null) => Promise<CursorPaginatedResponse<T>>
+  fetchPage: (cursor: string | null) => Promise<CursorPaginatedResponse<T>>,
 ): Promise<T[]> {
   const out: T[] = [];
   let cursor: string | null = null;

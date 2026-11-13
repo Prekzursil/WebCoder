@@ -61,9 +61,24 @@ const problem = (partial: Partial<ProblemType>): ProblemType =>
   }) as ProblemType;
 
 const CATALOG: ProblemType[] = [
-  problem({ id: 3, title_i18n: { en: 'Binary Search' }, difficulty: 'MEDIUM', tags: [{ id: 2, name_i18n: { en: 'Sorting' }, slug: 'sorting' }] }),
-  problem({ id: 1, title_i18n: { en: 'Two Sum' }, difficulty: 'EASY', tags: [{ id: 1, name_i18n: { en: 'Arrays' }, slug: 'arrays' }] }),
-  problem({ id: 2, title_i18n: { en: 'Aho-Corasick' }, difficulty: 'HARD', tags: [{ id: 2, name_i18n: { en: 'Sorting' }, slug: 'sorting' }] }),
+  problem({
+    id: 3,
+    title_i18n: { en: 'Binary Search' },
+    difficulty: 'MEDIUM',
+    tags: [{ id: 2, name_i18n: { en: 'Sorting' }, slug: 'sorting' }],
+  }),
+  problem({
+    id: 1,
+    title_i18n: { en: 'Two Sum' },
+    difficulty: 'EASY',
+    tags: [{ id: 1, name_i18n: { en: 'Arrays' }, slug: 'arrays' }],
+  }),
+  problem({
+    id: 2,
+    title_i18n: { en: 'Aho-Corasick' },
+    difficulty: 'HARD',
+    tags: [{ id: 2, name_i18n: { en: 'Sorting' }, slug: 'sorting' }],
+  }),
 ];
 
 beforeEach(() => {
@@ -72,7 +87,9 @@ beforeEach(() => {
   mocks.auth.isAuthenticated = false;
   mocks.auth.user = null;
   apiMocks.getTags.mockResolvedValue({
-    count: 0, next: null, previous: null,
+    count: 0,
+    next: null,
+    previous: null,
     results: [
       { id: 1, name_i18n: { en: 'Arrays' }, slug: 'arrays' },
       { id: 2, name_i18n: { en: 'Sorting' }, slug: 'sorting' },
@@ -86,7 +103,15 @@ afterEach(cleanup);
 describe('ProblemsListClient URL-synced filters [F3]', () => {
   it('initializes the search box from ?q= on mount', () => {
     mocks.params = new URLSearchParams('q=two');
-    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
+    render(
+      <ProblemsListClient
+        problems={CATALOG}
+        fetchError={null}
+        locale="en"
+        totalCount={3}
+        hasMore={false}
+      />,
+    );
     expect((screen.getByRole('searchbox') as HTMLInputElement).value).toBe('two');
     // Filtered to the single matching row.
     expect(screen.getByRole('link', { name: 'Two Sum' })).toBeInTheDocument();
@@ -94,13 +119,29 @@ describe('ProblemsListClient URL-synced filters [F3]', () => {
   });
 
   it('pushes ?q= into the URL as the user types', () => {
-    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
+    render(
+      <ProblemsListClient
+        problems={CATALOG}
+        fetchError={null}
+        locale="en"
+        totalCount={3}
+        hasMore={false}
+      />,
+    );
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'sum' } });
     expect(mocks.replace).toHaveBeenCalledWith('/problems?q=sum', { scroll: false });
   });
 
   it('syncs the difficulty filter to ?difficulty=', () => {
-    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
+    render(
+      <ProblemsListClient
+        problems={CATALOG}
+        fetchError={null}
+        locale="en"
+        totalCount={3}
+        hasMore={false}
+      />,
+    );
     fireEvent.click(screen.getByRole('button', { name: 'hard' }));
     expect(mocks.replace).toHaveBeenCalledWith('/problems?difficulty=hard', { scroll: false });
     expect(screen.getByRole('link', { name: 'Aho-Corasick' })).toBeInTheDocument();
@@ -109,7 +150,15 @@ describe('ProblemsListClient URL-synced filters [F3]', () => {
 
   it('clears every filter param on the Clear button', () => {
     mocks.params = new URLSearchParams('q=x&difficulty=easy');
-    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
+    render(
+      <ProblemsListClient
+        problems={CATALOG}
+        fetchError={null}
+        locale="en"
+        totalCount={3}
+        hasMore={false}
+      />,
+    );
     // Two Clear buttons render (filter bar + empty-state action) when the
     // filters match nothing — the filter-bar one comes first.
     fireEvent.click(screen.getAllByRole('button', { name: /Clear/i })[0]);
@@ -118,7 +167,15 @@ describe('ProblemsListClient URL-synced filters [F3]', () => {
 
   it('renders the localized no-match empty state with a clear action', () => {
     mocks.params = new URLSearchParams('q=zzz-nothing');
-    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
+    render(
+      <ProblemsListClient
+        problems={CATALOG}
+        fetchError={null}
+        locale="en"
+        totalCount={3}
+        hasMore={false}
+      />,
+    );
     expect(screen.getByText('No problems match your filters.')).toBeInTheDocument();
   });
 });
@@ -131,7 +188,15 @@ describe('ProblemsListClient column sorting [F3]', () => {
       .map((row) => row.textContent ?? '');
 
   it('sorts by title asc then desc on repeated clicks, with aria-sort', () => {
-    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
+    render(
+      <ProblemsListClient
+        problems={CATALOG}
+        fetchError={null}
+        locale="en"
+        totalCount={3}
+        hasMore={false}
+      />,
+    );
 
     const titleHeader = screen.getByRole('columnheader', { name: /Title/ });
     expect(titleHeader).toHaveAttribute('aria-sort', 'none');
@@ -150,7 +215,15 @@ describe('ProblemsListClient column sorting [F3]', () => {
   });
 
   it('sorts by difficulty with the easy<medium<hard order', () => {
-    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
+    render(
+      <ProblemsListClient
+        problems={CATALOG}
+        fetchError={null}
+        locale="en"
+        totalCount={3}
+        hasMore={false}
+      />,
+    );
     const diffHeader = screen.getByRole('columnheader', { name: /Difficulty/ });
     fireEvent.click(within(diffHeader).getByRole('button'));
     const titles = rowTitles();
@@ -162,15 +235,31 @@ describe('ProblemsListClient column sorting [F3]', () => {
 
 describe('ProblemsListClient status facet gating [F7]', () => {
   it('hides the status facet and column from anonymous visitors', () => {
-    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
+    render(
+      <ProblemsListClient
+        problems={CATALOG}
+        fetchError={null}
+        locale="en"
+        totalCount={3}
+        hasMore={false}
+      />,
+    );
     expect(screen.queryByText('Status:')).not.toBeInTheDocument();
     expect(screen.queryByRole('columnheader', { name: /Status/ })).not.toBeInTheDocument();
   });
 
   it('shows the status facet only to creator/verifier/admin roles', () => {
     mocks.auth.isAuthenticated = true;
-        mocks.auth.user = { id: 1, username: 'v', email: 'v@example.com', role: 'PROBLEM_CREATOR' };
-    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
+    mocks.auth.user = { id: 1, username: 'v', email: 'v@example.com', role: 'PROBLEM_CREATOR' };
+    render(
+      <ProblemsListClient
+        problems={CATALOG}
+        fetchError={null}
+        locale="en"
+        totalCount={3}
+        hasMore={false}
+      />,
+    );
     expect(screen.getByText('Status:')).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: /Status/ })).toBeInTheDocument();
     // Real backend choices only.
@@ -181,10 +270,17 @@ describe('ProblemsListClient status facet gating [F7]', () => {
   });
 });
 
-
 describe('Wave A: tag facet [F4] + solved indicators [F5] + curriculum axis [EDU-9]', () => {
   it('filters by a selected tag chip', async () => {
-    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
+    render(
+      <ProblemsListClient
+        problems={CATALOG}
+        fetchError={null}
+        locale="en"
+        totalCount={3}
+        hasMore={false}
+      />,
+    );
     const arraysChip = await screen.findByRole('button', { name: 'Arrays' });
     fireEvent.click(arraysChip);
     expect(screen.getByRole('link', { name: 'Two Sum' })).toBeInTheDocument();
@@ -194,7 +290,15 @@ describe('Wave A: tag facet [F4] + solved indicators [F5] + curriculum axis [EDU
   it('renders the solved indicator column for authenticated solvers', async () => {
     mocks.auth.isAuthenticated = true;
     apiMocks.getSolvedIds.mockResolvedValue({ solved: [1], attempted: [3] });
-    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
+    render(
+      <ProblemsListClient
+        problems={CATALOG}
+        fetchError={null}
+        locale="en"
+        totalCount={3}
+        hasMore={false}
+      />,
+    );
     // "Solved" labels: the column header + the one solved row.
     const solvedMarks = await screen.findAllByLabelText('Solved');
     expect(solvedMarks).toHaveLength(2);
@@ -205,7 +309,15 @@ describe('Wave A: tag facet [F4] + solved indicators [F5] + curriculum axis [EDU
   it('hides solved rows when the hide-solved toggle is on', async () => {
     mocks.auth.isAuthenticated = true;
     apiMocks.getSolvedIds.mockResolvedValue({ solved: [1], attempted: [] });
-    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
+    render(
+      <ProblemsListClient
+        problems={CATALOG}
+        fetchError={null}
+        locale="en"
+        totalCount={3}
+        hasMore={false}
+      />,
+    );
     const toggle = await screen.findByRole('button', { name: 'Hide solved' });
     fireEvent.click(toggle);
     expect(screen.queryByRole('link', { name: 'Two Sum' })).not.toBeInTheDocument();
@@ -215,11 +327,21 @@ describe('Wave A: tag facet [F4] + solved indicators [F5] + curriculum axis [EDU
   it('renders curriculum grade chips and drills into chapters via the URL', async () => {
     const curriculum = [
       {
-        id: 10, kind: 'GRADE', slug: 'g9', order: 10,
-        name_i18n: { en: 'Grade 9', ro: 'Clasa a IX-a' }, problem_count: 2,
+        id: 10,
+        kind: 'GRADE',
+        slug: 'g9',
+        order: 10,
+        name_i18n: { en: 'Grade 9', ro: 'Clasa a IX-a' },
+        problem_count: 2,
         children: [
-          { id: 11, kind: 'CHAPTER', slug: 'g9-elementary', order: 1,
-            name_i18n: { en: 'Elementary algorithms', ro: 'Algoritmi elementari' }, problem_count: 1 },
+          {
+            id: 11,
+            kind: 'CHAPTER',
+            slug: 'g9-elementary',
+            order: 1,
+            name_i18n: { en: 'Elementary algorithms', ro: 'Algoritmi elementari' },
+            problem_count: 1,
+          },
         ],
       },
     ];
@@ -232,7 +354,7 @@ describe('Wave A: tag facet [F4] + solved indicators [F5] + curriculum axis [EDU
         totalCount={3}
         hasMore={false}
         curriculum={curriculum}
-      />
+      />,
     );
     expect(screen.getByRole('button', { name: /Grade 9/ })).toBeInTheDocument();
     // Chapter chips appear under the active grade.
@@ -240,12 +362,22 @@ describe('Wave A: tag facet [F4] + solved indicators [F5] + curriculum axis [EDU
     fireEvent.click(chapter);
     expect(mocks.replace).toHaveBeenCalledWith(
       expect.stringContaining('curriculum=11'),
-      expect.anything()
+      expect.anything(),
     );
   });
 
   it('links first-run visitors to /start [ONB-1]', () => {
-    render(<ProblemsListClient problems={CATALOG} fetchError={null} locale="en" totalCount={3} hasMore={false} />);
-    expect(screen.getByRole('link', { name: /Start with three classic problems/i })).toHaveAttribute('href', '/start');
+    render(
+      <ProblemsListClient
+        problems={CATALOG}
+        fetchError={null}
+        locale="en"
+        totalCount={3}
+        hasMore={false}
+      />,
+    );
+    expect(
+      screen.getByRole('link', { name: /Start with three classic problems/i }),
+    ).toHaveAttribute('href', '/start');
   });
 });

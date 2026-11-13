@@ -29,7 +29,10 @@ export default function EmptyState({ title, description, icon, action }: EmptySt
       role="status"
     >
       {icon && (
-        <span style={{ fontSize: '1.75rem', lineHeight: 1, color: 'var(--text-tertiary)' }} aria-hidden="true">
+        <span
+          style={{ fontSize: '1.75rem', lineHeight: 1, color: 'var(--text-tertiary)' }}
+          aria-hidden="true"
+        >
           {icon}
         </span>
       )}

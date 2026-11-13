@@ -48,7 +48,12 @@ vi.mock('@/context/AuthContext', () => ({ useAuth: vi.fn() }));
 afterEach(cleanup);
 
 const adminUser: User = { id: 1, username: 'admin', email: 'admin@example.com', role: 'ADMIN' };
-const basicUser: User = { id: 2, username: 'alice', email: 'alice@example.com', role: 'BASIC_USER' };
+const basicUser: User = {
+  id: 2,
+  username: 'alice',
+  email: 'alice@example.com',
+  role: 'BASIC_USER',
+};
 
 type AuthShape = ReturnType<typeof useAuth>;
 
@@ -63,9 +68,15 @@ const authed = (overrides: Partial<AuthShape> = {}): AuthShape => ({
 // The MUI TextField labels are not resolvable via getByLabelText in this MUI
 // version, so the password inputs are addressed by their explicit ids.
 const fillPasswordForm = (current: string, next: string, confirm: string) => {
-  fireEvent.change(document.getElementById('current-password') as HTMLElement, { target: { value: current } });
-  fireEvent.change(document.getElementById('new-password') as HTMLElement, { target: { value: next } });
-  fireEvent.change(document.getElementById('confirm-new-password') as HTMLElement, { target: { value: confirm } });
+  fireEvent.change(document.getElementById('current-password') as HTMLElement, {
+    target: { value: current },
+  });
+  fireEvent.change(document.getElementById('new-password') as HTMLElement, {
+    target: { value: next },
+  });
+  fireEvent.change(document.getElementById('confirm-new-password') as HTMLElement, {
+    target: { value: confirm },
+  });
 };
 
 // The redesigned profile splits content across an 'overview' / 'settings' tab bar
@@ -78,9 +89,7 @@ const openSettings = async () => {
 const submitPasswordForm = () => {
   // Target the PASSWORD form specifically: the settings tab also renders
   // the RO-3 identity form above it, so the first <form> is not it.
-  fireEvent.submit(
-    (document.getElementById('current-password') as HTMLElement).closest('form')!
-  );
+  fireEvent.submit((document.getElementById('current-password') as HTMLElement).closest('form')!);
 };
 
 describe('UserProfilePage (/profile)', () => {
@@ -91,10 +100,20 @@ describe('UserProfilePage (/profile)', () => {
     vi.mocked(AuthService.getMe).mockResolvedValue(adminUser);
     vi.mocked(AuthService.changePassword).mockResolvedValue({});
     statsMock.mockResolvedValue({
-      solved: 5, attempted: 8, total_submissions: 20, acceptance_rate: 0.625,
-      per_difficulty: { EASY: { solved: 4, attempted: 6 }, MEDIUM: { solved: 1, attempted: 2 }, HARD: { solved: 0, attempted: 0 } },
+      solved: 5,
+      attempted: 8,
+      total_submissions: 20,
+      acceptance_rate: 0.625,
+      per_difficulty: {
+        EASY: { solved: 4, attempted: 6 },
+        MEDIUM: { solved: 1, attempted: 2 },
+        HARD: { solved: 0, attempted: 0 },
+      },
       per_language: { python3: 15 },
-      active_dates_90d: [], current_streak: 2, max_streak: 5, total_active_days: 6,
+      active_dates_90d: [],
+      current_streak: 2,
+      max_streak: 5,
+      total_active_days: 6,
       ladder: { points: 7, level: 1, next_level_points: 10, progress: 0.7 },
       badges: ['first_ac', 'streak_7'],
       tag_profile: {
@@ -103,9 +122,16 @@ describe('UserProfilePage (/profile)', () => {
       },
     });
     subsMock.mockResolvedValue({
-      next: null, previous: null,
+      next: null,
+      previous: null,
       results: [
-        { id: 31, problem: { id: 1, title_i18n: { en: 'Two Sum' } }, language: 'python3', verdict: 'AC', submission_time: '2026-10-01T10:00:00Z' },
+        {
+          id: 31,
+          problem: { id: 1, title_i18n: { en: 'Two Sum' } },
+          language: 'python3',
+          verdict: 'AC',
+          submission_time: '2026-10-01T10:00:00Z',
+        },
       ],
     } as never);
   });
@@ -158,11 +184,11 @@ describe('UserProfilePage (/profile)', () => {
     expect(await screen.findByText('admin')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Connect Google' })).toHaveAttribute(
       'href',
-      'http://api.example.com/api/v1/auth/google/login/?process=connect'
+      'http://api.example.com/api/v1/auth/google/login/?process=connect',
     );
     expect(screen.getByRole('link', { name: 'Connect GitHub' })).toHaveAttribute(
       'href',
-      'http://api.example.com/api/v1/auth/github/login/?process=connect'
+      'http://api.example.com/api/v1/auth/github/login/?process=connect',
     );
   });
 
@@ -172,11 +198,11 @@ describe('UserProfilePage (/profile)', () => {
     expect(await screen.findByText('admin')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Connect Google' })).toHaveAttribute(
       'href',
-      'http://localhost:8000/api/v1/auth/google/login/?process=connect'
+      'http://localhost:8000/api/v1/auth/google/login/?process=connect',
     );
     expect(screen.getByRole('link', { name: 'Connect GitHub' })).toHaveAttribute(
       'href',
-      'http://localhost:8000/api/v1/auth/github/login/?process=connect'
+      'http://localhost:8000/api/v1/auth/github/login/?process=connect',
     );
   });
 
@@ -197,7 +223,9 @@ describe('UserProfilePage (/profile)', () => {
     await screen.findByText('admin');
     fillPasswordForm('old', 'newpass1', 'newpass1');
     submitPasswordForm();
-    expect(await screen.findByText('You must be logged in to change your password.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('You must be logged in to change your password.'),
+    ).toBeInTheDocument();
     expect(AuthService.changePassword).not.toHaveBeenCalled();
   });
 
@@ -221,7 +249,9 @@ describe('UserProfilePage (/profile)', () => {
   });
 
   it('surfaces the API error message when the change fails', async () => {
-    vi.mocked(AuthService.changePassword).mockRejectedValue(new Error('Old password is incorrect.'));
+    vi.mocked(AuthService.changePassword).mockRejectedValue(
+      new Error('Old password is incorrect.'),
+    );
     render(<UserProfilePageRoute />);
     await openSettings();
     await screen.findByText('admin');
@@ -256,33 +286,54 @@ describe('UserProfilePage (/profile)', () => {
       () =>
         new Promise((resolve) => {
           resolveChange = resolve;
-        }) as ReturnType<typeof AuthService.changePassword>
+        }) as ReturnType<typeof AuthService.changePassword>,
     );
     render(<UserProfilePageRoute />);
     await openSettings();
     await screen.findByText('admin');
     fillPasswordForm('old', 'newpass1', 'newpass1');
     submitPasswordForm();
-    expect(((document.getElementById('current-password') as HTMLElement).closest('form') as HTMLFormElement).querySelector('button[type="submit"]')).toBeDisabled();
+    expect(
+      (
+        (document.getElementById('current-password') as HTMLElement).closest(
+          'form',
+        ) as HTMLFormElement
+      ).querySelector('button[type="submit"]'),
+    ).toBeDisabled();
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
     await act(async () => {
       resolveChange({});
     });
     await waitFor(() =>
-      expect(((document.getElementById('current-password') as HTMLElement).closest('form') as HTMLFormElement).querySelector('button[type="submit"]')).toBeEnabled()
+      expect(
+        (
+          (document.getElementById('current-password') as HTMLElement).closest(
+            'form',
+          ) as HTMLFormElement
+        ).querySelector('button[type="submit"]'),
+      ).toBeEnabled(),
     );
     expect(await screen.findByText('Password changed successfully.')).toBeInTheDocument();
   });
 });
 
-
 describe('ProfileOverview live statistics [B5/RAT-4/5/6]', () => {
   beforeEach(() => {
     statsMock.mockResolvedValue({
-      solved: 5, attempted: 8, total_submissions: 20, acceptance_rate: 0.625,
-      per_difficulty: { EASY: { solved: 4, attempted: 6 }, MEDIUM: { solved: 1, attempted: 2 }, HARD: { solved: 0, attempted: 0 } },
+      solved: 5,
+      attempted: 8,
+      total_submissions: 20,
+      acceptance_rate: 0.625,
+      per_difficulty: {
+        EASY: { solved: 4, attempted: 6 },
+        MEDIUM: { solved: 1, attempted: 2 },
+        HARD: { solved: 0, attempted: 0 },
+      },
       per_language: { python3: 15 },
-      active_dates_90d: [], current_streak: 2, max_streak: 5, total_active_days: 6,
+      active_dates_90d: [],
+      current_streak: 2,
+      max_streak: 5,
+      total_active_days: 6,
       ladder: { points: 7, level: 1, next_level_points: 10, progress: 0.7 },
       badges: ['first_ac', 'streak_7'],
       tag_profile: {
@@ -291,9 +342,16 @@ describe('ProfileOverview live statistics [B5/RAT-4/5/6]', () => {
       },
     });
     subsMock.mockResolvedValue({
-      next: null, previous: null,
+      next: null,
+      previous: null,
       results: [
-        { id: 31, problem: { id: 1, title_i18n: { en: 'Two Sum' } }, language: 'python3', verdict: 'AC', submission_time: '2026-10-01T10:00:00Z' },
+        {
+          id: 31,
+          problem: { id: 1, title_i18n: { en: 'Two Sum' } },
+          language: 'python3',
+          verdict: 'AC',
+          submission_time: '2026-10-01T10:00:00Z',
+        },
       ],
     } as never);
   });

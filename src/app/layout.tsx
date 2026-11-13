@@ -1,35 +1,36 @@
-import type { Metadata, Viewport } from "next";
-import { getLocale } from "./_lib/public-i18n";
-import { PUBLIC_LOCALES } from "./_lib/public-messages";
-import { localeDirection } from "@/i18n";
-import Providers from "./providers";
-import ExamModeBanner from "@/components/common/ExamModeBanner";
-import "./globals.css";
-import { palette } from "@/theme/tokens";
+import type { Metadata, Viewport } from 'next';
+import { getLocale } from './_lib/public-i18n';
+import { PUBLIC_LOCALES } from './_lib/public-messages';
+import { localeDirection } from '@/i18n';
+import Providers from './providers';
+import ExamModeBanner from '@/components/common/ExamModeBanner';
+import './globals.css';
+import { palette } from '@/theme/tokens';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://webcoder.momentstudio.ro';
 
 export const metadata: Metadata = {
   // OPS-6 (Wave D): the PWA manifest — installable app shell, offline
   // problem browsing via the service worker, app shortcuts.
-  manifest: "/manifest.webmanifest",
-  applicationName: "WebCoder",
+  manifest: '/manifest.webmanifest',
+  applicationName: 'WebCoder',
   // Mobile wave: PNG icons beside the SVG set — Safari's home-screen
   // install (apple-touch-icon) and richer Android install sheets.
   icons: {
-    icon: "/icons/icon.svg",
-    apple: "/icons/apple-touch-icon.png",
+    icon: '/icons/icon.svg',
+    apple: '/icons/apple-touch-icon.png',
   },
   appleWebApp: {
     capable: true,
-    title: "WebCoder",
-    statusBarStyle: "black-translucent",
+    title: 'WebCoder',
+    statusBarStyle: 'black-translucent',
   },
   title: {
-    default: "WebCoder — Competitive Programming Platform",
-    template: "%s | WebCoder",
+    default: 'WebCoder — Competitive Programming Platform',
+    template: '%s | WebCoder',
   },
-  description: "WebCoder is an online judge and competitive programming platform. Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.",
+  description:
+    'WebCoder is an online judge and competitive programming platform. Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.',
   metadataBase: new URL(siteUrl),
   openGraph: {
     type: 'website',
@@ -37,12 +38,14 @@ export const metadata: Metadata = {
     url: siteUrl,
     siteName: 'WebCoder',
     title: 'WebCoder — Competitive Programming Platform',
-    description: 'Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.',
+    description:
+      'Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'WebCoder — Competitive Programming Platform',
-    description: 'Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.',
+    description:
+      'Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.',
   },
   alternates: {
     canonical: siteUrl,
@@ -57,7 +60,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   // Palette token, not a literal — the A2 design-token gate enforces this.
   themeColor: palette.bg,
-  width: "device-width",
+  width: 'device-width',
   initialScale: 1,
 };
 

@@ -168,16 +168,12 @@ const LOCALE_ALIASES: Record<string, Locale> = {
 export function normalizeUiLocale(raw: string | null | undefined): Locale {
   if (!raw) return 'en';
   const lower = raw.toLowerCase();
-  const exact = SUPPORTED_LOCALES.find(
-    (code) => code.toLowerCase() === lower
-  );
+  const exact = SUPPORTED_LOCALES.find((code) => code.toLowerCase() === lower);
   if (exact) return exact;
   const aliased = LOCALE_ALIASES[lower];
   if (aliased) return aliased;
   const prefix = lower.split('-')[0];
-  const prefixExact = SUPPORTED_LOCALES.find(
-    (code) => code.toLowerCase() === prefix
-  );
+  const prefixExact = SUPPORTED_LOCALES.find((code) => code.toLowerCase() === prefix);
   if (prefixExact) return prefixExact;
   if (prefix === 'zh') return 'zh-Hans'; // neutral Chinese → Simplified
   return 'en'; // universal fallback (owner rule (d))
@@ -221,13 +217,11 @@ const CATALOGS: Record<Locale, Catalog> = {
 export function translate(
   locale: Locale,
   key: string,
-  vars?: Record<string, string | number>
+  vars?: Record<string, string | number>,
 ): string {
   const raw = lookup(CATALOGS[locale] ?? {}, key) ?? lookup(CATALOGS.en, key) ?? key;
   if (!vars) return raw;
   return raw.replace(/\{\{(\w+)\}\}/g, (match, name: string) =>
-    Object.prototype.hasOwnProperty.call(vars, name)
-      ? String(vars[name])
-      : match
+    Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name]) : match,
   );
 }

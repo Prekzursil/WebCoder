@@ -97,8 +97,22 @@ const fullProblem = {
   checker_language: 'cpp17',
   tags: [{ id: 3, name_i18n: { en: 'Greedy' }, slug: 'greedy' }],
   test_cases: [
-    { id: 51, input_data: 'in-a', expected_output_data: 'out-a', is_sample: true, points: 5, order: 1 },
-    { id: 51 + 1, input_data: 'in-b', expected_output_data: 'out-b', is_sample: false, points: 15, order: 2 },
+    {
+      id: 51,
+      input_data: 'in-a',
+      expected_output_data: 'out-a',
+      is_sample: true,
+      points: 5,
+      order: 1,
+    },
+    {
+      id: 51 + 1,
+      input_data: 'in-b',
+      expected_output_data: 'out-b',
+      is_sample: false,
+      points: 15,
+      order: 2,
+    },
   ],
 } as unknown as ProblemType;
 
@@ -106,7 +120,12 @@ const fullProblem = {
 // exercises every `?.` / `||` default on the edit-prefill path.
 const sparseProblem = { id: 9, difficulty: '', status: '' } as unknown as ProblemType;
 
-const createdProblem = { id: 42, title_i18n: {}, difficulty: 'EASY', status: 'DRAFT' } as unknown as ProblemType;
+const createdProblem = {
+  id: 42,
+  title_i18n: {},
+  difficulty: 'EASY',
+  status: 'DRAFT',
+} as unknown as ProblemType;
 
 const TAGS: TagType[] = [
   { id: 1, name_i18n: { en: 'DP', ro: 'PD' }, slug: 'dp' },
@@ -118,7 +137,9 @@ function fillRequiredCreateFields() {
   fireEvent.change(screen.getByLabelText('Title (English):'), { target: { value: 'My Title' } });
   fireEvent.change(screen.getByLabelText('Title (Romanian):'), { target: { value: 'Titlul Meu' } });
   fireEvent.change(screen.getByLabelText('Statement (English):'), { target: { value: 'Stmt EN' } });
-  fireEvent.change(screen.getByLabelText('Statement (Romanian):'), { target: { value: 'Enunț RO' } });
+  fireEvent.change(screen.getByLabelText('Statement (Romanian):'), {
+    target: { value: 'Enunț RO' },
+  });
 }
 
 function submitForm() {
@@ -129,7 +150,12 @@ beforeEach(() => {
   vi.clearAllMocks();
   nav.params.mockReturnValue({});
   authState.isAuthenticated = true;
-  authState.user = { id: 7, username: 'creator', email: 'creator@example.com', role: 'PROBLEM_CREATOR' };
+  authState.user = {
+    id: 7,
+    username: 'creator',
+    email: 'creator@example.com',
+    role: 'PROBLEM_CREATOR',
+  };
   api.getTags.mockResolvedValue({ count: 0, next: null, previous: null, results: [] });
   // Registry rows (JDG-9): tests exercise the registry-driven checkboxes +
   // the effective-limit preview against the same shape the API returns.
@@ -137,10 +163,46 @@ beforeEach(() => {
     notice: 'mock',
     count: 3,
     results: [
-      { id: 'python3', name: 'Python 3', compile_command: [], run_command: ['python', 'user_code.py'], time_multiplier: 3, memory_multiplier: 1.5, memory_floor_kb: 0, checker_capable: true },
-      { id: 'cpp17', name: 'C++17', compile_command: ['g++'], run_command: ['./user_program'], time_multiplier: 1, memory_multiplier: 1, memory_floor_kb: 0, checker_capable: true },
-      { id: 'pascal', name: 'Free Pascal', compile_command: ['fpc'], run_command: ['./user_program'], time_multiplier: 1, memory_multiplier: 1, memory_floor_kb: 0, checker_capable: true },
-      { id: 'java11', name: 'Java 11', compile_command: ['javac'], run_command: ['java', 'Main'], time_multiplier: 2, memory_multiplier: 1, memory_floor_kb: 524288, checker_capable: false },
+      {
+        id: 'python3',
+        name: 'Python 3',
+        compile_command: [],
+        run_command: ['python', 'user_code.py'],
+        time_multiplier: 3,
+        memory_multiplier: 1.5,
+        memory_floor_kb: 0,
+        checker_capable: true,
+      },
+      {
+        id: 'cpp17',
+        name: 'C++17',
+        compile_command: ['g++'],
+        run_command: ['./user_program'],
+        time_multiplier: 1,
+        memory_multiplier: 1,
+        memory_floor_kb: 0,
+        checker_capable: true,
+      },
+      {
+        id: 'pascal',
+        name: 'Free Pascal',
+        compile_command: ['fpc'],
+        run_command: ['./user_program'],
+        time_multiplier: 1,
+        memory_multiplier: 1,
+        memory_floor_kb: 0,
+        checker_capable: true,
+      },
+      {
+        id: 'java11',
+        name: 'Java 11',
+        compile_command: ['javac'],
+        run_command: ['java', 'Main'],
+        time_multiplier: 2,
+        memory_multiplier: 1,
+        memory_floor_kb: 524288,
+        checker_capable: false,
+      },
     ],
   });
   api.createProblem.mockResolvedValue(createdProblem);
@@ -159,7 +221,12 @@ afterEach(() => {
 
 describe('ProblemFormPage (create mode)', () => {
   it('renders the create form and loads tags into checkboxes', async () => {
-    api.getTags.mockResolvedValue({ count: TAGS.length, next: null, previous: null, results: TAGS });
+    api.getTags.mockResolvedValue({
+      count: TAGS.length,
+      next: null,
+      previous: null,
+      results: TAGS,
+    });
     render(<ProblemFormPage />);
 
     expect(await screen.findByText('Create New Problem')).toBeInTheDocument();
@@ -176,11 +243,18 @@ describe('ProblemFormPage (create mode)', () => {
     render(<ProblemFormPage />);
 
     expect(await screen.findByText('Create New Problem')).toBeInTheDocument();
-    await waitFor(() => expect(errSpy).toHaveBeenCalledWith('Failed to fetch tags', expect.any(Error)));
+    await waitFor(() =>
+      expect(errSpy).toHaveBeenCalledWith('Failed to fetch tags', expect.any(Error)),
+    );
   });
 
   it('toggles selected tags into the payload', async () => {
-    api.getTags.mockResolvedValue({ count: TAGS.length, next: null, previous: null, results: TAGS });
+    api.getTags.mockResolvedValue({
+      count: TAGS.length,
+      next: null,
+      previous: null,
+      results: TAGS,
+    });
     render(<ProblemFormPage />);
     await screen.findByText('Create New Problem');
 
@@ -191,9 +265,7 @@ describe('ProblemFormPage (create mode)', () => {
     submitForm();
 
     await waitFor(() => expect(api.createProblem).toHaveBeenCalled());
-    expect(api.createProblem).toHaveBeenCalledWith(
-      expect.objectContaining({ tag_ids: [2] })
-    );
+    expect(api.createProblem).toHaveBeenCalledWith(expect.objectContaining({ tag_ids: [2] }));
   });
 
   it('edits configuration fields and flows the sample flag into added test cases', async () => {
@@ -207,7 +279,9 @@ describe('ProblemFormPage (create mode)', () => {
     fireEvent.change(screen.getByLabelText('Status:'), { target: { value: 'PENDING_APPROVAL' } });
     fireEvent.click(screen.getByLabelText('Is Sample?:'));
     fireEvent.change(screen.getByLabelText('Input Data:'), { target: { value: 'samp-in' } });
-    fireEvent.change(screen.getByLabelText('Expected Output Data:'), { target: { value: 'samp-out' } });
+    fireEvent.change(screen.getByLabelText('Expected Output Data:'), {
+      target: { value: 'samp-out' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Add Test Case' }));
 
     expect(await screen.findByText('Test Case 1 (Sample)')).toBeInTheDocument();
@@ -221,10 +295,10 @@ describe('ProblemFormPage (create mode)', () => {
         default_time_limit_ms: 500,
         default_memory_limit_kb: 65536,
         status: 'PENDING_APPROVAL',
-      })
+      }),
     );
     expect(api.createTestCase).toHaveBeenCalledWith(
-      expect.objectContaining({ is_sample: true, input_data: 'samp-in' })
+      expect.objectContaining({ is_sample: true, input_data: 'samp-in' }),
     );
   });
 
@@ -240,7 +314,7 @@ describe('ProblemFormPage (create mode)', () => {
 
     await waitFor(() => expect(api.createProblem).toHaveBeenCalled());
     expect(api.createProblem).toHaveBeenCalledWith(
-      expect.objectContaining({ allowed_languages: ['python3', 'java11'] })
+      expect.objectContaining({ allowed_languages: ['python3', 'java11'] }),
     );
   });
 
@@ -266,7 +340,7 @@ describe('ProblemFormPage (create mode)', () => {
         checker_code: null,
         checker_language: null,
         tag_ids: [],
-      })
+      }),
     );
     expect(await screen.findByText('Problem created successfully!')).toBeInTheDocument();
     expect(nav.push).toHaveBeenCalledWith('/problems/42/edit');
@@ -279,10 +353,14 @@ describe('ProblemFormPage (create mode)', () => {
     await screen.findByText('Create New Problem');
 
     fireEvent.change(screen.getByLabelText('Input Data:'), { target: { value: 'tc-in-1' } });
-    fireEvent.change(screen.getByLabelText('Expected Output Data:'), { target: { value: 'tc-out-1' } });
+    fireEvent.change(screen.getByLabelText('Expected Output Data:'), {
+      target: { value: 'tc-out-1' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Add Test Case' }));
     fireEvent.change(screen.getByLabelText('Input Data:'), { target: { value: 'tc-in-2' } });
-    fireEvent.change(screen.getByLabelText('Expected Output Data:'), { target: { value: 'tc-out-2' } });
+    fireEvent.change(screen.getByLabelText('Expected Output Data:'), {
+      target: { value: 'tc-out-2' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Add Test Case' }));
 
     expect(await screen.findByText('Test Case 1')).toBeInTheDocument();
@@ -294,11 +372,11 @@ describe('ProblemFormPage (create mode)', () => {
     await waitFor(() => expect(api.createTestCase).toHaveBeenCalledTimes(2));
     expect(api.createTestCase).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ input_data: 'tc-in-1', problem: 42 })
+      expect.objectContaining({ input_data: 'tc-in-1', problem: 42 }),
     );
     expect(api.createTestCase).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ input_data: 'tc-in-2', problem: 42 })
+      expect.objectContaining({ input_data: 'tc-in-2', problem: 42 }),
     );
     expect(nav.push).toHaveBeenCalledWith('/problems/42/edit');
   });
@@ -319,7 +397,10 @@ describe('ProblemFormPage (create mode)', () => {
     submitForm();
 
     await waitFor(() => expect(nav.push).toHaveBeenCalledWith('/problems/42/edit'));
-    expect(errSpy).toHaveBeenCalledWith('Failed to save a test case for new problem:', expect.any(Error));
+    expect(errSpy).toHaveBeenCalledWith(
+      'Failed to save a test case for new problem:',
+      expect.any(Error),
+    );
     expect(await screen.findByText('Problem created successfully!')).toBeInTheDocument();
   });
 
@@ -369,7 +450,10 @@ describe('ProblemFormPage (create mode)', () => {
   it('disables the submit button while saving and re-enables after', async () => {
     let resolveCreate!: (v: ProblemType) => void;
     api.createProblem.mockImplementation(
-      () => new Promise<ProblemType>((res) => { resolveCreate = res; })
+      () =>
+        new Promise<ProblemType>((res) => {
+          resolveCreate = res;
+        }),
     );
     render(<ProblemFormPage />);
     await screen.findByText('Create New Problem');
@@ -381,7 +465,9 @@ describe('ProblemFormPage (create mode)', () => {
     await waitFor(() => expect(button).toBeDisabled());
     expect(api.createProblem).toHaveBeenCalledTimes(1);
 
-    await act(async () => { resolveCreate(createdProblem); });
+    await act(async () => {
+      resolveCreate(createdProblem);
+    });
     await waitFor(() => expect(button).toBeEnabled());
   });
 });
@@ -425,9 +511,7 @@ describe('ProblemFormPage interactive problems (JDG-2)', () => {
 
     // Client-side mirror of the backend cross-field rule.
     await waitFor(() =>
-      expect(
-        screen.getByText(/Interactive problems require interactor code/i)
-      ).toBeInTheDocument()
+      expect(screen.getByText(/Interactive problems require interactor code/i)).toBeInTheDocument(),
     );
     expect(api.createProblem).not.toHaveBeenCalled();
   });
@@ -465,29 +549,51 @@ describe('ProblemFormPage (edit mode)', () => {
   it('shows the spinner while the problem loads, then renders the prefilled form', async () => {
     let resolveDetail!: (v: ProblemType) => void;
     api.getProblemDetail.mockImplementation(
-      () => new Promise<ProblemType>((res) => { resolveDetail = res; })
+      () =>
+        new Promise<ProblemType>((res) => {
+          resolveDetail = res;
+        }),
     );
     // Tag checkboxes render from getTags(); problem.tags only preselects ids.
-    api.getTags.mockResolvedValue({ count: 1, next: null, previous: null, results: [{ id: 3, name_i18n: { en: 'Greedy' }, slug: 'greedy' }] });
+    api.getTags.mockResolvedValue({
+      count: 1,
+      next: null,
+      previous: null,
+      results: [{ id: 3, name_i18n: { en: 'Greedy' }, slug: 'greedy' }],
+    });
     render(<ProblemFormPage />);
 
     expect(screen.getByText('Loading...')).toBeInTheDocument();
-    await act(async () => { resolveDetail(fullProblem); });
+    await act(async () => {
+      resolveDetail(fullProblem);
+    });
 
     expect(await screen.findByText('Edit Problem')).toBeInTheDocument();
-    expect((screen.getByLabelText('Title (English):') as HTMLInputElement).value).toBe('Full Problem');
-    expect((screen.getByLabelText('Title (Romanian):') as HTMLInputElement).value).toBe('Problema Completă');
-    expect((screen.getByLabelText('Statement (English):') as HTMLTextAreaElement).value).toBe('Statement EN');
-    expect((screen.getByLabelText('Statement (Romanian):') as HTMLTextAreaElement).value).toBe('Enunț RO');
+    expect((screen.getByLabelText('Title (English):') as HTMLInputElement).value).toBe(
+      'Full Problem',
+    );
+    expect((screen.getByLabelText('Title (Romanian):') as HTMLInputElement).value).toBe(
+      'Problema Completă',
+    );
+    expect((screen.getByLabelText('Statement (English):') as HTMLTextAreaElement).value).toBe(
+      'Statement EN',
+    );
+    expect((screen.getByLabelText('Statement (Romanian):') as HTMLTextAreaElement).value).toBe(
+      'Enunț RO',
+    );
     expect((screen.getByLabelText('Difficulty:') as HTMLSelectElement).value).toBe('HARD');
     expect((screen.getByLabelText('Time Limit (ms):') as HTMLInputElement).value).toBe('2000');
     expect((screen.getByLabelText('Memory Limit (KB):') as HTMLInputElement).value).toBe('131072');
     expect((screen.getByLabelText('Status:') as HTMLSelectElement).value).toBe('PRIVATE');
-    expect((screen.getByLabelText('Comparison Mode:') as HTMLSelectElement).value).toBe('CUSTOM_CHECKER');
+    expect((screen.getByLabelText('Comparison Mode:') as HTMLSelectElement).value).toBe(
+      'CUSTOM_CHECKER',
+    );
     expect((screen.getByLabelText(/Java 11/) as HTMLInputElement).checked).toBe(true);
     expect((screen.getByLabelText(/Python 3/) as HTMLInputElement).checked).toBe(false);
     expect((screen.getByLabelText('Greedy') as HTMLInputElement).checked).toBe(true);
-    expect((screen.getByLabelText(/checker code/i) as HTMLTextAreaElement).value).toBe('print("chk")');
+    expect((screen.getByLabelText(/checker code/i) as HTMLTextAreaElement).value).toBe(
+      'print("chk")',
+    );
 
     // Prefetched test cases render with the sample marker on the first one.
     expect(screen.getByText('Test Case 1 (Sample)')).toBeInTheDocument();
@@ -511,7 +617,9 @@ describe('ProblemFormPage (edit mode)', () => {
     expect((screen.getByLabelText('Status:') as HTMLSelectElement).value).toBe('DRAFT');
     expect((screen.getByLabelText(/Python 3/) as HTMLInputElement).checked).toBe(true);
     expect((screen.getByLabelText(/C\+\+17/) as HTMLInputElement).checked).toBe(true);
-    expect((screen.getByLabelText('Comparison Mode:') as HTMLSelectElement).value).toBe('LINES_STRIP_EXACT');
+    expect((screen.getByLabelText('Comparison Mode:') as HTMLSelectElement).value).toBe(
+      'LINES_STRIP_EXACT',
+    );
     expect(screen.queryByText(/Test Case \d/)).not.toBeInTheDocument();
   });
 
@@ -526,8 +634,12 @@ describe('ProblemFormPage (edit mode)', () => {
 
     expect(await screen.findByText('Edit Problem')).toBeInTheDocument();
     expect((screen.getByLabelText('Problem Type:') as HTMLSelectElement).value).toBe('INTERACTIVE');
-    expect((screen.getByLabelText('Interactor Language:') as HTMLSelectElement).value).toBe('python3');
-    expect((screen.getByLabelText('Interactor Code:') as HTMLTextAreaElement).value).toContain('sys.exit(0)');
+    expect((screen.getByLabelText('Interactor Language:') as HTMLSelectElement).value).toBe(
+      'python3',
+    );
+    expect((screen.getByLabelText('Interactor Code:') as HTMLTextAreaElement).value).toContain(
+      'sys.exit(0)',
+    );
 
     fireEvent.submit(screen.getByRole('button', { name: 'Save Changes' }).closest('form')!);
     await waitFor(() => expect(api.updateProblem).toHaveBeenCalledTimes(1));
@@ -570,7 +682,7 @@ describe('ProblemFormPage (edit mode)', () => {
         checker_code: 'print("chk")',
         checker_language: 'cpp17',
         float_comparison_epsilon: null,
-      })
+      }),
     );
     expect(await screen.findByText('Problem updated successfully!')).toBeInTheDocument();
     expect(api.createProblem).not.toHaveBeenCalled();
@@ -588,17 +700,31 @@ describe('ProblemFormPage (edit mode)', () => {
   });
 
   it('persists an added test case immediately and resets the input form', async () => {
-    api.createTestCase.mockResolvedValue({ id: 77, input_data: 'new-in', expected_output_data: 'new-out', is_sample: false, points: 10, order: 3 });
+    api.createTestCase.mockResolvedValue({
+      id: 77,
+      input_data: 'new-in',
+      expected_output_data: 'new-out',
+      is_sample: false,
+      points: 10,
+      order: 3,
+    });
     render(<ProblemFormPage />);
     await screen.findByText('Edit Problem');
 
     fireEvent.change(screen.getByLabelText('Input Data:'), { target: { value: 'new-in' } });
-    fireEvent.change(screen.getByLabelText('Expected Output Data:'), { target: { value: 'new-out' } });
+    fireEvent.change(screen.getByLabelText('Expected Output Data:'), {
+      target: { value: 'new-out' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Add Test Case' }));
 
     await waitFor(() => expect(api.createTestCase).toHaveBeenCalledTimes(1));
     expect(api.createTestCase).toHaveBeenCalledWith(
-      expect.objectContaining({ problem: 12, input_data: 'new-in', expected_output_data: 'new-out', order: 3 })
+      expect.objectContaining({
+        problem: 12,
+        input_data: 'new-in',
+        expected_output_data: 'new-out',
+        order: 3,
+      }),
     );
     expect(await screen.findByText('Test case added successfully!')).toBeInTheDocument();
     expect((screen.getByLabelText('Input Data:') as HTMLTextAreaElement).value).toBe('');
@@ -610,7 +736,9 @@ describe('ProblemFormPage (edit mode)', () => {
     await screen.findByText('Edit Problem');
 
     fireEvent.change(screen.getByLabelText('Input Data:'), { target: { value: 'kept-in' } });
-    fireEvent.change(screen.getByLabelText('Expected Output Data:'), { target: { value: 'kept-out' } });
+    fireEvent.change(screen.getByLabelText('Expected Output Data:'), {
+      target: { value: 'kept-out' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Add Test Case' }));
 
     expect(await screen.findByText('tc persist fail')).toBeInTheDocument();
@@ -664,7 +792,9 @@ describe('ProblemFormPage (test case input validation and auth)', () => {
     fireEvent.change(screen.getByLabelText('Input Data:'), { target: { value: 'only-input' } });
     fireEvent.click(screen.getByRole('button', { name: 'Add Test Case' }));
 
-    await waitFor(() => expect(toasts.error).toHaveBeenCalledWith('Test case input and output cannot be empty.'));
+    await waitFor(() =>
+      expect(toasts.error).toHaveBeenCalledWith('Test case input and output cannot be empty.'),
+    );
     expect(screen.queryByText(/Test Case \d/)).not.toBeInTheDocument();
   });
 
@@ -704,7 +834,9 @@ describe('ProblemFormPage (test case input validation and auth)', () => {
     await screen.findByText('Create New Problem');
 
     fireEvent.change(screen.getByLabelText('Input Data:'), { target: { value: 'local-in' } });
-    fireEvent.change(screen.getByLabelText('Expected Output Data:'), { target: { value: 'local-out' } });
+    fireEvent.change(screen.getByLabelText('Expected Output Data:'), {
+      target: { value: 'local-out' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Add Test Case' }));
     await screen.findByText('Test Case 1');
 
@@ -718,7 +850,12 @@ describe('ProblemFormPage (test case input validation and auth)', () => {
 
     // Session restored: local removal proceeds without an API call.
     authState.isAuthenticated = true;
-    authState.user = { id: 7, username: 'creator', email: 'creator@example.com', role: 'PROBLEM_CREATOR' };
+    authState.user = {
+      id: 7,
+      username: 'creator',
+      email: 'creator@example.com',
+      role: 'PROBLEM_CREATOR',
+    };
     fireEvent.click(screen.getByRole('button', { name: 'Remove' }));
     await waitFor(() => expect(screen.queryByText('local-in')).not.toBeInTheDocument());
     expect(api.deleteTestCase).not.toHaveBeenCalled();
@@ -732,7 +869,9 @@ describe('ProblemFormPage (advanced configuration branches)', () => {
     await screen.findByText('Create New Problem');
 
     expect(screen.queryByLabelText(/epsilon/i)).not.toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('Comparison Mode:'), { target: { value: 'FLOAT_PRECISE' } });
+    fireEvent.change(screen.getByLabelText('Comparison Mode:'), {
+      target: { value: 'FLOAT_PRECISE' },
+    });
 
     const epsilon = await screen.findByLabelText(/epsilon/i);
     expect(epsilon).toBeInTheDocument();
@@ -742,7 +881,9 @@ describe('ProblemFormPage (advanced configuration branches)', () => {
     submitForm();
 
     await waitFor(() => expect(api.createProblem).toHaveBeenCalled());
-    expect(api.createProblem).toHaveBeenCalledWith(expect.objectContaining({ float_comparison_epsilon: 0.25 }));
+    expect(api.createProblem).toHaveBeenCalledWith(
+      expect.objectContaining({ float_comparison_epsilon: 0.25 }),
+    );
   });
 
   it('sends a null epsilon when the field is cleared', async () => {
@@ -750,14 +891,18 @@ describe('ProblemFormPage (advanced configuration branches)', () => {
     render(<ProblemFormPage />);
     await screen.findByText('Create New Problem');
 
-    fireEvent.change(screen.getByLabelText('Comparison Mode:'), { target: { value: 'FLOAT_PRECISE' } });
+    fireEvent.change(screen.getByLabelText('Comparison Mode:'), {
+      target: { value: 'FLOAT_PRECISE' },
+    });
     const epsilon = await screen.findByLabelText(/epsilon/i);
     fireEvent.change(epsilon, { target: { value: '' } });
     fillRequiredCreateFields();
     submitForm();
 
     await waitFor(() => expect(api.createProblem).toHaveBeenCalled());
-    expect(api.createProblem).toHaveBeenCalledWith(expect.objectContaining({ float_comparison_epsilon: null }));
+    expect(api.createProblem).toHaveBeenCalledWith(
+      expect.objectContaining({ float_comparison_epsilon: null }),
+    );
   });
 
   it('prefills a null epsilon as an empty field', async () => {
@@ -782,17 +927,21 @@ describe('ProblemFormPage (advanced configuration branches)', () => {
     await screen.findByText('Create New Problem');
 
     expect(screen.queryByLabelText(/checker code/i)).not.toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('Comparison Mode:'), { target: { value: 'CUSTOM_CHECKER' } });
+    fireEvent.change(screen.getByLabelText('Comparison Mode:'), {
+      target: { value: 'CUSTOM_CHECKER' },
+    });
 
     expect(await screen.findByLabelText(/checker code/i)).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText(/checker language/i), { target: { value: 'python3' } });
-    fireEvent.change(screen.getByLabelText(/checker code/i), { target: { value: 'def check(): pass' } });
+    fireEvent.change(screen.getByLabelText(/checker code/i), {
+      target: { value: 'def check(): pass' },
+    });
     fillRequiredCreateFields();
     submitForm();
 
     await waitFor(() => expect(api.createProblem).toHaveBeenCalled());
     expect(api.createProblem).toHaveBeenCalledWith(
-      expect.objectContaining({ checker_code: 'def check(): pass', checker_language: 'python3' })
+      expect.objectContaining({ checker_code: 'def check(): pass', checker_language: 'python3' }),
     );
 
     // Clearing both sends nulls (the `|| null` onChange branches).
@@ -801,11 +950,10 @@ describe('ProblemFormPage (advanced configuration branches)', () => {
     submitForm();
     await waitFor(() => expect(api.createProblem).toHaveBeenCalledTimes(2));
     expect(api.createProblem).toHaveBeenLastCalledWith(
-      expect.objectContaining({ checker_code: null, checker_language: null })
+      expect.objectContaining({ checker_code: null, checker_language: null }),
     );
   });
 });
-
 
 describe('ProblemFormPage (language fairness + io mode)', () => {
   it('renders registry language names from /public/languages/', async () => {
@@ -842,14 +990,17 @@ describe('ProblemFormPage (language fairness + io mode)', () => {
   });
 });
 
-
 describe('ProblemFormPage (library & feature policy)', () => {
   it('submits an assembled library_policy from the CSV fields', async () => {
     render(<ProblemFormPage />);
     await screen.findByLabelText(/Free Pascal/);
-    fireEvent.change(screen.getByLabelText(/banned stdlib modules/i), { target: { value: 're, itertools' } });
+    fireEvent.change(screen.getByLabelText(/banned stdlib modules/i), {
+      target: { value: 're, itertools' },
+    });
     fireEvent.change(screen.getByLabelText(/banned libraries/i), { target: { value: 'numpy' } });
-    fireEvent.change(screen.getByLabelText(/banned headers or prefixes/i), { target: { value: 'boost' } });
+    fireEvent.change(screen.getByLabelText(/banned headers or prefixes/i), {
+      target: { value: 'boost' },
+    });
     fireEvent.click(screen.getByLabelText(/Ban treating the input as a string/i));
     fireEvent.submit(screen.getByRole('button', { name: 'Create Problem' }).closest('form')!);
     await waitFor(() => expect(api.createProblem).toHaveBeenCalled());
@@ -874,17 +1025,17 @@ describe('ProblemFormPage (library & feature policy)', () => {
   it('trims and drops empty CSV entries', async () => {
     render(<ProblemFormPage />);
     await screen.findByLabelText(/Free Pascal/);
-    fireEvent.change(screen.getByLabelText(/banned stdlib modules/i), { target: { value: ' re , , itertools ' } });
+    fireEvent.change(screen.getByLabelText(/banned stdlib modules/i), {
+      target: { value: ' re , , itertools ' },
+    });
     fireEvent.submit(screen.getByRole('button', { name: 'Create Problem' }).closest('form')!);
     await waitFor(() => expect(api.createProblem).toHaveBeenCalled());
     const payload = api.createProblem.mock.calls[0][0] as Record<string, unknown>;
-    expect((payload.library_policy as Record<string, { banned_stdlib: string[] }>).python3.banned_stdlib).toEqual([
-      're',
-      'itertools',
-    ]);
+    expect(
+      (payload.library_policy as Record<string, { banned_stdlib: string[] }>).python3.banned_stdlib,
+    ).toEqual(['re', 'itertools']);
   });
 });
-
 
 describe('ProblemFormPage (block programming)', () => {
   it('submits block_config when block mode is on', async () => {
@@ -912,7 +1063,9 @@ describe('ProblemFormPage (block programming)', () => {
     await screen.findByLabelText(/Free Pascal/);
     fireEvent.click(screen.getByLabelText(/Block programming/i));
     fireEvent.change(screen.getByLabelText(/Block generator/i), { target: { value: 'nodejs20' } });
-    fireEvent.change(screen.getByLabelText(/Starter workspace XML/i), { target: { value: '<xml></xml>' } });
+    fireEvent.change(screen.getByLabelText(/Starter workspace XML/i), {
+      target: { value: '<xml></xml>' },
+    });
     fireEvent.submit(screen.getByRole('button', { name: 'Create Problem' }).closest('form')!);
     await waitFor(() => expect(api.createProblem).toHaveBeenCalled());
     const payload = api.createProblem.mock.calls[0][0] as Record<string, unknown>;
@@ -941,14 +1094,15 @@ describe('ProblemFormPage (block programming)', () => {
   });
 });
 
-
 describe('ProblemFormPage (partial-code template)', () => {
   it('submits code_template and its language when set', async () => {
     render(<ProblemFormPage />);
     await screen.findByLabelText(/Free Pascal/);
     fireEvent.change(screen.getByLabelText(/Partial-code template/i), {
       target: {
-        value: ['#include <cstdio>', '// WC_EDIT_START', '// WC_EDIT_END', ''].join(String.fromCharCode(10)),
+        value: ['#include <cstdio>', '// WC_EDIT_START', '// WC_EDIT_END', ''].join(
+          String.fromCharCode(10),
+        ),
       },
     });
     fireEvent.change(screen.getByLabelText(/Template language/i), { target: { value: 'cpp17' } });

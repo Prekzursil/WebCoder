@@ -33,7 +33,7 @@ function renderWithProvider() {
   return render(
     <AuthProvider>
       <Probe />
-    </AuthProvider>
+    </AuthProvider>,
   );
 }
 

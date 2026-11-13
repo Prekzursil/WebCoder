@@ -51,7 +51,12 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
-const mkUser = (role: User['role']): User => ({ id: 1, username: 'tester', email: 't@example.com', role });
+const mkUser = (role: User['role']): User => ({
+  id: 1,
+  username: 'tester',
+  email: 't@example.com',
+  role,
+});
 
 function setAuth(authenticated: boolean, user: User | null = null) {
   mocks.auth.isAuthenticated = authenticated;
@@ -117,9 +122,18 @@ describe('avatar dropdown link matrix by role [A8]', () => {
     setAuth(true, mkUser('BASIC_USER'));
     render(<Navbar />);
     const menu = openUserMenu();
-    expect(within(menu).getByRole('menuitem', { name: 'Profile' })).toHaveAttribute('href', '/profile');
-    expect(within(menu).getByRole('menuitem', { name: 'My Submissions' })).toHaveAttribute('href', '/my-submissions');
-    expect(within(menu).getByRole('menuitem', { name: 'History' })).toHaveAttribute('href', '/submission-history');
+    expect(within(menu).getByRole('menuitem', { name: 'Profile' })).toHaveAttribute(
+      'href',
+      '/profile',
+    );
+    expect(within(menu).getByRole('menuitem', { name: 'My Submissions' })).toHaveAttribute(
+      'href',
+      '/my-submissions',
+    );
+    expect(within(menu).getByRole('menuitem', { name: 'History' })).toHaveAttribute(
+      'href',
+      '/submission-history',
+    );
     expect(within(menu).queryByText('Create Problem')).not.toBeInTheDocument();
     expect(within(menu).queryByText('Verification Queue')).not.toBeInTheDocument();
     expect(within(menu).queryByText('Admin Dashboard')).not.toBeInTheDocument();
@@ -131,15 +145,23 @@ describe('avatar dropdown link matrix by role [A8]', () => {
     render(<Navbar />);
     expect(screen.getAllByText('User').length).toBeGreaterThan(0);
     const menu = openUserMenu();
-    expect(within(menu).queryByRole('menuitem', { name: 'Create Problem' })).not.toBeInTheDocument();
+    expect(
+      within(menu).queryByRole('menuitem', { name: 'Create Problem' }),
+    ).not.toBeInTheDocument();
   });
 
   it('adds the contributor group for PROBLEM_CREATOR', () => {
     setAuth(true, mkUser('PROBLEM_CREATOR'));
     render(<Navbar />);
     const menu = openUserMenu();
-    expect(within(menu).getByRole('menuitem', { name: 'Create Problem' })).toHaveAttribute('href', '/problems/create');
-    expect(within(menu).getByRole('menuitem', { name: 'My Problems' })).toHaveAttribute('href', '/my-created-problems');
+    expect(within(menu).getByRole('menuitem', { name: 'Create Problem' })).toHaveAttribute(
+      'href',
+      '/problems/create',
+    );
+    expect(within(menu).getByRole('menuitem', { name: 'My Problems' })).toHaveAttribute(
+      'href',
+      '/my-created-problems',
+    );
     expect(within(menu).queryByText('Verification Queue')).not.toBeInTheDocument();
     expect(within(menu).queryByText('Admin Dashboard')).not.toBeInTheDocument();
   });
@@ -150,7 +172,10 @@ describe('avatar dropdown link matrix by role [A8]', () => {
     const menu = openUserMenu();
     expect(within(menu).getByRole('menuitem', { name: 'Create Problem' })).toBeInTheDocument();
     expect(within(menu).getByRole('menuitem', { name: 'My Problems' })).toBeInTheDocument();
-    expect(within(menu).getByRole('menuitem', { name: 'Verification Queue' })).toHaveAttribute('href', '/admin/problem-queue');
+    expect(within(menu).getByRole('menuitem', { name: 'Verification Queue' })).toHaveAttribute(
+      'href',
+      '/admin/problem-queue',
+    );
     expect(within(menu).queryByText('Admin Dashboard')).not.toBeInTheDocument();
   });
 
@@ -161,7 +186,10 @@ describe('avatar dropdown link matrix by role [A8]', () => {
     expect(within(menu).getByRole('menuitem', { name: 'Create Problem' })).toBeInTheDocument();
     expect(within(menu).getByRole('menuitem', { name: 'My Problems' })).toBeInTheDocument();
     expect(within(menu).getByRole('menuitem', { name: 'Verification Queue' })).toBeInTheDocument();
-    expect(within(menu).getByRole('menuitem', { name: 'Admin Dashboard' })).toHaveAttribute('href', '/admin/dashboard');
+    expect(within(menu).getByRole('menuitem', { name: 'Admin Dashboard' })).toHaveAttribute(
+      'href',
+      '/admin/dashboard',
+    );
   });
 
   it('closes the menu on Escape', () => {

@@ -82,11 +82,7 @@ export function Txt({
   style?: StyleProp<TextStyle>;
   color?: string;
 }) {
-  return (
-    <Text style={[TXT_STYLES[variant], color ? { color } : null, style]}>
-      {children}
-    </Text>
-  );
+  return <Text style={[TXT_STYLES[variant], color ? { color } : null, style]}>{children}</Text>;
 }
 
 export function Button({
@@ -116,9 +112,7 @@ export function Button({
         variant !== 'primary' && { borderWidth: 1, borderColor: palette_.fg },
       ]}
     >
-      <Text style={{ color: palette_.fg, fontWeight: '700', fontSize: font.body }}>
-        {title}
-      </Text>
+      <Text style={{ color: palette_.fg, fontWeight: '700', fontSize: font.body }}>{title}</Text>
     </Pressable>
   );
 }
@@ -133,20 +127,9 @@ export function Field(props: TextInputProps) {
   );
 }
 
-export function Pill({
-  label,
-  color,
-}: {
-  label: string;
-  color?: string;
-}) {
+export function Pill({ label, color }: { label: string; color?: string }) {
   return (
-    <View
-      style={[
-        styles.pill,
-        { borderColor: (color ?? palette.violet) + '66' },
-      ]}
-    >
+    <View style={[styles.pill, { borderColor: (color ?? palette.violet) + '66' }]}>
       <Text
         style={{
           color: color ?? palette.violet,

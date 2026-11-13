@@ -31,7 +31,7 @@ export default function ContestDetail() {
     ContestService.getContest(id)
       .then(setContest)
       .catch((err: unknown) =>
-        setError(err instanceof Error ? err.message : t('contest_load_error'))
+        setError(err instanceof Error ? err.message : t('contest_load_error')),
       );
   }, [id, t]);
 
@@ -66,13 +66,8 @@ export default function ContestDetail() {
   return (
     <Screen>
       <Card>
-        <Txt variant="title">
-          {resolveLocalized(contest.title_i18n, locale).text}
-        </Txt>
-        <KeyValue
-          label={t('time_label')}
-          value={`${contest.start_at} → ${contest.end_at}`}
-        />
+        <Txt variant="title">{resolveLocalized(contest.title_i18n, locale).text}</Txt>
+        <KeyValue label={t('time_label')} value={`${contest.start_at} → ${contest.end_at}`} />
         <KeyValue
           label={t('contest_participants_count', { count: contest.participant_count })}
           value={String(contest.participant_count)}
@@ -87,9 +82,7 @@ export default function ContestDetail() {
           {contest.contest_problems.map((row) => (
             <View key={row.id} style={{ paddingVertical: space[1] }}>
               <Txt variant="body">
-                {row.label}.{' '}
-                {resolveLocalized(row.problem_title, locale).text} (
-                {row.points})
+                {row.label}. {resolveLocalized(row.problem_title, locale).text} ({row.points})
               </Txt>
             </View>
           ))}

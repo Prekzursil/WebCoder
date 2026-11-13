@@ -15,9 +15,7 @@ vi.mock('@/services/ApiService', () => ({
 const mocks = vi.hoisted(() => ({
   auth: {
     isAuthenticated: true,
-    user: { id: 10, username: 'alice', email: 'a@x.com', role: 'BASIC' } as
-      | User
-      | null,
+    user: { id: 10, username: 'alice', email: 'a@x.com', role: 'BASIC' } as User | null,
     login: vi.fn(),
     logout: vi.fn(),
   },

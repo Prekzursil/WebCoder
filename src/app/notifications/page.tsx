@@ -25,13 +25,46 @@ type DisplayType = 'reply' | 'verdict' | 'approved' | 'rejected' | 'message' | '
 
 // [Q2] labels are translated at render time via useTranslation — the map
 // keeps icon/color per display type plus a t-friendly label key.
-const TYPE_META: Record<DisplayType, { icon: string; color: string; labelKey: string; fallback: string }> = {
-  reply: { icon: '💬', color: palette.accent, labelKey: 'notification_type_reply', fallback: 'Reply' },
-  verdict: { icon: '⚡', color: palette.warn, labelKey: 'notification_type_verdict', fallback: 'Verdict' },
-  approved: { icon: '✓', color: palette.success, labelKey: 'notification_type_approved', fallback: 'Approved' },
-  rejected: { icon: '✕', color: palette.danger, labelKey: 'notification_type_rejected', fallback: 'Rejected' },
-  message: { icon: '✉️', color: palette.accent, labelKey: 'notification_type_message', fallback: 'Message' },
-  system: { icon: '🔔', color: palette.muted, labelKey: 'notification_type_system', fallback: 'System' },
+const TYPE_META: Record<
+  DisplayType,
+  { icon: string; color: string; labelKey: string; fallback: string }
+> = {
+  reply: {
+    icon: '💬',
+    color: palette.accent,
+    labelKey: 'notification_type_reply',
+    fallback: 'Reply',
+  },
+  verdict: {
+    icon: '⚡',
+    color: palette.warn,
+    labelKey: 'notification_type_verdict',
+    fallback: 'Verdict',
+  },
+  approved: {
+    icon: '✓',
+    color: palette.success,
+    labelKey: 'notification_type_approved',
+    fallback: 'Approved',
+  },
+  rejected: {
+    icon: '✕',
+    color: palette.danger,
+    labelKey: 'notification_type_rejected',
+    fallback: 'Rejected',
+  },
+  message: {
+    icon: '✉️',
+    color: palette.accent,
+    labelKey: 'notification_type_message',
+    fallback: 'Message',
+  },
+  system: {
+    icon: '🔔',
+    color: palette.muted,
+    labelKey: 'notification_type_system',
+    fallback: 'System',
+  },
 };
 
 const VERB_TO_TYPE: Record<NotificationVerb, DisplayType> = {
@@ -80,7 +113,10 @@ function targetHref(n: ApiNotification): string | null {
 }
 
 /** Derive title/body from verb + data payload (backend emissions). [Q2] localized. */
-function describe(n: ApiNotification, t: ReturnType<typeof useTranslation>['t']): { title: string; body: string } {
+function describe(
+  n: ApiNotification,
+  t: ReturnType<typeof useTranslation>['t'],
+): { title: string; body: string } {
   const who = n.actor ?? t('notification_someone', 'Someone');
   switch (n.verb) {
     case 'THREAD_REPLY': {
@@ -88,7 +124,9 @@ function describe(n: ApiNotification, t: ReturnType<typeof useTranslation>['t'])
       return {
         title: `${t('notification_reply_title', '{{who}} replied to your thread', { who })}${title ? ` "${title}"` : ''}`,
         body: str(n, 'post_id')
-          ? t('notification_reply_numbered_body', 'Reply #{{id}} in your thread.', { id: str(n, 'post_id') as string })
+          ? t('notification_reply_numbered_body', 'Reply #{{id}} in your thread.', {
+              id: str(n, 'post_id') as string,
+            })
           : t('notification_reply_body', 'New reply in your thread.'),
       };
     }
@@ -106,10 +144,14 @@ function describe(n: ApiNotification, t: ReturnType<typeof useTranslation>['t'])
       }
       return {
         title: t('notification_judged_title', 'Submission {{verdict}}', { verdict }),
-        body: t('notification_judged_body', 'Your submission{{submission}} was judged {{verdict}}.', {
-          submission,
-          verdict,
-        }),
+        body: t(
+          'notification_judged_body',
+          'Your submission{{submission}} was judged {{verdict}}.',
+          {
+            submission,
+            verdict,
+          },
+        ),
       };
     }
     case 'PROBLEM_APPROVED':
@@ -135,7 +177,10 @@ function describe(n: ApiNotification, t: ReturnType<typeof useTranslation>['t'])
     }
     case 'SYSTEM':
     default:
-      return { title: t('notification_system_title', 'System notification'), body: str(n, 'message') ?? '' };
+      return {
+        title: t('notification_system_title', 'System notification'),
+        body: str(n, 'message') ?? '',
+      };
   }
 }
 
@@ -161,12 +206,16 @@ export default function NotificationsPage() {
         setNotifications(response.results);
         setNextCursor(cursorParamFromUrl(response.next));
       } catch (err) {
-        setError(err instanceof Error && err.message ? err.message : t('notifications_load_error', 'Failed to load notifications.'));
+        setError(
+          err instanceof Error && err.message
+            ? err.message
+            : t('notifications_load_error', 'Failed to load notifications.'),
+        );
       } finally {
         setLoading(false);
       }
     },
-    [t]
+    [t],
   );
 
   useEffect(() => {
@@ -194,7 +243,11 @@ export default function NotificationsPage() {
       });
       setNextCursor(cursorParamFromUrl(response.next));
     } catch (err) {
-      setError(err instanceof Error && err.message ? err.message : t('notifications_load_more_error', 'Failed to load more notifications.'));
+      setError(
+        err instanceof Error && err.message
+          ? err.message
+          : t('notifications_load_more_error', 'Failed to load more notifications.'),
+      );
     } finally {
       setLoadingMore(false);
     }
@@ -202,7 +255,9 @@ export default function NotificationsPage() {
 
   const markRead = async (id: number) => {
     // Optimistic update; server value wins when the call resolves.
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read_at: new Date().toISOString() } : n)));
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read_at: new Date().toISOString() } : n)),
+    );
     try {
       const updated = await NotificationService.markRead(id);
       setNotifications((prev) => prev.map((n) => (n.id === id ? updated : n)));
@@ -214,9 +269,15 @@ export default function NotificationsPage() {
   const markAllRead = async () => {
     try {
       await NotificationService.markAllRead();
-      setNotifications((prev) => prev.map((n) => ({ ...n, read_at: n.read_at ?? new Date().toISOString() })));
+      setNotifications((prev) =>
+        prev.map((n) => ({ ...n, read_at: n.read_at ?? new Date().toISOString() })),
+      );
     } catch (err) {
-      setError(err instanceof Error && err.message ? err.message : t('notifications_mark_all_error', 'Failed to mark all read.'));
+      setError(
+        err instanceof Error && err.message
+          ? err.message
+          : t('notifications_mark_all_error', 'Failed to mark all read.'),
+      );
     }
   };
 
@@ -236,10 +297,19 @@ export default function NotificationsPage() {
   if (!auth.isAuthenticated) {
     return (
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem 1.5rem' }}>
-        <PageHeader title={t('notifications_header', 'Notifications')} subtitle={t('notifications_subtitle_public', 'Stay up to date with replies, verdicts, and community activity.')} />
+        <PageHeader
+          title={t('notifications_header', 'Notifications')}
+          subtitle={t(
+            'notifications_subtitle_public',
+            'Stay up to date with replies, verdicts, and community activity.',
+          )}
+        />
         <EmptyState
           title={t('notifications_login_title', 'Log in to see your notifications.')}
-          description={t('notifications_login_description', 'Replies to your threads, submission verdicts and problem approvals land here.')}
+          description={t(
+            'notifications_login_description',
+            'Replies to your threads, submission verdicts and problem approvals land here.',
+          )}
           icon="🔔"
           action={
             <Link href="/login" className="btn btn--primary">
@@ -264,7 +334,13 @@ export default function NotificationsPage() {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <PageHeader title={t('notifications_header', 'Notifications')} subtitle={t('notifications_subtitle_auth', 'Replies, verdicts, and community activity.')} />
+          <PageHeader
+            title={t('notifications_header', 'Notifications')}
+            subtitle={t(
+              'notifications_subtitle_auth',
+              'Replies, verdicts, and community activity.',
+            )}
+          />
           {unreadCount > 0 && (
             <span
               style={{
@@ -290,7 +366,11 @@ export default function NotificationsPage() {
             className="chip"
             style={
               showUnreadOnly
-                ? { borderColor: 'var(--accent)', color: 'var(--accent)', background: hexAlpha(palette.accent, 0.12) }
+                ? {
+                    borderColor: 'var(--accent)',
+                    color: 'var(--accent)',
+                    background: hexAlpha(palette.accent, 0.12),
+                  }
                 : undefined
             }
           >
@@ -379,7 +459,8 @@ export default function NotificationsPage() {
             color: 'var(--danger)',
           }}
         >
-          {t('could_not_load_notifications', 'Could not load notifications: ')}{error}
+          {t('could_not_load_notifications', 'Could not load notifications: ')}
+          {error}
           <div style={{ marginTop: '0.75rem' }}>
             <button onClick={() => load(showUnreadOnly)} className="btn">
               {t('retry_button', 'Retry')}
@@ -388,14 +469,24 @@ export default function NotificationsPage() {
         </div>
       ) : filtered.length === 0 ? (
         <EmptyState
-          title={showUnreadOnly ? t('notifications_empty_unread', 'No unread notifications.') : t('notifications_empty', 'No notifications here.')}
-          description={t('notifications_empty_description', 'Replies to your threads and submission verdicts will show up here.')}
+          title={
+            showUnreadOnly
+              ? t('notifications_empty_unread', 'No unread notifications.')
+              : t('notifications_empty', 'No notifications here.')
+          }
+          description={t(
+            'notifications_empty_description',
+            'Replies to your threads and submission verdicts will show up here.',
+          )}
           icon="🎉"
         />
       ) : (
         <>
           {error && notifications.length > 0 && (
-            <p role="alert" style={{ color: 'var(--danger)', fontSize: '0.8rem', marginBottom: '0.75rem' }}>
+            <p
+              role="alert"
+              style={{ color: 'var(--danger)', fontSize: '0.8rem', marginBottom: '0.75rem' }}
+            >
               {error}
             </p>
           )}
@@ -481,10 +572,16 @@ export default function NotificationsPage() {
                       >
                         {t(meta.labelKey, meta.fallback)}
                       </span>
-                      <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>{timeAgo(notif.created_at, t)}</span>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>
+                        {timeAgo(notif.created_at, t)}
+                      </span>
                     </div>
                     {href ? (
-                      <Link href={href} onClick={() => !isRead && markRead(notif.id)} style={{ textDecoration: 'none' }}>
+                      <Link
+                        href={href}
+                        onClick={() => !isRead && markRead(notif.id)}
+                        style={{ textDecoration: 'none' }}
+                      >
                         <p
                           style={{
                             fontSize: '0.875rem',
@@ -525,7 +622,9 @@ export default function NotificationsPage() {
                   </div>
 
                   {/* Actions */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flexShrink: 0 }}>
+                  <div
+                    style={{ display: 'flex', flexDirection: 'column', gap: '4px', flexShrink: 0 }}
+                  >
                     {!isRead && (
                       <button
                         onClick={() => markRead(notif.id)}

@@ -11,15 +11,7 @@ import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const gradleFile = path.join(here, '..', 'android', 'app', 'build.gradle');
-const manifestFile = path.join(
-  here,
-  '..',
-  'android',
-  'app',
-  'src',
-  'main',
-  'AndroidManifest.xml'
-);
+const manifestFile = path.join(here, '..', 'android', 'app', 'src', 'main', 'AndroidManifest.xml');
 
 /**
  * Read a file, transform its text, and write it back through the SAME
@@ -76,22 +68,14 @@ const gradleResult = readPatchWrite(gradleFile, (text) => {
             keyPassword 'android'
         }
     }`;
-  const replacement = anchor.replace(
-    /\n    \}$/,
-    `\n${SIGNING_CONFIG_SNIPPET}\n    }`
-  );
-  const releaseAnchor =
-    '            signingConfig signingConfigs.debug';
+  const replacement = anchor.replace(/\n    \}$/, `\n${SIGNING_CONFIG_SNIPPET}\n    }`);
+  const releaseAnchor = '            signingConfig signingConfigs.debug';
   const releaseReplacement =
     "            signingConfig System.getenv('WEBCODER_UPLOAD_STORE') ? signingConfigs.upload : signingConfigs.debug";
   if (!text.includes(anchor) || !text.includes(releaseAnchor)) {
-    throw new Error(
-      'gradle anchors not found — expo prebuild output changed; update this script.'
-    );
+    throw new Error('gradle anchors not found — expo prebuild output changed; update this script.');
   }
-  return text
-    .replace(anchor, replacement)
-    .replace(releaseAnchor, releaseReplacement);
+  return text.replace(anchor, replacement).replace(releaseAnchor, releaseReplacement);
 });
 
 if (gradleResult === null) {
@@ -99,27 +83,25 @@ if (gradleResult === null) {
   process.exit(1);
 }
 console.log(
-  gradleResult.includes('WEBCODER_UPLOAD_STORE') &&
-    gradleResult.includes('signingConfigs.upload')
+  gradleResult.includes('WEBCODER_UPLOAD_STORE') && gradleResult.includes('signingConfigs.upload')
     ? 'upload signing wired into android/app/build.gradle'
-    : 'ERROR: signing patch did not apply'
+    : 'ERROR: signing patch did not apply',
 );
 
 // ---- 2. Manifest cleartext (local-stack builds) ---------------------------
 const manifestResult = readPatchWrite(manifestFile, (text) =>
   text.includes('usesCleartextTraffic')
     ? text // already patched
-    : text.replace(
-        '<application ',
-        '<application android:usesCleartextTraffic="true" '
-      )
+    : text.replace('<application ', '<application android:usesCleartextTraffic="true" '),
 );
 if (manifestResult === null) {
-  console.warn('AndroidManifest.xml not found (prebuild has not run yet?) — cleartext patch skipped.');
+  console.warn(
+    'AndroidManifest.xml not found (prebuild has not run yet?) — cleartext patch skipped.',
+  );
 } else {
   console.log(
     manifestResult.includes('usesCleartextTraffic')
       ? 'usesCleartextTraffic present in AndroidManifest.xml'
-      : 'ERROR: cleartext patch did not apply'
+      : 'ERROR: cleartext patch did not apply',
   );
 }

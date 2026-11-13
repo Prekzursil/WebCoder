@@ -199,9 +199,7 @@ export default function BlockEditor({
           ? (ws: unknown) => {
               const js = javascriptGenerator.workspaceToCode(ws as never);
               // The wc_* stdin helpers need their preamble exactly once.
-              return js.includes('wcRead')
-                ? `${WC_JS_PREAMBLE}\n${js}`
-                : js;
+              return js.includes('wcRead') ? `${WC_JS_PREAMBLE}\n${js}` : js;
             }
           : (ws: unknown) => pythonGenerator.workspaceToCode(ws as never);
 
@@ -227,7 +225,13 @@ export default function BlockEditor({
     <div>
       <div
         ref={containerRef}
-        style={{ width: '100%', height, borderRadius: 12, overflow: 'hidden', border: '1px solid var(--border)' }}
+        style={{
+          width: '100%',
+          height,
+          borderRadius: 12,
+          overflow: 'hidden',
+          border: '1px solid var(--border)',
+        }}
         aria-label={t('blocks_editor_label', 'Block editor')}
         data-testid="blockly-editor"
       />
@@ -292,7 +296,7 @@ export default function BlockEditor({
             whiteSpace: 'pre-wrap',
           }}
         >
-{code || t('blocks_empty', '(no blocks yet)')}
+          {code || t('blocks_empty', '(no blocks yet)')}
         </pre>
       )}
     </div>

@@ -5,16 +5,7 @@ import { View } from 'react-native';
 import { ForumService } from '../../src/services/services';
 import { useAuth } from '../../src/state/AuthStore';
 import { useSettings } from '../../src/state/SettingsStore';
-import {
-  Button,
-  Card,
-  ErrorBox,
-  Field,
-  Pill,
-  Screen,
-  Spinner,
-  Txt,
-} from '../../src/ui/primitives';
+import { Button, Card, ErrorBox, Field, Pill, Screen, Spinner, Txt } from '../../src/ui/primitives';
 import { space } from '../../src/theme/tokens';
 import { formatDateTime } from '../../src/utils/verdict';
 import type { ForumThread } from '../../src/types/api';
@@ -38,9 +29,7 @@ export default function ForumIndex() {
       setError(null);
       try {
         const response = await ForumService.getThreads({ page: targetPage });
-        setThreads((prev) =>
-          targetPage > 1 ? [...prev, ...response.results] : response.results
-        );
+        setThreads((prev) => (targetPage > 1 ? [...prev, ...response.results] : response.results));
         setHasMore(Boolean(response.next));
         setPage(targetPage);
       } catch (err) {
@@ -49,7 +38,7 @@ export default function ForumIndex() {
         setLoading(false);
       }
     },
-    [t]
+    [t],
   );
 
   useEffect(() => {
@@ -128,8 +117,7 @@ export default function ForumIndex() {
               </Txt>
             </View>
             <Txt variant="caption">
-              {thread.author ?? '—'} · {thread.post_count} ·{' '}
-              {formatDateTime(thread.last_activity)}
+              {thread.author ?? '—'} · {thread.post_count} · {formatDateTime(thread.last_activity)}
             </Txt>
           </Card>
         </Link>

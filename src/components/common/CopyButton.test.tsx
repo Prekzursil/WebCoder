@@ -45,7 +45,7 @@ describe('CopyButton', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Copy' }));
       expect(execCommand).toHaveBeenCalledWith('copy');
       await waitFor(() =>
-        expect(screen.getByRole('button', { name: 'Copied!' })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Copied!' })).toBeInTheDocument(),
       );
     } finally {
       Object.assign(navigator, { clipboard: original });

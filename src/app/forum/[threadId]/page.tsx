@@ -74,7 +74,10 @@ export default function ForumThreadPage() {
       setPosts(firstPosts.results);
       setNextCursor(cursorParamFromUrl(firstPosts.next));
     } catch (err) {
-      const message = err instanceof Error && err.message ? err.message : t('forum_thread_load_error', 'Failed to load thread.');
+      const message =
+        err instanceof Error && err.message
+          ? err.message
+          : t('forum_thread_load_error', 'Failed to load thread.');
       // apiFetch throws Error(detail || statusText); a missing thread is a
       // 404 detail ("Not found.") — treat any 404-shaped message as not-found.
       if (/not found|404/i.test(message)) {
@@ -104,7 +107,11 @@ export default function ForumThreadPage() {
       });
       setNextCursor(cursorParamFromUrl(response.next));
     } catch (err) {
-      setError(err instanceof Error && err.message ? err.message : t('forum_posts_load_error', 'Failed to load more posts.'));
+      setError(
+        err instanceof Error && err.message
+          ? err.message
+          : t('forum_posts_load_error', 'Failed to load more posts.'),
+      );
     } finally {
       setLoadingMore(false);
     }
@@ -125,7 +132,11 @@ export default function ForumThreadPage() {
       setReplySpoiler(false);
       setThread((t) => (t ? { ...t, post_count: t.post_count + 1 } : t));
     } catch (err) {
-      setReplyError(err instanceof Error && err.message ? err.message : t('forum_reply_error', 'Failed to post reply.'));
+      setReplyError(
+        err instanceof Error && err.message
+          ? err.message
+          : t('forum_reply_error', 'Failed to post reply.'),
+      );
     } finally {
       setSubmitting(false);
     }
@@ -155,12 +166,19 @@ export default function ForumThreadPage() {
     setReportError(null);
     setReportMessage(null);
     try {
-      await ForumService.reportPost(postId, { reason: reportReason, details: reportDetails.trim() || undefined });
+      await ForumService.reportPost(postId, {
+        reason: reportReason,
+        details: reportDetails.trim() || undefined,
+      });
       setReportMessage(t('forum_report_success', 'Report submitted. A moderator will review it.'));
       setReporting(null);
       setReportDetails('');
     } catch (err) {
-      setReportError(err instanceof Error && err.message ? err.message : t('forum_report_error', 'Failed to report post.'));
+      setReportError(
+        err instanceof Error && err.message
+          ? err.message
+          : t('forum_report_error', 'Failed to report post.'),
+      );
     }
   };
 
@@ -188,7 +206,9 @@ export default function ForumThreadPage() {
           }}
         >
           <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>🔍</div>
-          <p style={{ marginBottom: '1rem' }}>{t('forum_thread_not_found', 'This thread does not exist or was removed.')}</p>
+          <p style={{ marginBottom: '1rem' }}>
+            {t('forum_thread_not_found', 'This thread does not exist or was removed.')}
+          </p>
           <Link href="/forum" className="btn">
             {t('forum_back_to_forum', '← Back to Forum')}
           </Link>
@@ -210,7 +230,8 @@ export default function ForumThreadPage() {
             color: 'var(--danger)',
           }}
         >
-          {t('could_not_load_thread', 'Could not load thread: ')}{error}
+          {t('could_not_load_thread', 'Could not load thread: ')}
+          {error}
         </div>
         <div style={{ marginTop: '0.75rem' }}>
           <button onClick={loadThread} className="btn">
@@ -226,14 +247,35 @@ export default function ForumThreadPage() {
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem 1.5rem' }}>
       {/* Breadcrumb */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.5rem', fontSize: '0.8rem', color: 'var(--muted)' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          marginBottom: '1.5rem',
+          fontSize: '0.8rem',
+          color: 'var(--muted)',
+        }}
+      >
         <Link href="/forum" style={{ color: 'var(--accent)' }}>
           Forum
         </Link>
         <span>›</span>
-        <span style={{ color: 'var(--muted)' }}>{thread.problem ? t('forum_filter_problem', 'Problem threads') : t('forum_filter_general', 'General')}</span>
+        <span style={{ color: 'var(--muted)' }}>
+          {thread.problem
+            ? t('forum_filter_problem', 'Problem threads')
+            : t('forum_filter_general', 'General')}
+        </span>
         <span>›</span>
-        <span style={{ color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '300px' }}>
+        <span
+          style={{
+            color: 'var(--muted)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            maxWidth: '300px',
+          }}
+        >
           {thread.title}
         </span>
       </div>
@@ -248,7 +290,15 @@ export default function ForumThreadPage() {
           marginBottom: '1.5rem',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            flexWrap: 'wrap',
+            marginBottom: '0.75rem',
+          }}
+        >
           {thread.is_pinned && (
             <span
               style={{
@@ -295,7 +345,9 @@ export default function ForumThreadPage() {
                 textDecoration: 'none',
               }}
             >
-              🧩 {thread.problem.title_i18n?.en ?? t('forum_problem_link', 'Problem #{{id}}', { id: thread.problem.id })}
+              🧩{' '}
+              {thread.problem.title_i18n?.en ??
+                t('forum_problem_link', 'Problem #{{id}}', { id: thread.problem.id })}
             </Link>
           ) : (
             <span
@@ -327,32 +379,49 @@ export default function ForumThreadPage() {
         </h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>
-            {t('forum_started_by', 'started by')} <strong style={{ color: 'var(--muted)' }}>{thread.author ?? t('forum_unknown_author', 'unknown')}</strong>{' '}
-            <FollowButton username={thread.author} />{' '}
-            {timeAgo(thread.created_at, t)}
+            {t('forum_started_by', 'started by')}{' '}
+            <strong style={{ color: 'var(--muted)' }}>
+              {thread.author ?? t('forum_unknown_author', 'unknown')}
+            </strong>{' '}
+            <FollowButton username={thread.author} /> {timeAgo(thread.created_at, t)}
           </span>
-          <span style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>{t('forum_posts_count', '{{count}} posts', { count: thread.post_count })}</span>
+          <span style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>
+            {t('forum_posts_count', '{{count}} posts', { count: thread.post_count })}
+          </span>
         </div>
       </div>
 
       {/* Posts */}
       {reportMessage && (
-        <p role="status" style={{ color: 'var(--success)', fontSize: '0.8rem', marginBottom: '1rem' }}>
+        <p
+          role="status"
+          style={{ color: 'var(--success)', fontSize: '0.8rem', marginBottom: '1rem' }}
+        >
           {reportMessage}
         </p>
       )}
       {reportError && (
-        <p role="alert" style={{ color: 'var(--danger)', fontSize: '0.8rem', marginBottom: '1rem' }}>
+        <p
+          role="alert"
+          style={{ color: 'var(--danger)', fontSize: '0.8rem', marginBottom: '1rem' }}
+        >
           {reportError}
         </p>
       )}
       {error && (
-        <p role="alert" style={{ color: 'var(--danger)', fontSize: '0.8rem', marginBottom: '1rem' }}>
+        <p
+          role="alert"
+          style={{ color: 'var(--danger)', fontSize: '0.8rem', marginBottom: '1rem' }}
+        >
           {error}
         </p>
       )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
-        {posts.length === 0 && <p style={{ color: 'var(--muted)', textAlign: 'center', padding: '2rem' }}>{t('forum_no_posts', 'No posts yet.')}</p>}
+        {posts.length === 0 && (
+          <p style={{ color: 'var(--muted)', textAlign: 'center', padding: '2rem' }}>
+            {t('forum_no_posts', 'No posts yet.')}
+          </p>
+        )}
         {posts.map((post, idx) => {
           const myVote = votes[post.id] ?? 0;
           return (
@@ -367,12 +436,24 @@ export default function ForumThreadPage() {
             >
               <div style={{ display: 'flex', gap: '1rem', padding: '1.25rem 1.5rem' }}>
                 {/* Vote column */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', minWidth: '40px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '4px',
+                    minWidth: '40px',
+                  }}
+                >
                   <button
                     onClick={() => handleVote(post.id, 1)}
                     disabled={!auth.isAuthenticated || voteBusy === post.id}
                     aria-label={t('forum_upvote_label', 'Upvote post')}
-                    title={auth.isAuthenticated ? t('forum_upvote', 'Upvote') : t('forum_login_to_vote', 'Login to vote')}
+                    title={
+                      auth.isAuthenticated
+                        ? t('forum_upvote', 'Upvote')
+                        : t('forum_login_to_vote', 'Login to vote')
+                    }
                     style={{
                       background: myVote === 1 ? 'rgba(56,189,248,0.18)' : 'rgba(56,189,248,0.08)',
                       border: '1px solid rgba(56,189,248,0.2)',
@@ -385,14 +466,21 @@ export default function ForumThreadPage() {
                   >
                     ▲
                   </button>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--muted)' }}>{post.upvotes}</span>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--muted)' }}>
+                    {post.upvotes}
+                  </span>
                   <button
                     onClick={() => handleVote(post.id, -1)}
                     disabled={!auth.isAuthenticated || voteBusy === post.id}
                     aria-label={t('forum_downvote_label', 'Downvote post')}
-                    title={auth.isAuthenticated ? t('forum_downvote', 'Downvote') : t('forum_login_to_vote', 'Login to vote')}
+                    title={
+                      auth.isAuthenticated
+                        ? t('forum_downvote', 'Downvote')
+                        : t('forum_login_to_vote', 'Login to vote')
+                    }
                     style={{
-                      background: myVote === -1 ? 'rgba(248,113,113,0.18)' : 'rgba(248,113,113,0.08)',
+                      background:
+                        myVote === -1 ? 'rgba(248,113,113,0.18)' : 'rgba(248,113,113,0.08)',
                       border: '1px solid rgba(248,113,113,0.2)',
                       borderRadius: '6px',
                       padding: '4px 8px',
@@ -407,7 +495,15 @@ export default function ForumThreadPage() {
 
                 {/* Content */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      marginBottom: '0.75rem',
+                      flexWrap: 'wrap',
+                    }}
+                  >
                     <div
                       style={{
                         width: '28px',
@@ -425,7 +521,9 @@ export default function ForumThreadPage() {
                     >
                       {(post.author ?? '?')[0].toUpperCase()}
                     </div>
-                    <span style={{ fontWeight: 700, color: 'var(--foreground)', fontSize: '0.875rem' }}>
+                    <span
+                      style={{ fontWeight: 700, color: 'var(--foreground)', fontSize: '0.875rem' }}
+                    >
                       {post.author ?? t('forum_unknown_author', 'unknown')}
                     </span>
                     {idx === 0 && (
@@ -443,15 +541,27 @@ export default function ForumThreadPage() {
                       </span>
                     )}
                     {post.is_edited && (
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>{t('forum_edited', '(edited)')}</span>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>
+                        {t('forum_edited', '(edited)')}
+                      </span>
                     )}
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginLeft: 'auto' }}>
-                      {idx === 0 ? t('forum_posted', 'Posted') : t('forum_replied', 'Replied')} {timeAgo(post.created_at, t)}
+                    <span
+                      style={{
+                        fontSize: '0.75rem',
+                        color: 'var(--text-tertiary)',
+                        marginLeft: 'auto',
+                      }}
+                    >
+                      {idx === 0 ? t('forum_posted', 'Posted') : t('forum_replied', 'Replied')}{' '}
+                      {timeAgo(post.created_at, t)}
                     </span>
                   </div>
 
                   {post.is_spoiler ? (
-                    <div data-testid={`spoiler-post-${post.id}`} style={{ fontSize: '0.875rem', lineHeight: 1.7 }}>
+                    <div
+                      data-testid={`spoiler-post-${post.id}`}
+                      style={{ fontSize: '0.875rem', lineHeight: 1.7 }}
+                    >
                       <div
                         aria-hidden={!revealedSpoilers.has(post.id)}
                         style={{
@@ -482,12 +592,26 @@ export default function ForumThreadPage() {
                       </button>
                     </div>
                   ) : (
-                  <div style={{ fontSize: '0.875rem', color: 'var(--body)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
-                    {post.content}
-                  </div>
+                    <div
+                      style={{
+                        fontSize: '0.875rem',
+                        color: 'var(--body)',
+                        lineHeight: 1.7,
+                        whiteSpace: 'pre-wrap',
+                      }}
+                    >
+                      {post.content}
+                    </div>
                   )}
 
-                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem', alignItems: 'center' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: '0.75rem',
+                      marginTop: '0.75rem',
+                      alignItems: 'center',
+                    }}
+                  >
                     {auth.isAuthenticated && (
                       <button
                         onClick={() => setReporting(reporting === post.id ? null : post.id)}
@@ -504,7 +628,14 @@ export default function ForumThreadPage() {
                       </button>
                     )}
                     {reporting === post.id && (
-                      <span style={{ display: 'inline-flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          gap: '6px',
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                        }}
+                      >
                         <select
                           aria-label={t('forum_report_reason_label', 'Report reason')}
                           value={reportReason}
@@ -539,7 +670,11 @@ export default function ForumThreadPage() {
                             width: '180px',
                           }}
                         />
-                        <button onClick={() => submitReport(post.id)} className="btn" style={{ padding: '3px 10px', fontSize: '0.75rem' }}>
+                        <button
+                          onClick={() => submitReport(post.id)}
+                          className="btn"
+                          style={{ padding: '3px 10px', fontSize: '0.75rem' }}
+                        >
                           {t('forum_send', 'Send')}
                         </button>
                       </span>
@@ -556,7 +691,9 @@ export default function ForumThreadPage() {
       {nextCursor && (
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <button onClick={loadMorePosts} disabled={loadingMore} className="btn">
-            {loadingMore ? t('loading_more', 'Loading…') : t('forum_load_older', 'Load older posts')}
+            {loadingMore
+              ? t('loading_more', 'Loading…')
+              : t('forum_load_older', 'Load older posts')}
           </button>
         </div>
       )}
@@ -572,7 +709,14 @@ export default function ForumThreadPage() {
               padding: '1.5rem',
             }}
           >
-            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--foreground)', marginBottom: '1rem' }}>
+            <h3
+              style={{
+                fontSize: '0.95rem',
+                fontWeight: 700,
+                color: 'var(--foreground)',
+                marginBottom: '1rem',
+              }}
+            >
               {t('forum_post_reply_header', 'Post a Reply')}
             </h3>
             <form onSubmit={handleReply}>
@@ -595,13 +739,23 @@ export default function ForumThreadPage() {
                 }}
               />
               {replyError && (
-                <p role="alert" style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: '0.5rem' }}>
+                <p
+                  role="alert"
+                  style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: '0.5rem' }}
+                >
                   {replyError}
                 </p>
               )}
               {thread?.problem && (
                 <label
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.6rem', fontSize: '0.8rem', color: 'var(--muted)' }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    marginTop: '0.6rem',
+                    fontSize: '0.8rem',
+                    color: 'var(--muted)',
+                  }}
                 >
                   <input
                     type="checkbox"
@@ -612,7 +766,14 @@ export default function ForumThreadPage() {
                   {t('reply_mark_spoiler', 'Mark as spoiler (reveals the solution)')}
                 </label>
               )}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.75rem', gap: '0.75rem' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  marginTop: '0.75rem',
+                  gap: '0.75rem',
+                }}
+              >
                 <button
                   type="button"
                   onClick={() => setReplyText('')}
@@ -635,7 +796,9 @@ export default function ForumThreadPage() {
                   className="btn btn--primary"
                   style={{ opacity: replyText.trim() && !submitting ? 1 : 0.5 }}
                 >
-                  {submitting ? t('forum_posting', 'Posting…') : t('forum_post_reply', 'Post Reply')}
+                  {submitting
+                    ? t('forum_posting', 'Posting…')
+                    : t('forum_post_reply', 'Post Reply')}
                 </button>
               </div>
             </form>
@@ -670,7 +833,10 @@ export default function ForumThreadPage() {
             fontSize: '0.875rem',
           }}
         >
-          {t('forum_thread_locked_notice', '🔒 This thread is locked. No new replies can be posted.')}
+          {t(
+            'forum_thread_locked_notice',
+            '🔒 This thread is locked. No new replies can be posted.',
+          )}
         </div>
       )}
     </div>

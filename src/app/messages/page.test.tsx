@@ -28,19 +28,31 @@ vi.mock('@/context/AuthContext', () => ({
 // ProtectedRoute uses the router for its redirect; jsdom has no App Router.
 vi.mock('next/navigation', () => ({
   usePathname: () => '/messages',
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn(), back: vi.fn(), forward: vi.fn(), prefetch: vi.fn() }),
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    refresh: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    prefetch: vi.fn(),
+  }),
 }));
 // next/link is mocked to a plain anchor so the page renders without a live
 // App Router context (the real Link expects one).
 vi.mock('next/link', () => ({
   default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => (
-    <a href={href} {...rest}>{children}</a>
+    <a href={href} {...rest}>
+      {children}
+    </a>
   ),
 }));
 
-
 const mocks = vi.hoisted(() => ({
-  auth: { user: { id: 1, username: 'alice', role: 'BASIC' }, isAuthenticated: true, isHydrated: true },
+  auth: {
+    user: { id: 1, username: 'alice', role: 'BASIC' },
+    isAuthenticated: true,
+    isHydrated: true,
+  },
 }));
 
 const conversation = (id: number, partial: Record<string, unknown> = {}) => ({
@@ -89,7 +101,11 @@ describe('MessagesPage (inbox)', () => {
       results: [
         conversation(1, {
           unread_count: 3,
-          last_message: { sender_id: 11, excerpt: 'salut, ai rezolvat tema?', created_at: '2026-10-28T10:00:00Z' },
+          last_message: {
+            sender_id: 11,
+            excerpt: 'salut, ai rezolvat tema?',
+            created_at: '2026-10-28T10:00:00Z',
+          },
         }),
         conversation(2),
       ],
@@ -155,7 +171,12 @@ describe('MessagesPage (inbox)', () => {
 
   it('shows the report queue to moderators, with resolve', async () => {
     mocks.auth.user = { id: 1, username: 'mod', role: 'PROBLEM_VERIFIER' };
-    api.getReports.mockResolvedValue({ count: 1, next: null, previous: null, results: [report(9)] });
+    api.getReports.mockResolvedValue({
+      count: 1,
+      next: null,
+      previous: null,
+      results: [report(9)],
+    });
     api.resolveReport.mockResolvedValue({ ...report(9), status: 'RESOLVED' });
     render(<MessagesPage />);
 
@@ -168,7 +189,12 @@ describe('MessagesPage (inbox)', () => {
 
   it('shows the dismiss action', async () => {
     mocks.auth.user = { id: 1, username: 'mod', role: 'ADMIN' };
-    api.getReports.mockResolvedValue({ count: 1, next: null, previous: null, results: [report(4)] });
+    api.getReports.mockResolvedValue({
+      count: 1,
+      next: null,
+      previous: null,
+      results: [report(4)],
+    });
     render(<MessagesPage />);
     await screen.findByTestId('msg-report-4');
     fireEvent.click(screen.getByTestId('msg-dismiss-4'));

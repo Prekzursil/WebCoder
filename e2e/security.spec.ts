@@ -26,7 +26,7 @@ async function login(page: Page, context: import('@playwright/test').BrowserCont
         role: 'PROBLEM_CREATOR',
         two_factor_enabled: false,
         two_factor_required: true,
-      })
+      }),
     );
   });
 }
@@ -42,14 +42,11 @@ test('privileged pages carry the two-factor warn banner with a profile link', as
   await expect(banner).toBeVisible();
   await expect(banner.getByRole('link', { name: /Profile → Security/i })).toHaveAttribute(
     'href',
-    '/profile'
+    '/profile',
   );
 });
 
-test('profile → settings walks TOTP enrollment end to end', async ({
-  page,
-  context,
-}) => {
+test('profile → settings walks TOTP enrollment end to end', async ({ page, context }) => {
   await login(page, context);
   await page.goto('/profile');
   await page.getByRole('button', { name: 'settings', exact: true }).click();
@@ -77,10 +74,7 @@ test('profile → settings walks TOTP enrollment end to end', async ({
   await expect(page.getByTestId('two-factor-banner')).toHaveCount(0);
 });
 
-test('profile → settings mints and revokes the personal API token', async ({
-  page,
-  context,
-}) => {
+test('profile → settings mints and revokes the personal API token', async ({ page, context }) => {
   await login(page, context);
   await page.goto('/profile');
   await page.getByRole('button', { name: 'settings', exact: true }).click();
@@ -102,10 +96,7 @@ test('profile → settings mints and revokes the personal API token', async ({
 
 // [ANA-1 Wave D] The owner dashboard renders the analytics panel (mock
 // admin session; seeded via the auth.spec cookie pattern above).
-test('admin dashboard renders the owner analytics panel [ANA-1]', async ({
-  page,
-  context,
-}) => {
+test('admin dashboard renders the owner analytics panel [ANA-1]', async ({ page, context }) => {
   await context.addCookies([
     { name: 'wc_access', value: 'e2e-admin-access', domain: 'localhost', path: '/' },
   ]);
@@ -118,7 +109,7 @@ test('admin dashboard renders the owner analytics panel [ANA-1]', async ({
         email: 'admin@e2e.local',
         role: 'ADMIN',
         two_factor_enabled: true,
-      })
+      }),
     );
   });
   await page.goto('/admin/dashboard');

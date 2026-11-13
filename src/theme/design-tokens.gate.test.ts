@@ -15,18 +15,14 @@ import { describe, expect, it } from 'vitest';
 //   - src/theme/tokens.ts — the SSOT itself (must be .ts; kept out of the
 //     tsx grep anyway, listed here for documentation)
 
-const ALLOWED = [
-  'src/app/leaderboard/page.tsx',
-  'src/theme/tokens.ts',
-];
+const ALLOWED = ['src/app/leaderboard/page.tsx', 'src/theme/tokens.ts'];
 
 function hexOffenders(): string[] {
   let out: string;
   try {
-    out = execSync(
-      'git grep -nE "#[0-9a-fA-F]{6}\\b" -- "src/**/*.tsx" "src/**/*.ts"',
-      { encoding: 'utf8' }
-    );
+    out = execSync('git grep -nE "#[0-9a-fA-F]{6}\\b" -- "src/**/*.tsx" "src/**/*.ts"', {
+      encoding: 'utf8',
+    });
   } catch (err) {
     // git grep exits 1 on zero matches — that is the desired green state.
     const status = (err as { status?: number }).status;
@@ -47,7 +43,7 @@ describe('design-token gate: no raw hex in components [A2]', () => {
     const offenders = hexOffenders();
     expect(
       offenders,
-      `Raw hex found (use var(--*) or '@/theme/tokens' instead):\n${offenders.join('\n')}`
+      `Raw hex found (use var(--*) or '@/theme/tokens' instead):\n${offenders.join('\n')}`,
     ).toEqual([]);
   });
 

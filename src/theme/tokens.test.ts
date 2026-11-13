@@ -72,19 +72,13 @@ describe('WCAG AA contrast floor for text tokens [A3]', () => {
     violet: palette.violet,
   };
 
-  it.each(Object.entries(textTokens))(
-    '%s clears 4.5:1 on the card surface',
-    (_name, value) => {
-      expect(contrastRatio(value, palette.surface)).toBeGreaterThanOrEqual(4.5);
-    }
-  );
+  it.each(Object.entries(textTokens))('%s clears 4.5:1 on the card surface', (_name, value) => {
+    expect(contrastRatio(value, palette.surface)).toBeGreaterThanOrEqual(4.5);
+  });
 
-  it.each(Object.entries(textTokens))(
-    '%s clears 4.5:1 on the page background',
-    (_name, value) => {
-      expect(contrastRatio(value, palette.bg)).toBeGreaterThanOrEqual(4.5);
-    }
-  );
+  it.each(Object.entries(textTokens))('%s clears 4.5:1 on the page background', (_name, value) => {
+    expect(contrastRatio(value, palette.bg)).toBeGreaterThanOrEqual(4.5);
+  });
 
   it('retired the failing colors (#64748b / #475569 are not text tokens)', () => {
     expect(Object.values(textTokens)).not.toContain('#64748b');

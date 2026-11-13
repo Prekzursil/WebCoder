@@ -61,17 +61,21 @@ export default function ForumPage() {
       setTotalCount(response.count);
       setNextPage(response.next ? 2 : null);
     } catch (err) {
-      setError(err instanceof Error && err.message ? err.message : t('forum_load_error', 'Failed to load threads.'));
+      setError(
+        err instanceof Error && err.message
+          ? err.message
+          : t('forum_load_error', 'Failed to load threads.'),
+      );
     } finally {
       setLoading(false);
     }
     // t is stable between language switches; listed so the error message
     // re-localizes on locale change.
-  // Refetch only when the SERVER-side axes change: the language filter,
-  // or crossing into/out of the editorial topic. The problem/general
-  // category chips stay client-side filters over the loaded rows —
-  // clicking them must not flash a loading state.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Refetch only when the SERVER-side axes change: the language filter,
+    // or crossing into/out of the editorial topic. The problem/general
+    // category chips stay client-side filters over the loaded rows —
+    // clicking them must not flash a loading state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [t, langFilter, activeCategory === 'editorial' ? 'editorial' : 'plain']);
 
   useEffect(() => {
@@ -93,7 +97,11 @@ export default function ForumPage() {
       });
       setNextPage(response.next ? nextPage + 1 : null);
     } catch (err) {
-      setError(err instanceof Error && err.message ? err.message : t('forum_load_more_error', 'Failed to load more threads.'));
+      setError(
+        err instanceof Error && err.message
+          ? err.message
+          : t('forum_load_more_error', 'Failed to load more threads.'),
+      );
     } finally {
       setLoadingMore(false);
     }
@@ -105,10 +113,7 @@ export default function ForumPage() {
       if (activeCategory === 'general' && t.problem) return false;
       if (search) {
         const q = search.toLowerCase();
-        return (
-          t.title.toLowerCase().includes(q) ||
-          (t.author ?? '').toLowerCase().includes(q)
-        );
+        return t.title.toLowerCase().includes(q) || (t.author ?? '').toLowerCase().includes(q);
       }
       return true;
     })
@@ -138,7 +143,13 @@ export default function ForumPage() {
 
   return (
     <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem 1.5rem' }}>
-      <PageHeader title={t('forum_header', 'Community Forum')} subtitle={t('forum_subtitle', 'Discuss problems, share solutions, and connect with the community.')} />
+      <PageHeader
+        title={t('forum_header', 'Community Forum')}
+        subtitle={t(
+          'forum_subtitle',
+          'Discuss problems, share solutions, and connect with the community.',
+        )}
+      />
 
       {/* Toolbar */}
       <div
@@ -223,7 +234,15 @@ export default function ForumPage() {
             outline: 'none',
           }}
         />
-        <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '3px' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: '4px',
+            background: 'rgba(255,255,255,0.04)',
+            borderRadius: '8px',
+            padding: '3px',
+          }}
+        >
           {(['activity', 'newest'] as const).map((s) => (
             <button
               key={s}
@@ -242,7 +261,9 @@ export default function ForumPage() {
                 textTransform: 'capitalize',
               }}
             >
-              {s === 'activity' ? t('forum_sort_activity', 'activity') : t('forum_sort_newest', 'newest')}
+              {s === 'activity'
+                ? t('forum_sort_activity', 'activity')
+                : t('forum_sort_newest', 'newest')}
             </button>
           ))}
         </div>
@@ -271,7 +292,8 @@ export default function ForumPage() {
             color: 'var(--danger)',
           }}
         >
-          {t('could_not_load_threads', 'Could not load threads: ')}{error}
+          {t('could_not_load_threads', 'Could not load threads: ')}
+          {error}
           <div style={{ marginTop: '0.75rem' }}>
             <button onClick={loadFirstPage} className="btn">
               {t('retry_button', 'Retry')}
@@ -280,8 +302,15 @@ export default function ForumPage() {
         </div>
       ) : filtered.length === 0 ? (
         <EmptyState
-          title={threads.length === 0 ? t('forum_no_threads', 'No threads yet.') : t('forum_no_threads_match', 'No threads match your filters.')}
-          description={t('forum_empty_description', 'Start the conversation — create the first thread.')}
+          title={
+            threads.length === 0
+              ? t('forum_no_threads', 'No threads yet.')
+              : t('forum_no_threads_match', 'No threads match your filters.')
+          }
+          description={t(
+            'forum_empty_description',
+            'Start the conversation — create the first thread.',
+          )}
           action={
             threads.length === 0 ? (
               <Link href="/forum/new" className="btn btn--primary">
@@ -309,7 +338,15 @@ export default function ForumPage() {
               >
                 {/* Main content */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      flexWrap: 'wrap',
+                      marginBottom: '0.4rem',
+                    }}
+                  >
                     {thread.is_pinned && (
                       <span
                         style={{
@@ -358,7 +395,9 @@ export default function ForumPage() {
                           textDecoration: 'none',
                         }}
                       >
-                        🧩 {thread.problem.title_i18n?.en ?? t('forum_problem_link', 'Problem #{{id}}', { id: thread.problem.id })}
+                        🧩{' '}
+                        {thread.problem.title_i18n?.en ??
+                          t('forum_problem_link', 'Problem #{{id}}', { id: thread.problem.id })}
                       </Link>
                     ) : (
                       <span
@@ -391,7 +430,14 @@ export default function ForumPage() {
                     </h3>
                   </Link>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      flexWrap: 'wrap',
+                    }}
+                  >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <div
                         style={{
@@ -415,7 +461,9 @@ export default function ForumPage() {
                     </div>
                     <span style={{ color: 'var(--border)', fontSize: '0.75rem' }}>·</span>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
-                      {t('forum_active_ago', 'Active {{when}}', { when: timeAgo(thread.last_activity, t) })}
+                      {t('forum_active_ago', 'Active {{when}}', {
+                        when: timeAgo(thread.last_activity, t),
+                      })}
                     </span>
                   </div>
                 </div>
@@ -432,10 +480,21 @@ export default function ForumPage() {
                   }}
                 >
                   <div style={{ fontSize: '0.75rem', color: 'var(--muted)', textAlign: 'right' }}>
-                    <span style={{ color: 'var(--muted)', fontWeight: 600 }}>{thread.post_count}</span> {t('forum_posts_label', 'posts')}
+                    <span style={{ color: 'var(--muted)', fontWeight: 600 }}>
+                      {thread.post_count}
+                    </span>{' '}
+                    {t('forum_posts_label', 'posts')}
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', textAlign: 'right' }}>
-                    {t('forum_created_ago', 'created {{when}}', { when: timeAgo(thread.created_at, t) })}
+                  <div
+                    style={{
+                      fontSize: '0.75rem',
+                      color: 'var(--text-tertiary)',
+                      textAlign: 'right',
+                    }}
+                  >
+                    {t('forum_created_ago', 'created {{when}}', {
+                      when: timeAgo(thread.created_at, t),
+                    })}
                   </div>
                 </div>
               </div>
@@ -451,13 +510,32 @@ export default function ForumPage() {
             </div>
           )}
           {error && threads.length > 0 && (
-            <p role="alert" style={{ marginTop: '0.75rem', color: 'var(--danger)', fontSize: '0.8rem', textAlign: 'center' }}>
-              {t('could_not_load_more_threads', 'Could not load more threads: ')}{error}
+            <p
+              role="alert"
+              style={{
+                marginTop: '0.75rem',
+                color: 'var(--danger)',
+                fontSize: '0.8rem',
+                textAlign: 'center',
+              }}
+            >
+              {t('could_not_load_more_threads', 'Could not load more threads: ')}
+              {error}
             </p>
           )}
           {totalCount !== null && (
-            <p style={{ marginTop: '1rem', fontSize: '0.75rem', color: 'var(--text-tertiary)', textAlign: 'center' }}>
-              {t('forum_showing_info', 'Showing {{shown}} of {{total}} threads.', { shown: threads.length, total: totalCount.toLocaleString() })}
+            <p
+              style={{
+                marginTop: '1rem',
+                fontSize: '0.75rem',
+                color: 'var(--text-tertiary)',
+                textAlign: 'center',
+              }}
+            >
+              {t('forum_showing_info', 'Showing {{shown}} of {{total}} threads.', {
+                shown: threads.length,
+                total: totalCount.toLocaleString(),
+              })}
             </p>
           )}
         </>

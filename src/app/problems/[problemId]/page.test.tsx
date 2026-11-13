@@ -6,9 +6,7 @@ import { ProblemType, TestCaseType } from '@/types';
 
 vi.mock('@/services/ApiService', () => ({
   ForumService: {
-    getThreads: vi
-      .fn()
-      .mockResolvedValue({ count: 0, next: null, previous: null, results: [] }),
+    getThreads: vi.fn().mockResolvedValue({ count: 0, next: null, previous: null, results: [] }),
     createThread: vi.fn(),
   },
   ToolingService: {
@@ -129,9 +127,7 @@ beforeEach(() => {
 
 describe('ProblemDetailPage (route "/problems/:problemId")', () => {
   it('badges an INTERACTIVE problem with the flush notice (JDG-2)', async () => {
-    vi.mocked(getProblemDetail).mockResolvedValue(
-      problem({ problem_type: 'INTERACTIVE' })
-    );
+    vi.mocked(getProblemDetail).mockResolvedValue(problem({ problem_type: 'INTERACTIVE' }));
     render(await ProblemDetailPage(pageProps()));
 
     const badge = screen.getByText('Interactive');
@@ -141,9 +137,7 @@ describe('ProblemDetailPage (route "/problems/:problemId")', () => {
   });
 
   it('renders no interactive badge for NORMAL problems', async () => {
-    vi.mocked(getProblemDetail).mockResolvedValue(
-      problem({ problem_type: 'NORMAL' })
-    );
+    vi.mocked(getProblemDetail).mockResolvedValue(problem({ problem_type: 'NORMAL' }));
     render(await ProblemDetailPage(pageProps()));
 
     expect(screen.queryByText('Interactive')).not.toBeInTheDocument();
@@ -156,7 +150,7 @@ describe('ProblemDetailPage (route "/problems/:problemId")', () => {
           testCase({ is_sample: true, input_data: '1 2', expected_output_data: '3' }),
           testCase({ is_sample: false, input_data: '9 9', expected_output_data: '18' }),
         ],
-      })
+      }),
     );
     render(await ProblemDetailPage(pageProps()));
 
@@ -182,7 +176,7 @@ describe('ProblemDetailPage (route "/problems/:problemId")', () => {
 
   it('renders resource limits when present', async () => {
     vi.mocked(getProblemDetail).mockResolvedValue(
-      problem({ default_time_limit_ms: 1000, default_memory_limit_kb: 262144 })
+      problem({ default_time_limit_ms: 1000, default_memory_limit_kb: 262144 }),
     );
     render(await ProblemDetailPage(pageProps()));
 
@@ -200,7 +194,7 @@ describe('ProblemDetailPage (route "/problems/:problemId")', () => {
 
   it('hides the samples section when no test case is a sample', async () => {
     vi.mocked(getProblemDetail).mockResolvedValue(
-      problem({ test_cases: [testCase({ is_sample: false })] })
+      problem({ test_cases: [testCase({ is_sample: false })] }),
     );
     render(await ProblemDetailPage(pageProps()));
 
@@ -212,16 +206,14 @@ describe('ProblemDetailPage (route "/problems/:problemId")', () => {
       problem({
         title_i18n: { en: 'English title', ro: 'Titlu românesc' },
         statement_i18n: { en: 'English statement' },
-      })
+      }),
     );
     mockLocale('ro');
     render(await ProblemDetailPage(pageProps()));
 
     expect(screen.getByRole('heading', { name: 'Titlu românesc' })).toBeInTheDocument();
     expect(screen.getByText('English statement')).toBeInTheDocument();
-    expect(screen.getByTestId('submit-form').getAttribute('data-title')).toBe(
-      'Titlu românesc'
-    );
+    expect(screen.getByTestId('submit-form').getAttribute('data-title')).toBe('Titlu românesc');
   });
 
   it('falls back to "Problem ID: n" when no localized title exists', async () => {
@@ -232,9 +224,7 @@ describe('ProblemDetailPage (route "/problems/:problemId")', () => {
   });
 
   it('renders an empty statement instead of undefined', async () => {
-    vi.mocked(getProblemDetail).mockResolvedValue(
-      problem({ statement_i18n: undefined })
-    );
+    vi.mocked(getProblemDetail).mockResolvedValue(problem({ statement_i18n: undefined }));
     render(await ProblemDetailPage(pageProps()));
 
     // The statement is a <div> with whiteSpace: pre-wrap; when empty the page
@@ -267,7 +257,10 @@ describe('ProblemDetailPage (route "/problems/:problemId")', () => {
     // back to the catalog (dead-end fix).
     expect(screen.getByText(/Failed to load problem details\./)).toBeInTheDocument();
     expect(screen.getByText(/Failed to load problem\./)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Back to Problems' })).toHaveAttribute('href', '/problems');
+    expect(screen.getByRole('link', { name: 'Back to Problems' })).toHaveAttribute(
+      'href',
+      '/problems',
+    );
   });
 
   it('renders prev/next neighbors from the catalog ids (A18)', async () => {
@@ -279,8 +272,14 @@ describe('ProblemDetailPage (route "/problems/:problemId")', () => {
     ] as ProblemType[]);
     render(await ProblemDetailPage(pageProps()));
 
-    expect(screen.getByRole('link', { name: /Previous problem/ })).toHaveAttribute('href', '/problems/5');
-    expect(screen.getByRole('link', { name: /Next problem/ })).toHaveAttribute('href', '/problems/9');
+    expect(screen.getByRole('link', { name: /Previous problem/ })).toHaveAttribute(
+      'href',
+      '/problems/5',
+    );
+    expect(screen.getByRole('link', { name: /Next problem/ })).toHaveAttribute(
+      'href',
+      '/problems/9',
+    );
   });
 
   it('hides the prev/next pager when the catalog fetch fails', async () => {
@@ -294,7 +293,9 @@ describe('ProblemDetailPage (route "/problems/:problemId")', () => {
 
   it('offers a copy-link share affordance and sample copy buttons (A18/A7)', async () => {
     vi.mocked(getProblemDetail).mockResolvedValue(
-      problem({ test_cases: [testCase({ is_sample: true, input_data: '1 2', expected_output_data: '3' })] })
+      problem({
+        test_cases: [testCase({ is_sample: true, input_data: '1 2', expected_output_data: '3' })],
+      }),
     );
     vi.mocked(getProblems).mockResolvedValue([problem({})] as ProblemType[]);
     render(await ProblemDetailPage(pageProps()));
@@ -317,7 +318,7 @@ describe('generateMetadata (problem detail)', () => {
 
   it('truncates long statements to 160 characters for the description', async () => {
     vi.mocked(getProblemDetail).mockResolvedValue(
-      problem({ statement_i18n: { en: 'x'.repeat(300) } })
+      problem({ statement_i18n: { en: 'x'.repeat(300) } }),
     );
 
     const metadata = await generateMetadata(pageProps());
@@ -326,9 +327,7 @@ describe('generateMetadata (problem detail)', () => {
   });
 
   it('uses a generic description when the statement is empty', async () => {
-    vi.mocked(getProblemDetail).mockResolvedValue(
-      problem({ statement_i18n: undefined })
-    );
+    vi.mocked(getProblemDetail).mockResolvedValue(problem({ statement_i18n: undefined }));
 
     const metadata = await generateMetadata(pageProps());
 
@@ -337,7 +336,7 @@ describe('generateMetadata (problem detail)', () => {
 
   it('localizes the title for Romanian visitors', async () => {
     vi.mocked(getProblemDetail).mockResolvedValue(
-      problem({ title_i18n: { en: 'English title', ro: 'Titlu românesc' } })
+      problem({ title_i18n: { en: 'English title', ro: 'Titlu românesc' } }),
     );
     mockLocale('ro');
 
@@ -363,7 +362,7 @@ describe('generateMetadata (problem detail)', () => {
 
     const banner = screen.getByTestId('i18n-fallback-banner');
     expect(banner).toHaveTextContent(
-      'Această problemă nu există încă în limba ta — citești originalul în engleză.'
+      'Această problemă nu există încă în limba ta — citești originalul în engleză.',
     );
     const help = screen.getByTestId('help-translate-link');
     expect(help).toHaveTextContent('Ajută la traducere →');
@@ -378,14 +377,12 @@ describe('generateMetadata (problem detail)', () => {
         translations: [
           { language: 'ro', contributor_username: 'alice', reviewed_at: '2026-10-31T09:00:00Z' },
         ],
-      })
+      }),
     );
     mockLocale('ro');
     render(await ProblemDetailPage(pageProps()));
 
-    expect(screen.getByTestId('translation-attribution')).toHaveTextContent(
-      'tradus de @alice'
-    );
+    expect(screen.getByTestId('translation-attribution')).toHaveTextContent('tradus de @alice');
     expect(screen.queryByTestId('i18n-fallback-banner')).not.toBeInTheDocument();
     expect(screen.getByTestId('problem-available-languages')).toBeInTheDocument();
   });

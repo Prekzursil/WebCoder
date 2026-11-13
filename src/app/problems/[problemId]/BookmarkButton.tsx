@@ -60,7 +60,11 @@ export default function BookmarkButton({ problemId }: { problemId: string }): Re
           ? t('unbookmark_aria', 'Remove bookmark')
           : t('bookmark_aria', 'Bookmark this problem')
       }
-      title={starred ? t('unbookmark_aria', 'Remove bookmark') : t('bookmark_aria', 'Bookmark this problem')}
+      title={
+        starred
+          ? t('unbookmark_aria', 'Remove bookmark')
+          : t('bookmark_aria', 'Bookmark this problem')
+      }
       style={{
         display: 'inline-flex',
         alignItems: 'center',
@@ -75,7 +79,11 @@ export default function BookmarkButton({ problemId }: { problemId: string }): Re
         color: starred ? 'var(--warn)' : 'var(--muted)',
       }}
     >
-      {starred ? <StarOutlinedIcon fontSize="small" /> : <StarBorderOutlinedIcon fontSize="small" />}
+      {starred ? (
+        <StarOutlinedIcon fontSize="small" />
+      ) : (
+        <StarBorderOutlinedIcon fontSize="small" />
+      )}
       {starred ? t('bookmarked_label', 'Bookmarked') : t('bookmark_label', 'Bookmark')}
     </button>
   );

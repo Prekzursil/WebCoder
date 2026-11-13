@@ -26,12 +26,21 @@ vi.mock('@/context/AuthContext', () => ({
 
 vi.mock('next/navigation', () => ({
   usePathname: () => '/translations',
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn(), back: vi.fn(), forward: vi.fn(), prefetch: vi.fn() }),
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    refresh: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    prefetch: vi.fn(),
+  }),
 }));
 
 vi.mock('next/link', () => ({
   default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => (
-    <a href={href} {...rest}>{children}</a>
+    <a href={href} {...rest}>
+      {children}
+    </a>
   ),
 }));
 
@@ -83,9 +92,7 @@ describe('TranslationsPage', () => {
     mocks.auth.user = null;
     mocks.auth.isAuthenticated = false;
     render(<TranslationsPage />);
-    expect(
-      await screen.findByText('Log in as a verifier to curate translations.')
-    ).toBeVisible();
+    expect(await screen.findByText('Log in as a verifier to curate translations.')).toBeVisible();
     expect(api.getProposals).not.toHaveBeenCalled();
     mocks.auth.user = { id: 2, username: 'vera', role: 'VERIFIER' };
     mocks.auth.isAuthenticated = true;
@@ -98,7 +105,11 @@ describe('TranslationsPage', () => {
       previous: null,
       results: [
         proposal(5),
-        proposal(6, { ai_verdict: 'approve', ai_confidence: 0.93, ai_notes: 'Faithful translation.' }),
+        proposal(6, {
+          ai_verdict: 'approve',
+          ai_confidence: 0.93,
+          ai_notes: 'Faithful translation.',
+        }),
       ],
     });
     render(<TranslationsPage />);
@@ -107,9 +118,7 @@ describe('TranslationsPage', () => {
     expect(screen.getByTestId('proposal-status-5')).toHaveTextContent('Pending');
     expect(screen.getByText('not screened')).toBeVisible();
     expect(screen.getByText(/AI: looks good/)).toBeVisible();
-    expect(api.getProposals).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'PENDING' })
-    );
+    expect(api.getProposals).toHaveBeenCalledWith(expect.objectContaining({ status: 'PENDING' }));
   });
 
   it('approve posts the decision, confirms and reloads the queue', async () => {
@@ -139,9 +148,7 @@ describe('TranslationsPage', () => {
       target: { value: 'Keep the math notation.' },
     });
     fireEvent.click(within(row).getByTestId('reject-btn'));
-    await waitFor(() =>
-      expect(api.reject).toHaveBeenCalledWith(5, 'Keep the math notation.')
-    );
+    await waitFor(() => expect(api.reject).toHaveBeenCalledWith(5, 'Keep the math notation.'));
     expect(await screen.findByTestId('decided-ok')).toBeVisible();
   });
 
@@ -165,7 +172,13 @@ describe('TranslationsPage', () => {
       count: 1,
       next: null,
       previous: null,
-      results: [proposal(9, { contributor_username: 'alice', status: 'REJECTED', review_note: 'Add samples.' })],
+      results: [
+        proposal(9, {
+          contributor_username: 'alice',
+          status: 'REJECTED',
+          review_note: 'Add samples.',
+        }),
+      ],
     });
     render(<TranslationsPage />);
     expect(await screen.findByTestId('proposal-row-9')).toBeVisible();
@@ -177,9 +190,7 @@ describe('TranslationsPage', () => {
   it('empty mine list renders the guidance empty state', async () => {
     mocks.auth.user = { id: 1, username: 'alice', role: 'BASIC' };
     render(<TranslationsPage />);
-    expect(
-      await screen.findByText('You have not proposed any translations yet.')
-    ).toBeVisible();
+    expect(await screen.findByText('You have not proposed any translations yet.')).toBeVisible();
     mocks.auth.user = { id: 2, username: 'vera', role: 'VERIFIER' };
   });
 });

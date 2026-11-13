@@ -15,7 +15,7 @@ test('login page links the forgot-password flow', async ({ page }) => {
   await page?.goto('/login');
   await expect(page?.getByRole('link', { name: 'Forgot password?' })).toHaveAttribute(
     'href',
-    '/forgot-password'
+    '/forgot-password',
   );
 });
 
@@ -27,7 +27,7 @@ test('requesting a reset shows the account-agnostic confirmation', async ({ page
 
   await expect(page?.getByTestId('forgot-password-sent')).toBeVisible();
   await expect(page?.getByTestId('forgot-password-sent')).toContainText(
-    /If that email belongs to an account/
+    /If that email belongs to an account/,
   );
 });
 
@@ -38,10 +38,7 @@ test('reset confirm consumes uid+token from the mailed link and lands on success
   // In real mode the live dj-rest-auth stack rightly rejects that pair (the
   // real-lane tests below cover the real request/invalid paths; the real
   // token round-trip is pinned by backend users/test_password_reset.py).
-  test.skip(
-    isRealStack,
-    'mock contract: the real API rejects the canned mock uid/token pair'
-  );
+  test.skip(isRealStack, 'mock contract: the real API rejects the canned mock uid/token pair');
 
   // The link the mail carries: /reset-password?uid=...&token=...
   await page?.goto('/reset-password?uid=mock-uid&token=mock-token');
@@ -52,9 +49,10 @@ test('reset confirm consumes uid+token from the mailed link and lands on success
 
   await expect(page?.getByTestId('reset-password-done')).toBeVisible();
   await expect(page?.getByTestId('reset-password-done')).toContainText('Password updated');
-  await expect(
-    page?.getByRole('link', { name: 'Back to login' })
-  ).toHaveAttribute('href', '/login');
+  await expect(page?.getByRole('link', { name: 'Back to login' })).toHaveAttribute(
+    'href',
+    '/login',
+  );
 });
 
 test('a used or forged token routes to the request-a-new-link state', async ({ page }) => {
@@ -65,9 +63,10 @@ test('a used or forged token routes to the request-a-new-link state', async ({ p
   await page?.getByRole('button', { name: 'Set new password' }).click();
 
   await expect(page?.getByTestId('reset-password-invalid')).toBeVisible();
-  await expect(
-    page?.getByRole('link', { name: 'Request a new link' })
-  ).toHaveAttribute('href', '/forgot-password');
+  await expect(page?.getByRole('link', { name: 'Request a new link' })).toHaveAttribute(
+    'href',
+    '/forgot-password',
+  );
 });
 
 test('opening the confirm page without a link shows the invalid state', async ({ page }) => {

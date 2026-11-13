@@ -8,15 +8,7 @@ import { NotificationService } from '../src/services/services';
 import { Button, Card, Screen, Spinner, Txt } from '../src/ui/primitives';
 import { palette, space } from '../src/theme/tokens';
 
-function HubLink({
-  href,
-  label,
-  hint,
-}: {
-  href: string;
-  label: string;
-  hint?: string;
-}) {
+function HubLink({ href, label, hint }: { href: string; label: string; hint?: string }) {
   return (
     <Link href={href as never} style={{ textDecorationLine: 'none' }}>
       <Card>

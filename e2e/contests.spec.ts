@@ -25,7 +25,7 @@ test.describe('contests surface (mock api)', () => {
     // ICS calendar feed link (CON-10).
     await expect(page.getByTestId('contests-ics-link')).toHaveAttribute(
       'href',
-      /\/api\/v1\/contests\/calendar\.ics$/
+      /\/api\/v1\/contests\/calendar\.ics$/,
     );
   });
 
@@ -40,7 +40,7 @@ test.describe('contests surface (mock api)', () => {
     // from there carry the contest id (backend gate + judge lane).
     await expect(page.getByRole('link', { name: 'Two Sum' })).toHaveAttribute(
       'href',
-      '/problems/1?contest=1'
+      '/problems/1?contest=1',
     );
 
     await page.getByRole('button', { name: 'Standings' }).click();
@@ -60,7 +60,10 @@ test.describe('contests surface (mock api)', () => {
     await page.goto('/ratings');
 
     // The ladder's UserChip links by username to the public rating profile.
-    await page.getByTestId('rating-row-e2e_tester').getByRole('link', { name: /e2e_tester/ }).click();
+    await page
+      .getByTestId('rating-row-e2e_tester')
+      .getByRole('link', { name: /e2e_tester/ })
+      .click();
     await expect(page).toHaveURL(/\/profile\/e2e_tester$/);
 
     // Band-colored summary + the SVG rating curve + the history table.
@@ -80,9 +83,7 @@ test.describe('contests surface (mock api)', () => {
 });
 
 test.describe('contests depth (Wave C: CON-5 virtual + CON-11 medals, mock api)', () => {
-  test('finished contest: awards strip, board section toggle, virtual start', async ({
-    page,
-  }) => {
+  test('finished contest: awards strip, board section toggle, virtual start', async ({ page }) => {
     await login(page);
     await page.goto('/contests/3');
 
@@ -92,10 +93,7 @@ test.describe('contests depth (Wave C: CON-5 virtual + CON-11 medals, mock api)'
     // CON-5: the standings section switch exists and refetches the virtual board.
     await expect(page.getByTestId('board-section-official')).toBeVisible();
     await page.getByTestId('board-section-virtual').click();
-    await expect(page.getByTestId('board-section-virtual')).toHaveAttribute(
-      'aria-pressed',
-      'true'
-    );
+    await expect(page.getByTestId('board-section-virtual')).toHaveAttribute('aria-pressed', 'true');
 
     // CON-5: an authenticated user may start a virtual replay.
     await page.getByTestId('virtual-start-button').click();

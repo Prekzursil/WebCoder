@@ -24,9 +24,7 @@ export default function Leaderboard() {
         const response = await LeaderboardService.getLeaderboard({
           page: targetPage,
         });
-        setItems((prev) =>
-          targetPage > 1 ? [...prev, ...response.results] : response.results
-        );
+        setItems((prev) => (targetPage > 1 ? [...prev, ...response.results] : response.results));
         setHasMore(Boolean(response.next));
         setPage(targetPage);
       } catch (err) {
@@ -35,7 +33,7 @@ export default function Leaderboard() {
         setLoading(false);
       }
     },
-    [t]
+    [t],
   );
 
   useEffect(() => {
@@ -61,8 +59,7 @@ export default function Leaderboard() {
             </Txt>
           </View>
           <Txt variant="caption">
-            {t('leaderboard_solved')}: {entry.solved_count} ·{' '}
-            {t('leaderboard_success_rate')}:{' '}
+            {t('leaderboard_solved')}: {entry.solved_count} · {t('leaderboard_success_rate')}:{' '}
             {(entry.success_rate * 100).toFixed(0)}%
           </Txt>
         </Card>

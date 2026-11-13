@@ -13,12 +13,7 @@
 import React, { useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { EditorView, Decoration, type DecorationSet } from '@codemirror/view';
-import {
-  EditorState,
-  StateEffect,
-  StateField,
-  type Extension,
-} from '@codemirror/state';
+import { EditorState, StateEffect, StateField, type Extension } from '@codemirror/state';
 import { python } from '@codemirror/lang-python';
 import { cpp } from '@codemirror/lang-cpp';
 import { java } from '@codemirror/lang-java';
@@ -82,9 +77,7 @@ export function parseTemplate(template: string | null | undefined): TemplateSegm
  * the learner sees), so scan the TEMPLATE itself with a running offset:
  * locked spans run from after each END sentinel to the next START
  * sentinel (plus head and tail of the file). */
-export function lockedRangesInTemplate(
-  template: string
-): Array<[number, number]> {
+export function lockedRangesInTemplate(template: string): Array<[number, number]> {
   const ranges: Array<[number, number]> = [];
   const lines = template.split('\n');
   let pos = 0;
@@ -136,18 +129,13 @@ const changeGuard = EditorState.changeFilter.of((tr) => {
 
 const lockedMark = Decoration.mark({ class: 'cm-wc-locked' });
 
-const lockedDecorations = EditorView.decorations.compute(
-  [lockedField],
-  (state) => {
-    const locked = state.field(lockedField) as Array<[number, number]>;
-    const builder: DecorationSet = Decoration.set(
-      locked
-        .filter(([lo, hi]) => hi > lo)
-        .map(([lo, hi]) => lockedMark.range(lo, hi))
-    );
-    return builder;
-  }
-);
+const lockedDecorations = EditorView.decorations.compute([lockedField], (state) => {
+  const locked = state.field(lockedField) as Array<[number, number]>;
+  const builder: DecorationSet = Decoration.set(
+    locked.filter(([lo, hi]) => hi > lo).map(([lo, hi]) => lockedMark.range(lo, hi)),
+  );
+  return builder;
+});
 
 /** Build the extensions that keep the scaffolding read-only + greyed. */
 export function lockedRegionExtensions(ranges: Array<[number, number]>): Extension[] {
@@ -190,7 +178,7 @@ export default function PartialCodeEditor({
 }: PartialCodeEditorProps) {
   const extensions = useMemo(
     () => lockedRegionExtensions(lockedRangesInTemplate(template)),
-    [template]
+    [template],
   );
 
   // The editor mounts with the template (sentinels kept) and is then

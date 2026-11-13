@@ -21,55 +21,69 @@ export default async function AiPolicyPage() {
       key: 'own-work',
       body: t(
         'ai_policy_own_work',
-        'Submissions during a rated contest must be entirely your own work. Using generative AI (ChatGPT, Copilot, Gemini or similar) to produce, debug or complete a solution during a rated round is cheating.'
+        'Submissions during a rated contest must be entirely your own work. Using generative AI (ChatGPT, Copilot, Gemini or similar) to produce, debug or complete a solution during a rated round is cheating.',
       ),
     },
     {
       key: 'no-sharing',
       body: t(
         'ai_policy_no_sharing',
-        'Do not share solutions, hints or test observations with other participants while a rated contest is running, and do not publish them before the round ends.'
+        'Do not share solutions, hints or test observations with other participants while a rated contest is running, and do not publish them before the round ends.',
       ),
     },
     {
       key: 'one-account',
       body: t(
         'ai_policy_one_account',
-        'One account per person. Multi-accounting in rated contests (including entering a division you are not eligible for) is cheating.'
+        'One account per person. Multi-accounting in rated contests (including entering a division you are not eligible for) is cheating.',
       ),
     },
     {
       key: 'tools',
       body: t(
         'ai_policy_tools',
-        'Allowed: the platform editor, its starter templates, and scratch runs. Not allowed: external AI assistants, collaboration tools, published solutions of the same problem, and other people — in the room or online.'
+        'Allowed: the platform editor, its starter templates, and scratch runs. Not allowed: external AI assistants, collaboration tools, published solutions of the same problem, and other people — in the room or online.',
       ),
     },
     {
       key: 'enforcement',
       body: t(
         'ai_policy_enforcement',
-        'After each rated contest we review solve patterns and run similarity checks. Confirmed violations mean disqualification from the round, rollback of the rating it produced and, for repeated offenses, loss of the account. Judgements are made by the organizers; you can appeal by email.'
+        'After each rated contest we review solve patterns and run similarity checks. Confirmed violations mean disqualification from the round, rollback of the rating it produced and, for repeated offenses, loss of the account. Judgements are made by the organizers; you can appeal by email.',
       ),
     },
     {
       key: 'practice',
       body: t(
         'ai_policy_practice',
-        'Outside rated contests — practice, editorials, community discussions — AI tools are yours to use for learning. The restrictions above exist only to keep the rating ladder honest.'
+        'Outside rated contests — practice, editorials, community discussions — AI tools are yours to use for learning. The restrictions above exist only to keep the rating ladder honest.',
       ),
     },
   ];
 
   return (
     <div className="page-container" style={{ paddingTop: '2.5rem', maxWidth: '760px' }}>
-      <h1 style={{ fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--foreground)' }}>
+      <h1
+        style={{
+          fontSize: '1.75rem',
+          fontWeight: 800,
+          letterSpacing: '-0.02em',
+          color: 'var(--foreground)',
+        }}
+      >
         {t('ai_policy_title', 'Rated contests: conduct & AI policy')}
       </h1>
-      <p style={{ color: 'var(--muted)', fontSize: '0.9rem', margin: '0.5rem 0 2rem', lineHeight: 1.7 }}>
+      <p
+        style={{
+          color: 'var(--muted)',
+          fontSize: '0.9rem',
+          margin: '0.5rem 0 2rem',
+          lineHeight: 1.7,
+        }}
+      >
         {t(
           'ai_policy_intro',
-          'The rating ladder only means something if the solves are real. These rules apply to every rated contest on WebCoder; registering for one means you accept them.'
+          'The rating ladder only means something if the solves are real. These rules apply to every rated contest on WebCoder; registering for one means you accept them.',
         )}
       </p>
 

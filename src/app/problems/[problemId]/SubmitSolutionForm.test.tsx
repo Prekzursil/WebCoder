@@ -18,7 +18,14 @@ vi.mock('@/services/ApiService', () => ({
 // [A6] CodeMirror is heavy and needs a real layout engine — stub it with a
 // labeled textarea that the tests can drive through the same props.
 vi.mock('./CodeEditor', () => ({
-  default: ({ value, onChange }: { value: string; onChange: (v: string) => void; ariaLabel?: string }) => (
+  default: ({
+    value,
+    onChange,
+  }: {
+    value: string;
+    onChange: (v: string) => void;
+    ariaLabel?: string;
+  }) => (
     <textarea
       id="code-editor"
       aria-label="Code:"
@@ -45,11 +52,7 @@ function mockAuth({ isAuthenticated }: { isAuthenticated: boolean }) {
 
 function renderForm(allowedLanguages: string[] = ['python3', 'cpp17']) {
   return render(
-    <SubmitSolutionForm
-      problemId="7"
-      allowedLanguages={allowedLanguages}
-      problemTitle="Two Sum"
-    />
+    <SubmitSolutionForm problemId="7" allowedLanguages={allowedLanguages} problemTitle="Two Sum" />,
   );
 }
 
@@ -85,9 +88,7 @@ describe('SubmitSolutionForm (unauthenticated visitors)', () => {
     expect(screen.getByText(/to submit a solution/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Submit' })).not.toBeInTheDocument();
     expect(createSubmissionMock).not.toHaveBeenCalled();
-    expect(
-      screen.queryByRole('heading', { name: 'Confirm Submission' })
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Confirm Submission' })).not.toBeInTheDocument();
   });
 });
 
@@ -141,17 +142,11 @@ describe('SubmitSolutionForm (authenticated visitors)', () => {
 
     clickSubmit();
 
-    expect(
-      screen.getByRole('heading', { name: 'Confirm Submission' })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText('Submit solution in python3 to "Two Sum"?')
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Confirm Submission' })).toBeInTheDocument();
+    expect(screen.getByText('Submit solution in python3 to "Two Sum"?')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
-    expect(
-      screen.queryByRole('heading', { name: 'Confirm Submission' })
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Confirm Submission' })).not.toBeInTheDocument();
     expect(createSubmissionMock).not.toHaveBeenCalled();
   });
 
@@ -172,7 +167,9 @@ describe('SubmitSolutionForm (authenticated visitors)', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('Solution submitted successfully! It is pending evaluation. (Submission ID: 123)')
+        screen.getByText(
+          'Solution submitted successfully! It is pending evaluation. (Submission ID: 123)',
+        ),
       ).toBeInTheDocument();
     });
     expect(createSubmissionMock).toHaveBeenCalledWith({
@@ -182,12 +179,13 @@ describe('SubmitSolutionForm (authenticated visitors)', () => {
     });
     // The editor is cleared after a successful submission.
     expect(screen.getByLabelText(/Code:/i)).toHaveValue('');
-    expect(
-      screen.queryByRole('heading', { name: 'Confirm Submission' })
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Confirm Submission' })).not.toBeInTheDocument();
 
     // [F14] the success state links out and polls the verdict live.
-    expect(screen.getByRole('link', { name: 'View status' })).toHaveAttribute('href', '/submissions/123');
+    expect(screen.getByRole('link', { name: 'View status' })).toHaveAttribute(
+      'href',
+      '/submissions/123',
+    );
     expect(screen.getByText(/Polling for updates/)).toBeInTheDocument();
   });
 
@@ -225,7 +223,7 @@ describe('SubmitSolutionForm (authenticated visitors)', () => {
     expect(screen.getByRole('button', { name: 'Insert python3 template' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Insert python3 template' }));
     expect(screen.getByLabelText(/Code:/i)).toHaveValue(
-      'def main():\n    pass\n\n\nif __name__ == "__main__":\n    main()\n'
+      'def main():\n    pass\n\n\nif __name__ == "__main__":\n    main()\n',
     );
   });
 
@@ -278,7 +276,6 @@ describe('SubmitSolutionForm (authenticated visitors)', () => {
     });
   });
 
-
   it('guards against an empty language selection at confirm time', () => {
     renderForm();
     typeCode('print(3)');
@@ -310,7 +307,7 @@ describe('SubmitSolutionForm (authenticated visitors)', () => {
     createSubmissionMock.mockReturnValue(
       new Promise<DetailedSubmissionType>((resolve) => {
         resolveSubmission = resolve;
-      })
+      }),
     );
     renderForm();
     typeCode('print(3)');

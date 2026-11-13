@@ -19,12 +19,14 @@ test.describe('classroom surface (mock api)', () => {
     await page.goto('/classes');
 
     await expect(page.getByRole('heading', { name: 'My classes' })).toBeVisible();
-    await expect(page.getByRole('region', { name: 'Enrolled classes' }).getByText('IX-A')).toBeVisible();
+    await expect(
+      page.getByRole('region', { name: 'Enrolled classes' }).getByText('IX-A'),
+    ).toBeVisible();
     await expect(page.getByText('1 open teme')).toBeVisible();
     // Homework row links to the temă detail.
     await expect(page.getByRole('link', { name: /Tema 1/ })).toHaveAttribute(
       'href',
-      '/classes/assignments/3'
+      '/classes/assignments/3',
     );
   });
 

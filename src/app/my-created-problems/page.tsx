@@ -67,10 +67,15 @@ export function MyCreatedProblemsPage() {
     }
     try {
       await ProblemService.submitForApproval(problemId);
-      setMyProblems((prev) => prev.map((p) => (p.id === problemId ? { ...p, status: 'PENDING_APPROVAL' } : p)));
+      setMyProblems((prev) =>
+        prev.map((p) => (p.id === problemId ? { ...p, status: 'PENDING_APPROVAL' } : p)),
+      );
       toast.success(t('problem_submitted_for_approval_success', 'Problem submitted for approval!'));
     } catch (err) {
-      toast.error(t('error_submitting_for_approval', 'Failed to submit for approval: ') + ((err as { message?: string }).message || 'Unknown error'));
+      toast.error(
+        t('error_submitting_for_approval', 'Failed to submit for approval: ') +
+          ((err as { message?: string }).message || 'Unknown error'),
+      );
     }
   };
 
@@ -97,24 +102,48 @@ export function MyCreatedProblemsPage() {
             <tbody>
               {myProblems.map((problem) => (
                 <tr key={problem.id}>
-                  <td><Link href={`/problems/${problem.id}`}>{problem.title_i18n[i18n.language] || problem.title_i18n.en}</Link></td>
+                  <td>
+                    <Link href={`/problems/${problem.id}`}>
+                      {problem.title_i18n[i18n.language] || problem.title_i18n.en}
+                    </Link>
+                  </td>
                   <td>{problem.status}</td>
                   <td>{problem.difficulty}</td>
                   <td>
                     {(problem.status === 'DRAFT' || problem.status === 'PRIVATE') && (
-                      <Link href={`/problems/${problem.id}/edit`} style={{ marginRight: '10px', color: 'var(--accent)' }}>{t('edit_button', 'Edit')}</Link>
+                      <Link
+                        href={`/problems/${problem.id}/edit`}
+                        style={{ marginRight: '10px', color: 'var(--accent)' }}
+                      >
+                        {t('edit_button', 'Edit')}
+                      </Link>
                     )}
                     {problem.status === 'DRAFT' && (
                       <button
                         onClick={() => handleSubmitForApproval(problem.id)}
-                        style={{ background: 'rgba(56,189,248,0.15)', color: 'var(--accent)', border: '1px solid rgba(56,189,248,0.3)', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}
+                        style={{
+                          background: 'rgba(56,189,248,0.15)',
+                          color: 'var(--accent)',
+                          border: '1px solid rgba(56,189,248,0.3)',
+                          borderRadius: '6px',
+                          padding: '4px 10px',
+                          cursor: 'pointer',
+                        }}
                       >
                         {t('submit_for_approval_button', 'Submit for Approval')}
                       </button>
                     )}
                     {problem.status === 'PRIVATE' && problem.verifier_feedback && (
-                      <p style={{ color: 'var(--accent-hover)', fontSize: '0.9em', marginTop: '5px' }}>
-                        <em>{t('verifier_feedback_label', 'Feedback')}: {problem.verifier_feedback}</em>
+                      <p
+                        style={{
+                          color: 'var(--accent-hover)',
+                          fontSize: '0.9em',
+                          marginTop: '5px',
+                        }}
+                      >
+                        <em>
+                          {t('verifier_feedback_label', 'Feedback')}: {problem.verifier_feedback}
+                        </em>
                       </p>
                     )}
                   </td>

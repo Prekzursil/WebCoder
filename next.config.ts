@@ -1,4 +1,4 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   // Pin the Turbopack workspace root to this app directory. Without this,
@@ -14,18 +14,20 @@ const nextConfig: NextConfig = {
   },
 
   webpack(config, { dev }) {
-if (dev) {
-    config.module.rules.push({
-      test: /\.(jsx|tsx)$/,
-      exclude: [/node_modules/],
-      use: [{
-        loader: '@dhiwise/component-tagger/nextLoader',
-      }],
-    });
-  }
+    if (dev) {
+      config.module.rules.push({
+        test: /\.(jsx|tsx)$/,
+        exclude: [/node_modules/],
+        use: [
+          {
+            loader: '@dhiwise/component-tagger/nextLoader',
+          },
+        ],
+      });
+    }
 
     return config;
-  }
+  },
 };
 
 export default nextConfig;

@@ -32,10 +32,6 @@ import {
   CircularProgress,
 } from '@mui/material';
 
-
-
-
-
 function CompleteRegistrationForm() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -72,7 +68,7 @@ function CompleteRegistrationForm() {
       setError(
         err instanceof Error && err.message
           ? err.message
-          : t('registration_completion_failed', 'Failed to complete registration.')
+          : t('registration_completion_failed', 'Failed to complete registration.'),
       );
     } finally {
       setIsSubmitting(false);

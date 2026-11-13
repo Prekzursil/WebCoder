@@ -37,7 +37,15 @@ export default function HintsPanel({ hints }: { hints: string[] }): ReactNode {
       >
         {t('hints_header', 'Hints — reveal one step at a time')}
       </div>
-      <ol style={{ margin: 0, paddingLeft: '1.2rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <ol
+        style={{
+          margin: 0,
+          paddingLeft: '1.2rem',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.5rem',
+        }}
+      >
         {hints.slice(0, revealed).map((hint, index) => (
           <li key={index} style={{ fontSize: '0.85rem', color: 'var(--body)', lineHeight: 1.6 }}>
             {hint}
@@ -48,7 +56,12 @@ export default function HintsPanel({ hints }: { hints: string[] }): ReactNode {
         <button
           type="button"
           className="btn"
-          style={{ marginTop: '0.75rem', padding: '4px 12px', fontSize: '0.72rem', minHeight: '30px' }}
+          style={{
+            marginTop: '0.75rem',
+            padding: '4px 12px',
+            fontSize: '0.72rem',
+            minHeight: '30px',
+          }}
           onClick={() => setRevealed((n) => n + 1)}
         >
           {t('show_hint_button', 'Show hint {{current}} of {{total}}', {
@@ -60,7 +73,12 @@ export default function HintsPanel({ hints }: { hints: string[] }): ReactNode {
         <button
           type="button"
           className="btn"
-          style={{ marginTop: '0.75rem', padding: '4px 12px', fontSize: '0.72rem', minHeight: '30px' }}
+          style={{
+            marginTop: '0.75rem',
+            padding: '4px 12px',
+            fontSize: '0.72rem',
+            minHeight: '30px',
+          }}
           onClick={() => setRevealed(0)}
         >
           {t('hide_hints_button', 'Hide hints')}

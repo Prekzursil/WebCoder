@@ -257,9 +257,27 @@ const messagingState = {
     updated_at: '2026-10-29T09:00:00Z',
   },
   messages: [
-    { id: 1, sender: { id: 1, username: 'e2e_tester' }, body: 'hello admin', created_at: '2026-10-29T08:30:00Z', read_at: '2026-10-29T08:31:00Z' },
-    { id: 2, sender: { id: 2, username: 'admin_e2e' }, body: '<script>alert(1)</script> try this', created_at: '2026-10-29T08:45:00Z', read_at: null },
-    { id: 3, sender: { id: 2, username: 'admin_e2e' }, body: 'third message', created_at: '2026-10-29T09:00:00Z', read_at: null },
+    {
+      id: 1,
+      sender: { id: 1, username: 'e2e_tester' },
+      body: 'hello admin',
+      created_at: '2026-10-29T08:30:00Z',
+      read_at: '2026-10-29T08:31:00Z',
+    },
+    {
+      id: 2,
+      sender: { id: 2, username: 'admin_e2e' },
+      body: '<script>alert(1)</script> try this',
+      created_at: '2026-10-29T08:45:00Z',
+      read_at: null,
+    },
+    {
+      id: 3,
+      sender: { id: 2, username: 'admin_e2e' },
+      body: 'third message',
+      created_at: '2026-10-29T09:00:00Z',
+      read_at: null,
+    },
   ],
   reports: [],
   blocks: [],
@@ -328,8 +346,24 @@ const MOCK_CONTESTS = [
 ];
 
 const MOCK_CONTEST_PROBLEMS = [
-  { id: 11, problem: 1, problem_title: { en: 'Two Sum' }, problem_difficulty: 'EASY', order: 0, label: 'A', points: 100 },
-  { id: 12, problem: 2, problem_title: { en: 'Reverse String', ro: 'Inversarea unui șir' }, problem_difficulty: 'MEDIUM', order: 1, label: 'B', points: 100 },
+  {
+    id: 11,
+    problem: 1,
+    problem_title: { en: 'Two Sum' },
+    problem_difficulty: 'EASY',
+    order: 0,
+    label: 'A',
+    points: 100,
+  },
+  {
+    id: 12,
+    problem: 2,
+    problem_title: { en: 'Reverse String', ro: 'Inversarea unui șir' },
+    problem_difficulty: 'MEDIUM',
+    order: 1,
+    label: 'B',
+    points: 100,
+  },
 ];
 
 const MOCK_STANDINGS = {
@@ -346,8 +380,24 @@ const MOCK_STANDINGS = {
       solved: 1,
       penalty_minutes: null,
       problems: [
-        { label: 'A', points_max: 100, best: 100, attempts: 1, wrong: 0, first_ac_at: '2026-10-01T10:10:00Z', last_improvement: null },
-        { label: 'B', points_max: 100, best: 50, attempts: 2, wrong: 1, first_ac_at: null, last_improvement: null },
+        {
+          label: 'A',
+          points_max: 100,
+          best: 100,
+          attempts: 1,
+          wrong: 0,
+          first_ac_at: '2026-10-01T10:10:00Z',
+          last_improvement: null,
+        },
+        {
+          label: 'B',
+          points_max: 100,
+          best: 50,
+          attempts: 2,
+          wrong: 1,
+          first_ac_at: null,
+          last_improvement: null,
+        },
       ],
     },
     {
@@ -357,8 +407,24 @@ const MOCK_STANDINGS = {
       solved: 0,
       penalty_minutes: null,
       problems: [
-        { label: 'A', points_max: 100, best: 40, attempts: 3, wrong: 2, first_ac_at: null, last_improvement: null },
-        { label: 'B', points_max: 100, best: 0, attempts: 0, wrong: 0, first_ac_at: null, last_improvement: null },
+        {
+          label: 'A',
+          points_max: 100,
+          best: 40,
+          attempts: 3,
+          wrong: 2,
+          first_ac_at: null,
+          last_improvement: null,
+        },
+        {
+          label: 'B',
+          points_max: 100,
+          best: 0,
+          attempts: 0,
+          wrong: 0,
+          first_ac_at: null,
+          last_improvement: null,
+        },
       ],
     },
   ],
@@ -374,7 +440,6 @@ const MOCK_RATINGS = [
     band: { min: 1400, name_en: 'Specialist', name_ro: 'Specialist', color: '#0000ff' },
   },
 ];
-
 
 const MOCK_CLASSROOM = {
   id: 5,
@@ -416,7 +481,15 @@ const MOCK_ASSIGNMENT = {
   state: 'OPEN',
   solved_count: 1,
   assignment_problems: [
-    { id: 11, problem: 1, problem_title: { en: 'Two Sum' }, problem_difficulty: 'EASY', order: 0, label: 'A', points: 100 },
+    {
+      id: 11,
+      problem: 1,
+      problem_title: { en: 'Two Sum' },
+      problem_difficulty: 'EASY',
+      order: 0,
+      label: 'A',
+      points: 100,
+    },
   ],
 };
 
@@ -546,8 +619,22 @@ const MOCK_POSTS = [
 ];
 
 const MOCK_LEADERBOARD = [
-  { rank: 1, username: 'admin_e2e', solved_count: 10, total_points: 500, success_rate: 0.8333, last_solved_at: '2026-10-20T00:00:00Z' },
-  { rank: 2, username: 'e2e_tester', solved_count: 4, total_points: 200, success_rate: 0.6667, last_solved_at: '2026-10-19T00:00:00Z' },
+  {
+    rank: 1,
+    username: 'admin_e2e',
+    solved_count: 10,
+    total_points: 500,
+    success_rate: 0.8333,
+    last_solved_at: '2026-10-20T00:00:00Z',
+  },
+  {
+    rank: 2,
+    username: 'e2e_tester',
+    solved_count: 4,
+    total_points: 200,
+    success_rate: 0.6667,
+    last_solved_at: '2026-10-19T00:00:00Z',
+  },
 ];
 
 const MOCK_NOTIFICATIONS = [
@@ -599,7 +686,10 @@ function json(res, status, body, extraHeaders = {}) {
 // gate the authenticated endpoints (admin session keyed by cookie value).
 function cookieValue(req, name) {
   const raw = req.headers.cookie ?? '';
-  const match = raw.split(';').map((c) => c.trim()).find((c) => c.startsWith(`${name}=`));
+  const match = raw
+    .split(';')
+    .map((c) => c.trim())
+    .find((c) => c.startsWith(`${name}=`));
   return match ? match.slice(name.length + 1) : null;
 }
 
@@ -698,11 +788,20 @@ const server = createServer((req, res) => {
   // FE-3: profile statistics, GDPR endpoints, bookmarks.
   if (req.method === 'GET' && path === '/api/v1/users/me/statistics/') {
     json(res, 200, {
-      solved: 5, attempted: 8, total_submissions: 20, acceptance_rate: 0.625,
-      per_difficulty: { EASY: { solved: 4, attempted: 6 }, MEDIUM: { solved: 1, attempted: 2 }, HARD: { solved: 0, attempted: 0 } },
+      solved: 5,
+      attempted: 8,
+      total_submissions: 20,
+      acceptance_rate: 0.625,
+      per_difficulty: {
+        EASY: { solved: 4, attempted: 6 },
+        MEDIUM: { solved: 1, attempted: 2 },
+        HARD: { solved: 0, attempted: 0 },
+      },
       per_language: { python3: 15, cpp17: 5 },
       active_dates_90d: [new Date().toISOString().slice(0, 10)],
-      current_streak: 1, max_streak: 3, total_active_days: 4,
+      current_streak: 1,
+      max_streak: 3,
+      total_active_days: 4,
       ladder: { points: 7, level: 1, next_level_points: 10, progress: 0.7 },
       badges: ['first_ac'],
       tag_profile: {
@@ -712,7 +811,12 @@ const server = createServer((req, res) => {
           { tag: 'dp', solved: 0, attempted: 1, covered: false, points: 0 },
         ],
         practice_next: [
-          { id: 2, title_i18n: { en: 'Longest Substring' }, difficulty: 'MEDIUM', tags: ['strings'] },
+          {
+            id: 2,
+            title_i18n: { en: 'Longest Substring' },
+            difficulty: 'MEDIUM',
+            tags: ['strings'],
+          },
         ],
       },
     });
@@ -727,10 +831,46 @@ const server = createServer((req, res) => {
       notice: 'mock',
       count: 4,
       results: [
-        { id: 'python3', name: 'Python 3', compile_command: [], run_command: ['python', 'user_code.py'], time_multiplier: 3, memory_multiplier: 1.5, memory_floor_kb: 0, checker_capable: true },
-        { id: 'cpp17', name: 'C++17', compile_command: ['g++', '-O2', '-o', 'user_program', 'user_code.cpp'], run_command: ['./user_program'], time_multiplier: 1, memory_multiplier: 1, memory_floor_kb: 0, checker_capable: true },
-        { id: 'java11', name: 'Java 11', compile_command: ['javac', '--release', '11', 'Main.java'], run_command: ['java', '-cp', '.', 'Main'], time_multiplier: 2, memory_multiplier: 1, memory_floor_kb: 524288, checker_capable: false },
-        { id: 'pascal', name: 'Free Pascal', compile_command: ['fpc', '-O2', '-ouser_program', 'user_code.pas'], run_command: ['./user_program'], time_multiplier: 1, memory_multiplier: 1, memory_floor_kb: 0, checker_capable: true },
+        {
+          id: 'python3',
+          name: 'Python 3',
+          compile_command: [],
+          run_command: ['python', 'user_code.py'],
+          time_multiplier: 3,
+          memory_multiplier: 1.5,
+          memory_floor_kb: 0,
+          checker_capable: true,
+        },
+        {
+          id: 'cpp17',
+          name: 'C++17',
+          compile_command: ['g++', '-O2', '-o', 'user_program', 'user_code.cpp'],
+          run_command: ['./user_program'],
+          time_multiplier: 1,
+          memory_multiplier: 1,
+          memory_floor_kb: 0,
+          checker_capable: true,
+        },
+        {
+          id: 'java11',
+          name: 'Java 11',
+          compile_command: ['javac', '--release', '11', 'Main.java'],
+          run_command: ['java', '-cp', '.', 'Main'],
+          time_multiplier: 2,
+          memory_multiplier: 1,
+          memory_floor_kb: 524288,
+          checker_capable: false,
+        },
+        {
+          id: 'pascal',
+          name: 'Free Pascal',
+          compile_command: ['fpc', '-O2', '-ouser_program', 'user_code.pas'],
+          run_command: ['./user_program'],
+          time_multiplier: 1,
+          memory_multiplier: 1,
+          memory_floor_kb: 0,
+          checker_capable: true,
+        },
       ],
     });
     return;
@@ -750,7 +890,12 @@ const server = createServer((req, res) => {
         body = {};
       }
       Object.assign(MOCK_USER, body);
-      json(res, 200, { ...MOCK_USER, county: body.county ?? MOCK_USER.county ?? '', school: body.school ?? MOCK_USER.school ?? '', is_minor: body.is_minor ?? false });
+      json(res, 200, {
+        ...MOCK_USER,
+        county: body.county ?? MOCK_USER.county ?? '',
+        school: body.school ?? MOCK_USER.school ?? '',
+        is_minor: body.is_minor ?? false,
+      });
     });
     return;
   }
@@ -766,8 +911,26 @@ const server = createServer((req, res) => {
     json(res, 200, {
       count: 2,
       results: [
-        { id: 101, username: 'e2e_tester', problem_id: 1, verdict: 'AC', score: 100, language: 'python3', submission_time: '2026-10-25T10:00:00Z', code: 'print(int(input()) + int(input()))' },
-        { id: 102, username: 'elev_ro', problem_id: 1, verdict: 'AC', score: 100, language: 'python3', submission_time: '2026-10-25T10:05:00Z', code: 'a = int(input())\nb = int(input())\nprint(a + b)' },
+        {
+          id: 101,
+          username: 'e2e_tester',
+          problem_id: 1,
+          verdict: 'AC',
+          score: 100,
+          language: 'python3',
+          submission_time: '2026-10-25T10:00:00Z',
+          code: 'print(int(input()) + int(input()))',
+        },
+        {
+          id: 102,
+          username: 'elev_ro',
+          problem_id: 1,
+          verdict: 'AC',
+          score: 100,
+          language: 'python3',
+          submission_time: '2026-10-25T10:05:00Z',
+          code: 'a = int(input())\nb = int(input())\nprint(a + b)',
+        },
       ],
     });
     return;
@@ -785,7 +948,11 @@ const server = createServer((req, res) => {
 
   const bookmarkMatch = path.match(/^\/api\/v1\/problems\/problems\/(\d+)\/bookmark\/$/);
   if (bookmarkMatch && (req.method === 'POST' || req.method === 'DELETE')) {
-    json(res, 200, { problem: Number(bookmarkMatch[1]), starred: req.method === 'POST', star_count: 1 });
+    json(res, 200, {
+      problem: Number(bookmarkMatch[1]),
+      starred: req.method === 'POST',
+      star_count: 1,
+    });
     return;
   }
 
@@ -801,27 +968,60 @@ const server = createServer((req, res) => {
 
   // Wave A: curriculum tree (EDU-9) + starter trio (ONB-1) + solved ids (F5).
   if (req.method === 'GET' && path === '/api/v1/problems/curriculum/') {
-    json(res, 200, paged([
-      {
-        // EDU-10 (Wave D): the gimnaziu tree leads the liceu spine.
-        id: 20, kind: 'GRADE', slug: 'g5', order: 5,
-        name_i18n: { en: 'Grade 5', ro: 'Clasa a V-a' }, problem_count: 1,
-        children: [
-          { id: 21, kind: 'CHAPTER', slug: 'g5-first-steps', order: 1,
-            name_i18n: { en: 'First steps (read & print)', ro: 'Primii pași (citire și afișare)' }, problem_count: 1 },
-        ],
-      },
-      {
-        id: 10, kind: 'GRADE', slug: 'g9', order: 10,
-        name_i18n: { en: 'Grade 9', ro: 'Clasa a IX-a' }, problem_count: 2,
-        children: [
-          { id: 11, kind: 'CHAPTER', slug: 'g9-elementary', order: 1,
-            name_i18n: { en: 'Elementary algorithms', ro: 'Algoritmi elementari' }, problem_count: 1 },
-          { id: 12, kind: 'CHAPTER', slug: 'g9-loops', order: 2,
-            name_i18n: { en: 'Loops', ro: 'Structuri repetitive' }, problem_count: 1 },
-        ],
-      },
-    ]));
+    json(
+      res,
+      200,
+      paged([
+        {
+          // EDU-10 (Wave D): the gimnaziu tree leads the liceu spine.
+          id: 20,
+          kind: 'GRADE',
+          slug: 'g5',
+          order: 5,
+          name_i18n: { en: 'Grade 5', ro: 'Clasa a V-a' },
+          problem_count: 1,
+          children: [
+            {
+              id: 21,
+              kind: 'CHAPTER',
+              slug: 'g5-first-steps',
+              order: 1,
+              name_i18n: {
+                en: 'First steps (read & print)',
+                ro: 'Primii pași (citire și afișare)',
+              },
+              problem_count: 1,
+            },
+          ],
+        },
+        {
+          id: 10,
+          kind: 'GRADE',
+          slug: 'g9',
+          order: 10,
+          name_i18n: { en: 'Grade 9', ro: 'Clasa a IX-a' },
+          problem_count: 2,
+          children: [
+            {
+              id: 11,
+              kind: 'CHAPTER',
+              slug: 'g9-elementary',
+              order: 1,
+              name_i18n: { en: 'Elementary algorithms', ro: 'Algoritmi elementari' },
+              problem_count: 1,
+            },
+            {
+              id: 12,
+              kind: 'CHAPTER',
+              slug: 'g9-loops',
+              order: 2,
+              name_i18n: { en: 'Loops', ro: 'Structuri repetitive' },
+              problem_count: 1,
+            },
+          ],
+        },
+      ]),
+    );
     return;
   }
 
@@ -843,9 +1043,13 @@ const server = createServer((req, res) => {
   const translationRow = (proposal) => ({
     id: proposal.id,
     problem_id: proposal.problem_id,
-    problem_title_en: (MOCK_PROBLEMS.find((p) => p.id === proposal.problem_id) || {}).title_i18n?.en ?? `Problem ${proposal.problem_id}`,
+    problem_title_en:
+      (MOCK_PROBLEMS.find((p) => p.id === proposal.problem_id) || {}).title_i18n?.en ??
+      `Problem ${proposal.problem_id}`,
     language: proposal.language,
-    language_name: (TRANSLATABLE_LANGUAGES.find((l) => l.code === proposal.language) || {}).english ?? proposal.language,
+    language_name:
+      (TRANSLATABLE_LANGUAGES.find((l) => l.code === proposal.language) || {}).english ??
+      proposal.language,
     title: proposal.title,
     statement: proposal.statement,
     status: proposal.status,
@@ -861,8 +1065,12 @@ const server = createServer((req, res) => {
   });
   const isVerifier = (req) => {
     const session = sessionUser(req);
-    return session !== null
-      && (session.role === 'ADMIN' || session.role === 'PROBLEM_VERIFIER' || session.role === 'VERIFIER');
+    return (
+      session !== null &&
+      (session.role === 'ADMIN' ||
+        session.role === 'PROBLEM_VERIFIER' ||
+        session.role === 'VERIFIER')
+    );
   };
 
   if (req.method === 'GET' && path === '/api/v1/translations/languages/') {
@@ -910,7 +1118,9 @@ const server = createServer((req, res) => {
       const problem = MOCK_PROBLEMS.find((p) => p.id === Number(body.problem));
       const language = String(body.language ?? '');
       if (!problem) {
-        json(res, 400, { detail: 'Only published (APPROVED) problems accept community translations.' });
+        json(res, 400, {
+          detail: 'Only published (APPROVED) problems accept community translations.',
+        });
         return;
       }
       if (!TRANSLATABLE_LANGUAGES.some((l) => l.code === language)) {
@@ -922,11 +1132,17 @@ const server = createServer((req, res) => {
         return;
       }
       const dup = translationsState.proposals.find(
-        (p) => p.problem_id === problem.id && p.language === language
-          && p.contributor_username === session.username && p.status === 'PENDING'
+        (p) =>
+          p.problem_id === problem.id &&
+          p.language === language &&
+          p.contributor_username === session.username &&
+          p.status === 'PENDING',
       );
       if (dup) {
-        json(res, 409, { detail: 'You already have a pending proposal for this problem and language — wait for a decision before proposing again.' });
+        json(res, 409, {
+          detail:
+            'You already have a pending proposal for this problem and language — wait for a decision before proposing again.',
+        });
         return;
       }
       const proposal = {
@@ -948,7 +1164,9 @@ const server = createServer((req, res) => {
     return;
   }
 
-  const decisionMatch = path.match(/^\/api\/v1\/translations\/proposals\/(\d+)\/(approve|reject)\/$/);
+  const decisionMatch = path.match(
+    /^\/api\/v1\/translations\/proposals\/(\d+)\/(approve|reject)\/$/,
+  );
   if (req.method === 'POST' && decisionMatch) {
     if (!isVerifier(req)) {
       json(res, 403, { detail: 'Only verifiers and admins can manage translations.' });
@@ -976,7 +1194,11 @@ const server = createServer((req, res) => {
           problem.statement_i18n[proposal.language] = proposal.statement;
           problem.translations = [
             ...(problem.translations ?? []).filter((row) => row.language !== proposal.language),
-            { language: proposal.language, contributor_username: proposal.contributor_username, reviewed_at: proposal.reviewed_at },
+            {
+              language: proposal.language,
+              contributor_username: proposal.contributor_username,
+              reviewed_at: proposal.reviewed_at,
+            },
           ];
         }
       } else {
@@ -1025,7 +1247,7 @@ const server = createServer((req, res) => {
         {
           user: isAdmin ? MOCK_ADMIN : MOCK_USER,
         },
-        { 'Set-Cookie': AUTH_COOKIES(cookieValueToken) }
+        { 'Set-Cookie': AUTH_COOKIES(cookieValueToken) },
       );
     });
     return;
@@ -1067,24 +1289,39 @@ const server = createServer((req, res) => {
       json(res, 401, { detail: 'No valid refresh token found.' });
       return;
     }
-    json(res, 200, { access: 'e2e-rotated-access' }, { 'Set-Cookie': AUTH_COOKIES('e2e-access-token')[0] });
+    json(
+      res,
+      200,
+      { access: 'e2e-rotated-access' },
+      { 'Set-Cookie': AUTH_COOKIES('e2e-access-token')[0] },
+    );
     return;
   }
 
   if (req.method === 'GET' && path === '/api/v1/auth/csrf/') {
-    json(res, 200, { detail: 'CSRF cookie set' }, {
-      'Set-Cookie': 'csrftoken=e2e-csrf-token; Path=/; SameSite=Lax',
-    });
+    json(
+      res,
+      200,
+      { detail: 'CSRF cookie set' },
+      {
+        'Set-Cookie': 'csrftoken=e2e-csrf-token; Path=/; SameSite=Lax',
+      },
+    );
     return;
   }
 
   if (req.method === 'POST' && path === '/api/v1/auth/logout/') {
-    json(res, 200, { detail: 'Logged out.' }, {
-      'Set-Cookie': [
-        'wc_access=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',
-        'wc_refresh=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',
-      ],
-    });
+    json(
+      res,
+      200,
+      { detail: 'Logged out.' },
+      {
+        'Set-Cookie': [
+          'wc_access=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',
+          'wc_refresh=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',
+        ],
+      },
+    );
     return;
   }
 
@@ -1109,12 +1346,26 @@ const server = createServer((req, res) => {
     json(res, 200, {
       weeks: 12,
       history: [
-        { week: '2026-W42', captured_at: '2026-10-19T06:30:00Z', total_users: 30,
-          users_with_submission: 17, users_with_ac: 11, d1_active: 8, d7_active: 12,
-          total_submissions: 210 },
-        { week: '2026-W43', captured_at: '2026-10-26T06:30:00Z', total_users: 42,
-          users_with_submission: 25, users_with_ac: 18, d1_active: 14, d7_active: 19,
-          total_submissions: 331 },
+        {
+          week: '2026-W42',
+          captured_at: '2026-10-19T06:30:00Z',
+          total_users: 30,
+          users_with_submission: 17,
+          users_with_ac: 11,
+          d1_active: 8,
+          d7_active: 12,
+          total_submissions: 210,
+        },
+        {
+          week: '2026-W43',
+          captured_at: '2026-10-26T06:30:00Z',
+          total_users: 42,
+          users_with_submission: 25,
+          users_with_ac: 18,
+          d1_active: 14,
+          d7_active: 19,
+          total_submissions: 331,
+        },
       ],
     });
     return;
@@ -1186,7 +1437,9 @@ const server = createServer((req, res) => {
       return;
     }
     if (apiTokenState.key) {
-      json(res, 409, { detail: 'You already have a personal token — revoke it first to rotate the key.' });
+      json(res, 409, {
+        detail: 'You already have a personal token — revoke it first to rotate the key.',
+      });
       return;
     }
     apiTokenState.key = 'e2e-mock-personal-token-0123456789abcdef';
@@ -1315,9 +1568,7 @@ const server = createServer((req, res) => {
     return;
   }
 
-  const contestVirtualStart = path.match(
-    /^\/api\/v1\/contests\/contests\/(\d+)\/virtual-start\/$/
-  );
+  const contestVirtualStart = path.match(/^\/api\/v1\/contests\/contests\/(\d+)\/virtual-start\/$/);
   if (req.method === 'POST' && contestVirtualStart) {
     if (!sessionUser(req)) {
       json(res, 401, { detail: 'Authentication credentials were not provided.' });
@@ -1411,7 +1662,8 @@ const server = createServer((req, res) => {
   const assignmentGrid = path.match(/^\/api\/v1\/classroom\/assignments\/(\d+)\/grid\/$/);
   if (req.method === 'GET' && assignmentGrid) {
     const session = sessionUser(req);
-    const isTeacherLane = session && (session.username === 'admin_e2e' || session.username === 'e2e_teacher');
+    const isTeacherLane =
+      session && (session.username === 'admin_e2e' || session.username === 'e2e_teacher');
     if (!isTeacherLane) {
       json(res, 403, { detail: 'Only the teacher can view the grid.' });
       return;
@@ -1422,12 +1674,10 @@ const server = createServer((req, res) => {
         { id: 2, username: 'e2e_tester' },
         { id: 3, username: 'elev_ro' },
       ],
-      problems: [
-        { id: 1, problem_id: 1, label: 'A', points: 100, title_i18n: { en: 'Two Sum' } },
-      ],
+      problems: [{ id: 1, problem_id: 1, label: 'A', points: 100, title_i18n: { en: 'Two Sum' } }],
       cells: {
-        '2': { 1: { best: 100, verdict: 'AC', attempts: 1, late: false } },
-        '3': { 1: { best: 60, verdict: 'WA', attempts: 2, late: false } },
+        2: { 1: { best: 100, verdict: 'AC', attempts: 1, late: false } },
+        3: { 1: { best: 60, verdict: 'WA', attempts: 2, late: false } },
       },
     });
     return;
@@ -1448,9 +1698,7 @@ const server = createServer((req, res) => {
     return;
   }
 
-  const quizSubmit = path.match(
-    /^\/api\/v1\/classroom\/assignments\/(\d+)\/quiz\/submit\/$/
-  );
+  const quizSubmit = path.match(/^\/api\/v1\/classroom\/assignments\/(\d+)\/quiz\/submit\/$/);
   if (req.method === 'POST' && quizSubmit) {
     if (!sessionUser(req)) {
       json(res, 401, { detail: 'Authentication credentials were not provided.' });
@@ -1466,9 +1714,7 @@ const server = createServer((req, res) => {
     return;
   }
 
-  const deliverables = path.match(
-    /^\/api\/v1\/classroom\/assignments\/(\d+)\/deliverables\/$/
-  );
+  const deliverables = path.match(/^\/api\/v1\/classroom\/assignments\/(\d+)\/deliverables\/$/);
   if (deliverables) {
     if (!sessionUser(req)) {
       json(res, 401, { detail: 'Authentication credentials were not provided.' });
@@ -1495,7 +1741,7 @@ const server = createServer((req, res) => {
 
   // UXP-4: statement revision history.
   const statementRevisions = path.match(
-    /^\/api\/v1\/problems\/problems\/(\d+)\/statement-revisions\/$/
+    /^\/api\/v1\/problems\/problems\/(\d+)\/statement-revisions\/$/,
   );
   if (req.method === 'GET' && statementRevisions) {
     json(res, 200, {
@@ -1575,7 +1821,8 @@ const server = createServer((req, res) => {
     }
     json(res, 200, {
       count: 1,
-      license: "Code stays the author's; the platform displays it under the Terms of Service submission grant.",
+      license:
+        "Code stays the author's; the platform displays it under the Terms of Service submission grant.",
       results: [
         {
           id: 5,
@@ -1601,9 +1848,7 @@ const server = createServer((req, res) => {
   }
 
   // Wave C (EDT-3/EDT-6): community editorials + article hub.
-  const communityEditorials = path.match(
-    /^\/api\/v1\/problems\/(\d+)\/community-editorials\/$/
-  );
+  const communityEditorials = path.match(/^\/api\/v1\/problems\/(\d+)\/community-editorials\/$/);
   if (req.method === 'GET' && communityEditorials) {
     json(res, 200, {
       count: 1,
@@ -1630,9 +1875,7 @@ const server = createServer((req, res) => {
     return;
   }
 
-  const relatedArticles = path.match(
-    /^\/api\/v1\/problems\/(\d+)\/related-articles\/$/
-  );
+  const relatedArticles = path.match(/^\/api\/v1\/problems\/(\d+)\/related-articles\/$/);
   if (req.method === 'GET' && relatedArticles) {
     json(res, 200, {
       count: 1,
@@ -1786,7 +2029,12 @@ const server = createServer((req, res) => {
 
   // ---- COM-5 private messaging (threads, history, send, read) ----
   if (req.method === 'GET' && path === '/api/v1/messages/threads/') {
-    json(res, 200, { count: 1, next: null, previous: null, results: [messagingState.conversation] });
+    json(res, 200, {
+      count: 1,
+      next: null,
+      previous: null,
+      results: [messagingState.conversation],
+    });
     return;
   }
   if (req.method === 'GET' && path === '/api/v1/messages/threads/1/') {
@@ -1828,7 +2076,11 @@ const server = createServer((req, res) => {
         actor: 'e2e_tester',
         target_type: 'message',
         target_id: message.id,
-        data: { conversation_id: Number(sendMatch[1]), message_id: message.id, excerpt: text.slice(0, 80) },
+        data: {
+          conversation_id: Number(sendMatch[1]),
+          message_id: message.id,
+          excerpt: text.slice(0, 80),
+        },
         read_at: null,
         created_at: message.created_at,
       });
@@ -1863,7 +2115,12 @@ const server = createServer((req, res) => {
   }
   // Blocks (mute list).
   if (req.method === 'GET' && path === '/api/v1/messages/blocks/') {
-    json(res, 200, { count: messagingState.blocks.length, next: null, previous: null, results: messagingState.blocks });
+    json(res, 200, {
+      count: messagingState.blocks.length,
+      next: null,
+      previous: null,
+      results: messagingState.blocks,
+    });
     return;
   }
   if (req.method === 'POST' && path === '/api/v1/messages/blocks/') {
@@ -1888,7 +2145,9 @@ const server = createServer((req, res) => {
   // Moderation queue (reports list, resolve/dismiss, flagged stub).
   if (req.method === 'GET' && path === '/api/v1/messages/moderation/reports/') {
     const status = requestUrl.searchParams.get('status');
-    const reports = status ? messagingState.reports.filter((r) => r.status === status) : messagingState.reports;
+    const reports = status
+      ? messagingState.reports.filter((r) => r.status === status)
+      : messagingState.reports;
     json(res, 200, { count: reports.length, next: null, previous: null, results: reports });
     return;
   }

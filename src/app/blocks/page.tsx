@@ -13,24 +13,29 @@ import { ScratchService } from '@/services/ApiService';
 import { useAuth } from '@/context/AuthContext';
 
 // Blockly requires the DOM — load the editor client-side only.
-const BlockEditor = dynamic(
-  () => import('@/components/blocks/BlockEditor'),
-  { ssr: false, loading: () => <BlocksSkeleton /> }
-);
+const BlockEditor = dynamic(() => import('@/components/blocks/BlockEditor'), {
+  ssr: false,
+  loading: () => <BlocksSkeleton />,
+});
 
 // Wave D engine 2: the Scratch editor is browser-only too (scratch-vm +
 // scratch-blocks + scratch-render); the playground offers BOTH engines —
 // the owner directive is Blockly AND Scratch, not one or the other.
-const ScratchEditor = dynamic(
-  () => import('@/components/blocks/ScratchEditor'),
-  { ssr: false, loading: () => <BlocksSkeleton /> }
-);
+const ScratchEditor = dynamic(() => import('@/components/blocks/ScratchEditor'), {
+  ssr: false,
+  loading: () => <BlocksSkeleton />,
+});
 
 function BlocksSkeleton() {
   return (
     <div
       data-testid="blocks-skeleton"
-      style={{ height: 420, borderRadius: 12, background: 'var(--surface-2)', border: '1px solid var(--border)' }}
+      style={{
+        height: 420,
+        borderRadius: 12,
+        background: 'var(--surface-2)',
+        border: '1px solid var(--border)',
+      }}
       aria-hidden="true"
     />
   );
@@ -79,10 +84,21 @@ export default function BlocksPlaygroundPage() {
         {t('blocks_playground_title', 'Block playground')}
       </h1>
       <p style={{ color: 'var(--muted)', marginTop: '0.4rem' }}>
-        {t('blocks_playground_subtitle', 'Build a program with blocks — it generates real Python or JavaScript and runs on the judge.')}
+        {t(
+          'blocks_playground_subtitle',
+          'Build a program with blocks — it generates real Python or JavaScript and runs on the judge.',
+        )}
       </p>
 
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', margin: '1rem 0', flexWrap: 'wrap' }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: '10px',
+          alignItems: 'center',
+          margin: '1rem 0',
+          flexWrap: 'wrap',
+        }}
+      >
         <label htmlFor="block_engine" className="micro-label">
           {t('blocks_engine_label', 'Engine')}
         </label>
@@ -90,7 +106,13 @@ export default function BlocksPlaygroundPage() {
           id="block_engine"
           value={engine}
           onChange={(e) => setEngine(e.target.value === 'scratch' ? 'scratch' : 'blockly')}
-          style={{ padding: '6px 10px', borderRadius: 8, background: 'var(--surface-2)', color: 'var(--foreground)', border: '1px solid var(--border)' }}
+          style={{
+            padding: '6px 10px',
+            borderRadius: 8,
+            background: 'var(--surface-2)',
+            color: 'var(--foreground)',
+            border: '1px solid var(--border)',
+          }}
         >
           <option value="blockly">Blockly</option>
           <option value="scratch">Scratch</option>
@@ -104,7 +126,13 @@ export default function BlocksPlaygroundPage() {
               id="block_generator"
               value={generator}
               onChange={(e) => setGenerator(e.target.value as BlockGenerator)}
-              style={{ padding: '6px 10px', borderRadius: 8, background: 'var(--surface-2)', color: 'var(--foreground)', border: '1px solid var(--border)' }}
+              style={{
+                padding: '6px 10px',
+                borderRadius: 8,
+                background: 'var(--surface-2)',
+                color: 'var(--foreground)',
+                border: '1px solid var(--border)',
+              }}
             >
               <option value="python3">Python 3</option>
               <option value="nodejs20">JavaScript (Node.js 20)</option>
@@ -121,7 +149,14 @@ export default function BlocksPlaygroundPage() {
         </Suspense>
       )}
 
-      <div style={{ display: 'grid', gap: '10px', marginTop: '1rem', gridTemplateColumns: 'minmax(0, 1fr)' }}>
+      <div
+        style={{
+          display: 'grid',
+          gap: '10px',
+          marginTop: '1rem',
+          gridTemplateColumns: 'minmax(0, 1fr)',
+        }}
+      >
         {engine === 'scratch' && (
           <p style={{ color: 'var(--muted)', margin: 0, fontSize: '0.85rem' }}>
             {t(
@@ -132,53 +167,60 @@ export default function BlocksPlaygroundPage() {
         )}
         {engine === 'blockly' && (
           <>
-        <label htmlFor="block_stdin" className="micro-label">
-          {t('blocks_stdin_label', 'Input (stdin)')}
-        </label>
-        <textarea
-          id="block_stdin"
-          value={stdin}
-          onChange={(e) => setStdin(e.target.value)}
-          rows={3}
-          placeholder="42"
-          style={{ padding: '10px', borderRadius: 8, background: 'var(--surface-2)', color: 'var(--foreground)', border: '1px solid var(--border)', fontFamily: 'var(--font-mono)' }}
-        />
-        <div>
-          <button
-            type="button"
-            className="btn"
-            onClick={runGenerated}
-            disabled={running}
-            style={{ opacity: running ? 0.6 : 1 }}
-          >
-            {running ? t('blocks_running', 'Running…') : t('blocks_run', 'Run on the judge')}
-          </button>
-        </div>
-        {runError && (
-          <p role="alert" style={{ color: 'var(--danger)', margin: 0 }}>
-            {runError}
-          </p>
-        )}
-        {output !== null && (
-          <div>
-            <span className="micro-label">{t('blocks_output_label', 'Output')}</span>
-            <pre
-              data-testid="blocks-output"
+            <label htmlFor="block_stdin" className="micro-label">
+              {t('blocks_stdin_label', 'Input (stdin)')}
+            </label>
+            <textarea
+              id="block_stdin"
+              value={stdin}
+              onChange={(e) => setStdin(e.target.value)}
+              rows={3}
+              placeholder="42"
               style={{
-                marginTop: '6px',
-                padding: '12px',
-                background: 'var(--surface-2)',
-                border: '1px solid var(--border)',
+                padding: '10px',
                 borderRadius: 8,
+                background: 'var(--surface-2)',
+                color: 'var(--foreground)',
+                border: '1px solid var(--border)',
                 fontFamily: 'var(--font-mono)',
-                fontSize: '0.85rem',
-                whiteSpace: 'pre-wrap',
               }}
-            >
-{output}
-            </pre>
-          </div>
-        )}
+            />
+            <div>
+              <button
+                type="button"
+                className="btn"
+                onClick={runGenerated}
+                disabled={running}
+                style={{ opacity: running ? 0.6 : 1 }}
+              >
+                {running ? t('blocks_running', 'Running…') : t('blocks_run', 'Run on the judge')}
+              </button>
+            </div>
+            {runError && (
+              <p role="alert" style={{ color: 'var(--danger)', margin: 0 }}>
+                {runError}
+              </p>
+            )}
+            {output !== null && (
+              <div>
+                <span className="micro-label">{t('blocks_output_label', 'Output')}</span>
+                <pre
+                  data-testid="blocks-output"
+                  style={{
+                    marginTop: '6px',
+                    padding: '12px',
+                    background: 'var(--surface-2)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 8,
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.85rem',
+                    whiteSpace: 'pre-wrap',
+                  }}
+                >
+                  {output}
+                </pre>
+              </div>
+            )}
           </>
         )}
       </div>
