@@ -30,11 +30,9 @@ test('login form rejects bad credentials with the API error', async ({ page }) =
   // says "Invalid credentials."; real dj-rest-auth surfaces
   // non_field_errors ("Unable to log in with provided credentials.") —
   // apiFetch extracts both since the Q13 real-stack mode.
-  const errorAlert = page
-    ?.getByRole('alert')
-    ?.filter({
-      hasText: isRealStack ? 'Unable to log in with provided credentials.' : 'Invalid credentials.',
-    });
+  const errorAlert = page?.getByRole('alert')?.filter({
+    hasText: isRealStack ? 'Unable to log in with provided credentials.' : 'Invalid credentials.',
+  });
   await expect(errorAlert)?.toBeVisible();
 });
 

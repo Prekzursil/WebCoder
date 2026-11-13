@@ -197,17 +197,15 @@ afterEach(cleanup);
 describe('ContestDetailPage', () => {
   it('shows register; registering reloads the contest with participation', async () => {
     api.register.mockResolvedValue({ contest: 1, user: 7 });
-    api.getContest
-      .mockResolvedValueOnce(BASE)
-      .mockResolvedValueOnce({
-        ...BASE,
-        my_participation: {
-          virtual_start: null,
-          effective_start: BASE.start_at,
-          effective_end: BASE.end_at,
-          is_disqualified: false,
-        },
-      });
+    api.getContest.mockResolvedValueOnce(BASE).mockResolvedValueOnce({
+      ...BASE,
+      my_participation: {
+        virtual_start: null,
+        effective_start: BASE.start_at,
+        effective_end: BASE.end_at,
+        is_disqualified: false,
+      },
+    });
     render(<ContestDetailPage />);
 
     const registerButton = await screen.findByRole('button', { name: 'Register' });
