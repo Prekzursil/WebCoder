@@ -106,8 +106,8 @@ class CommunityEditorialTests(CommunityBase):
             f"/api/v1/problems/{self.problem.id}/community-editorials/"
         )
         self.assertEqual(len(everything.data["results"]), 3)
-        self.assertTrue(
-            approved_ro.title in [r["title"] for r in everything.data["results"]]
+        self.assertIn(
+            approved_ro.title, [r["title"] for r in everything.data["results"]]
         )
 
     def test_review_approve_and_reject_with_notification(self):
