@@ -39,12 +39,16 @@ class ProposeFlowTests(APITestCase):
         self.alice = User.objects.create_user(username="alice", password="pw-12345678")
         self.bob = User.objects.create_user(username="bob", password="pw-12345678")
         self.verifier = User.objects.create_user(
-            username="verifier", password="pw-12345678", role=User.Roles.PROBLEM_VERIFIER
+            username="verifier",
+            password="pw-12345678",
+            role=User.Roles.PROBLEM_VERIFIER,
         )
         self.problem = _approved_problem()
         self.client = APIClient()
 
-    def _propose(self, language="ro", title=None, statement=None, problem_id=None, client=None):
+    def _propose(
+        self, language="ro", title=None, statement=None, problem_id=None, client=None
+    ):
         payload = {
             "problem": problem_id if problem_id is not None else self.problem.id,
             "language": language,
@@ -65,7 +69,9 @@ class ProposeFlowTests(APITestCase):
     def test_authenticated_proposal_is_created_pending(self):
         self.client.force_authenticate(self.alice)
         response = self._propose()
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        self.assertEqual(
+            response.status_code, status.HTTP_201_CREATED, response.content
+        )
         self.assertEqual(response.data["status"], "PENDING")
         self.assertEqual(response.data["contributor_username"], "alice")
         self.assertEqual(response.data["ai_verdict"], "")
@@ -108,7 +114,11 @@ class ProposeFlowTests(APITestCase):
         admin = APIClient()
         admin.force_authenticate(self.verifier)
         proposal = TranslationProposal.objects.get()
-        decision = admin.post(f"{PROPOSE_URL}{proposal.id}/reject/", {"note": "mistranslation"}, format="json")
+        decision = admin.post(
+            f"{PROPOSE_URL}{proposal.id}/reject/",
+            {"note": "mistranslation"},
+            format="json",
+        )
         self.assertEqual(decision.status_code, status.HTTP_200_OK, decision.content)
         again = self._propose(title="Titlu corect", statement="Corp corect.")
         self.assertEqual(again.status_code, status.HTTP_201_CREATED, again.content)
@@ -121,8 +131,12 @@ class ProposeFlowTests(APITestCase):
 
     def test_empty_title_or_statement_rejected(self):
         self.client.force_authenticate(self.alice)
-        self.assertEqual(self._propose(title="  ").status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(self._propose(statement="").status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            self._propose(title="  ").status_code, status.HTTP_400_BAD_REQUEST
+        )
+        self.assertEqual(
+            self._propose(statement="").status_code, status.HTTP_400_BAD_REQUEST
+        )
 
     def test_languages_catalog_endpoint_lists_translatable_locales(self):
         response = self.client.get("/api/v1/translations/languages/")
@@ -131,10 +145,33 @@ class ProposeFlowTests(APITestCase):
         self.assertEqual(
             codes,
             [
-                "ro", "es", "fr", "de", "pt", "it", "ca",
-                "pl", "hu", "hr", "sr-Latn", "ru", "uk", "bg", "el",
-                "zh-Hans", "zh-Hant", "ja", "ko", "hi", "vi", "th", "id",
-                "tr", "kk", "ar", "fa",
+                "ro",
+                "es",
+                "fr",
+                "de",
+                "pt",
+                "it",
+                "ca",
+                "pl",
+                "hu",
+                "hr",
+                "sr-Latn",
+                "ru",
+                "uk",
+                "bg",
+                "el",
+                "zh-Hans",
+                "zh-Hant",
+                "ja",
+                "ko",
+                "hi",
+                "vi",
+                "th",
+                "id",
+                "tr",
+                "kk",
+                "ar",
+                "fa",
             ],  # TRANSLATABLE_LANGUAGES: every registry locale except 'en'
         )
         self.assertIn("endonym", response.data["results"][0])
@@ -144,7 +181,9 @@ class CurationQueueTests(APITestCase):
     def setUp(self):
         self.alice = User.objects.create_user(username="alice", password="pw-12345678")
         self.verifier = User.objects.create_user(
-            username="verifier", password="pw-12345678", role=User.Roles.PROBLEM_VERIFIER
+            username="verifier",
+            password="pw-12345678",
+            role=User.Roles.PROBLEM_VERIFIER,
         )
         self.admin = User.objects.create_user(
             username="admin", password="pw-12345678", role=User.Roles.ADMIN
@@ -171,7 +210,11 @@ class CurationQueueTests(APITestCase):
             if user:
                 client.force_authenticate(user)
             response = client.get(PROPOSE_URL)
-            expected = status.HTTP_401_UNAUTHORIZED if user is None else status.HTTP_403_FORBIDDEN
+            expected = (
+                status.HTTP_401_UNAUTHORIZED
+                if user is None
+                else status.HTTP_403_FORBIDDEN
+            )
             self.assertEqual(response.status_code, expected)
 
     def test_queue_lists_proposals_for_verifier(self):
@@ -188,12 +231,12 @@ class CurationQueueTests(APITestCase):
         self.assertEqual(by_language.data["count"], 1)
         self.assertEqual(by_language.data["results"][0]["language"], "fr")
 
-        by_problem = client.get(PROPOSE_URL, {"problem": self.problem.id, "language": "de"})
+        by_problem = client.get(
+            PROPOSE_URL, {"problem": self.problem.id, "language": "de"}
+        )
         self.assertEqual(by_problem.data["count"], 1)
 
-        decided = client.post(
-            f"{PROPOSE_URL}{self.proposal.id}/approve/"
-        )
+        decided = client.post(f"{PROPOSE_URL}{self.proposal.id}/approve/")
         self.assertEqual(decided.status_code, status.HTTP_200_OK, decided.content)
         pending_only = client.get(PROPOSE_URL, {"status": "PENDING"})
         self.assertEqual(pending_only.data["count"], 1)
@@ -218,7 +261,9 @@ class ApproveRejectTests(APITestCase):
     def setUp(self):
         self.alice = User.objects.create_user(username="alice", password="pw-12345678")
         self.verifier = User.objects.create_user(
-            username="verifier", password="pw-12345678", role=User.Roles.PROBLEM_VERIFIER
+            username="verifier",
+            password="pw-12345678",
+            role=User.Roles.PROBLEM_VERIFIER,
         )
         self.admin = User.objects.create_user(
             username="admin", password="pw-12345678", role=User.Roles.ADMIN
@@ -323,7 +368,9 @@ class ApproveRejectTests(APITestCase):
         self.assertEqual(notification.data["note"], "Mistranslated 'indices'.")
 
     def test_reject_twice_is_rejected(self):
-        self.admin_client.post(f"{PROPOSE_URL}{self.proposal.id}/reject/", format="json")
+        self.admin_client.post(
+            f"{PROPOSE_URL}{self.proposal.id}/reject/", format="json"
+        )
         second = self.admin_client.post(
             f"{PROPOSE_URL}{self.proposal.id}/reject/", format="json"
         )
@@ -370,12 +417,19 @@ class ProposeThrottleTests(APITestCase):
             "title": "Titlu",
             "statement": "Corpul traducerii.",
         }
-        with mock.patch.object(
-            SimpleRateThrottle,
-            "THROTTLE_RATES",
-            {"anon": "10000/min", "user": "10000/min", "translation_propose": "2/hour"},
-        ), mock.patch.object(
-            TranslationProposalViewSet, "throttle_classes", [ScopedRateThrottle]
+        with (
+            mock.patch.object(
+                SimpleRateThrottle,
+                "THROTTLE_RATES",
+                {
+                    "anon": "10000/min",
+                    "user": "10000/min",
+                    "translation_propose": "2/hour",
+                },
+            ),
+            mock.patch.object(
+                TranslationProposalViewSet, "throttle_classes", [ScopedRateThrottle]
+            ),
         ):
             for language in ("ro", "de"):
                 response = client.post(

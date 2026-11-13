@@ -3,7 +3,7 @@ endpoint, and the beat task — on top of Wave A's live activation view."""
 
 from datetime import datetime, timedelta, timezone as dt_timezone
 
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from rest_framework.test import APIClient
 
 from problems.models import Problem
@@ -52,7 +52,9 @@ class CaptureWeeklySnapshotTest(TestCase):
         snapshot = capture_weekly_snapshot()
         self.assertEqual(snapshot.week, iso_week_key())
         self.assertEqual(str(snapshot), f"owner metrics {snapshot.week}")
-        self.assertEqual(snapshot.payload["total_users"], activation_snapshot()["total_users"])
+        self.assertEqual(
+            snapshot.payload["total_users"], activation_snapshot()["total_users"]
+        )
         self.assertEqual(snapshot.payload["users_with_ac"], 1)
 
     def test_recapture_same_week_overwrites(self):
@@ -111,9 +113,7 @@ class ActivationHistoryAPITest(TestCase):
 
     def test_weeks_param_clamped(self):
         self.client.force_authenticate(user=self.admin)
-        response = self.client.get(
-            "/api/v1/users/admin/activation/history/?weeks=999"
-        )
+        response = self.client.get("/api/v1/users/admin/activation/history/?weeks=999")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["weeks"], 52)
         response = self.client.get("/api/v1/users/admin/activation/history/?weeks=0")

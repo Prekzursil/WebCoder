@@ -24,9 +24,7 @@ def grid_csv(assignment) -> str:
     buffer = io.StringIO()
     writer = csv.writer(buffer)
     writer.writerow(
-        ["username"]
-        + [f"{ap.label} ({ap.points}p)" for ap in problems]
-        + ["total"]
+        ["username"] + [f"{ap.label} ({ap.points}p)" for ap in problems] + ["total"]
     )
     for student in students:
         row = [student.username]

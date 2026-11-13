@@ -186,9 +186,7 @@ class Problem(models.Model):
         _("per-language limit overrides"),
         default=dict,
         blank=True,
-        help_text=_(
-            "Optional map of language id -> {time_ms, memory_kb} overrides."
-        ),
+        help_text=_("Optional map of language id -> {time_ms, memory_kb} overrides."),
     )
 
     class ScoringMode(models.TextChoices):
@@ -628,12 +626,12 @@ class CurriculumNode(models.Model):
         related_name="children",
         verbose_name=_("parent node"),
     )
-    kind = models.CharField(
-        _("node kind"), max_length=10, choices=NodeKind.choices
-    )
+    kind = models.CharField(_("node kind"), max_length=10, choices=NodeKind.choices)
     name_i18n = models.JSONField(
         _("name (i18n)"),
-        help_text=_("Node name per locale, e.g. {'en': 'Loops', 'ro': 'Structuri repetitive'}"),
+        help_text=_(
+            "Node name per locale, e.g. {'en': 'Loops', 'ro': 'Structuri repetitive'}"
+        ),
     )
     slug = models.SlugField(
         _("slug"),
@@ -764,9 +762,7 @@ class Article(models.Model):
         APPROVED = "APPROVED", _("Approved")
         REJECTED = "REJECTED", _("Rejected")
 
-    title_i18n = models.JSONField(
-        _("title (i18n)"), help_text="{'en': ..., 'ro': ...}"
-    )
+    title_i18n = models.JSONField(_("title (i18n)"), help_text="{'en': ..., 'ro': ...}")
     body_ro = models.TextField(_("body (Romanian, markdown)"), blank=True)
     body_en = models.TextField(_("body (English, markdown)"), blank=True)
     tags = models.ManyToManyField(Tag, blank=True, related_name="articles")

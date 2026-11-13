@@ -7,119 +7,315 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('classroom', '0001_initial'),
-        ('problems', '0010_testcase_is_pretest'),
+        ("classroom", "0001_initial"),
+        ("problems", "0010_testcase_is_pretest"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='assignment',
-            name='file_extensions',
-            field=models.CharField(blank=True, default='', help_text="Comma-separated, e.g. 'pdf,zip,cpp'; empty = any.", max_length=200, verbose_name='allowed file extensions'),
+            model_name="assignment",
+            name="file_extensions",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Comma-separated, e.g. 'pdf,zip,cpp'; empty = any.",
+                max_length=200,
+                verbose_name="allowed file extensions",
+            ),
         ),
         migrations.AddField(
-            model_name='assignment',
-            name='kind',
-            field=models.CharField(choices=[('PROBLEMS', 'Problem set'), ('QUIZ', 'Quiz (MCQ)'), ('FILES', 'File upload')], default='PROBLEMS', max_length=8, verbose_name='kind'),
+            model_name="assignment",
+            name="kind",
+            field=models.CharField(
+                choices=[
+                    ("PROBLEMS", "Problem set"),
+                    ("QUIZ", "Quiz (MCQ)"),
+                    ("FILES", "File upload"),
+                ],
+                default="PROBLEMS",
+                max_length=8,
+                verbose_name="kind",
+            ),
         ),
         migrations.AddField(
-            model_name='assignment',
-            name='max_file_mb',
-            field=models.PositiveIntegerField(default=10, verbose_name='max file size (MB)'),
+            model_name="assignment",
+            name="max_file_mb",
+            field=models.PositiveIntegerField(
+                default=10, verbose_name="max file size (MB)"
+            ),
         ),
         migrations.AddField(
-            model_name='assignment',
-            name='quiz_shuffle',
-            field=models.BooleanField(default=True, help_text='Each student sees variants in a per-student random order.', verbose_name='shuffle quiz variants'),
+            model_name="assignment",
+            name="quiz_shuffle",
+            field=models.BooleanField(
+                default=True,
+                help_text="Each student sees variants in a per-student random order.",
+                verbose_name="shuffle quiz variants",
+            ),
         ),
         migrations.AlterField(
-            model_name='assignment',
-            name='is_exam',
-            field=models.BooleanField(default=False, help_text="EDU-4: while OPEN, the student's session is site-locked.", verbose_name='exam mode'),
+            model_name="assignment",
+            name="is_exam",
+            field=models.BooleanField(
+                default=False,
+                help_text="EDU-4: while OPEN, the student's session is site-locked.",
+                verbose_name="exam mode",
+            ),
         ),
         migrations.CreateModel(
-            name='MCQItem',
+            name="MCQItem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('discipline', models.CharField(default='Informatics', help_text='Exam discipline, e.g. Informatics / Computing.', max_length=64, verbose_name='discipline')),
-                ('grade', models.PositiveSmallIntegerField(help_text='School grade 5-12 the item targets.', verbose_name='grade')),
-                ('question_i18n', models.JSONField(help_text="{'en': ..., 'ro': ...}", verbose_name='question (i18n)')),
-                ('variants_ro', models.JSONField(default=list, help_text='Exactly 4 answer variants, order = display order.', verbose_name='variants (Romanian)')),
-                ('variants_en', models.JSONField(default=list, help_text='Exactly 4 answer variants, order = display order.', verbose_name='variants (English)')),
-                ('correct_index', models.PositiveSmallIntegerField(help_text='0-3 into the variant lists.', verbose_name='correct variant index')),
-                ('source', models.CharField(blank=True, help_text="Provenance, e.g. 'Bacalaureat 2024'.", max_length=120, verbose_name='source')),
-                ('bac_year', models.PositiveSmallIntegerField(blank=True, null=True, verbose_name='Bacalaureat year')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('author', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='authored_mcq_items', to=settings.AUTH_USER_MODEL, verbose_name='author')),
-                ('chapter', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='mcq_items', to='problems.curriculumnode', verbose_name='curriculum chapter')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "discipline",
+                    models.CharField(
+                        default="Informatics",
+                        help_text="Exam discipline, e.g. Informatics / Computing.",
+                        max_length=64,
+                        verbose_name="discipline",
+                    ),
+                ),
+                (
+                    "grade",
+                    models.PositiveSmallIntegerField(
+                        help_text="School grade 5-12 the item targets.",
+                        verbose_name="grade",
+                    ),
+                ),
+                (
+                    "question_i18n",
+                    models.JSONField(
+                        help_text="{'en': ..., 'ro': ...}",
+                        verbose_name="question (i18n)",
+                    ),
+                ),
+                (
+                    "variants_ro",
+                    models.JSONField(
+                        default=list,
+                        help_text="Exactly 4 answer variants, order = display order.",
+                        verbose_name="variants (Romanian)",
+                    ),
+                ),
+                (
+                    "variants_en",
+                    models.JSONField(
+                        default=list,
+                        help_text="Exactly 4 answer variants, order = display order.",
+                        verbose_name="variants (English)",
+                    ),
+                ),
+                (
+                    "correct_index",
+                    models.PositiveSmallIntegerField(
+                        help_text="0-3 into the variant lists.",
+                        verbose_name="correct variant index",
+                    ),
+                ),
+                (
+                    "source",
+                    models.CharField(
+                        blank=True,
+                        help_text="Provenance, e.g. 'Bacalaureat 2024'.",
+                        max_length=120,
+                        verbose_name="source",
+                    ),
+                ),
+                (
+                    "bac_year",
+                    models.PositiveSmallIntegerField(
+                        blank=True, null=True, verbose_name="Bacalaureat year"
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "author",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="authored_mcq_items",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="author",
+                    ),
+                ),
+                (
+                    "chapter",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="mcq_items",
+                        to="problems.curriculumnode",
+                        verbose_name="curriculum chapter",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'MCQ item',
-                'verbose_name_plural': 'MCQ items',
-                'ordering': ['grade', 'id'],
+                "verbose_name": "MCQ item",
+                "verbose_name_plural": "MCQ items",
+                "ordering": ["grade", "id"],
             },
         ),
         migrations.CreateModel(
-            name='AssignmentQuizItem',
+            name="AssignmentQuizItem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('order', models.PositiveIntegerField(default=0, verbose_name='order')),
-                ('assignment', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='quiz_items', to='classroom.assignment')),
-                ('item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='assignment_links', to='classroom.mcqitem')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("order", models.PositiveIntegerField(default=0, verbose_name="order")),
+                (
+                    "assignment",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="quiz_items",
+                        to="classroom.assignment",
+                    ),
+                ),
+                (
+                    "item",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="assignment_links",
+                        to="classroom.mcqitem",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'assignment quiz item',
-                'verbose_name_plural': 'assignment quiz items',
-                'ordering': ['assignment', 'order', 'id'],
+                "verbose_name": "assignment quiz item",
+                "verbose_name_plural": "assignment quiz items",
+                "ordering": ["assignment", "order", "id"],
             },
         ),
         migrations.CreateModel(
-            name='QuizSubmission',
+            name="QuizSubmission",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('answers', models.JSONField(default=dict, verbose_name='answers')),
-                ('score', models.FloatField(default=0, verbose_name='score (0..1)')),
-                ('correct_count', models.PositiveSmallIntegerField(default=0, verbose_name='correct answers')),
-                ('total_count', models.PositiveSmallIntegerField(default=0, verbose_name='items')),
-                ('submitted_at', models.DateTimeField(auto_now_add=True)),
-                ('assignment', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='quiz_submissions', to='classroom.assignment')),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='quiz_submissions', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("answers", models.JSONField(default=dict, verbose_name="answers")),
+                ("score", models.FloatField(default=0, verbose_name="score (0..1)")),
+                (
+                    "correct_count",
+                    models.PositiveSmallIntegerField(
+                        default=0, verbose_name="correct answers"
+                    ),
+                ),
+                (
+                    "total_count",
+                    models.PositiveSmallIntegerField(default=0, verbose_name="items"),
+                ),
+                ("submitted_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "assignment",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="quiz_submissions",
+                        to="classroom.assignment",
+                    ),
+                ),
+                (
+                    "student",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="quiz_submissions",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'quiz submission',
-                'verbose_name_plural': 'quiz submissions',
-                'ordering': ['assignment', 'student', '-submitted_at'],
+                "verbose_name": "quiz submission",
+                "verbose_name_plural": "quiz submissions",
+                "ordering": ["assignment", "student", "-submitted_at"],
             },
         ),
         migrations.CreateModel(
-            name='UploadedDeliverable',
+            name="UploadedDeliverable",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('file', models.FileField(upload_to=classroom.models.deliverable_upload_path, verbose_name='file')),
-                ('original_filename', models.CharField(blank=True, max_length=255, verbose_name='filename')),
-                ('uploaded_at', models.DateTimeField(auto_now_add=True)),
-                ('assignment', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='deliverables', to='classroom.assignment')),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='uploaded_deliverables', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "file",
+                    models.FileField(
+                        upload_to=classroom.models.deliverable_upload_path,
+                        verbose_name="file",
+                    ),
+                ),
+                (
+                    "original_filename",
+                    models.CharField(
+                        blank=True, max_length=255, verbose_name="filename"
+                    ),
+                ),
+                ("uploaded_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "assignment",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="deliverables",
+                        to="classroom.assignment",
+                    ),
+                ),
+                (
+                    "student",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="uploaded_deliverables",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'uploaded deliverable',
-                'verbose_name_plural': 'uploaded deliverables',
-                'ordering': ['assignment', 'student', '-uploaded_at'],
+                "verbose_name": "uploaded deliverable",
+                "verbose_name_plural": "uploaded deliverables",
+                "ordering": ["assignment", "student", "-uploaded_at"],
             },
         ),
         migrations.AddIndex(
-            model_name='mcqitem',
-            index=models.Index(fields=['discipline', 'grade'], name='classroom_m_discipl_bc78b0_idx'),
+            model_name="mcqitem",
+            index=models.Index(
+                fields=["discipline", "grade"], name="classroom_m_discipl_bc78b0_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='mcqitem',
-            index=models.Index(fields=['bac_year'], name='classroom_m_bac_yea_703839_idx'),
+            model_name="mcqitem",
+            index=models.Index(
+                fields=["bac_year"], name="classroom_m_bac_yea_703839_idx"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='assignmentquizitem',
-            constraint=models.UniqueConstraint(fields=('assignment', 'item'), name='unique_assignment_quiz_item'),
+            model_name="assignmentquizitem",
+            constraint=models.UniqueConstraint(
+                fields=("assignment", "item"), name="unique_assignment_quiz_item"
+            ),
         ),
     ]

@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('users', '0006_ownerweeklysnapshot'),
+        ("users", "0006_ownerweeklysnapshot"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='ownerweeklysnapshot',
-            name='id',
-            field=models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID'),
+            model_name="ownerweeklysnapshot",
+            name="id",
+            field=models.BigAutoField(
+                auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+            ),
         ),
     ]

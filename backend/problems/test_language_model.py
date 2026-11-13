@@ -35,10 +35,34 @@ class LanguageRegistryTests(APITestCase):
         self.assertEqual(
             SUPPORTED_LANGUAGES,
             [
-                "en", "ro", "es", "fr", "de", "pt", "it", "ca",
-                "pl", "hu", "hr", "sr-Latn", "ru", "uk", "bg", "el",
-                "zh-Hans", "zh-Hant", "ja", "ko", "hi", "vi", "th", "id",
-                "tr", "kk", "ar", "fa",
+                "en",
+                "ro",
+                "es",
+                "fr",
+                "de",
+                "pt",
+                "it",
+                "ca",
+                "pl",
+                "hu",
+                "hr",
+                "sr-Latn",
+                "ru",
+                "uk",
+                "bg",
+                "el",
+                "zh-Hans",
+                "zh-Hant",
+                "ja",
+                "ko",
+                "hi",
+                "vi",
+                "th",
+                "id",
+                "tr",
+                "kk",
+                "ar",
+                "fa",
             ],
         )
         # English mandatory + home market + globals + the owner-directed
@@ -68,7 +92,9 @@ class NormalizeLocalizedDictTests(APITestCase):
 
     def test_english_plus_many_optional_languages(self):
         value = {"en": "Sum", "ro": "Suma", "fr": "Somme", "pl": "Suma"}
-        self.assertEqual(normalize_localized_dict(value, field_name="title_i18n"), value)
+        self.assertEqual(
+            normalize_localized_dict(value, field_name="title_i18n"), value
+        )
 
     def test_missing_english_is_rejected(self):
         with self.assertRaises(LocalizedFieldError) as ctx:
@@ -77,7 +103,9 @@ class NormalizeLocalizedDictTests(APITestCase):
 
     def test_blank_english_is_rejected(self):
         with self.assertRaises(LocalizedFieldError):
-            normalize_localized_dict({"en": "   ", "ro": "Suma"}, field_name="statement_i18n")
+            normalize_localized_dict(
+                {"en": "   ", "ro": "Suma"}, field_name="statement_i18n"
+            )
 
     def test_non_dict_is_rejected(self):
         for bad in ("Suma", ["en", "Suma"], 12, None):
@@ -88,7 +116,9 @@ class NormalizeLocalizedDictTests(APITestCase):
         # A non-string value is "no translation", dropped — unless it is
         # the English entry, which must exist as a string.
         self.assertEqual(
-            normalize_localized_dict({"en": "Sum", "ro": None}, field_name="title_i18n"),
+            normalize_localized_dict(
+                {"en": "Sum", "ro": None}, field_name="title_i18n"
+            ),
             {"en": "Sum"},
         )
 
@@ -187,8 +217,12 @@ class ProblemLanguageSerializerTests(APITestCase):
         self.client.force_authenticate(self.creator)
 
     def test_create_with_english_only_succeeds(self):
-        response = self.client.post("/api/v1/problems/problems/", _problem_payload(), format="json")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        response = self.client.post(
+            "/api/v1/problems/problems/", _problem_payload(), format="json"
+        )
+        self.assertEqual(
+            response.status_code, status.HTTP_201_CREATED, response.content
+        )
         self.assertEqual(response.data["title_i18n"], {"en": "Two Sum"})
         self.assertEqual(response.data["available_languages"], ["en"])
 
@@ -200,13 +234,17 @@ class ProblemLanguageSerializerTests(APITestCase):
             ),
             format="json",
         )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        self.assertEqual(
+            response.status_code, status.HTTP_201_CREATED, response.content
+        )
         self.assertEqual(response.data["available_languages"], ["en", "pl", "ro"])
 
     def test_create_without_english_is_rejected(self):
         response = self.client.post(
             "/api/v1/problems/problems/",
-            _problem_payload(title_i18n={"ro": "Suma a două"}, statement_i18n={"ro": "…"}),
+            _problem_payload(
+                title_i18n={"ro": "Suma a două"}, statement_i18n={"ro": "…"}
+            ),
             format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -257,7 +295,9 @@ class ProblemLanguageSerializerTests(APITestCase):
             _problem_payload(title_i18n={"en": "Two Sum", "ro": "   "}),
             format="json",
         )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        self.assertEqual(
+            response.status_code, status.HTTP_201_CREATED, response.content
+        )
         self.assertEqual(response.data["title_i18n"], {"en": "Two Sum"})
         self.assertEqual(response.data["available_languages"], ["en"])
 

@@ -106,9 +106,7 @@ class AnnouncementThreadsTest(TestCase):
 
     def test_announcements_filter(self):
         response = self.client.get("/api/v1/forum/threads/", {"announcements": "1"})
-        self.assertEqual(
-            [row["title"] for row in response.data["results"]], ["News"]
-        )
+        self.assertEqual([row["title"] for row in response.data["results"]], ["News"])
 
     def test_author_cannot_self_promote_to_announcement(self):
         self.client.force_authenticate(self.author)

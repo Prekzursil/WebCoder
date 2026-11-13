@@ -4,15 +4,26 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('users', '0002_user_scheduled_purge_at'),
+        ("users", "0002_user_scheduled_purge_at"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='role',
-            field=models.CharField(choices=[('BASIC', 'Basic User'), ('CREATOR', 'Problem Creator'), ('VERIFIER', 'Problem Verifier'), ('TEACHER', 'Teacher'), ('ADMIN', 'Admin')], default='BASIC', help_text='The primary role of the user on the platform.', max_length=10, verbose_name='role'),
+            model_name="user",
+            name="role",
+            field=models.CharField(
+                choices=[
+                    ("BASIC", "Basic User"),
+                    ("CREATOR", "Problem Creator"),
+                    ("VERIFIER", "Problem Verifier"),
+                    ("TEACHER", "Teacher"),
+                    ("ADMIN", "Admin"),
+                ],
+                default="BASIC",
+                help_text="The primary role of the user on the platform.",
+                max_length=10,
+                verbose_name="role",
+            ),
         ),
     ]

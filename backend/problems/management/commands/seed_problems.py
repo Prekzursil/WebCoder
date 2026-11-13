@@ -37,7 +37,9 @@ def get_or_create_seed_author():
 
 
 class Command(BaseCommand):
-    help = "Seed the bilingual starter pack (curriculum tree, tags, problems, editorials)."
+    help = (
+        "Seed the bilingual starter pack (curriculum tree, tags, problems, editorials)."
+    )
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -56,9 +58,7 @@ class Command(BaseCommand):
         author = get_or_create_seed_author()
 
         for entry in seed_data.PROBLEMS:
-            if Problem.objects.filter(
-                title_i18n__en=entry["title_en"]
-            ).exists():
+            if Problem.objects.filter(title_i18n__en=entry["title_en"]).exists():
                 skipped += 1
                 continue
             problem = Problem(
@@ -80,9 +80,7 @@ class Command(BaseCommand):
             )
             if not dry_run:
                 problem.save()
-                problem.tags.set(
-                    [tags_by_slug[slug] for slug in entry["tags"]]
-                )
+                problem.tags.set([tags_by_slug[slug] for slug in entry["tags"]])
                 problem.curriculum_nodes.set(
                     [nodes_by_slug[slug] for slug in entry["chapters"]]
                 )

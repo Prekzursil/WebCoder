@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -15,22 +14,66 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='LeaderboardEntry',
+            name="LeaderboardEntry",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('solved_count', models.PositiveIntegerField(default=0, verbose_name='solved count')),
-                ('total_points', models.PositiveIntegerField(default=0, verbose_name='total points')),
-                ('total_submissions', models.PositiveIntegerField(default=0, verbose_name='total submissions')),
-                ('ac_submissions', models.PositiveIntegerField(default=0, verbose_name='accepted submissions')),
-                ('last_solved_at', models.DateTimeField(blank=True, null=True, verbose_name='last solved at')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='updated at')),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='leaderboard_entry', to=settings.AUTH_USER_MODEL, verbose_name='user')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "solved_count",
+                    models.PositiveIntegerField(default=0, verbose_name="solved count"),
+                ),
+                (
+                    "total_points",
+                    models.PositiveIntegerField(default=0, verbose_name="total points"),
+                ),
+                (
+                    "total_submissions",
+                    models.PositiveIntegerField(
+                        default=0, verbose_name="total submissions"
+                    ),
+                ),
+                (
+                    "ac_submissions",
+                    models.PositiveIntegerField(
+                        default=0, verbose_name="accepted submissions"
+                    ),
+                ),
+                (
+                    "last_solved_at",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="last solved at"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(auto_now=True, verbose_name="updated at"),
+                ),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="leaderboard_entry",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="user",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'leaderboard entry',
-                'verbose_name_plural': 'leaderboard entries',
-                'ordering': ['-total_points', '-solved_count', 'last_solved_at'],
-                'indexes': [models.Index(fields=['-total_points'], name='leaderboard_total_p_8c00c4_idx')],
+                "verbose_name": "leaderboard entry",
+                "verbose_name_plural": "leaderboard entries",
+                "ordering": ["-total_points", "-solved_count", "last_solved_at"],
+                "indexes": [
+                    models.Index(
+                        fields=["-total_points"], name="leaderboard_total_p_8c00c4_idx"
+                    )
+                ],
             },
         ),
     ]

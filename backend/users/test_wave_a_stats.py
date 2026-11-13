@@ -90,7 +90,11 @@ class TestStreaks:
 
     def test_gap_resets_current(self):
         today = timezone.now().date()
-        dates = [today - timedelta(days=5), today - timedelta(days=4), today - timedelta(days=3)]
+        dates = [
+            today - timedelta(days=5),
+            today - timedelta(days=4),
+            today - timedelta(days=3),
+        ]
         assert _streaks(dates) == (0, 3, 3)
 
     def test_yesterday_keeps_streak_alive(self):
@@ -138,7 +142,9 @@ class TestUserStatistics:
         user = User.objects.create_user(username="stat-w", password="pw-12345678")
         problem = make_problem(title="poly")
         for language in ("python3", "cpp17", "c11"):
-            make_sub(user, problem, Submission.VerdictStatus.ACCEPTED, language=language)
+            make_sub(
+                user, problem, Submission.VerdictStatus.ACCEPTED, language=language
+            )
         assert "polyglot_3" in user_statistics(user)["badges"]
 
 
@@ -176,9 +182,7 @@ class TestAccountControl:
         )
         problem = make_problem(title="gdpr-p")
         make_sub(user, problem, Submission.VerdictStatus.ACCEPTED)
-        ScratchRun.objects.create(
-            user=user, language="python3", source_code="print(1)"
-        )
+        ScratchRun.objects.create(user=user, language="python3", source_code="print(1)")
         thread = Thread.objects.create(title="T", author=user)
         Post.objects.create(thread=thread, author=user, content="hello")
         return user, problem
@@ -215,7 +219,9 @@ class TestAccountControl:
         assert user.email == ""
         assert user.username == f"deleted_user_{user.id}"
         assert user.scheduled_purge_at is not None
-        assert user.scheduled_purge_at > timezone.now() + timedelta(days=PURGE_DELAY_DAYS - 1)
+        assert user.scheduled_purge_at > timezone.now() + timedelta(
+            days=PURGE_DELAY_DAYS - 1
+        )
 
     def test_purge_removes_side_content_keeps_submissions(self):
         user, problem = self._user_with_content()
@@ -319,7 +325,9 @@ class TestMultiLanguageDedup:
         user = User.objects.create_user(username="dedup-u", password="pw-12345678")
         problem = make_problem(Problem.DifficultyLevel.EASY, "Dedup")
         for language in ("python3", "cpp17", "c11"):
-            make_sub(user, problem, Submission.VerdictStatus.ACCEPTED, language=language)
+            make_sub(
+                user, problem, Submission.VerdictStatus.ACCEPTED, language=language
+            )
         payload = user_statistics(user)
         assert payload["solved"] == 1
         assert payload["per_difficulty"]["EASY"]["solved"] == 1

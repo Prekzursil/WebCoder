@@ -1,15 +1,18 @@
 from rest_framework import serializers
 from django.core.exceptions import ObjectDoesNotExist
-from .models import Submission, SubmissionTestResult # Import SubmissionTestResult
+from .models import Submission, SubmissionTestResult  # Import SubmissionTestResult
 from users.serializers import UserSerializer
 from contests.models import Contest
-from problems.models import Problem, TestCase # Import TestCase for SubmissionTestResultSerializer
+from problems.models import (
+    Problem,
+)  # Import TestCase for SubmissionTestResultSerializer
 from .judge_utils.custom_libs import is_allowed_requirement
 from .judge_utils.languages import (
     SCRATCH_LANGUAGE_ID,
     SUPPORTED_LANGUAGE_IDS,
     get_language,
 )
+
 
 class SubmissionTestResultSerializer(serializers.ModelSerializer):
     # test_case_id = serializers.ReadOnlyField(source='test_case.id') # Simple ID
@@ -19,34 +22,39 @@ class SubmissionTestResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubmissionTestResult
         fields = [
-            'id', 
+            "id",
             # 'test_case', # Using PrimaryKeyRelatedField by default is okay for ID
-            'test_case_details',
-            'verdict', 
-            'execution_time_ms', 
-            'memory_used_kb',
-            'actual_output', # Consider truncating or omitting by default if too large for lists
-            'error_output'   # Same as above
+            "test_case_details",
+            "verdict",
+            "execution_time_ms",
+            "memory_used_kb",
+            "actual_output",  # Consider truncating or omitting by default if too large for lists
+            "error_output",  # Same as above
         ]
-        read_only_fields = fields # All fields are read-only as they are set by the judge
+        read_only_fields = (
+            fields  # All fields are read-only as they are set by the judge
+        )
 
     def get_test_case_details(self, obj):
         try:
             if obj.test_case:
                 return {
-                    'id': obj.test_case.id,
-                    'order': obj.test_case.order,
-                    'is_sample': obj.test_case.is_sample,
-                    'points': obj.test_case.points,
+                    "id": obj.test_case.id,
+                    "order": obj.test_case.order,
+                    "is_sample": obj.test_case.is_sample,
+                    "points": obj.test_case.points,
                 }
         except ObjectDoesNotExist:
             # Unset required FK (unsaved/defensive display path) — schema stays NOT NULL.
             pass
         return None
 
+
 class SubmissionSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-    problem_id = serializers.IntegerField(write_only=True, source='problem.id', required=False)
+    problem_id = serializers.IntegerField(
+        write_only=True, source="problem.id", required=False
+    )
     # 'problem' field will be used for read, populated by to_representation or nested serializer
     # J6: the denominator next to score, so the UI renders "30/100" with a
     # PARTIAL state instead of a bare number.
@@ -57,22 +65,44 @@ class SubmissionSerializer(serializers.ModelSerializer):
     # a comparison pool.
     runtime_percentile = serializers.SerializerMethodField()
 
-    test_results = SubmissionTestResultSerializer(many=True, read_only=True) # Nested serializer for test results
+    test_results = SubmissionTestResultSerializer(
+        many=True, read_only=True
+    )  # Nested serializer for test results
 
     class Meta:
         model = Submission
         fields = [
-            'id', 'user', 'problem', 'problem_id', 'language', 'code',
-            'submission_time', 'verdict', 'execution_time_ms',
-            'memory_used_kb', 'score', 'max_score', 'runtime_percentile',
-            'detailed_feedback',
-            'contest', 'test_results' # Add test results + contest (read-only id)
+            "id",
+            "user",
+            "problem",
+            "problem_id",
+            "language",
+            "code",
+            "submission_time",
+            "verdict",
+            "execution_time_ms",
+            "memory_used_kb",
+            "score",
+            "max_score",
+            "runtime_percentile",
+            "detailed_feedback",
+            "contest",
+            "test_results",  # Add test results + contest (read-only id)
         ]
         read_only_fields = [
-            'id', 'user', 'problem', 'submission_time', 'verdict',
-            'execution_time_ms', 'memory_used_kb', 'score', 'max_score',
-            'runtime_percentile', 'detailed_feedback',
-            'contest', 'test_results'
+            "id",
+            "user",
+            "problem",
+            "submission_time",
+            "verdict",
+            "execution_time_ms",
+            "memory_used_kb",
+            "score",
+            "max_score",
+            "runtime_percentile",
+            "detailed_feedback",
+            "contest",
+            "test_results",
         ]
 
     def get_max_score(self, obj):
@@ -99,12 +129,12 @@ class SubmissionSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         try:
             if instance.problem:
-                representation['problem'] = {
-                    'id': instance.problem.id,
-                    'title_i18n': instance.problem.title_i18n
+                representation["problem"] = {
+                    "id": instance.problem.id,
+                    "title_i18n": instance.problem.title_i18n,
                 }
         except ObjectDoesNotExist:
-            representation['problem'] = None
+            representation["problem"] = None
         # Ensure test_results are serialized if not handled by default due to read_only=True on field
         # This is usually handled automatically by DRF if 'test_results' is in fields.
         return representation
@@ -140,7 +170,7 @@ class SubmissionCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Submission
-        fields = ['problem', 'language', 'code', 'contest']
+        fields = ["problem", "language", "code", "contest"]
 
     def validate(self, attrs):
         """Submit-time validation: language registry + allowed_languages
@@ -229,9 +259,7 @@ class SubmissionCreateSerializer(serializers.ModelSerializer):
                     attrs.get("code") or "", language, problem.library_policy
                 )
                 if violations:
-                    raise serializers.ValidationError(
-                        {"code": " ".join(violations)}
-                    )
+                    raise serializers.ValidationError({"code": " ".join(violations)})
             # Wave D engine 2 (Scratch): the problem must be a Scratch
             # block problem, and the submitted project must only use the
             # blocks this problem allows. (The judge re-validates before
@@ -242,8 +270,7 @@ class SubmissionCreateSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError(
                         {
                             "language": (
-                                "This problem does not accept Scratch "
-                                "submissions."
+                                "This problem does not accept Scratch submissions."
                             )
                         }
                     )
@@ -280,7 +307,6 @@ class SubmissionCreateSerializer(serializers.ModelSerializer):
             if reason:
                 raise serializers.ValidationError({"problem": reason})
         return attrs
-
 
     def create(self, validated_data):
         # User is set in the view (e.g., self.perform_create)

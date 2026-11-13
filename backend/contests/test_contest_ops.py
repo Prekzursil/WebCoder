@@ -113,18 +113,13 @@ class ContestOpsBase(TestCase):
 
 class PretestJudgingTests(ContestOpsBase):
     def run_judge(self, submission):
-        with mock.patch(
-            "submissions.tasks.compile_code_in_sandbox"
-        ) as compile_mock, mock.patch(
-            "submissions.tasks.run_code_in_sandbox"
-        ) as run_mock, mock.patch(
-            "submissions.tasks.compare_outputs_detailed"
-        ) as cmp_mock, mock.patch(
-            "submissions.tasks.update_user_entry_task"
-        ), mock.patch(
-            "submissions.tasks.record_verdict_task"
-        ), mock.patch(
-            "submissions.tasks._notify_judged"
+        with (
+            mock.patch("submissions.tasks.compile_code_in_sandbox") as compile_mock,
+            mock.patch("submissions.tasks.run_code_in_sandbox") as run_mock,
+            mock.patch("submissions.tasks.compare_outputs_detailed") as cmp_mock,
+            mock.patch("submissions.tasks.update_user_entry_task"),
+            mock.patch("submissions.tasks.record_verdict_task"),
+            mock.patch("submissions.tasks._notify_judged"),
         ):
             compile_mock.return_value = (True, "", "/tmp/x")
             run_mock.return_value = ("AC", 5, 512, "ok", "")
@@ -137,7 +132,9 @@ class PretestJudgingTests(ContestOpsBase):
     def test_contest_pretest_submission_runs_subset_only(self):
         contest = self.mk_contest(pretest_mode=True)
         ContestParticipation.objects.create(contest=contest, user=self.alice)
-        submission = self.mk_submission(contest, self.alice, score=None, verdict="PENDING")
+        submission = self.mk_submission(
+            contest, self.alice, score=None, verdict="PENDING"
+        )
         run_mock = self.run_judge(submission)
         # Only the one pretest-flagged test ran.
         self.assertEqual(run_mock.call_count, 1)
@@ -185,9 +182,7 @@ class FinalizeTests(ContestOpsBase):
             end_at=self.now - timedelta(minutes=1),
         )
         self.mk_submission(contest, self.alice)
-        with mock.patch(
-            "contests.tasks.rejudge_submissions_batch"
-        ) as batch_mock:
+        with mock.patch("contests.tasks.rejudge_submissions_batch") as batch_mock:
             result = finalize_contest(contest.id)
         batch_mock.apply_async.assert_not_called()
         self.assertIn("no pretests to re-judge", result)
@@ -204,9 +199,7 @@ class FinalizeTests(ContestOpsBase):
         )
         for i in range(REJUDGE_BATCH_SIZE + 2):
             self.mk_submission(contest, self.alice)
-        with mock.patch(
-            "contests.tasks.rejudge_submissions_batch"
-        ) as batch_mock:
+        with mock.patch("contests.tasks.rejudge_submissions_batch") as batch_mock:
             result = finalize_contest(contest.id)
         self.assertIn("re-judging", result)
         self.assertEqual(batch_mock.apply_async.call_count, 2)
@@ -323,7 +316,9 @@ class ClarificationTests(ContestOpsBase):
         clarification_id = response.data["id"]
         # Bob sees only broadcasts (none yet).
         self.client.force_authenticate(user=self.bob)
-        response = self.client.get(f"/api/v1/contests/{self.contest.id}/clarifications/")
+        response = self.client.get(
+            f"/api/v1/contests/{self.contest.id}/clarifications/"
+        )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data["results"]), 0)
         # Organizer answers + broadcasts.
@@ -345,7 +340,9 @@ class ClarificationTests(ContestOpsBase):
         )
         # Bob now sees the broadcast.
         self.client.force_authenticate(user=self.bob)
-        response = self.client.get(f"/api/v1/contests/{self.contest.id}/clarifications/")
+        response = self.client.get(
+            f"/api/v1/contests/{self.contest.id}/clarifications/"
+        )
         self.assertEqual(len(response.data["results"]), 1)
 
     def test_organizer_cannot_ask_and_stranger_cannot(self):
@@ -450,16 +447,18 @@ class ClarificationTests(ContestOpsBase):
         self.assertTrue(clarification.is_hidden)
         self.assertEqual(clarification.hidden_reason, "abuse")
         self.client.force_authenticate(user=self.alice)
-        response = self.client.get(f"/api/v1/contests/{self.contest.id}/clarifications/")
+        response = self.client.get(
+            f"/api/v1/contests/{self.contest.id}/clarifications/"
+        )
         self.assertEqual(len(response.data["results"]), 0)
         # Organizer default list hides it too, include_hidden shows it.
         self.client.force_authenticate(user=self.organizer)
-        response = self.client.get(f"/api/v1/contests/{self.contest.id}/clarifications/")
+        response = self.client.get(
+            f"/api/v1/contests/{self.contest.id}/clarifications/"
+        )
         self.assertEqual(len(response.data["results"]), 0)
         self.assertIn("canned_answers", response.data)
-        self.assertEqual(
-            response.data["canned_answers"], CLARIFICATION_CANNED_ANSWERS
-        )
+        self.assertEqual(response.data["canned_answers"], CLARIFICATION_CANNED_ANSWERS)
         response = self.client.get(
             f"/api/v1/contests/{self.contest.id}/clarifications/?include_hidden=1"
         )

@@ -4,25 +4,28 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('users', '0003_alter_user_role'),
+        ("users", "0003_alter_user_role"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='county',
-            field=models.CharField(blank=True, max_length=64, verbose_name='county'),
+            model_name="user",
+            name="county",
+            field=models.CharField(blank=True, max_length=64, verbose_name="county"),
         ),
         migrations.AddField(
-            model_name='user',
-            name='is_minor',
-            field=models.BooleanField(default=False, help_text="Minors' profiles default non-public: county/school hidden, no leaderboard segments.", verbose_name='minor account (under 16)'),
+            model_name="user",
+            name="is_minor",
+            field=models.BooleanField(
+                default=False,
+                help_text="Minors' profiles default non-public: county/school hidden, no leaderboard segments.",
+                verbose_name="minor account (under 16)",
+            ),
         ),
         migrations.AddField(
-            model_name='user',
-            name='school',
-            field=models.CharField(blank=True, max_length=160, verbose_name='school'),
+            model_name="user",
+            name="school",
+            field=models.CharField(blank=True, max_length=160, verbose_name="school"),
         ),
     ]

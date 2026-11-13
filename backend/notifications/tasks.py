@@ -50,8 +50,7 @@ def weekly_digest_task():
     host = getattr(dj_settings, "EMAIL_HOST", "")
     if not host:
         logger.info(
-            "weekly_digest: skipped — no mail host configured "
-            "(EMAIL_HOST=%r).",
+            "weekly_digest: skipped — no mail host configured (EMAIL_HOST=%r).",
             host,
         )
         return 0

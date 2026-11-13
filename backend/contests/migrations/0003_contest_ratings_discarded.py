@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('contests', '0002_contest_finalized_at_clarification'),
+        ("contests", "0002_contest_finalized_at_clarification"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='contest',
-            name='ratings_discarded',
-            field=models.BooleanField(default=False, verbose_name='ratings discarded'),
+            model_name="contest",
+            name="ratings_discarded",
+            field=models.BooleanField(default=False, verbose_name="ratings discarded"),
         ),
     ]

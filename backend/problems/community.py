@@ -84,7 +84,8 @@ def _can_review(user) -> bool:
         and (
             user.is_superuser
             or user.is_staff
-            or getattr(user, "role", "") in (User.Roles.ADMIN, User.Roles.PROBLEM_VERIFIER)
+            or getattr(user, "role", "")
+            in (User.Roles.ADMIN, User.Roles.PROBLEM_VERIFIER)
         )
     )
 
@@ -112,8 +113,7 @@ def community_editorials_for(problem: Problem, user):
     from django.db.models import Q
 
     return qs.filter(
-        Q(status=CommunityEditorial.Status.APPROVED, is_hidden=False)
-        | Q(author=user)
+        Q(status=CommunityEditorial.Status.APPROVED, is_hidden=False) | Q(author=user)
     )
 
 
@@ -143,7 +143,9 @@ class ProblemCommunityEditorialsView(APIView):
     def post(self, request, problem_id):
         if not _can_author(request.user):
             return Response(
-                {"detail": "Only creators, teachers and verifiers may write editorials."},
+                {
+                    "detail": "Only creators, teachers and verifiers may write editorials."
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
         problem = get_object_or_404(Problem, pk=problem_id)
@@ -179,9 +181,11 @@ class CommunityEditorialDetailView(APIView):
         editorial = get_object_or_404(
             CommunityEditorial.objects.select_related("problem"), pk=pk
         )
-        visible = community_editorials_for(
-            editorial.problem, request.user
-        ).filter(pk=pk).exists()
+        visible = (
+            community_editorials_for(editorial.problem, request.user)
+            .filter(pk=pk)
+            .exists()
+        )
         if not visible:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         return Response(CommunityEditorialSerializer(editorial).data)
@@ -325,8 +329,6 @@ class ArticleViewSet(viewsets.ModelViewSet):
         if user is not None and user.is_authenticated and _can_review(user):
             base = qs
         else:
-            from django.db.models import Q
-
             base = qs.filter(is_hidden=False, status=Article.Status.APPROVED)
             if user is not None and user.is_authenticated:
                 base = base | qs.filter(author=user)
@@ -343,12 +345,8 @@ class ArticleViewSet(viewsets.ModelViewSet):
             )
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        article = serializer.save(
-            author=request.user, status=Article.Status.PENDING
-        )
-        return Response(
-            ArticleSerializer(article).data, status=status.HTTP_201_CREATED
-        )
+        article = serializer.save(author=request.user, status=Article.Status.PENDING)
+        return Response(ArticleSerializer(article).data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
         article = self.get_object()
@@ -398,12 +396,16 @@ class ArticleViewSet(viewsets.ModelViewSet):
         article = self.get_object()
         slugs = list(article.tags.values_list("slug", flat=True))
         problems = (
-            Problem.objects.filter(
-                status=Problem.ProblemStatus.APPROVED, tags__slug__in=slugs
+            (
+                Problem.objects.filter(
+                    status=Problem.ProblemStatus.APPROVED, tags__slug__in=slugs
+                )
+                .distinct()
+                .order_by("-creation_date")[:20]
             )
-            .distinct()
-            .order_by("-creation_date")[:20]
-        ) if slugs else Problem.objects.none()
+            if slugs
+            else Problem.objects.none()
+        )
         return Response(
             {
                 "count": len(problems),
@@ -423,12 +425,18 @@ class RelatedArticlesView(APIView):
         problem = get_object_or_404(Problem, pk=problem_id)
         slugs = list(problem.tags.values_list("slug", flat=True))
         articles = (
-            Article.objects.filter(
-                is_hidden=False, status=Article.Status.APPROVED, tags__slug__in=slugs
+            (
+                Article.objects.filter(
+                    is_hidden=False,
+                    status=Article.Status.APPROVED,
+                    tags__slug__in=slugs,
+                )
+                .distinct()
+                .order_by("-created_at")[:10]
             )
-            .distinct()
-            .order_by("-created_at")[:10]
-        ) if slugs else Article.objects.none()
+            if slugs
+            else Article.objects.none()
+        )
         return Response(
             {
                 "count": len(articles),

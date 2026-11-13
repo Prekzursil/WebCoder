@@ -377,8 +377,7 @@ def run_code_in_sandbox(
         elif returncode in OOM_EXIT_CODES:
             final_verdict = Submission.VerdictStatus.MEMORY_LIMIT_EXCEEDED
             final_error = (
-                parsed_stderr
-                + f"\nMemory limit exceeded (exit code {returncode} — "
+                parsed_stderr + f"\nMemory limit exceeded (exit code {returncode} — "
                 f"process was killed, typically the OOM killer)."
             )
             if final_mem_kb and final_mem_kb > 0:
@@ -396,8 +395,7 @@ def run_code_in_sandbox(
         ):
             final_verdict = Submission.VerdictStatus.MEMORY_LIMIT_EXCEEDED
             final_error = (
-                parsed_stderr
-                + f"\nMemory limit exceeded ({actual_mem_kb}KB > "
+                parsed_stderr + f"\nMemory limit exceeded ({actual_mem_kb}KB > "
                 f"{memory_limit_kb}KB)."
             )
         elif (
@@ -430,8 +428,7 @@ def run_code_in_sandbox(
         if missing_output_file:
             final_verdict = Submission.VerdictStatus.RUNTIME_ERROR
             final_error = (
-                parsed_stderr
-                + f"\nProgram exited normally but did not create the "
+                parsed_stderr + f"\nProgram exited normally but did not create the "
                 f"required output file '{io_files[1]}'."
             )
 

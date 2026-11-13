@@ -30,10 +30,7 @@ def _tokenize_lines(text: str) -> list[str]:
     """Token normalization (J8): whitespace-insensitive per line — each line
     collapses to single-space-joined tokens, then the existing line rules
     (strip, trailing-empty removal) apply."""
-    return [
-        " ".join(line.split())
-        for line in text.replace("\r\n", "\n").split("\n")
-    ]
+    return [" ".join(line.split()) for line in text.replace("\r\n", "\n").split("\n")]
 
 
 def _first_mismatch_hint(gen_lines: list[str], exp_lines: list[str]) -> str | None:
@@ -43,9 +40,7 @@ def _first_mismatch_hint(gen_lines: list[str], exp_lines: list[str]) -> str | No
         if gen_line != exp_line:
             return f"outputs differ at line {index}"
     if len(gen_lines) != len(exp_lines):
-        return (
-            f"expected {len(exp_lines)} line(s), got {len(gen_lines)}"
-        )
+        return f"expected {len(exp_lines)} line(s), got {len(gen_lines)}"
     return None
 
 

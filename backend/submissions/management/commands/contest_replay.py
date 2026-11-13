@@ -42,8 +42,7 @@ SOLUTION = "print(int(input()) + int(input()))\n"
 TERMINAL = {
     verdict.value
     for verdict in Submission.VerdictStatus
-    if verdict.value
-    not in ("PENDING", "COMPILING", "RUNNING")
+    if verdict.value not in ("PENDING", "COMPILING", "RUNNING")
 }
 
 

@@ -7,6 +7,8 @@ what the product already stores). Powers the weekly owner dashboard and
 the per-wave exit metrics; must precede Wave B/C/D sequencing decisions.
 """
 
+from __future__ import annotations
+
 from datetime import timedelta
 
 from django.db.models import Count, Min
@@ -14,7 +16,12 @@ from django.utils import timezone
 
 from submissions.models import Submission
 
+from typing import TYPE_CHECKING
+
 from .models import User
+
+if TYPE_CHECKING:
+    from .models import OwnerWeeklySnapshot
 
 
 def _first_submission_times():
@@ -35,9 +42,7 @@ def activation_snapshot() -> dict:
 
     first_ac = {
         row["user_id"]: row["first_ac"]
-        for row in Submission.objects.filter(
-            verdict=Submission.VerdictStatus.ACCEPTED
-        )
+        for row in Submission.objects.filter(verdict=Submission.VerdictStatus.ACCEPTED)
         .values("user_id")
         .annotate(first_ac=Min("submission_time"))
         if row["first_ac"] is not None

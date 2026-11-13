@@ -12,7 +12,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("contests", "0003_contest_ratings_discarded"),
     ]
@@ -21,9 +20,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="contestparticipation",
             name="is_virtual",
-            field=models.BooleanField(
-                default=False, verbose_name="virtual (replay)"
-            ),
+            field=models.BooleanField(default=False, verbose_name="virtual (replay)"),
         ),
         migrations.RemoveConstraint(
             model_name="contestparticipation",

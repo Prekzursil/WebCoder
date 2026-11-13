@@ -6,113 +6,361 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('problems', '0009_problemstar'),
+        ("problems", "0009_problemstar"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Contest',
+            name="Contest",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title_i18n', models.JSONField(help_text="Contest title per locale, e.g. {'en':…,'ro':…}", verbose_name='title (i18n)')),
-                ('description_i18n', models.JSONField(blank=True, default=dict, help_text='Optional per-locale description markdown.', verbose_name='description (i18n)')),
-                ('visibility', models.CharField(choices=[('PUBLIC', 'Public'), ('PRIVATE', 'Private (invite code)')], default='PUBLIC', max_length=10, verbose_name='visibility')),
-                ('access_code', models.CharField(blank=True, default='', help_text='Self-registration code for PRIVATE contests.', max_length=32, verbose_name='access code')),
-                ('is_rated', models.BooleanField(default=False, help_text='Ratings (Glicko) update when this contest finalizes.', verbose_name='is rated')),
-                ('format', models.CharField(choices=[('IOI', 'IOI (sum of best per-problem points)'), ('ICPC', 'ICPC (solved count + penalty minutes)'), ('ATCODER', 'AtCoder (points + time penalty)')], default='IOI', max_length=10, verbose_name='format')),
-                ('penalty_time_minutes', models.PositiveIntegerField(default=20, verbose_name='ICPC penalty time (minutes)')),
-                ('penalty_factor_minutes', models.PositiveIntegerField(default=5, verbose_name='AtCoder penalty factor (minutes)')),
-                ('start_at', models.DateTimeField(verbose_name='starts at')),
-                ('end_at', models.DateTimeField(verbose_name='ends at')),
-                ('freeze_at', models.DateTimeField(blank=True, null=True, verbose_name='freeze at')),
-                ('is_window', models.BooleanField(default=False, help_text='Participants start any time inside the window and get per_user_duration_minutes on their personal clock.', verbose_name='windowed (personal timers)')),
-                ('per_user_duration_minutes', models.PositiveIntegerField(default=180, verbose_name='per-user duration (minutes)')),
-                ('pretest_mode', models.BooleanField(default=False, help_text='Judge only pretest-flagged tests while the contest runs.', verbose_name='pretest mode')),
-                ('editorial_delay_minutes', models.PositiveIntegerField(default=0, verbose_name='editorial delay (minutes)')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('created_by', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='created_contests', to=settings.AUTH_USER_MODEL, verbose_name='created by')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "title_i18n",
+                    models.JSONField(
+                        help_text="Contest title per locale, e.g. {'en':…,'ro':…}",
+                        verbose_name="title (i18n)",
+                    ),
+                ),
+                (
+                    "description_i18n",
+                    models.JSONField(
+                        blank=True,
+                        default=dict,
+                        help_text="Optional per-locale description markdown.",
+                        verbose_name="description (i18n)",
+                    ),
+                ),
+                (
+                    "visibility",
+                    models.CharField(
+                        choices=[
+                            ("PUBLIC", "Public"),
+                            ("PRIVATE", "Private (invite code)"),
+                        ],
+                        default="PUBLIC",
+                        max_length=10,
+                        verbose_name="visibility",
+                    ),
+                ),
+                (
+                    "access_code",
+                    models.CharField(
+                        blank=True,
+                        default="",
+                        help_text="Self-registration code for PRIVATE contests.",
+                        max_length=32,
+                        verbose_name="access code",
+                    ),
+                ),
+                (
+                    "is_rated",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Ratings (Glicko) update when this contest finalizes.",
+                        verbose_name="is rated",
+                    ),
+                ),
+                (
+                    "format",
+                    models.CharField(
+                        choices=[
+                            ("IOI", "IOI (sum of best per-problem points)"),
+                            ("ICPC", "ICPC (solved count + penalty minutes)"),
+                            ("ATCODER", "AtCoder (points + time penalty)"),
+                        ],
+                        default="IOI",
+                        max_length=10,
+                        verbose_name="format",
+                    ),
+                ),
+                (
+                    "penalty_time_minutes",
+                    models.PositiveIntegerField(
+                        default=20, verbose_name="ICPC penalty time (minutes)"
+                    ),
+                ),
+                (
+                    "penalty_factor_minutes",
+                    models.PositiveIntegerField(
+                        default=5, verbose_name="AtCoder penalty factor (minutes)"
+                    ),
+                ),
+                ("start_at", models.DateTimeField(verbose_name="starts at")),
+                ("end_at", models.DateTimeField(verbose_name="ends at")),
+                (
+                    "freeze_at",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="freeze at"
+                    ),
+                ),
+                (
+                    "is_window",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Participants start any time inside the window and get per_user_duration_minutes on their personal clock.",
+                        verbose_name="windowed (personal timers)",
+                    ),
+                ),
+                (
+                    "per_user_duration_minutes",
+                    models.PositiveIntegerField(
+                        default=180, verbose_name="per-user duration (minutes)"
+                    ),
+                ),
+                (
+                    "pretest_mode",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Judge only pretest-flagged tests while the contest runs.",
+                        verbose_name="pretest mode",
+                    ),
+                ),
+                (
+                    "editorial_delay_minutes",
+                    models.PositiveIntegerField(
+                        default=0, verbose_name="editorial delay (minutes)"
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="created_contests",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="created by",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'contest',
-                'verbose_name_plural': 'contests',
-                'ordering': ['-start_at'],
+                "verbose_name": "contest",
+                "verbose_name_plural": "contests",
+                "ordering": ["-start_at"],
             },
         ),
         migrations.CreateModel(
-            name='ContestParticipation',
+            name="ContestParticipation",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('virtual_start', models.DateTimeField(blank=True, null=True, verbose_name='personal start')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('is_disqualified', models.BooleanField(default=False, verbose_name='disqualified')),
-                ('disqualification_reason', models.TextField(blank=True, verbose_name='disqualification reason')),
-                ('contest', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='participations', to='contests.contest')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='contest_participations', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "virtual_start",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="personal start"
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "is_disqualified",
+                    models.BooleanField(default=False, verbose_name="disqualified"),
+                ),
+                (
+                    "disqualification_reason",
+                    models.TextField(
+                        blank=True, verbose_name="disqualification reason"
+                    ),
+                ),
+                (
+                    "contest",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="participations",
+                        to="contests.contest",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="contest_participations",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'contest participation',
-                'verbose_name_plural': 'contest participations',
+                "verbose_name": "contest participation",
+                "verbose_name_plural": "contest participations",
             },
         ),
         migrations.CreateModel(
-            name='ContestProblem',
+            name="ContestProblem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('order', models.PositiveIntegerField(default=0, help_text='Display/judging order (0 = A).', verbose_name='order')),
-                ('label', models.CharField(blank=True, help_text='Board label (A, B, C…); auto-assigned when blank.', max_length=8, verbose_name='label')),
-                ('points', models.PositiveIntegerField(default=100, help_text='Max points this problem is worth inside the contest.', verbose_name='points')),
-                ('contest', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='contest_problems', to='contests.contest')),
-                ('problem', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='contest_problems', to='problems.problem')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "order",
+                    models.PositiveIntegerField(
+                        default=0,
+                        help_text="Display/judging order (0 = A).",
+                        verbose_name="order",
+                    ),
+                ),
+                (
+                    "label",
+                    models.CharField(
+                        blank=True,
+                        help_text="Board label (A, B, C…); auto-assigned when blank.",
+                        max_length=8,
+                        verbose_name="label",
+                    ),
+                ),
+                (
+                    "points",
+                    models.PositiveIntegerField(
+                        default=100,
+                        help_text="Max points this problem is worth inside the contest.",
+                        verbose_name="points",
+                    ),
+                ),
+                (
+                    "contest",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="contest_problems",
+                        to="contests.contest",
+                    ),
+                ),
+                (
+                    "problem",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="contest_problems",
+                        to="problems.problem",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'contest problem',
-                'verbose_name_plural': 'contest problems',
-                'ordering': ['contest', 'order', 'id'],
+                "verbose_name": "contest problem",
+                "verbose_name_plural": "contest problems",
+                "ordering": ["contest", "order", "id"],
             },
         ),
         migrations.CreateModel(
-            name='ContestScore',
+            name="ContestScore",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('best_score', models.FloatField(default=0, verbose_name='best score (live)')),
-                ('best_score_frozen', models.FloatField(default=0, verbose_name='best score (frozen view)')),
-                ('attempts', models.PositiveIntegerField(default=0, verbose_name='attempts (live)')),
-                ('attempts_frozen', models.PositiveIntegerField(default=0, verbose_name='attempts (frozen view)')),
-                ('wrong_before_ac', models.PositiveIntegerField(default=0)),
-                ('wrong_before_ac_frozen', models.PositiveIntegerField(default=0)),
-                ('first_ac_at', models.DateTimeField(blank=True, null=True, verbose_name='first full-solve at')),
-                ('first_ac_at_frozen', models.DateTimeField(blank=True, null=True)),
-                ('last_improvement', models.DateTimeField(blank=True, null=True, verbose_name='last score improvement')),
-                ('last_improvement_frozen', models.DateTimeField(blank=True, null=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('contest_problem', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='scores', to='contests.contestproblem')),
-                ('participation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='scores', to='contests.contestparticipation')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "best_score",
+                    models.FloatField(default=0, verbose_name="best score (live)"),
+                ),
+                (
+                    "best_score_frozen",
+                    models.FloatField(
+                        default=0, verbose_name="best score (frozen view)"
+                    ),
+                ),
+                (
+                    "attempts",
+                    models.PositiveIntegerField(
+                        default=0, verbose_name="attempts (live)"
+                    ),
+                ),
+                (
+                    "attempts_frozen",
+                    models.PositiveIntegerField(
+                        default=0, verbose_name="attempts (frozen view)"
+                    ),
+                ),
+                ("wrong_before_ac", models.PositiveIntegerField(default=0)),
+                ("wrong_before_ac_frozen", models.PositiveIntegerField(default=0)),
+                (
+                    "first_ac_at",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="first full-solve at"
+                    ),
+                ),
+                ("first_ac_at_frozen", models.DateTimeField(blank=True, null=True)),
+                (
+                    "last_improvement",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="last score improvement"
+                    ),
+                ),
+                (
+                    "last_improvement_frozen",
+                    models.DateTimeField(blank=True, null=True),
+                ),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "contest_problem",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="scores",
+                        to="contests.contestproblem",
+                    ),
+                ),
+                (
+                    "participation",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="scores",
+                        to="contests.contestparticipation",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'contest score row',
-                'verbose_name_plural': 'contest score rows',
+                "verbose_name": "contest score row",
+                "verbose_name_plural": "contest score rows",
             },
         ),
         migrations.AddIndex(
-            model_name='contest',
-            index=models.Index(fields=['start_at'], name='contests_co_start_a_314087_idx'),
+            model_name="contest",
+            index=models.Index(
+                fields=["start_at"], name="contests_co_start_a_314087_idx"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='contestparticipation',
-            constraint=models.UniqueConstraint(fields=('contest', 'user'), name='unique_contest_user'),
+            model_name="contestparticipation",
+            constraint=models.UniqueConstraint(
+                fields=("contest", "user"), name="unique_contest_user"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='contestproblem',
-            constraint=models.UniqueConstraint(fields=('contest', 'problem'), name='unique_contest_problem'),
+            model_name="contestproblem",
+            constraint=models.UniqueConstraint(
+                fields=("contest", "problem"), name="unique_contest_problem"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='contestscore',
-            constraint=models.UniqueConstraint(fields=('participation', 'contest_problem'), name='unique_participation_problem_score'),
+            model_name="contestscore",
+            constraint=models.UniqueConstraint(
+                fields=("participation", "contest_problem"),
+                name="unique_participation_problem_score",
+            ),
         ),
     ]
