@@ -220,7 +220,7 @@ class ArticleTests(CommunityBase):
 
     def test_list_reads_and_tag_filter(self):
         self.mk_article()
-        hidden = self.mk_article(is_hidden=True, title_i18n={"en": "Hidden"})
+        self.mk_article(is_hidden=True, title_i18n={"en": "Hidden"})
         listing = self.client.get("/api/v1/problems/articles/")
         self.assertEqual(listing.status_code, 200)
         self.assertEqual(len(listing.data["results"]), 1)
@@ -232,7 +232,6 @@ class ArticleTests(CommunityBase):
         everything = self.client.get("/api/v1/problems/articles/")
         self.assertEqual(len(everything.data["results"]), 2)
         self.assertIn("Hidden", str(everything.data["results"]))
-        del hidden
 
     def test_authoring_and_review_lifecycle(self):
         self.client.force_authenticate(self.student)

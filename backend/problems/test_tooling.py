@@ -113,7 +113,7 @@ class StressTests(ToolingBase):
             "/api/v1/problems/tools/stress/", self.payload(), format="json"
         )
         self.assertEqual(response.status_code, 200, response.data)
-        self.assertTrue(response.data["found"] is False)
+        self.assertIs(response.data["found"], False)
         self.assertEqual(response.data["iterations"], 3)
         # The audit row rides along (ScratchRun pattern).
         from scratch.models import StressRun

@@ -110,7 +110,7 @@ class AnnouncementThreadsTest(TestCase):
 
     def test_author_cannot_self_promote_to_announcement(self):
         self.client.force_authenticate(self.author)
-        response = self.client.patch(
+        self.client.patch(
             f"/api/v1/forum/threads/{self.plain.id}/",
             {"is_announcement": True},
             format="json",
@@ -122,7 +122,7 @@ class AnnouncementThreadsTest(TestCase):
         # A title-only PATCH carries no announcement flag — the guard must
         # leave it alone (branch: flag absent in validated_data).
         self.client.force_authenticate(self.author)
-        response = self.client.patch(
+        self.client.patch(
             f"/api/v1/forum/threads/{self.plain.id}/",
             {"title": "Renamed"},
             format="json",
@@ -133,7 +133,7 @@ class AnnouncementThreadsTest(TestCase):
     def test_author_same_value_flag_is_noop(self):
         # Guard inner check: re-asserting the CURRENT value changes nothing.
         self.client.force_authenticate(self.author)
-        response = self.client.patch(
+        self.client.patch(
             f"/api/v1/forum/threads/{self.plain.id}/",
             {"is_announcement": False},
             format="json",
@@ -143,7 +143,7 @@ class AnnouncementThreadsTest(TestCase):
 
     def test_moderator_can_flag_announcement(self):
         self.client.force_authenticate(self.verifier)
-        response = self.client.patch(
+        self.client.patch(
             f"/api/v1/forum/threads/{self.plain.id}/",
             {"is_announcement": True},
             format="json",

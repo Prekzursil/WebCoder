@@ -194,8 +194,8 @@ class VirtualParticipationTests(ContestDepthBase):
 
     def test_standings_sections_are_disjoint(self):
         contest = self.finished_contest()
-        official = ContestParticipation.objects.create(contest=contest, user=self.alice)
-        virtual = ContestParticipation.objects.create(
+        ContestParticipation.objects.create(contest=contest, user=self.alice)
+        ContestParticipation.objects.create(
             contest=contest,
             user=self.bob,
             is_virtual=True,

@@ -112,7 +112,7 @@ class AICurator(Protocol):
     def screen(
         self, *, problem_en: dict, proposal: dict
     ) -> CuratorResult:  # pragma: no cover - interface
-        ...
+        raise NotImplementedError("screen() must be provided by the curator transport")
 
 
 def _default_transport(

@@ -316,7 +316,7 @@ class TestPruneOldTestOutputs:
         assert old_result.verdict == Submission.VerdictStatus.ACCEPTED
 
     def test_idempotent_second_run(self):
-        _sub, result = self._make(days_old=200, output="x")
+        _sub, _result = self._make(days_old=200, output="x")
         assert prune_old_test_outputs() == 1
         # Already blank → excluded by the .exclude() filter, returns 0.
         assert prune_old_test_outputs() == 0

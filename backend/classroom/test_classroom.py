@@ -130,7 +130,7 @@ class ModelTests(ClassroomBase):
         self.assertEqual(str(classroom), f"IX-A ({self.teacher.id})")
 
     def test_assignment_state_and_association(self):
-        problem = self.mk_problem("P")
+        self.mk_problem("P")
         assignment = Assignment(
             classroom=ClassRoom(name="X", teacher=self.teacher),
             title_i18n=_localized("T"),

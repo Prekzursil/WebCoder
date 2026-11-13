@@ -911,7 +911,7 @@ class StandingsEndpointTests(ContestBase):
         self.seed_scores(contest)
         # Post-freeze improvement for alice (100 → live only).
         part = ContestParticipation.objects.get(contest=contest, user=self.alice)
-        cp = ContestProblem.objects.get(contest=contest)
+        ContestProblem.objects.get(contest=contest)
         ContestScore.objects.filter(participation=part).update(best_score=100)
         response = self.client.get(f"/api/v1/contests/{contest.id}/standings/")
         self.assertEqual(response.status_code, 200)
@@ -1028,7 +1028,7 @@ class ProblemPinTests(ContestBase):
         self.assertEqual(response.status_code, 200, response.data)
 
     def test_testcase_create_pinned(self):
-        contest = self.mk_contest()
+        self.mk_contest()
         self.problem.author = self.alice
         self.problem.status = Problem.ProblemStatus.DRAFT
         self.problem.save()
@@ -1164,7 +1164,7 @@ class CoverageEdgeTests(ContestBase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["created_by_username"], "organizer")
         self.assertTrue(response.data["pretest_mode"])
-        self.assertTrue(response.data["my_participation"] is None)
+        self.assertIs(response.data["my_participation"], None)
 
     def test_sponsor_attribution_rails_round_trip(self):
         # OPS-7 groundwork: display-only sponsor fields serialize for any

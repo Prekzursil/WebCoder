@@ -223,7 +223,6 @@ class TestStartersEndpoint:
         response = client.get("/api/v1/problems/problems/starters/")
         assert response.status_code == 200
         assert len(response.data) == 3
-        chapters = set()
         for problem in response.data:
             assert problem["difficulty"] == "EASY"
             assert problem["status"] == "APPROVED"

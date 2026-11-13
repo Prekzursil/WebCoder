@@ -108,9 +108,6 @@ REPORTER_OPCODES = frozenset(
 #: Every opcode the transpiler understands (validation universe).
 KNOWN_OPCODES = STATEMENT_OPCODES | REPORTER_OPCODES
 
-#: operator_mathop implementations (Scratch names → preamble helpers).
-_MATH_OPS = frozenset({"abs", "floor", "ceiling", "sqrt", "sin", "cos", "tan", "round"})
-
 #: sb3 primitive input typecodes (scratch-vm's serialization/sb3.js:
 #: MATH_PRIMITIVE=4, TEXT_PRIMITIVE=10, BROADCAST_PRIMITIVE=11,
 #: COLOUR_PRIMITIVE=9 — plus the boolean shadow form 6). Real Scratch

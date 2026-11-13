@@ -135,7 +135,6 @@ def run_code_in_sandbox(
     final_time_ms = -1
     final_mem_kb = -1
     final_output = ""
-    final_error = "Judge execution did not complete as expected."
 
     spec = get_language(language)
     if spec is None:

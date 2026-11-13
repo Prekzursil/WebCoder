@@ -589,7 +589,7 @@ class JudgeTaskInteractiveTest(TestCase):
                 return_value=("WA", 5, 1024, None, "no"),
             ),
         ):
-            msg = self._call(sub.id)
+            self._call(sub.id)
         sub.refresh_from_db()
         self.assertEqual(sub.verdict, Submission.VerdictStatus.WRONG_ANSWER)
         self.assertEqual(sub.score, 0)
@@ -660,7 +660,7 @@ class JudgeTaskInteractiveTest(TestCase):
             ),
             mock.patch("submissions.tasks.run_interactive_pair") as pair,
         ):
-            msg = self._call(sub.id)
+            self._call(sub.id)
         sub.refresh_from_db()
         self.assertEqual(sub.verdict, Submission.VerdictStatus.INTERNAL_ERROR)
         row = SubmissionTestResult.objects.get(submission=sub)

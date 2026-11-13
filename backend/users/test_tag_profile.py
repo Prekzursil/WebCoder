@@ -103,7 +103,6 @@ class TagSkillProfileTest(TestCase):
         data = self._stats()
         rows = {row["tag"]: row for row in data["tags"]}
         # arrays still covered (3 APPROVED); the DRAFT problem is absent.
-        ids = [row["id"] for row in data["practice_next"]]
         self.assertTrue(rows["arrays"]["covered"])
         self.assertNotIn(
             "draft", [r["title_i18n"]["en"] for r in data["practice_next"]]
