@@ -23,7 +23,9 @@ vi.mock('@/context/AuthContext', () => ({
 
 vi.mock('next/link', () => ({
   default: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => (
-    <a href={href} {...rest}>{children}</a>
+    <a href={href} {...rest}>
+      {children}
+    </a>
   ),
 }));
 
@@ -60,7 +62,7 @@ describe('TranslateForm', () => {
         englishTitle="Two Sum"
         englishStatement="Return indices of the two numbers."
         existingLanguages={['en']}
-      />
+      />,
     );
     expect(await screen.findByText('English original')).toBeVisible();
     expect(screen.getByText('Two Sum')).toBeVisible();
@@ -79,7 +81,7 @@ describe('TranslateForm', () => {
         englishTitle="Two Sum"
         englishStatement="EN"
         existingLanguages={['en', 'ro']}
-      />
+      />,
     );
     await screen.findByLabelText('Target language');
     expect(screen.queryByRole('option', { name: /Romanian/ })).not.toBeInTheDocument();
@@ -93,11 +95,15 @@ describe('TranslateForm', () => {
         englishTitle="Two Sum"
         englishStatement="EN"
         existingLanguages={['en']}
-      />
+      />,
     );
     await screen.findByLabelText('Translated title');
-    fireEvent.change(screen.getByLabelText('Translated title'), { target: { value: 'Suma a două numere' } });
-    fireEvent.change(screen.getByLabelText(/Translated statement/), { target: { value: 'EN -> RO' } });
+    fireEvent.change(screen.getByLabelText('Translated title'), {
+      target: { value: 'Suma a două numere' },
+    });
+    fireEvent.change(screen.getByLabelText(/Translated statement/), {
+      target: { value: 'EN -> RO' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Submit translation' }));
     await waitFor(() =>
       expect(api.propose).toHaveBeenCalledWith({
@@ -105,31 +111,45 @@ describe('TranslateForm', () => {
         language: 'ro',
         title: 'Suma a două numere',
         statement: 'EN -> RO',
-      })
+      }),
     );
     expect(await screen.findByText(/Thank you! Your translation was submitted/)).toBeVisible();
   });
 
   it('maps a duplicate-pending API error to the dedicated message', async () => {
     api.propose.mockRejectedValue(
-      new Error('You already have a pending proposal for this problem and language — wait for a decision.')
+      new Error(
+        'You already have a pending proposal for this problem and language — wait for a decision.',
+      ),
     );
     render(
-      <TranslateForm problemId={7} englishTitle="T" englishStatement="S" existingLanguages={['en']} />
+      <TranslateForm
+        problemId={7}
+        englishTitle="T"
+        englishStatement="S"
+        existingLanguages={['en']}
+      />,
     );
     await screen.findByLabelText('Translated title');
     fireEvent.change(screen.getByLabelText('Translated title'), { target: { value: 'X' } });
     fireEvent.change(screen.getByLabelText(/Translated statement/), { target: { value: 'Y' } });
     fireEvent.click(screen.getByRole('button', { name: 'Submit translation' }));
     expect(
-      await screen.findByText(/You already have a pending translation for this problem and language/)
+      await screen.findByText(
+        /You already have a pending translation for this problem and language/,
+      ),
     ).toBeVisible();
   });
 
   it('maps an auth error to the login hint', async () => {
     api.propose.mockRejectedValue(new Error('Authentication credentials were not provided.'));
     render(
-      <TranslateForm problemId={7} englishTitle="T" englishStatement="S" existingLanguages={['en']} />
+      <TranslateForm
+        problemId={7}
+        englishTitle="T"
+        englishStatement="S"
+        existingLanguages={['en']}
+      />,
     );
     await screen.findByLabelText('Translated title');
     fireEvent.change(screen.getByLabelText('Translated title'), { target: { value: 'X' } });
@@ -142,7 +162,12 @@ describe('TranslateForm', () => {
     mocks.auth.user = null;
     mocks.auth.isAuthenticated = false;
     render(
-      <TranslateForm problemId={7} englishTitle="T" englishStatement="S" existingLanguages={['en']} />
+      <TranslateForm
+        problemId={7}
+        englishTitle="T"
+        englishStatement="S"
+        existingLanguages={['en']}
+      />,
     );
     expect(await screen.findByText('Log in to propose a translation.')).toBeVisible();
     expect(screen.queryByLabelText('Translated title')).not.toBeInTheDocument();
@@ -153,10 +178,13 @@ describe('TranslateForm', () => {
   it('surfaces a catalog load failure', async () => {
     api.getLanguages.mockRejectedValue(new Error('down'));
     render(
-      <TranslateForm problemId={7} englishTitle="T" englishStatement="S" existingLanguages={['en']} />
+      <TranslateForm
+        problemId={7}
+        englishTitle="T"
+        englishStatement="S"
+        existingLanguages={['en']}
+      />,
     );
-    expect(
-      await screen.findByText('Failed to load translation proposals.')
-    ).toBeVisible();
+    expect(await screen.findByText('Failed to load translation proposals.')).toBeVisible();
   });
 });

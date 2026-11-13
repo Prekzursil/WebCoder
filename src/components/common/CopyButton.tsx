@@ -21,15 +21,20 @@ interface CopyButtonProps {
   style?: React.CSSProperties;
 }
 
-export default function CopyButton({ text, shareLink = false, label, copiedLabel, ariaLabel, style }: CopyButtonProps) {
+export default function CopyButton({
+  text,
+  shareLink = false,
+  label,
+  copiedLabel,
+  ariaLabel,
+  style,
+}: CopyButtonProps) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
     try {
-      const value = shareLink
-        ? window.location.href
-        : text ?? '';
+      const value = shareLink ? window.location.href : (text ?? '');
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(value);
       } else {
@@ -53,14 +58,12 @@ export default function CopyButton({ text, shareLink = false, label, copiedLabel
       type="button"
       onClick={handleCopy}
       className="btn"
-      aria-label={ariaLabel ?? (copied
-        ? t('copied_label', 'Copied!')
-        : label ?? t('copy_button', 'Copy'))}
+      aria-label={
+        ariaLabel ?? (copied ? t('copied_label', 'Copied!') : (label ?? t('copy_button', 'Copy')))
+      }
       style={{ padding: '3px 10px', fontSize: '0.7rem', minHeight: '28px', ...style }}
     >
-      {copied
-        ? (copiedLabel ?? t('copied_label', 'Copied!'))
-        : (label ?? t('copy_button', 'Copy'))}
+      {copied ? (copiedLabel ?? t('copied_label', 'Copied!')) : (label ?? t('copy_button', 'Copy'))}
     </button>
   );
 }

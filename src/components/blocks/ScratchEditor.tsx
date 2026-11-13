@@ -84,7 +84,10 @@ export function buildToolboxXml(
       .map((op) => {
         if (op === 'data_variable') {
           return variableNames
-            .map((name) => `<block type="data_variable"><field name="VARIABLE">${name}</field></block>`)
+            .map(
+              (name) =>
+                `<block type="data_variable"><field name="VARIABLE">${name}</field></block>`,
+            )
             .join('');
         }
         if (op === 'data_setvariableto' || op === 'data_changevariableby') {
@@ -225,9 +228,7 @@ export default function ScratchEditor({
   const { t, i18n } = useTranslation();
   const blocksRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const vmRef = useRef<{ greenFlag: () => void; stopAll: () => void } | null>(
-    null,
-  );
+  const vmRef = useRef<{ greenFlag: () => void; stopAll: () => void } | null>(null);
   const [consoleLines, setConsoleLines] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
@@ -250,18 +251,14 @@ export default function ScratchEditor({
       // Deep import: the package's "browser" field points at a shim with
       // webpack inline-loader syntax that Turbopack cannot resolve; the
       // dist bundle is the exact same module, self-contained.
-      const Blockly = (
-        await import('scratch-blocks/dist/vertical.js')
-      ).default;
+      const Blockly = (await import('scratch-blocks/dist/vertical.js')).default;
       if (cancelled) return;
 
       // RO block labels from the official scratch-l10n catalog (same
       // mechanism scratch-gui uses); EN is baked into scratch-blocks.
       if (i18n.language?.startsWith('ro')) {
         const ro = (await import('scratch-l10n/editor/blocks/ro.json')).default;
-        for (const [key, value] of Object.entries(
-          ro as Record<string, string>,
-        )) {
+        for (const [key, value] of Object.entries(ro as Record<string, string>)) {
           (Blockly as { Msg: Record<string, string> }).Msg[key] = value;
         }
       }
@@ -272,12 +269,7 @@ export default function ScratchEditor({
       const builtin = (
         storage as unknown as {
           builtinHelper: {
-            store: (
-              type: unknown,
-              format: string,
-              data: ArrayBuffer,
-              id: string,
-            ) => string;
+            store: (type: unknown, format: string, data: ArrayBuffer, id: string) => string;
           };
         }
       ).builtinHelper;
@@ -285,12 +277,7 @@ export default function ScratchEditor({
         Object.entries(BUNDLED_ASSETS).map(async ([md5, format]) => {
           const response = await fetch(`/scratch-assets/${md5}.${format}`);
           if (!response.ok) return;
-          builtin.store(
-            AssetType.ImageVector,
-            format,
-            await response.arrayBuffer(),
-            md5,
-          );
+          builtin.store(AssetType.ImageVector, format, await response.arrayBuffer(), md5);
         }),
       );
 
@@ -315,9 +302,11 @@ export default function ScratchEditor({
 
       // Say/think output → the learner-visible console strip (the judge's
       // transpiled print stream mirrors exactly this).
-      (machine.runtime as unknown as {
-        on: (event: string, cb: (...args: unknown[]) => void) => void;
-      }).on('SAY', (_target: unknown, type: unknown, text: unknown) => {
+      (
+        machine.runtime as unknown as {
+          on: (event: string, cb: (...args: unknown[]) => void) => void;
+        }
+      ).on('SAY', (_target: unknown, type: unknown, text: unknown) => {
         if (type !== 'say' && type !== 'think') return;
         pushConsole(String(text ?? ''));
       });
@@ -335,9 +324,11 @@ export default function ScratchEditor({
         },
       );
       if (!blocksRef.current) return;
-      const workspace = (Blockly as unknown as {
-        inject: (el: HTMLElement, options: Record<string, unknown>) => unknown;
-      }).inject(blocksRef.current, {
+      const workspace = (
+        Blockly as unknown as {
+          inject: (el: HTMLElement, options: Record<string, unknown>) => unknown;
+        }
+      ).inject(blocksRef.current, {
         toolbox,
         media: '/scratch-blocks-media/',
         zoom: { controls: true, startScale: 0.75, maxScale: 1.5, minScale: 0.25 },
@@ -369,9 +360,7 @@ export default function ScratchEditor({
       });
 
       try {
-        await machineAny.loadProject(
-          JSON.parse(projectJson ?? DEFAULT_SCRATCH_PROJECT),
-        );
+        await machineAny.loadProject(JSON.parse(projectJson ?? DEFAULT_SCRATCH_PROJECT));
       } catch {
         // A creator-supplied starter that fails validation still leaves a
         // usable editor: fall back to the default cat project.
@@ -393,9 +382,7 @@ export default function ScratchEditor({
       }
     })().catch((exc) => {
       if (!cancelled) {
-        setError(
-          exc instanceof Error ? exc.message : 'Failed to load the Scratch editor.',
-        );
+        setError(exc instanceof Error ? exc.message : 'Failed to load the Scratch editor.');
       }
     });
 
@@ -494,10 +481,7 @@ export default function ScratchEditor({
         </div>
       </div>
       {error && (
-        <p
-          role="alert"
-          style={{ color: palette.danger, fontSize: '0.82rem', marginTop: 8 }}
-        >
+        <p role="alert" style={{ color: palette.danger, fontSize: '0.82rem', marginTop: 8 }}>
           {t('sbx_load_error', 'Scratch editor failed to load:')} {error}
         </p>
       )}

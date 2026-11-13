@@ -7,7 +7,14 @@ from .models import ScratchRun
 class ScratchRunAdmin(admin.ModelAdmin):
     """Audit view for scratch runs (X7): who ran what, when."""
 
-    list_display = ("id", "user", "language", "status", "execution_time_ms", "created_at")
+    list_display = (
+        "id",
+        "user",
+        "language",
+        "status",
+        "execution_time_ms",
+        "created_at",
+    )
     list_filter = ("status", "language")
     search_fields = ("user__username", "source_code")
     readonly_fields = (

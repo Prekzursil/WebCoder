@@ -75,9 +75,7 @@ describe('resolveLocalized / statement', () => {
     const problem = {
       title_i18n: { en: 'Sum' },
       statement_i18n: { en: 'Given…', ro: 'Se dau…' },
-      translations: [
-        { language: 'ro', contributor_username: 'ana', reviewed_at: null },
-      ],
+      translations: [{ language: 'ro', contributor_username: 'ana', reviewed_at: null }],
     };
     expect(problemTitle(problem, 'ro').text).toBe('Sum');
     expect(problemStatement(problem, 'ro').text).toBe('Se dau…');
@@ -103,9 +101,11 @@ describe('effective limits (J5 judge fairness)', () => {
   };
 
   it('multiplies defaults by the registry multipliers', () => {
-    expect(
-      computeEffectiveLimit(problem, lang('python3', 3, 1))
-    ).toEqual({ language: 'python3', timeMs: 3000, memoryKb: 65536 });
+    expect(computeEffectiveLimit(problem, lang('python3', 3, 1))).toEqual({
+      language: 'python3',
+      timeMs: 3000,
+      memoryKb: 65536,
+    });
   });
 
   it('applies per-language overrides before multipliers', () => {
@@ -113,9 +113,7 @@ describe('effective limits (J5 judge fairness)', () => {
   });
 
   it('enforces the memory floor', () => {
-    expect(
-      computeEffectiveLimit(problem, lang('csharp', 2, 1, 524288)).memoryKb
-    ).toBe(524288);
+    expect(computeEffectiveLimit(problem, lang('csharp', 2, 1, 524288)).memoryKb).toBe(524288);
   });
 
   it('prefers pre-resolved effective_limits and filters allowed languages', () => {
@@ -167,9 +165,7 @@ describe('partial-code templates', () => {
     // An UNTERMINATED edit region drops its buffer at EOF (web parity:
     // only lockedBuf is flushed at the end — a template missing
     // WC_EDIT_END is malformed and its trailing content is discarded).
-    expect(parseTemplate('a\nWC_EDIT_START\nlost')).toEqual([
-      { locked: true, text: 'a' },
-    ]);
+    expect(parseTemplate('a\nWC_EDIT_START\nlost')).toEqual([{ locked: true, text: 'a' }]);
   });
 
   it('round-trips slots through composeSubmission', () => {
@@ -211,9 +207,7 @@ describe('verdict + formatting', () => {
     expect(formatKb(500)).toBe('500 KB');
     expect(formatDateTime(null)).toBe('—');
     expect(formatDateTime('not-a-date')).toBe('not-a-date');
-    expect(formatDateTime('2026-11-02T14:03:00Z')).toMatch(
-      /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/
-    );
+    expect(formatDateTime('2026-11-02T14:03:00Z')).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/);
     expect(pollDelayMs(0)).toBe(1000);
     expect(pollDelayMs(4)).toBe(1000);
     expect(pollDelayMs(5)).toBe(2000);

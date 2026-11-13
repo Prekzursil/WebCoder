@@ -65,12 +65,21 @@ export default function LeaderboardPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await LeaderboardService.getLeaderboard({ page: 1, friends: friendsOnly, county: county.trim() || undefined, school: school.trim() || undefined });
+      const response = await LeaderboardService.getLeaderboard({
+        page: 1,
+        friends: friendsOnly,
+        county: county.trim() || undefined,
+        school: school.trim() || undefined,
+      });
       setRows(response.results);
       setTotalCount(response.count);
       setNextCursorPage(response.next ? 2 : null);
     } catch (err) {
-      setError(err instanceof Error && err.message ? err.message : t('leaderboard_load_error', 'Failed to load leaderboard.'));
+      setError(
+        err instanceof Error && err.message
+          ? err.message
+          : t('leaderboard_load_error', 'Failed to load leaderboard.'),
+      );
     } finally {
       setLoading(false);
     }
@@ -110,14 +119,23 @@ export default function LeaderboardPage() {
     if (nextCursorPage === null || loadingMore) return;
     setLoadingMore(true);
     try {
-      const response = await LeaderboardService.getLeaderboard({ page: nextCursorPage, friends: friendsOnly, county: county.trim() || undefined, school: school.trim() || undefined });
+      const response = await LeaderboardService.getLeaderboard({
+        page: nextCursorPage,
+        friends: friendsOnly,
+        county: county.trim() || undefined,
+        school: school.trim() || undefined,
+      });
       setRows((prev) => {
         const seen = new Set(prev.map((r) => r.username));
         return [...prev, ...response.results.filter((r) => !seen.has(r.username))];
       });
       setNextCursorPage(response.next ? nextCursorPage + 1 : null);
     } catch (err) {
-      setError(err instanceof Error && err.message ? err.message : t('leaderboard_load_more_error', 'Failed to load more entries.'));
+      setError(
+        err instanceof Error && err.message
+          ? err.message
+          : t('leaderboard_load_more_error', 'Failed to load more entries.'),
+      );
     } finally {
       setLoadingMore(false);
     }
@@ -140,8 +158,11 @@ export default function LeaderboardPage() {
     });
 
   const SortIcon = ({ col }: { col: SortKey }) => {
-    if (sortKey !== col) return <span style={{ color: 'var(--text-tertiary)', marginLeft: 4 }}>↕</span>;
-    return <span style={{ color: 'var(--accent)', marginLeft: 4 }}>{sortDir === 'asc' ? '↑' : '↓'}</span>;
+    if (sortKey !== col)
+      return <span style={{ color: 'var(--text-tertiary)', marginLeft: 4 }}>↕</span>;
+    return (
+      <span style={{ color: 'var(--accent)', marginLeft: 4 }}>{sortDir === 'asc' ? '↑' : '↓'}</span>
+    );
   };
 
   const podium = rows.slice(0, 3);
@@ -172,7 +193,8 @@ export default function LeaderboardPage() {
             marginBottom: '1.5rem',
           }}
         >
-          {t('could_not_load_leaderboard', 'Could not load leaderboard: ')}{error}
+          {t('could_not_load_leaderboard', 'Could not load leaderboard: ')}
+          {error}
           <div style={{ marginTop: '0.75rem' }}>
             <button onClick={loadFirstPage} className="btn">
               {t('retry_button', 'Retry')}
@@ -184,7 +206,13 @@ export default function LeaderboardPage() {
           <div
             role="group"
             aria-label={t('leaderboard_segments', 'County / school segment')}
-            style={{ display: 'inline-flex', gap: '0.5rem', alignItems: 'center', margin: '0.5rem 0 0.5rem 0.75rem', flexWrap: 'wrap' }}
+            style={{
+              display: 'inline-flex',
+              gap: '0.5rem',
+              alignItems: 'center',
+              margin: '0.5rem 0 0.5rem 0.75rem',
+              flexWrap: 'wrap',
+            }}
           >
             <input
               value={county}
@@ -192,7 +220,15 @@ export default function LeaderboardPage() {
               placeholder={t('leaderboard_county', 'County')}
               aria-label={t('leaderboard_county', 'County')}
               data-testid="segment-county"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--foreground)', padding: '6px 10px', fontSize: '0.8rem', width: 130 }}
+              style={{
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid var(--border)',
+                borderRadius: '8px',
+                color: 'var(--foreground)',
+                padding: '6px 10px',
+                fontSize: '0.8rem',
+                width: 130,
+              }}
             />
             <input
               value={school}
@@ -200,13 +236,28 @@ export default function LeaderboardPage() {
               placeholder={t('leaderboard_school', 'School')}
               aria-label={t('leaderboard_school', 'School')}
               data-testid="segment-school"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--foreground)', padding: '6px 10px', fontSize: '0.8rem', width: 150 }}
+              style={{
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid var(--border)',
+                borderRadius: '8px',
+                color: 'var(--foreground)',
+                padding: '6px 10px',
+                fontSize: '0.8rem',
+                width: 150,
+              }}
             />
           </div>
           {auth.isAuthenticated && (
             <label
               data-testid="friends-only-toggle"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', color: 'var(--muted)', margin: '0.5rem 0' }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                fontSize: '0.85rem',
+                color: 'var(--muted)',
+                margin: '0.5rem 0',
+              }}
             >
               <input
                 type="checkbox"
@@ -232,26 +283,40 @@ export default function LeaderboardPage() {
               }}
             >
               <div>
-                <div className="micro-label" style={{ color: 'var(--muted)' }}>{t('leaderboard_your_rank', 'Your rank')}</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--accent)' }}>#{myEntry.rank}</div>
+                <div className="micro-label" style={{ color: 'var(--muted)' }}>
+                  {t('leaderboard_your_rank', 'Your rank')}
+                </div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--accent)' }}>
+                  #{myEntry.rank}
+                </div>
               </div>
               <div>
-                <div className="micro-label" style={{ color: 'var(--muted)' }}>{t('leaderboard_points', 'Points')}</div>
+                <div className="micro-label" style={{ color: 'var(--muted)' }}>
+                  {t('leaderboard_points', 'Points')}
+                </div>
                 <div style={{ fontSize: '1.1rem', fontWeight: 700, color: palette.warn }}>
                   {myEntry.total_points.toLocaleString()}
                 </div>
               </div>
               <div>
-                <div className="micro-label" style={{ color: 'var(--muted)' }}>{t('leaderboard_solved', 'Solved')}</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--success)' }}>{myEntry.solved_count}</div>
+                <div className="micro-label" style={{ color: 'var(--muted)' }}>
+                  {t('leaderboard_solved', 'Solved')}
+                </div>
+                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--success)' }}>
+                  {myEntry.solved_count}
+                </div>
               </div>
               <div>
-                <div className="micro-label" style={{ color: 'var(--muted)' }}>{t('leaderboard_submissions', 'Submissions')}</div>
+                <div className="micro-label" style={{ color: 'var(--muted)' }}>
+                  {t('leaderboard_submissions', 'Submissions')}
+                </div>
                 <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--foreground)' }}>
                   {myEntry.total_submissions}
                 </div>
               </div>
-              <div style={{ marginLeft: 'auto', fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>
+              <div
+                style={{ marginLeft: 'auto', fontSize: '0.78rem', color: 'var(--text-tertiary)' }}
+              >
                 {t('leaderboard_success_rate', 'Success rate')} {percent(myEntry.success_rate)}%
               </div>
             </div>
@@ -320,10 +385,16 @@ export default function LeaderboardPage() {
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
                       <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
-                        <span style={{ color: 'var(--success)', fontWeight: 600 }}>{entry.solved_count}</span> {t('leaderboard_solved_short', 'solved')}
+                        <span style={{ color: 'var(--success)', fontWeight: 600 }}>
+                          {entry.solved_count}
+                        </span>{' '}
+                        {t('leaderboard_solved_short', 'solved')}
                       </span>
                       <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
-                        <span style={{ color: 'var(--accent)', fontWeight: 600 }}>{percent(entry.success_rate)}%</span> {t('leaderboard_rate_short', 'rate')}
+                        <span style={{ color: 'var(--accent)', fontWeight: 600 }}>
+                          {percent(entry.success_rate)}%
+                        </span>{' '}
+                        {t('leaderboard_rate_short', 'rate')}
                       </span>
                     </div>
                   </div>
@@ -379,7 +450,13 @@ export default function LeaderboardPage() {
                     <th
                       key={label}
                       onClick={key ? () => handleSort(key) : undefined}
-                      aria-sort={key && sortKey === key ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
+                      aria-sort={
+                        key && sortKey === key
+                          ? sortDir === 'asc'
+                            ? 'ascending'
+                            : 'descending'
+                          : 'none'
+                      }
                       style={{
                         padding: '12px 20px',
                         textAlign: 'left',
@@ -419,7 +496,10 @@ export default function LeaderboardPage() {
                     const badge = badgeColors[entry.rank - 1] ?? null;
                     const rate = percent(entry.success_rate);
                     return (
-                      <tr key={entry.username} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                      <tr
+                        key={entry.username}
+                        style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                      >
                         <td style={{ padding: '14px 20px' }}>
                           <span
                             style={{
@@ -429,7 +509,9 @@ export default function LeaderboardPage() {
                               width: '28px',
                               height: '28px',
                               borderRadius: '6px',
-                              background: badge ? hexAlpha(badge.color, 0.09) : 'rgba(255,255,255,0.04)',
+                              background: badge
+                                ? hexAlpha(badge.color, 0.09)
+                                : 'rgba(255,255,255,0.04)',
                               border: `1px solid ${badge ? hexAlpha(badge.color, 0.19) : 'rgba(255,255,255,0.06)'}`,
                               fontSize: '0.8rem',
                               fontWeight: 700,
@@ -458,14 +540,22 @@ export default function LeaderboardPage() {
                             >
                               {entry.username[0].toUpperCase()}
                             </div>
-                            <span style={{ color: 'var(--foreground)', fontWeight: 500, fontSize: '0.9rem' }}>
+                            <span
+                              style={{
+                                color: 'var(--foreground)',
+                                fontWeight: 500,
+                                fontSize: '0.9rem',
+                              }}
+                            >
                               {entry.username}
                             </span>
                             {badge && <span style={{ fontSize: '0.85rem' }}>{badge.label}</span>}
                           </div>
                         </td>
                         <td style={{ padding: '14px 20px' }}>
-                          <span style={{ color: palette.warn, fontWeight: 700, fontSize: '0.95rem' }}>
+                          <span
+                            style={{ color: palette.warn, fontWeight: 700, fontSize: '0.95rem' }}
+                          >
                             {entry.total_points.toLocaleString()}
                           </span>
                         </td>
@@ -504,11 +594,21 @@ export default function LeaderboardPage() {
                                   borderRadius: '2px',
                                   width: `${Math.min(100, rate)}%`,
                                   background:
-                                    rate >= 70 ? palette.success : rate >= 50 ? palette.warn : palette.danger,
+                                    rate >= 70
+                                      ? palette.success
+                                      : rate >= 50
+                                        ? palette.warn
+                                        : palette.danger,
                                 }}
                               />
                             </div>
-                            <span style={{ fontSize: '0.8rem', color: 'var(--muted)', whiteSpace: 'nowrap' }}>
+                            <span
+                              style={{
+                                fontSize: '0.8rem',
+                                color: 'var(--muted)',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
                               {rate}%
                             </span>
                           </div>
@@ -530,21 +630,49 @@ export default function LeaderboardPage() {
             </div>
           )}
           {error && rows.length > 0 && (
-            <p role="alert" style={{ marginTop: '0.75rem', color: 'var(--danger)', fontSize: '0.8rem', textAlign: 'center' }}>
-              {t('could_not_load_more_entries', 'Could not load more entries: ')}{error}
+            <p
+              role="alert"
+              style={{
+                marginTop: '0.75rem',
+                color: 'var(--danger)',
+                fontSize: '0.8rem',
+                textAlign: 'center',
+              }}
+            >
+              {t('could_not_load_more_entries', 'Could not load more entries: ')}
+              {error}
             </p>
           )}
           {totalCount !== null && (
-            <p style={{ marginTop: '1rem', fontSize: '0.75rem', color: 'var(--text-tertiary)', textAlign: 'center' }}>
-              {t('leaderboard_showing_info', 'Showing {{shown}} of {{total}} ranked users.', { shown: rows.length, total: totalCount.toLocaleString() })}{' '}
-              {t('leaderboard_ranking_note', 'Rankings based on accepted submissions over approved problems.')}
+            <p
+              style={{
+                marginTop: '1rem',
+                fontSize: '0.75rem',
+                color: 'var(--text-tertiary)',
+                textAlign: 'center',
+              }}
+            >
+              {t('leaderboard_showing_info', 'Showing {{shown}} of {{total}} ranked users.', {
+                shown: rows.length,
+                total: totalCount.toLocaleString(),
+              })}{' '}
+              {t(
+                'leaderboard_ranking_note',
+                'Rankings based on accepted submissions over approved problems.',
+              )}
             </p>
           )}
         </>
       )}
 
       {rows.length === 0 && !loading && !error && (
-        <EmptyState title={t('leaderboard_empty_title', 'No ranked users yet.')} description={t('leaderboard_empty_description', 'Solve an approved problem to appear on the leaderboard.')} />
+        <EmptyState
+          title={t('leaderboard_empty_title', 'No ranked users yet.')}
+          description={t(
+            'leaderboard_empty_description',
+            'Solve an approved problem to appear on the leaderboard.',
+          )}
+        />
       )}
     </div>
   );

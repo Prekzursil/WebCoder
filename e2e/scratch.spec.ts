@@ -7,9 +7,7 @@
 
 import { test, expect } from '@playwright/test';
 
-test('the playground offers the Scratch engine and mounts its editor', async ({
-  page,
-}) => {
+test('the playground offers the Scratch engine and mounts its editor', async ({ page }) => {
   await page?.goto('/blocks');
 
   await page?.getByLabel(/engine/i).selectOption('scratch');
@@ -40,7 +38,7 @@ test('a Scratch problem renders the Scratch editor and submits the project JSON'
         username: 'admin_e2e',
         email: 'admin@e2e.local',
         role: 'ADMIN',
-      })
+      }),
     );
   });
 
@@ -74,12 +72,13 @@ test('a Scratch problem renders the Scratch editor and submits the project JSON'
   await expect(page?.getByText(/solve with scratch/i)).toBeVisible();
 
   // Submit the starter project (confirmation modal -> confirm).
-  await page?.getByRole('button', { name: /submit/i }).first().click();
+  await page
+    ?.getByRole('button', { name: /submit/i })
+    .first()
+    .click();
   await page?.getByRole('button', { name: /^confirm$/i }).click();
 
-  await expect
-    .poll(() => Promise.resolve(seenLanguage))
-    .toBe('scratch');
+  await expect.poll(() => Promise.resolve(seenLanguage)).toBe('scratch');
   // The submitted code is a project JSON carrying the flag-script block.
   await expect
     .poll(() => {
@@ -98,10 +97,7 @@ test('a Scratch problem renders the Scratch editor and submits the project JSON'
     .toBe('ok');
 });
 
-test('a rejected Scratch submission surfaces the validation message', async ({
-  page,
-  context,
-}) => {
+test('a rejected Scratch submission surfaces the validation message', async ({ page, context }) => {
   test.setTimeout(240_000);
   await context?.addCookies([
     { name: 'wc_access', value: 'e2e-admin-access', domain: 'localhost', path: '/' },
@@ -114,7 +110,7 @@ test('a rejected Scratch submission surfaces the validation message', async ({
         username: 'admin_e2e',
         email: 'admin@e2e.local',
         role: 'ADMIN',
-      })
+      }),
     );
   });
 
@@ -125,9 +121,7 @@ test('a rejected Scratch submission surfaces the validation message', async ({
       status: 400,
       contentType: 'application/json',
       body: JSON.stringify({
-        code: [
-          'project uses blocks this problem does not allow: motion_movesteps',
-        ],
+        code: ['project uses blocks this problem does not allow: motion_movesteps'],
       }),
     });
   });
@@ -136,10 +130,11 @@ test('a rejected Scratch submission surfaces the validation message', async ({
   await expect(page?.getByTestId('scratch-editor')).toBeVisible({
     timeout: 90_000,
   });
-  await page?.getByRole('button', { name: /submit/i }).first().click();
+  await page
+    ?.getByRole('button', { name: /submit/i })
+    .first()
+    .click();
   await page?.getByRole('button', { name: /^confirm$/i }).click();
 
-  await expect(
-    page?.getByText(/does not allow: motion_movesteps/i)
-  ).toBeVisible();
+  await expect(page?.getByText(/does not allow: motion_movesteps/i)).toBeVisible();
 });

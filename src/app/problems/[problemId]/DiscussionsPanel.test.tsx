@@ -18,9 +18,7 @@ vi.mock('@/services/ApiService', () => ({
 const mocks = vi.hoisted(() => ({
   auth: {
     isAuthenticated: true,
-    user: { id: 7, username: 'tester', email: 't@x.com', role: 'BASIC' } as
-      | User
-      | null,
+    user: { id: 7, username: 'tester', email: 't@x.com', role: 'BASIC' } as User | null,
     login: vi.fn(),
     logout: vi.fn(),
   },
@@ -67,11 +65,9 @@ describe('DiscussionsPanel (COM-1)', () => {
   it('lists the problem-scoped threads via ?problem_id=', async () => {
     api.getThreads.mockResolvedValue(THREADS);
     render(<DiscussionsPanel problemId={1} />);
-    await waitFor(() =>
-      expect(screen.getByText('Is a deque needed?')).toBeTruthy()
-    );
+    await waitFor(() => expect(screen.getByText('Is a deque needed?')).toBeTruthy());
     expect(api.getThreads).toHaveBeenCalledWith(
-      expect.objectContaining({ problemId: 1, pageSize: 10 })
+      expect.objectContaining({ problemId: 1, pageSize: 10 }),
     );
   });
 
@@ -92,7 +88,7 @@ describe('DiscussionsPanel (COM-1)', () => {
         title: 'Stuck on the binary search',
         content: 'Which invariant holds?',
         problem: 1,
-      })
+      }),
     );
     // The list reloads after posting.
     await waitFor(() => expect(api.getThreads).toHaveBeenCalledTimes(2));
@@ -103,9 +99,7 @@ describe('DiscussionsPanel (COM-1)', () => {
     mocks.auth.user = null;
     api.getThreads.mockResolvedValue({ ...THREADS, results: [] });
     render(<DiscussionsPanel problemId={1} />);
-    await waitFor(() =>
-      expect(screen.getByText(/log in to join/i)).toBeTruthy()
-    );
+    await waitFor(() => expect(screen.getByText(/log in to join/i)).toBeTruthy());
     mocks.auth.isAuthenticated = true;
     mocks.auth.user = { id: 7, username: 'tester', email: 't@x.com', role: 'BASIC' };
   });

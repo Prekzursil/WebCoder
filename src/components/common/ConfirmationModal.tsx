@@ -84,7 +84,12 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 id="confirmation-modal-title" style={{ color: 'var(--foreground)', marginBottom: '0.5rem' }}>{title}</h3>
+        <h3
+          id="confirmation-modal-title"
+          style={{ color: 'var(--foreground)', marginBottom: '0.5rem' }}
+        >
+          {title}
+        </h3>
         <p style={{ color: 'var(--muted)', lineHeight: 1.6 }}>{message}</p>
         <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-around' }}>
           <button onClick={onClose} className="btn">

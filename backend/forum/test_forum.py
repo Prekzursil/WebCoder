@@ -33,7 +33,9 @@ class ForumTestBase(TestCase):
         )
 
     def _posts(self, thread=None):
-        resp = self.client.get(f"/api/v1/forum/threads/{(thread or self.thread).id}/posts/")
+        resp = self.client.get(
+            f"/api/v1/forum/threads/{(thread or self.thread).id}/posts/"
+        )
         return resp
 
 
@@ -68,7 +70,8 @@ class ThreadVisibilityTest(ForumTestBase):
 
     def test_create_thread_with_problem_link(self):
         problem = Problem.objects.create(
-            title_i18n={"en": "P"}, statement_i18n={"en": "S"},
+            title_i18n={"en": "P"},
+            statement_i18n={"en": "S"},
             status=Problem.ProblemStatus.APPROVED,
         )
         self.client.force_authenticate(self.basic)
@@ -258,8 +261,9 @@ class PostTest(ForumTestBase):
 
     def test_cross_thread_parent_rejected(self):
         other_thread = Thread.objects.create(title="T2", author=self.author)
-        cross_post = Post.objects.create(thread=other_thread, author=self.author,
-                                         content="elsewhere")
+        cross_post = Post.objects.create(
+            thread=other_thread, author=self.author, content="elsewhere"
+        )
         self.client.force_authenticate(self.basic)
         resp = self.client.post(
             f"/api/v1/forum/threads/{self.thread.id}/posts/",
@@ -423,9 +427,7 @@ class CoverageClosureTest(ForumTestBase):
     moderator visibility branches, 404 arms, and VoteView scaffolding."""
 
     def test_model_str_methods(self):
-        vote = PostVote.objects.create(
-            user=self.basic, post=self.first_post, value=1
-        )
+        vote = PostVote.objects.create(user=self.basic, post=self.first_post, value=1)
         report = Report.objects.create(
             reporter=self.basic, post=self.first_post, reason="spam"
         )
@@ -467,7 +469,8 @@ class CoverageClosureTest(ForumTestBase):
 
     def test_thread_list_filters_by_problem_id(self):
         problem = Problem.objects.create(
-            title_i18n={"en": "P"}, statement_i18n={"en": "S"},
+            title_i18n={"en": "P"},
+            statement_i18n={"en": "S"},
             status=Problem.ProblemStatus.APPROVED,
         )
         Thread.objects.create(
@@ -490,9 +493,7 @@ class CoverageClosureTest(ForumTestBase):
 
     def test_post_to_missing_thread_returns_404(self):
         self.client.force_authenticate(self.basic)
-        resp = self.client.post(
-            "/api/v1/forum/threads/999999/posts/", {"content": "x"}
-        )
+        resp = self.client.post("/api/v1/forum/threads/999999/posts/", {"content": "x"})
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
         self.assertIn("Not found", str(resp.json()))
 

@@ -21,12 +21,8 @@ class LeaderboardEntry(models.Model):
     )
     solved_count = models.PositiveIntegerField(_("solved count"), default=0)
     total_points = models.PositiveIntegerField(_("total points"), default=0)
-    total_submissions = models.PositiveIntegerField(
-        _("total submissions"), default=0
-    )
-    ac_submissions = models.PositiveIntegerField(
-        _("accepted submissions"), default=0
-    )
+    total_submissions = models.PositiveIntegerField(_("total submissions"), default=0)
+    ac_submissions = models.PositiveIntegerField(_("accepted submissions"), default=0)
     last_solved_at = models.DateTimeField(_("last solved at"), null=True, blank=True)
     updated_at = models.DateTimeField(_("updated at"), auto_now=True)
 

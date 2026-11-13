@@ -48,7 +48,14 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.auth.user = { id: 1, username: 'bob', email: 'b@x.com', role: 'BASIC_USER' };
   api.getMyClasses.mockResolvedValue({
-    results: [{ membership_id: 9, joined_at: '2026-10-02T00:00:00Z', classroom: CLASSROOM, open_assignments: 2 }],
+    results: [
+      {
+        membership_id: 9,
+        joined_at: '2026-10-02T00:00:00Z',
+        classroom: CLASSROOM,
+        open_assignments: 2,
+      },
+    ],
   });
   api.getMyAssignments.mockResolvedValue({ results: [] });
 });

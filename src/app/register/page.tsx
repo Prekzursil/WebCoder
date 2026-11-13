@@ -72,14 +72,17 @@ const RegisterPage: React.FC = () => {
     try {
       await AuthService.register({ username, email, password, password2 });
       setSuccess(
-        t('registration_successful_redirecting', 'Registration successful! Redirecting to login...')
+        t(
+          'registration_successful_redirecting',
+          'Registration successful! Redirecting to login...',
+        ),
       );
       redirectTimer.current = setTimeout(() => router.push('/login'), 2000);
     } catch (err: unknown) {
       setError(
         err instanceof Error && err.message
           ? err.message
-          : t('registration_failed', 'Registration failed. Please try again.')
+          : t('registration_failed', 'Registration failed. Please try again.'),
       );
     } finally {
       setIsSubmitting(false);

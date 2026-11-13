@@ -3,12 +3,7 @@
 // offsets over the assembled document, and the change-guard predicate.
 
 import { describe, expect, it } from 'vitest';
-import {
-  EDIT_END,
-  EDIT_START,
-  lockedRangesInTemplate,
-  parseTemplate,
-} from './PartialCodeEditor';
+import { EDIT_END, EDIT_START, lockedRangesInTemplate, parseTemplate } from './PartialCodeEditor';
 
 const TEMPLATE = [
   '#include <cstdio>',
@@ -26,7 +21,10 @@ describe('parseTemplate (client twin)', () => {
     const segments = parseTemplate(TEMPLATE);
     expect(segments.some((s) => s.locked)).toBe(true);
     expect(segments.some((s) => !s.locked)).toBe(true);
-    const locked = segments.filter((s) => s.locked).map((s) => s.text).join('');
+    const locked = segments
+      .filter((s) => s.locked)
+      .map((s) => s.text)
+      .join('');
     expect(locked).toContain('#include <cstdio>');
     expect(locked).toContain('int main()');
   });

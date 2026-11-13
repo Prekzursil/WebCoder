@@ -48,9 +48,7 @@ def _user_totals(user_id=None):
         qs = qs.filter(user_id=user_id)
     return {
         row["user_id"]: (row["total"], row["ac"])
-        for row in qs.annotate(
-            total=Count("id"), ac=Count("id", filter=_AC)
-        )
+        for row in qs.annotate(total=Count("id"), ac=Count("id", filter=_AC))
     }
 
 
@@ -82,9 +80,7 @@ def update_user_entry(user_id):
         # 100% gate uses a conditional expression — same semantics, no
         # branch arcs to mis-attribute.
         last_solved_at = (
-            first_ac
-            if last_solved_at is None
-            else max(last_solved_at, first_ac)
+            first_ac if last_solved_at is None else max(last_solved_at, first_ac)
         )
 
     totals = _user_totals(user_id).get(user_id, (0, 0))
@@ -132,9 +128,7 @@ def recompute_all_leaderboards():
         # Same branch-free max-update as update_user_entry (see the note
         # there): keeps the 100% gate stable across CPython micro releases.
         prev = acc["last_solved_at"]
-        acc["last_solved_at"] = (
-            first_ac if prev is None else max(prev, first_ac)
-        )
+        acc["last_solved_at"] = first_ac if prev is None else max(prev, first_ac)
 
     totals = _user_totals()
 

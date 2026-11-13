@@ -61,9 +61,7 @@ describe('chartPoints (RAT-1 curve math)', () => {
   it('maps a rising series to ascending x and descending y', () => {
     const chart = chartPoints([1200, 1400]);
     expect(chart).not.toBeNull();
-    const [[x1, y1], [x2, y2]] = chart!.points
-      .split(' ')
-      .map((p) => p.split(',').map(Number));
+    const [[x1, y1], [x2, y2]] = chart!.points.split(' ').map((p) => p.split(',').map(Number));
     expect(x2).toBeGreaterThan(x1);
     expect(y2).toBeLessThan(y1); // higher rating → smaller SVG y
     expect(chart!.min).toBe(1200);
@@ -100,21 +98,18 @@ describe('PublicRatingProfilePage', () => {
     expect(api.getRatingHistory).toHaveBeenCalledWith('glicko_guru');
     expect(screen.getByTestId('rating-profile-line')).toHaveAttribute(
       'points',
-      expect.stringContaining(',')
+      expect.stringContaining(','),
     );
     // History rows link back to their contest.
     expect(screen.getByTestId('rating-history-row-1')).toBeInTheDocument();
     expect(screen.getByTestId('rating-history-row-2')).toBeInTheDocument();
-    expect(
-      screen.getByRole('link', { name: 'Second round' })
-    ).toHaveAttribute('href', '/contests/2');
+    expect(screen.getByRole('link', { name: 'Second round' })).toHaveAttribute(
+      'href',
+      '/contests/2',
+    );
     // Summary carries rating ± rd and the band name.
-    expect(screen.getByTestId('rating-profile-summary').textContent).toContain(
-      '1742'
-    );
-    expect(screen.getByTestId('rating-profile-summary').textContent).toContain(
-      'Expert'
-    );
+    expect(screen.getByTestId('rating-profile-summary').textContent).toContain('1742');
+    expect(screen.getByTestId('rating-profile-summary').textContent).toContain('Expert');
   });
 
   it('renders the not-rated empty state without a chart', async () => {

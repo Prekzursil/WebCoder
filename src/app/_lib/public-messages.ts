@@ -332,15 +332,11 @@ export function interpolate(template: string, vars?: TranslateVars): string {
     return template;
   }
   return template.replace(/\{\{(\w+)\}\}/g, (_match, name: string) =>
-    vars[name] !== undefined ? String(vars[name]) : ''
+    vars[name] !== undefined ? String(vars[name]) : '',
   );
 }
 
-export type PublicTranslator = (
-  key: string,
-  defaultValue?: string,
-  vars?: TranslateVars
-) => string;
+export type PublicTranslator = (key: string, defaultValue?: string, vars?: TranslateVars) => string;
 
 /** Build a `t()` with the same (key, defaultValue, vars) contract as i18next.
  * Falls back to the English entry before the inline default — the universal

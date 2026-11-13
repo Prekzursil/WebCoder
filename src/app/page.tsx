@@ -86,7 +86,7 @@ export default async function HomePage() {
         <p className={styles.description}>
           {t(
             'homepage_description',
-            'Sharpen your skills, solve challenging problems, and compete with a community of developers from around the world. Whether you are a beginner or an expert, WebCoder has something for you.'
+            'Sharpen your skills, solve challenging problems, and compete with a community of developers from around the world. Whether you are a beginner or an expert, WebCoder has something for you.',
           )}
         </p>
         <div className={styles.actions}>
@@ -95,15 +95,17 @@ export default async function HomePage() {
           </Link>
           <HomeSignUpButton label={t('sign_up_button', 'Sign Up')} />
         </div>
-      {dailyProblem && (
-        <div className={styles.dailyStrip}>
-          <span className={styles.dailyLabel}>{t('daily_problem_label', 'Problem of the day')}</span>
-          <a href={`/problems/${dailyProblem.id}`} className={styles.dailyLink}>
-            {dailyProblem.title}
-          </a>
-          <span className={styles.dailyDifficulty}>{dailyProblem.difficulty}</span>
-        </div>
-      )}
+        {dailyProblem && (
+          <div className={styles.dailyStrip}>
+            <span className={styles.dailyLabel}>
+              {t('daily_problem_label', 'Problem of the day')}
+            </span>
+            <a href={`/problems/${dailyProblem.id}`} className={styles.dailyLink}>
+              {dailyProblem.title}
+            </a>
+            <span className={styles.dailyDifficulty}>{dailyProblem.difficulty}</span>
+          </div>
+        )}
 
         <div className={styles.stats} aria-label="Platform statistics">
           <div className={styles.statItem}>
@@ -120,16 +122,50 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <section aria-labelledby="faq-heading" style={{ marginTop: '4rem', maxWidth: '720px', margin: '4rem auto 0' }}>
-          <h2 id="faq-heading" style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem', color: 'var(--foreground)' }}>
+        <section
+          aria-labelledby="faq-heading"
+          style={{ marginTop: '4rem', maxWidth: '720px', margin: '4rem auto 0' }}
+        >
+          <h2
+            id="faq-heading"
+            style={{
+              fontSize: '1.5rem',
+              fontWeight: 700,
+              marginBottom: '1.5rem',
+              color: 'var(--foreground)',
+            }}
+          >
             {t('faq_heading', 'Frequently Asked Questions')}
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {faqSchema.mainEntity.map((item, i) => (
-              <details key={i} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px', padding: '1rem 1.25rem' }}>
-                <summary style={{ fontWeight: 600, cursor: 'pointer', color: 'var(--foreground)', listStyle: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <details
+                key={i}
+                style={{
+                  background: 'var(--surface)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '10px',
+                  padding: '1rem 1.25rem',
+                }}
+              >
+                <summary
+                  style={{
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    color: 'var(--foreground)',
+                    listStyle: 'none',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
                   {item.name}
-                  <span aria-hidden="true" style={{ color: 'var(--accent)', marginLeft: '1rem', flexShrink: 0 }}>+</span>
+                  <span
+                    aria-hidden="true"
+                    style={{ color: 'var(--accent)', marginLeft: '1rem', flexShrink: 0 }}
+                  >
+                    +
+                  </span>
                 </summary>
                 <p style={{ marginTop: '0.75rem', color: 'var(--muted)', lineHeight: 1.6 }}>
                   {item.acceptedAnswer.text}

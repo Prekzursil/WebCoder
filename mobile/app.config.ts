@@ -59,8 +59,7 @@ const config: ExpoConfig = {
   extra: {
     // 10.0.2.2 = host loopback from the Android emulator; iOS simulators
     // share the host network so 127.0.0.1 works there.
-    apiBase:
-      process.env.EXPO_PUBLIC_API_BASE ?? 'http://10.0.2.2:8010/api/v1',
+    apiBase: process.env.EXPO_PUBLIC_API_BASE ?? 'http://10.0.2.2:8010/api/v1',
     eas: {
       projectId: '', // filled by `eas init` (owner step — see docs/IOS-RUNBOOK.md)
     },

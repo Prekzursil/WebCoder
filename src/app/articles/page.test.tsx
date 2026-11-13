@@ -62,9 +62,7 @@ describe('ArticlesPage', () => {
       target: { value: 'hashing' },
     });
     fireEvent.click(screen.getByRole('button', { name: /filter/i }));
-    await waitFor(() =>
-      expect(api.getArticles).toHaveBeenCalledWith({ tag: 'hashing' })
-    );
+    await waitFor(() => expect(api.getArticles).toHaveBeenCalledWith({ tag: 'hashing' }));
   });
 
   it('shows the error state on failure', async () => {

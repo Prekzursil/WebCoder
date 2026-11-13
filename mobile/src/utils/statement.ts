@@ -30,7 +30,7 @@ export interface ResolvedText {
  */
 export function resolveLocalized(
   source: Record<string, string> | undefined,
-  locale: LocaleArg
+  locale: LocaleArg,
 ): ResolvedText {
   if (!source) return { text: '', resolvedLocale: '', native: false };
   const direct = source[locale];
@@ -39,7 +39,7 @@ export function resolveLocalized(
   }
   const prefix = locale.split('-')[0];
   const prefixKey = Object.keys(source).find(
-    (key) => key === prefix || key.split('-')[0] === prefix
+    (key) => key === prefix || key.split('-')[0] === prefix,
   );
   if (prefixKey !== undefined && source[prefixKey] !== '') {
     return { text: source[prefixKey], resolvedLocale: prefixKey, native: true };
@@ -54,28 +54,17 @@ export function resolveLocalized(
   return { text: '', resolvedLocale: '', native: false };
 }
 
-export function problemTitle(
-  problem: LocalizedTextSource,
-  locale: LocaleArg
-): ResolvedText {
+export function problemTitle(problem: LocalizedTextSource, locale: LocaleArg): ResolvedText {
   return resolveLocalized(problem.title_i18n, locale);
 }
 
-export function problemStatement(
-  problem: LocalizedTextSource,
-  locale: LocaleArg
-): ResolvedText {
+export function problemStatement(problem: LocalizedTextSource, locale: LocaleArg): ResolvedText {
   return resolveLocalized(problem.statement_i18n, locale);
 }
 
 /** The "translated by @user" credit for the rendered locale, if approved. */
-export function translationCredit(
-  problem: LocalizedTextSource,
-  locale: LocaleArg
-): string | null {
-  const attribution = problem.translations?.find(
-    (t) => t.language === locale
-  );
+export function translationCredit(problem: LocalizedTextSource, locale: LocaleArg): string | null {
+  const attribution = problem.translations?.find((t) => t.language === locale);
   return attribution ? attribution.contributor_username : null;
 }
 
@@ -84,12 +73,9 @@ export function translationCredit(
  * problem page uses to show the "help translate this problem" entry point
  * (the i18n wave's translation-contribution surface).
  */
-export function needsTranslation(
-  problem: LocalizedTextSource,
-  locale: LocaleArg
-): boolean {
+export function needsTranslation(problem: LocalizedTextSource, locale: LocaleArg): boolean {
   const prefix = locale.split('-')[0];
   return !Object.keys(problem.statement_i18n ?? {}).some(
-    (key) => key === locale || key.split('-')[0] === prefix
+    (key) => key === locale || key.split('-')[0] === prefix,
   );
 }

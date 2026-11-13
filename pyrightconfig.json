@@ -1,6 +1,21 @@
 {
-  "include": ["backend"],
   "typeCheckingMode": "standard",
-  "reportMissingImports": false,
-  "reportMissingModuleSource": false
+  "pythonVersion": "3.12",
+  "include": [
+    "backend"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    ".venv",
+    "backend/.venv",
+    "**/migrations",
+    "backend/webcoder_api",
+    "scripts"
+  ],
+  "extraPaths": [
+    "backend"
+  ],
+  "reportMissingImports": "warning",
+  "reportMissingModuleSource": "none"
 }

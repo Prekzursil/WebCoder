@@ -38,16 +38,37 @@ afterEach(cleanup);
 describe('StartPage [ONB-1]', () => {
   it('renders the trio with starter badges and links', async () => {
     getStarterProblemsMock.mockResolvedValue([
-      { id: 1, title_i18n: { en: 'Sum of Two Numbers' }, difficulty: 'EASY', status: 'APPROVED', statement_i18n: { en: 'Read two integers and print their sum.' } },
-      { id: 5, title_i18n: { en: 'Sum 1..N' }, difficulty: 'EASY', status: 'APPROVED', statement_i18n: { en: 'Read n and print the sum.' } },
-      { id: 9, title_i18n: { en: 'Maximum in Array' }, difficulty: 'EASY', status: 'APPROVED', statement_i18n: { en: 'Read an array and print its max.' } },
+      {
+        id: 1,
+        title_i18n: { en: 'Sum of Two Numbers' },
+        difficulty: 'EASY',
+        status: 'APPROVED',
+        statement_i18n: { en: 'Read two integers and print their sum.' },
+      },
+      {
+        id: 5,
+        title_i18n: { en: 'Sum 1..N' },
+        difficulty: 'EASY',
+        status: 'APPROVED',
+        statement_i18n: { en: 'Read n and print the sum.' },
+      },
+      {
+        id: 9,
+        title_i18n: { en: 'Maximum in Array' },
+        difficulty: 'EASY',
+        status: 'APPROVED',
+        statement_i18n: { en: 'Read an array and print its max.' },
+      },
     ]);
     render(await StartPage());
 
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/first problem/i);
     expect(screen.getByText('STARTER 1')).toBeInTheDocument();
     expect(screen.getByText('STARTER 3')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Sum of Two Numbers/ })).toHaveAttribute('href', '/problems/1');
+    expect(screen.getByRole('link', { name: /Sum of Two Numbers/ })).toHaveAttribute(
+      'href',
+      '/problems/1',
+    );
     expect(screen.getByRole('link', { name: /Sum 1..N/ })).toHaveAttribute('href', '/problems/5');
     // The 3-step strip.
     expect(screen.getByText('Pick a starter')).toBeInTheDocument();

@@ -48,7 +48,7 @@ def totp_code(secret: str, at_time: float | None = None, step_offset: int = 0) -
     key = base64.b32decode(padded, casefold=True)
     digest = hmac.new(key, struct.pack(">Q", counter), hashlib.sha1).digest()
     offset = digest[-1] & 0x0F
-    binary = struct.unpack(">I", digest[offset:offset + 4])[0] & 0x7FFFFFFF
+    binary = struct.unpack(">I", digest[offset : offset + 4])[0] & 0x7FFFFFFF
     return str(binary % (10**DIGITS)).zfill(DIGITS)
 
 

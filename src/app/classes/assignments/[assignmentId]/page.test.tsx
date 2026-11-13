@@ -14,9 +14,7 @@ const api = vi.hoisted(() => ({
   submitQuiz: vi.fn(),
   getDeliverables: vi.fn(),
   // JDG-13: the diff-view data source (teacher-only panel).
-  getAssignmentSolutionsJson: vi
-    .fn()
-    .mockResolvedValue({ count: 0, results: [] }),
+  getAssignmentSolutionsJson: vi.fn().mockResolvedValue({ count: 0, results: [] }),
   uploadDeliverable: vi.fn(),
   exportCsvUrl: (id: number | string) => `/api/v1/classroom/assignments/${id}/export/`,
 }));
@@ -58,7 +56,15 @@ const ASSIGNMENT = {
   max_file_mb: 10,
   state: 'OPEN',
   assignment_problems: [
-    { id: 11, problem: 101, problem_title: { en: 'Sum Two', ro: 'Suma a două' }, problem_difficulty: 'EASY', order: 0, label: 'A', points: 100 },
+    {
+      id: 11,
+      problem: 101,
+      problem_title: { en: 'Sum Two', ro: 'Suma a două' },
+      problem_difficulty: 'EASY',
+      order: 0,
+      label: 'A',
+      points: 100,
+    },
   ],
 };
 
@@ -70,8 +76,20 @@ const GRID = {
   ],
   problems: [{ id: 11, problem_id: 101, label: 'A', points: 100, title_i18n: { en: 'Sum Two' } }],
   cells: {
-    '10:101': { best_score: 100, attempts: 1, last_attempt_at: '2026-10-21T00:00:00Z', verdict: 'AC', late: false },
-    '11:101': { best_score: 55, attempts: 2, last_attempt_at: '2026-10-22T00:00:00Z', verdict: 'WA', late: true },
+    '10:101': {
+      best_score: 100,
+      attempts: 1,
+      last_attempt_at: '2026-10-21T00:00:00Z',
+      verdict: 'AC',
+      late: false,
+    },
+    '11:101': {
+      best_score: 55,
+      attempts: 2,
+      last_attempt_at: '2026-10-22T00:00:00Z',
+      verdict: 'WA',
+      late: true,
+    },
   },
 };
 
@@ -103,11 +121,9 @@ describe('AssignmentDetailPage', () => {
 
     expect(await screen.findByRole('link', { name: 'Sum Two' })).toHaveAttribute(
       'href',
-      '/problems/101'
+      '/problems/101',
     );
-    await waitFor(() =>
-      expect(screen.queryByTestId('gradebook-csv')).not.toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.queryByTestId('gradebook-csv')).not.toBeInTheDocument());
   });
 
   it('error state surfaces the message', async () => {
@@ -116,7 +132,6 @@ describe('AssignmentDetailPage', () => {
     expect(await screen.findByText('Not found.')).toBeInTheDocument();
   });
 });
-
 
 // ---------------------------------------------------------------------------
 // Wave C (EDU-7/8): quiz sheets + file deliverables on the temă page.
@@ -227,8 +242,6 @@ describe('AssignmentDetailPage quiz + files (Wave C)', () => {
     fireEvent.change(input, {
       target: { files: [new File(['%PDF fake 2'], 'tema2.pdf')] },
     });
-    await waitFor(() =>
-      expect(api.uploadDeliverable).toHaveBeenCalledTimes(2)
-    );
+    await waitFor(() => expect(api.uploadDeliverable).toHaveBeenCalledTimes(2));
   });
 });

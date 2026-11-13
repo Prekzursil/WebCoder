@@ -60,9 +60,9 @@ describe('ResetPasswordPage', () => {
     searchParams.delete('token');
     render(<ResetPasswordPage />);
     expect(screen.getByTestId('reset-password-invalid')).toBeInTheDocument();
-    expect(
-      screen.getByRole('link', { name: 'Request a new link' }).getAttribute('href')
-    ).to.equal('/forgot-password');
+    expect(screen.getByRole('link', { name: 'Request a new link' }).getAttribute('href')).to.equal(
+      '/forgot-password',
+    );
     // The form never mounts — no password fields to fill.
     expect(screen.queryByLabelText(/^New password/)).not.toBeInTheDocument();
   });
@@ -73,9 +73,7 @@ describe('ResetPasswordPage', () => {
       fillAndSubmit('NewPass-2026!y', 'DifferentPass-2026!z');
     });
     expect(confirmMock).not.toHaveBeenCalled();
-    expect(screen.getByTestId('reset-password-error').textContent).to.contain(
-      'do not match'
-    );
+    expect(screen.getByTestId('reset-password-error').textContent).to.contain('do not match');
   });
 
   it('confirms with uid/token from the URL and reports success', async () => {
@@ -88,13 +86,11 @@ describe('ResetPasswordPage', () => {
       'mock-uid',
       'mock-token',
       'NewPass-2026!y',
-      'NewPass-2026!y'
+      'NewPass-2026!y',
     );
-    expect(screen.getByTestId('reset-password-done').textContent).to.contain(
-      'Password updated'
-    );
+    expect(screen.getByTestId('reset-password-done').textContent).to.contain('Password updated');
     expect(screen.getByRole('link', { name: 'Back to login' }).getAttribute('href')).to.equal(
-      '/login'
+      '/login',
     );
   });
 
@@ -104,11 +100,9 @@ describe('ResetPasswordPage', () => {
     await act(async () => {
       fillAndSubmit('NewPass-2026!y', 'NewPass-2026!y');
     });
-    expect(screen.getByTestId('reset-password-invalid').textContent).to.contain(
-      'Invalid value'
+    expect(screen.getByTestId('reset-password-invalid').textContent).to.contain('Invalid value');
+    expect(screen.getByRole('link', { name: 'Request a new link' }).getAttribute('href')).to.equal(
+      '/forgot-password',
     );
-    expect(
-      screen.getByRole('link', { name: 'Request a new link' }).getAttribute('href')
-    ).to.equal('/forgot-password');
   });
 });

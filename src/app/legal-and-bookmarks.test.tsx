@@ -77,7 +77,7 @@ describe('BookmarkButton [UXP-6]', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /Remove bookmark/i })).toHaveAttribute(
         'aria-pressed',
-        'true'
+        'true',
       );
     });
     expect(setBookmarkMock).toHaveBeenCalledWith('7', true);
@@ -91,7 +91,7 @@ describe('BookmarkButton [UXP-6]', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /Bookmark this problem/i })).toHaveAttribute(
         'aria-pressed',
-        'false'
+        'false',
       );
     });
   });

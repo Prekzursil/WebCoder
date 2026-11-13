@@ -40,7 +40,13 @@ vi.mock('@/context/AuthContext', () => ({
   useAuth: () => mocks.auth,
 }));
 
-const entry = (rank: number, username: string, total_points: number, solved: number, rate: number) => ({
+const entry = (
+  rank: number,
+  username: string,
+  total_points: number,
+  solved: number,
+  rate: number,
+) => ({
   rank,
   username,
   solved_count: solved,
@@ -92,7 +98,12 @@ describe('LeaderboardPage (live standings)', () => {
   it('shows the authenticated user their own rank card via /leaderboard/me/', async () => {
     mocks.auth.isAuthenticated = true;
     mocks.auth.user = { id: 1, username: 'bob', email: 'b@x.com', role: 'BASIC_USER' };
-    api.getLeaderboard.mockResolvedValue({ count: 4, next: null, previous: null, results: MOCK_LEADERBOARD });
+    api.getLeaderboard.mockResolvedValue({
+      count: 4,
+      next: null,
+      previous: null,
+      results: MOCK_LEADERBOARD,
+    });
     api.getMyEntry.mockResolvedValue({
       rank: 7,
       username: 'bob',
@@ -113,7 +124,12 @@ describe('LeaderboardPage (live standings)', () => {
   it('keeps the standings when the me-card request fails', async () => {
     mocks.auth.isAuthenticated = true;
     mocks.auth.user = { id: 1, username: 'bob', email: 'b@x.com', role: 'BASIC_USER' };
-    api.getLeaderboard.mockResolvedValue({ count: 4, next: null, previous: null, results: MOCK_LEADERBOARD });
+    api.getLeaderboard.mockResolvedValue({
+      count: 4,
+      next: null,
+      previous: null,
+      results: MOCK_LEADERBOARD,
+    });
     api.getMyEntry.mockRejectedValue(new Error('Unauthorized'));
     render(<LeaderboardPage />);
 
@@ -146,7 +162,12 @@ describe('LeaderboardPage (live standings)', () => {
   });
 
   it('searches the loaded rows by username', async () => {
-    api.getLeaderboard.mockResolvedValue({ count: 4, next: null, previous: null, results: MOCK_LEADERBOARD });
+    api.getLeaderboard.mockResolvedValue({
+      count: 4,
+      next: null,
+      previous: null,
+      results: MOCK_LEADERBOARD,
+    });
     render(<LeaderboardPage />);
     await screen.findAllByText('alex_coder');
 
@@ -161,11 +182,18 @@ describe('LeaderboardPage (live standings)', () => {
     api.getLeaderboard.mockRejectedValue(new Error('Service unavailable'));
     render(<LeaderboardPage />);
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Could not load leaderboard: Service unavailable');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Could not load leaderboard: Service unavailable',
+    );
     expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
 
     // Retry refetches and recovers.
-    api.getLeaderboard.mockResolvedValue({ count: 1, next: null, previous: null, results: [MOCK_LEADERBOARD[0]] });
+    api.getLeaderboard.mockResolvedValue({
+      count: 1,
+      next: null,
+      previous: null,
+      results: [MOCK_LEADERBOARD[0]],
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
     expect((await screen.findAllByText('alex_coder')).length).toBeGreaterThan(0);
   });

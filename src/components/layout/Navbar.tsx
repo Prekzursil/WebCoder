@@ -71,10 +71,12 @@ const Navbar: React.FC = () => {
     router.push('/login');
   };
 
-  const canCreateProblems = auth.isAuthenticated && auth.user &&
+  const canCreateProblems =
+    auth.isAuthenticated &&
+    auth.user &&
     ['ADMIN', 'PROBLEM_VERIFIER', 'PROBLEM_CREATOR'].includes(auth.user.role);
-  const canVerifyProblems = auth.isAuthenticated && auth.user &&
-    ['ADMIN', 'PROBLEM_VERIFIER'].includes(auth.user.role);
+  const canVerifyProblems =
+    auth.isAuthenticated && auth.user && ['ADMIN', 'PROBLEM_VERIFIER'].includes(auth.user.role);
   const isAdmin = auth.isAuthenticated && auth.user && auth.user.role === 'ADMIN';
 
   const isActive = (path: string): boolean =>
@@ -99,16 +101,18 @@ const Navbar: React.FC = () => {
     { href: '/submission-history', label: t('nav_submission_history', 'History') },
   ];
   const roleLinks: NavLinkItem[] = [
-    ...(canCreateProblems ? [
-      { href: '/problems/create', label: t('nav_create_problem', 'Create Problem') },
-      { href: '/my-created-problems', label: t('nav_my_created_problems', 'My Problems') },
-    ] : []),
-    ...(canVerifyProblems ? [
-      { href: '/admin/problem-queue', label: t('nav_problem_queue', 'Verification Queue') },
-    ] : []),
-    ...(isAdmin ? [
-      { href: '/admin/dashboard', label: t('nav_admin_dashboard', 'Admin Dashboard') },
-    ] : []),
+    ...(canCreateProblems
+      ? [
+          { href: '/problems/create', label: t('nav_create_problem', 'Create Problem') },
+          { href: '/my-created-problems', label: t('nav_my_created_problems', 'My Problems') },
+        ]
+      : []),
+    ...(canVerifyProblems
+      ? [{ href: '/admin/problem-queue', label: t('nav_problem_queue', 'Verification Queue') }]
+      : []),
+    ...(isAdmin
+      ? [{ href: '/admin/dashboard', label: t('nav_admin_dashboard', 'Admin Dashboard') }]
+      : []),
   ];
 
   const submitSearch = (event: React.FormEvent) => {
@@ -165,7 +169,9 @@ const Navbar: React.FC = () => {
 
   const renderSearchForm = (idPrefix: string) => (
     <form className={styles.searchForm} onSubmit={submitSearch} role="search" key={idPrefix}>
-      <span className={styles.searchIcon} aria-hidden="true"><SearchIcon fontSize="small" /></span>
+      <span className={styles.searchIcon} aria-hidden="true">
+        <SearchIcon fontSize="small" />
+      </span>
       <input
         ref={idPrefix === 'nav' ? searchRef : undefined}
         type="search"
@@ -175,7 +181,9 @@ const Navbar: React.FC = () => {
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
-      <span className={styles.searchKbd} aria-hidden="true">/</span>
+      <span className={styles.searchKbd} aria-hidden="true">
+        /
+      </span>
     </form>
   );
 
@@ -216,7 +224,9 @@ const Navbar: React.FC = () => {
               href={href}
               className={`nav-link ${isActive(href) ? 'nav-link--active' : ''}`}
               aria-current={isActive(href) ? 'page' : undefined}
-            >{label}</Link>
+            >
+              {label}
+            </Link>
           ))}
         </div>
 
@@ -231,9 +241,7 @@ const Navbar: React.FC = () => {
                 className={`${styles.iconBtn} ${isActive('/notifications') ? styles.iconBtnActive : ''}`}
               >
                 <NotificationsOutlinedIcon fontSize="small" />
-                {unreadCount > 0 && (
-                  <span className={styles.badge}>{unreadCount}</span>
-                )}
+                {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
               </Link>
 
               <div className={styles.userWrap} ref={menuRef}>
@@ -264,7 +272,13 @@ const Navbar: React.FC = () => {
                       {t('nav_menu_account', 'Account')}
                     </div>
                     {accountLinks.map(({ href, label }) => (
-                      <Link key={href} href={href} className={styles.menuLink} role="menuitem" onClick={() => setMenuOpen(false)}>
+                      <Link
+                        key={href}
+                        href={href}
+                        className={styles.menuLink}
+                        role="menuitem"
+                        onClick={() => setMenuOpen(false)}
+                      >
                         {label}
                       </Link>
                     ))}
@@ -274,12 +288,22 @@ const Navbar: React.FC = () => {
                       </div>
                     )}
                     {roleLinks.map(({ href, label }) => (
-                      <Link key={href} href={href} className={styles.menuLink} role="menuitem" onClick={() => setMenuOpen(false)}>
+                      <Link
+                        key={href}
+                        href={href}
+                        className={styles.menuLink}
+                        role="menuitem"
+                        onClick={() => setMenuOpen(false)}
+                      >
                         {label}
                       </Link>
                     ))}
                     <hr className={styles.drawerDivider} />
-                    <button className={`${styles.menuLink} ${styles.menuLinkDanger}`} role="menuitem" onClick={handleLogout}>
+                    <button
+                      className={`${styles.menuLink} ${styles.menuLinkDanger}`}
+                      role="menuitem"
+                      onClick={handleLogout}
+                    >
                       {t('nav_logout', 'Logout')}
                     </button>
                   </div>
@@ -288,8 +312,12 @@ const Navbar: React.FC = () => {
             </>
           ) : (
             <>
-              <Link href="/login" className="btn">{t('nav_login', 'Login')}</Link>
-              <Link href="/register" className="btn btn--primary">{t('nav_register', 'Register')}</Link>
+              <Link href="/login" className="btn">
+                {t('nav_login', 'Login')}
+              </Link>
+              <Link href="/register" className="btn btn--primary">
+                {t('nav_register', 'Register')}
+              </Link>
             </>
           )}
 
@@ -326,7 +354,9 @@ const Navbar: React.FC = () => {
                 href={href}
                 className={`${styles.drawerLink} ${isActive(href) ? styles.drawerLinkActive : ''}`}
                 onClick={closeDrawer}
-              >{label}</Link>
+              >
+                {label}
+              </Link>
             ))}
 
             {auth.isAuthenticated && (
@@ -338,7 +368,9 @@ const Navbar: React.FC = () => {
                     href={href}
                     className={`${styles.drawerLink} ${isActive(href) ? styles.drawerLinkActive : ''}`}
                     onClick={closeDrawer}
-                  >{label}</Link>
+                  >
+                    {label}
+                  </Link>
                 ))}
                 {roleLinks.length > 0 && (
                   <div className={styles.drawerSectionLabel} aria-hidden="true">
@@ -351,7 +383,9 @@ const Navbar: React.FC = () => {
                     href={href}
                     className={`${styles.drawerLink} ${isActive(href) ? styles.drawerLinkActive : ''}`}
                     onClick={closeDrawer}
-                  >{label}</Link>
+                  >
+                    {label}
+                  </Link>
                 ))}
                 <hr className={styles.drawerDivider} />
                 <button

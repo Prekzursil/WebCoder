@@ -78,12 +78,12 @@ describe('ActivityFeed (COM-3)', () => {
 describe('SolutionsPanel (COM-7)', () => {
   it('renders the locked reason when the backend gates access', async () => {
     api.getSolutions.mockRejectedValue(
-      new Error('Solve the problem first to browse community solutions.')
+      new Error('Solve the problem first to browse community solutions.'),
     );
     render(<SolutionsPanel problemId={1} />);
 
     expect(await screen.findByTestId('solutions-locked')).toHaveTextContent(
-      /Solve the problem first/
+      /Solve the problem first/,
     );
   });
 
@@ -123,9 +123,7 @@ describe('WeeklyBoard (RAT-9)', () => {
     api.getWeeklyBoard.mockResolvedValue({
       count: 1,
       window_days: 7,
-      results: [
-        { rank: 1, user_id: 2, username: 'alice', solved: 3, points: 300 },
-      ],
+      results: [{ rank: 1, user_id: 2, username: 'alice', solved: 3, points: 300 }],
     });
     render(<WeeklyBoard />);
 

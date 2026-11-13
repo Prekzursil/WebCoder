@@ -4,7 +4,11 @@
 
 export default function ProblemsTableSkeleton() {
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem 1.5rem' }} aria-busy="true" aria-label="Loading problems">
+    <div
+      style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem 1.5rem' }}
+      aria-busy="true"
+      aria-label="Loading problems"
+    >
       <div
         className="skeleton"
         style={{ height: '2.25rem', width: '180px', marginBottom: '1.5rem' }}

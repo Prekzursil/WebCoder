@@ -53,9 +53,7 @@ class Thread(models.Model):
         related_name="threads",
         verbose_name=_("community editorial"),
     )
-    post_count = models.PositiveIntegerField(
-        _("post count"), default=0
-    )  # denormalized
+    post_count = models.PositiveIntegerField(_("post count"), default=0)  # denormalized
     last_activity = models.DateTimeField(
         _("last activity"), default=timezone.now
     )  # bumped per post via F()

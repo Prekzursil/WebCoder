@@ -12,16 +12,17 @@ vi.mock('scratch-storage', () => ({
   AssetType: { ImageVector: 'ImageVector' },
 }));
 
-import {
-  DEFAULT_SCRATCH_PROJECT,
-  buildToolboxXml,
-  declaredVariableNames,
-} from './ScratchEditor';
+import { DEFAULT_SCRATCH_PROJECT, buildToolboxXml, declaredVariableNames } from './ScratchEditor';
 
 describe('DEFAULT_SCRATCH_PROJECT', () => {
   it('is valid JSON with a cat sprite and a flag script', () => {
     const project = JSON.parse(DEFAULT_SCRATCH_PROJECT) as {
-      targets: { isStage: boolean; name: string; blocks: Record<string, { opcode: string }>; costumes: { md5ext: string }[] }[];
+      targets: {
+        isStage: boolean;
+        name: string;
+        blocks: Record<string, { opcode: string }>;
+        costumes: { md5ext: string }[];
+      }[];
     };
     const sprite = project.targets.find((t) => !t.isStage);
     expect(sprite?.name).toBe('Sprite1');
@@ -30,19 +31,14 @@ describe('DEFAULT_SCRATCH_PROJECT', () => {
     );
     expect(hat).toBeTruthy();
     // The cat costume references the bundled asset.
-    expect(sprite?.costumes[0].md5ext).toBe(
-      'bcf454acf82e4504149f7ffe07081dbc.svg',
-    );
+    expect(sprite?.costumes[0].md5ext).toBe('bcf454acf82e4504149f7ffe07081dbc.svg');
   });
 });
 
 describe('declaredVariableNames', () => {
   it('extracts variable display names across targets', () => {
     const json = JSON.stringify({
-      targets: [
-        { variables: { a: ['total', 0] } },
-        { variables: { b: ['n', 0], c: 'malformed' } },
-      ],
+      targets: [{ variables: { a: ['total', 0] } }, { variables: { b: ['n', 0], c: 'malformed' } }],
     });
     expect(declaredVariableNames(json)).toEqual(['total', 'n']);
   });
@@ -55,11 +51,14 @@ describe('declaredVariableNames', () => {
 
 describe('buildToolboxXml', () => {
   it('offers only curated opcodes when an allowlist is given', () => {
-    const xml = buildToolboxXml(
-      ['event_whenflagclicked', 'looks_say'],
-      [],
-      { events: 'Events', control: 'Control', looks: 'Looks', sensing: 'Sensing', operators: 'Operators', variables: 'Variables' },
-    );
+    const xml = buildToolboxXml(['event_whenflagclicked', 'looks_say'], [], {
+      events: 'Events',
+      control: 'Control',
+      looks: 'Looks',
+      sensing: 'Sensing',
+      operators: 'Operators',
+      variables: 'Variables',
+    });
     expect(xml).toContain('<block type="event_whenflagclicked"');
     expect(xml).toContain('<block type="looks_say"');
     expect(xml).not.toContain('control_repeat');
@@ -68,8 +67,12 @@ describe('buildToolboxXml', () => {
 
   it('offers the full curated set when no allowlist is given', () => {
     const xml = buildToolboxXml(null, [], {
-      events: 'Events', control: 'Control', looks: 'Looks',
-      sensing: 'Sensing', operators: 'Operators', variables: 'Variables',
+      events: 'Events',
+      control: 'Control',
+      looks: 'Looks',
+      sensing: 'Sensing',
+      operators: 'Operators',
+      variables: 'Variables',
     });
     expect(xml).toContain('control_repeat');
     expect(xml).toContain('operator_add');
@@ -84,7 +87,14 @@ describe('buildToolboxXml', () => {
     const xml = buildToolboxXml(
       ['event_whenflagclicked', 'data_variable', 'data_setvariableto'],
       ['n', 'total'],
-      { events: 'Events', control: 'Control', looks: 'Looks', sensing: 'Sensing', operators: 'Operators', variables: 'Variables' },
+      {
+        events: 'Events',
+        control: 'Control',
+        looks: 'Looks',
+        sensing: 'Sensing',
+        operators: 'Operators',
+        variables: 'Variables',
+      },
     );
     expect(xml).toContain('<field name="VARIABLE">n</field>');
     expect(xml).toContain('<field name="VARIABLE">total</field>');
@@ -92,8 +102,12 @@ describe('buildToolboxXml', () => {
 
   it('drops a category whose every opcode is disallowed', () => {
     const xml = buildToolboxXml(['event_whenflagclicked'], [], {
-      events: 'Events', control: 'Control', looks: 'Looks',
-      sensing: 'Sensing', operators: 'Operators', variables: 'Variables',
+      events: 'Events',
+      control: 'Control',
+      looks: 'Looks',
+      sensing: 'Sensing',
+      operators: 'Operators',
+      variables: 'Variables',
     });
     expect(xml).not.toContain('name="Looks"');
     expect(xml).toContain('name="Events"');
@@ -101,8 +115,12 @@ describe('buildToolboxXml', () => {
 
   it('localizes category labels', () => {
     const xml = buildToolboxXml(null, [], {
-      events: 'Evenimente', control: 'Control', looks: 'Aspect',
-      sensing: 'Percepție', operators: 'Operatori', variables: 'Variabile',
+      events: 'Evenimente',
+      control: 'Control',
+      looks: 'Aspect',
+      sensing: 'Percepție',
+      operators: 'Operatori',
+      variables: 'Variabile',
     });
     expect(xml).toContain('name="Evenimente"');
     expect(xml).toContain('name="Percepție"');

@@ -44,7 +44,7 @@ const ForgotPasswordPage: React.FC = () => {
       setError(
         err instanceof Error && err.message
           ? err.message
-          : t('forgot_password_error', 'Could not send the reset link. Please try again.')
+          : t('forgot_password_error', 'Could not send the reset link. Please try again.'),
       );
     } finally {
       setIsSubmitting(false);
@@ -70,10 +70,14 @@ const ForgotPasswordPage: React.FC = () => {
           </Alert>
         )}
         {sent ? (
-          <Alert severity="success" sx={{ width: '100%', mt: 3 }} data-testid="forgot-password-sent">
+          <Alert
+            severity="success"
+            sx={{ width: '100%', mt: 3 }}
+            data-testid="forgot-password-sent"
+          >
             {t(
               'forgot_password_sent',
-              'If that email belongs to an account, a reset link is on its way. Check your inbox (and spam folder).'
+              'If that email belongs to an account, a reset link is on its way. Check your inbox (and spam folder).',
             )}
           </Alert>
         ) : (
@@ -81,7 +85,7 @@ const ForgotPasswordPage: React.FC = () => {
             <Typography variant="body2" sx={{ mb: 1 }}>
               {t(
                 'forgot_password_intro',
-                "Enter your account email and we'll send you a reset link."
+                "Enter your account email and we'll send you a reset link.",
               )}
             </Typography>
             <TextField

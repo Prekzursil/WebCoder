@@ -52,14 +52,19 @@ export default function TranslateForm({
 }) {
   const { t, i18n } = useTranslation();
   const { isAuthenticated, isHydrated } = useAuth();
-  const [languages, setLanguages] = useState<{ code: string; endonym: string; english: string }[]>([]);
+  const [languages, setLanguages] = useState<{ code: string; endonym: string; english: string }[]>(
+    [],
+  );
   const [loadError, setLoadError] = useState(false);
   const [language, setLanguage] = useState('');
   const [title, setTitle] = useState('');
   const [statement, setStatement] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
-  const [error, setError] = useState<{ kind: 'login' | 'duplicate' | 'unavailable' | 'generic'; detail: string } | null>(null);
+  const [error, setError] = useState<{
+    kind: 'login' | 'duplicate' | 'unavailable' | 'generic';
+    detail: string;
+  } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -80,15 +85,16 @@ export default function TranslateForm({
   // viewer's own UI locale when it is available.
   const options = useMemo(
     () => languages.filter((entry) => !existingLanguages.includes(entry.code)),
-    [languages, existingLanguages]
+    [languages, existingLanguages],
   );
 
   useEffect(() => {
     if (!language && options.length > 0) {
       const current = (i18n.resolvedLanguage || i18n.language || 'en').toLowerCase();
       const match = options.find(
-        (entry) => current === entry.code.toLowerCase()
-          || current.startsWith(`${entry.code.toLowerCase()}-`)
+        (entry) =>
+          current === entry.code.toLowerCase() ||
+          current.startsWith(`${entry.code.toLowerCase()}-`),
       );
       setLanguage((match ?? options[0]).code);
     }
@@ -139,22 +145,40 @@ export default function TranslateForm({
   return (
     <>
       <div style={{ marginBottom: '1.25rem' }}>
-        <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--foreground)', marginBottom: '0.4rem' }}>
+        <h1
+          style={{
+            fontSize: '1.4rem',
+            fontWeight: 800,
+            color: 'var(--foreground)',
+            marginBottom: '0.4rem',
+          }}
+        >
           {t('translate_page_title', 'Translate this problem')}
         </h1>
         <p style={{ color: 'var(--muted)', fontSize: '0.9rem', margin: 0 }}>
           {t(
             'translate_intro',
-            'Translate the English original into your language. A reviewer looks at every submission before it goes live — thank you for helping.'
+            'Translate the English original into your language. A reviewer looks at every submission before it goes live — thank you for helping.',
           )}
         </p>
       </div>
 
       <div style={CARD}>
-        <h2 style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--muted)', letterSpacing: '0.05em', textTransform: 'uppercase', margin: '0 0 0.75rem' }}>
+        <h2
+          style={{
+            fontSize: '0.85rem',
+            fontWeight: 700,
+            color: 'var(--muted)',
+            letterSpacing: '0.05em',
+            textTransform: 'uppercase',
+            margin: '0 0 0.75rem',
+          }}
+        >
           {t('translate_from_english', 'English original')}
         </h2>
-        <p style={{ fontWeight: 700, margin: '0 0 0.5rem', color: 'var(--foreground)' }}>{englishTitle}</p>
+        <p style={{ fontWeight: 700, margin: '0 0 0.5rem', color: 'var(--foreground)' }}>
+          {englishTitle}
+        </p>
         <p style={{ whiteSpace: 'pre-wrap', margin: 0, fontSize: '0.9rem', color: 'var(--muted)' }}>
           {englishStatement}
         </p>
@@ -171,12 +195,17 @@ export default function TranslateForm({
         </div>
       ) : loadError ? (
         <div style={CARD} role="alert">
-          <p style={{ margin: 0, color: palette.danger }}>{t('translations_load_error', 'Failed to load translation proposals.')}</p>
+          <p style={{ margin: 0, color: palette.danger }}>
+            {t('translations_load_error', 'Failed to load translation proposals.')}
+          </p>
         </div>
       ) : options.length === 0 ? (
         <div style={CARD} role="note">
           <p style={{ margin: 0 }}>
-            {t('translate_language_unavailable', 'There is already an approved translation for this language.')}
+            {t(
+              'translate_language_unavailable',
+              'There is already an approved translation for this language.',
+            )}
           </p>
         </div>
       ) : (
@@ -219,23 +248,36 @@ export default function TranslateForm({
               id="translate-statement"
               value={statement}
               onChange={(event) => setStatement(event.target.value)}
-              style={{ ...FIELD, minHeight: '220px', fontFamily: 'var(--font-mono)', resize: 'vertical' }}
+              style={{
+                ...FIELD,
+                minHeight: '220px',
+                fontFamily: 'var(--font-mono)',
+                resize: 'vertical',
+              }}
               required
             />
           </div>
 
           {error && (
-            <p role="alert" style={{ color: palette.danger, fontSize: '0.9rem', margin: '0 0 1rem' }} data-testid="translate-error">
-              {error.kind === 'login' && t('translate_login_hint', 'Log in to propose a translation.')}
-              {error.kind === 'duplicate' && t(
-                'translate_duplicate',
-                'You already have a pending translation for this problem and language.'
-              )}
-              {error.kind === 'unavailable' && t(
-                'translate_language_unavailable',
-                'There is already an approved translation for this language.'
-              )}
-              {error.kind === 'generic' && (t('translate_error', 'Could not submit the translation.'))}
+            <p
+              role="alert"
+              style={{ color: palette.danger, fontSize: '0.9rem', margin: '0 0 1rem' }}
+              data-testid="translate-error"
+            >
+              {error.kind === 'login' &&
+                t('translate_login_hint', 'Log in to propose a translation.')}
+              {error.kind === 'duplicate' &&
+                t(
+                  'translate_duplicate',
+                  'You already have a pending translation for this problem and language.',
+                )}
+              {error.kind === 'unavailable' &&
+                t(
+                  'translate_language_unavailable',
+                  'There is already an approved translation for this language.',
+                )}
+              {error.kind === 'generic' &&
+                t('translate_error', 'Could not submit the translation.')}
               {error.detail ? ` (${error.detail})` : ''}
             </p>
           )}

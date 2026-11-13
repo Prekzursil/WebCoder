@@ -9,7 +9,10 @@ import { test, expect } from '@playwright/test';
 
 const TAMEPERED_SCENARIO = false; // kept for clarity of the two flows
 
-async function seedAuth(context: import('@playwright/test').BrowserContext | undefined, page: import('@playwright/test').Page | undefined) {
+async function seedAuth(
+  context: import('@playwright/test').BrowserContext | undefined,
+  page: import('@playwright/test').Page | undefined,
+) {
   await context?.addCookies([
     { name: 'wc_access', value: 'e2e-admin-access', domain: 'localhost', path: '/' },
   ]);
@@ -21,15 +24,12 @@ async function seedAuth(context: import('@playwright/test').BrowserContext | und
         username: 'admin_e2e',
         email: 'admin@e2e.local',
         role: 'ADMIN',
-      })
+      }),
     );
   });
 }
 
-test('the partial-code editor shows the skeleton and the badge', async ({
-  page,
-  context,
-}) => {
+test('the partial-code editor shows the skeleton and the badge', async ({ page, context }) => {
   await seedAuth(context, page);
   await page?.goto('/problems/8');
   await expect(page?.getByText('Partial code').first()).toBeVisible();
@@ -40,10 +40,7 @@ test('the partial-code editor shows the skeleton and the badge', async ({
   await expect(page?.locator('.cm-wc-locked').first()).toBeVisible();
 });
 
-test('completing the function submits the full assembled file', async ({
-  page,
-  context,
-}) => {
+test('completing the function submits the full assembled file', async ({ page, context }) => {
   await seedAuth(context, page);
 
   let seenCode = '';
@@ -61,28 +58,24 @@ test('completing the function submits the full assembled file', async ({
 
   // Type the completion into the editable region: the hole carries a
   // TODO hint line (HackerRank-style) — an obvious, unlocked target.
-  const hintLine = page?.locator(
-    '[data-testid="partial-code-editor"] .cm-line',
-    { hasText: 'TODO: your code here' }
-  );
+  const hintLine = page?.locator('[data-testid="partial-code-editor"] .cm-line', {
+    hasText: 'TODO: your code here',
+  });
   // Triple-click selects the hint line (an editable hole), typing replaces
   // it in one transaction.
   await hintLine?.click({ clickCount: 3 });
   await page?.keyboard.type('int total = 0;');
 
-  await page?.getByRole('button', { name: /submit/i }).first().click();
+  await page
+    ?.getByRole('button', { name: /submit/i })
+    .first()
+    .click();
   await page?.getByRole('button', { name: /^confirm$/i }).click();
 
   // The submission keeps the locked scaffolding around the edit.
-  await expect
-    .poll(() => Promise.resolve(seenCode.includes('#include <cstdio>')))
-    .toBe(true);
-  await expect
-    .poll(() => Promise.resolve(seenCode.includes('int total = 0;')))
-    .toBe(true);
-  await expect
-    .poll(() => Promise.resolve(seenCode.includes('scanf')))
-    .toBe(true);
+  await expect.poll(() => Promise.resolve(seenCode.includes('#include <cstdio>'))).toBe(true);
+  await expect.poll(() => Promise.resolve(seenCode.includes('int total = 0;'))).toBe(true);
+  await expect.poll(() => Promise.resolve(seenCode.includes('scanf'))).toBe(true);
 });
 
 test('a scaffold-tampering submit surfaces the clear server rejection', async ({
@@ -98,7 +91,7 @@ test('a scaffold-tampering submit surfaces the clear server rejection', async ({
       contentType: 'application/json',
       body: JSON.stringify({
         code: [
-          'Locked region modified: line ~10 of the template (\'    return 0;\' is missing or changed in your submission. Locked regions must stay exactly as given.',
+          "Locked region modified: line ~10 of the template ('    return 0;' is missing or changed in your submission. Locked regions must stay exactly as given.",
         ],
       }),
     });
@@ -107,10 +100,9 @@ test('a scaffold-tampering submit surfaces the clear server rejection', async ({
   await page?.goto('/problems/8');
   // Complete the function (the mock rejects ANY submit with the tamper
   // message — the editor itself stays locked, which is the point).
-  const hintLine = page?.locator(
-    '[data-testid="partial-code-editor"] .cm-line',
-    { hasText: 'TODO: your code here' }
-  );
+  const hintLine = page?.locator('[data-testid="partial-code-editor"] .cm-line', {
+    hasText: 'TODO: your code here',
+  });
   await hintLine?.click({ clickCount: 3 });
   await page?.keyboard.type('return 0;');
   await page?.getByRole('button', { name: 'Submit', exact: true }).click();

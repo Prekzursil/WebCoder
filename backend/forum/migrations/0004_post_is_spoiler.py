@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('forum', '0003_thread_editorial_thread_lang'),
+        ("forum", "0003_thread_editorial_thread_lang"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='post',
-            name='is_spoiler',
-            field=models.BooleanField(default=False, verbose_name='spoiler'),
+            model_name="post",
+            name="is_spoiler",
+            field=models.BooleanField(default=False, verbose_name="spoiler"),
         ),
     ]

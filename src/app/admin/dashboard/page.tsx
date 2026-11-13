@@ -40,7 +40,7 @@ export function AdminDashboardPage() {
         try {
           setLoading(true);
           const response = await collectAllPages((page) =>
-            AdminService.getUsers({ page, pageSize: 100 })
+            AdminService.getUsers({ page, pageSize: 100 }),
           );
           setUsers(response);
           setError(null);
@@ -59,10 +59,16 @@ export function AdminDashboardPage() {
     if (auth.isAuthenticated) {
       try {
         await AdminService.updateUser(userId, { role: newRole });
-        setUsers(users.map(user => (user.id === userId ? { ...user, role: newRole as AdminUserType['role'] } : user)));
+        setUsers(
+          users.map((user) =>
+            user.id === userId ? { ...user, role: newRole as AdminUserType['role'] } : user,
+          ),
+        );
         toast.success(t('admin_dashboard.update_role_success', 'Role updated successfully.'));
       } catch (err) {
-        toast.error(t('errors.failed_to_update_role', 'Failed to update role: ') + errorMessage(err, ''));
+        toast.error(
+          t('errors.failed_to_update_role', 'Failed to update role: ') + errorMessage(err, ''),
+        );
       }
     }
   };
@@ -71,10 +77,14 @@ export function AdminDashboardPage() {
     if (auth.isAuthenticated) {
       try {
         await AdminService.updateUser(userId, { is_active: isActive });
-        setUsers(users.map(user => (user.id === userId ? { ...user, is_active: isActive } : user)));
+        setUsers(
+          users.map((user) => (user.id === userId ? { ...user, is_active: isActive } : user)),
+        );
         toast.success(t('admin_dashboard.update_status_success', 'Status updated successfully.'));
       } catch (err) {
-        toast.error(t('errors.failed_to_update_status', 'Failed to update status: ') + errorMessage(err, ''));
+        toast.error(
+          t('errors.failed_to_update_status', 'Failed to update status: ') + errorMessage(err, ''),
+        );
       }
     }
   };
@@ -114,7 +124,7 @@ export function AdminDashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {users.map(user => (
+                {users.map((user) => (
                   <tr key={user.id}>
                     <td>{user.id}</td>
                     <td>{user.username}</td>

@@ -44,9 +44,7 @@ describe('SettingsProvider', () => {
     });
     expect(await AsyncStorage.getItem('wc_ui_locale')).toBe('ro');
     // RO catalog interpolation: problem_translated_by = "tradus de {{user}}"
-    expect(result.current.t('problem_translated_by', { user: 'ana' })).toContain(
-      'ana'
-    );
+    expect(result.current.t('problem_translated_by', { user: 'ana' })).toContain('ana');
     // unknown key falls back to the key itself; unknown var stays {{x}}
     expect(result.current.t('missing_key')).toBe('missing_key');
     expect(result.current.t('problem_translated_by', {})).toContain('{{user}}');
@@ -82,9 +80,7 @@ describe('i18n registry invariants', () => {
     }
     // a key only in EN still resolves for other locales
     expect(translate('ro', 'app_title')).toBe('WebCoder');
-    expect(translate('en', 'definitely_missing_key_xyz')).toBe(
-      'definitely_missing_key_xyz'
-    );
+    expect(translate('en', 'definitely_missing_key_xyz')).toBe('definitely_missing_key_xyz');
   });
 });
 

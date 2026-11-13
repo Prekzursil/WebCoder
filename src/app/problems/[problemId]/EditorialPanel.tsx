@@ -40,12 +40,16 @@ export default function EditorialPanel({
       .then((editorial) => {
         if (cancelled) return;
         const content = locale === 'ro' ? editorial.content_ro : editorial.content_en;
-        setState({ kind: 'open', content: content || editorial.content_en || editorial.content_ro });
+        setState({
+          kind: 'open',
+          content: content || editorial.content_en || editorial.content_ro,
+        });
       })
       .catch((err: { responseLocked?: boolean; policy?: string; notFound?: boolean }) => {
         if (cancelled) return;
         if (err?.notFound) setState({ kind: 'none' });
-        else if (err?.responseLocked) setState({ kind: 'locked', policy: err.policy ?? 'AFTER_AC' });
+        else if (err?.responseLocked)
+          setState({ kind: 'locked', policy: err.policy ?? 'AFTER_AC' });
         else setState({ kind: 'none' });
       });
     return () => {
@@ -79,7 +83,9 @@ export default function EditorialPanel({
   }
 
   return (
-    <div style={{ fontSize: '0.88rem', color: 'var(--body)', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
+    <div
+      style={{ fontSize: '0.88rem', color: 'var(--body)', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}
+    >
       {state.kind === 'loading' ? t('loading_editorial', 'Loading editorial…') : state.content}
     </div>
   );

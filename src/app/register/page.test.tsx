@@ -1,6 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act, cleanup } from '@testing-library/react';
-import type React from 'react';
 import { AuthService } from '@/services/ApiService';
 import type { RegisterResponse } from '@/types/api';
 import RegisterPage from './page';
@@ -81,11 +80,11 @@ describe('RegisterPage', () => {
     // MUI Button with href renders an <a> (implicit link role), not a button.
     expect(screen.getByRole('link', { name: 'Google' })).toHaveAttribute(
       'href',
-      'http://localhost:8000/api/v1/auth/google/login/'
+      'http://localhost:8000/api/v1/auth/google/login/',
     );
     expect(screen.getByRole('link', { name: 'GitHub' })).toHaveAttribute(
       'href',
-      'http://localhost:8000/api/v1/auth/github/login/'
+      'http://localhost:8000/api/v1/auth/github/login/',
     );
     expect(screen.getByRole('link', { name: 'Login here' })).toHaveAttribute('href', '/login');
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
@@ -98,7 +97,7 @@ describe('RegisterPage', () => {
 
     expect((screen.getByLabelText(/^Username/) as HTMLInputElement).value).toBe('Grace');
     expect((screen.getByLabelText(/^Email Address/) as HTMLInputElement).value).toBe(
-      'grace@example.com'
+      'grace@example.com',
     );
     expect((screen.getByLabelText(/^Password/) as HTMLInputElement).value).toBe('pw-one');
     expect((screen.getByLabelText(/^Confirm Password/) as HTMLInputElement).value).toBe('pw-two');
@@ -119,7 +118,10 @@ describe('RegisterPage', () => {
     vi.useFakeTimers();
     try {
       renderRegister();
-      registerMock.mockResolvedValueOnce({ user: undefined, message: 'ok' } as unknown as RegisterResponse);
+      registerMock.mockResolvedValueOnce({
+        user: undefined,
+        message: 'ok',
+      } as unknown as RegisterResponse);
 
       fillForm('Grace', 'grace@example.com', 'pw-one', 'pw-one');
       submitForm();
@@ -138,7 +140,7 @@ describe('RegisterPage', () => {
         password2: 'pw-one',
       });
       expect(
-        screen.getByText('Registration successful! Redirecting to login...')
+        screen.getByText('Registration successful! Redirecting to login...'),
       ).toBeInTheDocument();
       expect(routerMock.push).not.toHaveBeenCalled();
 
@@ -155,7 +157,10 @@ describe('RegisterPage', () => {
     renderRegister();
     let resolveRegister!: (value: RegisterResponse) => void;
     registerMock.mockImplementationOnce(
-      () => new Promise<RegisterResponse>((resolve) => { resolveRegister = resolve; })
+      () =>
+        new Promise<RegisterResponse>((resolve) => {
+          resolveRegister = resolve;
+        }),
     );
 
     fillForm('Grace', 'grace@example.com', 'pw-one', 'pw-one');
@@ -174,21 +179,15 @@ describe('RegisterPage', () => {
     });
 
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
-    expect(screen.getByText('Registration successful! Redirecting to login...')).toBeInTheDocument();
+    expect(
+      screen.getByText('Registration successful! Redirecting to login...'),
+    ).toBeInTheDocument();
   });
 
   it.each([
     ['an Error with a message', new Error('Username already taken.'), 'Username already taken.'],
-    [
-      'an Error with an empty message',
-      new Error(''),
-      'Registration failed. Please try again.',
-    ],
-    [
-      'a non-Error rejection',
-      { status: 500 },
-      'Registration failed. Please try again.',
-    ],
+    ['an Error with an empty message', new Error(''), 'Registration failed. Please try again.'],
+    ['a non-Error rejection', { status: 500 }, 'Registration failed. Please try again.'],
   ])('surfaces the API failure when the API rejects with %s', async (_label, rejection, expected) => {
     const { unmount } = renderRegister();
     registerMock.mockRejectedValueOnce(rejection);
@@ -211,11 +210,11 @@ describe('RegisterPage', () => {
     render(<FreshRegisterPage />);
     expect(screen.getByRole('link', { name: 'Google' })).toHaveAttribute(
       'href',
-      'https://api.webcoder.example/api/v1/auth/google/login/'
+      'https://api.webcoder.example/api/v1/auth/google/login/',
     );
     expect(screen.getByRole('link', { name: 'GitHub' })).toHaveAttribute(
       'href',
-      'https://api.webcoder.example/api/v1/auth/github/login/'
+      'https://api.webcoder.example/api/v1/auth/github/login/',
     );
   });
 });

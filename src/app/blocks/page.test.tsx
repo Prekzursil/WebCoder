@@ -18,15 +18,8 @@ vi.mock('@/services/ApiService', async (importOriginal) => {
 // The real BlockEditor loads Blockly in a browser DOM; jsdom is not one.
 // Mock it with the contract the page depends on: onCodeChange(code).
 vi.mock('@/components/blocks/BlockEditor', () => ({
-  default: ({
-    onCodeChange,
-  }: {
-    onCodeChange?: (code: string) => void;
-  }) => (
-    <div
-      data-testid="blockly-editor"
-      onLoad={undefined}
-    >
+  default: ({ onCodeChange }: { onCodeChange?: (code: string) => void }) => (
+    <div data-testid="blockly-editor" onLoad={undefined}>
       <button
         type="button"
         data-testid="emit-code"
@@ -73,7 +66,7 @@ describe('BlocksPlaygroundPage', () => {
         language: 'python3',
         code: expect.stringContaining('int(input())'),
         input: '42',
-      })
+      }),
     );
     expect(await screen.findByTestId('blocks-output')).toHaveTextContent('2');
   });
@@ -86,9 +79,7 @@ describe('BlocksPlaygroundPage', () => {
     fireEvent.click(screen.getByTestId('emit-code'));
     fireEvent.click(screen.getByRole('button', { name: /run on the judge/i }));
     await waitFor(() =>
-      expect(scratch.run).toHaveBeenCalledWith(
-        expect.objectContaining({ language: 'nodejs20' })
-      )
+      expect(scratch.run).toHaveBeenCalledWith(expect.objectContaining({ language: 'nodejs20' })),
     );
   });
 

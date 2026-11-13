@@ -47,10 +47,9 @@ class NotificationViewSet(
 
     @action(detail=False, methods=["post"], url_path="mark-all-read")
     def mark_all_read(self, request):
-        updated = (
-            Notification.objects.filter(recipient=request.user, read_at__isnull=True)
-            .update(read_at=timezone.now())
-        )
+        updated = Notification.objects.filter(
+            recipient=request.user, read_at__isnull=True
+        ).update(read_at=timezone.now())
         return Response({"marked": updated})
 
     @action(detail=False, methods=["get"], url_path="unread-count")

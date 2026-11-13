@@ -13,7 +13,12 @@ vi.mock('@/services/ApiService', () => ({
 const ROWS = {
   count: 2,
   results: [
-    { id: 2, note: 'clarified constraints', edited_by: 'admin', created_at: '2026-11-01T00:00:00Z' },
+    {
+      id: 2,
+      note: 'clarified constraints',
+      edited_by: 'admin',
+      created_at: '2026-11-01T00:00:00Z',
+    },
     { id: 1, note: '', edited_by: 'verif', created_at: '2026-10-01T00:00:00Z' },
   ],
 };
@@ -39,9 +44,7 @@ describe('StatementHistory', () => {
     const banner = await screen.findByTestId('statement-history');
     expect(banner).toHaveTextContent(/2 revisions/i);
     fireEvent.click(banner.querySelector('button')!);
-    await waitFor(() =>
-      expect(screen.getByTestId('statement-history-feed')).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByTestId('statement-history-feed')).toBeInTheDocument());
     expect(screen.getByText(/clarified constraints/)).toBeInTheDocument();
   });
 

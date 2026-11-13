@@ -19,9 +19,7 @@ interface TranslatePageProps {
   params: Promise<{ problemId: string }>;
 }
 
-export async function generateMetadata({
-  params,
-}: TranslatePageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: TranslatePageProps): Promise<Metadata> {
   const { problemId } = await params;
   const t = createTranslator(await getLocale());
   return { title: `${t('translate_page_title', 'Translate this problem')} · #${problemId}` };
@@ -47,7 +45,17 @@ export default async function TranslateProblemPage({ params }: TranslatePageProp
 
   return (
     <div className="page-container">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.5rem', fontSize: '0.8rem', color: 'var(--muted)', flexWrap: 'wrap' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          marginBottom: '1.5rem',
+          fontSize: '0.8rem',
+          color: 'var(--muted)',
+          flexWrap: 'wrap',
+        }}
+      >
         <Link href={`/problems/${problem.id}`} style={{ color: 'var(--accent)' }}>
           #{problem.id} · {problem.title_i18n.en}
         </Link>

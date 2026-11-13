@@ -46,9 +46,7 @@ describe('CreateContestPage', () => {
     } as User;
     render(<CreateContestPage />);
 
-    expect(
-      screen.getByText(/created by teachers and verified creators/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/created by teachers and verified creators/i)).toBeInTheDocument();
     expect(screen.queryByLabelText(/Title \(English\)/i)).not.toBeInTheDocument();
   });
 

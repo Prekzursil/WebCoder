@@ -6,40 +6,147 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('problems', '0019_en_mandatory_statements'),
+        ("problems", "0019_en_mandatory_statements"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='TranslationProposal',
+            name="TranslationProposal",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('language', models.CharField(help_text="Target language code (any UI locale except 'en').", max_length=8, verbose_name='language')),
-                ('title', models.CharField(max_length=255, verbose_name='proposed title')),
-                ('statement', models.TextField(verbose_name='proposed statement')),
-                ('status', models.CharField(choices=[('PENDING', 'Pending review'), ('APPROVED', 'Approved'), ('REJECTED', 'Rejected')], default='PENDING', max_length=10, verbose_name='status')),
-                ('review_note', models.TextField(blank=True, default='', verbose_name='review note')),
-                ('reviewed_at', models.DateTimeField(blank=True, null=True, verbose_name='reviewed at')),
-                ('ai_verdict', models.CharField(blank=True, choices=[('approve', 'AI: looks good'), ('flag', 'AI: needs a human look'), ('error', 'AI: screening failed (fail-open)')], default='', max_length=8, verbose_name='AI verdict')),
-                ('ai_confidence', models.FloatField(blank=True, null=True, verbose_name='AI confidence')),
-                ('ai_notes', models.TextField(blank=True, default='', verbose_name='AI notes')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='updated at')),
-                ('contributor', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='translation_proposals', to=settings.AUTH_USER_MODEL, verbose_name='contributor')),
-                ('problem', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='translation_proposals', to='problems.problem', verbose_name='problem')),
-                ('reviewer', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='reviewed_translation_proposals', to=settings.AUTH_USER_MODEL, verbose_name='reviewer')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "language",
+                    models.CharField(
+                        help_text="Target language code (any UI locale except 'en').",
+                        max_length=8,
+                        verbose_name="language",
+                    ),
+                ),
+                (
+                    "title",
+                    models.CharField(max_length=255, verbose_name="proposed title"),
+                ),
+                ("statement", models.TextField(verbose_name="proposed statement")),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("PENDING", "Pending review"),
+                            ("APPROVED", "Approved"),
+                            ("REJECTED", "Rejected"),
+                        ],
+                        default="PENDING",
+                        max_length=10,
+                        verbose_name="status",
+                    ),
+                ),
+                (
+                    "review_note",
+                    models.TextField(
+                        blank=True, default="", verbose_name="review note"
+                    ),
+                ),
+                (
+                    "reviewed_at",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="reviewed at"
+                    ),
+                ),
+                (
+                    "ai_verdict",
+                    models.CharField(
+                        blank=True,
+                        choices=[
+                            ("approve", "AI: looks good"),
+                            ("flag", "AI: needs a human look"),
+                            ("error", "AI: screening failed (fail-open)"),
+                        ],
+                        default="",
+                        max_length=8,
+                        verbose_name="AI verdict",
+                    ),
+                ),
+                (
+                    "ai_confidence",
+                    models.FloatField(
+                        blank=True, null=True, verbose_name="AI confidence"
+                    ),
+                ),
+                (
+                    "ai_notes",
+                    models.TextField(blank=True, default="", verbose_name="AI notes"),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="created at"),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(auto_now=True, verbose_name="updated at"),
+                ),
+                (
+                    "contributor",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="translation_proposals",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="contributor",
+                    ),
+                ),
+                (
+                    "problem",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="translation_proposals",
+                        to="problems.problem",
+                        verbose_name="problem",
+                    ),
+                ),
+                (
+                    "reviewer",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="reviewed_translation_proposals",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="reviewer",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'translation proposal',
-                'verbose_name_plural': 'translation proposals',
-                'ordering': ['-created_at'],
-                'indexes': [models.Index(fields=['status', '-created_at'], name='translation_status_f271d2_idx'), models.Index(fields=['problem', 'language'], name='translation_problem_59501f_idx')],
-                'constraints': [models.UniqueConstraint(condition=models.Q(('status', 'PENDING')), fields=('problem', 'language', 'contributor'), name='unique_pending_translation_per_contributor')],
+                "verbose_name": "translation proposal",
+                "verbose_name_plural": "translation proposals",
+                "ordering": ["-created_at"],
+                "indexes": [
+                    models.Index(
+                        fields=["status", "-created_at"],
+                        name="translation_status_f271d2_idx",
+                    ),
+                    models.Index(
+                        fields=["problem", "language"],
+                        name="translation_problem_59501f_idx",
+                    ),
+                ],
+                "constraints": [
+                    models.UniqueConstraint(
+                        condition=models.Q(("status", "PENDING")),
+                        fields=("problem", "language", "contributor"),
+                        name="unique_pending_translation_per_contributor",
+                    )
+                ],
             },
         ),
     ]

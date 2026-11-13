@@ -37,7 +37,7 @@ self.addEventListener('install', (event) => {
     caches
       .open(STATIC_CACHE)
       .then((cache) => cache.addAll(PRECACHE))
-      .then(() => self.skipWaiting())
+      .then(() => self.skipWaiting()),
   );
 });
 
@@ -47,30 +47,24 @@ self.addEventListener('activate', (event) => {
       .keys()
       .then((keys) =>
         Promise.all(
-          keys
-            .filter((k) => k !== STATIC_CACHE && k !== PAGES_CACHE)
-            .map((k) => caches.delete(k))
-        )
+          keys.filter((k) => k !== STATIC_CACHE && k !== PAGES_CACHE).map((k) => caches.delete(k)),
+        ),
       )
-      .then(() => self.clients.claim())
+      .then(() => self.clients.claim()),
   );
 });
 
 /** Same-origin, GET, and not an API/auth call — everything the SW touches. */
 function cacheableAsset(url) {
-  return (
-    url.origin === self.location.origin &&
-    url.pathname.startsWith('/_next/static/')
-  );
+  return url.origin === self.location.origin && url.pathname.startsWith('/_next/static/');
 }
 
 function isBuildAssetRequest(request) {
   const url = new URL(request.url);
   return (
     cacheableAsset(url) ||
-    url.origin === self.location.origin &&
-      (url.pathname.startsWith('/icons/') ||
-        url.pathname === '/manifest.webmanifest')
+    (url.origin === self.location.origin &&
+      (url.pathname.startsWith('/icons/') || url.pathname === '/manifest.webmanifest'))
   );
 }
 
@@ -157,6 +151,6 @@ self.addEventListener('push', (event) => {
       body: payload.body || '',
       tag: payload.tag || 'webcoder',
       data: { url: payload.url || '/' },
-    })
+    }),
   );
 });

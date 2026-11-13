@@ -79,11 +79,15 @@ describe('NewThreadPage (live create)', () => {
     const submit = screen.getByRole('button', { name: 'Post Thread' });
     expect(submit).toBeDisabled();
 
-    fireEvent.change(screen.getByLabelText(/Title/, { selector: '#thread-title' }), { target: { value: 'Short' } });
+    fireEvent.change(screen.getByLabelText(/Title/, { selector: '#thread-title' }), {
+      target: { value: 'Short' },
+    });
     expect(screen.getByText('Title must be at least 10 characters.')).toBeInTheDocument();
     expect(submit).toBeDisabled();
 
-    fireEvent.change(screen.getByLabelText(/Title/, { selector: '#thread-title' }), { target: { value: 'A valid thread title' } });
+    fireEvent.change(screen.getByLabelText(/Title/, { selector: '#thread-title' }), {
+      target: { value: 'A valid thread title' },
+    });
     expect(submit).toBeDisabled();
 
     fireEvent.change(screen.getByLabelText(/Content/), { target: { value: 'x'.repeat(20) } });
@@ -95,19 +99,39 @@ describe('NewThreadPage (live create)', () => {
       count: 1,
       next: null,
       previous: null,
-      results: [{ id: 5, title_i18n: { en: 'Merge Sort' }, difficulty: 'EASY', status: 'APPROVED' }],
+      results: [
+        { id: 5, title_i18n: { en: 'Merge Sort' }, difficulty: 'EASY', status: 'APPROVED' },
+      ],
     });
-    api.createThread.mockResolvedValue({ id: 42, title: 'A valid thread title', problem: null, author: 'bob', post_count: 1, is_pinned: false, is_locked: false, last_activity: '', created_at: '' });
+    api.createThread.mockResolvedValue({
+      id: 42,
+      title: 'A valid thread title',
+      problem: null,
+      author: 'bob',
+      post_count: 1,
+      is_pinned: false,
+      is_locked: false,
+      last_activity: '',
+      created_at: '',
+    });
     render(<NewThreadPage />);
 
     await screen.findByText(/#5 — Merge Sort/);
-    fireEvent.change(screen.getByLabelText(/Title/, { selector: '#thread-title' }), { target: { value: 'A valid thread title' } });
-    fireEvent.change(screen.getByLabelText(/Content/), { target: { value: 'A sufficiently long body text.' } });
+    fireEvent.change(screen.getByLabelText(/Title/, { selector: '#thread-title' }), {
+      target: { value: 'A valid thread title' },
+    });
+    fireEvent.change(screen.getByLabelText(/Content/), {
+      target: { value: 'A sufficiently long body text.' },
+    });
     fireEvent.change(screen.getByLabelText(/Linked problem/), { target: { value: '5' } });
     fireEvent.click(screen.getByRole('button', { name: 'Post Thread' }));
 
     await waitFor(() =>
-      expect(api.createThread).toHaveBeenCalledWith({ title: 'A valid thread title', content: 'A sufficiently long body text.', problem: 5 })
+      expect(api.createThread).toHaveBeenCalledWith({
+        title: 'A valid thread title',
+        content: 'A sufficiently long body text.',
+        problem: 5,
+      }),
     );
     await waitFor(() => expect(api.push).toHaveBeenCalledWith('/forum/42'));
   });
@@ -117,8 +141,12 @@ describe('NewThreadPage (live create)', () => {
     render(<NewThreadPage />);
 
     await screen.findByLabelText(/Title/);
-    fireEvent.change(screen.getByLabelText(/Title/, { selector: '#thread-title' }), { target: { value: 'A valid thread title' } });
-    fireEvent.change(screen.getByLabelText(/Content/), { target: { value: 'A sufficiently long body text.' } });
+    fireEvent.change(screen.getByLabelText(/Title/, { selector: '#thread-title' }), {
+      target: { value: 'A valid thread title' },
+    });
+    fireEvent.change(screen.getByLabelText(/Content/), {
+      target: { value: 'A sufficiently long body text.' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Post Thread' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Title already exists.');

@@ -24,7 +24,9 @@ describe('not-found (catch-all "*")', () => {
 
     expect(screen.getByRole('heading', { name: '404 - Page Not Found' })).toBeInTheDocument();
     expect(
-      screen.getByText('The page you are looking for does not exist or you may not have permission to view it.')
+      screen.getByText(
+        'The page you are looking for does not exist or you may not have permission to view it.',
+      ),
     ).toBeInTheDocument();
   });
 
@@ -32,11 +34,20 @@ describe('not-found (catch-all "*")', () => {
     mockLocale(undefined);
     render(await NotFound());
 
-    expect(screen.getByRole('link', { name: 'Browse Problems' })).toHaveAttribute('href', '/problems');
+    expect(screen.getByRole('link', { name: 'Browse Problems' })).toHaveAttribute(
+      'href',
+      '/problems',
+    );
     expect(screen.getByRole('link', { name: 'Go Home' })).toHaveAttribute('href', '/');
-    expect(screen.getByRole('link', { name: 'Leaderboard' })).toHaveAttribute('href', '/leaderboard');
+    expect(screen.getByRole('link', { name: 'Leaderboard' })).toHaveAttribute(
+      'href',
+      '/leaderboard',
+    );
     expect(screen.getByRole('link', { name: 'Community Forum' })).toHaveAttribute('href', '/forum');
-    expect(screen.getByRole('link', { name: 'My Submissions' })).toHaveAttribute('href', '/my-submissions');
+    expect(screen.getByRole('link', { name: 'My Submissions' })).toHaveAttribute(
+      'href',
+      '/my-submissions',
+    );
   });
 
   it('renders the Romanian copy for Romanian visitors (ro values now exist)', async () => {
@@ -45,7 +56,9 @@ describe('not-found (catch-all "*")', () => {
 
     expect(screen.getByRole('heading', { name: '404 - Pagină Negăsită' })).toBeInTheDocument();
     expect(
-      screen.getByText('Pagina pe care o cauți nu există sau este posibil să nu ai permisiunea să o vezi.')
+      screen.getByText(
+        'Pagina pe care o cauți nu există sau este posibil să nu ai permisiunea să o vezi.',
+      ),
     ).toBeInTheDocument();
   });
 });

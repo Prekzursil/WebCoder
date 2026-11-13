@@ -172,8 +172,8 @@ export default function Providers({ children }: { children: ReactNode }) {
               },
             }}
           />
-      {/* OPS-6: PWA service-worker registration (production only) */}
-      <ServiceWorkerRegistrar />
+          {/* OPS-6: PWA service-worker registration (production only) */}
+          <ServiceWorkerRegistrar />
         </AuthProvider>
       </ThemeProvider>
     </AppRouterCacheProvider>

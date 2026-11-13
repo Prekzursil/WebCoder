@@ -45,7 +45,14 @@ vi.mock('@/context/AuthContext', () => ({
 
 vi.mock('next/navigation', () => ({
   useParams: () => mocks.params,
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn(), back: vi.fn(), forward: vi.fn(), prefetch: vi.fn() }),
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    refresh: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    prefetch: vi.fn(),
+  }),
 }));
 
 const THREAD = {
@@ -61,8 +68,30 @@ const THREAD = {
 };
 
 const POSTS = [
-  { id: 1, thread_id: 3, author: 'radu_bits', content: 'First post', parent_id: null, is_edited: false, upvotes: 12, is_hidden: false, hidden_reason: '', created_at: '2026-10-18T09:30:00Z' },
-  { id: 2, thread_id: 3, author: 'mihai_dev', content: 'Reply here', parent_id: 1, is_edited: true, upvotes: 8, is_hidden: false, hidden_reason: '', created_at: '2026-10-18T10:15:00Z' },
+  {
+    id: 1,
+    thread_id: 3,
+    author: 'radu_bits',
+    content: 'First post',
+    parent_id: null,
+    is_edited: false,
+    upvotes: 12,
+    is_hidden: false,
+    hidden_reason: '',
+    created_at: '2026-10-18T09:30:00Z',
+  },
+  {
+    id: 2,
+    thread_id: 3,
+    author: 'mihai_dev',
+    content: 'Reply here',
+    parent_id: 1,
+    is_edited: true,
+    upvotes: 8,
+    is_hidden: false,
+    hidden_reason: '',
+    created_at: '2026-10-18T10:15:00Z',
+  },
 ];
 
 beforeEach(() => {
@@ -80,7 +109,9 @@ describe('ForumThreadPage (live thread)', () => {
     api.getPosts.mockResolvedValue({ next: null, previous: null, results: POSTS });
     render(<ThreadPage />);
 
-    expect(await screen.findByRole('heading', { name: 'Why does my Python solution get TLE?' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Why does my Python solution get TLE?' }),
+    ).toBeInTheDocument();
     expect(screen.getByText('🧩 Merge Sort')).toHaveAttribute('href', '/problems/5');
     expect(screen.getByText('First post')).toBeInTheDocument();
     expect(screen.getByText('(edited)')).toBeInTheDocument();
@@ -100,7 +131,20 @@ describe('ForumThreadPage (live thread)', () => {
       .mockResolvedValueOnce({
         next: null,
         previous: null,
-        results: [{ id: 0, thread_id: 3, author: 'old', content: 'Oldest post', parent_id: null, is_edited: false, upvotes: 1, is_hidden: false, hidden_reason: '', created_at: '2026-10-17T10:00:00Z' }],
+        results: [
+          {
+            id: 0,
+            thread_id: 3,
+            author: 'old',
+            content: 'Oldest post',
+            parent_id: null,
+            is_edited: false,
+            upvotes: 1,
+            is_hidden: false,
+            hidden_reason: '',
+            created_at: '2026-10-17T10:00:00Z',
+          },
+        ],
       });
     render(<ThreadPage />);
 
@@ -113,14 +157,27 @@ describe('ForumThreadPage (live thread)', () => {
   it('posts a reply and appends it locally', async () => {
     api.getThread.mockResolvedValue(THREAD);
     api.getPosts.mockResolvedValue({ next: null, previous: null, results: POSTS });
-    api.createPost.mockResolvedValue({ id: 3, thread_id: 3, author: 'bob', content: 'My reply', parent_id: null, is_edited: false, upvotes: 0, is_hidden: false, hidden_reason: '', created_at: '2026-10-21T00:00:00Z' });
+    api.createPost.mockResolvedValue({
+      id: 3,
+      thread_id: 3,
+      author: 'bob',
+      content: 'My reply',
+      parent_id: null,
+      is_edited: false,
+      upvotes: 0,
+      is_hidden: false,
+      hidden_reason: '',
+      created_at: '2026-10-21T00:00:00Z',
+    });
     render(<ThreadPage />);
 
     await screen.findByText('First post');
     fireEvent.change(screen.getByRole('textbox'), { target: { value: 'My reply' } });
     fireEvent.click(screen.getByRole('button', { name: 'Post Reply' }));
     // COM-1: the spoiler flag rides every reply (false for plain ones).
-    await waitFor(() => expect(api.createPost).toHaveBeenCalledWith('3', { content: 'My reply', isSpoiler: false }));
+    await waitFor(() =>
+      expect(api.createPost).toHaveBeenCalledWith('3', { content: 'My reply', isSpoiler: false }),
+    );
     await waitFor(() => expect(screen.getByText('My reply')).toBeInTheDocument());
   });
 
@@ -151,14 +208,28 @@ describe('ForumThreadPage (live thread)', () => {
   it('reports a post through the report endpoint', async () => {
     api.getThread.mockResolvedValue(THREAD);
     api.getPosts.mockResolvedValue({ next: null, previous: null, results: POSTS });
-    api.reportPost.mockResolvedValue({ id: 1, post_id: 1, reporter: 'bob', reason: 'spam', details: '', status: 'OPEN', resolution_note: '', resolved_by: null, created_at: '2026-10-21T00:00:00Z' });
+    api.reportPost.mockResolvedValue({
+      id: 1,
+      post_id: 1,
+      reporter: 'bob',
+      reason: 'spam',
+      details: '',
+      status: 'OPEN',
+      resolution_note: '',
+      resolved_by: null,
+      created_at: '2026-10-21T00:00:00Z',
+    });
     render(<ThreadPage />);
 
     await screen.findByText('First post');
     fireEvent.click(screen.getAllByRole('button', { name: '⚑ Report' })[0]);
     fireEvent.click(screen.getByRole('button', { name: 'Send' }));
-    await waitFor(() => expect(api.reportPost).toHaveBeenCalledWith(1, { reason: 'spam', details: undefined }));
-    expect(await screen.findByText('Report submitted. A moderator will review it.')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(api.reportPost).toHaveBeenCalledWith(1, { reason: 'spam', details: undefined }),
+    );
+    expect(
+      await screen.findByText('Report submitted. A moderator will review it.'),
+    ).toBeInTheDocument();
   });
 
   it('renders the locked notice instead of the reply box for locked threads', async () => {
@@ -187,7 +258,9 @@ describe('ForumThreadPage (live thread)', () => {
     api.getPosts.mockResolvedValue({ next: null, previous: null, results: [] });
     render(<ThreadPage />);
 
-    expect(await screen.findByText('This thread does not exist or was removed.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('This thread does not exist or was removed.'),
+    ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '← Back to Forum' })).toHaveAttribute('href', '/forum');
   });
 
@@ -196,7 +269,9 @@ describe('ForumThreadPage (live thread)', () => {
     api.getPosts.mockResolvedValue({ next: null, previous: null, results: [] });
     render(<ThreadPage />);
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Could not load thread: Service unavailable');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Could not load thread: Service unavailable',
+    );
     fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
     await waitFor(() => expect(api.getThread).toHaveBeenCalledTimes(2));
   });

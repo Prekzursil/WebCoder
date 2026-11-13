@@ -46,11 +46,7 @@ describe('analyzeComplexity', () => {
   });
 
   it('both hints can fire together', () => {
-    const code = [
-      'while True:',
-      '    for j in range(10):',
-      '        print(j)',
-    ].join('\n');
+    const code = ['while True:', '    for j in range(10):', '        print(j)'].join('\n');
     expect(analyzeComplexity(code)).toContain('nested-loops');
     expect(analyzeComplexity(code)).toContain('no-exit-forever');
   });

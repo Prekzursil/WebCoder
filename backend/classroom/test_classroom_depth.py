@@ -1,10 +1,8 @@
 """Wave C classroom depth tests (EDU-4 exam lockdown, EDU-7 quiz/file teme,
 EDU-8 MCQ bank + seed pilot)."""
 
-import os
 import tempfile
 from datetime import timedelta
-from io import BytesIO
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
@@ -166,7 +164,9 @@ class QuizFlowTests(ClassroomDepthBase):
     def sheet_answers(self, user):
         """Answer every item correctly through the DISPLAYED order."""
         self.client.force_authenticate(user)
-        sheet = self.client.get(f"/api/v1/classroom/assignments/{self.assignment.id}/quiz/")
+        sheet = self.client.get(
+            f"/api/v1/classroom/assignments/{self.assignment.id}/quiz/"
+        )
         self.assertEqual(sheet.status_code, 200)
         answers = {}
         for entry in sheet.data["items"]:
@@ -213,7 +213,9 @@ class QuizFlowTests(ClassroomDepthBase):
 
     def test_teacher_sheet_reveals_correct_index(self):
         self.client.force_authenticate(self.teacher)
-        sheet = self.client.get(f"/api/v1/classroom/assignments/{self.assignment.id}/quiz/")
+        sheet = self.client.get(
+            f"/api/v1/classroom/assignments/{self.assignment.id}/quiz/"
+        )
         self.assertEqual(sheet.status_code, 200)
         self.assertEqual(sheet.data["items"][0]["correct_index"], 1)
 
@@ -255,7 +257,9 @@ class QuizFlowTests(ClassroomDepthBase):
         self.assertEqual(len(stats.data["items"]), 3)
         self.assertEqual(stats.data["items"][0]["attempts"], 2)
         self.assertEqual(stats.data["items"][0]["correct"], 2)
-        grid = self.client.get(f"/api/v1/classroom/assignments/{self.assignment.id}/grid/")
+        grid = self.client.get(
+            f"/api/v1/classroom/assignments/{self.assignment.id}/grid/"
+        )
         self.assertEqual(grid.status_code, 200)
         self.assertEqual(grid.data["kind"], "QUIZ")
         self.assertEqual(grid.data["cells"][str(self.student.id)]["score"], 1.0)
@@ -322,9 +326,7 @@ class DeliverableTests(ClassroomDepthBase):
         self.assertEqual(wrong_ext.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("Allowed extensions", str(wrong_ext.data["file"]))
 
-        too_big = self.upload(
-            self.student, "big.pdf", b"x" * (1024 * 1024 + 1)
-        )
+        too_big = self.upload(self.student, "big.pdf", b"x" * (1024 * 1024 + 1))
         self.assertEqual(too_big.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("at most 1 MB", str(too_big.data["file"]))
 
@@ -335,7 +337,9 @@ class DeliverableTests(ClassroomDepthBase):
             f"/api/v1/classroom/assignments/{self.assignment.id}/deliverables/"
         )
         self.assertEqual(mine.status_code, 200)
-        self.assertEqual({r["student"]["username"] for r in mine.data["results"]}, {"stud"})
+        self.assertEqual(
+            {r["student"]["username"] for r in mine.data["results"]}, {"stud"}
+        )
         self.client.force_authenticate(self.teacher)
         all_rows = self.client.get(
             f"/api/v1/classroom/assignments/{self.assignment.id}/deliverables/"
@@ -357,7 +361,9 @@ class DeliverableTests(ClassroomDepthBase):
     def test_files_grid(self):
         self.upload(self.student, "tema.pdf")
         self.client.force_authenticate(self.teacher)
-        grid = self.client.get(f"/api/v1/classroom/assignments/{self.assignment.id}/grid/")
+        grid = self.client.get(
+            f"/api/v1/classroom/assignments/{self.assignment.id}/grid/"
+        )
         self.assertEqual(grid.status_code, 200)
         self.assertEqual(grid.data["kind"], "FILES")
         self.assertEqual(grid.data["cells"][str(self.student.id)]["count"], 1)
@@ -469,12 +475,15 @@ class QuizUtilsClosureTests(ClassroomDepthBase):
         self.assertEqual(graded3["correct_count"], 0)
         # Empty quiz.
         empty = self.mk_assignment(kind=Assignment.Kind.QUIZ)
-        self.assertEqual(grade_answers(empty, self.student, {}), {
-            "answers": {},
-            "score": 0.0,
-            "correct_count": 0,
-            "total_count": 0,
-        })
+        self.assertEqual(
+            grade_answers(empty, self.student, {}),
+            {
+                "answers": {},
+                "score": 0.0,
+                "correct_count": 0,
+                "total_count": 0,
+            },
+        )
 
     def test_item_stats_empty_and_no_shuffle(self):
         assignment = self.mk_assignment(kind=Assignment.Kind.QUIZ, quiz_shuffle=False)
@@ -540,7 +549,6 @@ class CoverageClosureTests(ClassroomDepthBase):
 
     # -- model __str__ ------------------------------------------------
     def test_model_str_representations(self):
-        from problems.models import CurriculumNode
 
         item = self.mk_mcq()
         self.assertIn("2+2?", str(item))
@@ -600,9 +608,7 @@ class CoverageClosureTests(ClassroomDepthBase):
             format="json",
         )
         self.assertEqual(updated.status_code, status.HTTP_200_OK, updated.data)
-        self.assertEqual(
-            [q.item_id for q in assignment.quiz_items.all()], [item_b.id]
-        )
+        self.assertEqual([q.item_id for q in assignment.quiz_items.all()], [item_b.id])
 
     def test_assignment_serializer_validation(self):
         self.client.force_authenticate(self.teacher)
@@ -690,10 +696,8 @@ class CoverageClosureTests(ClassroomDepthBase):
         item.save()
         self.client.force_authenticate(self.teacher)
         by_grade = self.client.get("/api/v1/classroom/mcq/?grade=10")
-        self.assertEqual(
-            [row["id"] for row in by_grade.data["results"]], [item.id]
-        )
-        by_chapter = self.client.get(f"/api/v1/classroom/mcq/?chapter=999")
+        self.assertEqual([row["id"] for row in by_grade.data["results"]], [item.id])
+        by_chapter = self.client.get("/api/v1/classroom/mcq/?chapter=999")
         self.assertEqual(by_chapter.data["results"], [])
 
     # -- grid payloads ---------------------------------------------------
@@ -714,7 +718,6 @@ class CoverageClosureTests(ClassroomDepthBase):
         grid = self.client.get(f"/api/v1/classroom/assignments/{quiz.id}/grid/")
         cell = grid.data["cells"][str(self.student.id)]
         self.assertEqual(cell["attempts"], 3)
-        
 
     def test_files_grid_counts_repeated_uploads(self):
         files = self.mk_assignment(kind=Assignment.Kind.FILES)

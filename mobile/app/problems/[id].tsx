@@ -4,11 +4,7 @@
 import { Link, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import {
-  ProblemService,
-  PublicService,
-  TranslationsService,
-} from '../../src/services/services';
+import { ProblemService, PublicService, TranslationsService } from '../../src/services/services';
 import { useSettings } from '../../src/state/SettingsStore';
 import {
   Button,
@@ -27,16 +23,8 @@ import {
   problemTitle,
   translationCredit,
 } from '../../src/utils/statement';
-import {
-  effectiveLimitsForProblem,
-  formatLimitKb,
-  formatLimitMs,
-} from '../../src/utils/limits';
-import type {
-  LanguageRow,
-  ProblemType,
-  TranslationLanguageEntry,
-} from '../../src/types/api';
+import { effectiveLimitsForProblem, formatLimitKb, formatLimitMs } from '../../src/utils/limits';
+import type { LanguageRow, ProblemType, TranslationLanguageEntry } from '../../src/types/api';
 
 export default function ProblemDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -60,15 +48,13 @@ export default function ProblemDetail() {
         if (needsTranslation(detail, locale)) {
           // The i18n wave's contribution entry point: the translatable-
           // language list powers the "translate this problem" affordance.
-          const translatable = await TranslationsService.getLanguages().catch(
-            () => ({ results: [] as TranslationLanguageEntry[] })
-          );
+          const translatable = await TranslationsService.getLanguages().catch(() => ({
+            results: [] as TranslationLanguageEntry[],
+          }));
           setTransLangs(translatable.results);
         }
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : t('problems_load_error')
-        );
+        setError(err instanceof Error ? err.message : t('problems_load_error'));
       }
     })();
   }, [id, locale, t]);
@@ -105,11 +91,7 @@ export default function ProblemDetail() {
             {t('translate_from_english')}
           </Txt>
         ) : null}
-        {credit ? (
-          <Txt variant="micro">
-            {t('problem_translated_by', { user: credit })}
-          </Txt>
-        ) : null}
+        {credit ? <Txt variant="micro">{t('problem_translated_by', { user: credit })}</Txt> : null}
       </Card>
 
       <Card>
@@ -118,11 +100,7 @@ export default function ProblemDetail() {
           {statement.text || t('empty_statement')}
         </Txt>
         {needsTranslation(problem, locale) && transLangs.length > 0 ? (
-          <Txt
-            variant="caption"
-            color={palette.accent}
-            style={{ marginTop: space[3] }}
-          >
+          <Txt variant="caption" color={palette.accent} style={{ marginTop: space[3] }}>
             {t('problem_help_translate')} — {t('translate_page_title')}
           </Txt>
         ) : null}
@@ -140,9 +118,7 @@ export default function ProblemDetail() {
         {problem.io_mode === 'FILES' ? (
           <KeyValue
             label={t('io_mode_label', 'I/O')}
-            value={`${problem.io_input_filename ?? ''} / ${
-              problem.io_output_filename ?? ''
-            }`}
+            value={`${problem.io_input_filename ?? ''} / ${problem.io_output_filename ?? ''}`}
           />
         ) : null}
       </Card>
@@ -163,8 +139,7 @@ export default function ProblemDetail() {
               >
                 <Txt variant="mono">{limit.language}</Txt>
                 <Txt variant="mono">
-                  {formatLimitMs(limit.timeMs)} ·{' '}
-                  {formatLimitKb(limit.memoryKb)}
+                  {formatLimitMs(limit.timeMs)} · {formatLimitKb(limit.memoryKb)}
                 </Txt>
               </View>
             ))}

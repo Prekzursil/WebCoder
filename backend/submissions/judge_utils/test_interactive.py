@@ -9,7 +9,6 @@ sandbox helpers the same way ``test_tasks.py`` does.
 """
 
 import pathlib
-import subprocess
 import sys
 import tempfile
 import textwrap
@@ -99,13 +98,16 @@ class WrapCommandTest(TestCase):
         self.addCleanup(self._td.cleanup)
 
     def test_container_backend_uses_docker_exec(self):
-        with mock.patch.object(
-            interactive, "get_judge_backend", return_value="container"
-        ), mock.patch.object(
-            interactive,
-            "build_command",
-            return_value=["docker", "exec", "SENTINEL"],
-        ) as bc:
+        with (
+            mock.patch.object(
+                interactive, "get_judge_backend", return_value="container"
+            ),
+            mock.patch.object(
+                interactive,
+                "build_command",
+                return_value=["docker", "exec", "SENTINEL"],
+            ) as bc,
+        ):
             argv = interactive._wrap_command(
                 ["python", "x.py"],
                 self.dir,
@@ -120,13 +122,14 @@ class WrapCommandTest(TestCase):
         self.assertEqual(bc.call_args[1]["workdir"], str(self.dir))
 
     def test_local_backend_uses_docker_run_with_image_and_limits(self):
-        with mock.patch.object(
-            interactive, "get_judge_backend", return_value="local"
-        ), mock.patch.object(
-            interactive,
-            "build_docker_run_command",
-            return_value=["docker", "run", "SENTINEL"],
-        ) as br:
+        with (
+            mock.patch.object(interactive, "get_judge_backend", return_value="local"),
+            mock.patch.object(
+                interactive,
+                "build_docker_run_command",
+                return_value=["docker", "run", "SENTINEL"],
+            ) as br,
+        ):
             argv = interactive._wrap_command(
                 ["python", "x.py"],
                 self.dir,
@@ -144,15 +147,11 @@ class WrapCommandTest(TestCase):
 class InteractorRunArgvTest(TestCase):
     def test_interpreted_spec_appends_evidence_files(self):
         argv = interactive._interactor_run_argv(get_language("python3"))
-        self.assertEqual(
-            argv, ["python", "interactor.py", "input.txt", "answer.txt"]
-        )
+        self.assertEqual(argv, ["python", "interactor.py", "input.txt", "answer.txt"])
 
     def test_compiled_spec_retargets_artifact(self):
         argv = interactive._interactor_run_argv(get_language("cpp17"))
-        self.assertEqual(
-            argv, ["./interactor_program", "input.txt", "answer.txt"]
-        )
+        self.assertEqual(argv, ["./interactor_program", "input.txt", "answer.txt"])
 
 
 class WrapCommandPosixPrefixTest(TestCase):
@@ -167,15 +166,15 @@ class WrapCommandPosixPrefixTest(TestCase):
         # The Path must be constructed BEFORE patching os.name — on
         # Windows hosts pathlib picks the flavour at instantiation time.
         workdir = pathlib.Path(".")
-        with mock.patch.object(
-            interactive.os, "name", "posix"
-        ), mock.patch.object(
-            interactive, "get_judge_backend", return_value="local"
-        ), mock.patch.object(
-            interactive,
-            "build_docker_run_command",
-            return_value=["docker", "run", "SENTINEL"],
-        ) as br:
+        with (
+            mock.patch.object(interactive.os, "name", "posix"),
+            mock.patch.object(interactive, "get_judge_backend", return_value="local"),
+            mock.patch.object(
+                interactive,
+                "build_docker_run_command",
+                return_value=["docker", "run", "SENTINEL"],
+            ) as br,
+        ):
             interactive._wrap_command(
                 ["python", "x.py"],
                 workdir,
@@ -190,15 +189,15 @@ class WrapCommandPosixPrefixTest(TestCase):
 
     def test_non_posix_host_runs_the_bare_argv(self):
         workdir = pathlib.Path(".")
-        with mock.patch.object(
-            interactive.os, "name", "nt"
-        ), mock.patch.object(
-            interactive, "get_judge_backend", return_value="local"
-        ), mock.patch.object(
-            interactive,
-            "build_docker_run_command",
-            return_value=["docker", "run", "SENTINEL"],
-        ) as br:
+        with (
+            mock.patch.object(interactive.os, "name", "nt"),
+            mock.patch.object(interactive, "get_judge_backend", return_value="local"),
+            mock.patch.object(
+                interactive,
+                "build_docker_run_command",
+                return_value=["docker", "run", "SENTINEL"],
+            ) as br,
+        ):
             interactive._wrap_command(
                 ["python", "x.py"],
                 workdir,
@@ -590,7 +589,7 @@ class JudgeTaskInteractiveTest(TestCase):
                 return_value=("WA", 5, 1024, None, "no"),
             ),
         ):
-            msg = self._call(sub.id)
+            self._call(sub.id)
         sub.refresh_from_db()
         self.assertEqual(sub.verdict, Submission.VerdictStatus.WRONG_ANSWER)
         self.assertEqual(sub.score, 0)
@@ -661,7 +660,7 @@ class JudgeTaskInteractiveTest(TestCase):
             ),
             mock.patch("submissions.tasks.run_interactive_pair") as pair,
         ):
-            msg = self._call(sub.id)
+            self._call(sub.id)
         sub.refresh_from_db()
         self.assertEqual(sub.verdict, Submission.VerdictStatus.INTERNAL_ERROR)
         row = SubmissionTestResult.objects.get(submission=sub)
@@ -738,9 +737,7 @@ class InteractiveSerializerTest(TestCase):
     def test_interactive_with_fields_is_valid(self):
         from problems.serializers import ProblemSerializer
 
-        serializer = ProblemSerializer(
-            data=self._payload(), context={"request": None}
-        )
+        serializer = ProblemSerializer(data=self._payload(), context={"request": None})
         self.assertTrue(serializer.is_valid())
 
     def test_normal_problem_needs_no_interactor(self):

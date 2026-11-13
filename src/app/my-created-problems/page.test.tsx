@@ -74,19 +74,48 @@ vi.mock('react-hot-toast', () => ({
 // author.id = 7 matches the authenticated creator (the page filters the
 // paginated list client-side because the backend ignores ?authorId=).
 const PROBLEMS: ProblemType[] = [
-  { id: 1, title_i18n: { en: 'Two Sum', ro: 'Suma a Două' }, difficulty: 'EASY', status: 'DRAFT', author: { id: 7, username: 'creator' } },
-  { id: 2, title_i18n: { en: 'Segments' }, difficulty: 'MEDIUM', status: 'PRIVATE', verifier_feedback: 'Statement too vague.', author: { id: 7, username: 'creator' } },
-  { id: 3, title_i18n: { en: 'Max Flow' }, difficulty: 'HARD', status: 'APPROVED', author: { id: 7, username: 'creator' } },
-  { id: 4, title_i18n: { en: 'No Feedback' }, difficulty: 'EASY', status: 'PRIVATE', author: { id: 7, username: 'creator' } },
+  {
+    id: 1,
+    title_i18n: { en: 'Two Sum', ro: 'Suma a Două' },
+    difficulty: 'EASY',
+    status: 'DRAFT',
+    author: { id: 7, username: 'creator' },
+  },
+  {
+    id: 2,
+    title_i18n: { en: 'Segments' },
+    difficulty: 'MEDIUM',
+    status: 'PRIVATE',
+    verifier_feedback: 'Statement too vague.',
+    author: { id: 7, username: 'creator' },
+  },
+  {
+    id: 3,
+    title_i18n: { en: 'Max Flow' },
+    difficulty: 'HARD',
+    status: 'APPROVED',
+    author: { id: 7, username: 'creator' },
+  },
+  {
+    id: 4,
+    title_i18n: { en: 'No Feedback' },
+    difficulty: 'EASY',
+    status: 'PRIVATE',
+    author: { id: 7, username: 'creator' },
+  },
 ];
 
 beforeEach(() => {
   vi.clearAllMocks();
   authState.isAuthenticated = true;
-  authState.user = { id: 7, username: 'creator', email: 'creator@example.com', role: 'PROBLEM_CREATOR' };
+  authState.user = {
+    id: 7,
+    username: 'creator',
+    email: 'creator@example.com',
+    role: 'PROBLEM_CREATOR',
+  };
   api.getProblems.mockResolvedValue({ count: 0, next: null, previous: null, results: [] });
 });
-
 
 // vitest runs with globals: false, so @testing-library auto-cleanup never
 // registers on its own; unmount explicitly or the DOM leaks across tests.
@@ -96,12 +125,29 @@ afterEach(() => {
 
 describe('MyCreatedProblemsPage (/my-created-problems)', () => {
   it('renders the spinner while fetching, then the problems table', async () => {
-    let resolveProblems!: (v: { count: number; next: null; previous: null; results: ProblemType[] }) => void;
-    api.getProblems.mockImplementation(() => new Promise<{ count: number; next: null; previous: null; results: ProblemType[] }>((res) => { resolveProblems = res; }));
+    let resolveProblems!: (v: {
+      count: number;
+      next: null;
+      previous: null;
+      results: ProblemType[];
+    }) => void;
+    api.getProblems.mockImplementation(
+      () =>
+        new Promise<{ count: number; next: null; previous: null; results: ProblemType[] }>(
+          (res) => {
+            resolveProblems = res;
+          },
+        ),
+    );
     const { container } = render(<MyCreatedProblemsRoute />);
 
     expect(screen.getByText('Loading...')).toBeInTheDocument();
-    await act_resolve(resolveProblems, { count: 1, next: null, previous: null, results: [PROBLEMS[0]] });
+    await act_resolve(resolveProblems, {
+      count: 1,
+      next: null,
+      previous: null,
+      results: [PROBLEMS[0]],
+    });
 
     expect(await screen.findByText('My Created Problems')).toBeInTheDocument();
     expect(api.getProblems).toHaveBeenCalledWith({}, { page: 1, pageSize: 100 });
@@ -121,7 +167,12 @@ describe('MyCreatedProblemsPage (/my-created-problems)', () => {
   });
 
   it('shows the table headers and per-status actions', async () => {
-    api.getProblems.mockResolvedValue({ count: PROBLEMS.length, next: null, previous: null, results: PROBLEMS });
+    api.getProblems.mockResolvedValue({
+      count: PROBLEMS.length,
+      next: null,
+      previous: null,
+      results: PROBLEMS,
+    });
     render(<MyCreatedProblemsRoute />);
 
     expect(await screen.findByText('Two Sum')).toBeInTheDocument();
@@ -191,7 +242,12 @@ describe('MyCreatedProblemsPage (/my-created-problems)', () => {
 
   it('submits a draft for approval: optimistic flip + success toast', async () => {
     // Second row (different id) exercises the untouched-row side of the flip.
-    api.getProblems.mockResolvedValue({ count: 2, next: null, previous: null, results: [PROBLEMS[0], PROBLEMS[2]] });
+    api.getProblems.mockResolvedValue({
+      count: 2,
+      next: null,
+      previous: null,
+      results: [PROBLEMS[0], PROBLEMS[2]],
+    });
     render(<MyCreatedProblemsRoute />);
     await screen.findByText('Two Sum');
 
@@ -204,7 +260,12 @@ describe('MyCreatedProblemsPage (/my-created-problems)', () => {
   });
 
   it('shows the server message in the error toast when submission fails', async () => {
-    api.getProblems.mockResolvedValue({ count: 1, next: null, previous: null, results: [PROBLEMS[0]] });
+    api.getProblems.mockResolvedValue({
+      count: 1,
+      next: null,
+      previous: null,
+      results: [PROBLEMS[0]],
+    });
     api.submitForApproval.mockRejectedValue(new Error('boom'));
     render(<MyCreatedProblemsRoute />);
     await screen.findByText('Two Sum');
@@ -212,13 +273,18 @@ describe('MyCreatedProblemsPage (/my-created-problems)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Submit for Approval' }));
 
     await waitFor(() =>
-      expect(toasts.error).toHaveBeenCalledWith('Failed to submit for approval: boom')
+      expect(toasts.error).toHaveBeenCalledWith('Failed to submit for approval: boom'),
     );
     expect(screen.getByText('DRAFT')).toBeInTheDocument();
   });
 
   it('falls back to Unknown error when the failure has no message', async () => {
-    api.getProblems.mockResolvedValue({ count: 1, next: null, previous: null, results: [PROBLEMS[0]] });
+    api.getProblems.mockResolvedValue({
+      count: 1,
+      next: null,
+      previous: null,
+      results: [PROBLEMS[0]],
+    });
     api.submitForApproval.mockRejectedValue({});
     render(<MyCreatedProblemsRoute />);
     await screen.findByText('Two Sum');
@@ -226,12 +292,17 @@ describe('MyCreatedProblemsPage (/my-created-problems)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Submit for Approval' }));
 
     await waitFor(() =>
-      expect(toasts.error).toHaveBeenCalledWith('Failed to submit for approval: Unknown error')
+      expect(toasts.error).toHaveBeenCalledWith('Failed to submit for approval: Unknown error'),
     );
   });
 
   it('blocks the submit action with a toast when the session disappeared', async () => {
-    api.getProblems.mockResolvedValue({ count: 1, next: null, previous: null, results: [PROBLEMS[0]] });
+    api.getProblems.mockResolvedValue({
+      count: 1,
+      next: null,
+      previous: null,
+      results: [PROBLEMS[0]],
+    });
     render(<MyCreatedProblemsRoute />);
     await screen.findByText('Two Sum');
 
@@ -239,20 +310,49 @@ describe('MyCreatedProblemsPage (/my-created-problems)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Submit for Approval' }));
 
     await waitFor(() =>
-      expect(toasts.error).toHaveBeenCalledWith('Authentication required for this action.')
+      expect(toasts.error).toHaveBeenCalledWith('Authentication required for this action.'),
     );
     expect(api.submitForApproval).not.toHaveBeenCalled();
   });
 
   it('renders the localized title when present, falling back to English', async () => {
     const { default: i18n } = await import('@/i18n');
-    api.getProblems.mockResolvedValue({ count: [
-      { id: 10, title_i18n: { en: 'Only EN', ro: 'Doar RO' }, difficulty: 'EASY', status: 'DRAFT', author: { id: 7, username: 'creator' } },
-      { id: 11, title_i18n: { en: 'EN Fallback' }, difficulty: 'EASY', status: 'DRAFT', author: { id: 7, username: 'creator' } },
-    ].length, next: null, previous: null, results: [
-      { id: 10, title_i18n: { en: 'Only EN', ro: 'Doar RO' }, difficulty: 'EASY', status: 'DRAFT', author: { id: 7, username: 'creator' } },
-      { id: 11, title_i18n: { en: 'EN Fallback' }, difficulty: 'EASY', status: 'DRAFT', author: { id: 7, username: 'creator' } },
-    ] });
+    api.getProblems.mockResolvedValue({
+      count: [
+        {
+          id: 10,
+          title_i18n: { en: 'Only EN', ro: 'Doar RO' },
+          difficulty: 'EASY',
+          status: 'DRAFT',
+          author: { id: 7, username: 'creator' },
+        },
+        {
+          id: 11,
+          title_i18n: { en: 'EN Fallback' },
+          difficulty: 'EASY',
+          status: 'DRAFT',
+          author: { id: 7, username: 'creator' },
+        },
+      ].length,
+      next: null,
+      previous: null,
+      results: [
+        {
+          id: 10,
+          title_i18n: { en: 'Only EN', ro: 'Doar RO' },
+          difficulty: 'EASY',
+          status: 'DRAFT',
+          author: { id: 7, username: 'creator' },
+        },
+        {
+          id: 11,
+          title_i18n: { en: 'EN Fallback' },
+          difficulty: 'EASY',
+          status: 'DRAFT',
+          author: { id: 7, username: 'creator' },
+        },
+      ],
+    });
     render(<MyCreatedProblemsRoute />);
 
     await screen.findByText('Only EN');

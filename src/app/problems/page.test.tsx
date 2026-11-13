@@ -27,7 +27,14 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('next/navigation', () => ({
   usePathname: () => '/problems',
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn(), back: vi.fn(), forward: vi.fn(), prefetch: vi.fn() }),
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    refresh: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    prefetch: vi.fn(),
+  }),
   useSearchParams: () => new URLSearchParams(),
 }));
 
@@ -66,13 +73,28 @@ beforeEach(() => {
 
 describe('ProblemsListPage (route "/problems")', () => {
   it('renders the header and one localized link per problem', async () => {
-    vi.mocked(getProblemsPage).mockResolvedValue({ count: [
-      problem({ id: 1, title_i18n: { en: 'Two Sum' } }),
-      problem({ id: 2, title_i18n: { en: 'N-Queens' }, difficulty: 'HARD', status: 'PENDING_APPROVAL' }),
-    ].length, next: null, previous: null, results: [
-      problem({ id: 1, title_i18n: { en: 'Two Sum' } }),
-      problem({ id: 2, title_i18n: { en: 'N-Queens' }, difficulty: 'HARD', status: 'PENDING_APPROVAL' }),
-    ] });
+    vi.mocked(getProblemsPage).mockResolvedValue({
+      count: [
+        problem({ id: 1, title_i18n: { en: 'Two Sum' } }),
+        problem({
+          id: 2,
+          title_i18n: { en: 'N-Queens' },
+          difficulty: 'HARD',
+          status: 'PENDING_APPROVAL',
+        }),
+      ].length,
+      next: null,
+      previous: null,
+      results: [
+        problem({ id: 1, title_i18n: { en: 'Two Sum' } }),
+        problem({
+          id: 2,
+          title_i18n: { en: 'N-Queens' },
+          difficulty: 'HARD',
+          status: 'PENDING_APPROVAL',
+        }),
+      ],
+    });
     render(await ProblemsListPage({ searchParams: Promise.resolve({}) }));
 
     expect(screen.getByRole('heading', { name: 'Problems' })).toBeInTheDocument();
@@ -95,15 +117,20 @@ describe('ProblemsListPage (route "/problems")', () => {
   });
 
   it('resolves titles through the ro -> en -> "Problem ID: n" fallback chain', async () => {
-    vi.mocked(getProblemsPage).mockResolvedValue({ count: [
-      problem({ id: 1, title_i18n: { en: 'English only', ro: 'Românesc' } }),
-      problem({ id: 2, title_i18n: { en: 'English only' } }),
-      problem({ id: 3, title_i18n: {} }),
-    ].length, next: null, previous: null, results: [
-      problem({ id: 1, title_i18n: { en: 'English only', ro: 'Românesc' } }),
-      problem({ id: 2, title_i18n: { en: 'English only' } }),
-      problem({ id: 3, title_i18n: {} }),
-    ] });
+    vi.mocked(getProblemsPage).mockResolvedValue({
+      count: [
+        problem({ id: 1, title_i18n: { en: 'English only', ro: 'Românesc' } }),
+        problem({ id: 2, title_i18n: { en: 'English only' } }),
+        problem({ id: 3, title_i18n: {} }),
+      ].length,
+      next: null,
+      previous: null,
+      results: [
+        problem({ id: 1, title_i18n: { en: 'English only', ro: 'Românesc' } }),
+        problem({ id: 2, title_i18n: { en: 'English only' } }),
+        problem({ id: 3, title_i18n: {} }),
+      ],
+    });
     mockLocale('ro');
     render(await ProblemsListPage({ searchParams: Promise.resolve({}) }));
 
@@ -113,7 +140,12 @@ describe('ProblemsListPage (route "/problems")', () => {
   });
 
   it('renders the localized header for Romanian visitors', async () => {
-    vi.mocked(getProblemsPage).mockResolvedValue({ count: [].length, next: null, previous: null, results: [] });
+    vi.mocked(getProblemsPage).mockResolvedValue({
+      count: [].length,
+      next: null,
+      previous: null,
+      results: [],
+    });
     mockLocale('ro');
     render(await ProblemsListPage({ searchParams: Promise.resolve({}) }));
 
@@ -121,7 +153,12 @@ describe('ProblemsListPage (route "/problems")', () => {
   });
 
   it('renders the empty state when the catalog has no problems', async () => {
-    vi.mocked(getProblemsPage).mockResolvedValue({ count: [].length, next: null, previous: null, results: [] });
+    vi.mocked(getProblemsPage).mockResolvedValue({
+      count: [].length,
+      next: null,
+      previous: null,
+      results: [],
+    });
     render(await ProblemsListPage({ searchParams: Promise.resolve({}) }));
 
     expect(screen.getByText('No problems available at the moment.')).toBeInTheDocument();
@@ -130,14 +167,24 @@ describe('ProblemsListPage (route "/problems")', () => {
 
   it('shows the status column and facet for privileged roles (F7)', async () => {
     mocks.auth.isAuthenticated = true;
-        mocks.auth.user = { id: 1, username: 'v', email: 'v@example.com', role: 'PROBLEM_VERIFIER' } as User;
-    vi.mocked(getProblemsPage).mockResolvedValue({ count: [
-      problem({ id: 1, title_i18n: { en: 'Two Sum' } }),
-      problem({ id: 2, title_i18n: { en: 'Draft One' }, status: 'DRAFT' }),
-    ].length, next: null, previous: null, results: [
-      problem({ id: 1, title_i18n: { en: 'Two Sum' } }),
-      problem({ id: 2, title_i18n: { en: 'Draft One' }, status: 'DRAFT' }),
-    ] });
+    mocks.auth.user = {
+      id: 1,
+      username: 'v',
+      email: 'v@example.com',
+      role: 'PROBLEM_VERIFIER',
+    } as User;
+    vi.mocked(getProblemsPage).mockResolvedValue({
+      count: [
+        problem({ id: 1, title_i18n: { en: 'Two Sum' } }),
+        problem({ id: 2, title_i18n: { en: 'Draft One' }, status: 'DRAFT' }),
+      ].length,
+      next: null,
+      previous: null,
+      results: [
+        problem({ id: 1, title_i18n: { en: 'Two Sum' } }),
+        problem({ id: 2, title_i18n: { en: 'Draft One' }, status: 'DRAFT' }),
+      ],
+    });
     render(await ProblemsListPage({ searchParams: Promise.resolve({}) }));
 
     const items = screen.getAllByRole('row').slice(1);

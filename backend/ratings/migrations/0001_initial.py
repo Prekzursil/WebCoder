@@ -6,50 +6,112 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('contests', '0003_contest_ratings_discarded'),
+        ("contests", "0003_contest_ratings_discarded"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='UserRating',
+            name="UserRating",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('rating', models.PositiveIntegerField(default=1500, verbose_name='internal rating')),
-                ('rd', models.FloatField(default=350.0, verbose_name='rating deviation')),
-                ('contests_count', models.PositiveIntegerField(default=0)),
-                ('last_competition_at', models.DateTimeField(blank=True, null=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='rating_state', to=settings.AUTH_USER_MODEL, verbose_name='user')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "rating",
+                    models.PositiveIntegerField(
+                        default=1500, verbose_name="internal rating"
+                    ),
+                ),
+                (
+                    "rd",
+                    models.FloatField(default=350.0, verbose_name="rating deviation"),
+                ),
+                ("contests_count", models.PositiveIntegerField(default=0)),
+                ("last_competition_at", models.DateTimeField(blank=True, null=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="rating_state",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="user",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'user rating',
-                'verbose_name_plural': 'user ratings',
-                'ordering': ['-rating'],
+                "verbose_name": "user rating",
+                "verbose_name_plural": "user ratings",
+                "ordering": ["-rating"],
             },
         ),
         migrations.CreateModel(
-            name='RatingHistory',
+            name="RatingHistory",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('rank', models.PositiveIntegerField(verbose_name='final rank in contest')),
-                ('rating', models.PositiveIntegerField(verbose_name='internal rating after')),
-                ('rd', models.FloatField(verbose_name='rating deviation after')),
-                ('delta', models.IntegerField(verbose_name='change vs previous internal rating')),
-                ('contests_count', models.PositiveIntegerField(default=1)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('contest', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='rating_history', to='contests.contest', verbose_name='contest')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='rating_history', to=settings.AUTH_USER_MODEL, verbose_name='user')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "rank",
+                    models.PositiveIntegerField(verbose_name="final rank in contest"),
+                ),
+                (
+                    "rating",
+                    models.PositiveIntegerField(verbose_name="internal rating after"),
+                ),
+                ("rd", models.FloatField(verbose_name="rating deviation after")),
+                (
+                    "delta",
+                    models.IntegerField(
+                        verbose_name="change vs previous internal rating"
+                    ),
+                ),
+                ("contests_count", models.PositiveIntegerField(default=1)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "contest",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="rating_history",
+                        to="contests.contest",
+                        verbose_name="contest",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="rating_history",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="user",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'rating history entry',
-                'verbose_name_plural': 'rating history entries',
-                'ordering': ['-contest__end_at', 'rank'],
-                'constraints': [models.UniqueConstraint(fields=('user', 'contest'), name='unique_user_contest_rating')],
+                "verbose_name": "rating history entry",
+                "verbose_name_plural": "rating history entries",
+                "ordering": ["-contest__end_at", "rank"],
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=("user", "contest"), name="unique_user_contest_rating"
+                    )
+                ],
             },
         ),
     ]

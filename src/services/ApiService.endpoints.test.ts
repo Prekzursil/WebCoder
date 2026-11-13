@@ -54,7 +54,7 @@ describe('AuthService endpoints', () => {
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({ username: 'u', password: 'p', email: 'e@x.com' }),
-      })
+      }),
     );
   });
 
@@ -63,7 +63,10 @@ describe('AuthService endpoints', () => {
     await AuthService.login({ username: 'u', password: 'p' });
     expect(fetchMock).toHaveBeenCalledWith(
       `${BASE}/auth/login/`,
-      expect.objectContaining({ method: 'POST', body: JSON.stringify({ username: 'u', password: 'p' }) })
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ username: 'u', password: 'p' }),
+      }),
     );
   });
 
@@ -85,7 +88,10 @@ describe('AuthService endpoints', () => {
     await AuthService.changePassword({ old_password: 'a', new_password: 'b' });
     expect(fetchMock).toHaveBeenCalledWith(
       `${BASE}/users/password/change/`,
-      expect.objectContaining({ method: 'POST', body: JSON.stringify({ old_password: 'a', new_password: 'b' }) })
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ old_password: 'a', new_password: 'b' }),
+      }),
     );
   });
 });
@@ -103,7 +109,9 @@ describe('ProblemService endpoints', () => {
     expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/problems/problems/?authorId=9`);
     fetchMock.mockClear();
     await ProblemService.getProblems({ status: 'APPROVED', authorId: 'me' }); // both, string id
-    expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/problems/problems/?status=APPROVED&authorId=me`);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      `${BASE}/problems/problems/?status=APPROVED&authorId=me`,
+    );
     fetchMock.mockClear();
     // pagination params (SPEC-GAPS B4)
     await ProblemService.getProblems({}, { page: 2, pageSize: 100 });
@@ -121,7 +129,10 @@ describe('ProblemService endpoints', () => {
     await ProblemService.createProblem({ title_i18n: { en: 'x' } });
     expect(fetchMock).toHaveBeenCalledWith(
       `${BASE}/problems/problems/`,
-      expect.objectContaining({ method: 'POST', body: JSON.stringify({ title_i18n: { en: 'x' } }) })
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ title_i18n: { en: 'x' } }),
+      }),
     );
   });
 
@@ -130,14 +141,14 @@ describe('ProblemService endpoints', () => {
     await ProblemService.updateProblem(3, { difficulty: 'HARD' });
     expect(fetchMock).toHaveBeenCalledWith(
       `${BASE}/problems/problems/3/`,
-      expect.objectContaining({ method: 'PATCH', body: JSON.stringify({ difficulty: 'HARD' }) })
+      expect.objectContaining({ method: 'PATCH', body: JSON.stringify({ difficulty: 'HARD' }) }),
     );
     fetchMock.mockClear();
     fetchMock.mockImplementation(() => new Response(null, { status: 204 }));
     await ProblemService.deleteProblem(3);
     expect(fetchMock).toHaveBeenCalledWith(
       `${BASE}/problems/problems/3/`,
-      expect.objectContaining({ method: 'DELETE' })
+      expect.objectContaining({ method: 'DELETE' }),
     );
   });
 
@@ -146,19 +157,22 @@ describe('ProblemService endpoints', () => {
     await ProblemService.submitForApproval(4);
     expect(fetchMock).toHaveBeenCalledWith(
       `${BASE}/problems/problems/4/submit-for-approval/`,
-      expect.objectContaining({ method: 'POST' })
+      expect.objectContaining({ method: 'POST' }),
     );
     fetchMock.mockClear();
     await ProblemService.approveProblem(4, { feedback: 'ok' });
     expect(fetchMock).toHaveBeenCalledWith(
       `${BASE}/problems/problems/4/approve/`,
-      expect.objectContaining({ method: 'POST', body: JSON.stringify({ feedback: 'ok' }) })
+      expect.objectContaining({ method: 'POST', body: JSON.stringify({ feedback: 'ok' }) }),
     );
     fetchMock.mockClear();
     await ProblemService.rejectProblem(4, { feedback: 'unclear statement' });
     expect(fetchMock).toHaveBeenCalledWith(
       `${BASE}/problems/problems/4/reject/`,
-      expect.objectContaining({ method: 'POST', body: JSON.stringify({ feedback: 'unclear statement' }) })
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ feedback: 'unclear statement' }),
+      }),
     );
   });
 
@@ -178,7 +192,10 @@ describe('SubmissionService endpoints', () => {
     await SubmissionService.createSubmission({ problem_id: 1, code: 'print(1)' });
     expect(fetchMock).toHaveBeenCalledWith(
       `${BASE}/submissions/submit/`,
-      expect.objectContaining({ method: 'POST', body: JSON.stringify({ problem_id: 1, code: 'print(1)' }) })
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ problem_id: 1, code: 'print(1)' }),
+      }),
     );
   });
 
@@ -194,11 +211,15 @@ describe('SubmissionService endpoints', () => {
     expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/submissions/submissions/?userId=8`);
     fetchMock.mockClear();
     await SubmissionService.getSubmissions({ problemId: 2, userId: 8 });
-    expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/submissions/submissions/?problemId=2&userId=8`);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      `${BASE}/submissions/submissions/?problemId=2&userId=8`,
+    );
     fetchMock.mockClear();
     // cursor pagination params (SPEC-GAPS B4)
     await SubmissionService.getSubmissions({}, { cursor: 'cj0x', pageSize: 25 });
-    expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/submissions/submissions/?cursor=cj0x&page_size=25`);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      `${BASE}/submissions/submissions/?cursor=cj0x&page_size=25`,
+    );
   });
 
   it('getSubmissionDetail GETs the detail route', async () => {
@@ -211,26 +232,36 @@ describe('SubmissionService endpoints', () => {
 describe('TestCaseService endpoints', () => {
   it('creates, patches and deletes test cases', async () => {
     fetchMock.mockImplementation(okJson({ id: 1 }));
-    await TestCaseService.createTestCase({ input_data: 'in', expected_output_data: 'out', is_sample: true, points: 10 });
+    await TestCaseService.createTestCase({
+      input_data: 'in',
+      expected_output_data: 'out',
+      is_sample: true,
+      points: 10,
+    });
     expect(fetchMock).toHaveBeenCalledWith(
       `${BASE}/problems/testcases/`,
       expect.objectContaining({
         method: 'POST',
-        body: JSON.stringify({ input_data: 'in', expected_output_data: 'out', is_sample: true, points: 10 }),
-      })
+        body: JSON.stringify({
+          input_data: 'in',
+          expected_output_data: 'out',
+          is_sample: true,
+          points: 10,
+        }),
+      }),
     );
     fetchMock.mockClear();
     await TestCaseService.updateTestCase(1, { points: 20 });
     expect(fetchMock).toHaveBeenCalledWith(
       `${BASE}/problems/testcases/1/`,
-      expect.objectContaining({ method: 'PATCH', body: JSON.stringify({ points: 20 }) })
+      expect.objectContaining({ method: 'PATCH', body: JSON.stringify({ points: 20 }) }),
     );
     fetchMock.mockClear();
     fetchMock.mockImplementation(() => new Response(null, { status: 204 }));
     await TestCaseService.deleteTestCase(1);
     expect(fetchMock).toHaveBeenCalledWith(
       `${BASE}/problems/testcases/1/`,
-      expect.objectContaining({ method: 'DELETE' })
+      expect.objectContaining({ method: 'DELETE' }),
     );
   });
 });
@@ -244,7 +275,10 @@ describe('AdminService endpoints', () => {
     await AdminService.updateUser(6, { role: 'ADMIN', is_active: false });
     expect(fetchMock).toHaveBeenCalledWith(
       `${BASE}/users/admin/manage/6/`,
-      expect.objectContaining({ method: 'PATCH', body: JSON.stringify({ role: 'ADMIN', is_active: false }) })
+      expect.objectContaining({
+        method: 'PATCH',
+        body: JSON.stringify({ role: 'ADMIN', is_active: false }),
+      }),
     );
     fetchMock.mockClear();
     await AdminService.getStats();
@@ -271,7 +305,9 @@ describe('ForumService endpoints', () => {
   it('lists threads with page/problem params', async () => {
     fetchMock.mockImplementation(okJson({ count: 0, next: null, previous: null, results: [] }));
     await ForumService.getThreads({ page: 2, pageSize: 20, problemId: 7 });
-    expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/forum/threads/?page=2&page_size=20&problem_id=7`);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      `${BASE}/forum/threads/?page=2&page_size=20&problem_id=7`,
+    );
   });
 
   it('retrieves and creates threads', async () => {
@@ -282,20 +318,28 @@ describe('ForumService endpoints', () => {
     await ForumService.createThread({ title: 'T', content: 'C', problem: 3 });
     expect(fetchMock).toHaveBeenCalledWith(
       `${BASE}/forum/threads/`,
-      expect.objectContaining({ method: 'POST', body: JSON.stringify({ title: 'T', content: 'C', problem: 3 }) })
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ title: 'T', content: 'C', problem: 3 }),
+      }),
     );
   });
 
   it('lists posts with cursor params and replies to a thread', async () => {
     fetchMock.mockImplementation(okJson({ next: null, previous: null, results: [] }));
     await ForumService.getPosts(9, { cursor: 'abc', pageSize: 25 });
-    expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/forum/threads/9/posts/?cursor=abc&page_size=25`);
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      `${BASE}/forum/threads/9/posts/?cursor=abc&page_size=25`,
+    );
     fetchMock.mockClear();
     await ForumService.createPost(9, { content: 'reply' });
     expect(fetchMock).toHaveBeenCalledWith(
       `${BASE}/forum/threads/9/posts/`,
       // COM-1: is_spoiler rides every reply payload (false default).
-      expect.objectContaining({ method: 'POST', body: JSON.stringify({ content: 'reply', is_spoiler: false }) })
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ content: 'reply', is_spoiler: false }),
+      }),
     );
   });
 
@@ -304,19 +348,22 @@ describe('ForumService endpoints', () => {
     await ForumService.votePost(11, 0);
     expect(fetchMock).toHaveBeenCalledWith(
       `${BASE}/forum/posts/11/vote/`,
-      expect.objectContaining({ method: 'POST', body: JSON.stringify({ value: 0 }) })
+      expect.objectContaining({ method: 'POST', body: JSON.stringify({ value: 0 }) }),
     );
     fetchMock.mockClear();
     await ForumService.updatePost(11, { content: 'edited' });
     expect(fetchMock).toHaveBeenCalledWith(
       `${BASE}/forum/posts/11/`,
-      expect.objectContaining({ method: 'PATCH', body: JSON.stringify({ content: 'edited' }) })
+      expect.objectContaining({ method: 'PATCH', body: JSON.stringify({ content: 'edited' }) }),
     );
     fetchMock.mockClear();
     await ForumService.reportPost(11, { reason: 'spam' });
     expect(fetchMock).toHaveBeenCalledWith(
       `${BASE}/forum/reports/`,
-      expect.objectContaining({ method: 'POST', body: JSON.stringify({ post: 11, reason: 'spam' }) })
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ post: 11, reason: 'spam' }),
+      }),
     );
   });
 });
@@ -331,10 +378,16 @@ describe('NotificationService endpoints', () => {
     expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/notifications/?cursor=cur`);
     fetchMock.mockClear();
     await NotificationService.markRead(4);
-    expect(fetchMock).toHaveBeenCalledWith(`${BASE}/notifications/4/mark-read/`, expect.objectContaining({ method: 'POST' }));
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${BASE}/notifications/4/mark-read/`,
+      expect.objectContaining({ method: 'POST' }),
+    );
     fetchMock.mockClear();
     await NotificationService.markAllRead();
-    expect(fetchMock).toHaveBeenCalledWith(`${BASE}/notifications/mark-all-read/`, expect.objectContaining({ method: 'POST' }));
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${BASE}/notifications/mark-all-read/`,
+      expect.objectContaining({ method: 'POST' }),
+    );
     fetchMock.mockClear();
     await NotificationService.getUnreadCount();
     expect(fetchMock.mock.calls[0][0]).toBe(`${BASE}/notifications/unread-count/`);
@@ -355,7 +408,12 @@ describe('pagination helpers', () => {
 
   it('collectAllPages stops at the COLLECT_ALL_MAX_PAGES ceiling', async () => {
     // next never resolves to null -> the loop must stop at 50 pages.
-    const fetchPage = vi.fn(async () => ({ count: 1, next: 'http://x/?page=2', previous: null, results: [1] }));
+    const fetchPage = vi.fn(async () => ({
+      count: 1,
+      next: 'http://x/?page=2',
+      previous: null,
+      results: [1],
+    }));
     const out = await collectAllPages(fetchPage);
     expect(out).toHaveLength(50);
     expect(fetchPage).toHaveBeenCalledTimes(50);
@@ -366,7 +424,9 @@ describe('pagination helpers', () => {
       { next: `${BASE}/submissions/submissions/?cursor=cj0x`, previous: null, results: ['a'] },
       { next: null, previous: null, results: ['b'] },
     ];
-    const fetchPage = vi.fn(async (cursor: string | null) => (cursor === null ? pages[0] : pages[1]));
+    const fetchPage = vi.fn(async (cursor: string | null) =>
+      cursor === null ? pages[0] : pages[1],
+    );
     const out = await collectAllCursorPages(fetchPage);
     expect(out).toEqual(['a', 'b']);
     expect(fetchPage).toHaveBeenNthCalledWith(1, null);
@@ -382,7 +442,9 @@ describe('pagination helpers', () => {
 
 describe('apiFetch error branches not covered by the refresh tests', () => {
   it('falls back to statusText when the error body is not JSON', async () => {
-    fetchMock.mockImplementation(() => new Response('<html>boom</html>', { status: 502, statusText: 'Bad Gateway' }));
+    fetchMock.mockImplementation(
+      () => new Response('<html>boom</html>', { status: 502, statusText: 'Bad Gateway' }),
+    );
     await expect(ProblemService.getTags()).rejects.toThrow('Bad Gateway');
   });
 

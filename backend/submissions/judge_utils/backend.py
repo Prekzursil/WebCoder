@@ -112,8 +112,7 @@ def judge_workspace_root() -> pathlib.Path:
         )
         return root
     return pathlib.Path(
-        getattr(settings, "JUDGE_LOCAL_WORKSPACE_ROOT", "")
-        or _system_temp_root()
+        getattr(settings, "JUDGE_LOCAL_WORKSPACE_ROOT", "") or _system_temp_root()
     )
 
 

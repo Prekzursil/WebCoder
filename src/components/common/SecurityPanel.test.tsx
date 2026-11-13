@@ -46,7 +46,7 @@ describe('TwoFactorBanner', () => {
     expect(banner.textContent).toMatch(/Two-factor authentication is required/i);
     expect(screen.getByRole('link', { name: /Profile → Security/i })).toHaveAttribute(
       'href',
-      '/profile'
+      '/profile',
     );
   });
 
@@ -90,7 +90,7 @@ describe('TwoFactorCard', () => {
     fireEvent.click(screen.getByRole('button', { name: /Verify and enable/i }));
     await waitFor(() => expect(verify).toHaveBeenCalledWith('123456'));
     await waitFor(() =>
-      expect(screen.getByText(/Two-factor authentication enabled/i)).toBeInTheDocument()
+      expect(screen.getByText(/Two-factor authentication enabled/i)).toBeInTheDocument(),
     );
     expect(authState.refreshUser).toHaveBeenCalled();
   });
@@ -101,7 +101,7 @@ describe('TwoFactorCard', () => {
       otpauth_uri: 'otpauth://totp/x',
     });
     vi.spyOn(ApiService.AuthService, 'totpVerify').mockRejectedValue(
-      new Error('Invalid or expired code.')
+      new Error('Invalid or expired code.'),
     );
     render(<TwoFactorCard />);
     fireEvent.click(screen.getByRole('button', { name: /Enable two-factor/i }));
@@ -110,9 +110,7 @@ describe('TwoFactorCard', () => {
       target: { value: '000000' },
     });
     fireEvent.click(screen.getByRole('button', { name: /Verify and enable/i }));
-    await waitFor(() =>
-      expect(screen.getByText(/Invalid or expired code/i)).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText(/Invalid or expired code/i)).toBeInTheDocument());
   });
 
   it('renders the disable form for enrolled users', async () => {
@@ -173,9 +171,8 @@ describe('ApiTokenCard', () => {
     fireEvent.click(screen.getByRole('button', { name: /Revoke/i }));
     await waitFor(() => expect(revoke).toHaveBeenCalled());
     await waitFor(
-      () =>
-        expect(screen.getByRole('button', { name: /Create token/i })).toBeInTheDocument(),
-      { timeout: 3000 }
+      () => expect(screen.getByRole('button', { name: /Create token/i })).toBeInTheDocument(),
+      { timeout: 3000 },
     );
   });
 
@@ -185,13 +182,11 @@ describe('ApiTokenCard', () => {
       results: [],
     });
     vi.spyOn(ApiService.AuthService, 'createApiToken').mockRejectedValue(
-      new Error('You already have a personal token — revoke it first to rotate the key.')
+      new Error('You already have a personal token — revoke it first to rotate the key.'),
     );
     render(<ApiTokenCard />);
     fireEvent.click(await screen.findByRole('button', { name: /Create token/i }));
-    await waitFor(() =>
-      expect(screen.getByText(/revoke it first/i)).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText(/revoke it first/i)).toBeInTheDocument());
   });
 });
 
@@ -202,9 +197,7 @@ describe('SecurityPanel composition', () => {
       results: [],
     });
     render(<SecurityPanel />);
-    expect(
-      screen.getByText(/Two-Factor Authentication \(TOTP\)/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Two-Factor Authentication \(TOTP\)/i)).toBeInTheDocument();
     expect(screen.getByText(/Personal API Token/i)).toBeInTheDocument();
   });
 });

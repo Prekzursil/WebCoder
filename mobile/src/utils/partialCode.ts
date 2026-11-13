@@ -15,9 +15,7 @@ export const EDIT_END = 'WC_EDIT_END';
 const SENTINEL_RE = /^\s*(?:\/\/|#|--|;)?\s*(WC_EDIT_START|WC_EDIT_END)\s*$/;
 
 /** Parse a template into locked/editable segments (same sentinel contract). */
-export function parseTemplate(
-  template: string | null | undefined
-): TemplateSegment[] {
+export function parseTemplate(template: string | null | undefined): TemplateSegment[] {
   if (!template) return [];
   const segments: TemplateSegment[] = [];
   let lockedBuf: string[] = [];
@@ -39,8 +37,7 @@ export function parseTemplate(
     }
     (editableBuf ?? lockedBuf).push(line);
   }
-  if (lockedBuf.length)
-    segments.push({ locked: true, text: lockedBuf.join('\n') });
+  if (lockedBuf.length) segments.push({ locked: true, text: lockedBuf.join('\n') });
   return segments;
 }
 
@@ -53,10 +50,7 @@ export function initialSlots(segments: TemplateSegment[]): string[] {
  * Assemble the full submission document: locked scaffolding verbatim,
  * editable segments from the current slot values. What the judge receives.
  */
-export function composeSubmission(
-  segments: TemplateSegment[],
-  slots: string[]
-): string {
+export function composeSubmission(segments: TemplateSegment[], slots: string[]): string {
   let slotIndex = 0;
   const parts: string[] = [];
   for (const segment of segments) {
@@ -71,8 +65,6 @@ export function composeSubmission(
 }
 
 /** True when the problem requires the locked-region editor. */
-export function isPartialCodeProblem(
-  problem: { code_template?: string | null }
-): boolean {
+export function isPartialCodeProblem(problem: { code_template?: string | null }): boolean {
   return Boolean(problem.code_template);
 }

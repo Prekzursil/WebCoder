@@ -31,9 +31,7 @@ def assignment_grid(assignment) -> dict:
         )
     )
     problems = list(
-        assignment.assignment_problems.select_related("problem").order_by(
-            "order", "id"
-        )
+        assignment.assignment_problems.select_related("problem").order_by("order", "id")
     )
 
     students = [m.student for m in memberships]
@@ -57,7 +55,8 @@ def assignment_grid(assignment) -> dict:
     cells: dict[tuple[int, int], dict] = {}
     for key, subs in grouped.items():
         best = max(
-            subs, key=lambda s: ((s.score if s.score is not None else 0), s.submission_time)
+            subs,
+            key=lambda s: ((s.score if s.score is not None else 0), s.submission_time),
         )
         best_score = best.score if best.score is not None else 0
         cells[key] = {

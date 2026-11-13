@@ -39,9 +39,12 @@ for (const vp of VIEWPORTS) {
         // The single most important responsive invariant: the document must
         // fit the viewport width (1px tolerance for subpixel rounding).
         const overflow = await page?.evaluate(
-          () => document.documentElement.scrollWidth - window.innerWidth
+          () => document.documentElement.scrollWidth - window.innerWidth,
         );
-        expect(overflow, `${pageDef.path} overflows horizontally at ${vp.width}px`).toBeLessThanOrEqual(1);
+        expect(
+          overflow,
+          `${pageDef.path} overflows horizontally at ${vp.width}px`,
+        ).toBeLessThanOrEqual(1);
       });
     }
 

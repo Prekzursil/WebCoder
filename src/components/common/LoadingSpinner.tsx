@@ -12,7 +12,13 @@ const LoadingSpinner: React.FC = () => {
   const { t } = useTranslation();
   return (
     <div
-      style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', minHeight: '100px' }}
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: '20px',
+        minHeight: '100px',
+      }}
       role="status"
       aria-live="polite"
     >

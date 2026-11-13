@@ -21,7 +21,7 @@ export default async function PrivacyPage() {
       title: t('privacy_what_title', 'What we store'),
       body: t(
         'privacy_what_body',
-        'Your account data (username, email, role), your submissions and their judge results, forum posts and votes, problem ratings and scratch runs. Everything is stored on our own infrastructure; we run no third-party analytics or advertising trackers.'
+        'Your account data (username, email, role), your submissions and their judge results, forum posts and votes, problem ratings and scratch runs. Everything is stored on our own infrastructure; we run no third-party analytics or advertising trackers.',
       ),
     },
     {
@@ -29,7 +29,7 @@ export default async function PrivacyPage() {
       title: t('privacy_cookies_title', 'Cookies'),
       body: t(
         'privacy_cookies_body',
-        'One session cookie pair (httpOnly access + refresh tokens) keeps you signed in — it is not readable by page scripts and expires with your session. There is no tracking cookie, ad cookie or social pixel.'
+        'One session cookie pair (httpOnly access + refresh tokens) keeps you signed in — it is not readable by page scripts and expires with your session. There is no tracking cookie, ad cookie or social pixel.',
       ),
     },
     {
@@ -37,7 +37,7 @@ export default async function PrivacyPage() {
       title: t('privacy_rights_title', 'Your rights'),
       body: t(
         'privacy_rights_body',
-        'From your profile you can export all of your data as a downloadable JSON file, or delete your account: deletion deactivates it immediately, anonymizes your identity, and purges personal side content within 30 days. Judge history (verdicts and standings) is retained in anonymized form for the integrity of the public record.'
+        'From your profile you can export all of your data as a downloadable JSON file, or delete your account: deletion deactivates it immediately, anonymizes your identity, and purges personal side content within 30 days. Judge history (verdicts and standings) is retained in anonymized form for the integrity of the public record.',
       ),
     },
     {
@@ -45,7 +45,7 @@ export default async function PrivacyPage() {
       title: t('privacy_minors_title', 'Minors'),
       body: t(
         'privacy_minors_body',
-        'Self-serve accounts require the information-society consent age (16 in Romania). Younger students join through school-mediated classroom enrollment under the school\'s lawful basis, with profiles non-public by default.'
+        "Self-serve accounts require the information-society consent age (16 in Romania). Younger students join through school-mediated classroom enrollment under the school's lawful basis, with profiles non-public by default.",
       ),
     },
 
@@ -54,14 +54,21 @@ export default async function PrivacyPage() {
       title: t('privacy_mobile_title', 'Mobile apps'),
       body: t(
         'privacy_mobile_body',
-        'The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere.'
+        'The WebCoder mobile apps (Google Play and the App Store) talk to the same API as this website, over HTTPS, using the same account: sign-in tokens are stored only in the device keychain/keystore, never in app storage or the clipboard. The apps collect nothing the website does not — no advertising identifiers, no push tokens are requested until you enable notifications, and no third-party SDKs are embedded. Deleting your account (from the web profile or the app) deletes it everywhere.',
       ),
     },
   ];
 
   return (
     <div className="page-container" style={{ paddingTop: '2.5rem', maxWidth: '760px' }}>
-      <h1 style={{ fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--foreground)' }}>
+      <h1
+        style={{
+          fontSize: '1.75rem',
+          fontWeight: 800,
+          letterSpacing: '-0.02em',
+          color: 'var(--foreground)',
+        }}
+      >
         {t('privacy_title', 'Privacy Policy')}
       </h1>
       <p style={{ color: 'var(--muted)', fontSize: '0.85rem', margin: '0.5rem 0 2rem' }}>
@@ -69,7 +76,14 @@ export default async function PrivacyPage() {
       </p>
       {sections.map((section) => (
         <section key={section.key} style={{ marginBottom: '1.75rem' }}>
-          <h2 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--foreground)', marginBottom: '0.5rem' }}>
+          <h2
+            style={{
+              fontSize: '1rem',
+              fontWeight: 700,
+              color: 'var(--foreground)',
+              marginBottom: '0.5rem',
+            }}
+          >
             {section.title}
           </h2>
           <p style={{ color: 'var(--body)', fontSize: '0.88rem', lineHeight: 1.8, margin: 0 }}>

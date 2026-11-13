@@ -77,14 +77,23 @@ describe('AdminDashboardPage (/admin/dashboard)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useAuth).mockReturnValue(authed());
-    vi.mocked(AdminService.getUsers).mockResolvedValue({ count: 2, next: null, previous: null, results: [me, other] });
-    vi.mocked(AdminService.getStats).mockResolvedValue({ user_count: 42, problem_count: 7, submission_count: 100 });
+    vi.mocked(AdminService.getUsers).mockResolvedValue({
+      count: 2,
+      next: null,
+      previous: null,
+      results: [me, other],
+    });
+    vi.mocked(AdminService.getStats).mockResolvedValue({
+      user_count: 42,
+      problem_count: 7,
+      submission_count: 100,
+    });
     vi.mocked(AdminService.updateUser).mockResolvedValue({});
   });
 
   it('renders nothing and redirects to / for a non-admin role (route guard)', () => {
     vi.mocked(useAuth).mockReturnValue(
-      authed({ user: { ...me, role: 'BASIC_USER' }, isAuthenticated: false })
+      authed({ user: { ...me, role: 'BASIC_USER' }, isAuthenticated: false }),
     );
     const { container } = render(<AdminDashboardPageRoute />);
     expect(container).toBeEmptyDOMElement();
@@ -135,12 +144,15 @@ describe('AdminDashboardPage (/admin/dashboard)', () => {
     await screen.findByText('bob');
     const roleSelect = within(screen.getAllByRole('row')[2]).getAllByRole('combobox')[0];
     fireEvent.change(roleSelect, { target: { value: 'PROBLEM_VERIFIER' } });
-    await waitFor(() => expect(AdminService.updateUser).toHaveBeenCalledWith(2, { role: 'PROBLEM_VERIFIER' }));
+    await waitFor(() =>
+      expect(AdminService.updateUser).toHaveBeenCalledWith(2, { role: 'PROBLEM_VERIFIER' }),
+    );
     expect(toast.success).toHaveBeenCalledWith('Role updated successfully.');
     await waitFor(() =>
       expect(
-        (within(screen.getAllByRole('row')[2]).getAllByRole('combobox')[0] as HTMLSelectElement).value
-      ).toBe('PROBLEM_VERIFIER')
+        (within(screen.getAllByRole('row')[2]).getAllByRole('combobox')[0] as HTMLSelectElement)
+          .value,
+      ).toBe('PROBLEM_VERIFIER'),
     );
   });
 
@@ -149,12 +161,15 @@ describe('AdminDashboardPage (/admin/dashboard)', () => {
     await screen.findByText('bob');
     const statusSelect = within(screen.getAllByRole('row')[2]).getAllByRole('combobox')[1];
     fireEvent.change(statusSelect, { target: { value: 'Active' } });
-    await waitFor(() => expect(AdminService.updateUser).toHaveBeenCalledWith(2, { is_active: true }));
+    await waitFor(() =>
+      expect(AdminService.updateUser).toHaveBeenCalledWith(2, { is_active: true }),
+    );
     expect(toast.success).toHaveBeenCalledWith('Status updated successfully.');
     await waitFor(() =>
       expect(
-        (within(screen.getAllByRole('row')[2]).getAllByRole('combobox')[1] as HTMLSelectElement).value
-      ).toBe('Active')
+        (within(screen.getAllByRole('row')[2]).getAllByRole('combobox')[1] as HTMLSelectElement)
+          .value,
+      ).toBe('Active'),
     );
   });
 
@@ -219,7 +234,9 @@ describe('AdminDashboardPage (/admin/dashboard)', () => {
     rerender(<AdminDashboardPageRoute />);
     const rows = screen.getAllByRole('row');
     fireEvent.change(within(rows[2]).getAllByRole('combobox')[0], { target: { value: 'ADMIN' } });
-    fireEvent.change(within(rows[2]).getAllByRole('combobox')[1], { target: { value: 'Inactive' } });
+    fireEvent.change(within(rows[2]).getAllByRole('combobox')[1], {
+      target: { value: 'Inactive' },
+    });
     expect(AdminService.updateUser).not.toHaveBeenCalled();
   });
 });

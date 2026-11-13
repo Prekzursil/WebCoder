@@ -65,8 +65,24 @@ const BASE = {
 };
 
 const PROBLEMS = [
-  { id: 11, problem: 101, problem_title: { en: 'Sum Two', ro: 'Suma a două' }, problem_difficulty: 'EASY', order: 0, label: 'A', points: 100 },
-  { id: 12, problem: 102, problem_title: { en: 'Max Subarray', ro: 'Subșir maxim' }, problem_difficulty: 'MEDIUM', order: 1, label: 'B', points: 100 },
+  {
+    id: 11,
+    problem: 101,
+    problem_title: { en: 'Sum Two', ro: 'Suma a două' },
+    problem_difficulty: 'EASY',
+    order: 0,
+    label: 'A',
+    points: 100,
+  },
+  {
+    id: 12,
+    problem: 102,
+    problem_title: { en: 'Max Subarray', ro: 'Subșir maxim' },
+    problem_difficulty: 'MEDIUM',
+    order: 1,
+    label: 'B',
+    points: 100,
+  },
 ];
 
 const STANDINGS = {
@@ -83,8 +99,24 @@ const STANDINGS = {
       solved: 2,
       penalty_minutes: null,
       problems: [
-        { label: 'A', points_max: 100, best: 100, attempts: 1, wrong: 0, first_ac_at: '2026-10-01T10:10:00Z', last_improvement: null },
-        { label: 'B', points_max: 100, best: 100, attempts: 2, wrong: 1, first_ac_at: '2026-10-01T10:40:00Z', last_improvement: null },
+        {
+          label: 'A',
+          points_max: 100,
+          best: 100,
+          attempts: 1,
+          wrong: 0,
+          first_ac_at: '2026-10-01T10:10:00Z',
+          last_improvement: null,
+        },
+        {
+          label: 'B',
+          points_max: 100,
+          best: 100,
+          attempts: 2,
+          wrong: 1,
+          first_ac_at: '2026-10-01T10:40:00Z',
+          last_improvement: null,
+        },
       ],
     },
     {
@@ -94,8 +126,24 @@ const STANDINGS = {
       solved: 0,
       penalty_minutes: null,
       problems: [
-        { label: 'A', points_max: 100, best: 40, attempts: 3, wrong: 2, first_ac_at: null, last_improvement: null },
-        { label: 'B', points_max: 100, best: 0, attempts: 0, wrong: 0, first_ac_at: null, last_improvement: null },
+        {
+          label: 'A',
+          points_max: 100,
+          best: 40,
+          attempts: 3,
+          wrong: 2,
+          first_ac_at: null,
+          last_improvement: null,
+        },
+        {
+          label: 'B',
+          points_max: 100,
+          best: 0,
+          attempts: 0,
+          wrong: 0,
+          first_ac_at: null,
+          last_improvement: null,
+        },
       ],
     },
   ],
@@ -122,7 +170,15 @@ const RATING_CHANGES = {
   is_rated: true,
   discarded: false,
   changes: [
-    { rank: 1, username: 'alice', rating_before: 1500, rating_after: 1560, delta: 60, display_rating: 1460, band: { min: 1400, name_en: 'Specialist', name_ro: 'Specialist', color: '#0000ff' } },
+    {
+      rank: 1,
+      username: 'alice',
+      rating_before: 1500,
+      rating_after: 1560,
+      delta: 60,
+      display_rating: 1460,
+      band: { min: 1400, name_en: 'Specialist', name_ro: 'Specialist', color: '#0000ff' },
+    },
   ],
 };
 
@@ -141,9 +197,15 @@ afterEach(cleanup);
 describe('ContestDetailPage', () => {
   it('shows register; registering reloads the contest with participation', async () => {
     api.register.mockResolvedValue({ contest: 1, user: 7 });
-    api.getContest
-      .mockResolvedValueOnce(BASE)
-      .mockResolvedValueOnce({ ...BASE, my_participation: { virtual_start: null, effective_start: BASE.start_at, effective_end: BASE.end_at, is_disqualified: false } });
+    api.getContest.mockResolvedValueOnce(BASE).mockResolvedValueOnce({
+      ...BASE,
+      my_participation: {
+        virtual_start: null,
+        effective_start: BASE.start_at,
+        effective_end: BASE.end_at,
+        is_disqualified: false,
+      },
+    });
     render(<ContestDetailPage />);
 
     const registerButton = await screen.findByRole('button', { name: 'Register' });
@@ -153,7 +215,7 @@ describe('ContestDetailPage', () => {
     // problems tab (default for RUNNING) renders problem links through
     // ?contest=1 so submissions hit the contest gate.
     await waitFor(() =>
-      expect(screen.queryByRole('button', { name: 'Register' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Register' })).not.toBeInTheDocument(),
     );
     const problemLink = await screen.findByRole('link', { name: 'Sum Two' });
     expect(problemLink).toHaveAttribute('href', '/problems/101?contest=1');
@@ -163,9 +225,17 @@ describe('ContestDetailPage', () => {
     api.getContest.mockResolvedValue({
       ...BASE,
       is_window: true,
-      my_participation: { virtual_start: null, effective_start: BASE.start_at, effective_end: BASE.end_at, is_disqualified: false },
+      my_participation: {
+        virtual_start: null,
+        effective_start: BASE.start_at,
+        effective_end: BASE.end_at,
+        is_disqualified: false,
+      },
     });
-    api.startPersonalClock.mockResolvedValue({ virtual_start: '2026-10-01T10:05:00Z', effective_end: '2026-10-01T11:05:00Z' });
+    api.startPersonalClock.mockResolvedValue({
+      virtual_start: '2026-10-01T10:05:00Z',
+      effective_end: '2026-10-01T11:05:00Z',
+    });
     render(<ContestDetailPage />);
 
     const startButton = await screen.findByRole('button', { name: 'Start my timer' });
@@ -197,9 +267,7 @@ describe('ContestDetailPage', () => {
     api.askClarification.mockResolvedValue(CLARIFICATIONS[0]);
     fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Limits?' } });
     fireEvent.click(screen.getByRole('button', { name: 'Ask' }));
-    await waitFor(() =>
-      expect(api.askClarification).toHaveBeenCalledWith('1', 'Limits?')
-    );
+    await waitFor(() => expect(api.askClarification).toHaveBeenCalledWith('1', 'Limits?'));
   });
 
   it('finished rated contests show per-contest rating changes (RAT-1)', async () => {
@@ -274,7 +342,7 @@ describe('ContestDetailPage virtual participation + awards', () => {
     fireEvent.click(screen.getByTestId('board-section-virtual'));
     await waitFor(() =>
       // COM-4: friends flag rides every standings fetch (off by default).
-      expect(api.getStandings).toHaveBeenCalledWith('1', 1, 'virtual', false)
+      expect(api.getStandings).toHaveBeenCalledWith('1', 1, 'virtual', false),
     );
   });
 

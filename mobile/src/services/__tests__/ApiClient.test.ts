@@ -16,14 +16,13 @@ import {
 describe('cookieFromResponse', () => {
   const makeResponse = (setCookie: string | string[] | undefined) => ({
     headers: {
-      get: (name: string) =>
-        name.toLowerCase() === 'set-cookie' ? (setCookie ?? null) : null,
+      get: (name: string) => (name.toLowerCase() === 'set-cookie' ? (setCookie ?? null) : null),
     },
   });
 
   it('extracts wc_refresh from a comma-joined Android-style header', () => {
     const response = makeResponse(
-      'wc_access=abc; expires=x; Path=/, wc_refresh=def; Path=/, csrftoken=g'
+      'wc_access=abc; expires=x; Path=/, wc_refresh=def; Path=/, csrftoken=g',
     );
     expect(cookieFromResponse(response, 'wc_refresh')).toBe('def');
     expect(cookieFromResponse(response, 'wc_access')).toBe('abc');
@@ -36,9 +35,7 @@ describe('cookieFromResponse', () => {
   });
 
   it('handles expires dates containing commas', () => {
-    const response = makeResponse(
-      'wc_refresh=tok; expires=Mon, 02 Nov 2026 22:44:09 GMT; Path=/'
-    );
+    const response = makeResponse('wc_refresh=tok; expires=Mon, 02 Nov 2026 22:44:09 GMT; Path=/');
     expect(cookieFromResponse(response, 'wc_refresh')).toBe('tok');
   });
 
@@ -66,12 +63,8 @@ describe('cookieFromResponse', () => {
 describe('extractErrorMessage', () => {
   it('prefers detail, then non_field_errors, then the first field error', () => {
     expect(extractErrorMessage({ detail: 'nope' })).toBe('nope');
-    expect(extractErrorMessage({ non_field_errors: ['bad pair', 'x'] })).toBe(
-      'bad pair'
-    );
-    expect(extractErrorMessage({ password: ['too short', 'too common'] })).toBe(
-      'too short'
-    );
+    expect(extractErrorMessage({ non_field_errors: ['bad pair', 'x'] })).toBe('bad pair');
+    expect(extractErrorMessage({ password: ['too short', 'too common'] })).toBe('too short');
     expect(extractErrorMessage('string')).toBe('');
     expect(extractErrorMessage(null)).toBe('');
     expect(extractErrorMessage({})).toBe('');
@@ -91,7 +84,7 @@ function jsonResponse(body: unknown, status = 200, headers: Record<string, strin
 
 function makeStore(
   access: string | null = 'ACCESS',
-  refresh: string | null = 'REFRESH'
+  refresh: string | null = 'REFRESH',
 ): TokenStore & { savedAccess: string[]; savedRefresh: string[] } {
   let a = access;
   let r = refresh;
@@ -134,9 +127,7 @@ describe('apiFetch auth + refresh', () => {
   });
 
   it('attaches the Bearer header and parses the JSON body', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce(
-      jsonResponse({ count: 1 })
-    );
+    (global.fetch as jest.Mock).mockResolvedValueOnce(jsonResponse({ count: 1 }));
     const result = await apiFetch<{ count: number }>('/x/');
     expect(result.count).toBe(1);
     const [, init] = (global.fetch as jest.Mock).mock.calls[0];
@@ -151,9 +142,8 @@ describe('apiFetch auth + refresh', () => {
       // refresh → new access in body + rotated refresh in Set-Cookie
       .mockResolvedValueOnce(
         jsonResponse({ access: 'NEW_ACCESS' }, 200, {
-          'set-cookie':
-            'wc_refresh=ROTATED; expires=Mon, 02 Nov 2026 00:00:00 GMT; Path=/',
-        })
+          'set-cookie': 'wc_refresh=ROTATED; expires=Mon, 02 Nov 2026 00:00:00 GMT; Path=/',
+        }),
       )
       // retried request → 200
       .mockResolvedValueOnce(jsonResponse({ ok: true }));
@@ -191,8 +181,8 @@ describe('apiFetch auth + refresh', () => {
     resolveRefresh(undefined);
     const [r1, r2] = await Promise.all([first, second]);
     expect([r1, r2]).toEqual([{ a: 1 }, { b: 2 }]);
-    const refreshCalls = (global.fetch as jest.Mock).mock.calls.filter(
-      (call) => String(call[0]).includes('token/refresh')
+    const refreshCalls = (global.fetch as jest.Mock).mock.calls.filter((call) =>
+      String(call[0]).includes('token/refresh'),
     );
     expect(refreshCalls.length).toBe(1);
     expect(store.savedRefresh).toEqual(['R2']);
@@ -233,9 +223,7 @@ describe('apiFetch auth + refresh', () => {
 
   it('skips refresh entirely for anonymous calls (login lane)', async () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce(jsonResponse({}, 401));
-    await expect(
-      apiFetch('/auth/login/', { method: 'POST', anonymous: true })
-    ).rejects.toThrow();
+    await expect(apiFetch('/auth/login/', { method: 'POST', anonymous: true })).rejects.toThrow();
     expect((global.fetch as jest.Mock).mock.calls.length).toBe(1);
     expect(unauthorized).not.toHaveBeenCalled();
   });
@@ -251,14 +239,10 @@ describe('apiFetch auth + refresh', () => {
     });
     expect(await apiFetch('/logout/', { method: 'POST' })).toEqual({});
     (global.fetch as jest.Mock).mockResolvedValueOnce(
-      jsonResponse({ password: ['too short'] }, 400)
+      jsonResponse({ password: ['too short'] }, 400),
     );
-    await expect(apiFetch('/register/', { method: 'POST' })).rejects.toThrow(
-      'too short'
-    );
-    (global.fetch as jest.Mock).mockResolvedValueOnce(
-      jsonResponse({}, 500, {})
-    );
+    await expect(apiFetch('/register/', { method: 'POST' })).rejects.toThrow('too short');
+    (global.fetch as jest.Mock).mockResolvedValueOnce(jsonResponse({}, 500, {}));
     // no body message → statusText fallback (empty here) → HTTP code
     await expect(apiFetch('/x/')).rejects.toThrow('HTTP 500');
   });
@@ -284,7 +268,7 @@ describe('pagination collectors', () => {
           next: `http://api?page=${page + 1}`,
           previous: null,
           results: [page],
-        }) as never
+        }) as never,
     );
     const out = await collectAllPages<number>(fetchPage);
     expect(out.length).toBe(50);
@@ -306,12 +290,12 @@ describe('pagination collectors', () => {
   });
 
   it('terminates on null next', async () => {
-    const out = await collectAllPages<number>(async () =>
-      ({ count: 1, next: null, previous: null, results: [7] }) as never
+    const out = await collectAllPages<number>(
+      async () => ({ count: 1, next: null, previous: null, results: [7] }) as never,
     );
     expect(out).toEqual([7]);
-    const cursorOut = await collectAllCursorPages<number>(async () =>
-      ({ next: null, previous: null, results: [9] }) as never
+    const cursorOut = await collectAllCursorPages<number>(
+      async () => ({ next: null, previous: null, results: [9] }) as never,
     );
     expect(cursorOut).toEqual([9]);
   });

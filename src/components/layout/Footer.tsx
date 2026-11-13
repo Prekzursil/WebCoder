@@ -35,7 +35,7 @@ const Footer: React.FC = () => {
         { href: '/my-submissions', label: t('nav_my_submissions', 'My Submissions') },
         // [JDG-9] Published judge toolchain docs + [SAF-2] the AI policy.
         { href: '/help/judge', label: t('footer_judge_docs', 'The judge') },
-    { href: '/contribute', label: t('footer_contribute', 'Contribute') },
+        { href: '/contribute', label: t('footer_contribute', 'Contribute') },
         { href: '/policies/ai', label: t('footer_ai_policy', 'Contest AI policy') },
       ]
     : [
@@ -48,7 +48,9 @@ const Footer: React.FC = () => {
       <div className={styles.colTitle}>{title}</div>
       <div className={styles.colLinks}>
         {links.map(({ href, label }) => (
-          <Link key={href} href={href} className={styles.link}>{label}</Link>
+          <Link key={href} href={href} className={styles.link}>
+            {label}
+          </Link>
         ))}
       </div>
     </div>
@@ -64,7 +66,10 @@ const Footer: React.FC = () => {
               {t('app_title', 'WebCoder')}
             </Link>
             <p className={styles.tagline}>
-              {t('footer_tagline', 'Online judge for competitive programming — Python 3, C++17, and Java 11.')}
+              {t(
+                'footer_tagline',
+                'Online judge for competitive programming — Python 3, C++17, and Java 11.',
+              )}
             </p>
           </div>
           {column(t('footer_platform', 'Platform'), platformLinks)}
@@ -73,9 +78,7 @@ const Footer: React.FC = () => {
         </div>
 
         <div className={styles.bottomRow}>
-          <span className={styles.copyright}>
-            © {new Date().getFullYear()} WebCoder
-          </span>
+          <span className={styles.copyright}>© {new Date().getFullYear()} WebCoder</span>
           {/* [i18n wave] ten locales: shared picker (writes the i18next
               cookie + syncs <html lang> internally). */}
           <LanguageSwitcher className={styles.langSelect} />

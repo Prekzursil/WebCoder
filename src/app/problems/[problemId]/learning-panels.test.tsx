@@ -109,9 +109,7 @@ describe('EditorialPanel [EDT-1]', () => {
     err.policy = 'AFTER_AC';
     getEditorialMock.mockRejectedValue(err);
     render(<EditorialPanel problemId="7" hasEditorial locale="en" />);
-    await waitFor(() =>
-      expect(screen.getByText(/locked until you solve/i)).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText(/locked until you solve/i)).toBeInTheDocument());
   });
 
   it('renders nothing when there is no editorial', () => {
@@ -209,7 +207,7 @@ describe('ScratchPanel [X7]', () => {
 describe('StatementMarkdown [A7]', () => {
   it('renders markdown formatting and inline math', () => {
     const { container } = render(
-      <StatementMarkdown markdown={'**Input:** value $a + b$\n\n- item one\n- item two'} />
+      <StatementMarkdown markdown={'**Input:** value $a + b$\n\n- item one\n- item two'} />,
     );
     expect(container.querySelector('strong')?.textContent).toContain('Input:');
     expect(container.querySelectorAll('li')).toHaveLength(2);
@@ -218,7 +216,7 @@ describe('StatementMarkdown [A7]', () => {
 
   it('renders tables via GFM', () => {
     const { container } = render(
-      <StatementMarkdown markdown={'| a | b |\n| - | - |\n| 1 | 2 |'} />
+      <StatementMarkdown markdown={'| a | b |\n| - | - |\n| 1 | 2 |'} />,
     );
     expect(container.querySelector('table')).not.toBeNull();
     expect(container.querySelectorAll('td')).toHaveLength(2);

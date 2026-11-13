@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('forum', '0001_initial'),
+        ("forum", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='thread',
-            name='is_announcement',
-            field=models.BooleanField(default=False, verbose_name='announcement'),
+            model_name="thread",
+            name="is_announcement",
+            field=models.BooleanField(default=False, verbose_name="announcement"),
         ),
     ]

@@ -58,6 +58,9 @@ def test_page_number_pagination_keeps_explicit_ordering():
     try:
         StandardPageNumberPagination().paginate_queryset(sentinel, _drf_request())
     except Exception:
+        # The stub intentionally drives Django's paginator into its
+        # AttributeError; that abort is the condition under test, not a
+        # failure to swallow — the assertion below is the real check.
         pass
     assert not getattr(sentinel, "called_with", None), (
         "explicitly ordered querysets must not be re-ordered"
@@ -67,9 +70,7 @@ def test_page_number_pagination_keeps_explicit_ordering():
 def test_ci_signing_key_meets_jwt_length_floor():
     """settings_ci must hand SIMPLE_JWT a ≥32-byte HMAC key."""
     key = settings.SIMPLE_JWT["SIGNING_KEY"]
-    assert len(key) >= 32, (
-        "PyJWT >= 2.10 warns on HMAC keys < 32 bytes (RFC 7518 §3.2)"
-    )
+    assert len(key) >= 32, "PyJWT >= 2.10 warns on HMAC keys < 32 bytes (RFC 7518 §3.2)"
     assert settings.SIMPLE_JWT["VERIFYING_KEY"] == key
 
 

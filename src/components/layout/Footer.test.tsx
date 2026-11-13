@@ -22,7 +22,14 @@ vi.mock('@/context/AuthContext', () => ({
 
 vi.mock('next/navigation', () => ({
   usePathname: () => '/',
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn(), back: vi.fn(), forward: vi.fn(), prefetch: vi.fn() }),
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    refresh: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    prefetch: vi.fn(),
+  }),
   useSearchParams: () => new URLSearchParams(),
 }));
 
@@ -53,7 +60,10 @@ describe('Footer', () => {
     render(<Footer />);
     const footer = screen.getByRole('contentinfo');
     expect(within(footer).getByRole('link', { name: 'Login' })).toHaveAttribute('href', '/login');
-    expect(within(footer).getByRole('link', { name: 'Register' })).toHaveAttribute('href', '/register');
+    expect(within(footer).getByRole('link', { name: 'Register' })).toHaveAttribute(
+      'href',
+      '/register',
+    );
     expect(within(footer).queryByText('Profile')).not.toBeInTheDocument();
   });
 
@@ -62,8 +72,14 @@ describe('Footer', () => {
     mocks.auth.user = { id: 1, username: 'tester', email: 't@example.com', role: 'BASIC_USER' };
     render(<Footer />);
     const footer = screen.getByRole('contentinfo');
-    expect(within(footer).getByRole('link', { name: 'Profile' })).toHaveAttribute('href', '/profile');
-    expect(within(footer).getByRole('link', { name: 'My Submissions' })).toHaveAttribute('href', '/my-submissions');
+    expect(within(footer).getByRole('link', { name: 'Profile' })).toHaveAttribute(
+      'href',
+      '/profile',
+    );
+    expect(within(footer).getByRole('link', { name: 'My Submissions' })).toHaveAttribute(
+      'href',
+      '/my-submissions',
+    );
     expect(within(footer).queryByText('Login')).not.toBeInTheDocument();
   });
 

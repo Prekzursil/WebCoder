@@ -68,7 +68,13 @@ export default function SiteStats() {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+        gap: '16px',
+      }}
+    >
       <div style={cardStyle}>
         <h3 style={cardTitleStyle}>{t('stats_total_users', 'Total Users')}</h3>
         <p style={cardValueStyle}>{stats.user_count}</p>

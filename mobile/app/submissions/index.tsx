@@ -5,22 +5,10 @@ import { View } from 'react-native';
 import { SubmissionService } from '../../src/services/services';
 import { useAuth } from '../../src/state/AuthStore';
 import { useSettings } from '../../src/state/SettingsStore';
-import {
-  Button,
-  Card,
-  ErrorBox,
-  Pill,
-  Screen,
-  Spinner,
-  Txt,
-} from '../../src/ui/primitives';
+import { Button, Card, ErrorBox, Pill, Screen, Spinner, Txt } from '../../src/ui/primitives';
 import { space } from '../../src/theme/tokens';
 import { problemTitle } from '../../src/utils/statement';
-import {
-  formatDateTime,
-  verdictColor,
-  verdictLabelKey,
-} from '../../src/utils/verdict';
+import { formatDateTime, verdictColor, verdictLabelKey } from '../../src/utils/verdict';
 import { cursorParamFromUrl, type SubmissionType } from '../../src/types/api';
 
 export default function MySubmissions() {
@@ -38,21 +26,17 @@ export default function MySubmissions() {
       try {
         const response = await SubmissionService.getSubmissions(
           {},
-          { cursor: nextCursor, pageSize: 20 }
+          { cursor: nextCursor, pageSize: 20 },
         );
-        setItems((prev) =>
-          nextCursor ? [...prev, ...response.results] : response.results
-        );
+        setItems((prev) => (nextCursor ? [...prev, ...response.results] : response.results));
         setCursor(cursorParamFromUrl(response.next));
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : t('error_loading_submissions')
-        );
+        setError(err instanceof Error ? err.message : t('error_loading_submissions'));
       } finally {
         setLoading(false);
       }
     },
-    [t]
+    [t],
   );
 
   useEffect(() => {
@@ -89,8 +73,7 @@ export default function MySubmissions() {
               }}
             >
               <Txt variant="body" style={{ flex: 1 }}>
-                #{submission.id}{' '}
-                {problemTitle(submission.problem, locale).text}
+                #{submission.id} {problemTitle(submission.problem, locale).text}
               </Txt>
               <Pill
                 label={t(verdictLabelKey(submission.verdict))}
@@ -98,8 +81,7 @@ export default function MySubmissions() {
               />
             </View>
             <Txt variant="caption">
-              {submission.language} ·{' '}
-              {formatDateTime(submission.submission_time)}
+              {submission.language} · {formatDateTime(submission.submission_time)}
             </Txt>
           </Card>
         </Link>
