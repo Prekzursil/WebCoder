@@ -23,9 +23,12 @@ concurrency:
 
 jobs:
   quality:
-    env:
-      SECRET_KEY: ci-placeholder
-      DB_PASSWORD: ci-placeholder
+    # A job that calls a reusable workflow (`uses:`) may not declare `env:` —
+    # GitHub rejects the whole workflow file as invalid ("workflow file issue"),
+    # which is why every run of this workflow has failed since 6a6fed1f
+    # (2026-10-27). The block was also inert: reusable-workflow jobs never see
+    # the caller's job env. SECRET_KEY/DB_PASSWORD for the settings contract
+    # are set where they belong, in this repo's own verify job.
     # Pinned to the v1 tag's commit hash (b4fbe38) — CodeQL red-blocker
     # (actions/unpinned-tag) rejects mutable tag refs; this is v1, immutably.
     uses: Prekzursil/quality-zero-platform/.github/workflows/reusable-quality.yml@b4fbe38470fd2831f86f194df5b638a271bae8b8 # v1
