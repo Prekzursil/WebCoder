@@ -884,3 +884,96 @@ class ImportSource(models.Model):
     @property
     def allows_publication(self) -> bool:
         return self.status == self.Status.GRANTED
+
+
+class ProblemList(models.Model):
+    """Curated study track (SPEC-GAPS X12 · competitive matrix row 8).
+
+    An ordered, curator-owned playlist of APPROVED problems — the
+    LeetCode-Explore / HackerRank-practice-domain / infoarena-educational-
+    track affordance. Public tracks appear on the ``/tracks`` hub and carry
+    per-viewer progress (solved of total); unlisted tracks stay reachable
+    by slug for class use. X12 feeds onboarding: ``/start`` can later pick
+    from tracks as well as the curriculum tree.
+    """
+
+    title_i18n = models.JSONField(
+        _("title (i18n)"),
+        help_text=_("Track title per locale, e.g. {'en': 'Binary search', 'ro': …}"),
+    )
+    description_i18n = models.JSONField(
+        _("description (i18n)"),
+        default=dict,
+        blank=True,
+        help_text=_("Short per-locale description of what the track teaches."),
+    )
+    slug = models.SlugField(
+        _("slug"),
+        max_length=140,
+        unique=True,
+        help_text=_("Stable URL identifier, auto-generated from the title."),
+    )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET(get_sentinel_user),
+        null=True,
+        blank=True,
+        related_name="curated_lists",
+        verbose_name=_("owner"),
+    )
+    is_public = models.BooleanField(
+        _("public"),
+        default=True,
+        help_text=_("Public tracks list on the hub; unlisted tracks need the slug."),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("study track")
+        verbose_name_plural = _("study tracks")
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["is_public"])]
+
+    def __str__(self):
+        if isinstance(self.title_i18n, dict):
+            return self.title_i18n.get("en", "Track %s" % self.pk)
+        return "Track %s" % self.pk
+
+
+class ProblemListItem(models.Model):
+    """Ordered membership row: problem #position inside a study track."""
+
+    list = models.ForeignKey(
+        ProblemList,
+        on_delete=models.CASCADE,
+        related_name="items",
+        verbose_name=_("study track"),
+    )
+    problem = models.ForeignKey(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name="list_items",
+        verbose_name=_("problem"),
+    )
+    position = models.PositiveIntegerField(
+        _("position"), default=0, help_text=_("1-based order inside the track.")
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("study track item")
+        verbose_name_plural = _("study track items")
+        ordering = ["position", "id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["list", "problem"], name="unique_problem_per_track"
+            )
+        ]
+
+    def __str__(self):
+        return "track %d · #%d problem %d" % (
+            self.list_id,
+            self.position,
+            self.problem_id,
+        )

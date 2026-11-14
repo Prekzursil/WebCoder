@@ -724,6 +724,38 @@ const AUTH_COOKIES = (value) => [
   `wc_refresh=e2e-refresh-${value}; Path=/; HttpOnly; SameSite=Lax`,
 ];
 
+// X12 study tracks (competitive matrix row 8): mutable mock track state —
+// module scope so mutations persist across requests within a test run.
+const trackItem = (problemId, position, isSolved) => ({
+  problem_id: problemId,
+  title_i18n:
+    problemId === 1
+      ? { en: 'A Plus B', ro: 'A Plus B' }
+      : problemId === 2
+        ? { en: 'Two Sum', ro: 'Two Sum' }
+        : { en: 'Binary Search', ro: 'Căutare binară' },
+  difficulty: problemId === 1 ? 'VERY_EASY' : problemId === 2 ? 'EASY' : 'MEDIUM',
+  position,
+  is_solved: isSolved,
+});
+let trackItems = [trackItem(1, 1, true), trackItem(2, 2, false)];
+const trackDetail = () => {
+  const solved = trackItems.filter((item) => item.is_solved).length;
+  return {
+    slug: 'beginner-ladder',
+    title_i18n: { en: 'Beginner ladder', ro: 'Scara începătorului' },
+    description_i18n: { en: 'Start here.', ro: 'Începe aici.' },
+    owner_username: 'e2e_tester',
+    is_public: true,
+    is_owner: true,
+    item_count: trackItems.length,
+    solved_count: solved,
+    created_at: '2026-11-01T00:00:00Z',
+    updated_at: '2026-11-01T00:00:00Z',
+    items: trackItems,
+  };
+};
+
 const server = createServer((req, res) => {
   const requestUrl = new URL(req.url, `http://${HOST}:${PORT}`);
   const path = requestUrl.pathname;
@@ -1890,6 +1922,58 @@ const server = createServer((req, res) => {
           updated_at: '2026-11-01T00:00:00Z',
         },
       ],
+    });
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/api/v1/problems/tracks/') {
+    json(res, 200, { count: 1, next: null, previous: null, results: [trackDetail()] });
+    return;
+  }
+  const trackSlug = path.match(/^\/api\/v1\/problems\/tracks\/([^/]+)\/$/);
+  if (req.method === 'GET' && trackSlug) {
+    if (trackSlug[1] === 'beginner-ladder') {
+      json(res, 200, trackDetail());
+      return;
+    }
+    json(res, 404, { detail: 'Not found.' });
+    return;
+  }
+  const trackAdd = path.match(/^\/api\/v1\/problems\/tracks\/([^/]+)\/add-problem\/$/);
+  if (req.method === 'POST' && trackAdd) {
+    readBody(req, (body) => {
+      if (trackItems.some((item) => item.problem_id === body.problem_id)) {
+        json(res, 400, { detail: 'Problem already in this track.' });
+        return;
+      }
+      trackItems.push(trackItem(body.problem_id, trackItems.length + 1, false));
+      json(res, 201, trackDetail());
+    });
+    return;
+  }
+  const trackMove = path.match(/^\/api\/v1\/problems\/tracks\/([^/]+)\/move-problem\/$/);
+  if (req.method === 'POST' && trackMove) {
+    readBody(req, (body) => {
+      const index = trackItems.findIndex((item) => item.problem_id === body.problem_id);
+      const target = body.direction === 'up' ? index - 1 : index + 1;
+      if (index === -1 || target < 0 || target >= trackItems.length) {
+        json(res, 400, { detail: 'Already at the edge of the track.' });
+        return;
+      }
+      const [moved] = trackItems.splice(index, 1);
+      trackItems.splice(target, 0, moved);
+      trackItems = trackItems.map((item, i) => ({ ...item, position: i + 1 }));
+      json(res, 200, trackDetail());
+    });
+    return;
+  }
+  const trackRemove = path.match(/^\/api\/v1\/problems\/tracks\/([^/]+)\/remove-problem\/$/);
+  if (req.method === 'POST' && trackRemove) {
+    readBody(req, (body) => {
+      trackItems = trackItems
+        .filter((item) => item.problem_id !== body.problem_id)
+        .map((item, i) => ({ ...item, position: i + 1 }));
+      json(res, 200, trackDetail());
     });
     return;
   }
