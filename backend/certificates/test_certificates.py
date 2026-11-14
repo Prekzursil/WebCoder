@@ -60,7 +60,7 @@ class IssueServiceTests(TestCase):
             threshold=50,
             details={"solved": 55},
         )
-        self.assertIsNotNone(cert)
+        assert cert is not None  # narrow the Optional for the type gate
         self.assertTrue(cert.serial.startswith(f"WC-{NOW.year}-"))
         self.assertIn(f"{cert.pk:06d}", cert.serial)
         self.assertTrue(
@@ -102,6 +102,7 @@ class IssueServiceTests(TestCase):
 
     def test_model_str_status_and_revoked_flag(self):
         cert = _issue(self.alice.pk, Certificate.Kind.SOLVE_MILESTONE, threshold=10)
+        assert cert is not None  # narrow the Optional for the type gate
         self.assertEqual(cert.status, "VALID")
         self.assertFalse(cert.is_revoked)
         self.assertIn(cert.serial, str(cert))
@@ -478,6 +479,7 @@ class AdminActionTests(TestCase):
 
         alice = User.objects.create_user(username="alice", password="pw")
         cert = _issue(alice.pk, Certificate.Kind.SOLVE_MILESTONE, threshold=10)
+        assert cert is not None  # narrow the Optional for the type gate
         model_admin = CertificateAdmin(Certificate, AdminSite())
         request = mock.Mock()
         request.POST = {"apply": "1"}
