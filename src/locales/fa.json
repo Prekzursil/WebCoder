@@ -1235,5 +1235,7 @@
   "tracks_add": "افزودن",
   "tracks_bad_id": "شناسه مسئله را وارد کنید (عدد).",
   "tracks_action_error": "این کار انجام نشد.",
-  "tracks_empty_track": "این مسیر هنوز مسئله‌ای ندارد."
+  "tracks_empty_track": "این مسیر هنوز مسئله‌ای ندارد.",
+  "related_problems_title": "مسئله‌های مشابه",
+  "filter_editorial": "دارای تحلیل"
 }

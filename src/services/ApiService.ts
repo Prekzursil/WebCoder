@@ -22,6 +22,7 @@ import {
   ClassMembershipRow,
   ClassRoom,
   ArticleRow,
+  RelatedProblemRow,
   TrackDetail,
   TrackRow,
   ClassroomAssignment,
@@ -450,6 +451,14 @@ export const CommunityService = {
     return apiFetch<PaginatedResponse<ArticleRow>>(`/problems/articles/?${search.toString()}`);
   },
   getArticle: (id: number | string) => apiFetch<ArticleRow>(`/problems/articles/${id}/`),
+};
+
+/** Matrix row 6 — related problems (shared tags, solved-filtered). */
+export const RelatedProblemService = {
+  list: (problemId: number | string) =>
+    apiFetch<{ count: number; results: RelatedProblemRow[] }>(
+      `/problems/problems/${problemId}/related/`,
+    ),
 };
 
 /** X12 — curated study tracks (competitive matrix row 8). */

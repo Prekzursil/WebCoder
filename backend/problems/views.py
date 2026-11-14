@@ -188,6 +188,7 @@ class ProblemViewSet(viewsets.ModelViewSet):
             "starters",
             "bookmarked",
             "statement_revisions",
+            "related",
         ]:
             # Read-shaped actions: the queryset already scopes problem
             # visibility; the editorial action additionally enforces the
@@ -272,6 +273,16 @@ class ProblemViewSet(viewsets.ModelViewSet):
             qs = qs.filter(grade_group=grade_group)
         if self.request.query_params.get("archive") in ("1", "true", "yes"):
             qs = qs.exclude(source_contest="", source_year__isnull=True, grade_group="")
+        # DMOJ's "has editorial" catalog facet: problems that carry an
+        # editorial row which is (or will become) visible — MANUAL rows are
+        # staff-only by policy and therefore do not count as "has editorial".
+        if self.request.query_params.get("has_editorial") in ("1", "true", "yes"):
+            qs = qs.filter(
+                editorial__publish_policy__in=[
+                    ProblemEditorial.PublishPolicy.PUBLIC,
+                    ProblemEditorial.PublishPolicy.AFTER_AC,
+                ]
+            ).distinct()
         # Catalog stats add-on (SPEC-GAPS D-B8): "X tried / Y solved" per
         # problem card. distinct=True keeps counts exact under the author
         # branch's .distinct().
@@ -281,6 +292,17 @@ class ProblemViewSet(viewsets.ModelViewSet):
                 "submissions",
                 filter=models.Q(submissions__verdict="AC"),
                 distinct=True,
+            ),
+            # DMOJ "has editorial" facet: an editorial row exists whose
+            # publish policy is (or will become) reader-visible.
+            has_editorial=models.Exists(
+                ProblemEditorial.objects.filter(
+                    problem=models.OuterRef("pk"),
+                    publish_policy__in=[
+                        ProblemEditorial.PublishPolicy.PUBLIC,
+                        ProblemEditorial.PublishPolicy.AFTER_AC,
+                    ],
+                )
             ),
         )
 
@@ -511,6 +533,99 @@ class ProblemViewSet(viewsets.ModelViewSet):
                 else None,
                 "rating_count": aggregate["count"],
                 "your_rating": rating_value,
+            }
+        )
+
+    #: Difficulty proximity key for the related-problems ranking (row 6).
+    _DIFFICULTY_ORDER = {
+        Problem.DifficultyLevel.VERY_EASY: 0,
+        Problem.DifficultyLevel.EASY: 1,
+        Problem.DifficultyLevel.MEDIUM: 2,
+        Problem.DifficultyLevel.HARD: 3,
+    }
+
+    @action(detail=True, methods=["get"], url_path="related")
+    def related(self, request, pk=None):
+        """Similar problems (competitive matrix row 6, the LeetCode
+        "Similar Questions" / Codewars related-by-tag affordance).
+
+        Candidates are APPROVED problems sharing >= 1 tag with the source,
+        ranked by shared-tag count, then difficulty proximity, then id —
+        the viewer's already-solved problems drop out unless
+        ?include_solved=1 asks for them back. Tag-less sources fall back
+        to same-difficulty problems by solve count (a weaker but honest
+        "more like this").
+        """
+        from submissions.models import Submission
+
+        problem = self.get_object()
+        include_solved = request.query_params.get("include_solved") in (
+            "1",
+            "true",
+            "yes",
+        )
+        solved_ids = set()
+        if request.user.is_authenticated and not include_solved:
+            solved_ids = set(
+                Submission.objects.filter(
+                    user=request.user, verdict=Submission.VerdictStatus.ACCEPTED
+                ).values_list("problem_id", flat=True)
+            )
+        tag_ids = list(problem.tags.values_list("id", flat=True))
+        base = Problem.objects.filter(status=Problem.ProblemStatus.APPROVED).exclude(
+            pk=problem.pk
+        )
+        if tag_ids:
+            candidates = list(
+                base.filter(tags__in=tag_ids)
+                .annotate(
+                    shared_tags=models.Count(
+                        "tags",
+                        filter=models.Q(tags__in=tag_ids),
+                        distinct=True,
+                    )
+                )
+                .distinct()[:200]
+            )
+        else:
+            candidates = list(
+                base.filter(difficulty=problem.difficulty)
+                .annotate(
+                    shared_tags=models.Value(0),
+                    solve_count=models.Count(
+                        "submissions",
+                        filter=models.Q(submissions__verdict="AC"),
+                        distinct=True,
+                    ),
+                )
+                .distinct()[:200]
+            )
+        source_rank = self._DIFFICULTY_ORDER.get(problem.difficulty, 2)
+        if tag_ids:
+
+            def rank(row):
+                return (
+                    -row.shared_tags,
+                    abs(self._DIFFICULTY_ORDER.get(row.difficulty, 2) - source_rank),
+                    row.pk,
+                )
+
+            candidates.sort(key=rank)
+        else:
+            candidates.sort(key=lambda row: (-row.solve_count, row.pk))
+        rows = [row for row in candidates if row.pk not in solved_ids][:8]
+        return Response(
+            {
+                "count": len(rows),
+                "results": [
+                    {
+                        "id": row.pk,
+                        "title_i18n": row.title_i18n,
+                        "difficulty": row.difficulty,
+                        "shared_tags": row.shared_tags,
+                    }
+                    for row in rows
+                ],
             }
         )
 

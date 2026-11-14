@@ -1235,5 +1235,7 @@
   "tracks_add": "Tambah",
   "tracks_bad_id": "Masukkan id soal (angka).",
   "tracks_action_error": "Itu tidak berhasil.",
-  "tracks_empty_track": "Trek ini belum punya soal."
+  "tracks_empty_track": "Trek ini belum punya soal.",
+  "related_problems_title": "Soal serupa",
+  "filter_editorial": "Ada editorial"
 }

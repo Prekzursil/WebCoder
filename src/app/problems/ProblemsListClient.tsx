@@ -176,6 +176,9 @@ export default function ProblemsListClient({
   const urlDifficulty = searchParams.get('difficulty') ?? '';
   const urlStatus = searchParams.get('status') ?? '';
   const urlTags = searchParams.get('tags') ?? '';
+  // DMOJ-style "has editorial" facet (client-side over the annotated
+  // catalog rows, same as the difficulty/status chips).
+  const urlEditorial = searchParams.get('editorial') === '1';
   // [EDU-9] chapter drill-down runs through the server (?curriculum=),
   // so the client only needs the current value (not local state).
   const urlCurriculum = searchParams.get('curriculum') ?? '';
@@ -215,6 +218,7 @@ export default function ProblemsListClient({
     archive?: boolean;
     sourceYear?: string;
     gradeGroup?: string;
+    editorial?: boolean;
   }) => {
     const params = new URLSearchParams(searchParams.toString());
     const setOrDelete = (name: string, value: string | undefined) => {
@@ -246,6 +250,12 @@ export default function ProblemsListClient({
       'grade_group',
       next.gradeGroup !== undefined ? next.gradeGroup : urlGroup || undefined,
     );
+    // "Has editorial" facet: boolean round-trips as editorial=1 (never the
+    // string "false"), exactly like the archive toggle above.
+    if (next.editorial !== undefined) {
+      if (next.editorial) params.set('editorial', '1');
+      else params.delete('editorial');
+    }
     const qs = params.toString();
     router.replace(qs ? `/problems?${qs}` : '/problems', { scroll: false });
   };
@@ -268,6 +278,7 @@ export default function ProblemsListClient({
       const matchesDiff = difficultyFilter
         ? p.difficulty?.toLowerCase() === difficultyFilter
         : true;
+      const matchesEditorial = urlEditorial ? Boolean(p.has_editorial) : true;
       const matchesStatus = statusFilter ? p.status?.toLowerCase() === statusFilter : true;
       // [F4] multi-tag AND facet
       const matchesTags =
@@ -276,7 +287,14 @@ export default function ProblemsListClient({
           : Array.from(tagFilter).every((tagId) => p.tags?.some((tag) => tag.id === tagId));
       // [F5] optional "hide solved"
       const matchesHideSolved = hideSolved && solvedIds ? !solvedIds.has(p.id) : true;
-      return matchesSearch && matchesDiff && matchesStatus && matchesTags && matchesHideSolved;
+      return (
+        matchesSearch &&
+        matchesDiff &&
+        matchesEditorial &&
+        matchesStatus &&
+        matchesTags &&
+        matchesHideSolved
+      );
     });
 
     if (!sortKey) return rowsFiltered;
@@ -301,6 +319,7 @@ export default function ProblemsListClient({
     rows,
     search,
     difficultyFilter,
+    urlEditorial,
     statusFilter,
     tagFilter,
     hideSolved,
@@ -469,6 +488,27 @@ export default function ProblemsListClient({
               </button>
             );
           })}
+        </div>
+
+        {/* Has-editorial facet (DMOJ): problems carrying a visible editorial. */}
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+          <button
+            onClick={() => syncUrl({ editorial: !urlEditorial })}
+            className="chip"
+            aria-pressed={urlEditorial}
+            aria-label={t('filter_editorial', 'Has editorial')}
+            style={
+              urlEditorial
+                ? {
+                    borderColor: 'var(--accent)',
+                    color: 'var(--accent)',
+                    background: hexAlpha(palette.accent, 0.12),
+                  }
+                : undefined
+            }
+          >
+            {t('filter_editorial', 'Has editorial')}
+          </button>
         </div>
 
         {/* Status filter — only for roles that can see non-approved problems [F7] */}

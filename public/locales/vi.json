@@ -1235,5 +1235,7 @@
   "tracks_add": "Thêm",
   "tracks_bad_id": "Nhập id bài tập (số).",
   "tracks_action_error": "Thao tác không thành công.",
-  "tracks_empty_track": "Lộ trình này chưa có bài tập."
+  "tracks_empty_track": "Lộ trình này chưa có bài tập.",
+  "related_problems_title": "Bài tập tương tự",
+  "filter_editorial": "Có lời giải"
 }

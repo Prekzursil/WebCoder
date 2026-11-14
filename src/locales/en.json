@@ -1235,5 +1235,7 @@
   "tracks_add": "Add",
   "tracks_bad_id": "Enter a problem id (number).",
   "tracks_action_error": "That did not work.",
-  "tracks_empty_track": "This track has no problems yet."
+  "tracks_empty_track": "This track has no problems yet.",
+  "related_problems_title": "Similar problems",
+  "filter_editorial": "Has editorial"
 }

@@ -1235,5 +1235,7 @@
   "tracks_add": "เพิ่ม",
   "tracks_bad_id": "กรอก id ของโจทย์ (ตัวเลข)",
   "tracks_action_error": "ดำเนินการไม่สำเร็จ",
-  "tracks_empty_track": "เส้นทางนี้ยังไม่มีโจทย์"
+  "tracks_empty_track": "เส้นทางนี้ยังไม่มีโจทย์",
+  "related_problems_title": "โจทย์ที่คล้ายกัน",
+  "filter_editorial": "มีเฉลย"
 }

@@ -1235,5 +1235,7 @@
   "tracks_add": "Dodaj",
   "tracks_bad_id": "Unesi id zadatka (broj).",
   "tracks_action_error": "To nije uspjelo.",
-  "tracks_empty_track": "Ova staza još nema zadatke."
+  "tracks_empty_track": "Ova staza još nema zadatke.",
+  "related_problems_title": "Slični zadaci",
+  "filter_editorial": "S rješenjem"
 }

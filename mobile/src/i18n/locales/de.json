@@ -1235,5 +1235,7 @@
   "tracks_add": "Hinzufügen",
   "tracks_bad_id": "Gib eine Aufgaben-ID (Zahl) ein.",
   "tracks_action_error": "Das hat nicht funktioniert.",
-  "tracks_empty_track": "Dieser Lernpfad hat noch keine Aufgaben."
+  "tracks_empty_track": "Dieser Lernpfad hat noch keine Aufgaben.",
+  "related_problems_title": "Ähnliche Aufgaben",
+  "filter_editorial": "Mit Editorial"
 }

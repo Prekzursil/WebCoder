@@ -665,6 +665,14 @@ export interface CommunityEditorialRow {
   updated_at: string;
 }
 
+/** Matrix row 6 — related/similar problems (shared-tag ranking). */
+export interface RelatedProblemRow {
+  id: number;
+  title_i18n: LocalizedText;
+  difficulty: string;
+  shared_tags: number;
+}
+
 /** X12 — curated study tracks (competitive matrix row 8). */
 export interface TrackRow {
   slug: string;

@@ -1235,5 +1235,7 @@
   "tracks_add": "إضافة",
   "tracks_bad_id": "أدخل معرّف المسألة (رقم).",
   "tracks_action_error": "لم ينجح ذلك.",
-  "tracks_empty_track": "لا توجد مسائل في هذا المسار بعد."
+  "tracks_empty_track": "لا توجد مسائل في هذا المسار بعد.",
+  "related_problems_title": "مسائل مشابهة",
+  "filter_editorial": "لديه تحليل"
 }

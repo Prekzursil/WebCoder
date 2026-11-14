@@ -1235,5 +1235,7 @@
   "tracks_add": "Hozzáadás",
   "tracks_bad_id": "Adj meg egy feladat-azonosítót (szám).",
   "tracks_action_error": "Ez nem sikerült.",
-  "tracks_empty_track": "Ehhez az útvonalhoz még nincs feladat."
+  "tracks_empty_track": "Ehhez az útvonalhoz még nincs feladat.",
+  "related_problems_title": "Hasonló feladatok",
+  "filter_editorial": "Megoldással"
 }

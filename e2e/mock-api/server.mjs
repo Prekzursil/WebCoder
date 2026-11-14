@@ -42,6 +42,8 @@ const MOCK_PROBLEMS = [
     title_i18n: { en: 'Two Sum' },
     difficulty: 'EASY',
     status: 'APPROVED',
+    // DMOJ "has editorial" facet: this fixture has none.
+    has_editorial: false,
     // [roadmap RO-6] archive provenance for the browse-axis e2e lane.
     source_contest: 'OJI 2024',
     source_year: 2024,
@@ -67,6 +69,7 @@ const MOCK_PROBLEMS = [
     title_i18n: { en: 'Reverse String', ro: 'Inversarea unui șir' },
     difficulty: 'MEDIUM',
     status: 'APPROVED',
+    has_editorial: true,
     // Wave A learning-layer fixtures: markdown+math statement (A7), hints
     // (EDT-2) and an editorial (EDT-1) the /problems/2 page renders.
     statement_i18n: {
@@ -723,6 +726,25 @@ const AUTH_COOKIES = (value) => [
   `wc_access=${value}; Path=/; HttpOnly; SameSite=Lax`,
   `wc_refresh=e2e-refresh-${value}; Path=/; HttpOnly; SameSite=Lax`,
 ];
+
+// Matrix row 6 — related problems for the catalog fixture problem 1.
+const MOCK_RELATED_PROBLEMS = {
+  count: 2,
+  results: [
+    {
+      id: 2,
+      title_i18n: { en: 'Reverse String', ro: 'Inversarea unui șir' },
+      difficulty: 'MEDIUM',
+      shared_tags: 1,
+    },
+    {
+      id: 3,
+      title_i18n: { en: 'Pair Sum', ro: 'Suma pereche' },
+      difficulty: 'EASY',
+      shared_tags: 1,
+    },
+  ],
+};
 
 // X12 study tracks (competitive matrix row 8): mutable mock track state —
 // module scope so mutations persist across requests within a test run.
@@ -1923,6 +1945,12 @@ const server = createServer((req, res) => {
         },
       ],
     });
+    return;
+  }
+
+  const relatedProblems = path.match(/^\/api\/v1\/problems\/problems\/(\d+)\/related\/$/);
+  if (req.method === 'GET' && relatedProblems) {
+    json(res, 200, MOCK_RELATED_PROBLEMS);
     return;
   }
 

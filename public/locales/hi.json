@@ -1235,5 +1235,7 @@
   "tracks_add": "जोड़ें",
   "tracks_bad_id": "समस्या id दर्ज करें (संख्या)।",
   "tracks_action_error": "यह काम नहीं किया।",
-  "tracks_empty_track": "इस ट्रैक में अभी कोई समस्या नहीं है।"
+  "tracks_empty_track": "इस ट्रैक में अभी कोई समस्या नहीं है।",
+  "related_problems_title": "समान समस्याएँ",
+  "filter_editorial": "समाधान सहित"
 }
