@@ -28,6 +28,7 @@ EXPANDED_IDS = frozenset(
     {
         "python3",
         "cpp17",
+        "cpp20",
         "c11",
         "java11",
         "nodejs20",
@@ -45,7 +46,7 @@ EXPANDED_IDS = frozenset(
 
 
 class RegistryContentTests(unittest.TestCase):
-    def test_all_fourteen_languages_registered(self):
+    def test_all_fifteen_languages_registered(self):
         # RO-5 (pascal) + the language-fairness wave's eight additions.
         self.assertEqual(set(LANGUAGES), EXPANDED_IDS)
 
@@ -251,6 +252,9 @@ class LanguageFairLimitTests(unittest.TestCase):
         table = {
             "c11": (1.0, 1.0, 0),
             "cpp17": (1.0, 1.0, 0),
+            # Matrix row 20 (modern toolchains): C++20 rides C++17's
+            # unadjusted compiled-language multipliers.
+            "cpp20": (1.0, 1.0, 0),
             "pascal": (1.0, 1.0, 0),
             "go": (1.0, 1.0, 262144),
             "rust": (1.0, 1.0, 0),

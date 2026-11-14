@@ -100,6 +100,10 @@ class UserRatingHistoryView(APIView):
         return Response(
             {
                 "username": user.username,
+                # Matrix row 59: the self-authored bio on the public
+                # profile (blank when unset; minors' privacy fields are a
+                # separate LEG-2 concern — bio is deliberately published).
+                "bio": user.bio,
                 "rating": summary,
                 "history": [
                     {

@@ -18,6 +18,7 @@ export default function IdentityCard() {
   const [county, setCounty] = useState(user?.county ?? '');
   const [school, setSchool] = useState(user?.school ?? '');
   const [isMinor, setIsMinor] = useState(Boolean(user?.is_minor));
+  const [bio, setBio] = useState(user?.bio ?? '');
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   if (!user) return null;
@@ -30,6 +31,7 @@ export default function IdentityCard() {
         county: county.trim(),
         school: school.trim(),
         isMinor: isMinor,
+        bio: bio.slice(0, 500),
       });
       // The next /users/me/ read picks the update up; the saved
       // marker confirms it for the user.
@@ -108,6 +110,32 @@ export default function IdentityCard() {
               borderRadius: '8px',
               color: 'var(--foreground)',
               padding: '8px',
+            }}
+          />
+        </label>
+        <label
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.25rem',
+            fontSize: '0.85rem',
+            color: 'var(--muted)',
+          }}
+        >
+          {t('identity_bio', 'Bio')}
+          <textarea
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            maxLength={500}
+            rows={2}
+            data-testid="identity-bio"
+            style={{
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid var(--border)',
+              borderRadius: '8px',
+              color: 'var(--foreground)',
+              padding: '8px',
+              resize: 'vertical',
             }}
           />
         </label>

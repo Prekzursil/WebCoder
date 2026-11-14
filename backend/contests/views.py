@@ -340,6 +340,30 @@ class ContestViewSet(viewsets.ModelViewSet):
         section = request.query_params.get("section", "official")
         virtual_board = section == "virtual"
 
+        # Hidden boards (DMOJ/campion): non-organizers get an explicitly
+        # empty envelope while the contest runs — the FE renders the
+        # "hidden until the contest ends" notice from the flag. The
+        # virtual board is by definition post-contest history and stays
+        # visible.
+        if (
+            (not live)
+            and (not virtual_board)
+            and contest.hide_scoreboard_until_end
+            and contest.state() != contest.State.FINISHED
+        ):
+            return Response(
+                {
+                    "count": 0,
+                    "next": None,
+                    "previous": None,
+                    "results": [],
+                    "format": contest.format,
+                    "frozen": False,
+                    "hidden": True,
+                    "section": "official",
+                }
+            )
+
         from .awards import build_ranking_input
 
         # Freeze applies to the public OFFICIAL board only; the virtual

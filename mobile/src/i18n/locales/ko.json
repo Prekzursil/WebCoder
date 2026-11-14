@@ -1237,5 +1237,8 @@
   "tracks_action_error": "작동하지 않았습니다.",
   "tracks_empty_track": "이 트랙에는 아직 문제가 없습니다.",
   "related_problems_title": "비슷한 문제",
-  "filter_editorial": "해설 있음"
+  "filter_editorial": "해설 있음",
+  "contests_scoreboard_hidden": "대회가 끝날 때까지 스코어보드는 숨겨집니다.",
+  "contests_hide_scoreboard_label": "대회가 끝날 때까지 스코어보드 숨기기",
+  "identity_bio": "소개"
 }

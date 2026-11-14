@@ -1237,5 +1237,8 @@
   "tracks_action_error": "ดำเนินการไม่สำเร็จ",
   "tracks_empty_track": "เส้นทางนี้ยังไม่มีโจทย์",
   "related_problems_title": "โจทย์ที่คล้ายกัน",
-  "filter_editorial": "มีเฉลย"
+  "filter_editorial": "มีเฉลย",
+  "contests_scoreboard_hidden": "จะซ่อนกระดานคะแนนไปจนกว่าการแข่งขันจะจบ",
+  "contests_hide_scoreboard_label": "ซ่อนกระดานคะแนนไปจนกว่าการแข่งขันจะจบ",
+  "identity_bio": "แนะนำตัว"
 }

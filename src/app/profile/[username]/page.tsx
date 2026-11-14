@@ -161,6 +161,15 @@ export default function PublicRatingProfilePage() {
             )}
           </div>
 
+          {data.bio ? (
+            <p
+              data-testid="rating-profile-bio"
+              style={{ color: palette.muted, margin: '0 0 16px', maxWidth: 640 }}
+            >
+              {data.bio}
+            </p>
+          ) : null}
+
           {chart ? (
             <figure
               style={{

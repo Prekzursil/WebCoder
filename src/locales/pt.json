@@ -1237,5 +1237,8 @@
   "tracks_action_error": "Isso não funcionou.",
   "tracks_empty_track": "Este trilho ainda não tem problemas.",
   "related_problems_title": "Problemas semelhantes",
-  "filter_editorial": "Com editorial"
+  "filter_editorial": "Com editorial",
+  "contests_scoreboard_hidden": "O placar fica oculto até o fim do concurso.",
+  "contests_hide_scoreboard_label": "Ocultar o placar até o fim do concurso",
+  "identity_bio": "Bio"
 }

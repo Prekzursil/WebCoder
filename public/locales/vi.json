@@ -1237,5 +1237,8 @@
   "tracks_action_error": "Thao tác không thành công.",
   "tracks_empty_track": "Lộ trình này chưa có bài tập.",
   "related_problems_title": "Bài tập tương tự",
-  "filter_editorial": "Có lời giải"
+  "filter_editorial": "Có lời giải",
+  "contests_scoreboard_hidden": "Bảng điểm bị ẩn đến khi kỳ thi kết thúc.",
+  "contests_hide_scoreboard_label": "Ẩn bảng điểm đến khi kỳ thi kết thúc",
+  "identity_bio": "Giới thiệu"
 }

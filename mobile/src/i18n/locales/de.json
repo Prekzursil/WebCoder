@@ -1237,5 +1237,8 @@
   "tracks_action_error": "Das hat nicht funktioniert.",
   "tracks_empty_track": "Dieser Lernpfad hat noch keine Aufgaben.",
   "related_problems_title": "Ähnliche Aufgaben",
-  "filter_editorial": "Mit Editorial"
+  "filter_editorial": "Mit Editorial",
+  "contests_scoreboard_hidden": "Die Punktetabelle ist bis zum Contestende verborgen.",
+  "contests_hide_scoreboard_label": "Punktetabelle bis zum Contestende verbergen",
+  "identity_bio": "Bio"
 }

@@ -1237,5 +1237,8 @@
   "tracks_action_error": "Això no ha funcionat.",
   "tracks_empty_track": "Aquesta ruta encara no té problemes.",
   "related_problems_title": "Problemes similars",
-  "filter_editorial": "Amb editorial"
+  "filter_editorial": "Amb editorial",
+  "contests_scoreboard_hidden": "La classificació està oculta fins que acabi el concurs.",
+  "contests_hide_scoreboard_label": "Oculta la classificació fins que acabi el concurs",
+  "identity_bio": "Bio"
 }

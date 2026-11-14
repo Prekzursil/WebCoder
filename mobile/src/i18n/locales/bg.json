@@ -1237,5 +1237,8 @@
   "tracks_action_error": "Това не сработи.",
   "tracks_empty_track": "В тази писта все още няма задачи.",
   "related_problems_title": "Подобни задачи",
-  "filter_editorial": "С разбор"
+  "filter_editorial": "С разбор",
+  "contests_scoreboard_hidden": "Класирането е скрито до края на състезанието.",
+  "contests_hide_scoreboard_label": "Скрий класирането до края на състезанието",
+  "identity_bio": "За мен"
 }

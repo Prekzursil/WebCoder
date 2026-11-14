@@ -1237,5 +1237,8 @@
   "tracks_action_error": "Cela n'a pas fonctionné.",
   "tracks_empty_track": "Ce parcours n'a pas encore de problèmes.",
   "related_problems_title": "Problèmes similaires",
-  "filter_editorial": "Avec éditorial"
+  "filter_editorial": "Avec éditorial",
+  "contests_scoreboard_hidden": "Le classement est masqué jusqu'à la fin du concours.",
+  "contests_hide_scoreboard_label": "Masquer le classement jusqu'à la fin du concours",
+  "identity_bio": "Bio"
 }

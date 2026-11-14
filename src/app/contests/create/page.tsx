@@ -24,6 +24,7 @@ export default function CreateContestPage() {
   const [startAt, setStartAt] = useState('');
   const [endAt, setEndAt] = useState('');
   const [accessCode, setAccessCode] = useState('');
+  const [hideBoard, setHideBoard] = useState(false);
   const [problemIds, setProblemIds] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -52,6 +53,7 @@ export default function CreateContestPage() {
         start_at: new Date(startAt).toISOString(),
         end_at: new Date(endAt).toISOString(),
         problem_ids: ids,
+        hide_scoreboard_until_end: hideBoard,
       });
       router.push(`/contests/${contest.id}`);
     } catch (err) {
@@ -156,6 +158,18 @@ export default function CreateContestPage() {
             required
             minLength={4}
           />
+        </label>
+        <label
+          htmlFor="cc-hide-board"
+          style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.9rem' }}
+        >
+          <input
+            id="cc-hide-board"
+            type="checkbox"
+            checked={hideBoard}
+            onChange={(e) => setHideBoard(e.target.checked)}
+          />
+          {t('contests_hide_scoreboard_label', 'Hide the scoreboard until the contest ends')}
         </label>
         <label htmlFor="cc-problems">
           {t('contest_create_problems', 'Problem IDs (comma-separated, in board order)')}

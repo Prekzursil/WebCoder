@@ -1237,5 +1237,8 @@
   "tracks_action_error": "यह काम नहीं किया।",
   "tracks_empty_track": "इस ट्रैक में अभी कोई समस्या नहीं है।",
   "related_problems_title": "समान समस्याएँ",
-  "filter_editorial": "समाधान सहित"
+  "filter_editorial": "समाधान सहित",
+  "contests_scoreboard_hidden": "प्रतियोगिता समाप्त होने तक स्कोरबोर्ड छिपा रहेगा।",
+  "contests_hide_scoreboard_label": "प्रतियोगिता समाप्त होने तक स्कोरबोर्ड छिपाएँ",
+  "identity_bio": "परिचय"
 }

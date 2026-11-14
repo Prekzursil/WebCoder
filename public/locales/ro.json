@@ -1237,5 +1237,8 @@
   "tracks_action_error": "Operația nu a reușit.",
   "tracks_empty_track": "Acest traseu nu are încă probleme.",
   "related_problems_title": "Probleme similare",
-  "filter_editorial": "Are editorial"
+  "filter_editorial": "Are editorial",
+  "contests_scoreboard_hidden": "Clasamentul este ascuns până se termină concursul.",
+  "contests_hide_scoreboard_label": "Ascunde clasamentul până se termină concursul",
+  "identity_bio": "Despre mine"
 }

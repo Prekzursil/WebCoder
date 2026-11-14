@@ -305,12 +305,13 @@ export const AuthService = {
     apiFetch<LoginResponse>('/auth/login/', { method: 'POST', body: JSON.stringify(credentials) }),
   getMe: () => apiFetch<User>('/users/me/'),
   /** RO-3/LEG-2: the self-service identity slice (county/school/is_minor). */
-  updateMe: (data: { county?: string; school?: string; isMinor?: boolean }) =>
+  updateMe: (data: { county?: string; school?: string; isMinor?: boolean; bio?: string }) =>
     apiFetch<User>('/users/me/', {
       method: 'PATCH',
       body: JSON.stringify({
         county: data.county,
         school: data.school,
+        ...(data.bio !== undefined ? { bio: data.bio } : {}),
         ...(data.isMinor !== undefined ? { is_minor: data.isMinor } : {}),
       }),
     }),

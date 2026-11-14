@@ -1237,5 +1237,8 @@
   "tracks_action_error": "That did not work.",
   "tracks_empty_track": "This track has no problems yet.",
   "related_problems_title": "Similar problems",
-  "filter_editorial": "Has editorial"
+  "filter_editorial": "Has editorial",
+  "contests_scoreboard_hidden": "The scoreboard is hidden until the contest ends.",
+  "contests_hide_scoreboard_label": "Hide the scoreboard until the contest ends",
+  "identity_bio": "Bio"
 }

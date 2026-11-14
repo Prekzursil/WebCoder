@@ -54,11 +54,14 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('IdentityCard (RO-3)', () => {
-  it('saves county/school + the minor flag through PATCH /users/me/', async () => {
+  it('saves county/school + the minor flag + the bio through PATCH /users/me/', async () => {
     api.updateMe.mockResolvedValue({ ...mocks.auth.user, county: 'Cluj', is_minor: true });
     render(<IdentityCard />);
     fireEvent.change(screen.getByTestId('identity-county'), {
       target: { value: 'Cluj' },
+    });
+    fireEvent.change(screen.getByTestId('identity-bio'), {
+      target: { value: 'Graphs, then segment trees.' },
     });
     fireEvent.click(screen.getByTestId('identity-minor'));
     fireEvent.click(screen.getByTestId('identity-save'));
@@ -67,6 +70,7 @@ describe('IdentityCard (RO-3)', () => {
         county: 'Cluj',
         school: '',
         isMinor: true,
+        bio: 'Graphs, then segment trees.',
       }),
     );
     await waitFor(() => expect(screen.getByText(/saved/i)).toBeTruthy());
