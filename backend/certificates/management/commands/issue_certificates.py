@@ -32,5 +32,7 @@ class Command(BaseCommand):
         for key, value in counts.items():
             self.stdout.write(f"{key}: {value} issued")
         self.stdout.write(
-            self.style.SUCCESS(f"done — {total} new certificate(s); existing rows untouched")
+            self.style.SUCCESS(
+                f"done — {total} new certificate(s); existing rows untouched"
+            )
         )

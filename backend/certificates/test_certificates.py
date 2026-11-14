@@ -31,7 +31,7 @@ from leaderboard.aggregation import recompute_all_leaderboards, update_user_entr
 from notifications.models import Notification
 from problems.models import Problem
 from problems.models import TestCase as ProblemTestCase
-from ratings.models import RatingHistory, UserRating
+from ratings.models import UserRating
 from ratings.services import (
     compute_contest_ratings as compute_service,
     rollback_contest_ratings,
@@ -63,12 +63,17 @@ class IssueServiceTests(TestCase):
         self.assertIsNotNone(cert)
         self.assertTrue(cert.serial.startswith(f"WC-{NOW.year}-"))
         self.assertIn(f"{cert.pk:06d}", cert.serial)
-        self.assertTrue(Notification.objects.filter(data__kind="certificate_issued").exists())
+        self.assertTrue(
+            Notification.objects.filter(data__kind="certificate_issued").exists()
+        )
 
     def test_issue_existing_returns_none(self):
         first = _issue(self.alice.pk, Certificate.Kind.SOLVE_MILESTONE, threshold=50)
         again = _issue(
-            self.alice.pk, Certificate.Kind.SOLVE_MILESTONE, threshold=50, details={"x": 1}
+            self.alice.pk,
+            Certificate.Kind.SOLVE_MILESTONE,
+            threshold=50,
+            details={"x": 1},
         )
         self.assertIsNotNone(first)
         self.assertIsNone(again)
@@ -130,7 +135,9 @@ class ContestCertificateTests(TestCase):
         self.assertEqual(cert.details["rating_after"], 1655)
         self.assertEqual(cert.details["contest_title_en"], "Winter Cup")
         self.assertEqual(cert.details["contest_title_ro"], "Cupa de Iarnă")
-        self.assertEqual(cert.details["contest_end"], self.contest.end_at.date().isoformat())
+        self.assertEqual(
+            cert.details["contest_end"], self.contest.end_at.date().isoformat()
+        )
         # Idempotent: a replay issues nothing new.
         again = issue_contest_certificates(
             self.contest, {self.alice.pk: 1}, {self.alice.pk: 1655}
@@ -140,7 +147,9 @@ class ContestCertificateTests(TestCase):
 
     def test_revoke_contest_certificates_flips_only_active(self):
         issue_contest_certificates(
-            self.contest, {self.alice.pk: 1, self.bob.pk: 2}, {self.alice.pk: 1500, self.bob.pk: 1500}
+            self.contest,
+            {self.alice.pk: 1, self.bob.pk: 2},
+            {self.alice.pk: 1500, self.bob.pk: 1500},
         )
         alice_cert = Certificate.objects.get(user=self.alice, contest=self.contest)
         alice_cert.revoked_at = NOW
@@ -162,13 +171,12 @@ class MilestoneTests(TestCase):
 
     def test_rating_milestones_issue_at_or_below(self):
         issued = issue_rating_milestones(self.alice.pk, 1500)
-        self.assertEqual(
-            sorted(c.threshold for c in issued), [1200, 1400]
-        )
+        self.assertEqual(sorted(c.threshold for c in issued), [1200, 1400])
         # Peak semantics: a later organic drop re-issues nothing and revokes nothing.
         issue_rating_milestones(self.alice.pk, 1350)
         self.assertEqual(
-            Certificate.objects.filter(kind=Certificate.Kind.RATING_MILESTONE).count(), 2
+            Certificate.objects.filter(kind=Certificate.Kind.RATING_MILESTONE).count(),
+            2,
         )
 
     def test_rating_milestones_none_below_floor(self):
@@ -299,7 +307,8 @@ class RatingsHookTests(TestCase):
         )
         # Both start at 1500 → both cross 1200 and 1400.
         self.assertEqual(
-            Certificate.objects.filter(kind=Certificate.Kind.RATING_MILESTONE).count(), 4
+            Certificate.objects.filter(kind=Certificate.Kind.RATING_MILESTONE).count(),
+            4,
         )
         # The certificate_issued notification rides the notify_users flag.
         self.assertTrue(
@@ -412,9 +421,7 @@ class CertificateAPITests(TestCase):
     def test_verify_unknown_uuid_404(self):
         import uuid as uuid_mod
 
-        response = self.client.get(
-            f"/api/v1/certificates/verify/{uuid_mod.uuid4()}/"
-        )
+        response = self.client.get(f"/api/v1/certificates/verify/{uuid_mod.uuid4()}/")
         self.assertEqual(response.status_code, 404)
 
     def test_mine_requires_auth(self):
@@ -532,8 +539,12 @@ class BackfillCommandTests(TestCase):
         self.assertIn("participation: 2", text)
         self.assertIn("rating_milestones: 4", text)
         # Default: replaying history never notifies.
-        self.assertFalse(Notification.objects.filter(data__kind="certificate_issued").exists())
+        self.assertFalse(
+            Notification.objects.filter(data__kind="certificate_issued").exists()
+        )
 
         Certificate.objects.all().delete()
         call_command("issue_certificates", "--notify", stdout=StringIO())
-        self.assertTrue(Notification.objects.filter(data__kind="certificate_issued").exists())
+        self.assertTrue(
+            Notification.objects.filter(data__kind="certificate_issued").exists()
+        )

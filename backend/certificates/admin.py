@@ -13,7 +13,15 @@ class CertificateAdmin(admin.ModelAdmin):
     the "leaderboard-derived" honesty guarantee.
     """
 
-    list_display = ("serial", "kind", "user", "contest", "threshold", "status", "issued_at")
+    list_display = (
+        "serial",
+        "kind",
+        "user",
+        "contest",
+        "threshold",
+        "status",
+        "issued_at",
+    )
     list_filter = ("kind", "revoked_at")
     search_fields = ("serial", "user__username", "contest__title_i18n")
     readonly_fields = (

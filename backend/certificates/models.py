@@ -78,7 +78,9 @@ class Certificate(models.Model):
     #: an admin action flips the atestat to REVOKED — verification keeps
     #: answering, honestly, that the achievement no longer stands.
     revoked_at = models.DateTimeField(_("revoked at"), null=True, blank=True)
-    revoked_reason = models.CharField(_("revocation reason"), max_length=200, blank=True)
+    revoked_reason = models.CharField(
+        _("revocation reason"), max_length=200, blank=True
+    )
 
     class Meta:
         verbose_name = _("certificate")

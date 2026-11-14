@@ -793,7 +793,9 @@ K = {
 
 for path in sorted(LOCALES.glob("*.json")):
     locale = path.stem
-    data = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=collections.OrderedDict)
+    data = json.loads(
+        path.read_text(encoding="utf-8"), object_pairs_hook=collections.OrderedDict
+    )
     missing = [k for k in K if locale not in K[k]]
     if missing:
         raise SystemExit(f"{locale}: missing translations for {missing}")

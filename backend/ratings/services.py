@@ -178,7 +178,10 @@ def rollback_contest_ratings(contest: Contest) -> str:
     # Wave D atestats: the discarded contest's participation certificates
     # no longer stand (revoked with the reason, never deleted), and ladder
     # milestones the replayed history no longer supports are revoked too.
-    from certificates.services import audit_rating_milestones, revoke_contest_certificates
+    from certificates.services import (
+        audit_rating_milestones,
+        revoke_contest_certificates,
+    )
 
     if had:
         revoke_contest_certificates(

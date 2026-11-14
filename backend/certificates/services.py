@@ -266,10 +266,14 @@ def backfill(*, notify_users: bool = False) -> dict[str, int]:
 
     for row in UserRating.objects.values("user_id", "rating"):
         milestones += len(
-            issue_rating_milestones(row["user_id"], row["rating"], notify_user=notify_users)
+            issue_rating_milestones(
+                row["user_id"], row["rating"], notify_user=notify_users
+            )
         )
     for row in LeaderboardEntry.objects.values("user_id"):
-        solves += len(recompute_solve_milestones(row["user_id"], notify_user=notify_users))
+        solves += len(
+            recompute_solve_milestones(row["user_id"], notify_user=notify_users)
+        )
 
     return {
         "participation": participation,
