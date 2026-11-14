@@ -13,6 +13,9 @@ vi.mock('@/services/ApiService', () => ({
     getStatementRevisions: vi.fn().mockResolvedValue({ count: 0, results: [] }),
     getSamplesBundle: vi.fn().mockResolvedValue({ count: 0, filename: '', content: '' }),
   },
+  RelatedProblemService: {
+    list: vi.fn().mockResolvedValue({ count: 0, results: [] }),
+  },
   CommunityService: {
     getCommunityEditorials: vi
       .fn()

@@ -1235,5 +1235,7 @@
   "tracks_add": "Ekle",
   "tracks_bad_id": "Bir problem id'si girin (sayı).",
   "tracks_action_error": "Bu işe yaramadı.",
-  "tracks_empty_track": "Bu parkurda henüz problem yok."
+  "tracks_empty_track": "Bu parkurda henüz problem yok.",
+  "related_problems_title": "Benzer problemler",
+  "filter_editorial": "Çözüm yazısı var"
 }

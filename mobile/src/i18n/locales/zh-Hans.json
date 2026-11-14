@@ -1235,5 +1235,7 @@
   "tracks_add": "添加",
   "tracks_bad_id": "请输入题目 id（数字）。",
   "tracks_action_error": "操作未成功。",
-  "tracks_empty_track": "该路径还没有题目。"
+  "tracks_empty_track": "该路径还没有题目。",
+  "related_problems_title": "相似题目",
+  "filter_editorial": "有题解"
 }

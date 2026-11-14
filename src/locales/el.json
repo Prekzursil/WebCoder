@@ -1235,5 +1235,7 @@
   "tracks_add": "Προσθήκη",
   "tracks_bad_id": "Εισάγετε id άσκησης (αριθμός).",
   "tracks_action_error": "Αυτό δεν λειτούργησε.",
-  "tracks_empty_track": "Αυτό το μονοπάτι δεν έχει ακόμη ασκήσεις."
+  "tracks_empty_track": "Αυτό το μονοπάτι δεν έχει ακόμη ασκήσεις.",
+  "related_problems_title": "Παρόμοιες ασκήσεις",
+  "filter_editorial": "Με λύση"
 }

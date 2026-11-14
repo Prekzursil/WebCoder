@@ -1235,5 +1235,7 @@
   "tracks_add": "Қосу",
   "tracks_bad_id": "Есеп id-сін енгізіңіз (сан).",
   "tracks_action_error": "Бұл жасалмады.",
-  "tracks_empty_track": "Бұл тректе әлі есеп жоқ."
+  "tracks_empty_track": "Бұл тректе әлі есеп жоқ.",
+  "related_problems_title": "Ұқсас есептер",
+  "filter_editorial": "Шешімі бар"
 }

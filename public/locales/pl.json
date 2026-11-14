@@ -1235,5 +1235,7 @@
   "tracks_add": "Dodaj",
   "tracks_bad_id": "Podaj id zadania (liczba).",
   "tracks_action_error": "To nie zadziałało.",
-  "tracks_empty_track": "Ta ścieżka nie ma jeszcze zadań."
+  "tracks_empty_track": "Ta ścieżka nie ma jeszcze zadań.",
+  "related_problems_title": "Podobne zadania",
+  "filter_editorial": "Z rozwiązaniem"
 }

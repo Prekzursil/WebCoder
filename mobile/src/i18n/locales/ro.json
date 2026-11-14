@@ -1235,5 +1235,7 @@
   "tracks_add": "Adaugă",
   "tracks_bad_id": "Introdu un id de problemă (număr).",
   "tracks_action_error": "Operația nu a reușit.",
-  "tracks_empty_track": "Acest traseu nu are încă probleme."
+  "tracks_empty_track": "Acest traseu nu are încă probleme.",
+  "related_problems_title": "Probleme similare",
+  "filter_editorial": "Are editorial"
 }

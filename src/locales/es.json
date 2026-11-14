@@ -1235,5 +1235,7 @@
   "tracks_add": "Añadir",
   "tracks_bad_id": "Introduce un id de problema (número).",
   "tracks_action_error": "Eso no funcionó.",
-  "tracks_empty_track": "Esta ruta aún no tiene problemas."
+  "tracks_empty_track": "Esta ruta aún no tiene problemas.",
+  "related_problems_title": "Problemas similares",
+  "filter_editorial": "Con editorial"
 }

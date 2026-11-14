@@ -1235,5 +1235,7 @@
   "tracks_add": "追加",
   "tracks_bad_id": "問題id（数字）を入力してください。",
   "tracks_action_error": "うまくいきませんでした。",
-  "tracks_empty_track": "このトラックにはまだ問題がありません。"
+  "tracks_empty_track": "このトラックにはまだ問題がありません。",
+  "related_problems_title": "類似問題",
+  "filter_editorial": "解説あり"
 }

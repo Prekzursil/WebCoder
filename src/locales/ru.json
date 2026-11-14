@@ -1235,5 +1235,7 @@
   "tracks_add": "Добавить",
   "tracks_bad_id": "Введите id задачи (число).",
   "tracks_action_error": "Не получилось.",
-  "tracks_empty_track": "В этом треке пока нет задач."
+  "tracks_empty_track": "В этом треке пока нет задач.",
+  "related_problems_title": "Похожие задачи",
+  "filter_editorial": "Есть разбор"
 }

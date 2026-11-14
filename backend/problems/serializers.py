@@ -70,6 +70,11 @@ class ProblemSerializer(serializers.ModelSerializer):
         source="tags",  # Link this field to the 'tags' model field for writing
         required=False,
     )
+    # DMOJ-style "has editorial" catalog facet: read from the viewset's
+    # Exists() annotation when present (safe default False for bare
+    # instances serialized outside the catalog queryset).
+    has_editorial = serializers.SerializerMethodField()
+
     author = UserSerializer(read_only=True)  # Display author details
     author_id = serializers.PrimaryKeyRelatedField(
         queryset=get_user_model().objects.all(),  # Use get_user_model()
@@ -185,6 +190,7 @@ class ProblemSerializer(serializers.ModelSerializer):
             "last_modified_date",
             "submission_count",
             "solved_count",
+            "has_editorial",
             # Archive provenance (RO-6 browse axis + CNT-2 ledger link).
             "source_contest",
             "source_year",
@@ -196,6 +202,9 @@ class ProblemSerializer(serializers.ModelSerializer):
             # 'test_cases' # Add if you want to nest test cases in problem detail view
         ]
         read_only_fields = ["author", "verifier", "creation_date", "last_modified_date"]
+
+    def get_has_editorial(self, obj) -> bool:
+        return bool(getattr(obj, "has_editorial", False))
 
     def validate_allowed_languages(self, value):
         """Every declared allowed language must be a judge-registry id.

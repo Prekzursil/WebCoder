@@ -18,6 +18,7 @@ import EditoralPanelPlaceholder from './EditorialPanel';
 import ProblemStatsPanel from './ProblemStatsPanel';
 import CommunityEditorialsPanel from './CommunityEditorialsPanel';
 import RelatedArticlesStrip from './RelatedArticlesStrip';
+import RelatedProblemsStrip from './RelatedProblemsStrip';
 import SolutionsPanel from './SolutionsPanel';
 import DiscussionsPanel from './DiscussionsPanel';
 import EditorialEtiquetteBanner from './EditorialEtiquetteBanner';
@@ -590,6 +591,7 @@ export default async function ProblemDetailPage({ params, searchParams }: Proble
           {/* Wave C [EDT-3/EDT-4/EDT-6]: community editorials + related reading */}
           <CommunityEditorialsPanel problemId={Number(problemId)} />
           <RelatedArticlesStrip problemId={Number(problemId)} />
+          <RelatedProblemsStrip problemId={Number(problemId)} />
           <SolutionsPanel problemId={Number(problemId)} />
           {/* COM-1: per-problem discussion threads on the problem page. */}
           <DiscussionsPanel problemId={Number(problemId)} />

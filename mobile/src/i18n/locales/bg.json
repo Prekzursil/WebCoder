@@ -1235,5 +1235,7 @@
   "tracks_add": "Добави",
   "tracks_bad_id": "Въведете id на задача (число).",
   "tracks_action_error": "Това не сработи.",
-  "tracks_empty_track": "В тази писта все още няма задачи."
+  "tracks_empty_track": "В тази писта все още няма задачи.",
+  "related_problems_title": "Подобни задачи",
+  "filter_editorial": "С разбор"
 }
