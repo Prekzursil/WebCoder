@@ -284,6 +284,23 @@ State at risk: the `pgdata` named volume (users, problems, testcases, submission
 - Public API (OPS-1): `/api/v1/public/` is unauthenticated read-only at
   `THROTTLE_PUBLIC_API_RATE` (default 60/min).
 
+## Wave D operator notes
+
+- `manage.py issue_certificates` — idempotent derivation of atestats
+  (contest participation / rating milestones / solve milestones) from
+  existing history. Run once after deploying the certificates app
+  (before the first rated contest is unnecessary otherwise — the ratings
+  commit and the post-AC leaderboard recompute issue them live).
+  `--notify` also notifies holders; the default is silent (replaying
+  history never spams).
+- OPS-2 progressive 2FA: `TWO_FACTOR_ENFORCE=true` (env) flips privileged
+  writes (problem authoring/approval) to refuse until TOTP is enrolled;
+  the default `false` is the "warn" phase (the `two_factor_required`
+  banner). Turn it on once every CREATOR/VERIFIER/ADMIN has enrolled.
+- OPS-7 groundwork has no billing env vars by design — sponsor
+  attribution (`Contest.sponsor_name/logo_url`) and /support are
+  display-only rails.
+
 ## §email — mail transport, weekly digest, deliverability (SP5/UXP-5b/OPR-5)
 
 Mail is env-driven with a **console-backend default** — no deploy sends

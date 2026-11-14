@@ -98,6 +98,8 @@ const Navbar: React.FC = () => {
     { href: '/messages', label: t('nav_messages', 'Messages') },
     { href: '/profile', label: t('nav_profile', 'Profile') },
     { href: '/my-submissions', label: t('nav_my_submissions', 'My Submissions') },
+    // Wave D atestats (certifications): the holder's certificates.
+    { href: '/certificates', label: t('nav_certificates', 'Certificates') },
     { href: '/submission-history', label: t('nav_submission_history', 'History') },
   ];
   const roleLinks: NavLinkItem[] = [

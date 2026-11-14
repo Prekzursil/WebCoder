@@ -95,6 +95,13 @@ def update_user_entry(user_id):
             "last_solved_at": last_solved_at,
         },
     )
+    # Wave D atestats (SOLVE_MILESTONE): this row IS the derivation the
+    # certificates stand on — re-derive idempotently, but only once the
+    # first threshold (10) is reachable so beginners' ACs stay query-free.
+    if solved_count >= 10:
+        from certificates.services import recompute_solve_milestones
+
+        recompute_solve_milestones(user_id)
     return entry
 
 
@@ -144,6 +151,14 @@ def recompute_all_leaderboards():
                 },
             )
         LeaderboardEntry.objects.exclude(user_id__in=per_user.keys()).delete()
+    # Wave D atestats: re-derive solve milestones from the freshly-written
+    # rows (idempotent — full recompute runs after imports/data surgery,
+    # exactly when the backfill is wanted).
+    from certificates.services import recompute_solve_milestones
+
+    for user_id, acc in per_user.items():
+        if acc["solved_count"] >= 10:
+            recompute_solve_milestones(user_id)
     return len(per_user)
 
 

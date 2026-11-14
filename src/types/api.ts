@@ -773,3 +773,30 @@ export interface TranslationAttribution {
   contributor_username: string;
   reviewed_at: string | null;
 }
+
+/** [Wave D certifications] One atestat row — see backend
+ *  certificates/models.py. `details` is the frozen achievement snapshot
+ *  (rank / rating_after / solved / contest titles by kind). */
+export interface CertificateType {
+  uuid: string;
+  serial: string;
+  kind: 'CONTEST_PARTICIPATION' | 'RATING_MILESTONE' | 'SOLVE_MILESTONE';
+  status: 'VALID' | 'REVOKED';
+  holder: string;
+  details: {
+    rank?: number;
+    rating_after?: number;
+    solved?: number;
+    threshold?: number;
+    rating?: number;
+    contest_id?: number;
+    contest_title_en?: string;
+    contest_title_ro?: string;
+    contest_end?: string;
+  };
+  issued_at: string;
+  revoked_at: string | null;
+  revoked_reason: string;
+}
+
+export type GetMyCertificatesResponse = PaginatedResponse<CertificateType>;

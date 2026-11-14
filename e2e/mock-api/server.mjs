@@ -2194,6 +2194,66 @@ const server = createServer((req, res) => {
     return;
   }
 
+  // ---- Wave D atestats (certifications) --------------------------------
+  // [Wave D certifications — the honest variant] Two fixtures: a VALID
+  // participation certificate and a REVOKED rating milestone, so the e2e
+  // lane covers both verification answers.
+  const MOCK_CERTIFICATES = [
+    {
+      uuid: 'e2e-cert-0001-valid-000000000001',
+      serial: 'WC-2026-000042',
+      kind: 'CONTEST_PARTICIPATION',
+      status: 'VALID',
+      holder: 'e2e_tester',
+      details: {
+        rank: 3,
+        rating_after: 1662,
+        contest_id: 1,
+        contest_title_en: 'Winter Cup',
+        contest_title_ro: 'Cupa de Iarnă',
+        contest_end: '2026-11-01',
+      },
+      issued_at: '2026-11-02T10:00:00Z',
+      revoked_at: null,
+      revoked_reason: '',
+    },
+    {
+      uuid: 'e2e-cert-0002-revoked-0000000002',
+      serial: 'WC-2026-000043',
+      kind: 'RATING_MILESTONE',
+      status: 'REVOKED',
+      holder: 'e2e_tester',
+      details: { threshold: 1600, rating: 1610 },
+      issued_at: '2026-11-02T10:00:01Z',
+      revoked_at: '2026-11-05T09:00:00Z',
+      revoked_reason: 'contest 1 ratings discarded by organizer',
+    },
+  ];
+
+  if (req.method === 'GET' && path === '/api/v1/certificates/mine/') {
+    if (!sessionUser(req)) {
+      json(res, 401, { detail: 'Authentication credentials were not provided.' });
+      return;
+    }
+    json(res, 200, {
+      count: MOCK_CERTIFICATES.length,
+      next: null,
+      previous: null,
+      results: MOCK_CERTIFICATES,
+    });
+    return;
+  }
+  if (req.method === 'GET' && path.startsWith('/api/v1/certificates/verify/')) {
+    const uuid = path.slice('/api/v1/certificates/verify/'.length).replace(/\/$/, '');
+    const found = MOCK_CERTIFICATES.find((c) => c.uuid === uuid);
+    if (!found) {
+      json(res, 404, { detail: 'Not found.' });
+      return;
+    }
+    json(res, 200, found);
+    return;
+  }
+
   json(res, 404, { detail: `No mock for ${req.method} ${path}` });
 });
 
