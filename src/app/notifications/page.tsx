@@ -104,6 +104,10 @@ function targetHref(n: ApiNotification): string | null {
     const conversationId = num(n, 'conversation_id');
     return conversationId !== undefined ? `/messages/${conversationId}` : null;
   }
+  const certUuid = str(n, 'certificate_uuid');
+  if (n.verb === 'SYSTEM' && str(n, 'kind') === 'certificate_issued' && certUuid) {
+    return `/certificates/${certUuid}`;
+  }
   if (n.target_type === 'submission' && n.target_id !== null) return `/submissions/${n.target_id}`;
   if (n.target_type === 'thread' && n.target_id !== null) return `/forum/${n.target_id}`;
   if (n.target_type === 'problem' && (num(n, 'problem_id') ?? n.target_id) !== null) {
@@ -176,11 +180,23 @@ function describe(
       };
     }
     case 'SYSTEM':
-    default:
+    default: {
+      if (str(n, 'kind') === 'certificate_issued') {
+        const serial = str(n, 'serial') ?? '';
+        return {
+          title: t('notification_certificate_title', 'Certificate issued'),
+          body: t(
+            'notification_certificate_body',
+            'A new certificate ({{serial}}) is waiting on your certificates page.',
+            { serial },
+          ),
+        };
+      }
       return {
         title: t('notification_system_title', 'System notification'),
         body: str(n, 'message') ?? '',
       };
+    }
   }
 }
 

@@ -17,6 +17,7 @@ import {
   AdminStatsResponse,
   ApiNotification,
   AssignmentGrid,
+  CertificateType,
   Clarification,
   ClassMembershipRow,
   ClassRoom,
@@ -388,6 +389,14 @@ export const AuthService = {
       body: JSON.stringify({}),
     }),
   revokeApiToken: () => apiFetch<{ detail: string }>('/users/me/tokens/', { method: 'DELETE' }),
+};
+
+// [Wave D certifications] The holder's atestats (paginated; newest first).
+export const CertificateService = {
+  getMyCertificates: (page = 1) =>
+    apiFetch<PaginatedResponse<CertificateType>>(
+      `/certificates/mine/?page=${page}`,
+    ),
 };
 
 export const ToolingService = {

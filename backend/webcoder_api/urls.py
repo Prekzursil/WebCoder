@@ -53,6 +53,10 @@ urlpatterns = [
     path("api/v1/contests/", include("contests.urls", namespace="contests_api_v1")),
     # Ratings (competitive roadmap Wave B: RAT-1/2/3 + SAF-2 rollback).
     path("api/v1/ratings/", include("ratings.urls", namespace="ratings_api_v1")),
+    path(
+        "api/v1/certificates/",
+        include("certificates.urls", namespace="certificates_api_v1"),
+    ),
     path("api/v1/classroom/", include("classroom.urls", namespace="classroom_api_v1")),
     # Community depth (competitive roadmap Wave C: COM-3/7, RAT-8/9/10).
     path(

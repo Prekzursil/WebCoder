@@ -101,6 +101,8 @@ INSTALLED_APPS = [
     "scratch",
     "contests",
     "ratings",
+    # Wave D certifications/attestations: leaderboard-derived atestats.
+    "certificates",
     # Classroom (competitive roadmap Wave B: EDU-1/2/3).
     "classroom",
     "community_depth",

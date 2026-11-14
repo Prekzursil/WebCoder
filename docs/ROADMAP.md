@@ -3,9 +3,9 @@
 Last updated: 2026-10-30 · This is the master plan. Layers are the platform's architecture; within each, items carry status: **SHIPPED** (with PR), **IN FLIGHT** (current program: waves A–D → parity audit → judge-fairness → i18n-10 → mobile → waves E/F/G), or **NEXT** (backlog item numbers from `BACKLOG.md`, e.g. "B-29"). Work top-down within dependencies; the tracker of record for item-level status is `BACKLOG.md`.
 
 ## Layer 0 — Core judge & execution
-- SHIPPED: sandboxed docker-exec judge; 5 languages; per-test partial scoring; custom checkers (5 modes); per-problem time/mem limits; MLE/TLE genuine detection; verdict-forging backdoors removed; submit-time language validation (#181–#183).
+- SHIPPED: sandboxed docker-exec judge; interactive problems — interactor protocol over piped stdio with own limits + pair wall-clock cap (JDG-2, Wave D #239); 5 languages; per-test partial scoring; custom checkers (5 modes); per-problem time/mem limits; MLE/TLE genuine detection; verdict-forging backdoors removed; submit-time language validation (#181–#183).
 - IN FLIGHT: per-language time+memory multipliers; language expansion (Pascal+8); per-problem library/feature policy (Boost bans, stdlib bans, string-bypass class); partial-code problems w/ locked regions; Scratch/block editor (judge-fairness wave).
-- NEXT: subtask groups (A-1), interactive problems (A-2), output-only (A-3), rich checkers (A-4), diff viewer (A-7), sample-run pre-submit (A-8), stress-test helper (A-12), rejudge tooling (A-15/16/17), test strength analysis, time-travel TLE analysis (A-25).
+- NEXT: subtask groups (A-1), output-only (A-3, shipped #246), rich checkers (A-4), diff viewer (A-7), sample-run pre-submit (A-8), stress-test helper (A-12), rejudge tooling (A-15/16/17), test strength analysis, time-travel TLE analysis (A-25).
 
 ## Layer 1 — Learning & curriculum
 - SHIPPED: difficulty/tags catalog, hints-free problem pages (hints = NEXT), skeleton onboarding pages.
@@ -22,18 +22,19 @@ Last updated: 2026-10-30 · This is the master plan. Layers are the platform's a
 - NEXT: editorials system (D-59), per-problem discuss (D-60), solution sharing (D-61/11), blogs (D-62), wiki (D-63), WA-help queue (D-64), follow/feeds (D-65), reputation (D-66), problem-request board (D-69), embeds (D-72); authoring: wizard (I-121), generator DSL (I-122), statement linter (I-123), versioning (I-125), variants (I-126), Polygon import (I-127), attachments (I-128), advanced search (I-129), source attribution (I-130), author analytics (I-132).
 
 ## Layer 4 — Client experiences (web / PWA / mobile)
-- SHIPPED: responsive+a11y gates, dark tokens base, RO/EN, viewport suites.
-- IN FLIGHT: PWA install, Expo iOS+Android apps w/ store package (mobile wave); 10-language UI everywhere (i18n wave).
+- SHIPPED: responsive+a11y gates, dark tokens base, RO/EN, viewport suites; PWA — manifest + service worker, offline problem browsing, install, notification deep links (OPS-6, Wave D #241; install icons #289).
+- IN FLIGHT: Expo iOS+Android apps w/ store package (mobile wave; shipped #289); 10-language UI everywhere (i18n wave).
 - NEXT: CodeMirror 6 editor + console (E-73/74), split layout (E-75), drafts (E-76), KaTeX statements (E-77), annotations (E-78), full dark mode (E-79), palette (E-80), federated search (E-82), lists/pinning (E-83), digests (E-84), .ics (E-85), timezones (E-87), onboarding checklist (E-88), guest try-it (E-89), minor-safe profiles (E-90), a11y+ mode (E-91), offline packs (E-92/93), tour (E-94); mobile: push (F-95), offline mode (F-96), widget (F-97), tablet mode (F-98), QR join (F-99), fallbacks (F-100).
 
 ## Layer 5 — Data, analytics & insights
-- IN FLIGHT: owner analytics instrumentation (wave D); leaderboard aggregation (shipped).
+- SHIPPED: owner analytics instrumentation — activation funnel, D1/D7, weekly frozen snapshots + admin dashboard (ANA-1, wave D #244); leaderboard aggregation.
 - NEXT: heat calendar (G-101), per-problem language stats (G-102), difficulty calibration (G-103), time-of-day (G-104), org dashboards (G-105), API v1 expansion (G-106), webhooks (G-107), data export (G-108), A/B framework (G-109), search analytics (G-110), funnel dashboards (G-111), season reports (G-112).
 
 ## Layer 6 — Integrity, safety & trust
 - SHIPPED: sandbox receipts, throttles, moderation states, cookie-auth, CSRF.
 - IN FLIGHT: contest integrity guards + AI-cheating policy (wave B/C).
-- NEXT: plagiarism detection MOSS/JPlag (H-113), boilerplate detection (H-114), multi-account heuristics (H-115), AI-solution labeling (H-116), abuse queue + SLA (H-117), moderation appeals + audit (H-118), bug bounty (H-119), verifiable participation certs (H-120).
+- SHIPPED (wave D, certifications): leaderboard-derived atestats — rated-contest participation / rating milestones / solve milestones, public UUID verification page, print/PDF, revocation ledger (H-120; contest medals were the first increment, Wave C CON-11).
+- NEXT: plagiarism detection MOSS/JPlag (H-113), boilerplate detection (H-114), multi-account heuristics (H-115), AI-solution labeling (H-116), abuse queue + SLA (H-117), moderation appeals + audit (H-118), bug bounty (H-119).
 
 ## Layer 7 — Platform ops & reliability
 - SHIPPED: compose stack + overrides, CI gates, prod settings profile, socket-proxy variant, backup strategy doc.
@@ -41,6 +42,7 @@ Last updated: 2026-10-30 · This is the master plan. Layers are the platform's a
 - NEXT: judge queue transparency (J-135), autoscaling workers (J-136), priority lanes (J-137), load harness (J-138), status page (J-139), blue-green (J-140), nightly prod-like e2e (J-141), restore drills (J-142), cost dashboard (J-143), edge protection (J-144), error tracking productized (J-145).
 
 ## Layer 8 — Sustainability & ecosystem
+- DECIDED (wave D): open-source/self-host posture — docs/DECISION-OPEN-SOURCE.md (closed platform pre-traction; component-level OSS rolling; K-149 remains the backlog item for the first extraction).
 - NEXT: supporter tier (K-146), school partnerships (K-147), teacher certification (K-148), open-source client components (K-149), transparency report (K-150). Events: community awards (D-67), AMAs (D-68), setter CVs (D-70), share cards (D-71).
 
 ## Sequencing rule

@@ -130,6 +130,21 @@ def compute_contest_ratings(contest: Contest, *, notify_users: bool = True) -> s
                         "rating": result.rating,
                     },
                 )
+
+    # Wave D atestats (certifications item): the rank map + post-contest
+    # ratings Glicko just persisted are the leaderboard-derived truth an
+    # atestat freezes — issue participation certificates and ladder
+    # milestones for every finisher (idempotent; notifications follow the
+    # caller's replay-suppression choice).
+    from certificates.services import (
+        issue_contest_certificates,
+        issue_rating_milestones,
+    )
+
+    ratings_after = {result.user_id: result.rating for result in results}
+    issue_contest_certificates(contest, ranks, ratings_after, notify_users=notify_users)
+    for user_id, rating in ratings_after.items():
+        issue_rating_milestones(user_id, rating, notify_user=notify_users)
     return f"contest {contest.id}: {len(results)} ratings updated"
 
 
@@ -160,6 +175,16 @@ def rollback_contest_ratings(contest: Contest) -> str:
         result = compute_contest_ratings(other, notify_users=False)
         if "ratings updated" in result:
             replayed += 1
+    # Wave D atestats: the discarded contest's participation certificates
+    # no longer stand (revoked with the reason, never deleted), and ladder
+    # milestones the replayed history no longer supports are revoked too.
+    from certificates.services import audit_rating_milestones, revoke_contest_certificates
+
+    if had:
+        revoke_contest_certificates(
+            contest, reason=f"contest {contest.id} ratings discarded by organizer"
+        )
+    audit_rating_milestones()
     if not had:
         return f"contest {contest.id} was never rated; nothing to roll back"
     return f"contest {contest.id} discarded (was rated); {replayed} contests replayed"
