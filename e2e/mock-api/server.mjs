@@ -69,7 +69,6 @@ const MOCK_PROBLEMS = [
     title_i18n: { en: 'Reverse String', ro: 'Inversarea unui șir' },
     difficulty: 'MEDIUM',
     status: 'APPROVED',
-    has_editorial: true,
     // Wave A learning-layer fixtures: markdown+math statement (A7), hints
     // (EDT-2) and an editorial (EDT-1) the /problems/2 page renders.
     statement_i18n: {
