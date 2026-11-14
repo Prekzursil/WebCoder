@@ -124,7 +124,13 @@ class ValidatorRunTests(ClosureBase):
         self.assertFalse(response.data["valid"])
         self.assertEqual(response.data["violation"]["phase"], "validator")
         self.assertEqual(response.data["violation"]["input"], "42\n")
-        self.assertEqual(response.data["violation"]["message"], "n too big")
+        # The validator's stderr never crosses into the response (CodeQL
+        # stack-trace-exposure) — it lands on the audit row instead.
+        self.assertNotIn("message", response.data["violation"])
+        from scratch.models import StressRun
+
+        audit = StressRun.objects.filter(user=self.verifier).order_by("-id").first()
+        self.assertEqual(audit.detail["message"], "n too big")
 
     @mock.patch("problems.tooling.run_code_in_sandbox")
     @mock.patch("problems.tooling.compile_code_in_sandbox")
@@ -139,15 +145,20 @@ class ValidatorRunTests(ClosureBase):
         self.assertEqual(response.data["violation"]["phase"], "generator")
 
     @mock.patch("problems.tooling.compile_code_in_sandbox")
-    def test_compile_failure_returns_compiler_text(self, compile_mock):
+    def test_compile_failure_returns_static_hint_and_audits(self, compile_mock):
         compile_mock.return_value = (False, "SyntaxError: bad", None)
         self.client.force_authenticate(self.creator)
         response = self.client.post(
             "/api/v1/problems/tools/validate/", self.payload(), format="json"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        # The generator compiles first, so its diagnostics come back first.
-        self.assertIn("SyntaxError", str(response.data["generator_code"]))
+        # The generator compiles first; the response is a STATIC hint (no
+        # sandbox diagnostics cross the API), the real output is audited.
+        self.assertIn("audit record", str(response.data["generator_code"]))
+        from scratch.models import StressRun
+
+        audit = StressRun.objects.filter(user=self.creator).order_by("-id").first()
+        self.assertIn("SyntaxError", audit.detail["generator_code"])
 
 
 # ---------------------------------------------------------------------------
@@ -219,7 +230,12 @@ class GenerateOutputsTests(ClosureBase):
         )
         self.assertEqual(response.status_code, 200, response.data)
         self.assertEqual(response.data["results"][0]["verdict"], "TLE")
-        self.assertEqual(response.data["results"][0]["message"], "slow")
+        self.assertNotIn("message", response.data["results"][0])
+        from scratch.models import StressRun
+
+        audit = StressRun.objects.filter(user=self.verifier).order_by("-id").first()
+        # Both explicit inputs ran non-AC, so both stderr excerpts persist.
+        self.assertEqual(audit.detail["diagnostics"], ["slow", "slow"])
 
     @mock.patch("problems.tooling.run_code_in_sandbox")
     @mock.patch("problems.tooling.compile_code_in_sandbox")
@@ -273,7 +289,11 @@ class GenerateOutputsTests(ClosureBase):
             "/api/v1/problems/tools/generate-outputs/", self.payload(), format="json"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("bad ref", str(response.data["reference_code"]))
+        self.assertIn("audit record", str(response.data["reference_code"]))
+        from scratch.models import StressRun as _SR
+
+        audit = _SR.objects.filter(user=self.creator).order_by("-id").first()
+        self.assertIn("bad ref", audit.detail["reference_code"])
 
     @mock.patch("problems.tooling.run_code_in_sandbox")
     @mock.patch("problems.tooling.compile_code_in_sandbox")
@@ -294,7 +314,11 @@ class GenerateOutputsTests(ClosureBase):
             "/api/v1/problems/tools/generate-outputs/", payload, format="json"
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("bad gen", str(response.data["generator_code"]))
+        self.assertIn("audit record", str(response.data["generator_code"]))
+        from scratch.models import StressRun as _SR
+
+        audit = _SR.objects.filter(user=self.creator).order_by("-id").first()
+        self.assertIn("bad gen", audit.detail["generator_code"])
 
 
 # ---------------------------------------------------------------------------

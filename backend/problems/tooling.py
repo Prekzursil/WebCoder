@@ -51,6 +51,14 @@ MAX_STRESS_ITERATIONS = 50
 STRESS_TIME_LIMIT_MS = 5000
 STRESS_MEMORY_LIMIT_KB = 262144
 
+#: Static compile-failure hint — the response NEVER carries sandbox or
+#: compiler diagnostics (exception-derived text); they live on the
+#: persisted StressRun audit row instead.
+_COMPILE_FAILED_HINT = (
+    "Compilation failed — diagnostics are on the run's audit record; "
+    "use the scratch console to reproduce them."
+)
+
 
 def _run_compiled(
     executable_path, language: str, stdin_data: str, workspace_dir
@@ -426,14 +434,13 @@ def _compile_or_400(code, language, workspace_dir, key, request):
         code, language, workspace_dir, None
     )
     if not ok:
-        record = StressRun.objects.create(
+        StressRun.objects.create(
             user=request.user,
             iterations=0,
             found=False,
             detail={f"{key}_code": compiler_output[:2000]},
         )
-        persisted = StressRun.objects.get(pk=record.pk)
-        return False, None, persisted.detail
+        return False, None, {f"{key}_code": _COMPILE_FAILED_HINT}
     return ok, executable, None
 
 
@@ -482,6 +489,7 @@ class ValidatorRunView(APIView):
                 )
 
         violation = None
+        detail_message = ""
         runs = 0
         with _judge_workspace("validate_") as workspace:
             workspace_dir = pathlib.Path(workspace)
@@ -524,26 +532,27 @@ class ValidatorRunView(APIView):
                         "phase": "validator",
                         "input": gen_out[:4000],
                         "verdict": val_verdict,
-                        "message": val_err[:1000],
                     }
+                    detail_message = val_err[:1000]
                     break
 
         record = StressRun.objects.create(
             user=request.user,
             iterations=runs,
             found=violation is not None,
-            detail={"violation": violation} if violation else {},
+            detail={"violation": violation, "message": detail_message}
+            if violation
+            else {},
         )
-        # Serialization boundary: the violation (with the validator's
-        # sandbox stderr) is re-read from the audit row, never answered
-        # straight from the sandbox flow.
-        persisted = StressRun.objects.get(pk=record.pk)
+        # The response carries only verdicts + the offending input; the
+        # validator's stderr stays on the audit row (no tainted value
+        # crosses into the Response — CodeQL stack-trace-exposure).
         return Response(
             {
-                "id": persisted.id,
-                "iterations": persisted.iterations,
-                "valid": not persisted.found,
-                "violation": persisted.detail.get("violation"),
+                "id": record.id,
+                "iterations": record.iterations,
+                "valid": violation is None,
+                "violation": violation,
             }
         )
 
@@ -645,32 +654,30 @@ class GenerateOutputsView(APIView):
                         )
                     inputs.append(gen_out)
 
+            diagnostics: list[str] = []
             for stdin_data in inputs:
                 verdict, out, err = _run_full(
                     ref_exec, data["reference_language"], stdin_data, workspace_dir
                 )
+                # Only verdicts + program output cross into the response;
+                # non-AC stderr (exception-derived) goes to the audit row.
                 entry = {"input": stdin_data[:20000], "output": out[:20000]}
                 if verdict != "AC":
                     entry["verdict"] = verdict
-                    entry["message"] = err[:1000]
+                    diagnostics.append(err[:1000])
                 results.append(entry)
 
         record = StressRun.objects.create(
             user=request.user,
             iterations=len(results),
             found=False,
-            detail={"results": results},
+            detail={"results": results, "diagnostics": diagnostics},
         )
-        # Serialization boundary again: results carry the reference
-        # program's sandbox stderr on non-AC rows — re-read from the audit
-        # row before answering (CodeQL taint break, #238 pattern).
-        persisted = StressRun.objects.get(pk=record.pk)
-        persisted_results = persisted.detail["results"]
         return Response(
             {
-                "id": persisted.id,
-                "count": len(persisted_results),
-                "results": persisted_results,
+                "id": record.id,
+                "count": len(results),
+                "results": results,
             }
         )
 
