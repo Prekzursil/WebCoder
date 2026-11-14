@@ -1178,5 +1178,9 @@
   "reset_password_done": "อัปเดตรหัสผ่านแล้ว คุณเข้าสู่ระบบได้เลย",
   "reset_password_invalid": "ลิงก์รีเซ็ตนี้ไม่ถูกต้องหรือหมดอายุแล้ว ขอลิงก์ใหม่ได้เลย",
   "reset_password_request_new": "ขอลิงก์ใหม่",
-  "reset_password_mismatch": "รหัสผ่านทั้งสองไม่ตรงกัน"
+  "reset_password_mismatch": "รหัสผ่านทั้งสองไม่ตรงกัน",
+  "archive_filter_toggle": "คลังข้อสอบโอลิมปิก",
+  "archive_year_label": "ปีที่จัด",
+  "archive_grade_label": "กลุ่มชั้นเรียน",
+  "archive_all_groups": "ทุกกลุ่ม"
 }

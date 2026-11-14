@@ -1178,5 +1178,9 @@
   "reset_password_done": "密码已更新，现在即可登录。",
   "reset_password_invalid": "该重置链接无效或已过期，请重新申请。",
   "reset_password_request_new": "申请新链接",
-  "reset_password_mismatch": "两次输入的密码不一致。"
+  "reset_password_mismatch": "两次输入的密码不一致。",
+  "archive_filter_toggle": "奥赛题库",
+  "archive_year_label": "届次年份",
+  "archive_grade_label": "年级组",
+  "archive_all_groups": "全部组别"
 }

@@ -1178,5 +1178,9 @@
   "reset_password_done": "تم تحديث كلمة المرور. يمكنك تسجيل الدخول الآن.",
   "reset_password_invalid": "رابط إعادة التعيين غير صالح أو منتهي الصلاحية. اطلب رابطًا جديدًا.",
   "reset_password_request_new": "اطلب رابطًا جديدًا",
-  "reset_password_mismatch": "كلمتا المرور غير متطابقتين."
+  "reset_password_mismatch": "كلمتا المرور غير متطابقتين.",
+  "archive_filter_toggle": "أرشيف الأولمبياد",
+  "archive_year_label": "سنة النسخة",
+  "archive_grade_label": "مجموعة الصفوف",
+  "archive_all_groups": "كل المجموعات"
 }

@@ -1178,5 +1178,9 @@
   "reset_password_done": "رمز عبور به‌روزرسانی شد. اکنون می‌توانید وارد شوید.",
   "reset_password_invalid": "این پیوند بازنشانی نامعتبر است یا منقضی شده است. پیوند جدید بگیرید.",
   "reset_password_request_new": "درخواست پیوند جدید",
-  "reset_password_mismatch": "دو رمز عبور با هم مطابقت ندارند."
+  "reset_password_mismatch": "دو رمز عبور با هم مطابقت ندارند.",
+  "archive_filter_toggle": "آرشیو المپیاد",
+  "archive_year_label": "سال برگزاری",
+  "archive_grade_label": "گروه پایه",
+  "archive_all_groups": "همه گروه‌ها"
 }

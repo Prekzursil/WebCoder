@@ -43,12 +43,25 @@ const CATALOG_PAGE_SIZE = 100;
  */
 export function getProblemsPage(
   page = 1,
-  filters: { curriculumNode?: number | string } = {},
+  filters: {
+    curriculumNode?: number | string;
+    archive?: boolean;
+    sourceYear?: number | string;
+    gradeGroup?: string;
+  } = {},
 ): Promise<PaginatedResponse<ProblemType>> {
-  const nodeQs = filters.curriculumNode ? `&curriculum_node=${filters.curriculumNode}` : '';
-  return fetchJson<PaginatedResponse<ProblemType>>(
-    `/problems/problems/?page=${page}&page_size=${CATALOG_PAGE_SIZE}${nodeQs}`,
-  );
+  // [roadmap RO-6] The archive browse axis filters the SERVER fetch, same
+  // as the curriculum axis, so deep links (?archive=1&source_year=2024)
+  // are answered by the backend, not the client's loaded-page window.
+  const params = new URLSearchParams({
+    page: String(page),
+    page_size: String(CATALOG_PAGE_SIZE),
+  });
+  if (filters.curriculumNode) params.set('curriculum_node', String(filters.curriculumNode));
+  if (filters.archive) params.set('archive', '1');
+  if (filters.sourceYear) params.set('source_year', String(filters.sourceYear));
+  if (filters.gradeGroup) params.set('grade_group', filters.gradeGroup);
+  return fetchJson<PaginatedResponse<ProblemType>>(`/problems/problems/?${params.toString()}`);
 }
 
 export interface CurriculumChapter {

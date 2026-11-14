@@ -1178,5 +1178,9 @@
   "reset_password_done": "Contrasenya actualitzada. Ja pots iniciar sessió.",
   "reset_password_invalid": "Aquest enllaç de restabliment no és vàlid o ha caducat. Demana'n un de nou.",
   "reset_password_request_new": "Demana un enllaç nou",
-  "reset_password_mismatch": "Les dues contrasenyes no coincideixen."
+  "reset_password_mismatch": "Les dues contrasenyes no coincideixen.",
+  "archive_filter_toggle": "Arxiu d'olimpíades",
+  "archive_year_label": "Any de l'edició",
+  "archive_grade_label": "Grup de curs",
+  "archive_all_groups": "Tots els grups"
 }

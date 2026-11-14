@@ -1178,5 +1178,9 @@
   "reset_password_done": "Lozinka je ažurirana. Sada se možete prijaviti.",
   "reset_password_invalid": "Ovaj link za resetovanje je nevažeći ili je istekao. Zatražite novi.",
   "reset_password_request_new": "Zatraži novi link",
-  "reset_password_mismatch": "Dve lozinke se ne poklapaju."
+  "reset_password_mismatch": "Dve lozinke se ne poklapaju.",
+  "archive_filter_toggle": "Arhiva olimpijada",
+  "archive_year_label": "Godina izdanja",
+  "archive_grade_label": "Grupa razreda",
+  "archive_all_groups": "Sve grupe"
 }

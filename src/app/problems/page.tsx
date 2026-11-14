@@ -36,12 +36,25 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 interface ProblemsListPageProps {
-  searchParams: Promise<{ curriculum?: string }>;
+  searchParams: Promise<{
+    curriculum?: string;
+    archive?: string;
+    source_year?: string;
+    grade_group?: string;
+  }>;
 }
 
 export default async function ProblemsListPage({ searchParams }: ProblemsListPageProps) {
   const locale = await getLocale();
   const { curriculum: curriculumParam } = await searchParams;
+  // [roadmap RO-6] The archive browse axis: ?archive=1 (+ optional year /
+  // grade-group refinements) filters the server fetch like ?curriculum=.
+  const archiveParam = await searchParams;
+  const archiveFilters = {
+    archive: archiveParam.archive === '1' || archiveParam.archive === 'true',
+    sourceYear: archiveParam.source_year,
+    gradeGroup: archiveParam.grade_group,
+  };
 
   let problems: Awaited<ReturnType<typeof getProblemsPage>>['results'] = [];
   let total = 0;
@@ -61,7 +74,7 @@ export default async function ProblemsListPage({ searchParams }: ProblemsListPag
 
   try {
     const [firstPage] = await Promise.all([
-      getProblemsPage(1, { curriculumNode: curriculumParam }),
+      getProblemsPage(1, { curriculumNode: curriculumParam, ...archiveFilters }),
       curriculumFetch,
     ]);
     problems = firstPage.results;

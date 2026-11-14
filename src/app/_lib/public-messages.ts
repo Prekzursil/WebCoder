@@ -123,6 +123,11 @@ export const PUBLIC_KEYS: string[] = [
   'problems_load_error',
   'hide_solved_toggle',
   'curriculum_label',
+  // [roadmap RO-6] The archive browse axis (toggle + year/group filters).
+  'archive_filter_toggle',
+  'archive_year_label',
+  'archive_grade_label',
+  'archive_all_groups',
   'tags_label',
   'solved_column_th',
   'solved_aria',

@@ -1178,5 +1178,9 @@
   "reset_password_done": "Contraseña actualizada. Ya puedes iniciar sesión.",
   "reset_password_invalid": "Este enlace de restablecimiento no es válido o ha caducado. Solicita uno nuevo.",
   "reset_password_request_new": "Solicitar un enlace nuevo",
-  "reset_password_mismatch": "Las dos contraseñas no coinciden."
+  "reset_password_mismatch": "Las dos contraseñas no coinciden.",
+  "archive_filter_toggle": "Archivo de olimpiadas",
+  "archive_year_label": "Año de la edición",
+  "archive_grade_label": "Grupo de grado",
+  "archive_all_groups": "Todos los grupos"
 }

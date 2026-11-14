@@ -1178,5 +1178,9 @@
   "reset_password_done": "パスワードを更新しました。今すぐログインできます。",
   "reset_password_invalid": "このリセット用リンクは無効か期限切れです。新しいリンクを請求してください。",
   "reset_password_request_new": "新しいリンクを請求",
-  "reset_password_mismatch": "2つのパスワードが一致しません。"
+  "reset_password_mismatch": "2つのパスワードが一致しません。",
+  "archive_filter_toggle": "オリンピアードアーカイブ",
+  "archive_year_label": "開催年",
+  "archive_grade_label": "学年グループ",
+  "archive_all_groups": "すべてのグループ"
 }

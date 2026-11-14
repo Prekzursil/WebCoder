@@ -8,8 +8,12 @@ from .views import (
 )
 from .tooling import (
     AssignmentSolutionsExportView,
+    GenerateOutputsView,
+    ImportPackageView,
+    OfflineBundleView,
     SampleTestsDownloadView,
     StressTestView,
+    ValidatorRunView,
 )
 from .community import (
     ArticleViewSet,
@@ -54,6 +58,19 @@ urlpatterns = [
     ),
     # Wave C (JDG-11/13, UXP-3/4): authoring & integrity tooling.
     path("tools/stress/", StressTestView.as_view(), name="tools-stress"),
+    # JDG-11 remainder: validator runner, expected-output generation and
+    # the Kattis/Polygon package importer (archive lane, CNT-2-gated).
+    path("tools/validate/", ValidatorRunView.as_view(), name="tools-validate"),
+    path(
+        "tools/generate-outputs/",
+        GenerateOutputsView.as_view(),
+        name="tools-generate-outputs",
+    ),
+    path(
+        "tools/import-package/",
+        ImportPackageView.as_view(),
+        name="tools-import-package",
+    ),
     path(
         "tools/assignment-solutions/<int:assignment_id>/",
         AssignmentSolutionsExportView.as_view(),
@@ -63,6 +80,12 @@ urlpatterns = [
         "<int:problem_id>/samples/",
         SampleTestsDownloadView.as_view(),
         name="problem-samples",
+    ),
+    # RO-6: the offline study bundle (statement + samples as one PDF).
+    path(
+        "<int:problem_id>/offline-bundle/",
+        OfflineBundleView.as_view(),
+        name="problem-offline-bundle",
     ),
     path("", include(router.urls)),
 ]

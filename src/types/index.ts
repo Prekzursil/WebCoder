@@ -67,6 +67,11 @@ export interface ProblemType {
   // Wave E: partial-code problems — full skeleton + locked regions.
   code_template?: string;
   code_template_language?: string;
+  // Olympiad-archive provenance (roadmap RO-6/CNT-2): where the problem
+  // came from — the archive browse axis + attribution chips.
+  source_contest?: string;
+  source_year?: number | null;
+  grade_group?: string;
   // Community-translation attribution (i18n wave, owner rule (c)): the
   // "translated by @user" credits, sourced from approved proposals.
   translations?: TranslationAttribution[];

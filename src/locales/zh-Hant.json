@@ -1178,5 +1178,9 @@
   "reset_password_done": "密碼已更新，現在即可登入。",
   "reset_password_invalid": "此重設連結無效或已過期，請重新申請。",
   "reset_password_request_new": "申請新連結",
-  "reset_password_mismatch": "兩次輸入的密碼不一致。"
+  "reset_password_mismatch": "兩次輸入的密碼不一致。",
+  "archive_filter_toggle": "奧賽題庫",
+  "archive_year_label": "屆次年份",
+  "archive_grade_label": "年級組",
+  "archive_all_groups": "全部組別"
 }

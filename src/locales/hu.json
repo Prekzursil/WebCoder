@@ -1178,5 +1178,9 @@
   "reset_password_done": "A jelszó frissítve. Most már bejelentkezhetsz.",
   "reset_password_invalid": "Ez a visszaállító link érvénytelen vagy lejárt. Kérj újat.",
   "reset_password_request_new": "Új link kérése",
-  "reset_password_mismatch": "A két jelszó nem egyezik."
+  "reset_password_mismatch": "A két jelszó nem egyezik.",
+  "archive_filter_toggle": "Olimpiai archívum",
+  "archive_year_label": "Kiadás éve",
+  "archive_grade_label": "Évfolyamcsoport",
+  "archive_all_groups": "Minden csoport"
 }

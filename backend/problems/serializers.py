@@ -6,6 +6,7 @@ from .i18n_fields import (
     normalize_localized_dict,
 )
 from .models import (
+    ImportSource,
     CurriculumNode,
     ProblemEditorial,
     Tag,
@@ -85,6 +86,22 @@ class ProblemSerializer(serializers.ModelSerializer):
     # from the registry multipliers/floors + this problem's overrides. A
     # read-only projection — authors edit limit_overrides, not this.
     effective_limits = serializers.SerializerMethodField()
+    # Archive provenance (competitive roadmap RO-6/CNT-2): where the
+    # problem came from. ``import_source`` points at the permission-ledger
+    # row covering the import; approve-time gating enforces that a problem
+    # wired to a ledger row only publishes while that row is GRANTED.
+    import_source = serializers.PrimaryKeyRelatedField(
+        queryset=ImportSource.objects.all(),
+        required=False,
+        allow_null=True,
+    )
+    import_source_name = serializers.SerializerMethodField()
+
+    def get_import_source_name(self, obj) -> str | None:
+        # Dotted sources raise on null FKs; the method form renders the
+        # ledger row's name or None without traversal gymnastics.
+        return obj.import_source.name if obj.import_source_id else None
+
     # Statement-language availability (i18n wave, owner rule (c)/(d)):
     # which languages the problem carries — clients render "available in
     # your language" badges and the EN-fallback affordance from this list
@@ -168,6 +185,12 @@ class ProblemSerializer(serializers.ModelSerializer):
             "last_modified_date",
             "submission_count",
             "solved_count",
+            # Archive provenance (RO-6 browse axis + CNT-2 ledger link).
+            "source_contest",
+            "source_year",
+            "grade_group",
+            "import_source",
+            "import_source_name",
             "tags",
             "tag_ids",
             # 'test_cases' # Add if you want to nest test cases in problem detail view

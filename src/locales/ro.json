@@ -1178,5 +1178,9 @@
   "reset_password_done": "Parola a fost actualizată. Te poți autentifica acum.",
   "reset_password_invalid": "Acest link de resetare este invalid sau a expirat. Cere unul nou.",
   "reset_password_request_new": "Cere un link nou",
-  "reset_password_mismatch": "Cele două parole nu coincid."
+  "reset_password_mismatch": "Cele două parole nu coincid.",
+  "archive_filter_toggle": "Arhiva olimpiadelor",
+  "archive_year_label": "Anul ediției",
+  "archive_grade_label": "Grupa de clase",
+  "archive_all_groups": "Toate grupele"
 }

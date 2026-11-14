@@ -1178,5 +1178,9 @@
   "reset_password_done": "Mot de passe mis à jour. Vous pouvez vous connecter.",
   "reset_password_invalid": "Ce lien de réinitialisation est invalide ou a expiré. Demandez-en un nouveau.",
   "reset_password_request_new": "Demander un nouveau lien",
-  "reset_password_mismatch": "Les deux mots de passe ne correspondent pas."
+  "reset_password_mismatch": "Les deux mots de passe ne correspondent pas.",
+  "archive_filter_toggle": "Archive des olympiades",
+  "archive_year_label": "Année de l'édition",
+  "archive_grade_label": "Groupe de niveau",
+  "archive_all_groups": "Tous les groupes"
 }

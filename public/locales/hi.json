@@ -1178,5 +1178,9 @@
   "reset_password_done": "पासवर्ड अपडेट हो गया। अब आप लॉगिन कर सकते हैं।",
   "reset_password_invalid": "यह रीसेट लिंक अमान्य है या समाप्त हो गया है। नया लिंक का अनुरोध करें।",
   "reset_password_request_new": "नया लिंक का अनुरोध करें",
-  "reset_password_mismatch": "दोनों पासवर्ड मेल नहीं खाते।"
+  "reset_password_mismatch": "दोनों पासवर्ड मेल नहीं खाते।",
+  "archive_filter_toggle": "ओलंपियाड संग्रह",
+  "archive_year_label": "संस्करण वर्ष",
+  "archive_grade_label": "कक्षा समूह",
+  "archive_all_groups": "सभी समूह"
 }

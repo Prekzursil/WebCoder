@@ -1178,5 +1178,9 @@
   "reset_password_done": "Пароль оновлено. Тепер ви можете увійти.",
   "reset_password_invalid": "Це посилання для скидання недійсне або застаріле. Запросіть нове.",
   "reset_password_request_new": "Запросити нове посилання",
-  "reset_password_mismatch": "Паролі не співпадають."
+  "reset_password_mismatch": "Паролі не співпадають.",
+  "archive_filter_toggle": "Архів олімпіад",
+  "archive_year_label": "Рік проведення",
+  "archive_grade_label": "Група класів",
+  "archive_all_groups": "Усі групи"
 }
