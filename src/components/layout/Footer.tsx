@@ -26,6 +26,7 @@ const Footer: React.FC = () => {
 
   const platformLinks = [
     { href: '/problems', label: t('nav_problems', 'Problems') },
+    { href: '/tracks', label: t('nav_tracks', 'Tracks') },
     { href: '/leaderboard', label: t('nav_leaderboard', 'Leaderboard') },
     { href: '/forum', label: t('nav_forum', 'Forum') },
   ];

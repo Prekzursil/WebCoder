@@ -1,5 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from .tracks import TrackViewSet
 from .views import (
     CurriculumViewSet,
     TagViewSet,
@@ -32,6 +33,8 @@ router.register(r"problems", ProblemViewSet, basename="problem")
 router.register(r"testcases", TestCaseViewSet, basename="testcase")
 router.register(r"articles", ArticleViewSet, basename="article")
 router.register(r"curriculum", CurriculumViewSet, basename="curriculum")
+# X12 study tracks (competitive matrix row 8): curated ordered playlists.
+router.register(r"tracks", TrackViewSet, basename="track")
 
 # The API URLs are now determined automatically by the router.
 urlpatterns = [

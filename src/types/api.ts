@@ -665,6 +665,32 @@ export interface CommunityEditorialRow {
   updated_at: string;
 }
 
+/** X12 — curated study tracks (competitive matrix row 8). */
+export interface TrackRow {
+  slug: string;
+  title_i18n: LocalizedText;
+  description_i18n: LocalizedText;
+  owner_username: string;
+  is_public: boolean;
+  is_owner: boolean;
+  item_count: number;
+  solved_count: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TrackItemRow {
+  problem_id: number;
+  title_i18n: LocalizedText;
+  difficulty: string;
+  position: number;
+  is_solved: boolean;
+}
+
+export interface TrackDetail extends TrackRow {
+  items: TrackItemRow[];
+}
+
 export interface ArticleRow {
   id: number;
   title_i18n: LocalizedText;

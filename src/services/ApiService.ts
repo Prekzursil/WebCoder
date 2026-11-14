@@ -22,6 +22,8 @@ import {
   ClassMembershipRow,
   ClassRoom,
   ArticleRow,
+  TrackDetail,
+  TrackRow,
   ClassroomAssignment,
   CommunityEditorialRow,
   FeedResponse,
@@ -448,6 +450,53 @@ export const CommunityService = {
     return apiFetch<PaginatedResponse<ArticleRow>>(`/problems/articles/?${search.toString()}`);
   },
   getArticle: (id: number | string) => apiFetch<ArticleRow>(`/problems/articles/${id}/`),
+};
+
+/** X12 — curated study tracks (competitive matrix row 8). */
+export const TrackService = {
+  list: (page = 1) => apiFetch<PaginatedResponse<TrackRow>>(`/problems/tracks/?page=${page}`),
+  get: (slug: string) => apiFetch<TrackDetail>(`/problems/tracks/${slug}/`),
+  create: (data: {
+    title_en: string;
+    title_ro?: string;
+    description_en?: string;
+    description_ro?: string;
+    is_public?: boolean;
+  }) =>
+    apiFetch<TrackRow>('/problems/tracks/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  update: (
+    slug: string,
+    data: {
+      title_en?: string;
+      title_ro?: string;
+      description_en?: string;
+      description_ro?: string;
+      is_public?: boolean;
+    },
+  ) =>
+    apiFetch<TrackRow>(`/problems/tracks/${slug}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+  remove: (slug: string) => apiFetch<void>(`/problems/tracks/${slug}/`, { method: 'DELETE' }),
+  addProblem: (slug: string, problemId: number | string) =>
+    apiFetch<TrackDetail>(`/problems/tracks/${slug}/add-problem/`, {
+      method: 'POST',
+      body: JSON.stringify({ problem_id: Number(problemId) }),
+    }),
+  removeProblem: (slug: string, problemId: number) =>
+    apiFetch<TrackDetail>(`/problems/tracks/${slug}/remove-problem/`, {
+      method: 'POST',
+      body: JSON.stringify({ problem_id: problemId }),
+    }),
+  moveProblem: (slug: string, problemId: number, direction: 'up' | 'down') =>
+    apiFetch<TrackDetail>(`/problems/tracks/${slug}/move-problem/`, {
+      method: 'POST',
+      body: JSON.stringify({ problem_id: problemId, direction }),
+    }),
 };
 
 export const ProblemService = {
