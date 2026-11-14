@@ -31,10 +31,14 @@ class Certificate(models.Model):
       problems solved (10…500), the same derivation the leaderboard uses.
     """
 
+    # NB: single-string member form — under the repo's no-django-stubs
+    # typecheck the tuple form's label half infers as a tuple, breaking
+    # every use of a member as a ``str``. Human labels live in the
+    # frontend catalogs.
     class Kind(models.TextChoices):
-        CONTEST_PARTICIPATION = "CONTEST_PARTICIPATION", _("Contest participation")
-        RATING_MILESTONE = "RATING_MILESTONE", _("Rating milestone")
-        SOLVE_MILESTONE = "SOLVE_MILESTONE", _("Problems-solved milestone")
+        CONTEST_PARTICIPATION = "CONTEST_PARTICIPATION"
+        RATING_MILESTONE = "RATING_MILESTONE"
+        SOLVE_MILESTONE = "SOLVE_MILESTONE"
 
     #: Public verification id — printed on the atestat; the verify endpoint
     #: is anonymous so employers/teachers can check it without an account.
