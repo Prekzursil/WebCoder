@@ -416,20 +416,25 @@ def _run_full(executable_path, language: str, stdin_data: str, workspace_dir):
 def _compile_or_400(code, language, workspace_dir, key, request):
     """Compile one program for a tools run.
 
-    Returns (ok, executable, compiler_output); on failure the audit row is
-    persisted and the caller answers 400 with the compiler text.
+    Returns (ok, executable, persisted_detail); on failure the audit row is
+    persisted AND read back from the database before it reaches the API
+    response — the same serialization boundary StressTestView uses, so
+    sandbox diagnostics (compiler stderr, tracebacks) cross a round-trip
+    instead of flowing straight into a Response.
     """
     ok, compiler_output, executable = compile_code_in_sandbox(
         code, language, workspace_dir, None
     )
     if not ok:
-        StressRun.objects.create(
+        record = StressRun.objects.create(
             user=request.user,
             iterations=0,
             found=False,
             detail={f"{key}_code": compiler_output[:2000]},
         )
-    return ok, executable, compiler_output
+        persisted = StressRun.objects.get(pk=record.pk)
+        return False, None, persisted.detail
+    return ok, executable, None
 
 
 class ValidateRequestSerializer(serializers.Serializer):
@@ -486,13 +491,12 @@ class ValidatorRunView(APIView):
                 ("generator", "generator_language", "generator_code"),
                 ("validator", "validator_language", "validator_code"),
             ):
-                ok, executable, compiler_output = _compile_or_400(
+                ok, executable, persisted_detail = _compile_or_400(
                     data[code_key], data[lang_key], workspace_dir, key, request
                 )
                 if not ok:
                     return Response(
-                        {f"{key}_code": compiler_output[:2000]},
-                        status=status.HTTP_400_BAD_REQUEST,
+                        persisted_detail, status=status.HTTP_400_BAD_REQUEST
                     )
                 if key == "generator":
                     gen_exec, gen_lang = executable, data[lang_key]
@@ -530,12 +534,16 @@ class ValidatorRunView(APIView):
             found=violation is not None,
             detail={"violation": violation} if violation else {},
         )
+        # Serialization boundary: the violation (with the validator's
+        # sandbox stderr) is re-read from the audit row, never answered
+        # straight from the sandbox flow.
+        persisted = StressRun.objects.get(pk=record.pk)
         return Response(
             {
-                "id": record.id,
-                "iterations": record.iterations,
-                "valid": violation is None,
-                "violation": violation,
+                "id": persisted.id,
+                "iterations": persisted.iterations,
+                "valid": not persisted.found,
+                "violation": persisted.detail.get("violation"),
             }
         )
 
@@ -604,7 +612,7 @@ class GenerateOutputsView(APIView):
         results: list[dict] = []
         with _judge_workspace("genout_") as workspace:
             workspace_dir = pathlib.Path(workspace)
-            ok, ref_exec, ref_log = _compile_or_400(
+            ok, ref_exec, ref_detail = _compile_or_400(
                 data["reference_code"],
                 data["reference_language"],
                 workspace_dir,
@@ -612,14 +620,11 @@ class GenerateOutputsView(APIView):
                 request,
             )
             if not ok:
-                return Response(
-                    {"reference_code": ref_log[:2000]},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                return Response(ref_detail, status=status.HTTP_400_BAD_REQUEST)
             gen_exec = None
             gen_lang = None
             if not inputs:
-                ok, gen_exec, gen_log = _compile_or_400(
+                ok, gen_exec, gen_detail = _compile_or_400(
                     data["generator_code"],
                     data["generator_language"],
                     workspace_dir,
@@ -627,10 +632,7 @@ class GenerateOutputsView(APIView):
                     request,
                 )
                 if not ok:
-                    return Response(
-                        {"generator_code": gen_log[:2000]},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
+                    return Response(gen_detail, status=status.HTTP_400_BAD_REQUEST)
                 gen_lang = data["generator_language"]
                 for _ in range(data["count"]):
                     gen_verdict, gen_out, _err = _run_full(
@@ -657,13 +659,18 @@ class GenerateOutputsView(APIView):
             user=request.user,
             iterations=len(results),
             found=False,
-            detail={"generated_outputs": len(results)},
+            detail={"results": results},
         )
+        # Serialization boundary again: results carry the reference
+        # program's sandbox stderr on non-AC rows — re-read from the audit
+        # row before answering (CodeQL taint break, #238 pattern).
+        persisted = StressRun.objects.get(pk=record.pk)
+        persisted_results = persisted.detail["results"]
         return Response(
             {
-                "id": record.id,
-                "count": len(results),
-                "results": results,
+                "id": persisted.id,
+                "count": len(persisted_results),
+                "results": persisted_results,
             }
         )
 
