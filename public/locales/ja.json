@@ -1237,5 +1237,8 @@
   "tracks_action_error": "うまくいきませんでした。",
   "tracks_empty_track": "このトラックにはまだ問題がありません。",
   "related_problems_title": "類似問題",
-  "filter_editorial": "解説あり"
+  "filter_editorial": "解説あり",
+  "contests_scoreboard_hidden": "コンテスト終了まで順位表は非公開です。",
+  "contests_hide_scoreboard_label": "コンテスト終了まで順位表を非公開にする",
+  "identity_bio": "自己紹介"
 }

@@ -84,7 +84,7 @@ class UserMeUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["county", "school", "is_minor"]
+        fields = ["county", "school", "is_minor", "bio"]
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -103,6 +103,7 @@ class UserSerializer(serializers.ModelSerializer):
             "role",
             "county",
             "school",
+            "bio",
             "is_minor",
             "is_staff",
             "is_active",

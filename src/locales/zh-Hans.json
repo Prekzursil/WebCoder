@@ -1237,5 +1237,8 @@
   "tracks_action_error": "操作未成功。",
   "tracks_empty_track": "该路径还没有题目。",
   "related_problems_title": "相似题目",
-  "filter_editorial": "有题解"
+  "filter_editorial": "有题解",
+  "contests_scoreboard_hidden": "比赛结束前计分板处于隐藏状态。",
+  "contests_hide_scoreboard_label": "隐藏计分板直到比赛结束",
+  "identity_bio": "简介"
 }

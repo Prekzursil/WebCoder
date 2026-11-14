@@ -1237,5 +1237,8 @@
   "tracks_action_error": "Eso no funcionó.",
   "tracks_empty_track": "Esta ruta aún no tiene problemas.",
   "related_problems_title": "Problemas similares",
-  "filter_editorial": "Con editorial"
+  "filter_editorial": "Con editorial",
+  "contests_scoreboard_hidden": "La clasificación está oculta hasta que termine el concurso.",
+  "contests_hide_scoreboard_label": "Ocultar la clasificación hasta que termine el concurso",
+  "identity_bio": "Biografía"
 }

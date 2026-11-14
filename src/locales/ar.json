@@ -1237,5 +1237,8 @@
   "tracks_action_error": "لم ينجح ذلك.",
   "tracks_empty_track": "لا توجد مسائل في هذا المسار بعد.",
   "related_problems_title": "مسائل مشابهة",
-  "filter_editorial": "لديه تحليل"
+  "filter_editorial": "لديه تحليل",
+  "contests_scoreboard_hidden": "لوحة النتائج مخفية حتى انتهاء المسابقة.",
+  "contests_hide_scoreboard_label": "إخفاء لوحة النتائج حتى انتهاء المسابقة",
+  "identity_bio": "نبذة"
 }

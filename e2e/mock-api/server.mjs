@@ -349,6 +349,31 @@ const MOCK_CONTESTS = [
     my_participation: null,
     can_manage: false,
   },
+  {
+    id: 77,
+    title_i18n: {
+      en: 'Selection Exam (hidden board)',
+      ro: 'Examen de selecție (clasament ascuns)',
+    },
+    description_i18n: {},
+    visibility: 'PUBLIC',
+    is_rated: false,
+    format: 'IOI',
+    start_at: '2026-11-01T09:00:00Z',
+    end_at: '2999-01-01T12:00:00Z',
+    freeze_at: null,
+    hide_scoreboard_until_end: true,
+    is_window: false,
+    per_user_duration_minutes: 180,
+    pretest_mode: false,
+    created_by: 2,
+    created_by_username: 'admin_e2e',
+    state: 'RUNNING',
+    problem_count: 1,
+    participant_count: 1,
+    my_participation: null,
+    can_manage: false,
+  },
 ];
 
 const MOCK_CONTEST_PROBLEMS = [
@@ -901,7 +926,7 @@ const server = createServer((req, res) => {
   if (req.method === 'GET' && path === '/api/v1/public/languages/') {
     json(res, 200, {
       notice: 'mock',
-      count: 4,
+      count: 5,
       results: [
         {
           id: 'python3',
@@ -917,6 +942,16 @@ const server = createServer((req, res) => {
           id: 'cpp17',
           name: 'C++17',
           compile_command: ['g++', '-O2', '-o', 'user_program', 'user_code.cpp'],
+          run_command: ['./user_program'],
+          time_multiplier: 1,
+          memory_multiplier: 1,
+          memory_floor_kb: 0,
+          checker_capable: true,
+        },
+        {
+          id: 'cpp20',
+          name: 'C++20',
+          compile_command: ['g++', '-std=c++20', '-O2', '-o', 'user_program', 'user_code.cpp'],
           run_command: ['./user_program'],
           time_multiplier: 1,
           memory_multiplier: 1,
@@ -1623,6 +1658,23 @@ const server = createServer((req, res) => {
 
   const contestStandings = path.match(/^\/api\/v1\/contests\/contests\/(\d+)\/standings\/$/);
   if (req.method === 'GET' && contestStandings) {
+    if (
+      Number(contestStandings[1]) === 77 &&
+      requestUrl.searchParams.get('section') !== 'virtual'
+    ) {
+      // DMOJ/campion hidden board: explicitly empty while the contest runs.
+      json(res, 200, {
+        count: 0,
+        next: null,
+        previous: null,
+        results: [],
+        format: 'IOI',
+        frozen: false,
+        hidden: true,
+        section: 'official',
+      });
+      return;
+    }
     if (requestUrl.searchParams.get('section') === 'virtual') {
       json(res, 200, { ...MOCK_STANDINGS, section: 'virtual', count: 1 });
     } else {

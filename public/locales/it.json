@@ -1237,5 +1237,8 @@
   "tracks_action_error": "Operazione non riuscita.",
   "tracks_empty_track": "Questo percorso non ha ancora problemi.",
   "related_problems_title": "Problemi simili",
-  "filter_editorial": "Con editoriale"
+  "filter_editorial": "Con editoriale",
+  "contests_scoreboard_hidden": "La classifica è nascosta fino alla fine del contest.",
+  "contests_hide_scoreboard_label": "Nascondi la classifica fino alla fine del contest",
+  "identity_bio": "Bio"
 }

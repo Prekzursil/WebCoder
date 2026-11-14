@@ -222,6 +222,26 @@ _CPP17 = LanguageSpec(
     docker_image="gcc:latest",
 )
 
+# Matrix row 20 (modern toolchains): C++20 beside C++17 — the CF/DMOJ
+# default. Same gcc image (gcc >= 10 carries full C++20 library support);
+# C++17 stays the catalog default for statement-stability.
+_CPP20 = LanguageSpec(
+    language_id="cpp20",
+    display_name="C++20",
+    source_filename="user_code.cpp",
+    compile_command=(
+        "g++",
+        "user_code.cpp",
+        "-o",
+        "user_program",
+        "-std=c++20",
+        "-O2",
+    ),
+    compile_artifact="user_program",
+    run_command=("./user_program",),
+    docker_image="gcc:latest",
+)
+
 _C11 = LanguageSpec(
     language_id="c11",
     display_name="C (C11)",
@@ -451,6 +471,7 @@ LANGUAGES: dict[str, LanguageSpec] = {
     for spec in (
         _PYTHON3,
         _CPP17,
+        _CPP20,
         _C11,
         _JAVA11,
         _NODEJS20,

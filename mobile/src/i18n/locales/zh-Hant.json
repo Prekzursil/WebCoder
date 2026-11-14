@@ -1237,5 +1237,8 @@
   "tracks_action_error": "操作未成功。",
   "tracks_empty_track": "該路徑還沒有題目。",
   "related_problems_title": "相似題目",
-  "filter_editorial": "有題解"
+  "filter_editorial": "有題解",
+  "contests_scoreboard_hidden": "比賽結束前計分板處於隱藏狀態。",
+  "contests_hide_scoreboard_label": "隱藏計分板直到比賽結束",
+  "identity_bio": "簡介"
 }

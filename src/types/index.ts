@@ -150,6 +150,8 @@ export interface User {
   two_factor_enabled?: boolean;
   two_factor_required?: boolean /** RO-3: Olympiad-geography identity (optional; feeds segmented boards). */;
   county?: string;
+  /** Matrix row 59: self-authored public bio (max 500 chars, optional). */
+  bio?: string;
   school?: string;
   /** LEG-2: self-declared minor — county/school stay private to others. */
   is_minor?: boolean;

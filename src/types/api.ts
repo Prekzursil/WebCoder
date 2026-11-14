@@ -433,6 +433,9 @@ export interface StandingsRow {
 export interface StandingsResponse extends PaginatedResponse<StandingsRow> {
   format: string;
   frozen: boolean;
+  /** DMOJ/campion hidden boards: true while a hide_scoreboard_until_end
+   * contest runs and the viewer is not an organizer (empty results). */
+  hidden?: boolean;
   section?: 'official' | 'virtual';
 }
 
@@ -511,6 +514,8 @@ export interface RatingHistoryEntry {
 /** GET /ratings/ratings/users/{username}/ — public rating profile block. */
 export interface UserRatingHistory {
   username: string;
+  /** Matrix row 59: the self-authored bio (empty string when unset). */
+  bio?: string;
   rating: MyRating;
   history: RatingHistoryEntry[];
 }

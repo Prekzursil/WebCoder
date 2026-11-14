@@ -1237,5 +1237,8 @@
   "tracks_action_error": "Бұл жасалмады.",
   "tracks_empty_track": "Бұл тректе әлі есеп жоқ.",
   "related_problems_title": "Ұқсас есептер",
-  "filter_editorial": "Шешімі бар"
+  "filter_editorial": "Шешімі бар",
+  "contests_scoreboard_hidden": "Кесте жарыс аяқталғанша жасырын.",
+  "contests_hide_scoreboard_label": "Кестені жарыс аяқталғанша жасыру",
+  "identity_bio": "Өзім туралы"
 }

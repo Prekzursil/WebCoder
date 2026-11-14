@@ -6,6 +6,7 @@
 #   - python3  -> python:3.11-slim base (matches the local-backend
 #                 python:3.11-slim docker-run execution image)
 #   - cpp17    -> g++ (GNU C++17)
+#   - cpp20    -> g++ (GNU C++20)
 #   - c11      -> gcc (GNU C11)
 #   - java11   -> OpenJDK 21 javac/java (Debian trixie — the current
 #                 python:3.11-slim base — ships no openjdk-11/17). Compiled

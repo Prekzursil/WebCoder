@@ -1237,5 +1237,8 @@
   "tracks_action_error": "To nie zadziałało.",
   "tracks_empty_track": "Ta ścieżka nie ma jeszcze zadań.",
   "related_problems_title": "Podobne zadania",
-  "filter_editorial": "Z rozwiązaniem"
+  "filter_editorial": "Z rozwiązaniem",
+  "contests_scoreboard_hidden": "Tablica wyników jest ukryta do końca konkursu.",
+  "contests_hide_scoreboard_label": "Ukryj tablicę wyników do końca konkursu",
+  "identity_bio": "O sobie"
 }

@@ -37,7 +37,9 @@ class User(AbstractUser):
     # Add any additional fields specific to WebCoder users here in the future
     # For example:
     # profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
-    # bio = models.TextField(max_length=500, blank=True)
+    # Matrix row 59 remainder: the free-text bio on rich public profiles
+    # (CW/AC/LC all carry one). Self-authored, capped, never required.
+    bio = models.TextField(_("bio"), max_length=500, blank=True)
     # country = models.CharField(max_length=100, blank=True)
 
     # RO-3 (competitive roadmap): optional Olympiad-geography identity —

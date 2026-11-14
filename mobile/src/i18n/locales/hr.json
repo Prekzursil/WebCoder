@@ -1237,5 +1237,8 @@
   "tracks_action_error": "To nije uspjelo.",
   "tracks_empty_track": "Ova staza još nema zadatke.",
   "related_problems_title": "Slični zadaci",
-  "filter_editorial": "S rješenjem"
+  "filter_editorial": "S rješenjem",
+  "contests_scoreboard_hidden": "Poredak je skriven do kraja natjecanja.",
+  "contests_hide_scoreboard_label": "Sakrij poredak do kraja natjecanja",
+  "identity_bio": "O sebi"
 }

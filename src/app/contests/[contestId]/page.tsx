@@ -554,6 +554,15 @@ interface StandingsBoardProps {
 
 function StandingsBoard({ standings, t }: StandingsBoardProps) {
   const { palette: colors } = themeTokens;
+  // Hidden boards (DMOJ/campion): the notice replaces the board entirely —
+  // it must render before the empty-count early return below.
+  if (standings.hidden) {
+    return (
+      <p data-testid="standings-hidden-note" style={{ color: colors.warn, fontWeight: 600 }}>
+        {t('contests_scoreboard_hidden', 'The scoreboard is hidden until the contest ends.')}
+      </p>
+    );
+  }
   if ((standings.count ?? 0) === 0) {
     return (
       <EmptyState

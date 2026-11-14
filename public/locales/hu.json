@@ -1237,5 +1237,8 @@
   "tracks_action_error": "Ez nem sikerült.",
   "tracks_empty_track": "Ehhez az útvonalhoz még nincs feladat.",
   "related_problems_title": "Hasonló feladatok",
-  "filter_editorial": "Megoldással"
+  "filter_editorial": "Megoldással",
+  "contests_scoreboard_hidden": "A ponttábla a verseny végéig rejtett.",
+  "contests_hide_scoreboard_label": "Ponttábla elrejtése a verseny végéig",
+  "identity_bio": "Bemutatkozás"
 }

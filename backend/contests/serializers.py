@@ -80,6 +80,7 @@ class ContestSerializer(serializers.ModelSerializer):
             "start_at",
             "end_at",
             "freeze_at",
+            "hide_scoreboard_until_end",
             "is_window",
             "per_user_duration_minutes",
             "pretest_mode",

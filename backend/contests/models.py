@@ -100,6 +100,14 @@ class Contest(models.Model):
     # made at or before this instant; organizers always see the live board.
     # ``POST /contests/{id}/unfreeze/`` clears it deliberately.
     freeze_at = models.DateTimeField(_("freeze at"), null=True, blank=True)
+    # Hidden scoreboard (DMOJ hidden boards / campion teme-concurs): while
+    # the contest runs, non-organizers get no standings at all — the exam-
+    # culture option that keeps mid-contest rank out of the room. The
+    # reveal is automatic at end_at; organizers always see the live board.
+    hide_scoreboard_until_end = models.BooleanField(
+        _("hide scoreboard until the contest ends"),
+        default=False,
+    )
     # Windowed personal-timer contests (CON-6): each participation gets one
     # timed sitting inside [start_at, end_at].
     is_window = models.BooleanField(

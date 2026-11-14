@@ -1237,5 +1237,8 @@
   "tracks_action_error": "Αυτό δεν λειτούργησε.",
   "tracks_empty_track": "Αυτό το μονοπάτι δεν έχει ακόμη ασκήσεις.",
   "related_problems_title": "Παρόμοιες ασκήσεις",
-  "filter_editorial": "Με λύση"
+  "filter_editorial": "Με λύση",
+  "contests_scoreboard_hidden": "Η βαθμολογία είναι κρυφή μέχρι να τελειώσει ο διαγωνισμός.",
+  "contests_hide_scoreboard_label": "Κρύψιμο της βαθμολογίας μέχρι το τέλος του διαγωνισμού",
+  "identity_bio": "Βιογραφικό"
 }

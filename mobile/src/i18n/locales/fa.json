@@ -1237,5 +1237,8 @@
   "tracks_action_error": "این کار انجام نشد.",
   "tracks_empty_track": "این مسیر هنوز مسئله‌ای ندارد.",
   "related_problems_title": "مسئله‌های مشابه",
-  "filter_editorial": "دارای تحلیل"
+  "filter_editorial": "دارای تحلیل",
+  "contests_scoreboard_hidden": "تابلوی امتیازات تا پایان مسابقه پنهان است.",
+  "contests_hide_scoreboard_label": "پنهان کردن تابلوی امتیازات تا پایان مسابقه",
+  "identity_bio": "درباره من"
 }

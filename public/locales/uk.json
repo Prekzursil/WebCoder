@@ -1237,5 +1237,8 @@
   "tracks_action_error": "Не вдалося.",
   "tracks_empty_track": "У цьому треку ще немає задач.",
   "related_problems_title": "Схожі задачі",
-  "filter_editorial": "Є розбір"
+  "filter_editorial": "Є розбір",
+  "contests_scoreboard_hidden": "Таблицю результатів приховано до кінця змагання.",
+  "contests_hide_scoreboard_label": "Приховати таблицю результатів до кінця змагання",
+  "identity_bio": "Про себе"
 }
