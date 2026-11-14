@@ -1178,5 +1178,9 @@
   "reset_password_done": "Đã cập nhật mật khẩu. Bạn có thể đăng nhập ngay bây giờ.",
   "reset_password_invalid": "Liên kết đặt lại này không hợp lệ hoặc đã hết hạn. Hãy yêu cầu liên kết mới.",
   "reset_password_request_new": "Yêu cầu liên kết mới",
-  "reset_password_mismatch": "Hai mật khẩu không khớp."
+  "reset_password_mismatch": "Hai mật khẩu không khớp.",
+  "archive_filter_toggle": "Kho đề Olympic",
+  "archive_year_label": "Năm tổ chức",
+  "archive_grade_label": "Nhóm lớp",
+  "archive_all_groups": "Tất cả các nhóm"
 }

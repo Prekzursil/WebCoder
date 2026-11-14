@@ -42,6 +42,10 @@ const MOCK_PROBLEMS = [
     title_i18n: { en: 'Two Sum' },
     difficulty: 'EASY',
     status: 'APPROVED',
+    // [roadmap RO-6] archive provenance for the browse-axis e2e lane.
+    source_contest: 'OJI 2024',
+    source_year: 2024,
+    grade_group: 'IX-X',
     statement_i18n: {
       en: 'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.',
     },
@@ -739,7 +743,22 @@ const server = createServer((req, res) => {
   }
 
   if (req.method === 'GET' && path === '/api/v1/problems/problems/') {
-    json(res, 200, paged(MOCK_PROBLEMS));
+    // [roadmap RO-6] honor the archive browse axis so mock-mode e2e walks
+    // the same server-filtered loop as the real backend.
+    let results = MOCK_PROBLEMS;
+    const archive = requestUrl.searchParams.get('archive');
+    if (archive === '1') {
+      results = results.filter((problem) => problem.source_contest || problem.source_year);
+    }
+    const year = requestUrl.searchParams.get('source_year');
+    if (year) {
+      results = results.filter((problem) => String(problem.source_year) === year);
+    }
+    const group = requestUrl.searchParams.get('grade_group');
+    if (group) {
+      results = results.filter((problem) => problem.grade_group === group);
+    }
+    json(res, 200, paged(results));
     return;
   }
 

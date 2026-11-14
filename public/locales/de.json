@@ -1178,5 +1178,9 @@
   "reset_password_done": "Passwort aktualisiert. Du kannst dich jetzt anmelden.",
   "reset_password_invalid": "Dieser Reset-Link ist ungültig oder abgelaufen. Fordere einen neuen an.",
   "reset_password_request_new": "Neuen Link anfordern",
-  "reset_password_mismatch": "Die beiden Passwörter stimmen nicht überein."
+  "reset_password_mismatch": "Die beiden Passwörter stimmen nicht überein.",
+  "archive_filter_toggle": "Olympiade-Archiv",
+  "archive_year_label": "Jahrgang",
+  "archive_grade_label": "Klassenstufe",
+  "archive_all_groups": "Alle Stufen"
 }

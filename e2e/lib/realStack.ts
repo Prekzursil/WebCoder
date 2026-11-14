@@ -106,7 +106,16 @@ async function seedOnce(): Promise<{ twoSumId: number; reverseId: number }> {
     }
   }
 
-  const createProblem = async (title: string, difficulty: string, statement: string) => {
+  // provenance (optional per-problem) powers the [RO-6] archive-axis
+  // spec on the real stack exactly like the mock fixture. Spreading the
+  // optional object directly (no `?? {}` fallback) — oxlint's
+  // no-useless-fallback-in-spread is denied at the quality gate.
+  const createProblem = async (
+    title: string,
+    difficulty: string,
+    statement: string,
+    provenance?: { source_contest: string; source_year: number; grade_group: string },
+  ) => {
     const { status, body } = await api('/problems/problems/', {
       method: 'POST',
       token,
@@ -119,6 +128,7 @@ async function seedOnce(): Promise<{ twoSumId: number; reverseId: number }> {
         default_memory_limit_kb: 65536,
         allowed_languages: ['python3'],
         tags: [],
+        ...provenance,
       }),
     });
     if (status !== 201) throw new Error(`seed ${title} -> ${status}: ${JSON.stringify(body)}`);
@@ -129,6 +139,7 @@ async function seedOnce(): Promise<{ twoSumId: number; reverseId: number }> {
     SEED_TITLES.twoSum,
     'EASY',
     'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.',
+    { source_contest: 'OJI 2024', source_year: 2024, grade_group: 'IX-X' },
   );
   const reverseId = await createProblem(SEED_TITLES.reverse, 'MEDIUM', 'Reverse the input string.');
 

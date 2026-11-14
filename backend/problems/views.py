@@ -261,6 +261,17 @@ class ProblemViewSet(viewsets.ModelViewSet):
         node_id = self.request.query_params.get("curriculum_node")
         if node_id:
             qs = qs.filter(curriculum_nodes__id=node_id)
+        # Archive browse axis (competitive roadmap RO-6): the olympiad
+        # archive's provenance fields are a first-class catalog filter —
+        # browse by edition year, grade group, or "archive problems only".
+        source_year = self.request.query_params.get("source_year")
+        if source_year:
+            qs = qs.filter(source_year=source_year)
+        grade_group = self.request.query_params.get("grade_group")
+        if grade_group:
+            qs = qs.filter(grade_group=grade_group)
+        if self.request.query_params.get("archive") in ("1", "true", "yes"):
+            qs = qs.exclude(source_contest="", source_year__isnull=True, grade_group="")
         # Catalog stats add-on (SPEC-GAPS D-B8): "X tried / Y solved" per
         # problem card. distinct=True keeps counts exact under the author
         # branch's .distinct().
@@ -278,6 +289,19 @@ class ProblemViewSet(viewsets.ModelViewSet):
         problem = (
             self.get_object()
         )  # ProblemObjectPermissions will check if user is author
+        # CNT-2/RO-6 rights gate: an imported problem (ledger row attached)
+        # may not even enter the approval queue unless the covering row is
+        # GRANTED — the pipeline is rights-checked by construction.
+        if problem.import_source_id and not problem.import_source.allows_publication:
+            return Response(
+                {
+                    "status": (
+                        f"import source '{problem.import_source.name}' is "
+                        f"{problem.import_source.status}; publication blocked"
+                    )
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
         if problem.status == Problem.ProblemStatus.DRAFT:
             problem.status = Problem.ProblemStatus.PENDING_APPROVAL
             problem.verifier = None  # Clear verifier when resubmitting
@@ -296,6 +320,18 @@ class ProblemViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"], url_path="approve")
     def approve_problem(self, request, pk=None):  # Renamed from 'approve'
         problem = self.get_object()  # IsProblemVerifier permission applied
+        # CNT-2/RO-6: the GRANTED check re-runs at approve time — a ledger
+        # row may have expired between submission and review.
+        if problem.import_source_id and not problem.import_source.allows_publication:
+            return Response(
+                {
+                    "status": (
+                        f"import source '{problem.import_source.name}' is "
+                        f"{problem.import_source.status}; cannot approve"
+                    )
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
         if problem.status == Problem.ProblemStatus.PENDING_APPROVAL:
             problem.status = Problem.ProblemStatus.APPROVED
             problem.verifier = request.user

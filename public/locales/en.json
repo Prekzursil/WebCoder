@@ -1178,5 +1178,9 @@
   "reset_password_done": "Password updated. You can log in with it now.",
   "reset_password_invalid": "This reset link is invalid or has expired. Request a new one.",
   "reset_password_request_new": "Request a new link",
-  "reset_password_mismatch": "The two passwords do not match."
+  "reset_password_mismatch": "The two passwords do not match.",
+  "archive_filter_toggle": "Olympiad archive",
+  "archive_year_label": "Edition year",
+  "archive_grade_label": "Grade group",
+  "archive_all_groups": "All groups"
 }

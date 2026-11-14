@@ -179,6 +179,12 @@ export default function ProblemsListClient({
   // [EDU-9] chapter drill-down runs through the server (?curriculum=),
   // so the client only needs the current value (not local state).
   const urlCurriculum = searchParams.get('curriculum') ?? '';
+  // [RO-6] The archive browse axis is server-filtered the same way:
+  // ?archive=1 + optional ?source_year= / ?grade_group= refinements.
+  const urlArchive = searchParams.get('archive') === '1';
+  const urlYear = searchParams.get('source_year') ?? '';
+  const urlGroup = searchParams.get('grade_group') ?? '';
+  const [yearDraft, setYearDraft] = useState(urlYear);
 
   const [search, setSearch] = useState(urlSearch);
   const [difficultyFilter, setDifficultyFilter] = useState(urlDifficulty);
@@ -196,7 +202,8 @@ export default function ProblemsListClient({
     setDifficultyFilter(urlDifficulty);
     setStatusFilter(urlStatus);
     setTagFilter(new Set(urlTags.split(',').filter(Boolean).map(Number)));
-  }, [urlSearch, urlDifficulty, urlStatus, urlTags]);
+    setYearDraft(urlYear);
+  }, [urlSearch, urlDifficulty, urlStatus, urlTags, urlYear]);
 
   // Push filter changes into the URL (replace, no scroll jump). [F3]
   const syncUrl = (next: {
@@ -205,6 +212,9 @@ export default function ProblemsListClient({
     status?: string;
     tags?: string;
     curriculum?: string;
+    archive?: boolean;
+    sourceYear?: string;
+    gradeGroup?: string;
   }) => {
     const params = new URLSearchParams(searchParams.toString());
     const setOrDelete = (name: string, value: string | undefined) => {
@@ -221,6 +231,20 @@ export default function ProblemsListClient({
     setOrDelete(
       'curriculum',
       next.curriculum !== undefined ? next.curriculum : urlCurriculum || undefined,
+    );
+    // [RO-6] archive axis: the toggle writes/deletes archive=1 itself so
+    // the boolean round-trips exactly (never the string "false").
+    if (next.archive !== undefined) {
+      if (next.archive) params.set('archive', '1');
+      else params.delete('archive');
+    }
+    setOrDelete(
+      'source_year',
+      next.sourceYear !== undefined ? next.sourceYear : urlYear || undefined,
+    );
+    setOrDelete(
+      'grade_group',
+      next.gradeGroup !== undefined ? next.gradeGroup : urlGroup || undefined,
     );
     const qs = params.toString();
     router.replace(qs ? `/problems?${qs}` : '/problems', { scroll: false });
@@ -626,6 +650,102 @@ export default function ProblemsListClient({
         </div>
       )}
 
+      {/* [roadmap RO-6] Archive browse axis: olympiad-provenance filters.
+          Server-filtered like the curriculum axis (?archive=1 + optional
+          year / grade-group refinements answered by the backend). */}
+      <div
+        style={{
+          display: 'flex',
+          gap: '10px',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          marginBottom: '1.25rem',
+        }}
+      >
+        <button
+          onClick={() => syncUrl({ archive: !urlArchive })}
+          className="chip"
+          aria-pressed={urlArchive}
+          data-testid="archive-toggle"
+          style={
+            urlArchive
+              ? {
+                  borderColor: 'var(--violet)',
+                  color: 'var(--violet)',
+                  background: hexAlpha(palette.violet, 0.14),
+                }
+              : undefined
+          }
+        >
+          {t('archive_filter_toggle', 'Olympiad archive')}
+        </button>
+        {(urlArchive || urlYear || urlGroup) && (
+          <>
+            <label
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '0.8rem',
+                color: 'var(--muted)',
+              }}
+            >
+              {t('archive_year_label', 'Edition year')}
+              <input
+                type="number"
+                min={1990}
+                max={2100}
+                value={yearDraft}
+                onChange={(event) => setYearDraft(event.target.value)}
+                onBlur={() => syncUrl({ sourceYear: yearDraft })}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') syncUrl({ sourceYear: yearDraft });
+                }}
+                aria-label={t('archive_year_label', 'Edition year')}
+                data-testid="archive-year"
+                style={{
+                  width: '84px',
+                  padding: '4px 8px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border)',
+                  background: 'var(--background)',
+                  color: 'var(--foreground)',
+                }}
+              />
+            </label>
+            <label
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '0.8rem',
+                color: 'var(--muted)',
+              }}
+            >
+              {t('archive_grade_label', 'Grade group')}
+              <select
+                value={urlGroup}
+                onChange={(event) => syncUrl({ gradeGroup: event.target.value })}
+                aria-label={t('archive_grade_label', 'Grade group')}
+                data-testid="archive-group"
+                style={{
+                  padding: '4px 8px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border)',
+                  background: 'var(--background)',
+                  color: 'var(--foreground)',
+                }}
+              >
+                <option value="">{t('archive_all_groups', 'All groups')}</option>
+                <option value="V-VIII">V-VIII</option>
+                <option value="IX-X">IX-X</option>
+                <option value="XI-XII">XI-XII</option>
+              </select>
+            </label>
+          </>
+        )}
+      </div>
+
       {/* [F4] Tag facet */}
       {allTags.length > 0 && (
         <div
@@ -810,6 +930,27 @@ export default function ProblemsListClient({
                             problem.title_i18n.en ||
                             `Problem #${problem.id}`}
                         </Link>
+                        {/* [RO-6] archive provenance chip — attribution is
+                            public; also the visible hint the axis filters. */}
+                        {(problem.source_contest || problem.source_year) && (
+                          <span
+                            data-testid={`provenance-${problem.id}`}
+                            style={{
+                              marginLeft: '8px',
+                              fontSize: '0.7rem',
+                              color: 'var(--text-tertiary)',
+                              background: hexAlpha(palette.violet, 0.08),
+                              border: `1px solid ${hexAlpha(palette.violet, 0.2)}`,
+                              borderRadius: '999px',
+                              padding: '1px 8px',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {[problem.source_contest, problem.source_year, problem.grade_group]
+                              .filter(Boolean)
+                              .join(' · ')}
+                          </span>
+                        )}
                       </td>
                       <td style={{ padding: '14px 20px' }}>
                         <span

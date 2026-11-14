@@ -165,6 +165,10 @@ class PublicProblemList(APIView):
                         "tags": [t.slug for t in problem.tags.all()],
                         "time_limit_ms": problem.default_time_limit_ms,
                         "memory_limit_kb": problem.default_memory_limit_kb,
+                        # RO-6 archive provenance (attribution is public).
+                        "source_contest": problem.source_contest,
+                        "source_year": problem.source_year,
+                        "grade_group": problem.grade_group,
                     }
                     for problem in page
                 ],
@@ -196,6 +200,10 @@ class PublicProblemDetail(APIView):
                 "memory_limit_kb": problem.default_memory_limit_kb,
                 "io_mode": problem.io_mode,
                 "problem_type": problem.problem_type,
+                # RO-6 archive provenance (attribution is public).
+                "source_contest": problem.source_contest,
+                "source_year": problem.source_year,
+                "grade_group": problem.grade_group,
                 # Statements only — test data and checkers never serialize.
                 "has_editorial": hasattr(problem, "editorial"),
             }

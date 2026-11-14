@@ -154,3 +154,32 @@ test('home shows the problem of the day [UXP-5a]', async ({ page }) => {
   await page?.goto('/');
   await expect(page?.getByText('Problem of the day'))?.toBeVisible();
 });
+
+test('catalog archive axis filters server-side and shows provenance [RO-6]', async ({ page }) => {
+  await page?.goto('/problems');
+
+  // Provenance chip rides the archived row (seeded ids differ per mode).
+  await expect(page?.getByTestId(`provenance-${seeded.twoSumId}`))?.toContainText('OJI 2024');
+
+  // Toggling the axis deep-links ?archive=1 and the server-filtered list
+  // keeps only the provenance-carrying problems (mock honors the params).
+  await page?.getByTestId('archive-toggle').click();
+  await expect(page)?.toHaveURL(/archive=1/);
+  await expect(page?.getByRole('link', { name: 'Two Sum' }))?.toBeVisible();
+  const plainRows = await page
+    ?.getByRole('link', { name: 'Reverse String' })
+    .count()
+    .catch(() => 0);
+  expect(plainRows ?? 0).toBe(0);
+
+  // The year refinement appears with the axis active and narrows to the
+  // 2024 edition; clearing the year restores the full archive listing.
+  const year = page?.getByTestId('archive-year');
+  await year?.fill('2024');
+  await year?.blur();
+  await expect(page)?.toHaveURL(/source_year=2024/);
+  await expect(page?.getByRole('link', { name: 'Two Sum' }))?.toBeVisible();
+  await year?.fill('');
+  await year?.blur();
+  await expect(page)?.not.toHaveURL(/source_year/);
+});

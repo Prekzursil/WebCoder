@@ -381,3 +381,95 @@ describe('Wave A: tag facet [F4] + solved indicators [F5] + curriculum axis [EDU
     ).toHaveAttribute('href', '/start');
   });
 });
+
+describe('ProblemsListClient archive browse axis [RO-6]', () => {
+  it('renders a provenance chip on archived problems only', () => {
+    const catalog = [
+      problem({
+        id: 9,
+        title_i18n: { en: 'OJI Sum' },
+        source_contest: 'OJI 2024',
+        source_year: 2024,
+        grade_group: 'IX-X',
+      }),
+      problem({ id: 10, title_i18n: { en: 'Plain' } }),
+    ];
+    render(
+      <ProblemsListClient
+        problems={catalog}
+        fetchError={null}
+        locale="en"
+        totalCount={2}
+        hasMore={false}
+      />,
+    );
+    expect(screen.getByTestId('provenance-9').textContent).toBe('OJI 2024 · 2024 · IX-X');
+    expect(screen.queryByTestId('provenance-10')).not.toBeInTheDocument();
+  });
+
+  it('toggles ?archive=1 into the URL', () => {
+    render(
+      <ProblemsListClient
+        problems={CATALOG}
+        fetchError={null}
+        locale="en"
+        totalCount={3}
+        hasMore={false}
+      />,
+    );
+    fireEvent.click(screen.getByTestId('archive-toggle'));
+    expect(mocks.replace).toHaveBeenCalledWith('/problems?archive=1', { scroll: false });
+  });
+
+  it('deletes the archive param when toggling an active filter off', () => {
+    mocks.params = new URLSearchParams('archive=1');
+    render(
+      <ProblemsListClient
+        problems={CATALOG}
+        fetchError={null}
+        locale="en"
+        totalCount={3}
+        hasMore={false}
+      />,
+    );
+    fireEvent.click(screen.getByTestId('archive-toggle'));
+    expect(mocks.replace).toHaveBeenCalledWith('/problems', { scroll: false });
+  });
+
+  it('shows year/group refinements once the axis is active and syncs them', () => {
+    mocks.params = new URLSearchParams('archive=1');
+    render(
+      <ProblemsListClient
+        problems={CATALOG}
+        fetchError={null}
+        locale="en"
+        totalCount={3}
+        hasMore={false}
+      />,
+    );
+    const year = screen.getByTestId('archive-year');
+    fireEvent.change(year, { target: { value: '2024' } });
+    fireEvent.blur(year);
+    expect(mocks.replace).toHaveBeenCalledWith('/problems?archive=1&source_year=2024', {
+      scroll: false,
+    });
+    fireEvent.change(screen.getByTestId('archive-group'), { target: { value: 'IX-X' } });
+    expect(mocks.replace).toHaveBeenCalledWith('/problems?archive=1&grade_group=IX-X', {
+      scroll: false,
+    });
+  });
+
+  it('keeps the refinements hidden while the axis is inactive', () => {
+    render(
+      <ProblemsListClient
+        problems={CATALOG}
+        fetchError={null}
+        locale="en"
+        totalCount={3}
+        hasMore={false}
+      />,
+    );
+    expect(screen.queryByTestId('archive-year')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('archive-group')).not.toBeInTheDocument();
+  });
+});

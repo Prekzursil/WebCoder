@@ -1178,5 +1178,9 @@
   "reset_password_done": "Kata sandi diperbarui. Anda bisa login sekarang.",
   "reset_password_invalid": "Tautan pengaturan ulang ini tidak valid atau telah kedaluwarsa. Minta yang baru.",
   "reset_password_request_new": "Minta tautan baru",
-  "reset_password_mismatch": "Dua kata sandi tidak cocok."
+  "reset_password_mismatch": "Dua kata sandi tidak cocok.",
+  "archive_filter_toggle": "Arsip olimpiade",
+  "archive_year_label": "Tahun penyelenggaraan",
+  "archive_grade_label": "Kelompok kelas",
+  "archive_all_groups": "Semua kelompok"
 }

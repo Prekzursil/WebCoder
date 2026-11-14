@@ -1178,5 +1178,9 @@
   "reset_password_done": "Şifre güncellendi. Artık giriş yapabilirsin.",
   "reset_password_invalid": "Bu sıfırlama bağlantısı geçersiz veya süresi dolmuş. Yeni bir tane iste.",
   "reset_password_request_new": "Yeni bağlantı iste",
-  "reset_password_mismatch": "İki şifre birbiriyle uyuşmuyor."
+  "reset_password_mismatch": "İki şifre birbiriyle uyuşmuyor.",
+  "archive_filter_toggle": "Olimpiyat arşivi",
+  "archive_year_label": "Yıl",
+  "archive_grade_label": "Sınıf grubu",
+  "archive_all_groups": "Tüm gruplar"
 }

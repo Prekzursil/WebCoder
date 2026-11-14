@@ -1178,5 +1178,9 @@
   "reset_password_done": "Ο κωδικός ενημερώθηκε. Μπορείτε να συνδεθείτε τώρα.",
   "reset_password_invalid": "Αυτός ο σύνδεσμος επαναφοράς είναι μη έγκυρος ή έχει λήξει. Ζητήστε νέο.",
   "reset_password_request_new": "Ζητήστε νέο σύνδεσμο",
-  "reset_password_mismatch": "Οι δύο κωδικοί δεν ταιριάζουν."
+  "reset_password_mismatch": "Οι δύο κωδικοί δεν ταιριάζουν.",
+  "archive_filter_toggle": "Αρχείο Ολυμπιάδων",
+  "archive_year_label": "Έτος διεξαγωγής",
+  "archive_grade_label": "Ομάδα τάξεων",
+  "archive_all_groups": "Όλες οι ομάδες"
 }

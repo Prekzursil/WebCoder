@@ -1178,5 +1178,9 @@
   "reset_password_done": "Паролата е обновена. Можете да влезете сега.",
   "reset_password_invalid": "Този линк за възстановяване е невалиден или изтече. Заявете нов.",
   "reset_password_request_new": "Заявете нов линк",
-  "reset_password_mismatch": "Двете пароли не съвпадат."
+  "reset_password_mismatch": "Двете пароли не съвпадат.",
+  "archive_filter_toggle": "Архив на олимпиадите",
+  "archive_year_label": "Година на изданието",
+  "archive_grade_label": "Група класове",
+  "archive_all_groups": "Всички групи"
 }

@@ -1178,5 +1178,9 @@
   "reset_password_done": "Hasło zostało zaktualizowane. Możesz się teraz zalogować.",
   "reset_password_invalid": "Ten link do resetowania jest nieprawidłowy lub wygasł. Poproś o nowy.",
   "reset_password_request_new": "Poproś o nowy link",
-  "reset_password_mismatch": "Hasła nie są identyczne."
+  "reset_password_mismatch": "Hasła nie są identyczne.",
+  "archive_filter_toggle": "Archiwum olimpiad",
+  "archive_year_label": "Rocznik",
+  "archive_grade_label": "Grupa klas",
+  "archive_all_groups": "Wszystkie grupy"
 }

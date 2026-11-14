@@ -1178,5 +1178,9 @@
   "reset_password_done": "Құпиясөз жаңартылды. Енді кіре аласыз.",
   "reset_password_invalid": "Бұл қалпына келтіру сілтемесі жарамсыз немесе мерзімі өтіп кеткен. Жаңасын сұраңыз.",
   "reset_password_request_new": "Жаңа сілтеме сұрау",
-  "reset_password_mismatch": "Екі құпиясөз сәйкес емес."
+  "reset_password_mismatch": "Екі құпиясөз сәйкес емес.",
+  "archive_filter_toggle": "Олимпиада мұрағаты",
+  "archive_year_label": "Өткізілген жылы",
+  "archive_grade_label": "Сынып тобы",
+  "archive_all_groups": "Барлық топтар"
 }

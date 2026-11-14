@@ -1178,5 +1178,9 @@
   "reset_password_done": "Пароль обновлён. Теперь вы можете войти.",
   "reset_password_invalid": "Эта ссылка для сброса недействительна или истекла. Запросите новую.",
   "reset_password_request_new": "Запросить новую ссылку",
-  "reset_password_mismatch": "Пароли не совпадают."
+  "reset_password_mismatch": "Пароли не совпадают.",
+  "archive_filter_toggle": "Архив олимпиад",
+  "archive_year_label": "Год проведения",
+  "archive_grade_label": "Группа классов",
+  "archive_all_groups": "Все группы"
 }

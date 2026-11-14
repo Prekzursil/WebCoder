@@ -1178,5 +1178,9 @@
   "reset_password_done": "Password aggiornata. Ora puoi accedere.",
   "reset_password_invalid": "Questo link di reimpostazione non è valido o è scaduto. Richiedine uno nuovo.",
   "reset_password_request_new": "Richiedi un nuovo link",
-  "reset_password_mismatch": "Le due password non coincidono."
+  "reset_password_mismatch": "Le due password non coincidono.",
+  "archive_filter_toggle": "Archivio delle olimpiadi",
+  "archive_year_label": "Anno dell'edizione",
+  "archive_grade_label": "Gruppo di classe",
+  "archive_all_groups": "Tutti i gruppi"
 }
