@@ -30,7 +30,10 @@ export async function generateMetadata({
   } catch {
     // Metadata is best-effort; the page body handles fetch failures.
   }
-  return { title: `${t('certificates_verify_title', 'Certificate verification')}${serial}`, robots: { index: false } };
+  return {
+    title: `${t('certificates_verify_title', 'Certificate verification')}${serial}`,
+    robots: { index: false },
+  };
 }
 
 function achievementRows(
@@ -43,8 +46,11 @@ function achievementRows(
     const title =
       locale === 'ro' && cert.details.contest_title_ro
         ? cert.details.contest_title_ro
-        : cert.details.contest_title_en ?? `#${cert.details.contest_id ?? ''}`;
-    rows.push({ label: t('certificates_kind_CONTEST_PARTICIPATION', 'Contest participation'), value: title });
+        : (cert.details.contest_title_en ?? `#${cert.details.contest_id ?? ''}`);
+    rows.push({
+      label: t('certificates_kind_CONTEST_PARTICIPATION', 'Contest participation'),
+      value: title,
+    });
     if (cert.details.rank !== undefined) {
       rows.push({
         label: t('certificates_rank_label', 'Final rank'),
@@ -116,7 +122,15 @@ export default async function CertificateVerifyPage({
           background: 'var(--card, #fff)',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'baseline',
+            flexWrap: 'wrap',
+            gap: '0.5rem',
+          }}
+        >
           <strong style={{ fontSize: '1.25rem', letterSpacing: '0.04em' }}>WebCoder</strong>
           <span style={{ fontFamily: 'monospace', fontSize: '0.9rem' }}>
             {t('certificates_serial_label', 'Serial')}: {cert.serial}
@@ -145,7 +159,10 @@ export default async function CertificateVerifyPage({
 
         <dl style={{ margin: '0 0 1.5rem', display: 'grid', gap: '0.4rem' }}>
           {achievementRows(cert, t, locale).map((row) => (
-            <div key={row.label} style={{ display: 'flex', gap: '0.75rem', justifyContent: 'space-between' }}>
+            <div
+              key={row.label}
+              style={{ display: 'flex', gap: '0.75rem', justifyContent: 'space-between' }}
+            >
               <dt style={{ color: 'var(--muted)' }}>{row.label}</dt>
               <dd style={{ margin: 0, fontWeight: 600, textAlign: 'right' }}>{row.value}</dd>
             </div>
@@ -180,7 +197,10 @@ export default async function CertificateVerifyPage({
       </section>
 
       {/* Screen-only controls (the print stylesheet hides them). */}
-      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '1.25rem' }} data-noprint>
+      <div
+        style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '1.25rem' }}
+        data-noprint
+      >
         <PrintCertificateButton label={t('certificates_print_button', 'Print / save as PDF')} />
         <p style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>
           {t('certificates_verify_note', 'Anyone can verify this certificate at')}{' '}

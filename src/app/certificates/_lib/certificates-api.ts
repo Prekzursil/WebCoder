@@ -9,16 +9,11 @@
 import { CertificateType } from '@/types/api';
 import { apiUrl } from '@/lib/api-config';
 
-export async function getCertificate(
-  uuid: string,
-): Promise<CertificateType | null> {
+export async function getCertificate(uuid: string): Promise<CertificateType | null> {
   const cacheOpts = process.env.E2E_API_BASE
     ? ({ cache: 'no-store' } as RequestInit)
     : ({ next: { revalidate: 60 } } as RequestInit);
-  const response = await fetch(
-    apiUrl(`/certificates/verify/${uuid}/`),
-    cacheOpts,
-  );
+  const response = await fetch(apiUrl(`/certificates/verify/${uuid}/`), cacheOpts);
   if (response.status === 404) {
     return null;
   }

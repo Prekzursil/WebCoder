@@ -12,7 +12,9 @@ const mocks = vi.hoisted(() => ({
   auth: {
     isAuthenticated: true,
     token: 'test-access-token' as string | null,
-    user: { id: 1, username: 'tester', email: 't@example.com', role: 'BASIC_USER' } as object | null,
+    user: { id: 1, username: 'tester', email: 't@example.com', role: 'BASIC_USER' } as
+      | object
+      | null,
     login: vi.fn(),
     logout: vi.fn(),
   },
@@ -82,7 +84,9 @@ describe('CertificatesPage [Wave D]', () => {
     mocks.getMyCertificates.mockResolvedValue(pageOf([CERT]));
     render(<CertificatesPage />);
     expect(await screen.findByTestId('certificates-list')).toBeTruthy();
-    expect(screen.getByTestId('certificate-serial-aaaaaaaa-0000-0000-0000-000000000001')).toBeTruthy();
+    expect(
+      screen.getByTestId('certificate-serial-aaaaaaaa-0000-0000-0000-000000000001'),
+    ).toBeTruthy();
     expect(screen.getByText('Contest participation')).toBeTruthy();
     expect(screen.getByText(/Winter Cup/)).toBeTruthy();
     expect(screen.getByRole('link', { name: 'View / verify' })).toBeTruthy();
@@ -92,7 +96,9 @@ describe('CertificatesPage [Wave D]', () => {
     mocks.getMyCertificates.mockResolvedValue(pageOf([REVOKED]));
     render(<CertificatesPage />);
     expect(await screen.findByText('Revoked')).toBeTruthy();
-    expect(screen.getByTestId('certificate-serial-aaaaaaaa-0000-0000-0000-000000000002')).toBeTruthy();
+    expect(
+      screen.getByTestId('certificate-serial-aaaaaaaa-0000-0000-0000-000000000002'),
+    ).toBeTruthy();
   });
 
   it('shows the honest empty state when nothing is earned yet', async () => {

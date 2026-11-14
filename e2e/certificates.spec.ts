@@ -65,8 +65,9 @@ test.describe('certifications / atestats (mock api)', () => {
     await login(page);
     await page.goto('/');
     await page.getByRole('button', { name: 'Account menu' }).click();
-    await expect(
-      page.getByRole('menuitem', { name: 'Certificates', exact: true }),
-    ).toHaveAttribute('href', '/certificates');
+    await expect(page.getByRole('menuitem', { name: 'Certificates', exact: true })).toHaveAttribute(
+      'href',
+      '/certificates',
+    );
   });
 });

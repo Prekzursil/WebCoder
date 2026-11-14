@@ -44,7 +44,10 @@ function achievementLine(cert: CertificateType, t: ReturnType<typeof useTranslat
   }`;
 }
 
-function kindLabel(kind: CertificateType['kind'], t: ReturnType<typeof useTranslation>['t']): string {
+function kindLabel(
+  kind: CertificateType['kind'],
+  t: ReturnType<typeof useTranslation>['t'],
+): string {
   switch (kind) {
     case 'CONTEST_PARTICIPATION':
       return t('certificates_kind_CONTEST_PARTICIPATION', 'Contest participation');
@@ -84,7 +87,14 @@ function CertificatesPageContent() {
       <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--foreground)' }}>
         {t('certificates_title', 'My certificates')}
       </h1>
-      <p style={{ color: 'var(--muted)', fontSize: '0.9rem', margin: '0.5rem 0 2rem', lineHeight: 1.7 }}>
+      <p
+        style={{
+          color: 'var(--muted)',
+          fontSize: '0.9rem',
+          margin: '0.5rem 0 2rem',
+          lineHeight: 1.7,
+        }}
+      >
         {t(
           'certificates_intro',
           'Certificates earned on WebCoder, each derived from judged activity: official rated-contest finishes, rating milestones and solved-problem milestones. Every certificate is publicly verifiable by its serial number.',
@@ -105,7 +115,10 @@ function CertificatesPageContent() {
           )}
         </p>
       ) : (
-        <ul style={{ listStyle: 'none', padding: 0, display: 'grid', gap: '1rem' }} data-testid="certificates-list">
+        <ul
+          style={{ listStyle: 'none', padding: 0, display: 'grid', gap: '1rem' }}
+          data-testid="certificates-list"
+        >
           {certificates.map((cert) => (
             <li
               key={cert.uuid}
@@ -128,7 +141,10 @@ function CertificatesPageContent() {
                 </div>
                 <div style={{ color: 'var(--muted)', fontSize: '0.8rem', marginTop: '0.25rem' }}>
                   {t('certificates_serial_label', 'Serial')}:{' '}
-                  <span data-testid={`certificate-serial-${cert.uuid}`} style={{ fontFamily: 'monospace' }}>
+                  <span
+                    data-testid={`certificate-serial-${cert.uuid}`}
+                    style={{ fontFamily: 'monospace' }}
+                  >
                     {cert.serial}
                   </span>{' '}
                   · {t('certificates_issued_label', 'Issued')}: {cert.issued_at.slice(0, 10)}
@@ -165,7 +181,18 @@ function CertificatesPageContent() {
 
 export default function CertificatesPage() {
   return (
-    <ProtectedRoute roles={['ADMIN', 'PROBLEM_CREATOR', 'PROBLEM_VERIFIER', 'TEACHER', 'BASIC_USER', 'BASIC', 'CREATOR', 'VERIFIER']}>
+    <ProtectedRoute
+      roles={[
+        'ADMIN',
+        'PROBLEM_CREATOR',
+        'PROBLEM_VERIFIER',
+        'TEACHER',
+        'BASIC_USER',
+        'BASIC',
+        'CREATOR',
+        'VERIFIER',
+      ]}
+    >
       <CertificatesPageContent />
     </ProtectedRoute>
   );
