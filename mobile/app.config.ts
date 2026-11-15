@@ -43,6 +43,9 @@ const config: ExpoConfig = {
   },
   plugins: [
     'expo-router',
+    // Bundled-asset tooling for the block editor's Blockly UMD scripts
+    // (assets/blockly/*.txt — loaded into the editor WebView at runtime).
+    'expo-asset',
     [
       'expo-splash-screen',
       {

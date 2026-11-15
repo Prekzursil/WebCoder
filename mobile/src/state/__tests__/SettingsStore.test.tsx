@@ -18,7 +18,7 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 
 beforeEach(() => {
   AsyncStorage.clear();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   (AsyncStorage as any).__reset?.();
   jest.clearAllMocks();
 });
