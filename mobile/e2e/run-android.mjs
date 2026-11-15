@@ -19,7 +19,7 @@
 // Exit code 0 = every flow passed; the runner fails fast on the first
 // unmet assertion and dumps the UI hierarchy + a screenshot on failure.
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
