@@ -283,6 +283,34 @@ class ProblemViewSet(viewsets.ModelViewSet):
                     ProblemEditorial.PublishPolicy.AFTER_AC,
                 ]
             ).distinct()
+        # Server-side catalog text search (?search=). The web list filters
+        # client-side over fetched pages (?q= is a web-only URL param), but
+        # the mobile app and any API consumer paginate server-side and need
+        # the filter applied before pagination. Semantics: the term is
+        # split on whitespace and EVERY word must appear (case-insensitive)
+        # in a title in ANY locale. Matching walks title_i18n's VALUES (not
+        # the serialized JSON text — locale keys like "en" would collide
+        # with real search terms) and filters by id before pagination. An
+        # empty/blank term is ignored — it must never silently widen the
+        # catalog (the quirk this closes: a ?search= the backend did not
+        # implement returned the unfiltered catalog with a 200).
+        search_term = (self.request.query_params.get("search") or "").strip()
+        if search_term:
+            words = search_term.lower().split()
+            matched_ids = [
+                row_id
+                for row_id, titles in qs.values_list("id", "title_i18n")
+                if all(
+                    word
+                    in " \n".join(
+                        str(value)
+                        for value in (titles or {}).values()
+                        if isinstance(value, str)
+                    ).lower()
+                    for word in words
+                )
+            ]
+            qs = qs.filter(id__in=matched_ids)
         # Catalog stats add-on (SPEC-GAPS D-B8): "X tried / Y solved" per
         # problem card. distinct=True keeps counts exact under the author
         # branch's .distinct().
