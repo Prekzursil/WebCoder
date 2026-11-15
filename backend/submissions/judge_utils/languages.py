@@ -32,7 +32,11 @@ with all of these):
               cargo project)
 - csharp   -> C# via Mono ``mcs``/``mono`` (SPEC-GAPS J11d design)
 - ruby     -> Ruby (``ruby`` CLI)
-- kotlin   -> Kotlin (pinned ``kotlinc`` ZIP on the image's OpenJDK)
+- kotlin   -> Kotlin (pinned ``kotlinc`` ZIP on the image's OpenJDK;
+              submissions RUN via ``java -cp user_program.jar:
+              /opt/kotlinc/lib/kotlin-stdlib.jar User_codeKt`` — the
+              ``kotlin`` script runner cannot load its jansi native
+              library under the judge-runner's noexec /tmp)
 - lua      -> Lua 5.4 (``lua5.4``)
 - php      -> PHP CLI (``php-cli``)
 - haskell  -> GHC (``ghc``)
@@ -413,7 +417,25 @@ _KOTLIN = LanguageSpec(
         "kotlinc user_code.kt -d user_program.jar",
     ),
     compile_artifact="user_program.jar",
-    run_command=("kotlin", "user_program.jar"),
+    # Run the compiled jar with plain `java` + the toolchain's stdlib,
+    # NOT the `kotlin` script runner. Measured on the live judge-runner
+    # (2026-11-15): the runner extracts a jansi native library into
+    # java.io.tmpdir (/tmp) and dlopens it, but the hardened container
+    # mounts /tmp noexec — UnsatisfiedLinkError — and the runner's
+    # classpath then misses kotlin-stdlib (NoClassDefFoundError
+    # kotlin/io/ConsoleKt) even with -Djansi.mode=never. Direct
+    # `java -cp user_program.jar:/opt/kotlinc/lib/kotlin-stdlib.jar`
+    # needs no native code and is stable; /opt/kotlinc is the pinned
+    # install path from Dockerfile.judge (KOTLIN_HOME is not exported).
+    # `User_codeKt` is the file facade class kotlinc generates for
+    # user_code.kt (top-level fun main contract documented in the
+    # registry docstring).
+    run_command=(
+        "java",
+        "-cp",
+        "user_program.jar:/opt/kotlinc/lib/kotlin-stdlib.jar",
+        "User_codeKt",
+    ),
     # LOCAL-backend image only: zenika/kotlin is the one maintained
     # kotlinc-in-docker base on Docker Hub (Kotlin 1.4-era; production
     # judging uses the pinned kotlinc installed in Dockerfile.judge).
