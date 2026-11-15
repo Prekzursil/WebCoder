@@ -57,7 +57,10 @@ def _exec_settings():
         "__file__": project_settings.__file__,
         "__name__": "webcoder_api.settings",
     }
-    exec(code, namespace)
+    # opengrep:ignore - test-only exec of THIS REPO'S settings source
+    # (read from webcoder_api/settings.py above), asserting import-time
+    # behavior of the real module.
+    exec(code, namespace)  # noqa: S102  # nosemgrep
     return namespace
 
 
