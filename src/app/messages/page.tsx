@@ -11,7 +11,13 @@ import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { MessagingService } from '@/services/ApiService';
-import { ApiBlock, ApiConversation, ApiMessageReport } from '@/types/api';
+import {
+  ApiAdminConversation,
+  ApiBlock,
+  ApiConversation,
+  ApiFlaggedMessage,
+  ApiMessageReport,
+} from '@/types/api';
 import { useAuth } from '@/context/AuthContext';
 import { palette } from '@/theme/tokens';
 import EmptyState from '@/components/common/EmptyState';
@@ -377,6 +383,180 @@ function ModerationQueue() {
   );
 }
 
+/** COM-5 flag-not-block review loop: the auto-flagged message queue.
+ * Content-filter hits are DELIVERED but queued here — a human decides;
+ * the queue never acts alone (filters.py policy). */
+function FlaggedList() {
+  const { t } = useTranslation();
+  const [flagged, setFlagged] = useState<ApiFlaggedMessage[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    MessagingService.getFlagged()
+      .then((response) => {
+        if (!cancelled) setFlagged(response.results);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return (
+    <section style={{ marginTop: 28 }} data-testid="msg-flagged-queue">
+      <h2 style={{ fontSize: 18 }}>{t('msgs_flagged_title', 'Flagged by content filter')}</h2>
+      <p style={{ color: palette.muted, fontSize: 13, margin: '0 0 10px' }}>
+        {t(
+          'msgs_flagged_hint',
+          'Delivered but auto-flagged (RO+EN heuristics) — review, then act via a report if needed.',
+        )}
+      </p>
+      {flagged.length === 0 ? (
+        <p style={{ color: palette.muted }}>{t('msgs_flagged_empty', 'No flagged messages.')}</p>
+      ) : (
+        <ul style={{ listStyle: 'none', padding: 0 }}>
+          {flagged.map((row) => (
+            <li
+              key={row.id}
+              data-testid={`msg-flagged-${row.id}`}
+              style={{
+                background: palette.surface,
+                border: `1px solid ${palette.border}`,
+                borderRadius: 10,
+                padding: 14,
+                marginBottom: 10,
+              }}
+            >
+              <p style={{ margin: '0 0 6px', fontWeight: 600 }}>
+                {row.sender.username}
+                <span style={{ color: palette.muted, fontWeight: 400 }}>
+                  {' '}
+                  · #{row.conversation}
+                </span>
+              </p>
+              {/* body renders as a TEXT NODE — the XSS-safe contract */}
+              <p style={{ margin: '0 0 6px' }}>{row.body.slice(0, 200)}</p>
+              <p style={{ margin: 0, color: palette.muted, fontSize: 13 }}>
+                {row.flag_categories.join(', ')}
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+/** COM-5 admin audit view: thread METADATA only by default; full
+ * transcripts stay sealed behind an explicit report — the backend 403s
+ * curiosity and the UI surfaces that gate verbatim. */
+function AdminAudit() {
+  const { t } = useTranslation();
+  const [threads, setThreads] = useState<ApiAdminConversation[]>([]);
+  const [transcriptFor, setTranscriptFor] = useState<number | null>(null);
+  const [transcript, setTranscript] = useState<Array<{
+    id: number;
+    sender: { username: string };
+    body: string;
+  }> | null>(null);
+  const [gate, setGate] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    MessagingService.getAdminThreads()
+      .then((response) => {
+        if (!cancelled) setThreads(response.results);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const viewTranscript = async (threadId: number) => {
+    setGate(null);
+    setTranscript(null);
+    setTranscriptFor(threadId);
+    try {
+      const response = await MessagingService.getTranscript(threadId);
+      setTranscript(response.messages);
+    } catch {
+      // The backend seals un-reported threads: transcript_requires_report.
+      setGate(t('msgs_audit_gate', 'Transcript sealed — no report filed on this thread.'));
+    }
+  };
+
+  return (
+    <section style={{ marginTop: 28 }} data-testid="msg-admin-audit">
+      <h2 style={{ fontSize: 18 }}>{t('msgs_audit_title', 'Thread audit (metadata only)')}</h2>
+      {threads.length === 0 ? (
+        <p style={{ color: palette.muted }}>{t('msgs_audit_empty', 'No threads.')}</p>
+      ) : (
+        <ul style={{ listStyle: 'none', padding: 0 }}>
+          {threads.map((thread) => (
+            <li
+              key={thread.id}
+              data-testid={`msg-audit-${thread.id}`}
+              style={{
+                background: palette.surface,
+                border: `1px solid ${palette.border}`,
+                borderRadius: 10,
+                padding: 14,
+                marginBottom: 10,
+              }}
+            >
+              <p style={{ margin: '0 0 6px', fontWeight: 600 }}>
+                {thread.participants.map((participant) => participant.username).join(' ↔ ')}
+              </p>
+              <p style={{ margin: '0 0 8px', color: palette.muted, fontSize: 13 }}>
+                {t('msgs_audit_count', '{{count}} messages', { count: thread.message_count })} ·{' '}
+                {thread.has_report
+                  ? t('msgs_audit_reported', 'has report')
+                  : t('msgs_audit_clean', 'no report')}
+              </p>
+              <button
+                type="button"
+                onClick={() => void viewTranscript(thread.id)}
+                data-testid={`msg-audit-transcript-${thread.id}`}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 8,
+                  border: `1px solid ${palette.borderStrong}`,
+                  background: 'none',
+                  color: palette.accent,
+                  cursor: 'pointer',
+                }}
+              >
+                {t('msgs_audit_transcript', 'View transcript')}
+              </button>
+              {transcriptFor === thread.id && (
+                <div style={{ marginTop: 10 }} data-testid={`msg-audit-panel-${thread.id}`}>
+                  {gate && (
+                    <p role="alert" style={{ color: palette.danger, margin: '0 0 6px' }}>
+                      {gate}
+                    </p>
+                  )}
+                  {transcript && (
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                      {transcript.map((message) => (
+                        <li key={message.id} style={{ fontSize: 13, marginBottom: 6 }}>
+                          <strong>{message.sender.username}:</strong>{' '}
+                          {/* body renders as a TEXT NODE — the XSS-safe contract */}
+                          <span>{message.body}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 export default function MessagesPage() {
   const { t } = useTranslation();
   const auth = useAuth();
@@ -422,6 +602,8 @@ export default function MessagesPage() {
         )}
         <BlockList />
         {moderator && <ModerationQueue />}
+        {moderator && <FlaggedList />}
+        {auth.user?.role === 'ADMIN' && <AdminAudit />}
       </main>
     </ProtectedRoute>
   );

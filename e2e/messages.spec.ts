@@ -118,4 +118,55 @@ test.describe('COM-5 private messaging (mock api)', () => {
     await unblock.click();
     await expect(page.getByText('You have not blocked anyone.')).toBeVisible();
   });
+
+  test('flagged queue + admin audit: metadata, then report-gated transcript', async ({ page }) => {
+    // As the regular user: file a report so thread 1 has one on record
+    // (the transcript gate keys off it).
+    await page.goto('/login');
+    await page.fill('#login-username', 'e2e_tester');
+    await page.fill('#login-password', 'correct-horse-battery-staple');
+    await page.getByRole('button', { name: 'Login', exact: true }).click();
+    await expect(page.getByText('e2e_tester', { exact: true })).toBeVisible();
+    await page.goto('/messages/1');
+    await page.getByTestId('msg-report-btn-3').click();
+    await page.getByTestId('msg-report-reason-ABUSE').click();
+    await expect(page.getByTestId('msg-notice')).toContainText(/review/i);
+
+    // Swap to the admin session (auth.spec's cookie + localStorage pattern).
+    await page.context().clearCookies();
+    await page
+      .context()
+      .addCookies([
+        { name: 'wc_access', value: 'e2e-admin-access', domain: 'localhost', path: '/' },
+      ]);
+    await page.evaluate(() =>
+      localStorage.setItem(
+        'user',
+        JSON.stringify({
+          id: 2,
+          username: 'admin_e2e',
+          email: 'admin@e2e.local',
+          role: 'ADMIN',
+          two_factor_enabled: false,
+        }),
+      ),
+    );
+
+    // Flagged queue: the auto-flag hit renders with its category, body as text.
+    await page.goto('/messages');
+    const flaggedRow = page.getByTestId('msg-flagged-2');
+    await expect(flaggedRow).toContainText('grooming');
+    await expect(flaggedRow).toContainText('ne intalnim singuri?');
+
+    // Admin audit: METADATA first — participants + counts + report flag.
+    const auditRow = page.getByTestId('msg-audit-1');
+    await expect(auditRow).toContainText('e2e_tester ↔ admin_e2e');
+    await expect(auditRow).toContainText('has report');
+
+    // The report filed above unseals the transcript; bodies render as text.
+    await page.getByTestId('msg-audit-transcript-1').click();
+    const panel = page.getByTestId('msg-audit-panel-1');
+    await expect(panel).toContainText('hello admin');
+    await expect(panel).toContainText('<script>alert(1)</script> try this');
+  });
 });

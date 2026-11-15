@@ -15,6 +15,9 @@ const api = vi.hoisted(() => ({
   unblockUser: vi.fn(),
   getReports: vi.fn(),
   resolveReport: vi.fn(),
+  getFlagged: vi.fn(),
+  getAdminThreads: vi.fn(),
+  getTranscript: vi.fn(),
 }));
 
 vi.mock('@/services/ApiService', () => ({
@@ -85,9 +88,14 @@ const report = (id: number) => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // The auth mock is module-shared; reset the role so tests that promote
+  // the user to moderator/admin cannot leak into negative-visibility cases.
+  mocks.auth.user = { id: 1, username: 'alice', role: 'BASIC' };
   api.getThreads.mockResolvedValue({ count: 0, next: null, previous: null, results: [] });
   api.getBlocks.mockResolvedValue({ count: 0, next: null, previous: null, results: [] });
   api.getReports.mockResolvedValue({ count: 0, next: null, previous: null, results: [] });
+  api.getFlagged.mockResolvedValue({ count: 0, next: null, previous: null, results: [] });
+  api.getAdminThreads.mockResolvedValue({ count: 0, next: null, previous: null, results: [] });
 });
 
 afterEach(cleanup);
@@ -199,5 +207,127 @@ describe('MessagesPage (inbox)', () => {
     await screen.findByTestId('msg-report-4');
     fireEvent.click(screen.getByTestId('msg-dismiss-4'));
     await waitFor(() => expect(api.resolveReport).toHaveBeenCalledWith(4, 'dismissed'));
+  });
+
+  it('shows the flagged queue to moderators with categories as text', async () => {
+    mocks.auth.user = { id: 1, username: 'mod', role: 'PROBLEM_VERIFIER' };
+    api.getFlagged.mockResolvedValue({
+      count: 1,
+      next: null,
+      previous: null,
+      results: [
+        {
+          id: 77,
+          conversation: 3,
+          sender: { id: 9, username: 'sketchy_user' },
+          body: 'cat ani ai? ne intalnim singuri',
+          flag_categories: ['grooming'],
+          created_at: '2026-10-28T11:00:00Z',
+        },
+      ],
+    });
+    render(<MessagesPage />);
+
+    const row = await screen.findByTestId('msg-flagged-77');
+    expect(row).toHaveTextContent('sketchy_user');
+    expect(row).toHaveTextContent('grooming');
+    expect(row).toHaveTextContent('#3');
+  });
+
+  it('hides the flagged queue and admin audit from basic users', async () => {
+    render(<MessagesPage />);
+    await screen.findByText('No conversations yet');
+    expect(screen.queryByTestId('msg-flagged-queue')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('msg-admin-audit')).not.toBeInTheDocument();
+  });
+
+  it('admin audit lists metadata only; transcript stays sealed without a report', async () => {
+    mocks.auth.user = { id: 1, username: 'boss', role: 'ADMIN' };
+    api.getAdminThreads.mockResolvedValue({
+      count: 2,
+      next: null,
+      previous: null,
+      results: [
+        {
+          id: 1,
+          participants: [
+            { id: 1, username: 'boss' },
+            { id: 2, username: 'student_a' },
+          ],
+          message_count: 5,
+          has_report: false,
+          created_at: '2026-10-28T10:00:00Z',
+          updated_at: '2026-10-28T10:00:00Z',
+        },
+        {
+          id: 2,
+          participants: [
+            { id: 3, username: 'student_b' },
+            { id: 4, username: 'student_c' },
+          ],
+          message_count: 2,
+          has_report: true,
+          created_at: '2026-10-28T09:00:00Z',
+          updated_at: '2026-10-28T09:00:00Z',
+        },
+      ],
+    });
+    api.getTranscript.mockRejectedValue(new Error('transcript_requires_report'));
+    render(<MessagesPage />);
+
+    const sealed = await screen.findByTestId('msg-audit-1');
+    expect(sealed).toHaveTextContent('boss ↔ student_a');
+    expect(sealed).toHaveTextContent('5 messages');
+    expect(sealed).toHaveTextContent('no report');
+    expect(screen.getByTestId('msg-audit-2')).toHaveTextContent('has report');
+
+    // Sealed thread: the backend 403s and the gate message surfaces.
+    fireEvent.click(screen.getByTestId('msg-audit-transcript-1'));
+    await waitFor(() =>
+      expect(screen.getByTestId('msg-audit-panel-1')).toHaveTextContent(/sealed/i),
+    );
+    expect(api.getTranscript).toHaveBeenCalledWith(1);
+    // Bodies never render for the sealed thread.
+    expect(screen.getByTestId('msg-audit-panel-1')).not.toHaveTextContent('secret text');
+  });
+
+  it('admin audit renders the transcript when a report unseals it', async () => {
+    mocks.auth.user = { id: 1, username: 'boss', role: 'ADMIN' };
+    api.getAdminThreads.mockResolvedValue({
+      count: 1,
+      next: null,
+      previous: null,
+      results: [
+        {
+          id: 2,
+          participants: [
+            { id: 3, username: 'student_b' },
+            { id: 4, username: 'student_c' },
+          ],
+          message_count: 1,
+          has_report: true,
+          created_at: '2026-10-28T09:00:00Z',
+          updated_at: '2026-10-28T09:00:00Z',
+        },
+      ],
+    });
+    api.getTranscript.mockResolvedValue({
+      conversation: { id: 2 },
+      messages: [
+        {
+          id: 50,
+          sender: { id: 3, username: 'student_b' },
+          body: 'reported text here',
+          is_flagged: true,
+          created_at: '2026-10-28T09:00:00Z',
+        },
+      ],
+    });
+    render(<MessagesPage />);
+
+    fireEvent.click(await screen.findByTestId('msg-audit-transcript-2'));
+    await waitFor(() =>
+      expect(screen.getByTestId('msg-audit-panel-2')).toHaveTextContent('reported text here'),
+    );
   });
 });

@@ -287,6 +287,17 @@ const messagingState = {
   ],
   reports: [],
   blocks: [],
+  // Auto-flagged (flag-not-block) messages: delivered, queued for review.
+  flagged: [
+    {
+      id: 2,
+      conversation: 1,
+      sender: { id: 2, username: 'admin_e2e' },
+      body: 'ne intalnim singuri? <script>alert(1)</script>',
+      flag_categories: ['grooming'],
+      created_at: '2026-10-29T08:45:00Z',
+    },
+  ],
   notifications: [
     {
       id: 50,
@@ -2353,7 +2364,63 @@ const server = createServer((req, res) => {
     return;
   }
   if (req.method === 'GET' && path === '/api/v1/messages/moderation/flagged/') {
-    json(res, 200, { count: 0, next: null, previous: null, results: [] });
+    json(res, 200, {
+      count: messagingState.flagged.length,
+      next: null,
+      previous: null,
+      results: messagingState.flagged,
+    });
+    return;
+  }
+  // Admin audit: metadata-only thread rows; transcripts sealed behind an
+  // explicit report (the mock unseals conversation 1 once a report exists).
+  if (req.method === 'GET' && path === '/api/v1/messages/admin/threads/') {
+    const hasReport = messagingState.reports.length > 0;
+    json(res, 200, {
+      count: 1,
+      next: null,
+      previous: null,
+      results: [
+        {
+          id: 1,
+          participants: [
+            { id: 1, username: 'e2e_tester' },
+            { id: 2, username: 'admin_e2e' },
+          ],
+          message_count: messagingState.messages.length,
+          has_report: hasReport,
+          created_at: '2026-10-29T08:00:00Z',
+          updated_at: '2026-10-29T09:00:00Z',
+        },
+      ],
+    });
+    return;
+  }
+  const transcriptMatch = path.match(/^\/api\/v1\/messages\/admin\/threads\/(\d+)\/transcript\/$/);
+  if (req.method === 'GET' && transcriptMatch) {
+    if (messagingState.reports.length === 0) {
+      json(res, 403, { detail: 'transcript_requires_report' });
+      return;
+    }
+    json(res, 200, {
+      conversation: {
+        id: 1,
+        participants: [
+          { id: 1, username: 'e2e_tester' },
+          { id: 2, username: 'admin_e2e' },
+        ],
+        message_count: messagingState.messages.length,
+        has_report: true,
+        created_at: '2026-10-29T08:00:00Z',
+        updated_at: '2026-10-29T09:00:00Z',
+      },
+      messages: messagingState.messages.map((m, index) => ({
+        ...m,
+        is_flagged: m.id === 2,
+        flag_categories: m.id === 2 ? ['grooming'] : [],
+        id: m.id ?? index,
+      })),
+    });
     return;
   }
 

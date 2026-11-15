@@ -222,6 +222,9 @@ class KillPairTest(TestCase):
             def kill(self):
                 raise OSError("already dead")
 
+            def wait(self):
+                return 1  # reaped (kill+wait is the pair-teardown contract)
+
         interactive._kill_pair(Dead(), Dead())  # must not raise
 
 

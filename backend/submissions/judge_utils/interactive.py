@@ -422,6 +422,11 @@ def _kill_pair(p_user, p_int) -> None:
             proc.kill()
         except OSError:  # already dead
             pass
+        # Reap the corpse: without wait(), Popen.__del__ later emits
+        # "ResourceWarning: subprocess is still running" when GC collects
+        # the unreaped handle (kill() is terminal — SIGKILL /
+        # TerminateProcess — so this wait cannot hang).
+        proc.wait()
 
 
 def _feedback(parts: list[str]) -> str:
