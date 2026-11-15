@@ -108,7 +108,9 @@ export default function BlocklyEditor({
         style={{ height, backgroundColor: 'transparent' }}
         onMessage={(event) => {
           const message = parseBlocklyMessage(event.nativeEvent.data);
-          if (message) onChangeRef.current?.(message.code);
+          if (!message) return;
+          if (message.type === 'code') onChangeRef.current?.(message.code);
+          else setError(message.message);
         }}
       />
     );

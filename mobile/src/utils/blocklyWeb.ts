@@ -221,48 +221,65 @@ export function buildBlocklyHtml(options: BuildBlocklyHtmlOptions): string {
 <script>${safeInlineScript(scripts.messages)}</script>
 <script>${safeInlineScript(WC_BRIDGE_SCRIPT)}
 (function () {
-  var cfg = ${JSON.stringify(config)};
-  // Apply the site-block messages on top of the message pack.
-  for (var key in cfg.messages) { Blockly.Msg[key] = cfg.messages[key]; }
-  var pythonGen = Blockly.Python;
-  var jsGen = Blockly.JavaScript;
-  globalThis.wcRegisterBlocks(Blockly, pythonGen, jsGen);
-  var workspace = Blockly.inject('blockly-div', {
-    toolbox: cfg.toolbox,
-    grid: { spacing: 24, length: 3, colour: '#334155', snap: true },
-    zoom: { controls: false, wheel: false },
-    trashcan: false,
-    sounds: false,
-    move: { scrollbars: true, drag: true, wheel: true },
-  });
-  Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(cfg.starter), workspace);
-  function generated() {
-    var code = cfg.generator === 'nodejs20'
-      ? jsGen.workspaceToCode(workspace)
-      : pythonGen.workspaceToCode(workspace);
-    // The wc_* stdin helpers need their preamble exactly once (JS only).
-    if (cfg.generator === 'nodejs20' && code.indexOf('wcRead') !== -1) {
-      code = cfg.preamble + '\\n' + code;
+  function report(type, payload) {
+    try {
+      window.ReactNativeWebView.postMessage(JSON.stringify(
+        Object.assign({ type: type }, payload),
+      ));
+    } catch (_) { /* the bridge is gone — nothing to report to */ }
+  }
+  // Surface script failures to the RN side (a blank editor is the worst
+  // possible failure mode); window.onerror fires before the code below.
+  window.onerror = function (message) {
+    report('error', { message: String(message) });
+    return false;
+  };
+  try {
+    var cfg = ${JSON.stringify(config)};
+    // Apply the site-block messages on top of the message pack.
+    for (var key in cfg.messages) { Blockly.Msg[key] = cfg.messages[key]; }
+    var pythonGen = Blockly.Python;
+    var jsGen = Blockly.JavaScript;
+    globalThis.wcRegisterBlocks(Blockly, pythonGen, jsGen);
+    var workspace = Blockly.inject('blockly-div', {
+      toolbox: cfg.toolbox,
+      grid: { spacing: 24, length: 3, colour: '#334155', snap: true },
+      zoom: { controls: false, wheel: false },
+      trashcan: false,
+      sounds: false,
+      move: { scrollbars: true, drag: true, wheel: true },
+    });
+    Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(cfg.starter), workspace);
+    function generated() {
+      var code = cfg.generator === 'nodejs20'
+        ? jsGen.workspaceToCode(workspace)
+        : pythonGen.workspaceToCode(workspace);
+      // The wc_* stdin helpers need their preamble exactly once (JS only).
+      if (cfg.generator === 'nodejs20' && code.indexOf('wcRead') !== -1) {
+        code = cfg.preamble + '\\n' + code;
+      }
+      return code;
     }
-    return code;
+    function post() {
+      report('code', { code: generated() });
+    }
+    workspace.addChangeListener(post);
+    post();
+  } catch (err) {
+    report('error', { message: err && err.message ? err.message : String(err) });
   }
-  function post() {
-    window.ReactNativeWebView.postMessage(JSON.stringify({
-      type: 'code', code: generated(),
-    }));
-  }
-  workspace.addChangeListener(post);
-  post();
 })();
 </script>
 </body>
 </html>`;
 }
 
-/** A parsed WebView bridge message. */
-export type BlocklyBridgeMessage = { type: 'code'; code: string };
+/** A parsed WebView bridge message: generated code, or a reported error. */
+export type BlocklyBridgeMessage =
+  | { type: 'code'; code: string }
+  | { type: 'error'; message: string };
 
-/** Parse a raw postMessage payload; null when it is not a code message
+/** Parse a raw postMessage payload; null when it is not a bridge message
  * (malformed JSON, foreign messages, or missing fields are dropped). */
 export function parseBlocklyMessage(raw: string): BlocklyBridgeMessage | null {
   let parsed: unknown;
@@ -272,7 +289,12 @@ export function parseBlocklyMessage(raw: string): BlocklyBridgeMessage | null {
     return null;
   }
   if (typeof parsed !== 'object' || parsed === null) return null;
-  const candidate = parsed as { type?: unknown; code?: unknown };
-  if (candidate.type !== 'code' || typeof candidate.code !== 'string') return null;
-  return { type: 'code', code: candidate.code };
+  const candidate = parsed as { type?: unknown; code?: unknown; message?: unknown };
+  if (candidate.type === 'code' && typeof candidate.code === 'string') {
+    return { type: 'code', code: candidate.code };
+  }
+  if (candidate.type === 'error' && typeof candidate.message === 'string') {
+    return { type: 'error', message: candidate.message };
+  }
+  return null;
 }

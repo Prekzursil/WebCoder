@@ -174,6 +174,13 @@ describe('parseBlocklyMessage', () => {
     });
   });
 
+  it('accepts an error report from the page-side error handler', () => {
+    expect(parseBlocklyMessage('{"type":"error","message":"Blockly is not defined"}')).toEqual({
+      type: 'error',
+      message: 'Blockly is not defined',
+    });
+  });
+
   it('rejects malformed JSON, non-objects, and wrong shapes', () => {
     expect(parseBlocklyMessage('not json')).toBeNull();
     expect(parseBlocklyMessage('"a string"')).toBeNull();
@@ -181,5 +188,7 @@ describe('parseBlocklyMessage', () => {
     expect(parseBlocklyMessage('{"type":"other","code":"x"}')).toBeNull();
     expect(parseBlocklyMessage('{"type":"code"}')).toBeNull();
     expect(parseBlocklyMessage('{"type":"code","code":42}')).toBeNull();
+    expect(parseBlocklyMessage('{"type":"error"}')).toBeNull();
+    expect(parseBlocklyMessage('{"type":"error","message":7}')).toBeNull();
   });
 });
