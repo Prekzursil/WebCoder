@@ -78,7 +78,10 @@ export default function Home() {
         <HubLink href="/forum" label={t('nav_forum')} />
         <HubLink href="/contests" label={t('nav_contests')} />
         {status === 'authenticated' ? (
-          <HubLink href="/notifications" label={t('nav_notifications')} />
+          <>
+            <HubLink href="/classroom" label={t('classes_title', 'My classes')} />
+            <HubLink href="/notifications" label={t('nav_notifications')} />
+          </>
         ) : null}
         <HubLink href="/settings" label={t('language_picker_label', 'Settings')} />
       </View>

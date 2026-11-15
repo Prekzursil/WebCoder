@@ -226,6 +226,8 @@ export const ClassroomService = {
   getMyClasses: () => apiFetch<{ results: MyClassRow[] }>('/classroom/classes/my-classes/'),
   getMyAssignments: () =>
     apiFetch<{ results: ClassroomAssignment[] }>('/classroom/assignments/my-assignments/'),
+  getAssignment: (id: number | string) =>
+    apiFetch<ClassroomAssignment>(`/classroom/assignments/${id}/`),
 };
 
 // =================================

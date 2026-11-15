@@ -53,3 +53,54 @@ jest.mock('expo-localization', () => ({
   getLocales: jest.fn(() => [{ languageCode: 'en', languageTag: 'en-US' }]),
   getCalendars: jest.fn(() => []),
 }));
+
+// react-native-webview: no native view under jest — a stub whose onMessage
+// prop is captured so tests can drive the bridge, plus a test hook the
+// BlocklyEditor tests use to fire messages.
+jest.mock('react-native-webview', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const handlers = [];
+  return {
+    __handlers: handlers,
+    WebView: (props) => {
+      handlers.length = 0;
+      handlers.push(props.onMessage);
+      return <View testID="blockly-webview" />;
+    },
+  };
+});
+
+// expo-asset: assets resolve to an in-memory fake whose bytes the
+// FileSystem mock below serves (per-module registry keyed by module id).
+jest.mock('expo-asset', () => {
+  const registry = new Map();
+  return {
+    __setAssetText: (module, text) => registry.set(module, text),
+    Asset: {
+      fromModule: (module) => ({
+        downloaded: true,
+        localUri: `asset://${module}`,
+        downloadAsync: async () => undefined,
+      }),
+    },
+    __registry: registry,
+  };
+});
+
+// expo-file-system: the SDK-58 File API (the editor reads asset bytes
+// with `new File(uri).text()`); text() serves the expo-asset registry.
+jest.mock('expo-file-system', () => ({
+  File: class {
+    constructor(uri) {
+      this.uri = uri;
+    }
+    async text() {
+      const registry = require('expo-asset').__registry;
+      const module = Number(this.uri.replace('asset://', ''));
+      const text = registry.get(module);
+      if (text === undefined) throw new Error(`asset not found: ${this.uri}`);
+      return text;
+    }
+  },
+}));

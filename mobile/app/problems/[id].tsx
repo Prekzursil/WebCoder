@@ -100,9 +100,14 @@ export default function ProblemDetail() {
           {statement.text || t('empty_statement')}
         </Txt>
         {needsTranslation(problem, locale) && transLangs.length > 0 ? (
-          <Txt variant="caption" color={palette.accent} style={{ marginTop: space[3] }}>
-            {t('problem_help_translate')} — {t('translate_page_title')}
-          </Txt>
+          <Link
+            href={`/problems/${problem.id}/translate` as never}
+            style={{ textDecorationLine: 'none', marginTop: space[3] }}
+          >
+            <Txt variant="caption" color={palette.accent}>
+              {t('problem_help_translate')} — {t('translate_page_title')}
+            </Txt>
+          </Link>
         ) : null}
       </Card>
 
@@ -162,6 +167,18 @@ export default function ProblemDetail() {
               <Txt variant="mono">{tc.expected_output_data}</Txt>
             </View>
           ))}
+        </Card>
+      ) : null}
+
+      {problem.block_config?.engine === 'scratch' ? (
+        <Card>
+          <Txt variant="section">{t('blocks_scratch_title', 'Solve with Scratch')}</Txt>
+          <Txt variant="caption">
+            {t(
+              'blocks_scratch_mobile_notice',
+              'Scratch problems are edited on the website for now: open this problem in the web app to arrange blocks on the stage and submit. The mobile app handles every other problem type.',
+            )}
+          </Txt>
         </Card>
       ) : null}
 

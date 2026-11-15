@@ -152,17 +152,19 @@ describe('ClassroomService + TranslationsService', () => {
     expect(calls()[0][0]).toContain('/classroom/classes/my-classes/');
     await ClassroomService.getMyAssignments();
     expect(calls()[1][0]).toContain('/classroom/assignments/my-assignments/');
+    await ClassroomService.getAssignment(12);
+    expect(calls()[2][0]).toContain('/classroom/assignments/12/');
     await TranslationsService.getLanguages();
-    expect(calls()[2][0]).toContain('/translations/languages/');
+    expect(calls()[3][0]).toContain('/translations/languages/');
     await TranslationsService.getMine({ page: 2 });
-    expect(calls()[3][0]).toContain('/translations/proposals/mine/?page=2');
+    expect(calls()[4][0]).toContain('/translations/proposals/mine/?page=2');
     await TranslationsService.propose({
       problemId: 8,
       language: 'ro',
       title: 'Sumă',
       statement: 'Se dă…',
     });
-    const [, init] = calls()[4];
+    const [, init] = calls()[5];
     expect(JSON.parse(init.body)).toEqual({
       problem: 8,
       language: 'ro',

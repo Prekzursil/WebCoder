@@ -10,7 +10,7 @@ import { resolveLocalized } from '../../src/utils/statement';
 import { formatDateTime } from '../../src/utils/verdict';
 import type { Contest } from '../../src/types/api';
 
-const STATES: Array<'RUNNING' | 'UPCOMING' | 'FINISHED' | undefined> = [
+const STATES: ('RUNNING' | 'UPCOMING' | 'FINISHED' | undefined)[] = [
   undefined,
   'RUNNING',
   'UPCOMING',

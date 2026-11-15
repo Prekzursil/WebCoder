@@ -4,10 +4,10 @@
 // chosen language has no statement.
 
 import type { Locale } from '../i18n';
+import type { TranslationAttribution } from '../types/api';
 
 /** Locale argument: a registry Locale or any resolved i18n key. */
 export type LocaleArg = Locale | string;
-import type { TranslationAttribution } from '../types/api';
 
 export interface LocalizedTextSource {
   title_i18n?: Record<string, string>;
