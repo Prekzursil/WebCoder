@@ -118,9 +118,10 @@ def _run(source: str, stdin_text: str = "") -> str:
     try:
         with contextlib.redirect_stdout(out):
             try:
-                # nosemgrep - test-only exec of the transpiler's GENERATED Python
-        # for this fixture (asserting its runtime behavior), never input.
-        exec(source, {"__name__": "__main__"})  # noqa: S102  # nosemgrep
+                # nosemgrep - test-only exec of the transpiler's GENERATED
+                # Python for this fixture (asserting its runtime behavior),
+                # never input.
+                exec(source, {"__name__": "__main__"})  # noqa: S102  # nosemgrep
             except SystemExit:
                 # Scratch programs may call stop; the exit aborts only the
                 # transpiled run, which is exactly the boundary under test.
