@@ -105,12 +105,12 @@ export default function BlocklyEditor({
         source={{ html }}
         javaScriptEnabled
         domStorageEnabled={false}
-        style={{ height, backgroundColor: 'transparent' }}
+        // Fill the caller's flex:1 lane (minHeight guards a lane that
+        // has not been given a height budget).
+        style={{ flex: 1, minHeight: height, backgroundColor: 'transparent' }}
         onError={(event) => setError(`webview: ${event.nativeEvent.description}`)}
-        onLoadEnd={() => console.log('[blockly] page loaded')}
         onMessage={(event) => {
           const message = parseBlocklyMessage(event.nativeEvent.data);
-          console.log('[blockly] bridge:', event.nativeEvent.data.slice(0, 120));
           if (!message) return;
           if (message.type === 'code') onChangeRef.current?.(message.code);
           else if (message.type === 'error') setError(message.message);

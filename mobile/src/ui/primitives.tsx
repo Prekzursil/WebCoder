@@ -30,7 +30,12 @@ export function Screen({
       {scroll ? (
         <ScrollView contentContainerStyle={styles.content}>{children}</ScrollView>
       ) : (
-        <View style={styles.content}>{children}</View>
+        // Non-scroll screens host full-height work surfaces (the code
+        // editor, the block editor): content must FILL the screen so the
+        // screens' flex:1 children get real height — a plain wrapper
+        // collapses them to their intrinsic size (found on a release
+        // emulator smoke: the editor Field rendered one line tall).
+        <View style={[styles.content, styles.contentFill]}>{children}</View>
       )}
     </SafeAreaView>
   );
@@ -178,6 +183,7 @@ export function KeyValue({ label, value }: { label: string; value: string }) {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: palette.bg },
   content: { padding: space[4], gap: space[3], paddingBottom: space[12] },
+  contentFill: { flex: 1 },
   card: {
     backgroundColor: palette.surface,
     borderRadius: radius.lg,
