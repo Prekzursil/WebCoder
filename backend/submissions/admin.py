@@ -40,7 +40,7 @@ class SubmissionAdmin(admin.ModelAdmin):
             pass
         return "N/A"
 
-    user_link.short_description = "User"
+    user_link.short_description = "User"  # pyright: ignore[reportFunctionMemberAccess] - Django admin runtime-only idiom.
 
     def problem_link(self, obj):
         from django.urls import reverse
@@ -64,7 +64,7 @@ class SubmissionAdmin(admin.ModelAdmin):
             pass
         return "N/A"
 
-    problem_link.short_description = "Problem"
+    problem_link.short_description = "Problem"  # pyright: ignore[reportFunctionMemberAccess] - Django admin runtime-only idiom.
 
     fieldsets = (
         (None, {"fields": ("user", "problem", "language", "submission_time")}),

@@ -277,6 +277,8 @@ def run_interactive_pair(
         )
         # The parent's copies of the crossed pipe ends must close so each
         # side sees EOF when the other exits (the children own them now).
+        # Popen(stdout=PIPE, stdin=PIPE) guarantees both handles exist.
+        assert p_user.stdout is not None and p_user.stdin is not None
         p_user.stdout.close()
         p_user.stdin.close()
 

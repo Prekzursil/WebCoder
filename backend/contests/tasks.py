@@ -72,7 +72,7 @@ def finalize_contest(contest_id: int) -> str:
         batch = submission_ids[index : index + REJUDGE_BATCH_SIZE]
         # Stagger: batch k starts at k * REJUDGE_STAGGER_SECONDS — bounded
         # ramp, contest lane stays dedicated (judge-contest queue).
-        rejudge_submissions_batch.apply_async(
+        rejudge_submissions_batch.apply_async(  # pyright: ignore[reportFunctionMemberAccess] - celery runtime attr, absent in the bare lean-gate env.
             args=[batch],
             countdown=(index // REJUDGE_BATCH_SIZE) * REJUDGE_STAGGER_SECONDS,
         )
@@ -92,7 +92,7 @@ def _schedule_ratings(contest):
         return
     from ratings.services import compute_contest_ratings_task
 
-    compute_contest_ratings_task.delay(contest.pk)
+    compute_contest_ratings_task.delay(contest.pk)  # pyright: ignore[reportFunctionMemberAccess] - celery runtime attr, absent in the bare lean-gate env.
 
 
 @shared_task
@@ -121,7 +121,7 @@ def rejudge_submissions_batch(submission_ids):
             reset += 1
             reset_ids.append(submission_id)
     for submission_id in reset_ids:
-        judge_submission_task.apply_async(args=[submission_id], queue="judge-contest")
+        judge_submission_task.apply_async(args=[submission_id], queue="judge-contest")  # pyright: ignore[reportFunctionMemberAccess] - celery runtime attr, absent in the bare lean-gate env.
     return f"rejudged {reset} submissions"
 
 

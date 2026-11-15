@@ -78,7 +78,7 @@ def _run_compiled(
         workspace_dir,
         None,
     )
-    return verdict, output or ""
+    return str(verdict), output or ""
 
 
 class StressRequestSerializer(serializers.Serializer):
@@ -418,7 +418,7 @@ def _run_full(executable_path, language: str, stdin_data: str, workspace_dir):
         workspace_dir,
         None,
     )
-    return verdict, output or "", error or ""
+    return str(verdict), output or "", error or ""
 
 
 def _compile_or_400(code, language, workspace_dir, key, request):
@@ -663,7 +663,8 @@ class GenerateOutputsView(APIView):
                 # non-AC stderr (exception-derived) goes to the audit row.
                 entry = {"input": stdin_data[:20000], "output": out[:20000]}
                 if verdict != "AC":
-                    entry["verdict"] = verdict
+                    # str(): TextChoices member -> identical runtime value.
+                    entry["verdict"] = str(verdict)
                     diagnostics.append(err[:1000])
                 results.append(entry)
 
