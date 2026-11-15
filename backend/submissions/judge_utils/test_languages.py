@@ -328,8 +328,20 @@ class ExpansionShapeTests(unittest.TestCase):
         argv = LANGUAGES["kotlin"].compile_argv()
         self.assertEqual(argv[:2], ("sh", "-c"))
         self.assertIn("kotlinc user_code.kt -d user_program.jar", argv[2])
+        # The `kotlin` script runner cannot load its jansi native library
+        # under the judge-runner's noexec /tmp (live-stack 2026-11-15:
+        # UnsatisfiedLinkError -> NoClassDefFoundError kotlin/io/ConsoleKt),
+        # so the jar runs via plain java with the toolchain stdlib on the
+        # classpath. `User_codeKt` is the facade class kotlinc generates
+        # for user_code.kt.
         self.assertEqual(
-            LANGUAGES["kotlin"].run_command, ("kotlin", "user_program.jar")
+            LANGUAGES["kotlin"].run_command,
+            (
+                "java",
+                "-cp",
+                "user_program.jar:/opt/kotlinc/lib/kotlin-stdlib.jar",
+                "User_codeKt",
+            ),
         )
 
     def test_interpreted_additions_have_no_compile_step(self):
