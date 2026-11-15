@@ -376,7 +376,9 @@ class ProblemCatalogSearchTest(TestCase):
         resp = self.client.get("/api/v1/problems/problems/", {"search": "last digits"})
         self.assertEqual([p["id"] for p in resp.json()["results"]], [self.approved.id])
         # A word from each of two problems matches neither.
-        resp = self.client.get("/api/v1/problems/problems/", {"search": "binary digits"})
+        resp = self.client.get(
+            "/api/v1/problems/problems/", {"search": "binary digits"}
+        )
         self.assertEqual(resp.json()["results"], [])
 
     def test_search_without_match_returns_empty_not_the_catalog(self):
