@@ -47,8 +47,7 @@ export default function Submit() {
 
   const segments = useMemo(() => parseTemplate(problem?.code_template), [problem]);
   const blockEngine = problem?.block_config?.engine;
-  const blockGenerator =
-    problem?.block_config?.generator === 'nodejs20' ? 'nodejs20' : 'python3';
+  const blockGenerator = problem?.block_config?.generator === 'nodejs20' ? 'nodejs20' : 'python3';
 
   useEffect(() => {
     (async () => {
@@ -62,9 +61,7 @@ export default function Submit() {
         // Block problems submit the GENERATED source under the generator
         // (web parity: the picker is replaced by the block editor).
         if (detail.block_config?.engine === 'blockly') {
-          setLanguage(
-            detail.block_config.generator === 'nodejs20' ? 'nodejs20' : 'python3',
-          );
+          setLanguage(detail.block_config.generator === 'nodejs20' ? 'nodejs20' : 'python3');
           return;
         }
         const allowed = detail.allowed_languages;
@@ -152,9 +149,7 @@ export default function Submit() {
           </Txt>
         </Card>
         <Card>
-          <Txt variant="caption">
-            {t('blocks_submit_hint', { language: 'Python' })}
-          </Txt>
+          <Txt variant="caption">{t('blocks_submit_hint', { language: 'Python' })}</Txt>
         </Card>
       </Screen>
     );
@@ -177,7 +172,9 @@ export default function Submit() {
           <ScrollView horizontal style={{ flexGrow: 0 }}>
             <View style={{ flexDirection: 'row', gap: space[2] }}>
               {registry
-                .filter((l) => !problem.allowed_languages || problem.allowed_languages.includes(l.id))
+                .filter(
+                  (l) => !problem.allowed_languages || problem.allowed_languages.includes(l.id),
+                )
                 .map((l) => (
                   <Pressable key={l.id} onPress={() => setLanguage(l.id)}>
                     <View

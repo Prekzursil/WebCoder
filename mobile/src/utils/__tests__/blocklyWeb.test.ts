@@ -148,9 +148,7 @@ describe('buildBlocklyHtml', () => {
       scripts: SCRIPTS,
     });
     expect(js).toContain('wcReadLine');
-    expect(JSON.parse(js.match(/var cfg = (\{.*?\});\n/s)![1]).preamble).toContain(
-      'wcReadNumber',
-    );
+    expect(JSON.parse(js.match(/var cfg = (\{.*?\});\n/s)![1]).preamble).toContain('wcReadNumber');
     expect(JSON.parse(py.match(/var cfg = (\{.*?\});\n/s)![1]).preamble).toBe('');
   });
 

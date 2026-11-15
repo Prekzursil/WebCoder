@@ -4,7 +4,7 @@ import { View } from 'react-native';
 import { LeaderboardService } from '../src/services/services';
 import { useSettings } from '../src/state/SettingsStore';
 import { Button, Card, ErrorBox, Screen, Spinner, Txt } from '../src/ui/primitives';
-import { space , ratingColor } from '../src/theme/tokens';
+import { space, ratingColor } from '../src/theme/tokens';
 
 import type { LeaderboardEntry } from '../src/types/api';
 

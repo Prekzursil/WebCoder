@@ -186,8 +186,7 @@ export function buildBlocklyHtml(options: BuildBlocklyHtmlOptions): string {
   const { generator, toolboxXml, starterXml, locale, categoryLabels, scripts } = options;
   const toolbox = localizeToolbox(toolboxXml ?? DEFAULT_TOOLBOX_XML, categoryLabels);
   const starter = starterXml ?? DEFAULT_STARTER_XML;
-  const wcMessages =
-    locale.startsWith('ro') ? WC_BLOCK_MESSAGES_RO : WC_BLOCK_MESSAGES_EN;
+  const wcMessages = locale.startsWith('ro') ? WC_BLOCK_MESSAGES_RO : WC_BLOCK_MESSAGES_EN;
   const isJs = generator === 'nodejs20';
   const preamble = isJs ? WC_JS_PREAMBLE : '';
   const config = {

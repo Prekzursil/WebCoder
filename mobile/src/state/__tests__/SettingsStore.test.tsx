@@ -18,7 +18,7 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 
 beforeEach(() => {
   AsyncStorage.clear();
-   
+
   (AsyncStorage as any).__reset?.();
   jest.clearAllMocks();
 });

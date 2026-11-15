@@ -25,22 +25,13 @@ describe('analyzeComplexity', () => {
   });
 
   it('flags both when both traps appear (order stable)', () => {
-    const code = [
-      'while True:',
-      '    for i in range(n):',
-      '        print(i)',
-    ].join('\n');
+    const code = ['while True:', '    for i in range(n):', '        print(i)'].join('\n');
     expect(analyzeComplexity(code)).toEqual(['nested-loops', 'no-exit-forever']);
   });
 
   it('pops the loop stack when indentation dedents past headers', () => {
     // The outer for ends before the inner while: NOT nested.
-    const code = [
-      'for i in range(n):',
-      '    print(i)',
-      'while x > 0:',
-      '    x -= 1',
-    ].join('\n');
+    const code = ['for i in range(n):', '    print(i)', 'while x > 0:', '    x -= 1'].join('\n');
     expect(analyzeComplexity(code)).toEqual([]);
   });
 

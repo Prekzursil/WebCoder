@@ -113,8 +113,7 @@ export default function TranslateProblem() {
                     borderRadius: 999,
                     borderWidth: 1,
                     borderColor: language === lang.code ? palette.accent : palette.border,
-                    backgroundColor:
-                      language === lang.code ? palette.accent + '22' : 'transparent',
+                    backgroundColor: language === lang.code ? palette.accent + '22' : 'transparent',
                   }}
                 >
                   <Txt
