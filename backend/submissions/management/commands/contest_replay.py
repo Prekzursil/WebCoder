@@ -41,7 +41,7 @@ GATE_MIN_USERS = 50  # the full gate; the command allows fewer for rehearsal
 SOLUTION = "print(int(input()) + int(input()))\n"
 TERMINAL = {
     verdict.value
-    for verdict in Submission.VerdictStatus
+    for verdict in Submission.VerdictStatus  # pyright: ignore[reportGeneralTypeIssues] - enum iteration comes from django's TextChoices metaclass at runtime; not statically iterable without django installed.
     if verdict.value not in ("PENDING", "COMPILING", "RUNNING")
 }
 
@@ -113,7 +113,7 @@ class Command(BaseCommand):
                     code=SOLUTION,
                     contest=contest,
                 )
-                judge_submission_task.delay(submission.id)
+                judge_submission_task.delay(submission.id)  # pyright: ignore[reportFunctionMemberAccess] - celery runtime attr, absent in the bare lean-gate env.
                 verdict = None
                 while time.monotonic() - start < options["timeout"]:
                     time.sleep(options["poll_interval"])

@@ -57,8 +57,10 @@ def build_pdf(sections: list[tuple[str, str]]) -> bytes:
     them as ``application/pdf``.
     """
     lines_per_page = int((PAGE_HEIGHT - 2 * MARGIN) // LEADING) - 1
-    pages: list[list[str]] = []
-    current: list[str] = []
+    # Elements are (kind, text) pairs - "heading"/"body" - unpacked by the
+    # content-stream writer below (`for kind, line in page_lines`).
+    pages: list[list[tuple[str, str]]] = []
+    current: list[tuple[str, str]] = []
 
     def flush() -> None:
         if current:

@@ -103,12 +103,14 @@ def medal_for_rank(rank: int, field_size: int) -> str | None:
     gold = max(1, math.ceil(GOLD_PERCENT * field_size))
     silver = gold + max(0, math.ceil(SILVER_PERCENT * field_size))
     bronze = silver + max(0, math.ceil(BRONZE_PERCENT * field_size))
+    # str(): TextChoices members are (value, label) tuples to pyright without
+    # django's metaclass; str() returns the identical runtime value.
     if rank <= gold:
-        return ContestAward.Medal.GOLD
+        return str(ContestAward.Medal.GOLD)
     if rank <= silver:
-        return ContestAward.Medal.SILVER
+        return str(ContestAward.Medal.SILVER)
     if rank <= bronze:
-        return ContestAward.Medal.BRONZE
+        return str(ContestAward.Medal.BRONZE)
     return None
 
 

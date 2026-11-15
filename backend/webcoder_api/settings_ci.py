@@ -1,5 +1,19 @@
-from . import settings as base_settings
-from .settings import BASE_DIR
+# CI-only settings contract pre-seed: the base settings module reads
+# SECRET_KEY / DB_PASSWORD with os.environ[...] at import time (the
+# production contract). The repo's own CI jobs (django.yml / verify.yml)
+# export both before pytest, but the lean quality gate's coverage lane
+# invokes `python -m pytest` inside a reusable-workflow job that CANNOT
+# inherit caller env — setdefault fills the same deterministic CI values
+# those jobs use, before the base import consumes them. Production
+# (settings_prod) never routes through this module, so the hard contract
+# is untouched.
+import os as _os_pre
+
+_os_pre.environ.setdefault("SECRET_KEY", "ci-only-secret-key")
+_os_pre.environ.setdefault("DB_PASSWORD", "ci-only-db-password")
+
+from . import settings as base_settings  # noqa: E402 (env pre-seed above)
+from .settings import BASE_DIR  # noqa: E402
 
 for _name in dir(base_settings):
     if _name.isupper():

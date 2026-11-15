@@ -425,6 +425,8 @@ def run_code_in_sandbox(
         # required output file is a RUNTIME_ERROR with a message naming the
         # file (overriding the AC the exit code alone would imply).
         if missing_output_file:
+            # missing_output_file is only set inside `if io_files` above.
+            assert io_files is not None
             final_verdict = Submission.VerdictStatus.RUNTIME_ERROR
             final_error = (
                 parsed_stderr + f"\nProgram exited normally but did not create the "
