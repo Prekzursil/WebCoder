@@ -215,7 +215,7 @@ const totpState = { secret: '', enabled: false };
 const apiTokenState = { key: null };
 
 // i18n community translations (owner rule (c)): the translatable catalog
-// mirrors backend/webcoder_api/languages.py TRANSLATABLE_LANGUAGES (all 28
+// mirrors backend/webcoder_api/languages.py TRANSLATABLE_LANGUAGES (all 30
 // SUPPORTED_LANGUAGES minus the mandatory English source), plus the
 // stateful proposal store the propose → curate → visible spec drives.
 const TRANSLATABLE_LANGUAGES = [
@@ -226,10 +226,12 @@ const TRANSLATABLE_LANGUAGES = [
   { code: 'pt', endonym: 'Português', english: 'Portuguese' },
   { code: 'it', endonym: 'Italiano', english: 'Italian' },
   { code: 'ca', endonym: 'Català', english: 'Catalan' },
+  { code: 'nl', endonym: 'Nederlands', english: 'Dutch' },
   { code: 'pl', endonym: 'Polski', english: 'Polish' },
   { code: 'hu', endonym: 'Magyar', english: 'Hungarian' },
   { code: 'hr', endonym: 'Hrvatski', english: 'Croatian' },
   { code: 'sr-Latn', endonym: 'Srpski (latinica)', english: 'Serbian (Latin)' },
+  { code: 'lt', endonym: 'Lietuvių', english: 'Lithuanian' },
   { code: 'ru', endonym: 'Русский', english: 'Russian' },
   { code: 'uk', endonym: 'Українська', english: 'Ukrainian' },
   { code: 'bg', endonym: 'Български', english: 'Bulgarian' },

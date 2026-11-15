@@ -104,8 +104,8 @@ describe('i18n parity sweep [Q1 × full locale set]', () => {
   it('ships exactly the agreed full locale set', () => {
     // English mandatory + home market + globals + the owner-directed
     // Asian/regional set (requirements of 2026-10-31; decision record in
-    // backend/webcoder_api/languages.py). The union-bar remainder
-    // (zh-Hant, ca, hr, kk, sr-Latn) lands in a follow-up PR.
+    // backend/webcoder_api/languages.py). lt/nl close the union bar
+    // (DMOJ ships both) — every major judge's UI languages now ship here.
     expect([...SUPPORTED_LOCALES]).toEqual([
       'en',
       'ro',
@@ -115,10 +115,12 @@ describe('i18n parity sweep [Q1 × full locale set]', () => {
       'pt',
       'it',
       'ca',
+      'nl',
       'pl',
       'hu',
       'hr',
       'sr-Latn',
+      'lt',
       'ru',
       'uk',
       'bg',
@@ -136,9 +138,9 @@ describe('i18n parity sweep [Q1 × full locale set]', () => {
       'ar',
       'fa',
     ]);
-    // [union bar] with zh-Hant/ca/hr/sr-Latn/kk shipped, this set covers
-    // every UI language any major judge offers (matrix in the registry
-    // docstring) except DMOJ's lt/nl — deliberately deferred.
+    // [union bar] with zh-Hant/ca/hr/sr-Latn/kk/lt/nl shipped, this set
+    // covers every UI language any major judge offers (matrix in the
+    // registry docstring) — the union bar is complete.
     expect(PUBLIC_LOCALES).toEqual(SUPPORTED_LOCALES);
   });
 

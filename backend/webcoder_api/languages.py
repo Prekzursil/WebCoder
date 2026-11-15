@@ -22,8 +22,11 @@ The full set is the owner-directed union (requirements of 2026-10-31):
   tr, vi, zh-Hans, zh-Hant} (github.com/DMOJ/online-judge/tree/master/locale);
   Kattis {en} (open.kattis.com is English-only - no evidence of a Swedish
   UI); pbinfo {ro}. Beyond the directed set the union bar therefore adds
-  zh-Hant, ca, hr, kk, sr-Latn (and would add lt/nl only at their full
-  catalog quality bar - deliberately not shipped half-done).
+  zh-Hant, ca, hr, kk, sr-Latn, lt, nl — with lt/nl shipped (2026-11-15,
+  full hand-translated catalogs) the registry covers every UI language any
+  major judge offers: the union bar is complete. (LeetCode's live UI is
+  en + zh via leetcode.cn — the ja in earlier research is not an official
+  UI language there, and ja is in the directed set regardless.)
 
 RTL: ar and fa ship with full right-to-left layout (frontend <html dir>
 sync + verified RTL CSS); RTL_LANGUAGES records which locales are RTL.
@@ -43,10 +46,12 @@ SUPPORTED_LANGUAGES = [
     "pt",
     "it",
     "ca",
+    "nl",
     "pl",
     "hu",
     "hr",
     "sr-Latn",
+    "lt",
     "ru",
     "uk",
     "bg",
@@ -77,10 +82,12 @@ LANGUAGE_NAMES = {
     "pt": {"endonym": "Português", "english": "Portuguese"},
     "it": {"endonym": "Italiano", "english": "Italian"},
     "ca": {"endonym": "Català", "english": "Catalan"},
+    "nl": {"endonym": "Nederlands", "english": "Dutch"},
     "pl": {"endonym": "Polski", "english": "Polish"},
     "hu": {"endonym": "Magyar", "english": "Hungarian"},
     "hr": {"endonym": "Hrvatski", "english": "Croatian"},
     "sr-Latn": {"endonym": "Srpski (latinica)", "english": "Serbian (Latin)"},
+    "lt": {"endonym": "Lietuvių", "english": "Lithuanian"},
     "ru": {"endonym": "Русский", "english": "Russian"},
     "uk": {"endonym": "Українська", "english": "Ukrainian"},
     "bg": {"endonym": "Български", "english": "Bulgarian"},

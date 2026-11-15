@@ -24,10 +24,12 @@ import de from '../../locales/de.json';
 import pt from '../../locales/pt.json';
 import it from '../../locales/it.json';
 import ca from '../../locales/ca.json';
+import nl from '../../locales/nl.json';
 import pl from '../../locales/pl.json';
 import hu from '../../locales/hu.json';
 import hr from '../../locales/hr.json';
 import srLatn from '../../locales/sr-Latn.json';
+import lt from '../../locales/lt.json';
 import ru from '../../locales/ru.json';
 import uk from '../../locales/uk.json';
 import bg from '../../locales/bg.json';
@@ -59,10 +61,12 @@ const CATALOGS: Record<PublicLocale, Record<string, unknown>> = {
   pt,
   it,
   ca,
+  nl,
   pl,
   hu,
   hr,
   'sr-Latn': srLatn,
+  lt,
   ru,
   uk,
   bg,
@@ -322,10 +326,12 @@ export const MESSAGES: Record<PublicLocale, Record<string, string>> = {
   pt: pick(CATALOGS.pt),
   it: pick(CATALOGS.it),
   ca: pick(CATALOGS.ca),
+  nl: pick(CATALOGS.nl),
   pl: pick(CATALOGS.pl),
   hu: pick(CATALOGS.hu),
   hr: pick(CATALOGS.hr),
   'sr-Latn': pick(CATALOGS['sr-Latn']),
+  lt: pick(CATALOGS.lt),
   ru: pick(CATALOGS.ru),
   uk: pick(CATALOGS.uk),
   bg: pick(CATALOGS.bg),

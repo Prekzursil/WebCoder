@@ -39,10 +39,12 @@ import de from './locales/de.json';
 import pt from './locales/pt.json';
 import it from './locales/it.json';
 import ca from './locales/ca.json';
+import nl from './locales/nl.json';
 import pl from './locales/pl.json';
 import hu from './locales/hu.json';
 import hr from './locales/hr.json';
 import srLatn from './locales/sr-Latn.json';
+import lt from './locales/lt.json';
 import ru from './locales/ru.json';
 import uk from './locales/uk.json';
 import bg from './locales/bg.json';
@@ -70,10 +72,12 @@ export const SUPPORTED_LOCALES = [
   'pt',
   'it',
   'ca',
+  'nl',
   'pl',
   'hu',
   'hr',
   'sr-Latn',
+  'lt',
   'ru',
   'uk',
   'bg',
@@ -104,10 +108,12 @@ export const LOCALE_NATIVE_NAMES: Record<Locale, string> = {
   pt: 'Português',
   it: 'Italiano',
   ca: 'Català',
+  nl: 'Nederlands',
   pl: 'Polski',
   hu: 'Magyar',
   hr: 'Hrvatski',
   'sr-Latn': 'Srpski (latinica)',
+  lt: 'Lietuvių',
   ru: 'Русский',
   uk: 'Українська',
   bg: 'Български',
@@ -151,11 +157,11 @@ export const LOCALE_GROUPS: LocaleGroup[] = [
   { labelKey: 'lang_group_worldwide', locales: ['en'] },
   {
     labelKey: 'lang_group_europe_latin_west',
-    locales: ['ro', 'es', 'fr', 'de', 'pt', 'it', 'ca'],
+    locales: ['ro', 'es', 'fr', 'de', 'pt', 'it', 'ca', 'nl'],
   },
   {
     labelKey: 'lang_group_europe_latin_east',
-    locales: ['pl', 'hu', 'hr', 'sr-Latn'],
+    locales: ['pl', 'hu', 'hr', 'sr-Latn', 'lt'],
   },
   { labelKey: 'lang_group_cyrillic_greek', locales: ['ru', 'uk', 'bg', 'el'] },
   { labelKey: 'lang_group_east_asian', locales: ['zh-Hans', 'zh-Hant', 'ja', 'ko'] },
@@ -210,10 +216,12 @@ const resources = {
   pt: { translation: pt },
   it: { translation: it },
   ca: { translation: ca },
+  nl: { translation: nl },
   pl: { translation: pl },
   hu: { translation: hu },
   hr: { translation: hr },
   'sr-Latn': { translation: srLatn },
+  lt: { translation: lt },
   ru: { translation: ru },
   uk: { translation: uk },
   bg: { translation: bg },
