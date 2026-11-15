@@ -4,7 +4,7 @@
 // (malformed ones are dropped). Asset failures surface as the error
 // box, never a hang.
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react-native';
+import { render, waitFor } from '@testing-library/react-native';
 import BlocklyEditor from '../BlocklyEditor';
 import { File } from 'expo-file-system';
 import * as assetModule from 'expo-asset';
@@ -44,17 +44,20 @@ const props = {
   categoryLabels: {},
 };
 
+// render() returns a Promise on this RNTL 14.1 + React 19 stack (the
+// concurrent mount resolves async): every render is awaited and the
+// resolved queries are used — `screen.*` can race the mount.
 it('mounts the WebView with the built HTML', async () => {
   seedAssets();
-  render(<BlocklyEditor {...props} onCodeChange={jest.fn()} />);
-  await waitFor(() => expect(screen.queryByTestId('blockly-webview')).not.toBeNull());
+  const { queryByTestId } = await render(<BlocklyEditor {...props} onCodeChange={jest.fn()} />);
+  await waitFor(() => expect(queryByTestId('blockly-webview')).not.toBeNull());
 });
 
 it('forwards bridge code messages to onCodeChange and drops malformed ones', async () => {
   seedAssets();
   const onCodeChange = jest.fn();
-  render(<BlocklyEditor {...props} onCodeChange={onCodeChange} />);
-  await waitFor(() => expect(screen.queryByTestId('blockly-webview')).not.toBeNull());
+  const { queryByTestId } = await render(<BlocklyEditor {...props} onCodeChange={onCodeChange} />);
+  await waitFor(() => expect(queryByTestId('blockly-webview')).not.toBeNull());
   const fire = webview.__handlers[0];
   fire({ nativeEvent: { data: JSON.stringify({ type: 'code', code: 'print(1)' }) } });
   expect(onCodeChange).toHaveBeenCalledWith('print(1)');
@@ -66,14 +69,14 @@ it('renders the error box when an asset cannot be read', async () => {
   // Clear the registry seeded by earlier tests → new File(uri).text()
   // rejects and the error box surfaces.
   assets.__registry.clear();
-  render(<BlocklyEditor {...props} onCodeChange={jest.fn()} />);
-  await waitFor(() => expect(screen.queryByText(/asset not found/)).not.toBeNull());
+  const { queryByText } = await render(<BlocklyEditor {...props} onCodeChange={jest.fn()} />);
+  await waitFor(() => expect(queryByText(/asset not found/)).not.toBeNull());
 });
 
 it('reads asset bytes through the SDK-58 File API', async () => {
   seedAssets();
   const spy = jest.spyOn(File.prototype, 'text');
-  render(<BlocklyEditor {...props} onCodeChange={jest.fn()} />);
+  await render(<BlocklyEditor {...props} onCodeChange={jest.fn()} />);
   await waitFor(() => expect(spy).toHaveBeenCalled());
   spy.mockRestore();
 });

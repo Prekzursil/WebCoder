@@ -5,7 +5,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { SUPPORTED_LOCALES } from '../index';
+import { SUPPORTED_LOCALES, translate } from '../index';
 
 const mobileLocales = join(__dirname, '..', 'locales');
 const webLocales = join(__dirname, '..', '..', '..', '..', '..', 'src', 'locales');
@@ -17,6 +17,18 @@ describe('locale catalog copies', () => {
       .map((f) => f.replace('.json', ''))
       .sort();
     expect(files).toEqual([...SUPPORTED_LOCALES].sort());
+  });
+
+  it('translates a known key and falls back through a string leaf', () => {
+    // A top-level string key resolves directly.
+    expect(translate('en', 'app_title')).toBe(
+      JSON.parse(readFileSync(join(mobileLocales, 'en.json'), 'utf8')).app_title,
+    );
+    // A key walking THROUGH a string leaf cannot resolve in any locale —
+    // the lookup guard returns undefined and t() falls back to the key.
+    expect(translate('en', 'app_title.deeper')).toBe('app_title.deeper');
+    // A wholly unknown key falls back to itself.
+    expect(translate('en', 'no.such.key')).toBe('no.such.key');
   });
 
   it('matches the web app catalogs byte-for-byte (when run in-repo)', () => {

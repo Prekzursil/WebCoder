@@ -41,6 +41,16 @@ describe('ProblemService', () => {
     expect(init.method).toBe('GET');
   });
 
+  it('adds the tag filter to the catalog query', async () => {
+    await ProblemService.getProblems({ tag: 'dp' });
+    expect(calls()[0][0]).toContain('/problems/problems/?tag=dp');
+  });
+
+  it('paginates the contests list', async () => {
+    await ContestService.getContests({}, { page: 3, pageSize: 10 });
+    expect(calls()[0][0]).toContain('/contests/contests/?page=3&page_size=10');
+  });
+
   it('omits empty params and fetches detail', async () => {
     await ProblemService.getProblems();
     expect(calls()[0][0]).toContain('/problems/problems/');

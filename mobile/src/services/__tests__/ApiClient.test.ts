@@ -221,6 +221,54 @@ describe('apiFetch auth + refresh', () => {
     expect(unauthorized).toHaveBeenCalled();
   });
 
+  it('skips refresh when no token store is configured', async () => {
+    // Module default: no setTokenStore call -> refreshTokens bails before
+    // any refresh fetch (the store-less, logged-out lane).
+    __resetForTests();
+    setUnauthorizedHandler(unauthorized);
+    (global.fetch as jest.Mock).mockResolvedValueOnce(jsonResponse({}, 401));
+    await expect(apiFetch('/protected/')).rejects.toThrow();
+    expect((global.fetch as jest.Mock).mock.calls.length).toBe(1);
+    expect(unauthorized).toHaveBeenCalled();
+  });
+
+  it('treats a refresh response without an access token as failed', async () => {
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce(jsonResponse({}, 401))
+      // 200 refresh whose body carries no access token.
+      .mockResolvedValueOnce(jsonResponse({ detail: 'no token here' }));
+    await expect(apiFetch('/protected/')).rejects.toThrow();
+    expect(store.savedAccess).toEqual([]);
+    expect(unauthorized).toHaveBeenCalled();
+  });
+
+  it('falls back to an empty body when the refresh response json() rejects', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce(jsonResponse({}, 401)).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      statusText: '',
+      json: async () => {
+        throw new Error('not json');
+      },
+      headers: { get: () => null },
+    });
+    await expect(apiFetch('/protected/')).rejects.toThrow();
+    expect(unauthorized).toHaveBeenCalled();
+  });
+
+  it('uses statusText when a failing response body is not json', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      statusText: 'Internal Server Error',
+      json: async () => {
+        throw new Error('not json');
+      },
+      headers: { get: () => null },
+    });
+    await expect(apiFetch('/protected/')).rejects.toThrow('Internal Server Error');
+  });
+
   it('skips refresh entirely for anonymous calls (login lane)', async () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce(jsonResponse({}, 401));
     await expect(apiFetch('/auth/login/', { method: 'POST', anonymous: true })).rejects.toThrow();
