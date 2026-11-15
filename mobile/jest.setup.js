@@ -58,7 +58,8 @@ jest.mock('expo-localization', () => ({
 // prop is captured so tests can drive the bridge, plus a test hook the
 // BlocklyEditor tests use to fire messages.
 jest.mock('react-native-webview', () => {
-  const React = require('react');
+  // JSX compiles through the automatic runtime — no React binding needed
+  // (an unused one fails the repo-wide oxlint gate).
   const { View } = require('react-native');
   const handlers = [];
   return {
