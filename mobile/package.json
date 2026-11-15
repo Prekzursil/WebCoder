@@ -14,7 +14,8 @@
     "lint": "eslint .",
     "copy-locales": "node scripts/copy-locales.mjs",
     "maestro": "maestro test maestro/*.yaml",
-    "copy-blockly": "node scripts/copy-blockly.mjs"
+    "copy-blockly": "node scripts/copy-blockly.mjs",
+    "build-scratch": "node scripts/build-scratch.mjs"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",

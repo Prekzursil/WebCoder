@@ -1,0 +1,82 @@
+# Mobile on-device e2e (dispatch) — runs the adb + uiautomator lane
+# (mobile/e2e/run-android.mjs) on a hosted Android emulator against the
+# full local stack, covering the two Maestro scenarios (login-and-browse,
+# submit-solution). Dispatch-triggered rather than per-PR because it needs
+# the live backend + judge; the lane itself is deterministic (see
+# mobile/e2e/README.md).
+name: e2e-mobile
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: android e2e (login + submit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      EMULATOR_API_LEVEL: 35
+      EMULATOR_TAG: google_apis
+      EMULATOR_ARCH: x86_64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Enable KVM (emulator acceleration)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run the backend stack (API on 127.0.0.1:8010)
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.override.yml \
+            up -d --build backend celery-worker judge-runner
+          for i in $(seq 1 60); do
+            curl -fsS http://127.0.0.1:8010/api/v1/problems/problems/ >/dev/null 2>&1 && break
+            sleep 5
+          done
+          curl -fsS http://127.0.0.1:8010/api/v1/problems/problems/ >/dev/null
+
+      - name: AVD cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-${{ env.EMULATOR_API_LEVEL }}-${{ env.EMULATOR_TAG }}
+
+      - name: Boot the emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ env.EMULATOR_API_LEVEL }}
+          tag: ${{ env.EMULATOR_TAG }}
+          arch: ${{ env.EMULATOR_ARCH }}
+          cores: 2
+          ram-size: 4096M
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: |
+            set -euo pipefail
+            # 10.0.2.2 is the emulator's alias for the host loopback where
+            # the stack from the earlier step is listening.
+            cd mobile
+            npm ci
+            npx expo prebuild -p android
+            ( cd android && ./gradlew assembleDebug -x lint )
+            adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+            node e2e/run-android.mjs

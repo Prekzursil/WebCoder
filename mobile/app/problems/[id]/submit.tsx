@@ -1,11 +1,11 @@
 // Submit — language picker (the expanded 14-language registry), plain code
 // editor, the locked-region partial-code editor for template problems
-// (judge-fairness wave E), and the block lane (wave D): Blockly problems
+// (judge-fairness wave E), and BOTH block lanes (wave D): Blockly problems
 // open the WebView block editor (generated source submits with
-// `language` = the generator), while Scratch problems — whose only
-// accepted submission language is the sb3 project JSON — are gated with
-// a handoff notice until a native Scratch stage ships (documented slice;
-// see docs/ROADMAP mobile wave notes). Verdict polls on the detail page.
+// `language` = the generator); Scratch problems open the WebView Scratch
+// stage (scratch-vm/scratch-blocks/scratch-render via the committed
+// esbuild bundle) and submit the sb3 project JSON under
+// `language: 'scratch'` — judged through the transpiler like the web.
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
@@ -13,6 +13,7 @@ import { ProblemService, PublicService, SubmissionService } from '../../../src/s
 import { useAuth } from '../../../src/state/AuthStore';
 import { useSettings } from '../../../src/state/SettingsStore';
 import BlocklyEditor from '../../../src/ui/BlocklyEditor';
+import ScratchEditor from '../../../src/ui/ScratchEditor';
 import {
   Button,
   Card,
@@ -59,9 +60,14 @@ export default function Submit() {
         setProblem(detail);
         setRegistry(langs.results);
         // Block problems submit the GENERATED source under the generator
-        // (web parity: the picker is replaced by the block editor).
+        // (web parity: the picker is replaced by the block editor); Scratch
+        // problems submit the sb3 project JSON under 'scratch'.
         if (detail.block_config?.engine === 'blockly') {
           setLanguage(detail.block_config.generator === 'nodejs20' ? 'nodejs20' : 'python3');
+          return;
+        }
+        if (detail.block_config?.engine === 'scratch') {
+          setLanguage('scratch');
           return;
         }
         const allowed = detail.allowed_languages;
@@ -133,24 +139,45 @@ export default function Submit() {
     functions: t('blocks_cat_functions', 'Functions'),
   };
 
-  // Scratch lane: the only accepted submission is the sb3 project JSON
-  // under language 'scratch' (validated + transpiled server-side); until
-  // a native Scratch stage ships, submit from the web app.
+  // Scratch lane: the WebView Scratch stage — the sb3 project JSON edits
+  // live on-device and submits under language 'scratch' (the server
+  // transpiles + judges it exactly like a web submission).
+  const scratchLabels = {
+    events: t('sbx_cat_events', 'Events'),
+    control: t('sbx_cat_control', 'Control'),
+    looks: t('sbx_cat_looks', 'Looks'),
+    sensing: t('sbx_cat_sensing', 'Sensing'),
+    operators: t('sbx_cat_operators', 'Operators'),
+    variables: t('sbx_cat_variables', 'Variables'),
+  };
   if (blockEngine === 'scratch') {
     return (
-      <Screen>
+      <Screen scroll={false}>
         <Card>
-          <Txt variant="title">{t('blocks_scratch_title', 'Solve with Scratch')}</Txt>
-          <Txt variant="body">
+          <SectionLabel>{t('blocks_scratch_title', 'Solve with Scratch')}</SectionLabel>
+          <Txt variant="caption">
             {t(
-              'blocks_scratch_mobile_notice',
-              'Scratch problems are edited on the website for now: open this problem in the web app to arrange blocks on the stage and submit. The mobile app handles every other problem type.',
+              'sbx_submit_hint',
+              'Your Scratch project is translated to Python and judged like any other submission.',
             )}
           </Txt>
         </Card>
-        <Card>
-          <Txt variant="caption">{t('blocks_submit_hint', { language: 'Python' })}</Txt>
-        </Card>
+        <View style={{ flex: 1 }}>
+          <ScratchEditor
+            projectJson={problem.block_config?.scratch_project}
+            allowedOpcodes={problem.block_config?.scratch_blocks ?? null}
+            locale={locale}
+            categoryLabels={scratchLabels}
+            onProjectChange={setCode}
+            submitDisabledHint={t('loading')}
+          />
+        </View>
+        <ErrorBox message={error} />
+        <Button
+          title={busy ? t('loading') : t('submit_button')}
+          onPress={submit}
+          disabled={busy || !language || !code}
+        />
       </Screen>
     );
   }
