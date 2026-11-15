@@ -29,10 +29,9 @@ async function seedBlocklyProblem(): Promise<number> {
   const admin = await login(E2E_ADMIN_USER, E2E_ADMIN_PASS);
   // Idempotent: reuse a previous run's row. The catalog's server-side
   // ?search= (#320) finds it regardless of the list's default ordering.
-  const list = await api(
-    `/problems/problems/?search=${encodeURIComponent(BLOCKLY_TITLE)}`,
-    { token: admin.access },
-  );
+  const list = await api(`/problems/problems/?search=${encodeURIComponent(BLOCKLY_TITLE)}`, {
+    token: admin.access,
+  });
   if (list.status !== 200) throw new Error(`list -> ${list.status}`);
   const rows: { id: number; title_i18n?: { en?: string } }[] = list.body.results ?? [];
   const existing = rows.find((r) => r.title_i18n?.en === BLOCKLY_TITLE)?.id;
@@ -85,9 +84,7 @@ async function seedBlocklyProblem(): Promise<number> {
   return problemId;
 }
 
-test('block problem: generated code submits and the UI polls the judge to AC', async ({
-  page,
-}) => {
+test('block problem: generated code submits and the UI polls the judge to AC', async ({ page }) => {
   test.setTimeout(120_000); // judge round-trip incl. container cold start
 
   // Register + login via the UI (the shared fixture user).
@@ -109,7 +106,10 @@ test('block problem: generated code submits and the UI polls the judge to AC', a
   await expect(page?.locator('.blocklySvg').first()).toBeVisible();
 
   // Submit the GENERATED code (language = the generator, python3).
-  await page?.getByRole('button', { name: /submit/i }).first().click();
+  await page
+    ?.getByRole('button', { name: /submit/i })
+    .first()
+    .click();
   await page?.getByRole('dialog').getByRole('button', { name: 'Confirm' }).click();
 
   // The polled verdict — the piece the mock-mode spec cannot reach.
@@ -121,10 +121,9 @@ test('block problem: generated code submits and the UI polls the judge to AC', a
   // block-generated python3 source with verdict AC. The list serializer
   // omits `code` — the detail row carries it.
   const admin = await login(E2E_ADMIN_USER, E2E_ADMIN_PASS);
-  const feed = await api(
-    `/submissions/submissions/?problem=${problemId}&page_size=1`,
-    { token: admin.access },
-  );
+  const feed = await api(`/submissions/submissions/?problem=${problemId}&page_size=1`, {
+    token: admin.access,
+  });
   expect(feed.status).toBe(200);
   const row = (feed.body.results ?? [])[0];
   expect(row?.language).toBe('python3');
