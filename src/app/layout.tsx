@@ -10,11 +10,11 @@ import { palette } from '@/theme/tokens';
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://webcoder.momentstudio.ro';
 
 export const metadata: Metadata = {
-  // OPS-6 (Wave D): the PWA manifest — installable app shell, offline
+  // OPS-6 (Wave D): the PWA manifest - installable app shell, offline
   // problem browsing via the service worker, app shortcuts.
   manifest: '/manifest.webmanifest',
   applicationName: 'WebCoder',
-  // Mobile wave: PNG icons beside the SVG set — Safari's home-screen
+  // Mobile wave: PNG icons beside the SVG set - Safari's home-screen
   // install (apple-touch-icon) and richer Android install sheets.
   icons: {
     icon: '/icons/icon.svg',
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     statusBarStyle: 'black-translucent',
   },
   title: {
-    default: 'WebCoder — Competitive Programming Platform',
+    default: 'WebCoder - Competitive Programming Platform',
     template: '%s | WebCoder',
   },
   description:
@@ -37,13 +37,13 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: siteUrl,
     siteName: 'WebCoder',
-    title: 'WebCoder — Competitive Programming Platform',
+    title: 'WebCoder - Competitive Programming Platform',
     description:
       'Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'WebCoder — Competitive Programming Platform',
+    title: 'WebCoder - Competitive Programming Platform',
     description:
       'Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.',
   },
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
 
 // Next 15+: theme color lives in the separate Viewport export.
 export const viewport: Viewport = {
-  // Palette token, not a literal — the A2 design-token gate enforces this.
+  // Palette token, not a literal - the A2 design-token gate enforces this.
   themeColor: palette.bg,
   width: 'device-width',
   initialScale: 1,
@@ -129,11 +129,14 @@ export default async function RootLayout({
           href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap"
           rel="stylesheet"
         />
+        {/* nosemgrep - JSON-LD structured data: the payload is the
+            repo-authored schemaOrg constant serialized with JSON.stringify,
+            never user input (no XSS surface). */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaOrg) }}
+          dangerouslySetInnerHTML={{ __html: /* nosemgrep */ JSON.stringify(schemaOrg) }}
         />
-        {/* [SPEC-GAPS A15] third-party rocket.new analytics scripts removed —
+        {/* [SPEC-GAPS A15] third-party rocket.new analytics scripts removed -
             telemetry to an unrelated host, shipped on every page with no consent. */}
       </head>
       <body suppressHydrationWarning>

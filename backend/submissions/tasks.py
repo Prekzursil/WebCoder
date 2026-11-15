@@ -242,7 +242,7 @@ def judge_submission_task(self, submission_id):
                     # CE still counts as an attempt on the contest board
                     # (penalty-free in the ICPC/AtCoder math — scoring.py).
                     transaction.on_commit(
-                        lambda: record_verdict_task.delay(submission.id)
+                        lambda: record_verdict_task.delay(submission.id)  # pyright: ignore[reportFunctionMemberAccess] - celery runtime attr, absent in the bare lean-gate env.
                     )
                 _notify_judged(submission, submission.verdict)
                 # temp_dir_obj is always created (above) before compilation, so
@@ -429,12 +429,25 @@ def judge_submission_task(self, submission_id):
             io_files = (problem.io_input_filename, problem.io_output_filename)
 
         overall_verdict = Submission.VerdictStatus.ACCEPTED
-        scored_results: list[tuple[TestCase, bool]] = []
+        # J7 widened the row to a third element (partial-checker fraction),
+        # nullable when the test was not AC or no partial credit applies.
+        scored_results: list[tuple[TestCase, bool, float | None]] = []
         max_time_ms_overall = 0
         max_memory_kb_overall = 0
         # J7: partial checker award for the current test (reset each
         # iteration; rides into scored_results as a third element).
         checker_fraction = None
+        # Loop-carried per-test results. Every path through the body assigns
+        # all five before any read (OUTPUT_ONLY at the top, the sandbox arm
+        # below, and the INTERACTIVE arm `continue`s before the shared
+        # compare section) - these initials exist only so pyright can prove
+        # the reads below the sibling branches are bound, which its flow
+        # analysis cannot do across them; no runtime path observes them.
+        tc_verdict = str(Submission.VerdictStatus.INTERNAL_ERROR)
+        tc_time = -1
+        tc_mem = -1
+        tc_output = ""
+        tc_error = ""
 
         for i, tc in enumerate(test_cases):
             if problem.problem_type == Problem.ProblemType.OUTPUT_ONLY:
@@ -536,7 +549,9 @@ def judge_submission_task(self, submission_id):
 
             if problem.problem_type != Problem.ProblemType.OUTPUT_ONLY:
                 # JDG-3: OUTPUT_ONLY set the candidate output above and
-                # never reaches the sandbox.
+                # never reaches the sandbox. The executable-missing arm
+                # above already `break`ed, so the path exists here.
+                assert executable_path_str is not None
                 if io_files:
                     (submission_dir / io_files[0]).write_text(
                         tc.input_data, encoding="utf-8"
@@ -660,13 +675,13 @@ def judge_submission_task(self, submission_id):
             # recompute is idempotent so duplicate delivery is harmless.
             if overall_verdict == Submission.VerdictStatus.ACCEPTED:
                 transaction.on_commit(
-                    lambda: update_user_entry_task.delay(submission.user_id)
+                    lambda: update_user_entry_task.delay(submission.user_id)  # pyright: ignore[reportFunctionMemberAccess] - celery runtime attr, absent in the bare lean-gate env.
                 )
             # Contest standings materialization (round-2 PRF-1): every
             # terminal verdict on a contest-bound submission folds into its
             # ContestScore row so scoreboard reads stay pure selects.
             if submission.contest_id:
-                transaction.on_commit(lambda: record_verdict_task.delay(submission.id))
+                transaction.on_commit(lambda: record_verdict_task.delay(submission.id))  # pyright: ignore[reportFunctionMemberAccess] - celery runtime attr, absent in the bare lean-gate env.
             _notify_judged(submission, overall_verdict)
 
         final_message = f"Submission {submission_id} judged. Verdict: {overall_verdict}"

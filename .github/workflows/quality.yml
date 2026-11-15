@@ -33,4 +33,8 @@ jobs:
     # (actions/unpinned-tag) rejects mutable tag refs; this is v1, immutably.
     uses: Prekzursil/quality-zero-platform/.github/workflows/reusable-quality.yml@b4fbe38470fd2831f86f194df5b638a271bae8b8 # v1
     with:
+      # Node 24 mirrors the repo's own gates (vitest.yml/frontend.yml). The
+      # template's Node 20 default crashes the root vitest workers on
+      # undici's decompress interceptor (verified on run 43718194025).
+      node-version: "24"
       opengrep-paths: "backend src e2e"

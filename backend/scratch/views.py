@@ -84,6 +84,8 @@ class ScratchRunView(APIView):
                     }
                 )
 
+            # compile_ok guarantees compile_code_in_sandbox resolved a path.
+            assert executable_path is not None
             verdict, time_ms, mem_kb, output, error = run_code_in_sandbox(
                 executable_path,
                 language,

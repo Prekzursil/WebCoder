@@ -71,7 +71,7 @@ export default async function HomePage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        dangerouslySetInnerHTML={{ __html: /* nosemgrep */ JSON.stringify(faqSchema) }}
       />
       {/* [Q11] the app shell in providers.tsx owns the single <main> landmark;
           this page-level wrapper is purely presentational. */}

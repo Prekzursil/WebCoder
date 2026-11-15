@@ -309,6 +309,9 @@ class AssignmentSerializer(serializers.ModelSerializer):
         user = getattr(request, "user", None)
         if user is None or not user.is_authenticated:
             raise serializers.ValidationError({"classroom": "Authentication required."})
+        # Required field: `classroom` is present in attrs (create) or on the
+        # instance (update) on every path that reaches here.
+        assert classroom is not None
         if not (
             classroom.teacher_id == user.id
             or user.role == User.Roles.ADMIN
