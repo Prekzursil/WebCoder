@@ -1,5 +1,5 @@
 // Locale registry for the mobile app — a direct port of the web app's
-// src/i18n.ts registry (owner rule: the platform ships 28 UI locales and
+// src/i18n.ts registry (owner rule: the platform ships 30 UI locales and
 // the app uses the SAME catalogs, every shipped language selectable).
 // The catalogs under src/i18n/locales/ are verbatim copies of the web
 // app's src/locales/*.json (scripts/copy-locales.mjs + parity test).
@@ -20,6 +20,8 @@ import it from './locales/it.json';
 import ja from './locales/ja.json';
 import kk from './locales/kk.json';
 import ko from './locales/ko.json';
+import lt from './locales/lt.json';
+import nl from './locales/nl.json';
 import pl from './locales/pl.json';
 import pt from './locales/pt.json';
 import ro from './locales/ro.json';
@@ -51,7 +53,7 @@ function lookup(catalog: Catalog, key: string): string | undefined {
   return typeof node === 'string' ? node : undefined;
 }
 
-/** The supported UI locales — keep in sync with the web registry (28). */
+/** The supported UI locales — keep in sync with the web registry (30). */
 export const SUPPORTED_LOCALES = [
   'en',
   'ro',
@@ -61,10 +63,12 @@ export const SUPPORTED_LOCALES = [
   'pt',
   'it',
   'ca',
+  'nl',
   'pl',
   'hu',
   'hr',
   'sr-Latn',
+  'lt',
   'ru',
   'uk',
   'bg',
@@ -95,10 +99,12 @@ export const LOCALE_NATIVE_NAMES: Record<Locale, string> = {
   pt: 'Português',
   it: 'Italiano',
   ca: 'Català',
+  nl: 'Nederlands',
   pl: 'Polski',
   hu: 'Magyar',
   hr: 'Hrvatski',
   'sr-Latn': 'Srpski (latinica)',
+  lt: 'Lietuvių',
   ru: 'Русский',
   uk: 'Українська',
   bg: 'Български',
@@ -135,11 +141,11 @@ export const LOCALE_GROUPS: LocaleGroup[] = [
   { labelKey: 'lang_group_worldwide', locales: ['en'] },
   {
     labelKey: 'lang_group_europe_latin_west',
-    locales: ['ro', 'es', 'fr', 'de', 'pt', 'it', 'ca'],
+    locales: ['ro', 'es', 'fr', 'de', 'pt', 'it', 'ca', 'nl'],
   },
   {
     labelKey: 'lang_group_europe_latin_east',
-    locales: ['pl', 'hu', 'hr', 'sr-Latn'],
+    locales: ['pl', 'hu', 'hr', 'sr-Latn', 'lt'],
   },
   { labelKey: 'lang_group_cyrillic_greek', locales: ['ru', 'uk', 'bg', 'el'] },
   {
@@ -188,10 +194,12 @@ const CATALOGS: Record<Locale, Catalog> = {
   pt,
   it,
   ca,
+  nl,
   pl,
   hu,
   hr,
   'sr-Latn': srLatn,
+  lt,
   ru,
   uk,
   bg,
