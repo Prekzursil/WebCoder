@@ -34,7 +34,9 @@ interface LoginResponse {
 /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 type AnyBody = any;
 
-async function api(
+// Exported since blocks-real.spec.ts seeds its own blockly proof problem
+// through the same transport.
+export async function api(
   path: string,
   init: RequestInit & { token?: string } = {},
 ): Promise<{ status: number; body: AnyBody }> {
