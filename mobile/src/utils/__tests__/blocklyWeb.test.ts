@@ -179,6 +179,10 @@ describe('parseBlocklyMessage', () => {
     });
   });
 
+  it('accepts the boot report the bridge posts on load', () => {
+    expect(parseBlocklyMessage('{"type":"boot"}')).toEqual({ type: 'boot' });
+  });
+
   it('rejects malformed JSON, non-objects, and wrong shapes', () => {
     expect(parseBlocklyMessage('not json')).toBeNull();
     expect(parseBlocklyMessage('"a string"')).toBeNull();

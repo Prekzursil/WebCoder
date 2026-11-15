@@ -1,10 +1,11 @@
 /** Jest config for the WebCoder Expo app.
  *
- * Coverage policy (owner bar): the services/state/utils layer must hold
- * 100% LINE coverage — the threshold below enforces exactly that metric
- * on those directories (plus the i18n registry) so a thin untested screen
- * can never water the number down. Branch/function/statement percentages
- * are reported by `npm run test:coverage` but not gated.
+ * Coverage policy (owner bar, raised 2026-11-15): the services/state/utils
+ * layer (plus the i18n registry) must hold 100% LINES, STATEMENTS and
+ * FUNCTIONS — a never-invoked function or an unexercised statement arm is
+ * a hole even when every line technically runs, so all three metrics gate.
+ * Branch percentages are reported by `npm run test:coverage` but not
+ * gated (the owner bar names lines/statements/functions).
  */
 module.exports = {
   preset: 'jest-expo',
@@ -24,6 +25,8 @@ module.exports = {
   coverageThreshold: {
     global: {
       lines: 100,
+      statements: 100,
+      functions: 100,
     },
   },
   testPathIgnorePatterns: ['/node_modules/', '/android/', '/ios/'],
