@@ -230,6 +230,7 @@ export function buildBlocklyHtml(options: BuildBlocklyHtmlOptions): string {
   }
   // Surface script failures to the RN side (a blank editor is the worst
   // possible failure mode); window.onerror fires before the code below.
+  report('boot', {});
   window.onerror = function (message) {
     report('error', { message: String(message) });
     return false;
@@ -277,7 +278,8 @@ export function buildBlocklyHtml(options: BuildBlocklyHtmlOptions): string {
 /** A parsed WebView bridge message: generated code, or a reported error. */
 export type BlocklyBridgeMessage =
   | { type: 'code'; code: string }
-  | { type: 'error'; message: string };
+  | { type: 'error'; message: string }
+  | { type: 'boot' };
 
 /** Parse a raw postMessage payload; null when it is not a bridge message
  * (malformed JSON, foreign messages, or missing fields are dropped). */
@@ -296,5 +298,6 @@ export function parseBlocklyMessage(raw: string): BlocklyBridgeMessage | null {
   if (candidate.type === 'error' && typeof candidate.message === 'string') {
     return { type: 'error', message: candidate.message };
   }
+  if (candidate.type === 'boot') return { type: 'boot' };
   return null;
 }

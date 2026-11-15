@@ -106,11 +106,14 @@ export default function BlocklyEditor({
         javaScriptEnabled
         domStorageEnabled={false}
         style={{ height, backgroundColor: 'transparent' }}
+        onError={(event) => setError(`webview: ${event.nativeEvent.description}`)}
+        onLoadEnd={() => console.log('[blockly] page loaded')}
         onMessage={(event) => {
           const message = parseBlocklyMessage(event.nativeEvent.data);
+          console.log('[blockly] bridge:', event.nativeEvent.data.slice(0, 120));
           if (!message) return;
           if (message.type === 'code') onChangeRef.current?.(message.code);
-          else setError(message.message);
+          else if (message.type === 'error') setError(message.message);
         }}
       />
     );
