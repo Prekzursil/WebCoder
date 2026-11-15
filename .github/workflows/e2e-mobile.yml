@@ -61,7 +61,9 @@ jobs:
           key: avd-${{ env.EMULATOR_API_LEVEL }}-${{ env.EMULATOR_TAG }}
 
       - name: Boot the emulator
-        uses: reactivecircus/android-emulator-runner@v2
+        # Pinned to the v2.38.0 tag's commit hash (repo policy: CodeQL
+        # red-blocks mutable 3rd-party action refs).
+        uses: reactivecircus/android-emulator-runner@c9c93e6ba9c4194322e114c40970d5983d9a07cc # v2.38.0
         with:
           api-level: ${{ env.EMULATOR_API_LEVEL }}
           tag: ${{ env.EMULATOR_TAG }}

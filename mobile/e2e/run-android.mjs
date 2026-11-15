@@ -19,7 +19,7 @@
 // Exit code 0 = every flow passed; the runner fails fast on the first
 // unmet assertion and dumps the UI hierarchy + a screenshot on failure.
 import { execFileSync } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
+import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -76,8 +76,12 @@ function findNode(predicate) {
   return uiNodes().find(predicate) ?? null;
 }
 
+// Failure artifacts land in a private per-run temp dir (mkdtempSync, 0700)
+// instead of predictable filenames directly in the OS temp dir.
+const failureDir = mkdtempSync(join(tmpdir(), 'wc-e2e-'));
+
 function dumpFailure(label) {
-  const file = join(tmpdir(), `wc-e2e-failure-${Date.now()}.xml`);
+  const file = join(failureDir, `failure-${Date.now()}.xml`);
   try {
     writeFileSync(file, adb(['shell', 'cat', '/sdcard/wc-e2e-dump.xml'], { quiet: true }));
     console.error(`[e2e:FAIL] ${label} — UI hierarchy saved to ${file}`);
@@ -85,7 +89,7 @@ function dumpFailure(label) {
     console.error(`[e2e:FAIL] ${label} — (hierarchy dump failed)`);
   }
   try {
-    const shot = join(tmpdir(), `wc-e2e-failure-${Date.now()}.png`);
+    const shot = join(failureDir, `failure-${Date.now()}.png`);
     adb(['shell', 'screencap', '-p', '/sdcard/wc-e2e-shot.png'], { quiet: true });
     execFileSync('adb', [...(SERIAL ? [SERIAL] : []), 'pull', '/sdcard/wc-e2e-shot.png', shot], {
       stdio: 'ignore',
