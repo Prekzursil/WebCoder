@@ -46,3 +46,33 @@ exclude_lines = [
     "^\\s*\\.\\.\\.\\s*$",
     ": \\.\\.\\.\\s*$",
 ]
+
+# basedpyright configuration for the lean quality gate (gate-types runs
+# basedpyright with NO backend dependencies installed, honoring a caller config
+# verbatim when present). Moved here from pyrightconfig.json so the exclusion
+# rationale below stays documented - JSON cannot carry comments.
+[tool.basedpyright]
+typeCheckingMode = "standard"
+pythonVersion = "3.12"
+include = ["backend"]
+exclude = [
+    "**/node_modules",
+    "**/__pycache__",
+    ".venv",
+    "backend/.venv",
+    "**/migrations",
+    "backend/webcoder_api",
+    "scripts",
+    # Backend TESTS are scoped out of the type gate on purpose: the lean gate's
+    # basedpyright lane has no Django/celery installed, where Django test
+    # idioms degrade to stub noise (Model.objects.get() -> Optional member
+    # access, TextChoices tuple literals, celery .run attributes) - ~175
+    # line-level ignores for environment-driven noise. Tests stay governed by
+    # the repo's own stricter gate: pytest at 100% line+branch coverage,
+    # warning-clean (pytest.ini), plus ruff. Production code under backend/
+    # remains fully type-checked at the standard bar.
+    "backend/**/test_*.py",
+]
+extraPaths = ["backend"]
+reportMissingImports = "warning"
+reportMissingModuleSource = "none"

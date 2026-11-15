@@ -19,7 +19,9 @@ def _exec_module(relpath, module_name):
     src = pathlib.Path(project_settings.__file__).parent / relpath
     code = compile(src.read_text(encoding="utf-8"), str(src), "exec")
     namespace = {"__file__": str(src), "__name__": module_name}
-    exec(code, namespace)
+    # opengrep:ignore - test-only exec of THIS REPO'S settings source
+    # (compiled above from webcoder_api/), asserting import-time behavior.
+    exec(code, namespace)  # noqa: S102  # nosemgrep
     return namespace
 
 

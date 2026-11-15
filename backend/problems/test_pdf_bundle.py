@@ -131,5 +131,5 @@ class MissingStatementLocaleTests(TestCase):
         problem = _problem(statement_i18n={"en": "Only EN.", "ro": ""})
         pdf = problem_bundle_pdf(problem, [])
         # Headings are paren-escaped inside the PDF content stream.
-        self.assertIn("(Statement \(EN\)) Tj".encode(), pdf)
-        self.assertNotIn("(Statement \(RO\)) Tj".encode(), pdf)
+        self.assertIn(r"(Statement \(EN\)) Tj".encode(), pdf)
+        self.assertNotIn(r"(Statement \(RO\)) Tj".encode(), pdf)

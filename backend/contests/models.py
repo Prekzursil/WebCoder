@@ -181,11 +181,12 @@ class Contest(models.Model):
 
     def state(self, now=None) -> str:
         now = now or timezone.now()
+        # str(): same TextChoices-metaclass note as classroom.Assignment.state.
         if now < self.start_at:
-            return self.State.UPCOMING
+            return str(self.State.UPCOMING)
         if now < self.end_at:
-            return self.State.RUNNING
-        return self.State.FINISHED
+            return str(self.State.RUNNING)
+        return str(self.State.FINISHED)
 
     def is_ongoing(self, now=None) -> bool:
         """True while submissions can still be made by *someone* (CON-1's

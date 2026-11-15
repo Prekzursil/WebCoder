@@ -1,0 +1,5 @@
+# Requirements shim for the lean quality gate's coverage lane, which installs
+# caller runtime deps via the standard requirements*.txt globs (it does not
+# know the repo-local backend/deps.txt name). Single source of truth stays
+# backend/deps.txt — this file only forwards to it.
+-r backend/deps.txt
