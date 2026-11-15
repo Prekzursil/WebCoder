@@ -120,9 +120,9 @@ test('COM-5 real loop: thread → send → filter flag → notification → repo
   const reports = await api('/messages/moderation/reports/?status=OPEN', {
     token: adminToken,
   });
-  const report = (
-    reports.body.results as Array<{ id: number; message: { body: string } }>
-  ).find((r) => r.message.body.includes(`marker-${stamp}`));
+  const report = (reports.body.results as Array<{ id: number; message: { body: string } }>).find(
+    (r) => r.message.body.includes(`marker-${stamp}`),
+  );
   expect(report).toBeTruthy();
 
   const resolved = await api(`/messages/moderation/reports/${report?.id}/resolve/`, {
@@ -137,8 +137,6 @@ test('COM-5 real loop: thread → send → filter flag → notification → repo
     token: adminToken,
   });
   expect(transcript.status).toBe(200); // the explicit report unsealed it
-  const bodies = (
-    transcript.body.messages as Array<{ body: string }>
-  ).map((m) => m.body);
+  const bodies = (transcript.body.messages as Array<{ body: string }>).map((m) => m.body);
   expect(bodies.some((body) => body.includes(`marker-${stamp}`))).toBe(true);
 });

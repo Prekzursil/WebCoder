@@ -454,9 +454,11 @@ function AdminAudit() {
   const { t } = useTranslation();
   const [threads, setThreads] = useState<ApiAdminConversation[]>([]);
   const [transcriptFor, setTranscriptFor] = useState<number | null>(null);
-  const [transcript, setTranscript] = useState<
-    Array<{ id: number; sender: { username: string }; body: string }> | null
-  >(null);
+  const [transcript, setTranscript] = useState<Array<{
+    id: number;
+    sender: { username: string };
+    body: string;
+  }> | null>(null);
   const [gate, setGate] = useState<string | null>(null);
 
   useEffect(() => {

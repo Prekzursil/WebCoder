@@ -119,9 +119,7 @@ test.describe('COM-5 private messaging (mock api)', () => {
     await expect(page.getByText('You have not blocked anyone.')).toBeVisible();
   });
 
-  test('flagged queue + admin audit: metadata, then report-gated transcript', async ({
-    page,
-  }) => {
+  test('flagged queue + admin audit: metadata, then report-gated transcript', async ({ page }) => {
     // As the regular user: file a report so thread 1 has one on record
     // (the transcript gate keys off it).
     await page.goto('/login');
