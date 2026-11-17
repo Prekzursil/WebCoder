@@ -259,11 +259,9 @@ export default function VisualizersPage(): ReactNode {
                 state={
                   isMid
                     ? 'compared'
-                    : searchFrame.verdict === 'found' && isMid
-                      ? 'sorted'
-                      : inside
-                        ? 'inside'
-                        : 'outside'
+                    : inside
+                      ? 'inside'
+                      : 'outside'
                 }
               />
             );
