@@ -56,7 +56,7 @@ class SeededTracksTest(TestCase):
         for track in ProblemList.objects.filter(
             slug__in=["oji-ladder-gimnaziu", "admitere-basics"]
         ):
-            self.assertTrue(track.is_public)
+            self.assertTrue(track.is_public)  # noqa: PT018 — plain boolean
             self.assertIn("ro", track.title_i18n)
 
     def test_seed_is_idempotent_for_tracks(self):
@@ -155,7 +155,7 @@ class AssignTrackTest(TestCase):
             )
         self.assertEqual(response.status_code, 201, getattr(response, "data", None))
         # Every member got the ASSIGNED notification inside on_commit.
-        self.assertTrue(len(callbacks) > 0)
+        self.assertGreater(len(callbacks), 0)
         from notifications.models import Notification
 
         self.assertTrue(
