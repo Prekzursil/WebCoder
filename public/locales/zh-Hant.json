@@ -1250,5 +1250,19 @@
   "filter_editorial": "有題解",
   "contests_scoreboard_hidden": "比賽結束前計分板處於隱藏狀態。",
   "contests_hide_scoreboard_label": "隱藏計分板直到比賽結束",
-  "identity_bio": "簡介"
+  "identity_bio": "簡介",
+  "profile_near_limit": "接近限制",
+  "profile_over_limit": "超過限制",
+  "profile_time_bar": "用時/限制",
+  "profile_memory_bar": "記憶體/限制",
+  "closeness_solved": "已解決",
+  "closeness_so_close": "就差一點！",
+  "closeness_halfway": "完成一半",
+  "closeness_started": "已有得分",
+  "closeness_none": "還沒有",
+  "closeness_title": "此次提交距滿分有多近",
+  "diff_viewer_title": "輸出差異 — 期望 vs 你的",
+  "diff_first_mismatch": "第 {{n}} 行首次不符合",
+  "diff_expected": "期望輸出",
+  "diff_yours": "你的輸出"
 }

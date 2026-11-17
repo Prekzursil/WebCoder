@@ -1250,5 +1250,19 @@
   "filter_editorial": "解説あり",
   "contests_scoreboard_hidden": "コンテスト終了まで順位表は非公開です。",
   "contests_hide_scoreboard_label": "コンテスト終了まで順位表を非公開にする",
-  "identity_bio": "自己紹介"
+  "identity_bio": "自己紹介",
+  "profile_near_limit": "制限に近い",
+  "profile_over_limit": "制限超過",
+  "profile_time_bar": "時間と制限",
+  "profile_memory_bar": "メモリと制限",
+  "closeness_solved": "解決済み",
+  "closeness_so_close": "あと少し！",
+  "closeness_halfway": "あと半分",
+  "closeness_started": "得点あり",
+  "closeness_none": "まだです",
+  "closeness_title": "この提出が満点にどれだけ近かったか",
+  "diff_viewer_title": "出力の差分 — 期待値 vs あなたのもの",
+  "diff_first_mismatch": "最初の不一致は {{n}} 行目",
+  "diff_expected": "期待値",
+  "diff_yours": "あなたのもの"
 }

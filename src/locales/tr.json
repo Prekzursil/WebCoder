@@ -1250,5 +1250,19 @@
   "filter_editorial": "Çözüm yazısı var",
   "contests_scoreboard_hidden": "Skor tablosu yarışma bitene kadar gizlidir.",
   "contests_hide_scoreboard_label": "Skor tablosunu yarışma bitene kadar gizle",
-  "identity_bio": "Hakkımda"
+  "identity_bio": "Hakkımda",
+  "profile_near_limit": "sınıra yakın",
+  "profile_over_limit": "sınırın üzerinde",
+  "profile_time_bar": "Süre vs sınır",
+  "profile_memory_bar": "Bellek vs sınır",
+  "closeness_solved": "Çözüldü",
+  "closeness_so_close": "Çok yakın!",
+  "closeness_halfway": "Yolun yarısı",
+  "closeness_started": "Puan alındı",
+  "closeness_none": "Henüz değil",
+  "closeness_title": "Bu gönderim tam puana ne kadar yakındı",
+  "diff_viewer_title": "Çıktı farkı — beklenen vs seninki",
+  "diff_first_mismatch": "ilk uyuşmazlık {{n}}. satırda",
+  "diff_expected": "Beklenen",
+  "diff_yours": "Seninki"
 }

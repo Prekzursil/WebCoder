@@ -1250,5 +1250,19 @@
   "filter_editorial": "Z rozwiązaniem",
   "contests_scoreboard_hidden": "Tablica wyników jest ukryta do końca konkursu.",
   "contests_hide_scoreboard_label": "Ukryj tablicę wyników do końca konkursu",
-  "identity_bio": "O sobie"
+  "identity_bio": "O sobie",
+  "profile_near_limit": "blisko limitu",
+  "profile_over_limit": "powyżej limitu",
+  "profile_time_bar": "Czas vs limit",
+  "profile_memory_bar": "Pamięć vs limit",
+  "closeness_solved": "Rozwiązane",
+  "closeness_so_close": "Tak blisko!",
+  "closeness_halfway": "W połowie drogi",
+  "closeness_started": "Punkty na tablicy",
+  "closeness_none": "Jeszcze nie",
+  "closeness_title": "Jak blisko pełnej liczby punktów było to rozwiązanie",
+  "diff_viewer_title": "Różnica wyjścia — oczekiwane vs twoje",
+  "diff_first_mismatch": "pierwsza rozbieżność w wierszu {{n}}",
+  "diff_expected": "Oczekiwane",
+  "diff_yours": "Twoje"
 }

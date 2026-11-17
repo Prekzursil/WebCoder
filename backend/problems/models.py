@@ -495,6 +495,18 @@ class TestCase(models.Model):
         default=False,
         help_text=_("Runs as part of the contest pretest subset."),
     )
+    # Wave E item 6 (per-test time bars): an optional per-test time-limit
+    # ceiling that OVERRIDES the problem/language effective limit for this
+    # test only. Null = use the effective limit (the historical behavior).
+    # Classic use: give the big-stress test a taller bar than the samples.
+    time_limit_ms = models.PositiveIntegerField(
+        _("time limit override (ms)"),
+        null=True,
+        blank=True,
+        help_text=_(
+            "Optional per-test time bar; empty uses the problem's effective limit."
+        ),
+    )
 
     # For large data, consider FileField:
     # input_file = models.FileField(upload_to='test_cases/inputs/', null=True, blank=True)

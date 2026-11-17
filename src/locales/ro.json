@@ -1250,5 +1250,19 @@
   "filter_editorial": "Are editorial",
   "contests_scoreboard_hidden": "Clasamentul este ascuns până se termină concursul.",
   "contests_hide_scoreboard_label": "Ascunde clasamentul până se termină concursul",
-  "identity_bio": "Despre mine"
+  "identity_bio": "Despre mine",
+  "profile_near_limit": "aproape de limită",
+  "profile_over_limit": "peste limită",
+  "profile_time_bar": "Timp vs limită",
+  "profile_memory_bar": "Memorie vs limită",
+  "closeness_solved": "Rezolvat",
+  "closeness_so_close": "Foarte aproape!",
+  "closeness_halfway": "La jumătate",
+  "closeness_started": "Puncte pe tablă",
+  "closeness_none": "Încă nu",
+  "closeness_title": "Cât de aproape a fost această transmitere de punctajul maxim",
+  "diff_viewer_title": "Diferență de ieșire — așteptat vs al tău",
+  "diff_first_mismatch": "prima nepotrivire la linia {{n}}",
+  "diff_expected": "Așteptat",
+  "diff_yours": "Al tău"
 }

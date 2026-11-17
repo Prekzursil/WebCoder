@@ -1250,5 +1250,19 @@
   "filter_editorial": "دارای تحلیل",
   "contests_scoreboard_hidden": "تابلوی امتیازات تا پایان مسابقه پنهان است.",
   "contests_hide_scoreboard_label": "پنهان کردن تابلوی امتیازات تا پایان مسابقه",
-  "identity_bio": "درباره من"
+  "identity_bio": "درباره من",
+  "profile_near_limit": "نزدیک به محدودیت",
+  "profile_over_limit": "بیش از محدودیت",
+  "profile_time_bar": "زمان در برابر محدودیت",
+  "profile_memory_bar": "حافظه در برابر محدودیت",
+  "closeness_solved": "حل شد",
+  "closeness_so_close": "خیلی نزدیک!",
+  "closeness_halfway": "نیمه راه",
+  "closeness_started": "امتیاز گرفتی",
+  "closeness_none": "هنوز نه",
+  "closeness_title": "این ارسال چقدر به نمره کامل نزدیک بود",
+  "diff_viewer_title": "تفاوت خروجی — مورد انتظار در برابر شما",
+  "diff_first_mismatch": "اولین ناسازگاری در خط {{n}}",
+  "diff_expected": "مورد انتظار",
+  "diff_yours": "شما"
 }

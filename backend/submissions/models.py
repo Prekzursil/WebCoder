@@ -134,6 +134,19 @@ class SubmissionTestResult(models.Model):
     actual_output = models.TextField(_("actual output"), blank=True, null=True)
     error_output = models.TextField(_("error output"), blank=True, null=True)
 
+    # Wave E items 6/19/25 (per-test time bars, memory profiling, TLE
+    # time-travel analysis): the limits the judge ACTUALLY applied for this
+    # test — the per-test override when set, the language-adjusted
+    # effective limit otherwise (and the same memory bar for every test).
+    # Persisted at judge time so the UI can draw "used vs bar" per test
+    # without recomputing the (language-dependent) limit later.
+    limit_time_ms = models.PositiveIntegerField(
+        _("applied time limit (ms)"), null=True, blank=True
+    )
+    limit_memory_kb = models.PositiveIntegerField(
+        _("applied memory limit (KB)"), null=True, blank=True
+    )
+
     def __str__(self):
         return f"Result for Sub {self.submission.id} on TC {self.test_case_id}: {self.verdict}"
 

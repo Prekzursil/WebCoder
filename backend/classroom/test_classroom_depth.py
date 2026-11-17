@@ -705,8 +705,13 @@ class CoverageClosureTests(ClassroomDepthBase):
         quiz = self.mk_assignment(kind=Assignment.Kind.QUIZ)
         item = self.mk_mcq("m")
         AssignmentQuizItem.objects.create(assignment=quiz, item=item, order=0)
-        for score in (0.0, 1.0, 0.5):  # worse, best, then a mid re-attempt
-            QuizSubmission.objects.create(
+        # Pin DISTINCT submitted_at stamps: auto_now_add rows created in a
+        # tight loop can share one clock tick, and with the model's
+        # ``-submitted_at`` ordering that made the best-attempt-wins path
+        # order-flaky. Stamps: worse (oldest) -> best -> mid re-attempt
+        # (newest), so the grid's newest-first iteration sees 0.5, 1.0, 0.0.
+        for i, score in enumerate((0.0, 1.0, 0.5)):
+            q = QuizSubmission.objects.create(
                 assignment=quiz,
                 student=self.student,
                 answers={str(item.id): 0},
@@ -714,10 +719,15 @@ class CoverageClosureTests(ClassroomDepthBase):
                 correct_count=int(score),
                 total_count=1,
             )
+            QuizSubmission.objects.filter(pk=q.pk).update(
+                submitted_at=timezone.now() - timedelta(seconds=10 - i)
+            )
         self.client.force_authenticate(self.teacher)
         grid = self.client.get(f"/api/v1/classroom/assignments/{quiz.id}/grid/")
         cell = grid.data["cells"][str(self.student.id)]
         self.assertEqual(cell["attempts"], 3)
+        # The best attempt (1.0) wins the display fields over the newer 0.5.
+        self.assertEqual(cell["score"], 1.0)
 
     def test_files_grid_counts_repeated_uploads(self):
         files = self.mk_assignment(kind=Assignment.Kind.FILES)
