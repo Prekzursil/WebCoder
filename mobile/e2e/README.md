@@ -2,7 +2,8 @@
 
 The runnable replacement for the written-but-uninstallable Maestro flows
 (see `../maestro/`): `run-android.mjs` drives the SAME two scenarios —
-**login-and-browse** and **submit-solution** — through `adb` and
+**login-and-browse** and **submit-solution**, plus a third on-device
+**scratch-stage** smoke — through `adb` and
 `uiautomator dump`, with no extra toolchain to install (the Android
 platform tools are all it needs; Maestro could not be installed on this
 machine — see the mobile-wave report).
@@ -27,9 +28,10 @@ machine — see the mobile-wave report).
 ## Run
 
 ```bash
-node mobile/e2e/run-android.mjs           # both flows
-node mobile/e2e/run-android.mjs login     # login-and-browse only
-node mobile/e2e/run-android.mjs submit    # submit-solution only
+node mobile/e2e/run-android.mjs            # all flows
+node mobile/e2e/run-android.mjs login      # login-and-browse only
+node mobile/e2e/run-android.mjs submit     # submit-solution only
+node mobile/e2e/run-android.mjs scratch    # scratch-stage smoke only
 ```
 
 Useful env vars:
@@ -52,9 +54,25 @@ hierarchy XML and a screencap PNG to the OS temp dir and exits 1.
   type `print(42)` → Submit → the submission page renders (`#id`), which
   polls the judge until a verdict settles.
 
-  Text-editor problems only: block problems (Blockly/Scratch) render in a
-  WebView whose internals uiautomator cannot see — their lane is covered
-  by the jest bridge tests plus the on-device smoke (mobile README).
+- **scratch**: fresh login (a persisted session can carry an expired
+  token — the flow logs out first) → Problems → search `JFW-D` → open
+  problem 1512 → Submit Solution → the WebView stage boots (the
+  `Loading…` bridge hint clears and the Run/Stop row stays up — an init
+  error replaces it with an error box, so a second sample guards the
+  race) → Submit → the sb3 project is transpiled and judged, and the
+  submission page renders (`#id`).
+
+Device quirks the lane encodes (each verified on the API-35 emulator):
+drawer rows need a +240px x-offset tap; the login page has several
+`Login` nodes (the submit button is the one with `content-desc`); a
+focused EditText's soft keyboard swallows the NEXT button tap — the lane
+sends KEYCODE_ESCAPE before tapping; an IME ENTER after a spaced search
+query can commit a partial composition (re-query "sa"), so the scratch
+flow searches the space-free `JFW-D` and waits out the 300ms debounce;
+the scratch detail page's notice text contains the word "submit", so the
+entry locator is anchored to `^Submit Solution`. Blockly problems
+render in a WebView whose internals uiautomator cannot see — that lane
+is covered by the jest bridge tests plus the web e2e blocks-real spec.
 
 ## CI
 

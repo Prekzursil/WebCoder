@@ -1,7 +1,7 @@
 // Problem detail — user-locale statement with EN fallback, sample cases,
 // limits + per-language effective limits (judge fairness), and the
 // translation-contribution entry point when the statement is EN-only.
-import { Link, useLocalSearchParams } from 'expo-router';
+import { Link, router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { ProblemService, PublicService, TranslationsService } from '../../src/services/services';
@@ -182,9 +182,14 @@ export default function ProblemDetail() {
         </Card>
       ) : null}
 
-      <Link href={`/problems/${problem.id}/submit` as never}>
-        <Button title={t('submit_solution_header')} onPress={() => {}} />
-      </Link>
+      {/* Nested pressables swallow taps on native: a Link-wrapped Button
+       * (Pressable child with a no-op onPress) never fires the Link's
+       * navigation — verified on the API-35 emulator (tap did nothing).
+       * Navigate imperatively instead so the button actually routes. */}
+      <Button
+        title={t('submit_solution_header')}
+        onPress={() => router.push(`/problems/${problem.id}/submit` as never)}
+      />
     </Screen>
   );
 }

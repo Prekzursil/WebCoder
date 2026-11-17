@@ -78,11 +78,24 @@ try {
 // The editor entry: the wiring that mirrors the web ScratchEditor.tsx
 // effect (storage + builtin assets, vm/renderer, blocks inject, project
 // load/export, SAY bridge) behind a window.WebCoderScratch handle.
+//
+// Interop note (verified on the API-35 emulator): this bundle is CJS
+// format, so esbuild hands the RAW module.exports to require() — the
+// scratch UMD builds have NO .default (scratch-vm exports the class
+// directly, scratch-render exports {ScratchRender}, scratch-blocks the
+// Blockly object). A plain `.default` access yields undefined and the
+// stage dies with "<minified> is not a constructor" on the first
+// `new VirtualMachine()`. Resolve each export by every name it can take.
 const ENTRY = `
-const VirtualMachine = require('scratch-vm').default;
-const ScratchRender = require('scratch-render').default;
-const { ScratchStorage, AssetType } = require('scratch-storage');
-const Blockly = require('scratch-blocks/dist/vertical.js').default;
+const vmModule = require('scratch-vm');
+const VirtualMachine = vmModule.VirtualMachine || vmModule.default || vmModule;
+const renderModule = require('scratch-render');
+const ScratchRender = renderModule.ScratchRender || renderModule.default || renderModule;
+const storageModule = require('scratch-storage');
+const ScratchStorage = storageModule.ScratchStorage || storageModule.default || storageModule;
+const AssetType = storageModule.AssetType;
+const blocklyModule = require('scratch-blocks/dist/vertical.js');
+const Blockly = blocklyModule.default || blocklyModule;
 const MEDIA = ${JSON.stringify(media)};
 const BUNDLED_ASSETS = ${JSON.stringify(bundledAssets)};
 const RO_MESSAGES = ${roMessages};
@@ -215,11 +228,23 @@ window.WebCoderScratch = {
               report('ready', {});
             })
             .catch(function (err2) {
-              report('error', { message: String((err2 && err2.message) || err2) });
+              report('error', {
+                // Fold the stack into the message: minified one-liners
+                // ("ED is not a constructor") are undiagnosable alone, and
+                // the RN bridge only forwards .message.
+                message:
+                  String((err2 && err2.message) || err2) +
+                  ' :: ' +
+                  String((err2 && err2.stack) || '').slice(0, 400),
+              });
             });
         });
     } catch (e) {
-      report('error', { message: String((e && e.message) || e) });
+      report('error', {
+        // Fold the stack into the message (see the note above).
+        message:
+          String((e && e.message) || e) + ' :: ' + String((e && e.stack) || '').slice(0, 400),
+      });
     }
   },
   greenFlag: function () {

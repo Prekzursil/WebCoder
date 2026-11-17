@@ -292,8 +292,12 @@ export function buildScratchHtml(options: BuildScratchHtmlOptions): string {
       ));
     } catch (_) { /* the bridge is gone — nothing to report to */ }
   }
-  window.onerror = function (message) {
-    report('error', { message: String(message) });
+  window.onerror = function (message, src, line, col, err) {
+    // Surface the stack (or source position) with the message: minified
+    // bundle errors are undiagnosable from the message alone. (Plain
+    // concatenation — this script lives inside a template literal.)
+    var where = err && err.stack ? String(err.stack).slice(0, 500) : src + ':' + line + ':' + col;
+    report('error', { message: String(message) + ' @ ' + where });
     return false;
   };
   try {
