@@ -14,7 +14,6 @@ import {
   type TokenStore,
 } from '../ApiClient';
 
-
 describe('apiUrl (same-origin relative paths only)', () => {
   it('accepts a plain relative path', () => {
     expect(apiUrl('/problems/').startsWith('http')).toBe(true);
