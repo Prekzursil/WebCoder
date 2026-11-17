@@ -2,7 +2,7 @@
 // body AND the wc_refresh cookie from Set-Cookie (see ApiClient.ts header
 // comment for the live-API verification trail).
 import { apiFetch, cookieFromResponse, extractErrorMessage } from './ApiClient';
-import { API_V1_URL } from './config';
+import { apiUrl } from './ApiClient';
 import type { LoginResponse, RegisterResponse, User } from '../types/api';
 
 export interface SessionTokens {
@@ -15,7 +15,7 @@ export async function login(credentials: {
   username: string;
   password: string;
 }): Promise<{ user: User; tokens: SessionTokens | null }> {
-  const response = await fetch(`${API_V1_URL}/auth/login/`, {
+  const response = await fetch(apiUrl('/auth/login/'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(credentials),

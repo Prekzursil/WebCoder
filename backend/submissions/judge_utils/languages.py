@@ -533,6 +533,9 @@ LANGUAGES: dict[str, LanguageSpec] = {
 #: Sorted ids for validation error messages / API-facing lists.
 SUPPORTED_LANGUAGE_IDS: tuple[str, ...] = tuple(sorted(LANGUAGES))
 
+#: Public constants re-exported by problems.serializers.
+__all__ = ["LANGUAGES", "SUPPORTED_LANGUAGE_IDS"]
+
 
 def get_language(language_id: str) -> LanguageSpec | None:
     """Return the spec for *language_id*, or ``None`` when unsupported."""

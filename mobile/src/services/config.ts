@@ -5,7 +5,17 @@
 // Android emulator; the iOS simulator shares the host network).
 import Constants from 'expo-constants';
 
-export const API_V1_URL: string =
-  Constants.expoConfig?.extra?.apiBase ??
-  process.env.EXPO_PUBLIC_API_BASE ??
-  'http://10.0.2.2:8010/api/v1';
+export const API_V1_URL: string = (() => {
+  const raw =
+    (Constants.expoConfig?.extra?.apiBase as string | undefined) ??
+    process.env.EXPO_PUBLIC_API_BASE ??
+    'http://10.0.2.2:8010/api/v1';
+  // The base comes from build configuration; re-derive it from parsed URL
+  // components so only an http(s) origin + path can ever reach fetch()
+  // (protocol allowlist, credentials stripped, no search/hash carried).
+  const parsed = new URL(raw);
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    throw new Error(`API base must be http(s), got: ${parsed.protocol}`);
+  }
+  return `${parsed.origin}${parsed.pathname.replace(/\/+$/, '')}`;
+})();

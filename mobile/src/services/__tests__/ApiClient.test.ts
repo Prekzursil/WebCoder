@@ -3,6 +3,7 @@
 // pagination collectors. fetch is globally mocked.
 import {
   apiFetch,
+  apiUrl,
   collectAllCursorPages,
   collectAllPages,
   cookieFromResponse,
@@ -12,6 +13,20 @@ import {
   __resetForTests,
   type TokenStore,
 } from '../ApiClient';
+
+describe('apiUrl (same-origin relative paths only)', () => {
+  it('accepts a plain relative path', () => {
+    expect(apiUrl('/problems/').startsWith('http')).toBe(true);
+    expect(apiUrl('/problems/')).toContain('/api/v1/problems/');
+  });
+  it('rejects absolute and protocol-relative paths', () => {
+    expect(() => apiUrl('https://evil.example/x')).toThrow(/non-relative API path/);
+    expect(() => apiUrl('//evil.example/x')).toThrow(/non-relative API path/);
+  });
+  it('rejects traversal fragments', () => {
+    expect(() => apiUrl('/a/../..')).toThrow(/non-relative API path/);
+  });
+});
 
 describe('cookieFromResponse', () => {
   const makeResponse = (setCookie: string | string[] | undefined) => ({

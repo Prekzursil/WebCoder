@@ -22,7 +22,6 @@ from translations.ai_curator import (
     curator_from_env,
 )
 from translations.models import TranslationProposal
-from translations.views import curator_from_env as view_curator_from_env  # noqa: F401
 
 User = get_user_model()
 

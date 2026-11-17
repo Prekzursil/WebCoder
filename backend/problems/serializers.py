@@ -550,7 +550,7 @@ class ProblemDetailSerializer(ProblemSerializer):
         return self._editorial(obj) is not None
 
     def get_editorial_locked(self, obj):
-        from .views import editorial_visible_to
+        from .editorial_visibility import editorial_visible_to
 
         editorial = self._editorial(obj)
         if editorial is None:

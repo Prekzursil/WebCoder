@@ -70,9 +70,11 @@ def _exec_settings():
 
 
 def test_package_exports_celery_app():
-    import webcoder_api
     import webcoder_api.celery
 
+    # import_module keeps this scope to ONE import form of webcoder_api
+    # while still asserting the package surface.
+    webcoder_api = importlib.import_module("webcoder_api")
     assert webcoder_api.__all__ == ("celery_app",)
     assert webcoder_api.celery_app is webcoder_api.celery.app
 

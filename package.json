@@ -79,6 +79,7 @@
     },
     "scratch-l10n": {
       "minimatch": "^11.0.1"
-    }
+    },
+    "hull.js": "https://codeload.github.com/AndriiHeonia/hull/tar.gz/refs/tags/v1.0.13"
   }
 }

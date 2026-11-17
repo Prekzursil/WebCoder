@@ -85,6 +85,19 @@ export function cookieFromResponse(
 
 let refreshInFlight: Promise<boolean> | null = null;
 
+/**
+ * Same-origin relative API path only: no absolute URLs, no
+ * protocol-relative '//host', no '..' escapes. Callers pass paths like
+ * '/problems/'; anything else would redirect the authenticated fetch to
+ * an attacker-chosen destination (js/request-forgery).
+ */
+export function apiUrl(path: string): string {
+  if (!path.startsWith('/') || path.startsWith('//') || path.includes('..')) {
+    throw new Error(`Refusing non-relative API path: ${path}`);
+  }
+  return `${API_V1_URL}${path}`;
+}
+
 async function refreshTokens(): Promise<boolean> {
   if (!tokenStore) return false;
   if (!refreshInFlight) {
@@ -92,7 +105,7 @@ async function refreshTokens(): Promise<boolean> {
       const refresh = await tokenStore!.getRefresh();
       if (!refresh) return false;
       try {
-        const response = await fetch(`${API_V1_URL}${REFRESH_ENDPOINT}`, {
+        const response = await fetch(apiUrl(REFRESH_ENDPOINT), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ refresh }),
@@ -141,7 +154,7 @@ async function authenticatedFetch(url: string, options: ApiFetchOptions): Promis
     const access = await tokenStore.getAccess();
     if (access) headers['Authorization'] = `Bearer ${access}`;
   }
-  return fetch(`${API_V1_URL}${url}`, {
+  return fetch(apiUrl(url), {
     method: options.method ?? 'GET',
     headers,
     body: options.body,

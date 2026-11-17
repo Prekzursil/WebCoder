@@ -12,12 +12,13 @@ the files a real judged program would).
 import pathlib
 import tempfile
 import unittest
-from unittest import mock
 
 from submissions.judge_utils.compilation import run_compile_step
 from submissions.judge_utils.execution import run_code_in_sandbox
 from submissions.judge_utils.languages import LANGUAGES
 from submissions.models import Submission
+
+mock = unittest.mock  # single import form of unittest (no import-from)
 
 
 def _resource_line(user_s="0.01", sys_s="0.01", rss_kb=10240, exit_code=0):
