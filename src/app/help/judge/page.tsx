@@ -87,6 +87,15 @@ export default function JudgeHelpPage() {
                   borderBottom: '1px solid var(--border-strong)',
                 }}
               >
+                {t('judge_docs_toolchain', 'Pinned toolchain')}
+              </th>
+              <th
+                style={{
+                  textAlign: 'left',
+                  padding: '0.5rem',
+                  borderBottom: '1px solid var(--border-strong)',
+                }}
+              >
                 {t('judge_docs_compile', 'Compile')}
               </th>
               <th
@@ -121,6 +130,11 @@ export default function JudgeHelpPage() {
                 >
                   {row.name}
                   <div style={{ color: 'var(--text-tertiary)', fontSize: '0.75rem' }}>{row.id}</div>
+                </td>
+                <td style={{ padding: '0.5rem', borderBottom: '1px solid var(--border)' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--body)' }}>
+                    {row.toolchain || '—'}
+                  </span>
                 </td>
                 <td style={{ padding: '0.5rem', borderBottom: '1px solid var(--border)' }}>
                   <code

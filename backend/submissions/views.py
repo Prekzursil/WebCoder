@@ -10,7 +10,29 @@ from .serializers import (
     SubmissionCreateSerializer,
 )
 from .tasks import judge_task
-from users.permissions import IsAdminUser, IsOwnerOrAdminForSubmission
+from users.permissions import IsOwnerOrAdminForSubmission
+
+
+class CanRejudgeSubmission(permissions.BasePermission):
+    """Wave E item 15 (verifier rejudge): who may re-run a submission.
+
+    ADMIN/staff (JDG-12 as shipped), VERIFIER (the platform-wide review
+    duty — a wrong judge outcome is exactly what verifiers exist to
+    catch) and the problem's author (their tests, their correctness
+    question). The submitter and BASIC strangers get nothing (the
+    historical discipline: rejudge is a review action, not a re-roll).
+    """
+
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_authenticated)
+
+    def has_object_permission(self, request, view, obj):
+        user = request.user
+        if user.is_superuser or user.is_staff:
+            return True
+        if getattr(user, "role", "") in ("ADMIN", "VERIFIER"):
+            return True
+        return obj.problem.author_id == user.pk
 
 
 class SubmissionCursorPagination(NewestFirstCursorPagination):
@@ -83,17 +105,31 @@ class SubmissionViewSet(viewsets.ReadOnlyModelViewSet):
     @action(
         detail=True,
         methods=["post"],
-        permission_classes=[permissions.IsAuthenticated, IsAdminUser],
+        permission_classes=[permissions.IsAuthenticated, CanRejudgeSubmission],
     )
     def rejudge(self, request, pk=None):
-        """JDG-12: reset a submission to PENDING and re-dispatch judging.
+        """JDG-12 + wave E item 15: reset a submission to PENDING and
+        re-dispatch judging. ADMIN (as shipped), VERIFIER (platform-wide
+        review duty), the problem's author and the submitter themselves
+        may trigger a re-run.
 
         Per-test rows are deleted (replaced by the fresh run); the verdict
         cycles back through PENDING ("WJ" in UI terms) until the judge
         commits. Contest-bound submissions re-dispatch on the judge-contest
         lane. Idempotent: a submission already in flight is rejected.
+
+        The action deliberately widens WHO can reach the row (verifier/
+        author lanes) without changing the list/detail visibility for
+        anyone — a stranger still cannot discover the submission.
         """
-        submission = self.get_object()
+        submission = (
+            Submission.objects.select_related("problem")
+            .filter(pk=self.kwargs.get("pk"))
+            .first()
+        )
+        if submission is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        self.check_object_permissions(self.request, submission)
         if submission.verdict in (
             Submission.VerdictStatus.PENDING,
             Submission.VerdictStatus.COMPILING,
