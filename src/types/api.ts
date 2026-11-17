@@ -744,6 +744,8 @@ export interface SolutionRow {
   user: string;
   language: string;
   code: string;
+  /** [wave E item 11] source length (the "shortest" showcase axis). */
+  code_length?: number;
   execution_time_ms: number | null;
   memory_used_kb: number | null;
   submission_time: string;

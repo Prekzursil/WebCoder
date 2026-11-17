@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CommunityService } from '@/services/ApiService';
 import { AuthContext } from '@/context/AuthContext';
@@ -12,7 +12,13 @@ import { palette } from '@/theme/tokens';
  * grants access (the viewer has their own AC on the problem); the 403
  * payload's reason becomes the locked-state hint. Every payload carries
  * the platform-display license note.
+ *
+ * [wave E item 11] The showcase axes: sort the pool by speed (the default
+ * best-solutions board), by code length (shortest readable) or recency,
+ * and filter by language — a code-style lesson either way.
  */
+const SORTS = ['fastest', 'shortest', 'newest'] as const;
+
 export default function SolutionsPanel({ problemId }: { problemId: number }) {
   const { t } = useTranslation();
   // Direct context read: provider-less test renders stay anonymous.
@@ -21,11 +27,13 @@ export default function SolutionsPanel({ problemId }: { problemId: number }) {
   const [license, setLicense] = useState('');
   const [lockedReason, setLockedReason] = useState<string | null>(null);
   const [openId, setOpenId] = useState<number | null>(null);
+  const [sort, setSort] = useState<(typeof SORTS)[number]>('fastest');
+  const [language, setLanguage] = useState('');
 
   useEffect(() => {
     if (!auth?.isAuthenticated) return;
     let cancelled = false;
-    CommunityService.getSolutions(problemId)
+    CommunityService.getSolutions(problemId, { sort, language: language || undefined })
       .then((data) => {
         if (cancelled) return;
         setRows(data.results);
@@ -43,7 +51,12 @@ export default function SolutionsPanel({ problemId }: { problemId: number }) {
     return () => {
       cancelled = true;
     };
-  }, [problemId, auth?.isAuthenticated, t]);
+  }, [problemId, auth?.isAuthenticated, sort, language, t]);
+
+  const languages = useMemo(
+    () => (rows ? Array.from(new Set(rows.map((r) => r.language))).sort() : []),
+    [rows],
+  );
 
   if (!auth?.isAuthenticated) return null;
 
@@ -60,6 +73,42 @@ export default function SolutionsPanel({ problemId }: { problemId: number }) {
         <p style={{ color: palette.muted }}>{t('solutions_empty', 'No accepted solutions yet.')}</p>
       ) : (
         <>
+          <div
+            style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}
+            data-testid="solutions-controls"
+          >
+            <label style={{ fontSize: '0.8rem' }}>
+              {t('solutions_sort', 'Sort')}:{' '}
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value as (typeof SORTS)[number])}
+                aria-label={t('solutions_sort', 'Sort')}
+                data-testid="solutions-sort"
+              >
+                {SORTS.map((key) => (
+                  <option key={key} value={key}>
+                    {t(`solutions_sort_${key}`, key)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label style={{ fontSize: '0.8rem' }}>
+              {t('solutions_language', 'Language')}:{' '}
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                aria-label={t('solutions_language', 'Language')}
+                data-testid="solutions-language"
+              >
+                <option value="">{t('solutions_all_languages', 'all')}</option>
+                {languages.map((lang) => (
+                  <option key={lang} value={lang}>
+                    {lang}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
           <ul style={{ listStyle: 'none', padding: 0 }}>
             {rows.map((row) => (
               <li
@@ -80,6 +129,18 @@ export default function SolutionsPanel({ problemId }: { problemId: number }) {
                   }}
                 >
                   {row.user} · {row.language}
+                  {row.execution_time_ms !== null && row.execution_time_ms !== undefined && (
+                    <span style={{ color: palette.muted, fontWeight: 400 }}>
+                      {' '}
+                      · {row.execution_time_ms} ms
+                    </span>
+                  )}
+                  {sort === 'shortest' && row.code_length !== undefined && (
+                    <span style={{ color: palette.muted, fontWeight: 400 }}>
+                      {' '}
+                      · {row.code_length} B
+                    </span>
+                  )}
                 </button>
                 {openId === row.id && (
                   <pre

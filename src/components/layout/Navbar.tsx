@@ -99,6 +99,7 @@ const Navbar: React.FC = () => {
     { href: '/messages', label: t('nav_messages', 'Messages') },
     { href: '/profile', label: t('nav_profile', 'Profile') },
     { href: '/my-submissions', label: t('nav_my_submissions', 'My Submissions') },
+    { href: '/sandbox-receipts', label: t('nav_receipts', 'Sandbox receipts') },
     // Wave D atestats (certifications): the holder's certificates.
     { href: '/certificates', label: t('nav_certificates', 'Certificates') },
     { href: '/submission-history', label: t('nav_submission_history', 'History') },

@@ -460,6 +460,34 @@ export const VerificationService = {
     }),
 };
 
+/** Wave E item 24 — the random-problem die. */
+export const RandomProblemService = {
+  pick: (params: { difficulty?: string; tag?: string } = {}) => {
+    const search = new URLSearchParams();
+    if (params.difficulty) search.set('difficulty', params.difficulty);
+    if (params.tag) search.set('tag', params.tag);
+    const qs = search.toString();
+    return apiFetch<{ id: number; title_i18n: Record<string, string> }>(
+      `/problems/random/${qs ? `?${qs}` : ''}`,
+    );
+  },
+};
+
+/** Wave E item 20 — the caller's sandbox receipts (scratch + stress runs). */
+export interface ScratchReceiptRow {
+  kind: 'scratch' | 'stress';
+  id: number;
+  language: string;
+  status: string;
+  time_ms: number | null;
+  memory_kb: number | null;
+  created_at: string;
+}
+
+export const ReceiptsService = {
+  mine: (page = 1) => apiFetch<PaginatedResponse<ScratchReceiptRow>>(`/scratch/mine/?page=${page}`),
+};
+
 /** Wave E item 12 — the JDG-11 stress runner, surfaced for authors. */
 export interface StressRunResponse {
   id: number;
@@ -505,8 +533,15 @@ export const PreSubmitService = {
 
 export const CommunityService = {
   getFeed: (page = 1) => apiFetch<FeedResponse>(`/community/feed/?page=${page}`),
-  getSolutions: (problemId: number | string) =>
-    apiFetch<SolutionsResponse>(`/community/problems/${problemId}/solutions/`),
+  getSolutions: (problemId: number | string, params: { sort?: string; language?: string } = {}) => {
+    const search = new URLSearchParams();
+    if (params.sort) search.set('sort', params.sort);
+    if (params.language) search.set('language', params.language);
+    const qs = search.toString();
+    return apiFetch<SolutionsResponse>(
+      `/community/problems/${problemId}/solutions/${qs ? `?${qs}` : ''}`,
+    );
+  },
   getHonor: (username: string) => apiFetch<HonorResponse>(`/community/honor/${username}/`),
   getMyHonor: () => apiFetch<HonorResponse>('/community/honor/me/'),
   getWeeklyBoard: () =>

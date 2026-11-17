@@ -114,6 +114,50 @@ export default function SubmitSolutionForm({
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  // [wave E item 23] drag-drop / file-picker source loading. Extensions
+  // map to registry languages; unknown types still load as text.
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [dragOver, setDragOver] = useState(false);
+
+  const EXTENSION_LANGUAGES: Record<string, string> = {
+    py: 'python3',
+    cpp: 'cpp17',
+    cc: 'cpp17',
+    cxx: 'cpp20',
+    c: 'c11',
+    js: 'nodejs20',
+    mjs: 'nodejs20',
+    java: 'java11',
+    pas: 'pascal',
+    go: 'go',
+    rs: 'rust',
+    cs: 'csharp',
+    rb: 'ruby',
+    kt: 'kotlin',
+    lua: 'lua',
+    php: 'php',
+    hs: 'haskell',
+    sb3: 'scratch',
+  };
+
+  const loadFile = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = String(reader.result ?? '');
+      setCode(text);
+      // Auto-pick the language from the extension — but never override a
+      // partial-code problem (its language is the template's, fixed) and
+      // never switch to scratch via drag-drop (project JSON loads through
+      // its own editor).
+      const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
+      const lang = EXTENSION_LANGUAGES[ext];
+      if (lang && lang !== 'scratch' && !codeTemplate) {
+        setSelectedLanguage(lang);
+      }
+    };
+    reader.readAsText(file);
+  };
+
   // [F14] live verdict tracking after a successful submit
   const [lastSubmissionId, setLastSubmissionId] = useState<number | null>(null);
   const [polledVerdict, setPolledVerdict] = useState<string | null>(null);
@@ -305,12 +349,52 @@ export default function SubmitSolutionForm({
                   </button>
                 )}
               </div>
+              {/* [wave E item 23] drop a source file onto the editor to
+                  load it (extension picks the language); or use the
+                  picker button. */}
+              <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => fileInputRef.current?.click()}
+                  data-testid="load-file-button"
+                >
+                  {t('load_source_file', 'Load file')}
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  hidden
+                  accept=".py,.cpp,.cc,.cxx,.c,.js,.mjs,.java,.pas,.go,.rs,.cs,.rb,.kt,.lua,.php,.hs,.sb3"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) loadFile(file);
+                    e.target.value = '';
+                  }}
+                />
+                {dragOver && (
+                  <span style={{ color: 'var(--accent)', fontSize: '0.8rem', alignSelf: 'center' }}>
+                    {t('drop_to_load', 'Drop to load the file')}
+                  </span>
+                )}
+              </div>
               <div
                 id="code-editor"
                 data-testid="submit-code-editor"
+                onDragOver={(e: React.DragEvent) => {
+                  e.preventDefault();
+                  setDragOver(true);
+                }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={(e: React.DragEvent) => {
+                  e.preventDefault();
+                  setDragOver(false);
+                  const file = e.dataTransfer.files?.[0];
+                  if (file) loadFile(file);
+                }}
                 style={{
                   marginTop: '6px',
-                  border: '1px solid var(--border)',
+                  border: dragOver ? '2px dashed var(--accent)' : '1px solid var(--border)',
                   borderRadius: 'var(--radius-md)',
                   overflow: 'hidden',
                   background: 'rgba(255,255,255,0.02)',
