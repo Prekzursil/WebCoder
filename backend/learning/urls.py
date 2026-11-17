@@ -1,5 +1,4 @@
 from django.urls import path
-from rest_framework.routers import DefaultRouter  # noqa: F401 — reserved for future write surfaces
 
 from . import views
 

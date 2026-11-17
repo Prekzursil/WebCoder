@@ -202,7 +202,7 @@ class MistakeProfileTest(TestCase):
 
     def test_io_contract_signature(self):
         for _ in range(3):
-            sub = self._sub(WA, samples_green=False)
+            self._sub(WA, samples_green=False)
             # every WA fails from the first test -> IO_CONTRACT
         profile = mistake_profile(self.user)
         patterns = {p["pattern"] for p in profile["patterns"]}
