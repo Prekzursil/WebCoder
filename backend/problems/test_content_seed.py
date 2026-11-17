@@ -80,7 +80,6 @@ class TestSeedProblemsCommand:
     def test_seed_drills_skips_unknown_tag(self):
         from unittest import mock
 
-        from learning.drills import SEED_DRILLS
         from learning.models import Drill
         from problems.management.commands.seed_problems import Command
 
