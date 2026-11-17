@@ -6,6 +6,7 @@ import guard executed for real.
 
 import pathlib
 import tempfile
+import unittest
 
 from django.test import TestCase
 from rest_framework.test import APIClient
@@ -303,7 +304,7 @@ class SubmitTimePolicyGateTest(TestCase):
         self.assertIn("Banned feature", str(resp.data))
 
     def test_compliant_solution_accepted(self):
-        from unittest import mock
+        mock = unittest.mock
 
         with mock.patch("submissions.views.judge_task"):
             resp = self._submit("n = int(input())\nprint(n % 10)\n")
@@ -432,7 +433,7 @@ class GuardedExecutionTests(TestCase):
 
     def test_guard_written_and_used_in_run_argv(self):
         import tempfile
-        from unittest import mock
+        mock = unittest.mock
 
         from submissions.judge_utils.execution import run_code_in_sandbox
         from submissions.models import Submission as Sub
@@ -466,7 +467,7 @@ class GuardedExecutionTests(TestCase):
 
     def test_guard_with_custom_libs_uses_pythonpath(self):
         import tempfile
-        from unittest import mock
+        mock = unittest.mock
 
         from submissions.judge_utils.execution import run_code_in_sandbox
 
@@ -499,7 +500,7 @@ class GuardedExecutionTests(TestCase):
             self.assertIn("PYTHONPATH=libs", argv)
 
     def test_compliant_policy_proceeds_to_full_judging(self):
-        from unittest import mock
+        mock = unittest.mock
 
         TASKS = "submissions.tasks"
         with (
