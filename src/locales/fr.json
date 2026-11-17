@@ -1357,5 +1357,18 @@
   "drills_wrong": "Pas tout à fait.",
   "drills_accepted": "accepté",
   "drills_micro_placeholder": "la ligne manquante…",
-  "drills_login_to_check": "Connectez-vous pour vérifier votre réponse."
+  "drills_login_to_check": "Connectez-vous pour vérifier votre réponse.",
+  "insights_tab_effort": "Tableau d'effort",
+  "insights_tab_heatmap": "Carte des échecs",
+  "insights_tab_import": "Importer des élèves",
+  "insights_col_user": "élève",
+  "insights_col_attempts": "tentatives",
+  "insights_col_active_days": "jours actifs",
+  "insights_col_solved": "résolus",
+  "insights_report_card": "bulletin",
+  "insights_no_teme": "Pas encore de devoirs.",
+  "insights_import_hint": "Collez les noms d'utilisateur (séparés par des virgules ou des retours à la ligne) — les comptes existants sont inscrits ; les inconnus sont signalés.",
+  "insights_import_button": "Inscrire",
+  "import_result": "Ajoutés {{a}} · déjà membres {{b}} · manquants : {{m}}",
+  "exam_pdf_link": "PDF d'examen"
 }

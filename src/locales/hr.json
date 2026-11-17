@@ -1357,5 +1357,18 @@
   "drills_wrong": "Nije baš.",
   "drills_accepted": "prihvaćeno",
   "drills_micro_placeholder": "redak koji nedostaje…",
-  "drills_login_to_check": "Prijavi se za provjeru odgovora."
+  "drills_login_to_check": "Prijavi se za provjeru odgovora.",
+  "insights_tab_effort": "Ploča napora",
+  "insights_tab_heatmap": "Toplinska karta pogrešaka",
+  "insights_tab_import": "Uvezi učenike",
+  "insights_col_user": "učenik",
+  "insights_col_attempts": "pokušaji",
+  "insights_col_active_days": "aktivni dani",
+  "insights_col_solved": "riješeno",
+  "insights_report_card": "svjedočanstvo",
+  "insights_no_teme": "Još nema zadaća.",
+  "insights_import_hint": "Zalijepi korisnička imena (odvojena zarezom ili novim redom) — postojeći računi se upisuju; nepoznata imena se prijavljuju.",
+  "insights_import_button": "Upiši",
+  "import_result": "Dodano {{a}} · već članovi {{b}} · nedostaju: {{m}}",
+  "exam_pdf_link": "PDF ispita"
 }

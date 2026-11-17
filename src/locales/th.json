@@ -1357,5 +1357,18 @@
   "drills_wrong": "ยังไม่ค่อย",
   "drills_accepted": "ยอมรับ",
   "drills_micro_placeholder": "บรรทัดที่ขาด…",
-  "drills_login_to_check": "เข้าสู่ระบบเพื่อตรวจคำตอบ"
+  "drills_login_to_check": "เข้าสู่ระบบเพื่อตรวจคำตอบ",
+  "insights_tab_effort": "กระดานความพยายาม",
+  "insights_tab_heatmap": "แผนที่ความล้มเหลว",
+  "insights_tab_import": "นำเข้านักเรียน",
+  "insights_col_user": "นักเรียน",
+  "insights_col_attempts": "ครั้งที่ลอง",
+  "insights_col_active_days": "วันที่ใช้งาน",
+  "insights_col_solved": "แก้แล้ว",
+  "insights_report_card": "รายงานผู้ปกครอง",
+  "insights_no_teme": "ยังไม่มีการบ้าน",
+  "insights_import_hint": "วางชื่อผู้ใช้ (คั่นด้วยจุลภาคหรือบรรทัดใหม่) — บัญชีที่มีอยู่จะถูกลงทะเบียน; ชื่อที่ไม่รู้จักจะถูกรายงาน",
+  "insights_import_button": "ลงทะเบียน",
+  "import_result": "เพิ่มแล้ว {{a}} · เป็นสมาชิกอยู่ {{b}} · ขาด: {{m}}",
+  "exam_pdf_link": "PDF ข้อสอบ"
 }

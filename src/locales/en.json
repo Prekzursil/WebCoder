@@ -1357,5 +1357,18 @@
   "drills_wrong": "Not quite.",
   "drills_accepted": "accepted",
   "drills_micro_placeholder": "the missing line…",
-  "drills_login_to_check": "Log in to check your answer."
+  "drills_login_to_check": "Log in to check your answer.",
+  "insights_tab_effort": "Effort board",
+  "insights_tab_heatmap": "Failure heatmap",
+  "insights_tab_import": "Import students",
+  "insights_col_user": "user",
+  "insights_col_attempts": "attempts",
+  "insights_col_active_days": "active days",
+  "insights_col_solved": "solved",
+  "insights_report_card": "report card",
+  "insights_no_teme": "No teme yet.",
+  "insights_import_hint": "Paste usernames (comma or newline separated) — existing accounts are enrolled; unknown names are reported.",
+  "insights_import_button": "Enroll",
+  "import_result": "Added {{a}} · already members {{b}} · missing: {{m}}",
+  "exam_pdf_link": "Exam PDF"
 }

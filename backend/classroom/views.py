@@ -36,6 +36,7 @@ from .export import grid_csv
 from .grid import assignment_grid
 from .models import (
     Assignment,
+    AssignmentProblem,
     ClassMembership,
     ClassRoom,
     MCQItem,
@@ -100,6 +101,73 @@ class ClassRoomViewSet(viewsets.ModelViewSet):
     # update/destroy/members need no extra guards: IsTeacher gates the
     # action and the teacher-scoped queryset 404s every non-owner
     # (students 403 at the permission layer, foreign teachers 404).
+
+    @action(detail=True, methods=["get"], url_path="effort")
+    def effort(self, request, pk=None):
+        """Wave E item 43: the class effort board (attempts + active days
+        across every tema — the grind leaderboard)."""
+        from .reports import effort_board
+
+        classroom = self.get_object()
+        return Response(effort_board(classroom))
+
+    @action(detail=True, methods=["get"], url_path="heatmap")
+    def heatmap(self, request, pk=None):
+        """Wave E item 44: students × problems failure intensity per
+        assignment + per-problem class failure rates."""
+        from .reports import failure_heatmap
+
+        classroom = self.get_object()
+        return Response(failure_heatmap(classroom))
+
+    @action(detail=True, methods=["post"], url_path="members/bulk")
+    def members_bulk(self, request, pk=None):
+        """Wave E item 22: batch classroom import — enroll EXISTING users
+        by username list (teacher-side; unknown usernames reported back,
+        never auto-created)."""
+        classroom = self.get_object()
+        usernames = request.data.get("usernames") or []
+        if not isinstance(usernames, list) or not usernames:
+            return Response(
+                {"usernames": "Send a non-empty list."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        from django.contrib.auth import get_user_model
+
+        User = get_user_model()
+        found = User.objects.filter(username__in=usernames)
+        found_names = set(found.values_list("username", flat=True))
+        added = skipped = 0
+        for user in found:
+            _, created = ClassMembership.objects.get_or_create(
+                classroom=classroom, student=user
+            )
+            added += 1 if created else 0
+            skipped += 0 if created else 1
+        missing = [name for name in usernames if name not in found_names]
+        return Response(
+            {"added": added, "already_members": skipped, "missing": missing}
+        )
+
+    @action(
+        detail=True, methods=["get"], url_path=r"report-card/(?P<student_id>[0-9]+)"
+    )
+    def report_card(self, request, pk=None, student_id=None):
+        """Wave E item 42: the parent report card PDF (teacher download)."""
+        from .reports import report_card_pdf
+
+        classroom = self.get_object()
+        membership = classroom.memberships.filter(student_id=student_id).first()
+        if membership is None:
+            return Response(
+                {"detail": "Not a member."}, status=status.HTTP_404_NOT_FOUND
+            )
+        pdf_bytes = report_card_pdf(classroom, membership.student)
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = (
+            f'attachment; filename="report-card-{membership.student.username}.pdf"'
+        )
+        return response
 
     @action(detail=True, methods=["get"])
     def members(self, request, pk=None):
@@ -236,6 +304,72 @@ class AssignmentViewSet(viewsets.ModelViewSet):
 
     # Same reasoning as ClassRoomViewSet: IsTeacher + the scoped queryset
     # already restrict writes to the owning teacher / ADMIN.
+
+    @action(detail=True, methods=["get"], url_path="exam-pdf")
+    def exam_pdf(self, request, pk=None):
+        """Wave E item 41: the assignment's statements as one printable
+        exam-sheet PDF (offline exams)."""
+        from .reports import exam_pdf as build_exam_pdf
+
+        assignment = self.get_object()
+        pdf_bytes = build_exam_pdf(assignment)
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = (
+            f'attachment; filename="exam-assignment-{assignment.pk}.pdf"'
+        )
+        return response
+
+    @action(detail=True, methods=["post"], url_path="problems/bulk")
+    def problems_bulk(self, request, pk=None):
+        """Wave E item 22: batch problem import into a tema — an ordered
+        list of problem ids becomes A, B, C… rows in one call."""
+        from problems.models import Problem
+
+        assignment = self.get_object()
+        raw_ids = request.data.get("problem_ids") or []
+        if not isinstance(raw_ids, list) or not raw_ids:
+            return Response(
+                {"problem_ids": "Send a non-empty list."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        ids: list[int] = []
+        for raw_id in raw_ids:
+            try:
+                ids.append(int(raw_id))
+            except (TypeError, ValueError):
+                continue  # junk entries are reported via `skipped`
+        problems = list(
+            Problem.objects.filter(id__in=ids, status=Problem.ProblemStatus.APPROVED)
+        )
+        ids = [pid for pid in ids if pid in {p.id for p in problems}]
+        by_id = {p.id: p for p in problems}
+        existing = set(
+            assignment.assignment_problems.values_list("problem_id", flat=True)
+        )
+        current_last = (
+            assignment.assignment_problems.order_by("-order")
+            .values_list("order", flat=True)
+            .first()
+        )
+        last_order = -1 if current_last is None else current_last
+        added = 0
+        for pid in ids:
+            if pid in existing or pid not in by_id:
+                continue
+            last_order += 1
+            AssignmentProblem.objects.create(
+                assignment=assignment,
+                problem=by_id[pid],
+                order=last_order,
+                label=chr(ord("A") + last_order)
+                if last_order < 26
+                else f"P{last_order + 1}",
+                points=100,
+            )
+            existing.add(pid)
+            added += 1
+        skipped = len(raw_ids) - added
+        return Response({"added": added, "skipped": skipped})
 
     @action(detail=True, methods=["get"])
     def grid(self, request, pk=None):

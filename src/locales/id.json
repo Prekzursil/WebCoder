@@ -1357,5 +1357,18 @@
   "drills_wrong": "Belum tepat.",
   "drills_accepted": "diterima",
   "drills_micro_placeholder": "baris yang hilang…",
-  "drills_login_to_check": "Masuk untuk memeriksa jawabanmu."
+  "drills_login_to_check": "Masuk untuk memeriksa jawabanmu.",
+  "insights_tab_effort": "Papan usaha",
+  "insights_tab_heatmap": "Peta kegagalan",
+  "insights_tab_import": "Impor siswa",
+  "insights_col_user": "siswa",
+  "insights_col_attempts": "percobaan",
+  "insights_col_active_days": "hari aktif",
+  "insights_col_solved": "terselesaikan",
+  "insights_report_card": "rapor ortu",
+  "insights_no_teme": "Belum ada tugas.",
+  "insights_import_hint": "Tempel nama pengguna (dipisah koma atau baris baru) — akun yang ada didaftarkan; nama tak dikenal dilaporkan.",
+  "insights_import_button": "Daftarkan",
+  "import_result": "Ditambah {{a}} · sudah anggota {{b}} · hilang: {{m}}",
+  "exam_pdf_link": "PDF ujian"
 }

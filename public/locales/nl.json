@@ -1357,5 +1357,18 @@
   "drills_wrong": "Niet helemaal.",
   "drills_accepted": "geaccepteerd",
   "drills_micro_placeholder": "de ontbrekende regel…",
-  "drills_login_to_check": "Log in om je antwoord te controleren."
+  "drills_login_to_check": "Log in om je antwoord te controleren.",
+  "insights_tab_effort": "Inspanningsbord",
+  "insights_tab_heatmap": "Fouten-heatmap",
+  "insights_tab_import": "Leerlingen importeren",
+  "insights_col_user": "leerling",
+  "insights_col_attempts": "pogingen",
+  "insights_col_active_days": "actieve dagen",
+  "insights_col_solved": "opgelost",
+  "insights_report_card": "rapport",
+  "insights_no_teme": "Nog geen taken.",
+  "insights_import_hint": "Plak gebruikersnamen (gescheiden door komma of nieuwe regel) — bestaande accounts worden ingeschreven; onbekende namen worden gemeld.",
+  "insights_import_button": "Inschrijven",
+  "import_result": "Toegevoegd {{a}} · al lid {{b}} · ontbreken: {{m}}",
+  "exam_pdf_link": "Examen-PDF"
 }

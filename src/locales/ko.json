@@ -1357,5 +1357,18 @@
   "drills_wrong": "아직 아님.",
   "drills_accepted": "허용",
   "drills_micro_placeholder": "빠진 줄…",
-  "drills_login_to_check": "답을 확인하려면 로그인하세요."
+  "drills_login_to_check": "답을 확인하려면 로그인하세요.",
+  "insights_tab_effort": "노력 보드",
+  "insights_tab_heatmap": "실패 히트맵",
+  "insights_tab_import": "학생 가져오기",
+  "insights_col_user": "학생",
+  "insights_col_attempts": "시도",
+  "insights_col_active_days": "활동 일수",
+  "insights_col_solved": "해결",
+  "insights_report_card": "학부모 보고서",
+  "insights_no_teme": "아직 과제가 없습니다.",
+  "insights_import_hint": "사용자 이름을 붙여넣으세요(쉼표 또는 줄바꿈 구분) — 기존 계정은 등록되고 알 수 없는 이름은 보고됩니다.",
+  "insights_import_button": "등록",
+  "import_result": "추가 {{a}} · 이미 회원 {{b}} · 누락: {{m}}",
+  "exam_pdf_link": "시험 PDF"
 }

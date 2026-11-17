@@ -1357,5 +1357,18 @@
   "drills_wrong": "ليس تمامًا.",
   "drills_accepted": "مقبول",
   "drills_micro_placeholder": "السطر الناقص…",
-  "drills_login_to_check": "سجّل الدخول للتحقق من إجابتك."
+  "drills_login_to_check": "سجّل الدخول للتحقق من إجابتك.",
+  "insights_tab_effort": "لوحة الجهد",
+  "insights_tab_heatmap": "خريطة الإخفاق",
+  "insights_tab_import": "استيراد الطلاب",
+  "insights_col_user": "الطالب",
+  "insights_col_attempts": "المحاولات",
+  "insights_col_active_days": "أيام النشاط",
+  "insights_col_solved": "محلولة",
+  "insights_report_card": "تقرير ولي الأمر",
+  "insights_no_teme": "لا واجبات بعد.",
+  "insights_import_hint": "الصق أسماء المستخدمين (مفصولة بفواصل أو أسطر جديدة) — تُسجَّل الحسابات الموجودة؛ وتُبلَّغ الأسماء غير المعروفة.",
+  "insights_import_button": "سجّل",
+  "import_result": "أُضيف {{a}} · أعضاء بالفعل {{b}} · مفقود: {{m}}",
+  "exam_pdf_link": "PDF الامتحان"
 }

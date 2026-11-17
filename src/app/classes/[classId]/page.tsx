@@ -11,6 +11,7 @@ import { palette } from '@/theme/tokens';
 import EmptyState from '@/components/common/EmptyState';
 import NewAssignmentForm from './NewAssignmentForm';
 import AssignTrackForm from './AssignTrackForm';
+import ClassInsights from './ClassInsights';
 import PageHeader from '@/components/common/PageHeader';
 
 /** Class detail (EDU-1/EDU-2): roster for the teacher, teme list for all,
@@ -121,6 +122,7 @@ export default function ClassDetailPage() {
               <>
                 <NewAssignmentForm classroomId={classroom.id} onCreated={() => void load()} />
                 <AssignTrackForm classroomId={classroom.id} onCreated={() => void load()} />
+                <ClassInsights classroomId={classroom.id} />
               </>
             )}
         </div>

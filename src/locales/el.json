@@ -1357,5 +1357,18 @@
   "drills_wrong": "Όχι ακριβώς.",
   "drills_accepted": "αποδεκτό",
   "drills_micro_placeholder": "η γραμμή που λείπει…",
-  "drills_login_to_check": "Συνδεθείτε για να ελέγξετε την απάντησή σας."
+  "drills_login_to_check": "Συνδεθείτε για να ελέγξετε την απάντησή σας.",
+  "insights_tab_effort": "Πίνακας προσπάθειας",
+  "insights_tab_heatmap": "Χάρτης αποτυχίας",
+  "insights_tab_import": "Εισαγωγή μαθητών",
+  "insights_col_user": "μαθητής",
+  "insights_col_attempts": "προσπάθειες",
+  "insights_col_active_days": "ενεργές ημέρες",
+  "insights_col_solved": "λυμένα",
+  "insights_report_card": "αναφορά γονέων",
+  "insights_no_teme": "Καμία εργασία ακόμη.",
+  "insights_import_hint": "Επικολλήστε ονόματα χρήστη (χωρισμένα με κόμμα ή νέα γραμμή) — οι υπάρχοντες λογαριασμοί εγγράφονται· τα άγνωστα ονόματα αναφέρονται.",
+  "insights_import_button": "Εγγραφή",
+  "import_result": "Προστέθηκαν {{a}} · ήδη μέλη {{b}} · λείπουν: {{m}}",
+  "exam_pdf_link": "PDF εξετάσεων"
 }

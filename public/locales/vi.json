@@ -1357,5 +1357,18 @@
   "drills_wrong": "Chưa đúng.",
   "drills_accepted": "chấp nhận",
   "drills_micro_placeholder": "dòng còn thiếu…",
-  "drills_login_to_check": "Đăng nhập để kiểm tra đáp án."
+  "drills_login_to_check": "Đăng nhập để kiểm tra đáp án.",
+  "insights_tab_effort": "Bảng nỗ lực",
+  "insights_tab_heatmap": "Bản đồ thất bại",
+  "insights_tab_import": "Nhập học sinh",
+  "insights_col_user": "học sinh",
+  "insights_col_attempts": "lần thử",
+  "insights_col_active_days": "ngày hoạt động",
+  "insights_col_solved": "đã giải",
+  "insights_report_card": "phiếu báo phụ huynh",
+  "insights_no_teme": "Chưa có bài tập.",
+  "insights_import_hint": "Dán tên người dùng (phân tách bằng dấu phẩy hoặc dòng mới) — tài khoản hiện có được ghi danh; tên lạ được báo lại.",
+  "insights_import_button": "Ghi danh",
+  "import_result": "Đã thêm {{a}} · đã là thành viên {{b}} · thiếu: {{m}}",
+  "exam_pdf_link": "PDF đề thi"
 }

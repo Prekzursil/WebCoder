@@ -1357,5 +1357,18 @@
   "drills_wrong": "Не совсем.",
   "drills_accepted": "принято",
   "drills_micro_placeholder": "недостающая строка…",
-  "drills_login_to_check": "Войдите, чтобы проверить ответ."
+  "drills_login_to_check": "Войдите, чтобы проверить ответ.",
+  "insights_tab_effort": "Доска усилий",
+  "insights_tab_heatmap": "Карта неудач",
+  "insights_tab_import": "Импорт учеников",
+  "insights_col_user": "ученик",
+  "insights_col_attempts": "попытки",
+  "insights_col_active_days": "активные дни",
+  "insights_col_solved": "решено",
+  "insights_report_card": "отчёт для родителей",
+  "insights_no_teme": "Заданий пока нет.",
+  "insights_import_hint": "Вставьте имена пользователей (через запятую или новую строку) — существующие аккаунты зачисляются; неизвестные имена сообщаются.",
+  "insights_import_button": "Зачислить",
+  "import_result": "Добавлено {{a}} · уже участники {{b}} · отсутствуют: {{m}}",
+  "exam_pdf_link": "PDF экзамена"
 }

@@ -1345,6 +1345,53 @@ export const ClassroomService = {
       body: JSON.stringify({ code, password: password ?? '' }),
     }),
   getMyClasses: () => apiFetch<{ results: MyClassRow[] }>('/classroom/classes/my-classes/'),
+  /** [wave E items 22/41/42/43/44] classroom analytics + batch + PDFs. */
+  bulkAddMembers: (classroomId: number | string, usernames: string[]) =>
+    apiFetch<{ added: number; already_members: number; missing: string[] }>(
+      `/classroom/classes/${classroomId}/members/bulk/`,
+      { method: 'POST', body: JSON.stringify({ usernames }) },
+    ),
+  bulkAddProblems: (assignmentId: number | string, problemIds: (number | string)[]) =>
+    apiFetch<{ added: number; skipped: number }>(
+      `/classroom/assignments/${assignmentId}/problems/bulk/`,
+      { method: 'POST', body: JSON.stringify({ problem_ids: problemIds }) },
+    ),
+  effortBoard: (classroomId: number | string) =>
+    apiFetch<{
+      count: number;
+      results: {
+        rank: number;
+        user_id: number;
+        username: string;
+        attempts: number;
+        active_days: number;
+        problems_solved: number;
+      }[];
+    }>(`/classroom/classes/${classroomId}/effort/`),
+  failureHeatmap: (classroomId: number | string) =>
+    apiFetch<{
+      count: number;
+      assignments: {
+        assignment_id: number;
+        title_i18n: Record<string, string>;
+        problems: { problem_id: number; label: string; points: number }[];
+        students: {
+          user_id: number;
+          username: string;
+          cells: {
+            problem_id: number;
+            intensity: number | null;
+            attempts: number;
+            verdict: string | null;
+          }[];
+        }[];
+        failure_rates: { problem_id: number; label: string; failure_rate: number }[];
+      }[];
+    }>(`/classroom/classes/${classroomId}/heatmap/`),
+  examPdfUrl: (assignmentId: number | string) =>
+    `${API_BASE_URL}/classroom/assignments/${assignmentId}/exam-pdf/`,
+  reportCardPdfUrl: (classroomId: number | string, studentId: number | string) =>
+    `${API_BASE_URL}/classroom/classes/${classroomId}/report-card/${studentId}/`,
   getAssignments: (classroomId?: number | string, page = 1) => {
     const params = new URLSearchParams({ page: String(page) });
     if (classroomId !== undefined) params.set('classroomId', String(classroomId));

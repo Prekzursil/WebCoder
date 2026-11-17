@@ -1357,5 +1357,18 @@
   "drills_wrong": "Nicht ganz.",
   "drills_accepted": "akzeptiert",
   "drills_micro_placeholder": "die fehlende Zeile…",
-  "drills_login_to_check": "Melde dich an, um deine Antwort zu prüfen."
+  "drills_login_to_check": "Melde dich an, um deine Antwort zu prüfen.",
+  "insights_tab_effort": "Fleiß-Board",
+  "insights_tab_heatmap": "Fehler-Heatmap",
+  "insights_tab_import": "Schüler importieren",
+  "insights_col_user": "Schüler",
+  "insights_col_attempts": "Versuche",
+  "insights_col_active_days": "aktive Tage",
+  "insights_col_solved": "gelöst",
+  "insights_report_card": "Zeugnis",
+  "insights_no_teme": "Noch keine Aufgaben.",
+  "insights_import_hint": "Benutzernamen einfügen (durch Komma oder Zeilenumbruch getrennt) — bestehende Konten werden eingeschrieben; unbekannte Namen werden gemeldet.",
+  "insights_import_button": "Einschreiben",
+  "import_result": "Hinzugefügt {{a}} · bereits Mitglieder {{b}} · fehlend: {{m}}",
+  "exam_pdf_link": "Prüfungs-PDF"
 }

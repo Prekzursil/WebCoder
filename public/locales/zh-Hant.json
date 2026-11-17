@@ -1357,5 +1357,18 @@
   "drills_wrong": "還差一點。",
   "drills_accepted": "可接受",
   "drills_micro_placeholder": "缺失的一行…",
-  "drills_login_to_check": "登入以檢查你的答案。"
+  "drills_login_to_check": "登入以檢查你的答案。",
+  "insights_tab_effort": "努力榜",
+  "insights_tab_heatmap": "失敗熱力圖",
+  "insights_tab_import": "匯入學生",
+  "insights_col_user": "學生",
+  "insights_col_attempts": "嘗試",
+  "insights_col_active_days": "活躍天數",
+  "insights_col_solved": "已解決",
+  "insights_report_card": "家長報告",
+  "insights_no_teme": "還沒有作業。",
+  "insights_import_hint": "貼上使用者名稱（逗號或換行分隔）——已有帳戶會被註冊；未知名稱會被回報。",
+  "insights_import_button": "註冊",
+  "import_result": "已新增 {{a}} · 已是成員 {{b}} · 缺少：{{m}}",
+  "exam_pdf_link": "考試 PDF"
 }
