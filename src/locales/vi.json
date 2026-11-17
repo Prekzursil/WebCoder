@@ -1347,5 +1347,15 @@
   "learning_skills_title": "Đồ thị kỹ năng",
   "learning_requires": "cần {{tags}}",
   "learning_theory_title": "Thẻ lý thuyết",
-  "learning_flip_hint": "bấm để lật"
+  "learning_flip_hint": "bấm để lật",
+  "nav_drills": "Bài tập",
+  "drills_title": "Bài tập",
+  "drills_intro": "Luyện hai phút giữa các bài: đọc mã, đánh giá độ phức tạp, điền dòng.",
+  "drills_daily_title": "Khởi động hôm nay",
+  "drills_check": "Kiểm tra",
+  "drills_correct": "Chính xác!",
+  "drills_wrong": "Chưa đúng.",
+  "drills_accepted": "chấp nhận",
+  "drills_micro_placeholder": "dòng còn thiếu…",
+  "drills_login_to_check": "Đăng nhập để kiểm tra đáp án."
 }

@@ -1347,5 +1347,15 @@
   "learning_skills_title": "스킬 그래프",
   "learning_requires": "필요: {{tags}}",
   "learning_theory_title": "이론 카드",
-  "learning_flip_hint": "클릭하여 뒤집기"
+  "learning_flip_hint": "클릭하여 뒤집기",
+  "nav_drills": "드릴",
+  "drills_title": "드릴",
+  "drills_intro": "문제 사이 2분 연습: 코드를 읽고, 복잡도를 판단하고, 줄을 채우세요.",
+  "drills_daily_title": "오늘의 워밍업",
+  "drills_check": "확인",
+  "drills_correct": "정답!",
+  "drills_wrong": "아직 아님.",
+  "drills_accepted": "허용",
+  "drills_micro_placeholder": "빠진 줄…",
+  "drills_login_to_check": "답을 확인하려면 로그인하세요."
 }

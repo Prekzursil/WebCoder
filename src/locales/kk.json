@@ -1347,5 +1347,15 @@
   "learning_skills_title": "Дағды графы",
   "learning_requires": "қажет: {{tags}}",
   "learning_theory_title": "Теория карточкалары",
-  "learning_flip_hint": "аудару үшін басыңыз"
+  "learning_flip_hint": "аудару үшін басыңыз",
+  "nav_drills": "Жаттығулар",
+  "drills_title": "Жаттығулар",
+  "drills_intro": "Есептер арасындағы екі минуттық жаттығу: кодты оқы, күрделілікті бағала, жолды толтыр.",
+  "drills_daily_title": "Бүгінгі жылыну",
+  "drills_check": "Тексер",
+  "drills_correct": "Дұрыс!",
+  "drills_wrong": "Дәл емес.",
+  "drills_accepted": "қабылданады",
+  "drills_micro_placeholder": "жоқ жол…",
+  "drills_login_to_check": "Жауабыңды тексеру үшін кіріңіз."
 }

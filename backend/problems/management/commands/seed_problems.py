@@ -109,11 +109,13 @@ class Command(BaseCommand):
 
         created_tracks = self._seed_tracks(dry_run)
         created_cards, created_edges = self._seed_learning(dry_run)
+        created_drills = self._seed_drills(dry_run)
 
         self.stdout.write(
             self.style.SUCCESS(
                 f"seed_problems: created={created_problems} skipped(existing)={skipped} "
-                f"tracks_created={created_tracks} cards={created_cards} edges={created_edges}"
+                f"tracks_created={created_tracks} cards={created_cards} edges={created_edges} "
+                f"drills={created_drills}"
                 f"{' (dry run)' if dry_run else ''}"
             )
         )
@@ -151,6 +153,31 @@ class Command(BaseCommand):
             )
             created_cards += 1 if was_created else 0
         return created_cards, created_edges
+
+    def _seed_drills(self, dry_run):
+        """Wave E items 36/37/38: the seeded drill deck (idempotent by
+        kind+code)."""
+        from learning.models import Drill
+        from problems.models import Tag as TagModel
+
+        from learning.drills import SEED_DRILLS
+
+        if dry_run:
+            return len(SEED_DRILLS)
+        tags = {t.slug: t for t in TagModel.objects.all()}
+        created = 0
+
+        for order, spec in enumerate(SEED_DRILLS, start=1):
+            tag = tags.get(spec["tag"])
+            if tag is None:
+                continue
+            _, was_created = Drill.objects.get_or_create(
+                kind=spec["kind"],
+                payload=spec["payload"],
+                defaults={"tag": tag, "order": order},
+            )
+            created += 1 if was_created else 0
+        return created
 
     def _seed_tags(self, dry_run):
         tags_by_slug = {}

@@ -1347,5 +1347,15 @@
   "learning_skills_title": "Graf d'habilitats",
   "learning_requires": "requereix {{tags}}",
   "learning_theory_title": "Targetes de teoria",
-  "learning_flip_hint": "clica per girar"
+  "learning_flip_hint": "clica per girar",
+  "nav_drills": "Exercicis",
+  "drills_title": "Exercicis",
+  "drills_intro": "Dos minuts de pràctica entre problemes: llegeix el codi, jutja la complexitat, completa la línia.",
+  "drills_daily_title": "Escalfament d'avui",
+  "drills_check": "Comprova",
+  "drills_correct": "Correcte!",
+  "drills_wrong": "No exactament.",
+  "drills_accepted": "acceptat",
+  "drills_micro_placeholder": "la línia que falta…",
+  "drills_login_to_check": "Inicia sessió per comprovar la teva resposta."
 }

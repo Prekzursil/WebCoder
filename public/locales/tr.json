@@ -1347,5 +1347,15 @@
   "learning_skills_title": "Beceri grafiği",
   "learning_requires": "gerektirir: {{tags}}",
   "learning_theory_title": "Teori kartları",
-  "learning_flip_hint": "çevirmek için tıkla"
+  "learning_flip_hint": "çevirmek için tıkla",
+  "nav_drills": "Alıştırmalar",
+  "drills_title": "Alıştırmalar",
+  "drills_intro": "Problemler arası iki dakikalık pratik: kodu oku, karmaşıklığı değerlendir, satırı tamamla.",
+  "drills_daily_title": "Bugünün ısınması",
+  "drills_check": "Kontrol et",
+  "drills_correct": "Doğru!",
+  "drills_wrong": "Tam değil.",
+  "drills_accepted": "kabul edildi",
+  "drills_micro_placeholder": "eksik satır…",
+  "drills_login_to_check": "Cevabını kontrol etmek için giriş yap."
 }

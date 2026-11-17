@@ -77,6 +77,26 @@ class TestSeedProblemsCommand:
         assert SkillEdge.objects.count() == before_edges
         assert TheoryCard.objects.count() == before_cards
 
+    def test_seed_drills_skips_unknown_tag(self):
+        from unittest import mock
+
+        from learning.models import Drill
+        from problems.management.commands.seed_problems import Command
+
+        run_seed()
+        before = Drill.objects.count()
+        command = Command()
+        with (
+            mock.patch.object(Command, "_seed_curriculum", return_value={}),
+            mock.patch(
+                "learning.drills.SEED_DRILLS",
+                [{"kind": "READ_CODE", "tag": "nope", "payload": {"code": "x"}}],
+            ),
+        ):
+            created = command._seed_drills(dry_run=False)
+        assert created == 0
+        assert Drill.objects.count() == before
+
     def test_seed_is_idempotent(self):
         run_seed()
         result = run_seed()

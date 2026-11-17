@@ -531,6 +531,37 @@ export const LearningService = {
     }>(`/learning/theory/${tag ? `?tag=${tag}` : ''}`),
 };
 
+/** Wave E items 36/37/38/40 — the drill deck. */
+export interface DrillRow {
+  id: number;
+  kind: 'READ_CODE' | 'COMPLEXITY' | 'MICRO';
+  tag: string;
+  code: string;
+  question_ro: string;
+  question_en: string;
+  options_ro: string[] | null;
+  options_en: string[] | null;
+}
+
+export const DrillService = {
+  list: (kind?: string) =>
+    apiFetch<{ count: number; results: DrillRow[] }>(
+      `/learning/drills/${kind ? `?kind=${kind}` : ''}`,
+    ),
+  daily: () => apiFetch<{ count: number; results: DrillRow[] }>('/learning/drills/daily/'),
+  answer: (drillId: number, answer: string | number) =>
+    apiFetch<{
+      correct: boolean;
+      error: string | null;
+      explanation_ro: string;
+      explanation_en: string;
+      accepted: string[] | null;
+    }>(`/learning/drills/${drillId}/answer/`, {
+      method: 'POST',
+      body: JSON.stringify({ answer }),
+    }),
+};
+
 /** Wave E item 24 — the random-problem die. */
 export const RandomProblemService = {
   pick: (params: { difficulty?: string; tag?: string } = {}) => {

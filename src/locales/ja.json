@@ -1347,5 +1347,15 @@
   "learning_skills_title": "スキルグラフ",
   "learning_requires": "必要: {{tags}}",
   "learning_theory_title": "理論カード",
-  "learning_flip_hint": "クリックでめくる"
+  "learning_flip_hint": "クリックでめくる",
+  "nav_drills": "ドリル",
+  "drills_title": "ドリル",
+  "drills_intro": "問題の合間の2分間練習：コードを読み、計算量を判断し、行を埋める。",
+  "drills_daily_title": "今日のウォームアップ",
+  "drills_check": "確認",
+  "drills_correct": "正解！",
+  "drills_wrong": "惜しい。",
+  "drills_accepted": "許容",
+  "drills_micro_placeholder": "足りない行…",
+  "drills_login_to_check": "答えを確認するにはログインしてください。"
 }

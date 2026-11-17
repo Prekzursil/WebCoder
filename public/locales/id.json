@@ -1347,5 +1347,15 @@
   "learning_skills_title": "Graf keterampilan",
   "learning_requires": "butuh {{tags}}",
   "learning_theory_title": "Kartu teori",
-  "learning_flip_hint": "klik untuk membalik"
+  "learning_flip_hint": "klik untuk membalik",
+  "nav_drills": "Latihan",
+  "drills_title": "Latihan",
+  "drills_intro": "Latihan dua menit antar soal: baca kode, nilai kompleksitas, isi barisnya.",
+  "drills_daily_title": "Pemanasan hari ini",
+  "drills_check": "Periksa",
+  "drills_correct": "Benar!",
+  "drills_wrong": "Belum tepat.",
+  "drills_accepted": "diterima",
+  "drills_micro_placeholder": "baris yang hilang…",
+  "drills_login_to_check": "Masuk untuk memeriksa jawabanmu."
 }

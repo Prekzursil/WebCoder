@@ -1347,5 +1347,15 @@
   "learning_skills_title": "कौशल ग्राफ",
   "learning_requires": "आवश्यक {{tags}}",
   "learning_theory_title": "सिद्धांत कार्ड",
-  "learning_flip_hint": "पलटने के लिए क्लिक करें"
+  "learning_flip_hint": "पलटने के लिए क्लिक करें",
+  "nav_drills": "अभ्यास",
+  "drills_title": "अभ्यास",
+  "drills_intro": "समस्याओं के बीच दो मिनट का अभ्यास: कोड पढ़ें, जटिलता जाएँचें, पंक्ति भरें।",
+  "drills_daily_title": "आज का वॉर्मअप",
+  "drills_check": "जाँचें",
+  "drills_correct": "सही!",
+  "drills_wrong": "पूरी तरह नहीं।",
+  "drills_accepted": "स्वीकृत",
+  "drills_micro_placeholder": "छूटी हुई पंक्ति…",
+  "drills_login_to_check": "अपना उत्तर जाँचने के लिए लॉग इन करें।"
 }

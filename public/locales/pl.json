@@ -1347,5 +1347,15 @@
   "learning_skills_title": "Graf umiejętności",
   "learning_requires": "wymaga {{tags}}",
   "learning_theory_title": "Karteczki teorii",
-  "learning_flip_hint": "kliknij, aby odwrócić"
+  "learning_flip_hint": "kliknij, aby odwrócić",
+  "nav_drills": "Ćwiczenia",
+  "drills_title": "Ćwiczenia",
+  "drills_intro": "Dwie minuty praktyki między zadaniami: przeczytaj kod, oceń złożoność, uzupełnij linię.",
+  "drills_daily_title": "Rozgrzewka na dziś",
+  "drills_check": "Sprawdź",
+  "drills_correct": "Poprawnie!",
+  "drills_wrong": "Nie do końca.",
+  "drills_accepted": "akceptowane",
+  "drills_micro_placeholder": "brakująca linia…",
+  "drills_login_to_check": "Zaloguj się, aby sprawdzić swoją odpowiedź."
 }

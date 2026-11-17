@@ -12,4 +12,13 @@ urlpatterns = [
     ),
     path("skills/", views.SkillGraphView.as_view(), name="skills"),
     path("theory/", views.TheoryCardsView.as_view(), name="theory"),
+    # Wave E items 36/37/38/40: the drill deck, answer checking and the
+    # deterministic daily warmup. daily/ precedes the id routes.
+    path("drills/daily/", views.DailyDrillsView.as_view(), name="drills-daily"),
+    path("drills/", views.DrillsView.as_view(), name="drills"),
+    path(
+        "drills/<int:drill_id>/answer/",
+        views.DrillAnswerView.as_view(),
+        name="drill-answer",
+    ),
 ]
