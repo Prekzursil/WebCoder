@@ -1330,5 +1330,22 @@
   "start_ladder_error": "La escalera no está disponible ahora.",
   "assign_track_label": "Asignar una ruta de estudio",
   "assign_track_button": "Asignar",
-  "assigning": "Asignando…"
+  "assigning": "Asignando…",
+  "nav_learning": "Aprendizaje",
+  "learning_title": "Tu aprendizaje",
+  "learning_login_required": "Inicia sesión para ver tus superficies de aprendizaje.",
+  "learning_review_title": "Cola de repaso",
+  "learning_due_count": "{{n}} pendientes",
+  "learning_review_empty": "Nada que repasar: todos los problemas intentados están resueltos.",
+  "learning_due_now": "pendiente ahora",
+  "learning_due_in": "en {{n}}d",
+  "learning_stage": "etapa {{n}}",
+  "learning_plan_title": "Esta semana",
+  "learning_rest_day": "descanso",
+  "learning_weak_tag_day": "etiqueta más débil: {{tag}}",
+  "learning_mistakes_title": "Perfil de errores",
+  "learning_skills_title": "Grafo de habilidades",
+  "learning_requires": "requiere {{tags}}",
+  "learning_theory_title": "Tarjetas de teoría",
+  "learning_flip_hint": "haz clic para girar"
 }

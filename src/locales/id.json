@@ -1330,5 +1330,22 @@
   "start_ladder_error": "Tangga tidak tersedia saat ini.",
   "assign_track_label": "Tugaskan trek belajar",
   "assign_track_button": "Tugaskan",
-  "assigning": "Menugaskan…"
+  "assigning": "Menugaskan…",
+  "nav_learning": "Belajar",
+  "learning_title": "Belajarmu",
+  "learning_login_required": "Masuk untuk melihat panel belajarmu.",
+  "learning_review_title": "Antrean ulangan",
+  "learning_due_count": "{{n}} jatuh tempo",
+  "learning_review_empty": "Tidak ada untuk diulang — semua soal yang dicoba telah selesai.",
+  "learning_due_now": "jatuh tempo",
+  "learning_due_in": "dalam {{n}}h",
+  "learning_stage": "tahap {{n}}",
+  "learning_plan_title": "Minggu ini",
+  "learning_rest_day": "istirahat",
+  "learning_weak_tag_day": "tag terlemah: {{tag}}",
+  "learning_mistakes_title": "Profil kesalahan",
+  "learning_skills_title": "Graf keterampilan",
+  "learning_requires": "butuh {{tags}}",
+  "learning_theory_title": "Kartu teori",
+  "learning_flip_hint": "klik untuk membalik"
 }

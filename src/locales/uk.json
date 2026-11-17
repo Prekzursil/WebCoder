@@ -1330,5 +1330,22 @@
   "start_ladder_error": "Драбина зараз недоступна.",
   "assign_track_label": "Призначити навчальний трек",
   "assign_track_button": "Призначити",
-  "assigning": "Призначення…"
+  "assigning": "Призначення…",
+  "nav_learning": "Навчання",
+  "learning_title": "Ваше навчання",
+  "learning_login_required": "Увійдіть, щоб побачити свої навчальні поверхні.",
+  "learning_review_title": "Черга повторення",
+  "learning_due_count": "{{n}} до повторення",
+  "learning_review_empty": "Повторювати нічого — всі спробовані задачі розв'язані.",
+  "learning_due_now": "час повторити",
+  "learning_due_in": "через {{n}}д",
+  "learning_stage": "етап {{n}}",
+  "learning_plan_title": "Цього тижня",
+  "learning_rest_day": "відпочинок",
+  "learning_weak_tag_day": "найслабший тег: {{tag}}",
+  "learning_mistakes_title": "Профіль помилок",
+  "learning_skills_title": "Граф навичок",
+  "learning_requires": "потребує {{tags}}",
+  "learning_theory_title": "Картки теорії",
+  "learning_flip_hint": "натисніть, щоб перевернути"
 }

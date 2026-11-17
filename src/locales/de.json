@@ -1330,5 +1330,22 @@
   "start_ladder_error": "Die Leiter ist gerade nicht verfügbar.",
   "assign_track_label": "Lernpfad zuweisen",
   "assign_track_button": "Zuweisen",
-  "assigning": "Zuweisen…"
+  "assigning": "Zuweisen…",
+  "nav_learning": "Lernen",
+  "learning_title": "Dein Lernen",
+  "learning_login_required": "Melde dich an, um deine Lernflächen zu sehen.",
+  "learning_review_title": "Wiederholungsschlange",
+  "learning_due_count": "{{n}} fällig",
+  "learning_review_empty": "Nichts zu wiederholen — jede versuchte Aufgabe ist gelöst.",
+  "learning_due_now": "jetzt fällig",
+  "learning_due_in": "in {{n}}T",
+  "learning_stage": "Stufe {{n}}",
+  "learning_plan_title": "Diese Woche",
+  "learning_rest_day": "Pause",
+  "learning_weak_tag_day": "schwächstes Tag: {{tag}}",
+  "learning_mistakes_title": "Fehlerprofil",
+  "learning_skills_title": "Fähigkeitsgraph",
+  "learning_requires": "benötigt {{tags}}",
+  "learning_theory_title": "Theoriekarten",
+  "learning_flip_hint": "klicken zum Umdrehen"
 }

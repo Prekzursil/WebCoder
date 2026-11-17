@@ -460,6 +460,77 @@ export const VerificationService = {
     }),
 };
 
+/** Wave E items 29/30/33/34/35 — the learning engine. */
+export interface ReviewCard {
+  problem_id: number;
+  title_i18n: Record<string, string>;
+  difficulty: string;
+  attempts: number;
+  misses: number;
+  stage: number;
+  interval_days: number;
+  due_at: string;
+  due: boolean;
+}
+
+export interface PracticePlanDay {
+  date: string;
+  kind: 'review' | 'weak_tag' | 'new' | null;
+  problem_id: number | null;
+  title_i18n: Record<string, string> | null;
+  focus_tag: string | null;
+}
+
+export interface MistakePattern {
+  pattern: string;
+  evidence: string;
+  hint_en: string;
+  hint_ro: string;
+}
+
+export interface SkillNode {
+  slug: string;
+  name_i18n: Record<string, string>;
+  prerequisites: string[];
+  unlocked: boolean;
+  solved: number;
+  attempted: number;
+  points: number;
+}
+
+export const LearningService = {
+  reviewQueue: () =>
+    apiFetch<{ count: number; due: number; results: ReviewCard[] }>('/learning/review-queue/'),
+  practicePlan: () =>
+    apiFetch<{ days: PracticePlanDay[]; due_reviews: number }>('/learning/practice-plan/'),
+  mistakeProfile: () =>
+    apiFetch<{
+      total_submissions: number;
+      summary: string;
+      verdict_counts: Record<string, number>;
+      patterns: MistakePattern[];
+    }>('/learning/mistake-profile/'),
+  skills: () =>
+    apiFetch<{
+      count: number;
+      edges: { from: string; to: string }[];
+      nodes: SkillNode[];
+      suggestion: { problem_id: number; title_i18n: Record<string, string> }[];
+    }>('/learning/skills/'),
+  theory: (tag?: string) =>
+    apiFetch<{
+      count: number;
+      results: {
+        id: number;
+        tag: string;
+        front_ro: string;
+        front_en: string;
+        back_ro: string;
+        back_en: string;
+      }[];
+    }>(`/learning/theory/${tag ? `?tag=${tag}` : ''}`),
+};
+
 /** Wave E item 24 — the random-problem die. */
 export const RandomProblemService = {
   pick: (params: { difficulty?: string; tag?: string } = {}) => {

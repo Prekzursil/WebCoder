@@ -1330,5 +1330,22 @@
   "start_ladder_error": "Kopėčios šiuo metu neprieinamos.",
   "assign_track_label": "Priskirti mokymosi taką",
   "assign_track_button": "Priskirti",
-  "assigning": "Priskiriama…"
+  "assigning": "Priskiriama…",
+  "nav_learning": "Mokymasis",
+  "learning_title": "Tavo mokymasis",
+  "learning_login_required": "Prisijunkite, kad matytumėte savo mokymosi paviršius.",
+  "learning_review_title": "Kartojimo eilė",
+  "learning_due_count": "{{n}} reikia pakartoti",
+  "learning_review_empty": "Nėra ko kartoti — visos bandytos užduotys išspręstos.",
+  "learning_due_now": "kartoti dabar",
+  "learning_due_in": "po {{n}}d",
+  "learning_stage": "etapas {{n}}",
+  "learning_plan_title": "Ši savaitė",
+  "learning_rest_day": "poilsis",
+  "learning_weak_tag_day": "silpniausia žyma: {{tag}}",
+  "learning_mistakes_title": "Klaidų profilis",
+  "learning_skills_title": "Įgūdžių grafikas",
+  "learning_requires": "reikalauja {{tags}}",
+  "learning_theory_title": "Teorijos kortelės",
+  "learning_flip_hint": "spustelėkite apvertimui"
 }

@@ -1330,5 +1330,22 @@
   "start_ladder_error": "The ladder is unavailable right now.",
   "assign_track_label": "Assign a study track",
   "assign_track_button": "Assign",
-  "assigning": "Assigning…"
+  "assigning": "Assigning…",
+  "nav_learning": "Learning",
+  "learning_title": "Your learning",
+  "learning_login_required": "Log in to see your learning surfaces.",
+  "learning_review_title": "Review queue",
+  "learning_due_count": "{{n}} due",
+  "learning_review_empty": "Nothing to review — every attempted problem is solved.",
+  "learning_due_now": "due now",
+  "learning_due_in": "in {{n}}d",
+  "learning_stage": "stage {{n}}",
+  "learning_plan_title": "This week",
+  "learning_rest_day": "rest",
+  "learning_weak_tag_day": "weakest tag: {{tag}}",
+  "learning_mistakes_title": "Mistake profile",
+  "learning_skills_title": "Skill graph",
+  "learning_requires": "requires {{tags}}",
+  "learning_theory_title": "Theory cards",
+  "learning_flip_hint": "click to flip"
 }

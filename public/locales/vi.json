@@ -1330,5 +1330,22 @@
   "start_ladder_error": "Chiếc thang hiện không khả dụng.",
   "assign_track_label": "Gán lộ trình học",
   "assign_track_button": "Gán",
-  "assigning": "Đang gán…"
+  "assigning": "Đang gán…",
+  "nav_learning": "Học tập",
+  "learning_title": "Học tập của bạn",
+  "learning_login_required": "Đăng nhập để xem các bảng học tập của bạn.",
+  "learning_review_title": "Hàng đợi ôn tập",
+  "learning_due_count": "{{n}} đến hạn",
+  "learning_review_empty": "Không có gì để ôn — mọi bài đã thử đều được giải.",
+  "learning_due_now": "đến hạn",
+  "learning_due_in": "sau {{n}} ngày",
+  "learning_stage": "giai đoạn {{n}}",
+  "learning_plan_title": "Tuần này",
+  "learning_rest_day": "nghỉ",
+  "learning_weak_tag_day": "tag yếu nhất: {{tag}}",
+  "learning_mistakes_title": "Hồ sơ sai lầm",
+  "learning_skills_title": "Đồ thị kỹ năng",
+  "learning_requires": "cần {{tags}}",
+  "learning_theory_title": "Thẻ lý thuyết",
+  "learning_flip_hint": "bấm để lật"
 }

@@ -1330,5 +1330,22 @@
   "start_ladder_error": "De ladder is nu niet beschikbaar.",
   "assign_track_label": "Leerpad toewijzen",
   "assign_track_button": "Toewijzen",
-  "assigning": "Toewijzen…"
+  "assigning": "Toewijzen…",
+  "nav_learning": "Leren",
+  "learning_title": "Jouw leeromgeving",
+  "learning_login_required": "Log in om je leervlakken te zien.",
+  "learning_review_title": "Herhalingswachtrij",
+  "learning_due_count": "{{n}} te doen",
+  "learning_review_empty": "Niets te herhalen — elke geprobeerde opdracht is opgelost.",
+  "learning_due_now": "nu te doen",
+  "learning_due_in": "over {{n}}d",
+  "learning_stage": "fase {{n}}",
+  "learning_plan_title": "Deze week",
+  "learning_rest_day": "rust",
+  "learning_weak_tag_day": "zwakste tag: {{tag}}",
+  "learning_mistakes_title": "Foutprofiel",
+  "learning_skills_title": "Vaardigheidsgraaf",
+  "learning_requires": "vereist {{tags}}",
+  "learning_theory_title": "Theoriekaarten",
+  "learning_flip_hint": "klik om te draaien"
 }

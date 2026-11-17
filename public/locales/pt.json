@@ -1330,5 +1330,22 @@
   "start_ladder_error": "A escada não está disponível agora.",
   "assign_track_label": "Atribuir um trilho de estudo",
   "assign_track_button": "Atribuir",
-  "assigning": "Atribuindo…"
+  "assigning": "Atribuindo…",
+  "nav_learning": "Aprendizado",
+  "learning_title": "Seu aprendizado",
+  "learning_login_required": "Entre para ver suas superfícies de aprendizado.",
+  "learning_review_title": "Fila de revisão",
+  "learning_due_count": "{{n}} pendentes",
+  "learning_review_empty": "Nada para revisar — todos os problemas tentados estão resolvidos.",
+  "learning_due_now": "pendente agora",
+  "learning_due_in": "em {{n}}d",
+  "learning_stage": "estágio {{n}}",
+  "learning_plan_title": "Esta semana",
+  "learning_rest_day": "descanso",
+  "learning_weak_tag_day": "tag mais fraca: {{tag}}",
+  "learning_mistakes_title": "Perfil de erros",
+  "learning_skills_title": "Grafo de habilidades",
+  "learning_requires": "requer {{tags}}",
+  "learning_theory_title": "Cartões de teoria",
+  "learning_flip_hint": "clique para virar"
 }

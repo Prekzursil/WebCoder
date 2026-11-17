@@ -1330,5 +1330,22 @@
   "start_ladder_error": "Ljestve trenutno nisu dostupne.",
   "assign_track_label": "Dodijeli stazu za učenje",
   "assign_track_button": "Dodijeli",
-  "assigning": "Dodjeljivanje…"
+  "assigning": "Dodjeljivanje…",
+  "nav_learning": "Učenje",
+  "learning_title": "Tvoje učenje",
+  "learning_login_required": "Prijavi se za svoje površine učenja.",
+  "learning_review_title": "Red za ponavljanje",
+  "learning_due_count": "{{n}} za ponavljanje",
+  "learning_review_empty": "Ništa za ponavljanje — svi pokušani zadaci su riješeni.",
+  "learning_due_now": "sada za ponavljanje",
+  "learning_due_in": "za {{n}}d",
+  "learning_stage": "faza {{n}}",
+  "learning_plan_title": "Ovaj tjedan",
+  "learning_rest_day": "odmor",
+  "learning_weak_tag_day": "najslabiji tag: {{tag}}",
+  "learning_mistakes_title": "Profil pogrešaka",
+  "learning_skills_title": "Graf vještina",
+  "learning_requires": "zahtijeva {{tags}}",
+  "learning_theory_title": "Kartice teorije",
+  "learning_flip_hint": "klikni za okretanje"
 }

@@ -1330,5 +1330,22 @@
   "start_ladder_error": "ラダーは現在利用できません。",
   "assign_track_label": "学習トラックを割り当てる",
   "assign_track_button": "割り当てる",
-  "assigning": "割り当て中…"
+  "assigning": "割り当て中…",
+  "nav_learning": "学習",
+  "learning_title": "あなたの学習",
+  "learning_login_required": "学習画面を見るにはログインしてください。",
+  "learning_review_title": "復習キュー",
+  "learning_due_count": "{{n}}件が期限",
+  "learning_review_empty": "復習なし — 試した問題はすべて解決済み。",
+  "learning_due_now": "期限です",
+  "learning_due_in": "あと{{n}}日",
+  "learning_stage": "段階{{n}}",
+  "learning_plan_title": "今週",
+  "learning_rest_day": "休み",
+  "learning_weak_tag_day": "最弱タグ: {{tag}}",
+  "learning_mistakes_title": "ミスプロフィール",
+  "learning_skills_title": "スキルグラフ",
+  "learning_requires": "必要: {{tags}}",
+  "learning_theory_title": "理論カード",
+  "learning_flip_hint": "クリックでめくる"
 }

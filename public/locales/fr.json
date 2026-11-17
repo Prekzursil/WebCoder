@@ -1330,5 +1330,22 @@
   "start_ladder_error": "L'escalier est indisponible pour le moment.",
   "assign_track_label": "Assigner un parcours d'étude",
   "assign_track_button": "Assigner",
-  "assigning": "Assignation…"
+  "assigning": "Assignation…",
+  "nav_learning": "Apprentissage",
+  "learning_title": "Votre apprentissage",
+  "learning_login_required": "Connectez-vous pour voir vos surfaces d'apprentissage.",
+  "learning_review_title": "File de révision",
+  "learning_due_count": "{{n}} à réviser",
+  "learning_review_empty": "Rien à réviser — tous les problèmes tentés sont résolus.",
+  "learning_due_now": "à réviser maintenant",
+  "learning_due_in": "dans {{n}}j",
+  "learning_stage": "étape {{n}}",
+  "learning_plan_title": "Cette semaine",
+  "learning_rest_day": "repos",
+  "learning_weak_tag_day": "étiquette la plus faible : {{tag}}",
+  "learning_mistakes_title": "Profil d'erreurs",
+  "learning_skills_title": "Graphe de compétences",
+  "learning_requires": "nécessite {{tags}}",
+  "learning_theory_title": "Cartes de théorie",
+  "learning_flip_hint": "cliquez pour retourner"
 }

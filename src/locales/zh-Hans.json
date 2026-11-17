@@ -1330,5 +1330,22 @@
   "start_ladder_error": "进阶之路暂不可用。",
   "assign_track_label": "布置学习路径",
   "assign_track_button": "布置",
-  "assigning": "正在布置…"
+  "assigning": "正在布置…",
+  "nav_learning": "学习",
+  "learning_title": "你的学习",
+  "learning_login_required": "登录以查看你的学习面板。",
+  "learning_review_title": "复习队列",
+  "learning_due_count": "{{n}} 项到期",
+  "learning_review_empty": "无需复习——尝试过的题目都已解决。",
+  "learning_due_now": "已到期",
+  "learning_due_in": "{{n}} 天后",
+  "learning_stage": "第 {{n}} 阶段",
+  "learning_plan_title": "本周",
+  "learning_rest_day": "休息",
+  "learning_weak_tag_day": "最弱标签：{{tag}}",
+  "learning_mistakes_title": "错误画像",
+  "learning_skills_title": "技能图谱",
+  "learning_requires": "需要 {{tags}}",
+  "learning_theory_title": "理论卡片",
+  "learning_flip_hint": "点击翻转"
 }

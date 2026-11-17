@@ -1330,5 +1330,22 @@
   "start_ladder_error": "Drabina jest teraz niedostępna.",
   "assign_track_label": "Przypisz ścieżkę nauki",
   "assign_track_button": "Przypisz",
-  "assigning": "Przypisywanie…"
+  "assigning": "Przypisywanie…",
+  "nav_learning": "Nauka",
+  "learning_title": "Twoja nauka",
+  "learning_login_required": "Zaloguj się, aby zobaczyć swoje powierzchnie nauki.",
+  "learning_review_title": "Kolejka powtórek",
+  "learning_due_count": "{{n}} do powtórki",
+  "learning_review_empty": "Nic do powtórki — każda podjęta zagadka jest rozwiązana.",
+  "learning_due_now": "do powtórki teraz",
+  "learning_due_in": "za {{n}}d",
+  "learning_stage": "etap {{n}}",
+  "learning_plan_title": "Ten tydzień",
+  "learning_rest_day": "odpoczynek",
+  "learning_weak_tag_day": "najsłabszy tag: {{tag}}",
+  "learning_mistakes_title": "Profil błędów",
+  "learning_skills_title": "Graf umiejętności",
+  "learning_requires": "wymaga {{tags}}",
+  "learning_theory_title": "Karteczki teorii",
+  "learning_flip_hint": "kliknij, aby odwrócić"
 }

@@ -53,6 +53,30 @@ class TestSeedProblemsCommand:
             assert first.is_sample is True
         assert "created=" in result
 
+    def test_seed_learning_skips_unknown_tags(self):
+        from unittest import mock
+
+        from learning.models import SkillEdge, TheoryCard
+        from problems.management.commands.seed_problems import Command
+
+        run_seed()
+        before_edges = SkillEdge.objects.count()
+        before_cards = TheoryCard.objects.count()
+        command = Command()
+        with (
+            mock.patch.object(Command, "_seed_curriculum", return_value={}),
+            mock.patch(
+                "problems.seed_data.SKILL_EDGES", [("nope", "loops"), ("loops", "nope")]
+            ),
+            mock.patch(
+                "problems.seed_data.THEORY_CARDS", [{"tag": "nope", "front_en": "f"}]
+            ),
+        ):
+            cards, edges = command._seed_learning(dry_run=False)
+        assert (cards, edges) == (0, 0)
+        assert SkillEdge.objects.count() == before_edges
+        assert TheoryCard.objects.count() == before_cards
+
     def test_seed_is_idempotent(self):
         run_seed()
         result = run_seed()
