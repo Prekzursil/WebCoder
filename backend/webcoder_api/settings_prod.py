@@ -91,8 +91,6 @@ from .settings import (  # noqa: E402,F401  (explicit list: no wildcard)
     USE_TZ,
     WSGI_APPLICATION,
     _ENV_PATH,
-    _env_bool,
-    _env_list,
 )
 
 # Names settings.py assigns only under runtime conditions:
