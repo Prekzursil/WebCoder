@@ -85,7 +85,6 @@ export function cookieFromResponse(
 
 let refreshInFlight: Promise<boolean> | null = null;
 
-
 /**
  * Same-origin relative API path only: no absolute URLs, no
  * protocol-relative '//host', no '..' escapes. Callers pass paths like
