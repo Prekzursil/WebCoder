@@ -107,6 +107,9 @@ INSTALLED_APPS = [
     "classroom",
     "community_depth",
     "public_api",
+    # Wave E learning engine (spaced-repeat queue, skill graph, theory
+    # cards, practice plan, mistake profile).
+    "learning",
     # Community problem translations (i18n & translation platform wave).
     "translations",
     # COM-5 (competitive roadmap, owner reversal 2026-10-30): private 1:1

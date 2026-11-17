@@ -1330,5 +1330,22 @@
   "start_ladder_error": "Баспалдақ қазіруге қолжетімді емес.",
   "assign_track_label": "Оқу трегін тағайындау",
   "assign_track_button": "Тағайындау",
-  "assigning": "Тағайындалуда…"
+  "assigning": "Тағайындалуда…",
+  "nav_learning": "Оқыту",
+  "learning_title": "Оқуың",
+  "learning_login_required": "Оқу панельдеріңізді көру үшін кіріңіз.",
+  "learning_review_title": "Қайталау кезегі",
+  "learning_due_count": "{{n}} мерзімді",
+  "learning_review_empty": "Қайталауға ештеңе жоқ — талап етілген барлық есеп шешілді.",
+  "learning_due_now": "мерзімі жетті",
+  "learning_due_in": "{{n}} күннен",
+  "learning_stage": "{{n}} кезең",
+  "learning_plan_title": "Осы аптада",
+  "learning_rest_day": "тынығу",
+  "learning_weak_tag_day": "ең әлсіз тег: {{tag}}",
+  "learning_mistakes_title": "Қате профилі",
+  "learning_skills_title": "Дағды графы",
+  "learning_requires": "қажет: {{tags}}",
+  "learning_theory_title": "Теория карточкалары",
+  "learning_flip_hint": "аудару үшін басыңыз"
 }

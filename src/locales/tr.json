@@ -1330,5 +1330,22 @@
   "start_ladder_error": "Merdiven şu an kullanılamıyor.",
   "assign_track_label": "Çalışma parkuru ata",
   "assign_track_button": "Ata",
-  "assigning": "Atanıyor…"
+  "assigning": "Atanıyor…",
+  "nav_learning": "Öğrenme",
+  "learning_title": "Öğrenmen",
+  "learning_login_required": "Öğrenme panellerinizi görmek için giriş yapın.",
+  "learning_review_title": "Tekrar kuyruğu",
+  "learning_due_count": "{{n}} zamanı geldi",
+  "learning_review_empty": "Tekrar edilecek bir şey yok — denenen her problem çözüldü.",
+  "learning_due_now": "zamanı geldi",
+  "learning_due_in": "{{n}} gün içinde",
+  "learning_stage": "aşama {{n}}",
+  "learning_plan_title": "Bu hafta",
+  "learning_rest_day": "dinlen",
+  "learning_weak_tag_day": "en zayıf etiket: {{tag}}",
+  "learning_mistakes_title": "Hata profili",
+  "learning_skills_title": "Beceri grafiği",
+  "learning_requires": "gerektirir: {{tags}}",
+  "learning_theory_title": "Teori kartları",
+  "learning_flip_hint": "çevirmek için tıkla"
 }

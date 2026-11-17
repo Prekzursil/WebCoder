@@ -36,6 +36,7 @@ urlpatterns = [
     path("readyz", observability.readyz, name="readyz"),
     path("api/v1/users/", include("users.urls", namespace="users_api_v1")),
     path("api/v1/problems/", include("problems.urls", namespace="problems_api_v1")),
+    path("api/v1/learning/", include("learning.urls", namespace="learning_api_v1")),
     path(
         "api/v1/submissions/",
         include("submissions.urls", namespace="submissions_api_v1"),

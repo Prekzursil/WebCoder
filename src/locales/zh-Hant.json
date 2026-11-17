@@ -1330,5 +1330,22 @@
   "start_ladder_error": "進階之路暫不可用。",
   "assign_track_label": "指派學習路徑",
   "assign_track_button": "指派",
-  "assigning": "正在指派…"
+  "assigning": "正在指派…",
+  "nav_learning": "學習",
+  "learning_title": "你的學習",
+  "learning_login_required": "登入以查看你的學習面板。",
+  "learning_review_title": "複習佇列",
+  "learning_due_count": "{{n}} 項到期",
+  "learning_review_empty": "無需複習——嘗試過的題目都已解決。",
+  "learning_due_now": "已到期",
+  "learning_due_in": "{{n}} 天後",
+  "learning_stage": "第 {{n}} 階段",
+  "learning_plan_title": "本週",
+  "learning_rest_day": "休息",
+  "learning_weak_tag_day": "最弱標籤：{{tag}}",
+  "learning_mistakes_title": "錯誤畫像",
+  "learning_skills_title": "技能圖譜",
+  "learning_requires": "需要 {{tags}}",
+  "learning_theory_title": "理論卡片",
+  "learning_flip_hint": "點擊翻轉"
 }

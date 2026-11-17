@@ -1330,5 +1330,22 @@
   "start_ladder_error": "Scara nu e disponibilă momentan.",
   "assign_track_label": "Dă o trăsă de studiu",
   "assign_track_button": "Trimite",
-  "assigning": "Se trimite…"
+  "assigning": "Se trimite…",
+  "nav_learning": "Învățare",
+  "learning_title": "Învățarea ta",
+  "learning_login_required": "Autentifică-te pentru suprafețele tale de învățare.",
+  "learning_review_title": "Coadă de repetare",
+  "learning_due_count": "{{n}} scadente",
+  "learning_review_empty": "Nimic de repetat — fiecare problemă încercată e rezolvată.",
+  "learning_due_now": "scadent acum",
+  "learning_due_in": "în {{n}}z",
+  "learning_stage": "etapa {{n}}",
+  "learning_plan_title": "Săptămâna asta",
+  "learning_rest_day": "pauză",
+  "learning_weak_tag_day": "cel mai slab tag: {{tag}}",
+  "learning_mistakes_title": "Profilul greșelilor",
+  "learning_skills_title": "Graful competențelor",
+  "learning_requires": "necesită {{tags}}",
+  "learning_theory_title": "Carduri de teorie",
+  "learning_flip_hint": "click pentru întoarcere"
 }

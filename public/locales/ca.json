@@ -1330,5 +1330,22 @@
   "start_ladder_error": "L'escala no està disponible ara.",
   "assign_track_label": "Assigna una ruta d'estudi",
   "assign_track_button": "Assigna",
-  "assigning": "Assignant…"
+  "assigning": "Assignant…",
+  "nav_learning": "Aprenentatge",
+  "learning_title": "El teu aprenentatge",
+  "learning_login_required": "Inicia sessió per veure les teves superfícies d'aprenentatge.",
+  "learning_review_title": "Cua de repàs",
+  "learning_due_count": "{{n}} pendents",
+  "learning_review_empty": "Res per repassar: tots els problemes intentats estan resolts.",
+  "learning_due_now": "pendent ara",
+  "learning_due_in": "en {{n}}d",
+  "learning_stage": "etapa {{n}}",
+  "learning_plan_title": "Aquesta setmana",
+  "learning_rest_day": "descans",
+  "learning_weak_tag_day": "etiqueta més feble: {{tag}}",
+  "learning_mistakes_title": "Perfil d'errors",
+  "learning_skills_title": "Graf d'habilitats",
+  "learning_requires": "requereix {{tags}}",
+  "learning_theory_title": "Targetes de teoria",
+  "learning_flip_hint": "clica per girar"
 }

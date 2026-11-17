@@ -1330,5 +1330,22 @@
   "start_ladder_error": "نردبان در حال حاضر در دسترس نیست.",
   "assign_track_label": "تخصیص مسیر مطالعه",
   "assign_track_button": "تخصیص",
-  "assigning": "در حال تخصیص…"
+  "assigning": "در حال تخصیص…",
+  "nav_learning": "یادگیری",
+  "learning_title": "یادگیری شما",
+  "learning_login_required": "برای دیدن پنل‌های یادگیری وارد شوید.",
+  "learning_review_title": "صف بازبینی",
+  "learning_due_count": "{{n}} سررسید",
+  "learning_review_empty": "چیزی برای بازبینی نیست — همه مسئله‌های تلاش‌شده حل شده‌اند.",
+  "learning_due_now": "اکنون سررسید",
+  "learning_due_in": "در {{n}} روز",
+  "learning_stage": "مرحله {{n}}",
+  "learning_plan_title": "این هفته",
+  "learning_rest_day": "استراحت",
+  "learning_weak_tag_day": "ضعیف‌ترین برچسب: {{tag}}",
+  "learning_mistakes_title": "پروفایل خطاها",
+  "learning_skills_title": "نمودار مهارت",
+  "learning_requires": "نیازمند {{tags}}",
+  "learning_theory_title": "کارت‌های تئوری",
+  "learning_flip_hint": "برای برگرداندن کلیک کنید"
 }

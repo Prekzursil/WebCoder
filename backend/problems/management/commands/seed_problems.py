@@ -108,13 +108,49 @@ class Command(BaseCommand):
             created_problems += 1
 
         created_tracks = self._seed_tracks(dry_run)
+        created_cards, created_edges = self._seed_learning(dry_run)
 
         self.stdout.write(
             self.style.SUCCESS(
                 f"seed_problems: created={created_problems} skipped(existing)={skipped} "
-                f"tracks_created={created_tracks}{' (dry run)' if dry_run else ''}"
+                f"tracks_created={created_tracks} cards={created_cards} edges={created_edges}"
+                f"{' (dry run)' if dry_run else ''}"
             )
         )
+
+    def _seed_learning(self, dry_run):
+        """Wave E items 30/33: skill-graph edges + the theory deck."""
+        from learning.models import SkillEdge, TheoryCard
+        from problems.models import Tag as TagModel
+
+        created_cards = created_edges = 0
+        tags = {t.slug: t for t in TagModel.objects.all()}
+        if dry_run:
+            return len(seed_data.THEORY_CARDS), len(seed_data.SKILL_EDGES)
+        for from_slug, to_slug in seed_data.SKILL_EDGES:
+            if from_slug not in tags or to_slug not in tags:
+                continue
+            _, was_created = SkillEdge.objects.get_or_create(
+                from_tag=tags[from_slug], to_tag=tags[to_slug]
+            )
+            created_edges += 1 if was_created else 0
+        for order, card in enumerate(seed_data.THEORY_CARDS, start=1):
+            tag = tags.get(card["tag"])
+            if tag is None:
+                continue
+            _, was_created = TheoryCard.objects.get_or_create(
+                tag=tag,
+                front_en=card["front_en"],
+                defaults={
+                    "front_ro": card["front_ro"],
+                    "back_en": card["back_en"],
+                    "back_ro": card["back_ro"],
+                    "order": order,
+                    "created_by": get_or_create_seed_author(),
+                },
+            )
+            created_cards += 1 if was_created else 0
+        return created_cards, created_edges
 
     def _seed_tags(self, dry_run):
         tags_by_slug = {}

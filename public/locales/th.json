@@ -1330,5 +1330,22 @@
   "start_ladder_error": "บันไดยังใช้ไม่ได้ตอนนี้",
   "assign_track_label": "มอบหมายเส้นทางเรียน",
   "assign_track_button": "มอบหมาย",
-  "assigning": "กำลังมอบหมาย…"
+  "assigning": "กำลังมอบหมาย…",
+  "nav_learning": "การเรียนรู้",
+  "learning_title": "การเรียนรู้ของคุณ",
+  "learning_login_required": "เข้าสู่ระบบเพื่อดูแผงการเรียนรู้ของคุณ",
+  "learning_review_title": "คิวทบทวน",
+  "learning_due_count": "ครบกำหนด {{n}}",
+  "learning_review_empty": "ไม่มีอะไรต้องทบทวน — ทุกโจทย์ที่ลองแล้วถูกแก้แล้ว",
+  "learning_due_now": "ครบกำหนดแล้ว",
+  "learning_due_in": "ใน {{n}} วัน",
+  "learning_stage": "ขั้นที่ {{n}}",
+  "learning_plan_title": "สัปดาห์นี้",
+  "learning_rest_day": "พัก",
+  "learning_weak_tag_day": "แท็กที่อ่อนที่สุด: {{tag}}",
+  "learning_mistakes_title": "โปรไฟล์ข้อผิดพลาด",
+  "learning_skills_title": "กราฟทักษะ",
+  "learning_requires": "ต้องมี {{tags}}",
+  "learning_theory_title": "บัตรทฤษฎี",
+  "learning_flip_hint": "คลิกเพื่อพลิก"
 }

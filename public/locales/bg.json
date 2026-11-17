@@ -1330,5 +1330,22 @@
   "start_ladder_error": "Стълбата в момента не е налична.",
   "assign_track_label": "Възложете учебна писта",
   "assign_track_button": "Възложи",
-  "assigning": "Възлагане…"
+  "assigning": "Възлагане…",
+  "nav_learning": "Обучение",
+  "learning_title": "Вашето обучение",
+  "learning_login_required": "Влезте, за да видите повърхностите си за обучение.",
+  "learning_review_title": "Опашка за повторение",
+  "learning_due_count": "{{n}} за повторение",
+  "learning_review_empty": "Няма за повторение — всички опитани задачи са решени.",
+  "learning_due_now": "за повторение сега",
+  "learning_due_in": "след {{n}}д",
+  "learning_stage": "етап {{n}}",
+  "learning_plan_title": "Тази седмица",
+  "learning_rest_day": "почивка",
+  "learning_weak_tag_day": "най-слаб таг: {{tag}}",
+  "learning_mistakes_title": "Профил на грешките",
+  "learning_skills_title": "Граф на уменията",
+  "learning_requires": "изисква {{tags}}",
+  "learning_theory_title": "Карти от теория",
+  "learning_flip_hint": "щракнете за обръщане"
 }

@@ -1330,5 +1330,22 @@
   "start_ladder_error": "السلم غير متاح حاليًا.",
   "assign_track_label": "عيّن مسار دراسة",
   "assign_track_button": "عيّن",
-  "assigning": "جارٍ التعيين…"
+  "assigning": "جارٍ التعيين…",
+  "nav_learning": "التعلّم",
+  "learning_title": "تعلّمك",
+  "learning_login_required": "سجّل الدخول لعرض لوحات التعلّم الخاصة بك.",
+  "learning_review_title": "قائمة المراجعة",
+  "learning_due_count": "{{n}} مستحقة",
+  "learning_review_empty": "لا شيء للمراجعة — كل مسألة مُجرَّبة قد حُلَّت.",
+  "learning_due_now": "مستحق الآن",
+  "learning_due_in": "خلال {{n}} يوم",
+  "learning_stage": "المرحلة {{n}}",
+  "learning_plan_title": "هذا الأسبوع",
+  "learning_rest_day": "راحة",
+  "learning_weak_tag_day": "أضعف وسم: {{tag}}",
+  "learning_mistakes_title": "ملف الأخطاء",
+  "learning_skills_title": "رسم المهارات",
+  "learning_requires": "يتطلب {{tags}}",
+  "learning_theory_title": "بطاقات النظرية",
+  "learning_flip_hint": "انقر للقلب"
 }

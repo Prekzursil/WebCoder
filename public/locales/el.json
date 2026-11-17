@@ -1330,5 +1330,22 @@
   "start_ladder_error": "Η σκάλα δεν είναι διαθέσιμη αυτή τη στιγμή.",
   "assign_track_label": "Ανάθεση μονοπατιού μελέτης",
   "assign_track_button": "Ανάθεση",
-  "assigning": "Ανάθεση…"
+  "assigning": "Ανάθεση…",
+  "nav_learning": "Μάθηση",
+  "learning_title": "Η μάθησή σου",
+  "learning_login_required": "Συνδεθείτε για να δείτε τις επιφάνειες μάθησής σας.",
+  "learning_review_title": "Ουρά επανάληψης",
+  "learning_due_count": "{{n}} προς επανάληψη",
+  "learning_review_empty": "Τίποτα προς επανάληψη — όλα τα επιχειρημένα προβλήματα λύθηκαν.",
+  "learning_due_now": "προς επανάληψη τώρα",
+  "learning_due_in": "σε {{n}}η",
+  "learning_stage": "στάδιο {{n}}",
+  "learning_plan_title": "Αυτή η εβδομάδα",
+  "learning_rest_day": "ανάπαυση",
+  "learning_weak_tag_day": "αδύναμη ετικέτα: {{tag}}",
+  "learning_mistakes_title": "Προφίλ λαθών",
+  "learning_skills_title": "Γράφημα δεξιοτήτων",
+  "learning_requires": "απαιτεί {{tags}}",
+  "learning_theory_title": "Κάρτες θεωρίας",
+  "learning_flip_hint": "κλικ για αναστροφή"
 }

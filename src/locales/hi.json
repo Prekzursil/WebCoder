@@ -1330,5 +1330,22 @@
   "start_ladder_error": "सीढ़ी अभी उपलब्ध नहीं है।",
   "assign_track_label": "अध्ययन ट्रैक असाइन करें",
   "assign_track_button": "असाइन करें",
-  "assigning": "असाइन हो रहा है…"
+  "assigning": "असाइन हो रहा है…",
+  "nav_learning": "सीखना",
+  "learning_title": "आपकी शिक्षा",
+  "learning_login_required": "अपने शिक्षा पैनल देखने के लिए लॉग इन करें।",
+  "learning_review_title": "दोहराव कतार",
+  "learning_due_count": "{{n}} देय",
+  "learning_review_empty": "दोहराने को कुछ नहीं — प्रयास की गई सभी समस्याएँ हल हैं।",
+  "learning_due_now": "अभी देय",
+  "learning_due_in": "{{n}}द में",
+  "learning_stage": "चरण {{n}}",
+  "learning_plan_title": "इस सप्ताह",
+  "learning_rest_day": "विश्राम",
+  "learning_weak_tag_day": "सबसे कमज़ोर टैग: {{tag}}",
+  "learning_mistakes_title": "गलती प्रोफ़ाइल",
+  "learning_skills_title": "कौशल ग्राफ",
+  "learning_requires": "आवश्यक {{tags}}",
+  "learning_theory_title": "सिद्धांत कार्ड",
+  "learning_flip_hint": "पलटने के लिए क्लिक करें"
 }

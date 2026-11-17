@@ -203,6 +203,66 @@ STUDY_TRACKS = [
 ]
 
 
+#: Wave E item 30 — the skill graph: prerequisite edges between the seed
+#: tags (practice-next ordering + the /skills locked-node view).
+SKILL_EDGES = [
+    ("implementation", "loops"),
+    ("loops", "arrays"),
+    ("arrays", "sorting"),
+    ("arrays", "binary-search"),
+    ("sorting", "binary-search"),
+    ("implementation", "strings"),
+    ("recursion", "math"),
+    ("math", "number-theory"),
+]
+
+#: Wave E item 33 — the starter theory deck (one card per core tag).
+THEORY_CARDS = [
+    {
+        "tag": "loops",
+        "front_en": "What is the complexity of one loop over n elements?",
+        "back_en": "O(n) — the body runs n times. A loop INSIDE a loop is O(n²): fine for n ≤ ~5,000, too slow at n = 100,000.",
+        "front_ro": "Care e complexitatea unei bucle peste n elemente?",
+        "back_ro": "O(n) — corpul se execută de n ori. O buclă ÎN buclă e O(n²): ok pentru n ≤ ~5.000, prea lent la n = 100.000.",
+    },
+    {
+        "tag": "sorting",
+        "front_en": "Why is sorting often the first step of a solution?",
+        "back_en": "Sorting brings equal/similar items together and enables binary search or a two-pointer sweep — many 'find a pair/triplet' tasks collapse after a sort.",
+        "front_ro": "De ce sortarea e adesea primul pas al unei soluții?",
+        "back_ro": "Sortarea aduce elementele egale/apropiate un lângă altul și permite căutare binară sau tehnica a doi pointeri — multe probleme de tip 'găsește o pereche' se simplifică după sortare.",
+    },
+    {
+        "tag": "binary-search",
+        "front_en": "What property must hold to binary-search the answer?",
+        "back_en": "Monotonicity: there is a threshold x such that check(v) is False below it and True above. Binary search finds the boundary in O(log n) checks.",
+        "front_ro": "Ce proprietate trebuie să existe pentru a căuta binar răspunsul?",
+        "back_ro": "Monotonie: există un prag x astfel încât check(v) e False sub el și True peste el. Căutarea binară găsește frontiera în O(log n) verificări.",
+    },
+    {
+        "tag": "recursion",
+        "front_en": "What are a recursive function's two mandatory parts?",
+        "back_en": "The base case (the smallest input answered directly) and the recursive step that moves STRICTLY toward it. Missing/overshooting the base case = stack overflow.",
+        "front_ro": "Care sunt cele două părți obligatorii ale unei funcții recursive?",
+        "back_ro": "Cazul de bază (cea mai mică intrare, răspunsă direct) și pasul recursiv care avansează STRICT spre el. Fără bază sau sărind peste ea = depășire de stivă.",
+    },
+    {
+        "tag": "number-theory",
+        "front_en": "When is a number > 1 prime?",
+        "back_en": "It has no divisor in [2, floor(sqrt(n))]. Checking up to sqrt(n) is O(√n) per number — the trial-division test.",
+        "front_ro": "Când e prim un număr > 1?",
+        "back_ro": "Nu are niciun divizor în [2, floor(sqrt(n))]. Verificarea până la sqrt(n) e O(√n) pe număr — testul prin împărțiri succesive.",
+    },
+    {
+        "tag": "arrays",
+        "front_en": "What does a prefix-sum array buy you?",
+        "back_en": "Any range sum [l, r] in O(1) as sum[r] - sum[l-1], after one O(n) precompute — the classic trade of memory for query speed.",
+        "front_ro": "Ce îți oferă un vector de sume parțiale?",
+        "back_ro": "Orice sumă pe interval [l, r] în O(1) ca sum[r] - sum[l-1], după o precalculare O(n) — clasicul schimb de memorie contra viteză de interogare.",
+    },
+]
+
+
 def _t(inp, out, sample=False, points=10):
     return {"input": inp, "expected": out, "sample": sample, "points": points}
 

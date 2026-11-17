@@ -1330,5 +1330,22 @@
   "start_ladder_error": "A létra most nem elérhető.",
   "assign_track_label": "Tanulási útvonal kiosztása",
   "assign_track_button": "Kioszt",
-  "assigning": "Kiosztás…"
+  "assigning": "Kiosztás…",
+  "nav_learning": "Tanulás",
+  "learning_title": "A tanulásod",
+  "learning_login_required": "Jelentkezz be a tanulási felületeid megtekintéséhez.",
+  "learning_review_title": "Ismétlési sor",
+  "learning_due_count": "{{n}} esedékes",
+  "learning_review_empty": "Nincs mit ismételni — minden megkísérelt feladat megoldva.",
+  "learning_due_now": "most esedékes",
+  "learning_due_in": "{{n}} napon belül",
+  "learning_stage": "{{n}}. szint",
+  "learning_plan_title": "Ez a hét",
+  "learning_rest_day": "pihenő",
+  "learning_weak_tag_day": "leggyengébb címke: {{tag}}",
+  "learning_mistakes_title": "Hibaprofil",
+  "learning_skills_title": "Készséggráf",
+  "learning_requires": "igényel: {{tags}}",
+  "learning_theory_title": "Elméleti kártyák",
+  "learning_flip_hint": "kattints a fordításhoz"
 }

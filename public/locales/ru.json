@@ -1330,5 +1330,22 @@
   "start_ladder_error": "Лестница сейчас недоступна.",
   "assign_track_label": "Назначить учебный трек",
   "assign_track_button": "Назначить",
-  "assigning": "Назначение…"
+  "assigning": "Назначение…",
+  "nav_learning": "Обучение",
+  "learning_title": "Ваше обучение",
+  "learning_login_required": "Войдите, чтобы увидеть свои обучающие поверхности.",
+  "learning_review_title": "Очередь повторения",
+  "learning_due_count": "{{n}} к повторению",
+  "learning_review_empty": "Повторять нечего — все попытанные задачи решены.",
+  "learning_due_now": "пора повторить",
+  "learning_due_in": "через {{n}}д",
+  "learning_stage": "этап {{n}}",
+  "learning_plan_title": "На этой неделе",
+  "learning_rest_day": "отдых",
+  "learning_weak_tag_day": "слабейший тег: {{tag}}",
+  "learning_mistakes_title": "Профиль ошибок",
+  "learning_skills_title": "Граф навыков",
+  "learning_requires": "требует {{tags}}",
+  "learning_theory_title": "Карточки теории",
+  "learning_flip_hint": "нажмите, чтобы перевернуть"
 }

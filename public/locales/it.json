@@ -1330,5 +1330,22 @@
   "start_ladder_error": "La scala non è disponibile al momento.",
   "assign_track_label": "Assegna un percorso di studio",
   "assign_track_button": "Assegna",
-  "assigning": "Assegnazione…"
+  "assigning": "Assegnazione…",
+  "nav_learning": "Apprendimento",
+  "learning_title": "Il tuo apprendimento",
+  "learning_login_required": "Accedi per vedere le tue superfici di apprendimento.",
+  "learning_review_title": "Coda di ripasso",
+  "learning_due_count": "{{n}} da ripassare",
+  "learning_review_empty": "Niente da ripassare: ogni problema tentato è risolto.",
+  "learning_due_now": "da ripassare ora",
+  "learning_due_in": "tra {{n}}g",
+  "learning_stage": "fase {{n}}",
+  "learning_plan_title": "Questa settimana",
+  "learning_rest_day": "riposo",
+  "learning_weak_tag_day": "tag più debole: {{tag}}",
+  "learning_mistakes_title": "Profilo degli errori",
+  "learning_skills_title": "Grafo delle competenze",
+  "learning_requires": "richiede {{tags}}",
+  "learning_theory_title": "Carte di teoria",
+  "learning_flip_hint": "clicca per girare"
 }

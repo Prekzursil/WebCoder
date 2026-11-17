@@ -1330,5 +1330,22 @@
   "start_ladder_error": "사다리를 지금 사용할 수 없습니다.",
   "assign_track_label": "학습 트랙 할당",
   "assign_track_button": "할당",
-  "assigning": "할당 중…"
+  "assigning": "할당 중…",
+  "nav_learning": "학습",
+  "learning_title": "나의 학습",
+  "learning_login_required": "학습 화면을 보려면 로그인하세요.",
+  "learning_review_title": "복습 대기열",
+  "learning_due_count": "{{n}}개 예정",
+  "learning_review_empty": "복습할 것이 없음 — 시도한 문제는 모두 해결됨.",
+  "learning_due_now": "기한 도래",
+  "learning_due_in": "{{n}}일 후",
+  "learning_stage": "단계 {{n}}",
+  "learning_plan_title": "이번 주",
+  "learning_rest_day": "휴식",
+  "learning_weak_tag_day": "가장 약한 태그: {{tag}}",
+  "learning_mistakes_title": "실수 프로필",
+  "learning_skills_title": "스킬 그래프",
+  "learning_requires": "필요: {{tags}}",
+  "learning_theory_title": "이론 카드",
+  "learning_flip_hint": "클릭하여 뒤집기"
 }
