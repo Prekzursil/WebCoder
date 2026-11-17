@@ -177,6 +177,19 @@ class Problem(models.Model):
     default_memory_limit_kb = models.IntegerField(
         _("default memory limit (KB)"), default=262144
     )  # 256 MB
+    # Wave E item 10 (constraint-aware overflow warnings): the author
+    # declares the biggest value the computation can reach; the pre-submit
+    # linter reads it to warn C/C++ users about int overflow BEFORE the
+    # judge burns a submission on it. Null = no reading (no warning).
+    constraint_max_value = models.BigIntegerField(
+        _("maximum value in constraints"),
+        null=True,
+        blank=True,
+        help_text=_(
+            "Largest value variables/sums can reach per the statement "
+            "(drives the int-overflow pre-submit warning)."
+        ),
+    )
 
     # Per-language limit overrides (competitive roadmap J5): maps a language
     # id to {"time_ms": ..., "memory_kb": ...}; an explicit author override
@@ -494,6 +507,18 @@ class TestCase(models.Model):
         _("pretest"),
         default=False,
         help_text=_("Runs as part of the contest pretest subset."),
+    )
+    # Wave E item 6 (per-test time bars): an optional per-test time-limit
+    # ceiling that OVERRIDES the problem/language effective limit for this
+    # test only. Null = use the effective limit (the historical behavior).
+    # Classic use: give the big-stress test a taller bar than the samples.
+    time_limit_ms = models.PositiveIntegerField(
+        _("time limit override (ms)"),
+        null=True,
+        blank=True,
+        help_text=_(
+            "Optional per-test time bar; empty uses the problem's effective limit."
+        ),
     )
 
     # For large data, consider FileField:

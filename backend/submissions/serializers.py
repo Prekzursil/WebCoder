@@ -16,7 +16,7 @@ from .judge_utils.languages import (
 
 class SubmissionTestResultSerializer(serializers.ModelSerializer):
     # test_case_id = serializers.ReadOnlyField(source='test_case.id') # Simple ID
-    # To provide more context, like test_case order or if it's a sample
+    # To provide more context, like test case order or if it's sample
     test_case_details = serializers.SerializerMethodField()
 
     class Meta:
@@ -28,6 +28,11 @@ class SubmissionTestResultSerializer(serializers.ModelSerializer):
             "verdict",
             "execution_time_ms",
             "memory_used_kb",
+            # Wave E items 6/19/25: the bar each test ran against, persisted
+            # at judge time (per-test override > language-adjusted problem
+            # limit) so "used vs bar" needs no client-side re-derivation.
+            "limit_time_ms",
+            "limit_memory_kb",
             "actual_output",  # Consider truncating or omitting by default if too large for lists
             "error_output",  # Same as above
         ]
@@ -35,19 +40,58 @@ class SubmissionTestResultSerializer(serializers.ModelSerializer):
             fields  # All fields are read-only as they are set by the judge
         )
 
+    def _privileged(self, obj) -> bool:
+        """J10 visibility: staff, ADMIN/VERIFIER roles and the problem's
+        author see hidden-test detail; everyone else gets verdict/time/
+        memory only (sample tests stay fully visible — they are public by
+        design, and carry their input/expected pair for the WA diff view).
+        """
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        if user is None or not user.is_authenticated:
+            return False
+        if user.is_superuser or user.is_staff:
+            return True
+        if getattr(user, "role", "") in ("ADMIN", "VERIFIER"):
+            return True
+        try:
+            return obj.submission.problem.author_id == user.pk
+        except ObjectDoesNotExist:
+            return False
+
     def get_test_case_details(self, obj):
         try:
             if obj.test_case:
-                return {
+                details = {
                     "id": obj.test_case.id,
                     "order": obj.test_case.order,
                     "is_sample": obj.test_case.is_sample,
                     "points": obj.test_case.points,
                 }
+                # Wave E item 7 (WA diff viewer): sample tests expose their
+                # input/expected pair so the submission page can render a
+                # line diff of expected vs actual output.
+                if obj.test_case.is_sample or self._privileged(obj):
+                    details["input_data"] = obj.test_case.input_data
+                    details["expected_output_data"] = obj.test_case.expected_output_data
+                return details
         except ObjectDoesNotExist:
             # Unset required FK (unsaved/defensive display path) — schema stays NOT NULL.
             pass
         return None
+
+    def to_representation(self, obj):
+        representation = super().to_representation(obj)
+        # J10 (feedback granularity): hidden-test rows never leak the
+        # program's captured output/stderr to non-privileged viewers — the
+        # verdict, timing and memory stay (which numbered test failed is
+        # the pedagogically useful part).
+        if not obj.test_case_id or obj.test_case.is_sample:
+            return representation
+        if not self._privileged(obj):
+            representation["actual_output"] = None
+            representation["error_output"] = None
+        return representation
 
 
 class SubmissionSerializer(serializers.ModelSerializer):
@@ -64,6 +108,15 @@ class SubmissionSerializer(serializers.ModelSerializer):
     # (LeetCode's "beats X% in runtime"). None without a measured time or
     # a comparison pool.
     runtime_percentile = serializers.SerializerMethodField()
+    # Wave E item 21 ("Am I close?" bands): a banded reading of
+    # score/full_score so a near-miss submission reads as "so close!"
+    # instead of a bare WA. None when the problem has no score denominator
+    # or the submission has not been scored yet.
+    closeness = serializers.SerializerMethodField()
+    # Wave E item 14 (compile-error explainers): beginner-friendly
+    # bilingual hints mapped from the raw compiler diagnostics on CE
+    # verdicts; empty on every other verdict.
+    compile_hints = serializers.SerializerMethodField()
 
     test_results = SubmissionTestResultSerializer(
         many=True, read_only=True
@@ -85,6 +138,8 @@ class SubmissionSerializer(serializers.ModelSerializer):
             "score",
             "max_score",
             "runtime_percentile",
+            "closeness",
+            "compile_hints",
             "detailed_feedback",
             "contest",
             "test_results",  # Add test results + contest (read-only id)
@@ -100,6 +155,8 @@ class SubmissionSerializer(serializers.ModelSerializer):
             "score",
             "max_score",
             "runtime_percentile",
+            "closeness",
+            "compile_hints",
             "detailed_feedback",
             "contest",
             "test_results",
@@ -107,6 +164,36 @@ class SubmissionSerializer(serializers.ModelSerializer):
 
     def get_max_score(self, obj):
         return obj.problem.full_score if obj.problem_id else 0
+
+    def get_closeness(self, obj):
+        """Item 21: banded score ratio. SOLVED at full score; SO_CLOSE at
+        >= 75%; HALFWAY at >= 50%; STARTED above zero; NONE at zero; None
+        before scoring or when the problem has no points at all.
+        """
+        max_score = obj.problem.full_score if obj.problem_id else 0
+        if obj.score is None or max_score <= 0:
+            return None
+        ratio = float(obj.score) / float(max_score)
+        if ratio >= 1.0:
+            band = "SOLVED"
+        elif ratio >= 0.75:
+            band = "SO_CLOSE"
+        elif ratio >= 0.5:
+            band = "HALFWAY"
+        elif ratio > 0.0:
+            band = "STARTED"
+        else:
+            band = "NONE"
+        return {"band": band, "ratio": round(ratio, 4)}
+
+    def get_compile_hints(self, obj):
+        """Item 14: hints only on compile errors — other verdicts keep the
+        field as an empty list (shape stability for the client)."""
+        if obj.verdict != Submission.VerdictStatus.COMPILE_ERROR:
+            return []
+        from .explain import explain_compile_errors
+
+        return explain_compile_errors(obj.detailed_feedback)
 
     def get_runtime_percentile(self, obj):
         time_ms = obj.execution_time_ms

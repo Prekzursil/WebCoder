@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { DetailedSubmissionType, SubmissionTestResultType } from '@/types';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import CopyButton from '@/components/common/CopyButton';
+import TestProfile, { ClosenessBadge } from './TestProfile';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { palette, hexAlpha } from '@/theme/tokens';
@@ -261,6 +262,11 @@ function SubmissionDetailPage() {
             metaCell(t('memory_label', 'Memory'), <>{result.memory_used_kb} KB</>)}
         </div>
 
+        {/* [wave E items 6/7/19/25] used-vs-bar meters and, for exposed
+            tests, the expected-vs-actual line diff with the first
+            mismatch highlighted. */}
+        <TestProfile result={result} />
+
         {result.actual_output && (result.verdict === 'WA' || result.verdict === 'RE') && (
           <div style={{ marginTop: '0.75rem' }}>
             <div style={microLabel}>{t('actual_output_label', 'Actual Output (truncated)')}</div>
@@ -338,6 +344,8 @@ function SubmissionDetailPage() {
         >
           {t('submission_detail_header', 'Submission Detail')} #{submission.id}
           <VerdictPill verdict={submission.verdict} />
+          {/* [wave E item 21] the "Am I close?" band for partial scores */}
+          <ClosenessBadge closeness={submission.closeness} />
           {isPolling && (
             <span style={{ fontSize: '0.8rem', color: 'var(--muted)', fontWeight: 400 }}>
               ({t('polling_status', 'Polling for updates...')})
@@ -492,6 +500,34 @@ function SubmissionDetailPage() {
           {submission.test_results.map(renderTestResult)}
         </>
       )}
+
+      {/* [wave E item 14] compile-error explainers — bilingual hints
+          mapped from the raw diagnostics, CE verdicts only. */}
+      {submission.verdict === 'CE' &&
+        submission.compile_hints &&
+        submission.compile_hints.length > 0 && (
+          <div
+            data-testid="compile-hints"
+            style={{
+              background: hexAlpha(palette.warn, 0.08),
+              border: `1px solid ${hexAlpha(palette.warn, 0.25)}`,
+              borderRadius: 'var(--radius-lg)',
+              padding: '1rem 1.5rem',
+              marginBottom: '1.25rem',
+            }}
+          >
+            <div className="micro-label" style={{ color: palette.warn, marginBottom: '0.5rem' }}>
+              {t('compile_hints_title', 'What does this error mean?')}
+            </div>
+            <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.88rem' }}>
+              {submission.compile_hints.map((h, i) => (
+                <li key={i} style={{ marginBottom: '6px' }}>
+                  {i18n.language.startsWith('ro') ? h.hint_ro : h.hint_en}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
       {submission.detailed_feedback && (
         <>

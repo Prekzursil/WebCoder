@@ -35,6 +35,8 @@ export interface ProblemType {
   statement_i18n?: { [key: string]: string };
   default_time_limit_ms?: number;
   default_memory_limit_kb?: number;
+  /** [wave E item 10] constraint ceiling for the pre-submit overflow lint. */
+  constraint_max_value?: number | null;
   test_cases?: TestCaseType[];
   allowed_languages?: string[];
   custom_libraries_allowed?: string[]; // Added this based on backend model
@@ -112,12 +114,25 @@ export interface SubmissionTestResultType {
     order?: number;
     is_sample: boolean;
     points: number;
+    /** Wave E item 7: present for sample tests (and privileged viewers) —
+     * the pair the WA diff viewer renders. */
+    input_data?: string;
+    expected_output_data?: string;
   };
   verdict: string;
   execution_time_ms?: number | null;
   memory_used_kb?: number | null;
+  /** Wave E items 6/19/25: the bar the judge applied to this test. */
+  limit_time_ms?: number | null;
+  limit_memory_kb?: number | null;
   actual_output?: string | null;
   error_output?: string | null;
+}
+
+/** Wave E item 21: banded score/full_score reading ("Am I close?"). */
+export interface ClosenessType {
+  band: 'SOLVED' | 'SO_CLOSE' | 'HALFWAY' | 'STARTED' | 'NONE';
+  ratio: number;
 }
 
 export interface DetailedSubmissionType extends SubmissionType {
@@ -127,6 +142,11 @@ export interface DetailedSubmissionType extends SubmissionType {
   memory_used_kb?: number | null;
   /** Matrix row 61: faster-than share of same-problem+language ACs. */
   runtime_percentile?: number | null;
+  /** Wave E item 21: banded closeness reading, null when unscored. */
+  closeness?: ClosenessType | null;
+  /** Wave E item 14: bilingual explainers mapped from the raw compiler
+   * diagnostics (CE verdicts only; empty otherwise). */
+  compile_hints?: { hint_en: string; hint_ro: string }[];
   user?: { username: string; id: number };
   test_results?: SubmissionTestResultType[];
 }
