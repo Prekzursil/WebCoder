@@ -26,12 +26,15 @@ from django.utils import timezone
 from problems.models import Problem
 from submissions.models import Submission, SubmissionTestResult
 
-AC = Submission.VerdictStatus.ACCEPTED
-WA = Submission.VerdictStatus.WRONG_ANSWER
-TLE = Submission.VerdictStatus.TIME_LIMIT_EXCEEDED
-RE = Submission.VerdictStatus.RUNTIME_ERROR
-CE = Submission.VerdictStatus.COMPILE_ERROR
-MLE = Submission.VerdictStatus.MEMORY_LIMIT_EXCEEDED
+# Typed as plain str: the TextChoices members ARE str, and the explicit
+# annotation keeps type checkers from widening them to the tuple form
+# they use inside choices= declarations.
+AC: str = Submission.VerdictStatus.ACCEPTED
+WA: str = Submission.VerdictStatus.WRONG_ANSWER
+TLE: str = Submission.VerdictStatus.TIME_LIMIT_EXCEEDED
+RE: str = Submission.VerdictStatus.RUNTIME_ERROR
+CE: str = Submission.VerdictStatus.COMPILE_ERROR
+MLE: str = Submission.VerdictStatus.MEMORY_LIMIT_EXCEEDED
 
 #: The expanding review schedule, indexed by consecutive failed attempts.
 REVIEW_INTERVALS_DAYS = [1, 3, 7, 16, 35]
