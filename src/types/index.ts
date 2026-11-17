@@ -150,6 +150,9 @@ export interface DetailedSubmissionType extends SubmissionType {
   /** Wave E item 14: bilingual explainers mapped from the raw compiler
    * diagnostics (CE verdicts only; empty otherwise). */
   compile_hints?: { hint_en: string; hint_ro: string }[];
+  /** [wave E item 13] the viewer's own previous attempt on the same
+   * problem — powers the "diff vs previous" view; null on first submit. */
+  previous_submission_id?: number | null;
   user?: { username: string; id: number };
   test_results?: SubmissionTestResultType[];
 }

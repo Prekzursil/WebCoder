@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { ProblemType, TagType } from '@/types';
-import { AuthService, ProblemService } from '@/services/ApiService';
+import { AuthService, ProblemService, RandomProblemService } from '@/services/ApiService';
 import { createTranslator, type PublicLocale } from '../_lib/public-messages';
 import type { CurriculumGrade } from './_lib/problems-api';
 import { palette, hexAlpha } from '@/theme/tokens';
@@ -191,6 +191,8 @@ export default function ProblemsListClient({
 
   const [search, setSearch] = useState(urlSearch);
   const [difficultyFilter, setDifficultyFilter] = useState(urlDifficulty);
+  // [wave E item 24] random-die failure message (empty pool for filters).
+  const [randomError, setRandomError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState(urlStatus);
   const [tagFilter, setTagFilter] = useState<Set<number>>(
     () => new Set(urlTags.split(',').filter(Boolean).map(Number)),
@@ -437,6 +439,32 @@ export default function ProblemsListClient({
           />
         </div>
 
+        {/* [wave E item 24] the random-problem die — respects the active
+            difficulty filter when picking. */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button
+            type="button"
+            className="btn"
+            onClick={async () => {
+              try {
+                const pick = await RandomProblemService.pick({
+                  difficulty: difficultyFilter || undefined,
+                });
+                router.push(`/problems/${pick.id}`);
+              } catch {
+                setRandomError(
+                  t('random_problem_empty', 'No problem matches the current filters.'),
+                );
+              }
+            }}
+            data-testid="random-problem-button"
+          >
+            🎲 {t('random_problem', 'Random problem')}
+          </button>
+          {randomError && (
+            <span style={{ color: 'var(--danger)', fontSize: '0.8rem' }}>{randomError}</span>
+          )}
+        </div>
         {/* Difficulty filter */}
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
           <span className="micro-label" style={{ color: 'var(--muted)' }}>

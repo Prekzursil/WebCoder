@@ -25,6 +25,7 @@ from .community import (
 )
 from .presubmit import PreSubmitLintView, PreSubmitSamplesView
 from .strength import TestStrengthView
+from .random_problem import RandomProblemView
 
 app_name = "problems"
 
@@ -112,5 +113,8 @@ urlpatterns = [
         PreSubmitSamplesView.as_view(),
         name="problem-presubmit-samples",
     ),
+    # Wave E item 24: the random-problem die. Mounted BEFORE the router so
+    # the "random" path can never collide with the /{pk}/ detail route.
+    path("random/", RandomProblemView.as_view(), name="problem-random"),
     path("", include(router.urls)),
 ]

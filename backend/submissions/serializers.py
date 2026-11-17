@@ -117,6 +117,10 @@ class SubmissionSerializer(serializers.ModelSerializer):
     # bilingual hints mapped from the raw compiler diagnostics on CE
     # verdicts; empty on every other verdict.
     compile_hints = serializers.SerializerMethodField()
+    # Wave E item 13 (submission versioning/diff): the caller's own
+    # previous submission id on the SAME problem (null for a first
+    # attempt) — the detail page chains "diff vs previous" views.
+    previous_submission_id = serializers.SerializerMethodField()
 
     test_results = SubmissionTestResultSerializer(
         many=True, read_only=True
@@ -140,6 +144,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
             "runtime_percentile",
             "closeness",
             "compile_hints",
+            "previous_submission_id",
             "detailed_feedback",
             "contest",
             "test_results",  # Add test results + contest (read-only id)
@@ -157,6 +162,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
             "runtime_percentile",
             "closeness",
             "compile_hints",
+            "previous_submission_id",
             "detailed_feedback",
             "contest",
             "test_results",
@@ -185,6 +191,26 @@ class SubmissionSerializer(serializers.ModelSerializer):
         else:
             band = "NONE"
         return {"band": band, "ratio": round(ratio, 4)}
+
+    def get_previous_submission_id(self, obj):
+        """Item 13: the user's own immediately-previous attempt on this
+        problem (strictly earlier submission_time, latest such row).
+        Viewers only ever see their own chain (this serializer serves the
+        submitter and staff).
+        """
+        from submissions.models import Submission
+
+        prev = (
+            Submission.objects.filter(
+                user_id=obj.user_id,
+                problem_id=obj.problem_id,
+                submission_time__lt=obj.submission_time,
+            )
+            .order_by("-submission_time")
+            .values_list("id", flat=True)
+            .first()
+        )
+        return prev
 
     def get_compile_hints(self, obj):
         """Item 14: hints only on compile errors — other verdicts keep the

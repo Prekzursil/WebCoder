@@ -10,6 +10,7 @@ import { DetailedSubmissionType, SubmissionTestResultType } from '@/types';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import CopyButton from '@/components/common/CopyButton';
 import TestProfile, { ClosenessBadge } from './TestProfile';
+import LineDiff from '@/components/common/LineDiff';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { palette, hexAlpha } from '@/theme/tokens';
@@ -74,6 +75,9 @@ function SubmissionDetailPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isPolling, setIsPolling] = useState<boolean>(false);
+  // [wave E item 13] diff vs the previous attempt on this problem.
+  const [showDiff, setShowDiff] = useState<boolean>(false);
+  const [previousCode, setPreviousCode] = useState<string | null>(null);
 
   const languageMap: { [key: string]: string } = {
     python3: 'python',
@@ -134,6 +138,16 @@ function SubmissionDetailPage() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPolling, submissionId, auth.isAuthenticated, t]);
+
+  // Fetch the previous attempt's source lazily, once, when the viewer
+  // asks for the diff (the pointer rides the detail payload).
+  useEffect(() => {
+    if (!showDiff || previousCode !== null || !submission?.previous_submission_id) return;
+    SubmissionService.getSubmissionDetail(String(submission.previous_submission_id))
+      .then((prev) => setPreviousCode(prev.code))
+      .catch(() => setPreviousCode(''));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showDiff, submission?.previous_submission_id]);
 
   const microLabel: React.CSSProperties = {
     fontSize: '0.65rem',
@@ -469,6 +483,33 @@ function SubmissionDetailPage() {
           {submission.code}
         </SyntaxHighlighter>
       </div>
+
+      {/* [wave E item 13] submission versioning: diff this attempt against
+          the viewer's own previous one on the same problem. */}
+      {submission.previous_submission_id != null && (
+        <div style={{ marginBottom: '1.5rem' }}>
+          <button
+            type="button"
+            className="btn"
+            onClick={() => setShowDiff((v) => !v)}
+            data-testid="diff-previous-toggle"
+          >
+            {showDiff
+              ? t('diff_previous_hide', 'Hide diff vs previous attempt')
+              : t('diff_previous_show', 'Diff vs previous attempt')}
+          </button>
+          {showDiff &&
+            (previousCode === null ? (
+              <p style={{ color: 'var(--muted)', fontSize: '0.85rem', marginTop: '0.5rem' }}>
+                {t('diff_previous_loading', 'Loading the previous attempt…')}
+              </p>
+            ) : (
+              <div style={{ marginTop: '0.75rem' }}>
+                <LineDiff left={previousCode} right={submission.code} />
+              </div>
+            ))}
+        </div>
+      )}
 
       {submission.test_results && submission.test_results.length > 0 && (
         <>
