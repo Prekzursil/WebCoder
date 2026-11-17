@@ -39,6 +39,7 @@ from submissions.judge_utils.execution import run_code_in_sandbox
 from submissions.judge_utils.languages import effective_limits, get_language
 from submissions.models import Submission
 from submissions.tasks import _judge_workspace
+from scratch.models import ScratchRun
 
 from .models import Problem
 
@@ -336,14 +337,27 @@ class PreSubmitSamplesView(APIView):
                 code, language, workspace_dir, None
             )
             if not compile_ok:
+                # Audit row first (the scratch discipline): compiler output
+                # — which can embed stack traces — is persisted and the
+                # RESPONSE carries the persisted field, never the raw
+                # taint (CodeQL py/stack-trace-exposure; same pattern as
+                # the scratch console).
+                record = ScratchRun.objects.create(
+                    user=request.user,
+                    language=language,
+                    source_code=code,
+                    status=ScratchRun.Status.COMPILE_ERROR,
+                    error_data=compiler_output[:SAMPLE_OUTPUT_CAP],
+                )
                 return Response(
                     {
-                        "compile_error": compiler_output[:SAMPLE_OUTPUT_CAP],
+                        "compile_error": record.error_data,
                         "samples": [],
                     }
                 )
             assert executable_path is not None
             results = []
+            worst_status = ScratchRun.Status.OK
             for tc in samples:
                 verdict, time_ms, _mem, output, _err = run_code_in_sandbox(
                     executable_path,
@@ -355,6 +369,10 @@ class PreSubmitSamplesView(APIView):
                     None,
                 )
                 if verdict != Submission.VerdictStatus.ACCEPTED:
+                    if verdict == Submission.VerdictStatus.TIME_LIMIT_EXCEEDED:
+                        worst_status = ScratchRun.Status.TIMEOUT
+                    elif worst_status != ScratchRun.Status.TIMEOUT:
+                        worst_status = ScratchRun.Status.RUNTIME_ERROR
                     results.append(
                         {
                             "test_id": tc.id,
@@ -370,6 +388,15 @@ class PreSubmitSamplesView(APIView):
                 row = self._one_comparison(problem, tc, output or "")
                 row["time_ms"] = time_ms if time_ms > 0 else None
                 results.append(row)
+            # The audit row for the executed rehearsal (inputs are the
+            # problem's own samples, so stdin carries just the marker).
+            ScratchRun.objects.create(
+                user=request.user,
+                language=language,
+                source_code=code,
+                stdin_data=f"samples:{problem.pk}",
+                status=worst_status,
+            )
         return Response({"compile_error": None, "samples": results})
 
     @staticmethod
