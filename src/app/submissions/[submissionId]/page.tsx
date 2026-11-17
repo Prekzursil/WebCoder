@@ -516,10 +516,7 @@ function SubmissionDetailPage() {
               marginBottom: '1.25rem',
             }}
           >
-            <div
-              className="micro-label"
-              style={{ color: palette.warn, marginBottom: '0.5rem' }}
-            >
+            <div className="micro-label" style={{ color: palette.warn, marginBottom: '0.5rem' }}>
               {t('compile_hints_title', 'What does this error mean?')}
             </div>
             <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.88rem' }}>
