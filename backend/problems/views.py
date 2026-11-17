@@ -31,8 +31,6 @@ from users.permissions import (
 )
 
 
-
-
 def user_can_manage_editorial(user, problem):
     """Editorial write access: the problem's author, a verifier, or an admin."""
     if not (user and user.is_authenticated):

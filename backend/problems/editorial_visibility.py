@@ -6,7 +6,6 @@ from problems.models import ProblemEditorial
 from users.models import User
 
 
-
 def editorial_visible_to(editorial, user):
     """Publish-policy gate for editorials (competitive roadmap EDT-1).
 

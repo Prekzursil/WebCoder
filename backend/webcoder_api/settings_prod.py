@@ -93,10 +93,32 @@ from .settings import (  # noqa: E402,F401  (explicit list: no wildcard)
     _ENV_PATH,
 )
 
+# Names redefined locally below (prod overrides): import them first so the
+# wildcard-inheritance semantics of `import *` keep holding at every point
+# of the module body; each carries a per-line F811 waiver for its override.
+from .settings import (  # noqa: E402,F401
+    ALLOWED_HOSTS,  # noqa: F811 - overridden below
+    CORS_ALLOWED_ORIGINS,  # noqa: F811 - overridden below
+    CORS_ALLOW_CREDENTIALS,  # noqa: F811 - overridden below
+    DEBUG,  # noqa: F811 - overridden below
+    REST_AUTH,  # noqa: F811 - overridden below
+    REST_FRAMEWORK,  # noqa: F811 - overridden below
+    SIMPLE_JWT,  # noqa: F811 - overridden below
+    SOCIALACCOUNT_PROVIDERS,  # noqa: F811 - overridden below
+)
+
 # Names settings.py assigns only under runtime conditions:
 # inherit them when present, exactly like `import *` did.
 from . import settings as _base_settings
-for _cond_name in ['CACHES', 'CELERY_BROKER_FOLDER_MAIN', 'CELERY_BROKER_FOLDER_PROCESSED', 'CELERY_BROKER_FOLDER_SENT', '_celery_broker_root', '_line']:
+
+for _cond_name in [
+    "CACHES",
+    "CELERY_BROKER_FOLDER_MAIN",
+    "CELERY_BROKER_FOLDER_PROCESSED",
+    "CELERY_BROKER_FOLDER_SENT",
+    "_celery_broker_root",
+    "_line",
+]:
     if hasattr(_base_settings, _cond_name):
         globals()[_cond_name] = getattr(_base_settings, _cond_name)
 
@@ -106,14 +128,14 @@ from .settings import _env_bool, _env_list
 
 # Prod default OFF. Setting DEBUG=true in production requires an explicit
 # opt-in through the environment (and never survives a forgotten default).
-DEBUG = _env_bool("DEBUG", default="false")
+DEBUG = _env_bool("DEBUG", default="false")  # noqa: F811 - deliberate prod override of the inherited default
 
 # No wildcard default: an unset ALLOWED_HOSTS in prod serves nothing (safe).
-ALLOWED_HOSTS = _env_list("ALLOWED_HOSTS")
+ALLOWED_HOSTS = _env_list("ALLOWED_HOSTS")  # noqa: F811 - deliberate prod override of the inherited default
 
 # CORS deny-all by default in prod; the browser origin must be allowlisted.
-CORS_ALLOWED_ORIGINS = _env_list("CORS_ALLOWED_ORIGINS")
-CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = _env_list("CORS_ALLOWED_ORIGINS")  # noqa: F811 - deliberate prod override of the inherited default
+CORS_ALLOW_CREDENTIALS = True  # noqa: F811 - deliberate prod override of the inherited default
 
 # --- Secure transport / headers (SP2) ---------------------------------------
 

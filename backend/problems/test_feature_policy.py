@@ -433,6 +433,7 @@ class GuardedExecutionTests(TestCase):
 
     def test_guard_written_and_used_in_run_argv(self):
         import tempfile
+
         mock = unittest.mock
 
         from submissions.judge_utils.execution import run_code_in_sandbox
@@ -467,6 +468,7 @@ class GuardedExecutionTests(TestCase):
 
     def test_guard_with_custom_libs_uses_pythonpath(self):
         import tempfile
+
         mock = unittest.mock
 
         from submissions.judge_utils.execution import run_code_in_sandbox

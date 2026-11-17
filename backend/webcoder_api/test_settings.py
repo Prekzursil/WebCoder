@@ -107,7 +107,15 @@ from .settings import (  # noqa: E402,F401  (explicit list: no wildcard)
 # Names settings.py assigns only under runtime conditions:
 # inherit them when present, exactly like `import *` did.
 from . import settings as _base_settings
-for _cond_name in ['CACHES', 'CELERY_BROKER_FOLDER_MAIN', 'CELERY_BROKER_FOLDER_PROCESSED', 'CELERY_BROKER_FOLDER_SENT', '_celery_broker_root', '_line']:
+
+for _cond_name in [
+    "CACHES",
+    "CELERY_BROKER_FOLDER_MAIN",
+    "CELERY_BROKER_FOLDER_PROCESSED",
+    "CELERY_BROKER_FOLDER_SENT",
+    "_celery_broker_root",
+    "_line",
+]:
     if hasattr(_base_settings, _cond_name):
         globals()[_cond_name] = getattr(_base_settings, _cond_name)
 
