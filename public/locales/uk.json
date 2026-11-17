@@ -1323,5 +1323,12 @@
   "solutions_language": "Мова",
   "solutions_all_languages": "усі",
   "previous_page": "Попередня",
-  "next_page": "Далі"
+  "next_page": "Далі",
+  "start_ladder_title": "Драбина",
+  "start_ladder_desc": "Шість сходинок від читання входу до бінарного пошуку — розв'язуйте по порядку.",
+  "start_ladder_progress": "{{n}}/{{m}} розв'язано",
+  "start_ladder_error": "Драбина зараз недоступна.",
+  "assign_track_label": "Призначити навчальний трек",
+  "assign_track_button": "Призначити",
+  "assigning": "Призначення…"
 }

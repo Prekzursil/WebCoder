@@ -1323,5 +1323,12 @@
   "solutions_language": "Язык",
   "solutions_all_languages": "все",
   "previous_page": "Назад",
-  "next_page": "Далее"
+  "next_page": "Далее",
+  "start_ladder_title": "Лестница",
+  "start_ladder_desc": "Шесть ступеней от чтения ввода до бинарного поиска — решайте по порядку.",
+  "start_ladder_progress": "{{n}}/{{m}} решено",
+  "start_ladder_error": "Лестница сейчас недоступна.",
+  "assign_track_label": "Назначить учебный трек",
+  "assign_track_button": "Назначить",
+  "assigning": "Назначение…"
 }

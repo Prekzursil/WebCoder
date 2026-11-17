@@ -1323,5 +1323,12 @@
   "solutions_language": "زبان",
   "solutions_all_languages": "همه",
   "previous_page": "قبلی",
-  "next_page": "بعدی"
+  "next_page": "بعدی",
+  "start_ladder_title": "نردبان",
+  "start_ladder_desc": "شش پله از خواندن ورودی تا جستجوی دودویی — به ترتیب حل کنید.",
+  "start_ladder_progress": "{{n}}/{{m}} حل شده",
+  "start_ladder_error": "نردبان در حال حاضر در دسترس نیست.",
+  "assign_track_label": "تخصیص مسیر مطالعه",
+  "assign_track_button": "تخصیص",
+  "assigning": "در حال تخصیص…"
 }

@@ -1323,5 +1323,12 @@
   "solutions_language": "語言",
   "solutions_all_languages": "全部",
   "previous_page": "上一頁",
-  "next_page": "下一頁"
+  "next_page": "下一頁",
+  "start_ladder_title": "進階之路",
+  "start_ladder_desc": "從讀入到二分搜尋的六級階梯——按順序解決。",
+  "start_ladder_progress": "已解決 {{n}}/{{m}}",
+  "start_ladder_error": "進階之路暫不可用。",
+  "assign_track_label": "指派學習路徑",
+  "assign_track_button": "指派",
+  "assigning": "正在指派…"
 }

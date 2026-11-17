@@ -23,6 +23,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action, api_view
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 
@@ -356,6 +357,76 @@ class AssignmentViewSet(viewsets.ModelViewSet):
 # ---------------------------------------------------------------------------
 # Wave C: EDU-7 quiz/file teme + EDU-8 MCQ bank + EDU-4 exam status
 # ---------------------------------------------------------------------------
+
+
+class AssignmentFromTrackView(APIView):
+    """POST /api/v1/classroom/assignments/from-track/ (wave E item 39).
+
+    Teacher collections meet the classroom: turn a curated study track
+    (ProblemList — the teacher's own, a public one, or a seeded ladder)
+    into a problem-set assignment in one call. Problems keep the track's
+    ladder order; the window defaults to now → +14 days.
+    """
+
+    permission_classes = [permissions.IsAuthenticated, IsTeacher]
+
+    def post(self, request):
+        from datetime import timedelta
+
+        from problems.models import ProblemList
+
+        classroom_id = request.data.get("classroom")
+        track_slug = request.data.get("track_slug", "")
+        classroom = ClassRoom.objects.filter(pk=classroom_id).first()
+        if classroom is None or classroom.teacher_id != request.user.pk:
+            return Response(
+                {"classroom": "Not your class."}, status=status.HTTP_404_NOT_FOUND
+            )
+        track = ProblemList.objects.filter(slug=track_slug).first()
+        if track is None:
+            return Response(
+                {"track_slug": "Unknown track."}, status=status.HTTP_404_NOT_FOUND
+            )
+        items = list(track.items.select_related("problem").order_by("position", "id"))
+        if not items:
+            return Response(
+                {"track_slug": "That track has no problems."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        available_from = timezone.now()
+        serializer = AssignmentSerializer(
+            context={"request": request},
+            data={
+                "classroom": classroom.pk,
+                "title_i18n": track.title_i18n,
+                "description": (track.description_i18n or {}).get(
+                    "ro", (track.description_i18n or {}).get("en", "")
+                ),
+                "available_from": available_from.isoformat(),
+                "due_at": (available_from + timedelta(days=14)).isoformat(),
+                "problems": [
+                    {"problem": item.problem_id, "points": 100} for item in items
+                ],
+            },
+        )
+        serializer.is_valid(raise_exception=True)
+        assignment = serializer.save()
+        members = [m.student for m in classroom.memberships.select_related("student")]
+
+        def _notify_members():
+            for member in members:
+                notify(
+                    member,
+                    Notification.Verb.ASSIGNMENT_PUBLISHED,
+                    actor=request.user,
+                    target=assignment,
+                    data={"classroom": classroom.name},
+                )
+
+        transaction.on_commit(_notify_members)
+        return Response(
+            AssignmentSerializer(assignment).data, status=status.HTTP_201_CREATED
+        )
 
 
 class MCQItemViewSet(viewsets.ModelViewSet):

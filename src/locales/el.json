@@ -1323,5 +1323,12 @@
   "solutions_language": "Γλώσσα",
   "solutions_all_languages": "όλες",
   "previous_page": "Προηγούμενη",
-  "next_page": "Επόμενη"
+  "next_page": "Επόμενη",
+  "start_ladder_title": "Η σκάλα",
+  "start_ladder_desc": "Έξι σκαλιά από την ανάγνωση εισόδου στη δυαδική αναζήτηση — λύστε τα με τη σειρά.",
+  "start_ladder_progress": "{{n}}/{{m}} λυμένα",
+  "start_ladder_error": "Η σκάλα δεν είναι διαθέσιμη αυτή τη στιγμή.",
+  "assign_track_label": "Ανάθεση μονοπατιού μελέτης",
+  "assign_track_button": "Ανάθεση",
+  "assigning": "Ανάθεση…"
 }

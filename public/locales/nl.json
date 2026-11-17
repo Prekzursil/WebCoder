@@ -1323,5 +1323,12 @@
   "solutions_language": "Taal",
   "solutions_all_languages": "alle",
   "previous_page": "Vorige",
-  "next_page": "Volgende"
+  "next_page": "Volgende",
+  "start_ladder_title": "De ladder",
+  "start_ladder_desc": "Zes sporten van invoer lezen tot binair zoeken — los ze op volgorde op.",
+  "start_ladder_progress": "{{n}}/{{m}} opgelost",
+  "start_ladder_error": "De ladder is nu niet beschikbaar.",
+  "assign_track_label": "Leerpad toewijzen",
+  "assign_track_button": "Toewijzen",
+  "assigning": "Toewijzen…"
 }

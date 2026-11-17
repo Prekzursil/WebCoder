@@ -1323,5 +1323,12 @@
   "solutions_language": "Kalba",
   "solutions_all_languages": "visos",
   "previous_page": "Ankstesnis",
-  "next_page": "Kitas"
+  "next_page": "Kitas",
+  "start_ladder_title": "Kopėčios",
+  "start_ladder_desc": "Šeši laipteliai nuo įvesties skaitymo iki dvejetainės paieškos — spręskite tvarka.",
+  "start_ladder_progress": "{{n}}/{{m}} išspręsta",
+  "start_ladder_error": "Kopėčios šiuo metu neprieinamos.",
+  "assign_track_label": "Priskirti mokymosi taką",
+  "assign_track_button": "Priskirti",
+  "assigning": "Priskiriama…"
 }

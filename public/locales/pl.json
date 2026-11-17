@@ -1323,5 +1323,12 @@
   "solutions_language": "Język",
   "solutions_all_languages": "wszystkie",
   "previous_page": "Poprzednia",
-  "next_page": "Następna"
+  "next_page": "Następna",
+  "start_ladder_title": "Drabina",
+  "start_ladder_desc": "Sześć szczebli od wczytywania danych do wyszukiwania binarnego — rozwiązuj po kolei.",
+  "start_ladder_progress": "{{n}}/{{m}} rozwiązanych",
+  "start_ladder_error": "Drabina jest teraz niedostępna.",
+  "assign_track_label": "Przypisz ścieżkę nauki",
+  "assign_track_button": "Przypisz",
+  "assigning": "Przypisywanie…"
 }

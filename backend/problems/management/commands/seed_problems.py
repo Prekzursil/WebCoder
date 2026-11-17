@@ -21,8 +21,11 @@ from problems.models import (
     ProblemEditorial,
     Tag,
     TestCase,
+    ProblemList,
+    ProblemListItem,
 )
 from problems import seed_data
+
 from users.models import User
 
 SEED_AUTHOR_USERNAME = "seed_author"
@@ -104,10 +107,12 @@ class Command(BaseCommand):
                     )
             created_problems += 1
 
+        created_tracks = self._seed_tracks(dry_run)
+
         self.stdout.write(
             self.style.SUCCESS(
-                f"seed_problems: created={created_problems} skipped(existing)={skipped}"
-                f"{' (dry run)' if dry_run else ''}"
+                f"seed_problems: created={created_problems} skipped(existing)={skipped} "
+                f"tracks_created={created_tracks}{' (dry run)' if dry_run else ''}"
             )
         )
 
@@ -149,3 +154,44 @@ class Command(BaseCommand):
             },
         )
         return node
+
+    def _seed_tracks(self, dry_run):
+        """Wave E items 27/28/31 — the curated study tracks (first-solve
+        ladder, OJI ladders, admission prep), idempotent by slug; members
+        resolve by the seeded problem slugs (missing slugs are skipped so
+        a trimmed pack still seeds)."""
+        created = 0
+        for track in seed_data.STUDY_TRACKS:
+            if dry_run:
+                created += 1
+                continue
+            list_obj, was_created = ProblemList.objects.get_or_create(
+                slug=track["slug"],
+                defaults={
+                    "title_i18n": {"en": track["en"], "ro": track["ro"]},
+                    "description_i18n": {
+                        "en": track["desc_en"],
+                        "ro": track["desc_ro"],
+                    },
+                    "owner": get_or_create_seed_author(),
+                    "is_public": True,
+                },
+            )
+            if not was_created:
+                continue
+            created += 1
+            position = 1
+            for slug in track["problems"]:
+                entry = next((p for p in seed_data.PROBLEMS if p["slug"] == slug), None)
+                if entry is None:
+                    continue
+                problem = Problem.objects.filter(
+                    title_i18n__en=entry["title_en"]
+                ).first()
+                if problem is None:
+                    continue
+                ProblemListItem.objects.create(
+                    list=list_obj, problem=problem, position=position
+                )
+                position += 1
+        return created

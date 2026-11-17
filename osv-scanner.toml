@@ -57,3 +57,25 @@ id = "GHSA-q849-wxrc-vqrp"
 # Re-review when hull.js publishes > 1.0.6 (then pin via an npm override and
 # delete this entry).
 reason = "No fixed release exists on npm (latest 1.0.6 < advisory fixed 1.0.10, verified 2026-11-15); scratch-render passes only 2 args so the vulnerable 3rd-parameter path is unreachable. Reviewed 2026-11-15."
+
+
+[[IgnoredVulns]]
+id = "GHSA-fc5q-39xc-vjpf"
+# picomatch ReDoS (CVE-2026-112366) - catastrophic backtracking on a
+# maliciously crafted pattern.
+#
+# NO FIX AVAILABLE: the advisory's fixed version is 4.0.8, but no release
+# above 4.0.7 exists on npm (verified 2026-11-17 against
+# https://registry.npmjs.org/picomatch - dist-tags.latest = 4.0.7 and the
+# version list ends at 4.0.7), so an override cannot reach a fixed release.
+#
+# NOT REACHABLE IN THIS PRODUCT: picomatch enters both trees only as a
+# transitive DEV-tooling dependency (micromatch -> fast-glob/glob inside
+# vitest/jest/eslint toolchains); it is not part of the shipped Next.js
+# runtime bundle or the Expo app bundle, and the ReDoS path requires an
+# ATTACKER-CONTROLLED glob pattern while every pattern in the toolchain is
+# developer-authored (test globs, lint config).
+#
+# Re-review when picomatch publishes >= 4.0.8 (then pin via an npm override
+# and delete this entry).
+reason = "No fixed release exists on npm (latest 4.0.7 < advisory fixed 4.0.8, verified 2026-11-17); dev-tooling-only transitive, not in shipped bundles, patterns are developer-authored. Reviewed 2026-11-17."

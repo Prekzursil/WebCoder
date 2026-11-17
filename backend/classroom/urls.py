@@ -13,7 +13,15 @@ router.register(r"assignments", views.AssignmentViewSet, basename="assignment")
 mcq_router = DefaultRouter()
 mcq_router.register(r"", views.MCQItemViewSet, basename="mcq")
 
-urlpatterns = list(router.urls)
+urlpatterns = [
+    # Wave E item 39: mounted BEFORE the assignments router so the
+    # from-track path can never collide with the /{pk}/ detail route.
+    path(
+        "assignments/from-track/",
+        views.AssignmentFromTrackView.as_view(),
+        name="assignment-from-track",
+    ),
+] + list(router.urls)
 
 # ---------------------------------------------------------------------------
 # Wave C (EDU-4/7/8): MCQ bank, quiz sheets/submits/stats, file deliverables,

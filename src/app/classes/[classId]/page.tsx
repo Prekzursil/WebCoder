@@ -10,6 +10,7 @@ import { ClassMembershipRow, ClassRoom, ClassroomAssignment } from '@/types/api'
 import { palette } from '@/theme/tokens';
 import EmptyState from '@/components/common/EmptyState';
 import NewAssignmentForm from './NewAssignmentForm';
+import AssignTrackForm from './AssignTrackForm';
 import PageHeader from '@/components/common/PageHeader';
 
 /** Class detail (EDU-1/EDU-2): roster for the teacher, teme list for all,
@@ -117,7 +118,10 @@ export default function ClassDetailPage() {
           {/* EDU-2: tem authoring for the owning teacher (or admin). */}
           {(classroom.teacher_username === auth.user?.username || auth.user?.role === 'ADMIN') &&
             classroom.id != null && (
-              <NewAssignmentForm classroomId={classroom.id} onCreated={() => void load()} />
+              <>
+                <NewAssignmentForm classroomId={classroom.id} onCreated={() => void load()} />
+                <AssignTrackForm classroomId={classroom.id} onCreated={() => void load()} />
+              </>
             )}
         </div>
         {assignments === null ? (

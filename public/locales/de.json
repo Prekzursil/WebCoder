@@ -1323,5 +1323,12 @@
   "solutions_language": "Sprache",
   "solutions_all_languages": "alle",
   "previous_page": "Zurück",
-  "next_page": "Weiter"
+  "next_page": "Weiter",
+  "start_ladder_title": "Die Leiter",
+  "start_ladder_desc": "Sechs Sprossen von der Eingabe bis zur binären Suche — löse sie in Ordnung.",
+  "start_ladder_progress": "{{n}}/{{m}} gelöst",
+  "start_ladder_error": "Die Leiter ist gerade nicht verfügbar.",
+  "assign_track_label": "Lernpfad zuweisen",
+  "assign_track_button": "Zuweisen",
+  "assigning": "Zuweisen…"
 }

@@ -1,6 +1,17 @@
-import { describe, expect, it, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import Layout from './layout';
+
+// The app shell schedules follow-up React work (scheduler Immediate
+// tasks) after the synchronous assertions; on slower CI workers one such
+// task can fire AFTER the jsdom environment tears down ("window is not
+// defined" unhandled error). Unmounting explicitly AND draining the
+// macrotask queue while the environment still exists keeps the run
+// warning-clean.
+afterEach(async () => {
+  cleanup();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+});
 
 // [i18n wave] RootLayout is async and reads the i18next locale cookie via
 // next/headers for <html lang>; outside a live Next request scope that

@@ -36,14 +36,14 @@ class TestSeedProblemsCommand:
             len(p["tests"]) for p in seed_data.PROBLEMS
         )
         assert Tag.objects.filter(slug__in=["loops", "arrays", "sorting"]).count() == 3
-        # EDU-10: the tree now spans gimnaziu (g5-g8) + liceu v1 (g9-g10).
-        assert CurriculumNode.objects.filter(kind="GRADE").count() == 6
-        assert CurriculumNode.objects.filter(kind="CHAPTER").count() == 16
+        # Wave E item 26: the tree now spans grades 5-12 (gimnaziu + full liceu).
+        assert CurriculumNode.objects.filter(kind="GRADE").count() == 8
+        assert CurriculumNode.objects.filter(kind="CHAPTER").count() == 22
         assert list(
             CurriculumNode.objects.filter(kind="GRADE")
             .order_by("order")
             .values_list("slug", flat=True)
-        ) == ["g5", "g6", "g7", "g8", "g9", "g10"]
+        ) == ["g5", "g6", "g7", "g8", "g9", "g10", "g11", "g12"]
         assert ProblemEditorial.objects.count() == len(seed_data.EDITORIALS)
         # first test of each problem is the visible sample
         for problem in Problem.objects.filter(
@@ -175,7 +175,7 @@ class TestCurriculumAPI:
         )
         slugs = [node["slug"] for node in results]
         # EDU-10: gimnaziu (g5-g8) now leads the liceu v1 tree (g9-g10).
-        assert slugs == ["g5", "g6", "g7", "g8", "g9", "g10"]
+        assert slugs == ["g5", "g6", "g7", "g8", "g9", "g10", "g11", "g12"]
         g9 = next(node for node in results if node["slug"] == "g9")
         assert g9["kind"] == "GRADE"
         chapter_slugs = [child["slug"] for child in g9["children"]]

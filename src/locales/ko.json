@@ -1323,5 +1323,12 @@
   "solutions_language": "언어",
   "solutions_all_languages": "전체",
   "previous_page": "이전",
-  "next_page": "다음"
+  "next_page": "다음",
+  "start_ladder_title": "사다리",
+  "start_ladder_desc": "입력 읽기부터 이분 탐색까지 여섯 단계 — 순서대로 푸세요.",
+  "start_ladder_progress": "{{n}}/{{m}} 해결",
+  "start_ladder_error": "사다리를 지금 사용할 수 없습니다.",
+  "assign_track_label": "학습 트랙 할당",
+  "assign_track_button": "할당",
+  "assigning": "할당 중…"
 }

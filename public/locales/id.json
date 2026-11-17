@@ -1323,5 +1323,12 @@
   "solutions_language": "Bahasa",
   "solutions_all_languages": "semua",
   "previous_page": "Sebelumnya",
-  "next_page": "Berikutnya"
+  "next_page": "Berikutnya",
+  "start_ladder_title": "Tangga",
+  "start_ladder_desc": "Enam anak tangga dari membaca masukan hingga pencarian biner — selesaikan berurutan.",
+  "start_ladder_progress": "{{n}}/{{m}} terselesaikan",
+  "start_ladder_error": "Tangga tidak tersedia saat ini.",
+  "assign_track_label": "Tugaskan trek belajar",
+  "assign_track_button": "Tugaskan",
+  "assigning": "Menugaskan…"
 }
