@@ -36,7 +36,6 @@ from rest_framework.views import APIView
 
 from users.permissions import IsAdminUser
 
-from .jsonlog import JsonFormatter  # noqa: F401  (re-export)
 
 from problems.models import Problem
 from submissions.models import Submission, SubmissionTestResult

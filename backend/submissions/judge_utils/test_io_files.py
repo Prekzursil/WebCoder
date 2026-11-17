@@ -11,7 +11,6 @@ the files a real judged program would).
 
 import pathlib
 import tempfile
-import unittest
 from unittest import mock
 
 from submissions.judge_utils.compilation import run_compile_step

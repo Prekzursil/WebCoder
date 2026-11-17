@@ -6,7 +6,6 @@ import guard executed for real.
 
 import pathlib
 import tempfile
-import unittest
 
 from django.test import TestCase
 from rest_framework.test import APIClient
@@ -432,7 +431,6 @@ class GuardedExecutionTests(TestCase):
         )
 
     def test_guard_written_and_used_in_run_argv(self):
-        import pathlib
         import tempfile
         from unittest import mock
 
@@ -467,7 +465,6 @@ class GuardedExecutionTests(TestCase):
             self.assertIn("_BANNED = frozenset(['re'])", guard.read_text())
 
     def test_guard_with_custom_libs_uses_pythonpath(self):
-        import pathlib
         import tempfile
         from unittest import mock
 

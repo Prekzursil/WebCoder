@@ -236,7 +236,6 @@ class SubmitTimeAllowlistGateTest(TestCase):
 
 class GenericInstallFailureTest(TestCase):
     def setUp(self):
-        import pathlib
         import tempfile
 
         self.dir = pathlib.Path(tempfile.mkdtemp())
