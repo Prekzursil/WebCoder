@@ -1323,5 +1323,12 @@
   "solutions_language": "语言",
   "solutions_all_languages": "全部",
   "previous_page": "上一页",
-  "next_page": "下一页"
+  "next_page": "下一页",
+  "start_ladder_title": "进阶之路",
+  "start_ladder_desc": "从读入到二分查找的六级阶梯——按顺序解决。",
+  "start_ladder_progress": "已解决 {{n}}/{{m}}",
+  "start_ladder_error": "进阶之路暂不可用。",
+  "assign_track_label": "布置学习路径",
+  "assign_track_button": "布置",
+  "assigning": "正在布置…"
 }

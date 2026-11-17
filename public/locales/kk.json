@@ -1323,5 +1323,12 @@
   "solutions_language": "Тіл",
   "solutions_all_languages": "барлығы",
   "previous_page": "Алдыңғы",
-  "next_page": "Келесі"
+  "next_page": "Келесі",
+  "start_ladder_title": "Баспалдақ",
+  "start_ladder_desc": "Кірісті оқудан екілік іздеуге дейін алты баспалдақ — ретімен шешіңіз.",
+  "start_ladder_progress": "{{n}}/{{m}} шешілді",
+  "start_ladder_error": "Баспалдақ қазіруге қолжетімді емес.",
+  "assign_track_label": "Оқу трегін тағайындау",
+  "assign_track_button": "Тағайындау",
+  "assigning": "Тағайындалуда…"
 }

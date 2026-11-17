@@ -1323,5 +1323,12 @@
   "solutions_language": "Jezik",
   "solutions_all_languages": "svi",
   "previous_page": "Prethodna",
-  "next_page": "Sljedeća"
+  "next_page": "Sljedeća",
+  "start_ladder_title": "Ljestve",
+  "start_ladder_desc": "Šest stuba od čitanja ulaza do binarnog pretraživanja — riješi ih redom.",
+  "start_ladder_progress": "{{n}}/{{m}} riješeno",
+  "start_ladder_error": "Ljestve trenutno nisu dostupne.",
+  "assign_track_label": "Dodijeli stazu za učenje",
+  "assign_track_button": "Dodijeli",
+  "assigning": "Dodjeljivanje…"
 }

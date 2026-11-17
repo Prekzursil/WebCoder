@@ -589,6 +589,11 @@ export const RelatedProblemService = {
 
 /** X12 — curated study tracks (competitive matrix row 8). */
 export const TrackService = {
+  assignToClass: (classroomId: number | string, trackSlug: string) =>
+    apiFetch<ClassroomAssignment>(`/classroom/assignments/from-track/`, {
+      method: 'POST',
+      body: JSON.stringify({ classroom: classroomId, track_slug: trackSlug }),
+    }),
   list: (page = 1) => apiFetch<PaginatedResponse<TrackRow>>(`/problems/tracks/?page=${page}`),
   get: (slug: string) => apiFetch<TrackDetail>(`/problems/tracks/${slug}/`),
   create: (data: {

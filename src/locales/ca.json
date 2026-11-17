@@ -1323,5 +1323,12 @@
   "solutions_language": "Llenguatge",
   "solutions_all_languages": "tots",
   "previous_page": "Anterior",
-  "next_page": "Següent"
+  "next_page": "Següent",
+  "start_ladder_title": "L'escala",
+  "start_ladder_desc": "Sis esglaons de llegir l'entrada a la cerca binària: resol-los en ordre.",
+  "start_ladder_progress": "{{n}}/{{m}} resolts",
+  "start_ladder_error": "L'escala no està disponible ara.",
+  "assign_track_label": "Assigna una ruta d'estudi",
+  "assign_track_button": "Assigna",
+  "assigning": "Assignant…"
 }

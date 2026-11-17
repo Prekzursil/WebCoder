@@ -1323,5 +1323,12 @@
   "solutions_language": "Limbaj",
   "solutions_all_languages": "toate",
   "previous_page": "Anterior",
-  "next_page": "Următor"
+  "next_page": "Următor",
+  "start_ladder_title": "Scara",
+  "start_ladder_desc": "Șase trepte de la citirea datelor la căutarea binară — rezolvă-le în ordine.",
+  "start_ladder_progress": "{{n}}/{{m}} rezolvate",
+  "start_ladder_error": "Scara nu e disponibilă momentan.",
+  "assign_track_label": "Dă o trăsă de studiu",
+  "assign_track_button": "Trimite",
+  "assigning": "Se trimite…"
 }

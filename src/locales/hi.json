@@ -1323,5 +1323,12 @@
   "solutions_language": "भाषा",
   "solutions_all_languages": "सभी",
   "previous_page": "पिछला",
-  "next_page": "अगला"
+  "next_page": "अगला",
+  "start_ladder_title": "सीढ़ी",
+  "start_ladder_desc": "इनपुट पढ़ने से बाइनरी सर्च तक छह सीढ़ियाँ — क्रम से हल करें।",
+  "start_ladder_progress": "{{n}}/{{m}} हल",
+  "start_ladder_error": "सीढ़ी अभी उपलब्ध नहीं है।",
+  "assign_track_label": "अध्ययन ट्रैक असाइन करें",
+  "assign_track_button": "असाइन करें",
+  "assigning": "असाइन हो रहा है…"
 }

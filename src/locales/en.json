@@ -1323,5 +1323,12 @@
   "solutions_language": "Language",
   "solutions_all_languages": "all",
   "previous_page": "Previous",
-  "next_page": "Next"
+  "next_page": "Next",
+  "start_ladder_title": "The ladder",
+  "start_ladder_desc": "Six rungs from reading input to binary search — solve them in order.",
+  "start_ladder_progress": "{{n}}/{{m}} solved",
+  "start_ladder_error": "The ladder is unavailable right now.",
+  "assign_track_label": "Assign a study track",
+  "assign_track_button": "Assign",
+  "assigning": "Assigning…"
 }

@@ -1323,5 +1323,12 @@
   "solutions_language": "Ngôn ngữ",
   "solutions_all_languages": "tất cả",
   "previous_page": "Trước",
-  "next_page": "Sau"
+  "next_page": "Sau",
+  "start_ladder_title": "Chiếc thang",
+  "start_ladder_desc": "Sáu bậc từ đọc đầu vào đến tìm kiếm nhị phân — giải theo thứ tự.",
+  "start_ladder_progress": "{{n}}/{{m}} đã giải",
+  "start_ladder_error": "Chiếc thang hiện không khả dụng.",
+  "assign_track_label": "Gán lộ trình học",
+  "assign_track_button": "Gán",
+  "assigning": "Đang gán…"
 }

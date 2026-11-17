@@ -1323,5 +1323,12 @@
   "solutions_language": "Linguaggio",
   "solutions_all_languages": "tutti",
   "previous_page": "Precedente",
-  "next_page": "Successiva"
+  "next_page": "Successiva",
+  "start_ladder_title": "La scala",
+  "start_ladder_desc": "Sei gradini dalla lettura dell'input alla ricerca binaria — risolvili in ordine.",
+  "start_ladder_progress": "{{n}}/{{m}} risolti",
+  "start_ladder_error": "La scala non è disponibile al momento.",
+  "assign_track_label": "Assegna un percorso di studio",
+  "assign_track_button": "Assegna",
+  "assigning": "Assegnazione…"
 }

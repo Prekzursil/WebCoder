@@ -1323,5 +1323,12 @@
   "solutions_language": "Linguagem",
   "solutions_all_languages": "todos",
   "previous_page": "Anterior",
-  "next_page": "Próxima"
+  "next_page": "Próxima",
+  "start_ladder_title": "A escada",
+  "start_ladder_desc": "Seis degraus da leitura da entrada à busca binária — resolva em ordem.",
+  "start_ladder_progress": "{{n}}/{{m}} resolvidos",
+  "start_ladder_error": "A escada não está disponível agora.",
+  "assign_track_label": "Atribuir um trilho de estudo",
+  "assign_track_button": "Atribuir",
+  "assigning": "Atribuindo…"
 }

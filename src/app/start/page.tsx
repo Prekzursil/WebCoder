@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { createTranslator, getLocale } from '../_lib/public-i18n';
 import { getStarterProblems } from '../problems/_lib/problems-api';
 import { palette, hexAlpha } from '@/theme/tokens';
+import StartLadder from './StartLadder';
 import PlayArrowOutlinedIcon from '@mui/icons-material/PlayArrowOutlined';
 import TerminalOutlinedIcon from '@mui/icons-material/TerminalOutlined';
 import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined';
@@ -82,6 +83,9 @@ export default async function StartPage() {
           )}
         </p>
       </div>
+
+      {/* [wave E item 31] the six-rung first-solve ladder with progress */}
+      <StartLadder />
 
       {/* How it works */}
       <div

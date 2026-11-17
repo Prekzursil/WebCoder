@@ -1323,5 +1323,12 @@
   "solutions_language": "Dil",
   "solutions_all_languages": "tümü",
   "previous_page": "Önceki",
-  "next_page": "Sonraki"
+  "next_page": "Sonraki",
+  "start_ladder_title": "Merdiven",
+  "start_ladder_desc": "Girdi okumadan ikili aramaya altı basamak — sırayla çözün.",
+  "start_ladder_progress": "{{n}}/{{m}} çözüldü",
+  "start_ladder_error": "Merdiven şu an kullanılamıyor.",
+  "assign_track_label": "Çalışma parkuru ata",
+  "assign_track_button": "Ata",
+  "assigning": "Atanıyor…"
 }

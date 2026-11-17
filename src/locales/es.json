@@ -1323,5 +1323,12 @@
   "solutions_language": "Lenguaje",
   "solutions_all_languages": "todos",
   "previous_page": "Anterior",
-  "next_page": "Siguiente"
+  "next_page": "Siguiente",
+  "start_ladder_title": "La escalera",
+  "start_ladder_desc": "Seis peldaños de leer la entrada a la búsqueda binaria: resuélvelos en orden.",
+  "start_ladder_progress": "{{n}}/{{m}} resueltos",
+  "start_ladder_error": "La escalera no está disponible ahora.",
+  "assign_track_label": "Asignar una ruta de estudio",
+  "assign_track_button": "Asignar",
+  "assigning": "Asignando…"
 }

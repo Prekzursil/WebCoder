@@ -1323,5 +1323,12 @@
   "solutions_language": "Език",
   "solutions_all_languages": "всички",
   "previous_page": "Предишна",
-  "next_page": "Следваща"
+  "next_page": "Следваща",
+  "start_ladder_title": "Стълбата",
+  "start_ladder_desc": "Шест стъпала от четенето на входа до двоичното търсене — решавайте по ред.",
+  "start_ladder_progress": "{{n}}/{{m}} решени",
+  "start_ladder_error": "Стълбата в момента не е налична.",
+  "assign_track_label": "Възложете учебна писта",
+  "assign_track_button": "Възложи",
+  "assigning": "Възлагане…"
 }

@@ -1323,5 +1323,12 @@
   "solutions_language": "ภาษา",
   "solutions_all_languages": "ทั้งหมด",
   "previous_page": "ก่อนหน้า",
-  "next_page": "ถัดไป"
+  "next_page": "ถัดไป",
+  "start_ladder_title": "บันได",
+  "start_ladder_desc": "หกขั้นจากการอ่านอินพุตถึงการค้นหาแบบทวิภาค — แก้ตามลำดับ",
+  "start_ladder_progress": "แก้แล้ว {{n}}/{{m}}",
+  "start_ladder_error": "บันไดยังใช้ไม่ได้ตอนนี้",
+  "assign_track_label": "มอบหมายเส้นทางเรียน",
+  "assign_track_button": "มอบหมาย",
+  "assigning": "กำลังมอบหมาย…"
 }
