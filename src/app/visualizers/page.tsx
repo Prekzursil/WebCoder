@@ -256,13 +256,7 @@ export default function VisualizersPage(): ReactNode {
                 key={`${i}-${value}`}
                 value={value}
                 max={max}
-                state={
-                  isMid
-                    ? 'compared'
-                    : inside
-                      ? 'inside'
-                      : 'outside'
-                }
+                state={isMid ? 'compared' : inside ? 'inside' : 'outside'}
               />
             );
           })}
