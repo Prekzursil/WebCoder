@@ -94,22 +94,19 @@ for _inherited_name in (
     "USE_TZ",
     "WSGI_APPLICATION",
     "_ENV_PATH",
+    "ALLOWED_HOSTS",
+    "CORS_ALLOWED_ORIGINS",
+    "CORS_ALLOW_CREDENTIALS",
+    "DEBUG",
+    "REST_AUTH",
+    "REST_FRAMEWORK",
+    "SIMPLE_JWT",
+    "SOCIALACCOUNT_PROVIDERS",
 ):
     globals()[_inherited_name] = getattr(_base_settings, _inherited_name)
 
-# Names redefined locally below (prod overrides): import them first so the
-# wildcard-inheritance semantics of `import *` keep holding at every point
-# of the module body; each carries a per-line F811 waiver for its override.
-from .settings import (  # noqa: E402,F401
-    ALLOWED_HOSTS,  # noqa: F811 - overridden below
-    CORS_ALLOWED_ORIGINS,  # noqa: F811 - overridden below
-    CORS_ALLOW_CREDENTIALS,  # noqa: F811 - overridden below
-    DEBUG,  # noqa: F811 - overridden below
-    REST_AUTH,  # noqa: F811 - overridden below
-    REST_FRAMEWORK,  # noqa: F811 - overridden below
-    SIMPLE_JWT,  # noqa: F811 - overridden below
-    SOCIALACCOUNT_PROVIDERS,  # noqa: F811 - overridden below
-)
+# Names redefined locally below (prod overrides) also come through the
+# inheritance loop above: same end-state as `import *`, no import surface.
 
 # Names settings.py assigns only under runtime conditions:
 # inherit them when present, exactly like `import *` did.
