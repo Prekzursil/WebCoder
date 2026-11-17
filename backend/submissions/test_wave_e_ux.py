@@ -1,7 +1,6 @@
 """Wave E items 11/13/20/24 — solutions showcase axes, submission
 versioning pointer, sandbox receipts, the random-problem die."""
 
-
 from django.test import TestCase
 from problems.models import Problem, Tag
 from rest_framework.test import APIClient
