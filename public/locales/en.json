@@ -1378,5 +1378,17 @@
   "courses_empty": "No courses yet — the first one is on its way.",
   "courses_load_error": "Failed to load the course.",
   "courses_drill_hint": "{{n}} drills on the drills page",
-  "courses_login_progress": "Log in to track your progress through the course."
+  "courses_login_progress": "Log in to track your progress through the course.",
+  "nav_visualizers": "Visualizers",
+  "viz_title": "Algorithm visualizers",
+  "viz_intro": "Watch the classics run frame by frame — compare/swap highlights for the sorts, the shrinking window for binary search.",
+  "viz_sorting_title": "Sorting",
+  "viz_search_title": "Binary search",
+  "viz_values_label": "Values",
+  "viz_target_label": "Target",
+  "viz_prev": "Prev",
+  "viz_next": "Next",
+  "viz_reset": "Reset",
+  "viz_found": "found at index {{i}}",
+  "viz_absent": "not in the array"
 }

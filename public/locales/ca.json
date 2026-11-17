@@ -1378,5 +1378,17 @@
   "courses_empty": "Encara no hi ha cursos: el primer està en camí.",
   "courses_load_error": "No s'ha pogut carregar el curs.",
   "courses_drill_hint": "{{n}} exercicis a la pàgina d'exercicis",
-  "courses_login_progress": "Inicia sessió per seguir el teu progrés al curs."
+  "courses_login_progress": "Inicia sessió per seguir el teu progrés al curs.",
+  "nav_visualizers": "Visualitzadors",
+  "viz_title": "Visualitzadors d'algorismes",
+  "viz_intro": "Mira els clàssics fotograma a fotograma — comparacions/intercanvis destacats a les ordenacions, la finestra que s'estreny a la cerca binària.",
+  "viz_sorting_title": "Ordenació",
+  "viz_search_title": "Cerca binària",
+  "viz_values_label": "Valors",
+  "viz_target_label": "Objectiu",
+  "viz_prev": "Anterior",
+  "viz_next": "Següent",
+  "viz_reset": "Reinicia",
+  "viz_found": "trobat a l'índex {{i}}",
+  "viz_absent": "no és a l'array"
 }

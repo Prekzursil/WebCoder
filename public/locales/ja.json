@@ -1378,5 +1378,17 @@
   "courses_empty": "コースはまだありません — 最初のものが準備中です。",
   "courses_load_error": "コースの読み込みに失敗しました。",
   "courses_drill_hint": "ドリルページに{{n}}個のドリル",
-  "courses_login_progress": "コースの進捗を追跡するにはログインしてください。"
+  "courses_login_progress": "コースの進捗を追跡するにはログインしてください。",
+  "nav_visualizers": "ビジュアライザ",
+  "viz_title": "アルゴリズムビジュアライザ",
+  "viz_intro": "定番アルゴリズムをコマ送りで — ソートは比較/交換をハイライト、二分探索は縮むウィンドウで。",
+  "viz_sorting_title": "ソート",
+  "viz_search_title": "二分探索",
+  "viz_values_label": "値",
+  "viz_target_label": "目的値",
+  "viz_prev": "前へ",
+  "viz_next": "次へ",
+  "viz_reset": "リセット",
+  "viz_found": "インデックス{{i}}で見つかりました",
+  "viz_absent": "配列にありません"
 }

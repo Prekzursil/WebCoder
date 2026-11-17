@@ -1378,5 +1378,17 @@
   "courses_empty": "Még nincs kurzus — az első úton van.",
   "courses_load_error": "A kurzus betöltése nem sikerült.",
   "courses_drill_hint": "{{n}} gyakorlat a gyakorlatok oldalon",
-  "courses_login_progress": "Jelentkezz be a kurzus előrehaladásának követéséhez."
+  "courses_login_progress": "Jelentkezz be a kurzus előrehaladásának követéséhez.",
+  "nav_visualizers": "Vizualizációk",
+  "viz_title": "Algoritmus-vizualizációk",
+  "viz_intro": "Nézd a klasszikusokat képkockáról képkockára — kiemelt összehasonlítások/csere a rendezéseknél, szűkülő ablak a bináris keresésnél.",
+  "viz_sorting_title": "Rendezés",
+  "viz_search_title": "Bináris keresés",
+  "viz_values_label": "Értékek",
+  "viz_target_label": "Cél",
+  "viz_prev": "Előző",
+  "viz_next": "Következő",
+  "viz_reset": "Visszaállít",
+  "viz_found": "megtalálva a(z) {{i}}. indexen",
+  "viz_absent": "nincs a tömbben"
 }

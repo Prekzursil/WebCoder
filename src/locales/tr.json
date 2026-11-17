@@ -1378,5 +1378,17 @@
   "courses_empty": "Henüz kurs yok — ilki yolda.",
   "courses_load_error": "Kurs yüklenemedi.",
   "courses_drill_hint": "alıştırma sayfasında {{n}} alıştırma",
-  "courses_login_progress": "Kurs ilerlemenizi takip etmek için giriş yapın."
+  "courses_login_progress": "Kurs ilerlemenizi takip etmek için giriş yapın.",
+  "nav_visualizers": "Görselleştiriciler",
+  "viz_title": "Algoritma görselleştiricileri",
+  "viz_intro": "Klasikleri kare kare izleyin — sıralamalarda vurgulu karşılaştırma/takas, ikili aramada daralan pencere.",
+  "viz_sorting_title": "Sıralama",
+  "viz_search_title": "İkili arama",
+  "viz_values_label": "Değerler",
+  "viz_target_label": "Hedef",
+  "viz_prev": "Önceki",
+  "viz_next": "Sonraki",
+  "viz_reset": "Sıfırla",
+  "viz_found": "indeks {{i}}'de bulundu",
+  "viz_absent": "dizide yok"
 }

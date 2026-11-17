@@ -1378,5 +1378,17 @@
   "courses_empty": "아직 코스가 없습니다 — 첫 코스가 준비 중입니다.",
   "courses_load_error": "코스를 불러오지 못했습니다.",
   "courses_drill_hint": "드릴 페이지에 {{n}}개의 드릴",
-  "courses_login_progress": "코스 진행 상황을 추적하려면 로그인하세요."
+  "courses_login_progress": "코스 진행 상황을 추적하려면 로그인하세요.",
+  "nav_visualizers": "시각화",
+  "viz_title": "알고리즘 시각화",
+  "viz_intro": "고전 알고리즘을 프레임별로 — 정렬은 비교/교환 강조, 이분 탐색은 줄어드는 창으로.",
+  "viz_sorting_title": "정렬",
+  "viz_search_title": "이분 탐색",
+  "viz_values_label": "값",
+  "viz_target_label": "대상",
+  "viz_prev": "이전",
+  "viz_next": "다음",
+  "viz_reset": "초기화",
+  "viz_found": "인덱스 {{i}}에서 발견",
+  "viz_absent": "배열에 없음"
 }

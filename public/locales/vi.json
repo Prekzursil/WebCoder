@@ -1378,5 +1378,17 @@
   "courses_empty": "Chưa có khóa học nào — khóa đầu tiên sắp ra mắt.",
   "courses_load_error": "Không tải được khóa học.",
   "courses_drill_hint": "{{n}} bài luyện trên trang luyện tập",
-  "courses_login_progress": "Đăng nhập để theo dõi tiến độ khóa học."
+  "courses_login_progress": "Đăng nhập để theo dõi tiến độ khóa học.",
+  "nav_visualizers": "Trực quan hóa",
+  "viz_title": "Trực quan hóa thuật toán",
+  "viz_intro": "Xem các thuật toán cổ điển từng khung hình — so sánh/hoán đổi được tô sáng khi sắp xếp, cửa sổ thu hẹp khi tìm kiếm nhị phân.",
+  "viz_sorting_title": "Sắp xếp",
+  "viz_search_title": "Tìm kiếm nhị phân",
+  "viz_values_label": "Giá trị",
+  "viz_target_label": "Mục tiêu",
+  "viz_prev": "Trước",
+  "viz_next": "Sau",
+  "viz_reset": "Đặt lại",
+  "viz_found": "tìm thấy tại chỉ mục {{i}}",
+  "viz_absent": "không có trong mảng"
 }

@@ -1378,5 +1378,17 @@
   "courses_empty": "Pas encore de cours — le premier arrive.",
   "courses_load_error": "Échec du chargement du cours.",
   "courses_drill_hint": "{{n}} exercices sur la page d'exercices",
-  "courses_login_progress": "Connectez-vous pour suivre votre progression dans le cours."
+  "courses_login_progress": "Connectez-vous pour suivre votre progression dans le cours.",
+  "nav_visualizers": "Visualiseurs",
+  "viz_title": "Visualiseurs d'algorithmes",
+  "viz_intro": "Regardez les classiques image par image — comparaisons/échanges surlignés pour les tris, la fenêtre qui rétrécit pour la recherche binaire.",
+  "viz_sorting_title": "Tri",
+  "viz_search_title": "Recherche binaire",
+  "viz_values_label": "Valeurs",
+  "viz_target_label": "Cible",
+  "viz_prev": "Préc.",
+  "viz_next": "Suiv.",
+  "viz_reset": "Réinit.",
+  "viz_found": "trouvé à l'index {{i}}",
+  "viz_absent": "absent du tableau"
 }

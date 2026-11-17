@@ -1378,5 +1378,17 @@
   "courses_empty": "Nog geen cursussen — de eerste is onderweg.",
   "courses_load_error": "Cursus kon niet geladen worden.",
   "courses_drill_hint": "{{n}} oefeningen op de oefenpagina",
-  "courses_login_progress": "Log in om je voortgang in de cursus te volgen."
+  "courses_login_progress": "Log in om je voortgang in de cursus te volgen.",
+  "nav_visualizers": "Visualisaties",
+  "viz_title": "Algorisme-visualisaties",
+  "viz_intro": "Bekijk de klassiekers frame voor frame — vergelijkingen/wissels gemarkeerd bij het sorteren, het krimpende venster bij binair zoeken.",
+  "viz_sorting_title": "Sorteren",
+  "viz_search_title": "Binair zoeken",
+  "viz_values_label": "Waarden",
+  "viz_target_label": "Doel",
+  "viz_prev": "Vorige",
+  "viz_next": "Volgende",
+  "viz_reset": "Reset",
+  "viz_found": "gevonden op index {{i}}",
+  "viz_absent": "niet in de array"
 }

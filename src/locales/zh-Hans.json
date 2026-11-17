@@ -1378,5 +1378,17 @@
   "courses_empty": "还没有课程——第一个即将上线。",
   "courses_load_error": "课程加载失败。",
   "courses_drill_hint": "练习页上有 {{n}} 个练习",
-  "courses_login_progress": "登录以跟踪你的课程进度。"
+  "courses_login_progress": "登录以跟踪你的课程进度。",
+  "nav_visualizers": "算法可视化",
+  "viz_title": "算法可视化",
+  "viz_intro": "逐帧观看经典算法——排序中的比较/交换高亮显示，二分查找中不断缩小的窗口。",
+  "viz_sorting_title": "排序",
+  "viz_search_title": "二分查找",
+  "viz_values_label": "数值",
+  "viz_target_label": "目标",
+  "viz_prev": "上一步",
+  "viz_next": "下一步",
+  "viz_reset": "重置",
+  "viz_found": "在索引 {{i}} 找到",
+  "viz_absent": "不在数组中"
 }

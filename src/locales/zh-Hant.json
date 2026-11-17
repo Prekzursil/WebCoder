@@ -1378,5 +1378,17 @@
   "courses_empty": "還沒有課程——第一個即將上線。",
   "courses_load_error": "課程載入失敗。",
   "courses_drill_hint": "練習頁上有 {{n}} 個練習",
-  "courses_login_progress": "登入以追蹤你的課程進度。"
+  "courses_login_progress": "登入以追蹤你的課程進度。",
+  "nav_visualizers": "演算法視覺化",
+  "viz_title": "演算法視覺化",
+  "viz_intro": "逐幀觀看經典演算法——排序中的比較/交換高亮顯示，二分搜尋中不斷縮小的視窗。",
+  "viz_sorting_title": "排序",
+  "viz_search_title": "二分搜尋",
+  "viz_values_label": "數值",
+  "viz_target_label": "目標",
+  "viz_prev": "上一步",
+  "viz_next": "下一步",
+  "viz_reset": "重置",
+  "viz_found": "在索引 {{i}} 找到",
+  "viz_absent": "不在陣列中"
 }

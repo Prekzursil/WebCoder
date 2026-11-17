@@ -1378,5 +1378,17 @@
   "courses_empty": "Kol kas nėra kursų — pirmasis pakeliui.",
   "courses_load_error": "Nepavyko įkelti kurso.",
   "courses_drill_hint": "{{n}} pratimų praktikos puslapyje",
-  "courses_login_progress": "Prisijunkite, kad sektumėte pažangą kurse."
+  "courses_login_progress": "Prisijunkite, kad sektumėte pažangą kurse.",
+  "nav_visualizers": "Vizualizacijos",
+  "viz_title": "Algoritmų vizualizacijos",
+  "viz_intro": "Žiūrėkite klasiką kadrą po kadro — paryškinti palyginimai/sukeitimai rikiavime, siaurėjantis langas dvejetainėje paieškoje.",
+  "viz_sorting_title": "Rikiavimas",
+  "viz_search_title": "Dvejetainė paieška",
+  "viz_values_label": "Reikšmės",
+  "viz_target_label": "Tikslas",
+  "viz_prev": "Atgal",
+  "viz_next": "Toliau",
+  "viz_reset": "Iš naujo",
+  "viz_found": "rasta indeksu {{i}}",
+  "viz_absent": "nėra masyve"
 }

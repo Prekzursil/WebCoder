@@ -103,6 +103,7 @@ const Navbar: React.FC = () => {
     { href: '/learning', label: t('nav_learning', 'Learning') },
     { href: '/drills', label: t('nav_drills', 'Drills') },
     { href: '/courses', label: t('nav_courses', 'Courses') },
+    { href: '/visualizers', label: t('nav_visualizers', 'Visualizers') },
     // Wave D atestats (certifications): the holder's certificates.
     { href: '/certificates', label: t('nav_certificates', 'Certificates') },
     { href: '/submission-history', label: t('nav_submission_history', 'History') },

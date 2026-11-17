@@ -1378,5 +1378,17 @@
   "courses_empty": "Ancora nessun corso: il primo sta arrivando.",
   "courses_load_error": "Impossibile caricare il corso.",
   "courses_drill_hint": "{{n}} esercizi nella pagina degli esercizi",
-  "courses_login_progress": "Accedi per monitorare i tuoi progressi nel corso."
+  "courses_login_progress": "Accedi per monitorare i tuoi progressi nel corso.",
+  "nav_visualizers": "Visualizzatori",
+  "viz_title": "Visualizzatori di algoritmi",
+  "viz_intro": "Guarda i classici fotogramma per fotogramma — confronti/scambi evidenziati negli ordinamenti, la finestra che si restringe nella ricerca binaria.",
+  "viz_sorting_title": "Ordinamento",
+  "viz_search_title": "Ricerca binaria",
+  "viz_values_label": "Valori",
+  "viz_target_label": "Obiettivo",
+  "viz_prev": "Prec.",
+  "viz_next": "Succ.",
+  "viz_reset": "Azzera",
+  "viz_found": "trovato all'indice {{i}}",
+  "viz_absent": "non nell'array"
 }

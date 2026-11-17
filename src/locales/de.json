@@ -1378,5 +1378,17 @@
   "courses_empty": "Noch keine Kurse — der erste ist auf dem Weg.",
   "courses_load_error": "Kurs konnte nicht geladen werden.",
   "courses_drill_hint": "{{n}} Übungen auf der Übungsseite",
-  "courses_login_progress": "Melde dich an, um deinen Kursfortschritt zu verfolgen."
+  "courses_login_progress": "Melde dich an, um deinen Kursfortschritt zu verfolgen.",
+  "nav_visualizers": "Visualisierer",
+  "viz_title": "Algorithmus-Visualisierer",
+  "viz_intro": "Sieh die Klassiker Bild für Bild — Vergleich/Tausch hervorgehoben bei den Sortierungen, das schrumpfende Fenster bei der binären Suche.",
+  "viz_sorting_title": "Sortieren",
+  "viz_search_title": "Binärsuche",
+  "viz_values_label": "Werte",
+  "viz_target_label": "Ziel",
+  "viz_prev": "Zurück",
+  "viz_next": "Weiter",
+  "viz_reset": "Zurücksetzen",
+  "viz_found": "bei Index {{i}} gefunden",
+  "viz_absent": "nicht im Array"
 }
