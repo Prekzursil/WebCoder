@@ -451,8 +451,19 @@ class SampleRunTest(TestCase):
             return_value=(False, "error: expected ';'", None),
         ):
             response = self._run("print(")
-        self.assertTrue(response.data["compile_error"])
+        # Static literal, never the raw diagnostics (CodeQL discipline);
+        # the audit row keeps the compiler output.
+        from scratch.models import ScratchRun
+
+        self.assertEqual(
+            response.data["compile_error"],
+            "Compilation failed — diagnostics are on the run's audit "
+            "record; use the scratch console to reproduce them.",
+        )
         self.assertEqual(response.data["samples"], [])
+        record = ScratchRun.objects.filter(user=self.user).latest("id")
+        self.assertEqual(record.status, ScratchRun.Status.COMPILE_ERROR)
+        self.assertIn("expected ';'", record.error_data)
 
     def test_output_only_compares_answer_text(self):
         self.problem.problem_type = Problem.ProblemType.OUTPUT_ONLY

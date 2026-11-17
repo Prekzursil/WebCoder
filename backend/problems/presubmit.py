@@ -49,6 +49,14 @@ LINT_SOURCE_CAP = 200_000
 #: Sample runs are judge executions — outputs stay bounded.
 SAMPLE_OUTPUT_CAP = 10_000
 
+#: Static literal for compile failures (compiler diagnostics can embed
+#: stack traces; the audit row keeps them, the response never does —
+#: mirrors tooling.py's stress-runner hint).
+_COMPILE_FAILED_HINT = (
+    "Compilation failed — diagnostics are on the run's audit record; "
+    "use the scratch console to reproduce them."
+)
+
 _CPP_FAMILY = ("cpp17", "cpp20", "c11")
 
 
@@ -337,12 +345,13 @@ class PreSubmitSamplesView(APIView):
                 code, language, workspace_dir, None
             )
             if not compile_ok:
-                # Audit row first (the scratch discipline): compiler output
-                # — which can embed stack traces — is persisted and the
-                # RESPONSE carries the persisted field, never the raw
-                # taint (CodeQL py/stack-trace-exposure; same pattern as
-                # the scratch console).
-                record = ScratchRun.objects.create(
+                # Audit row first (the scratch discipline), then a STATIC
+                # literal to the client: compiler output can embed stack
+                # traces, so it never flows to the response (CodeQL
+                # py/stack-trace-exposure; same pattern as tooling.py's
+                # stress runner — reproduce diagnostics in the scratch
+                # console, which owns that surface).
+                ScratchRun.objects.create(
                     user=request.user,
                     language=language,
                     source_code=code,
@@ -351,7 +360,7 @@ class PreSubmitSamplesView(APIView):
                 )
                 return Response(
                     {
-                        "compile_error": record.error_data,
+                        "compile_error": _COMPILE_FAILED_HINT,
                         "samples": [],
                     }
                 )
