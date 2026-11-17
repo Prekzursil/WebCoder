@@ -54,7 +54,6 @@ from .settings import (  # noqa: E402,F401  (explicit list: no wildcard)
     CORS_ALLOWED_ORIGINS,
     CORS_ALLOW_CREDENTIALS,
     CSRF_TRUSTED_ORIGINS,
-    DATABASES,
     DEBUG,
     DEFAULT_AUTO_FIELD,
     DEFAULT_FROM_EMAIL,
