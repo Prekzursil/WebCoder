@@ -1378,5 +1378,17 @@
   "courses_empty": "هنوز دوره‌ای نیست — اولی در راه است.",
   "courses_load_error": "بارگذاری دوره ناموفق بود.",
   "courses_drill_hint": "{{n}} تمرین در صفحه تمرین‌ها",
-  "courses_login_progress": "برای پیگیری پیشرفت دوره وارد شوید."
+  "courses_login_progress": "برای پیگیری پیشرفت دوره وارد شوید.",
+  "nav_visualizers": "بصری‌سازها",
+  "viz_title": "بصری‌ساز الگوریتم‌ها",
+  "viz_intro": "کلاسیک‌ها را قاب‌به‌قاب ببینید — مقایسه/تبادل برجسته در مرتب‌سازی و پنجره فشرده‌شونده در جستجوی دودویی.",
+  "viz_sorting_title": "مرتب‌سازی",
+  "viz_search_title": "جستجوی دودویی",
+  "viz_values_label": "مقادیر",
+  "viz_target_label": "هدف",
+  "viz_prev": "قبلی",
+  "viz_next": "بعدی",
+  "viz_reset": "بازنشانی",
+  "viz_found": "در نمایه {{i}} پیدا شد",
+  "viz_absent": "در آرایه نیست"
 }

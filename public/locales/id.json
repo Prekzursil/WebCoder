@@ -1378,5 +1378,17 @@
   "courses_empty": "Belum ada kursus — yang pertama sedang dalam perjalanan.",
   "courses_load_error": "Gagal memuat kursus.",
   "courses_drill_hint": "{{n}} latihan di halaman latihan",
-  "courses_login_progress": "Masuk untuk melacak progres kursusmu."
+  "courses_login_progress": "Masuk untuk melacak progres kursusmu.",
+  "nav_visualizers": "Visualizer",
+  "viz_title": "Visualizer algoritma",
+  "viz_intro": "Tonton algoritma klasik bingkai demi bingkai — banding/tukar disorot pada pengurutan, jendela yang menyempit pada pencarian biner.",
+  "viz_sorting_title": "Pengurutan",
+  "viz_search_title": "Pencarian biner",
+  "viz_values_label": "Nilai",
+  "viz_target_label": "Target",
+  "viz_prev": "Sebelumnya",
+  "viz_next": "Berikutnya",
+  "viz_reset": "Reset",
+  "viz_found": "ditemukan di indeks {{i}}",
+  "viz_absent": "tidak ada dalam array"
 }

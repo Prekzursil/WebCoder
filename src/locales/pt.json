@@ -1378,5 +1378,17 @@
   "courses_empty": "Ainda sem cursos — o primeiro está a caminho.",
   "courses_load_error": "Falha ao carregar o curso.",
   "courses_drill_hint": "{{n}} exercícios na página de exercícios",
-  "courses_login_progress": "Entre para acompanhar seu progresso no curso."
+  "courses_login_progress": "Entre para acompanhar seu progresso no curso.",
+  "nav_visualizers": "Visualizadores",
+  "viz_title": "Visualizadores de algoritmos",
+  "viz_intro": "Veja os clássicos quadro a quadro — comparações/trocas destacadas nas ordenações, a janela que encolhe na busca binária.",
+  "viz_sorting_title": "Ordenação",
+  "viz_search_title": "Busca binária",
+  "viz_values_label": "Valores",
+  "viz_target_label": "Alvo",
+  "viz_prev": "Anterior",
+  "viz_next": "Próximo",
+  "viz_reset": "Redefinir",
+  "viz_found": "encontrado no índice {{i}}",
+  "viz_absent": "não está no array"
 }

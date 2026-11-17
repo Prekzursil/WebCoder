@@ -1378,5 +1378,17 @@
   "courses_empty": "Još nema kurseva — prvi je na putu.",
   "courses_load_error": "Učitavanje kursa nije uspelo.",
   "courses_drill_hint": "{{n}} vežbi na stranici vežbi",
-  "courses_login_progress": "Prijavi se za praćenje napretka kroz kurs."
+  "courses_login_progress": "Prijavi se za praćenje napretka kroz kurs.",
+  "nav_visualizers": "Vizualizacije",
+  "viz_title": "Vizualizacije algoritama",
+  "viz_intro": "Gledaj klasike kadar po kadar — istaknuta poređenja/zamene pri sortiranju, sužavajući prozor pri binarnom pretraživanju.",
+  "viz_sorting_title": "Sortiranje",
+  "viz_search_title": "Binarno pretraživanje",
+  "viz_values_label": "Vrednosti",
+  "viz_target_label": "Cilj",
+  "viz_prev": "Nazad",
+  "viz_next": "Napred",
+  "viz_reset": "Ponovi",
+  "viz_found": "pronađeno na indeksu {{i}}",
+  "viz_absent": "nije u nizu"
 }

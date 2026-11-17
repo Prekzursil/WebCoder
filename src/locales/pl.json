@@ -1378,5 +1378,17 @@
   "courses_empty": "Jeszcze żadnych kursów — pierwszy w drodze.",
   "courses_load_error": "Nie udało się wczytać kursu.",
   "courses_drill_hint": "{{n}} ćwiczeń na stronie ćwiczeń",
-  "courses_login_progress": "Zaloguj się, aby śledzić postęp w kursie."
+  "courses_login_progress": "Zaloguj się, aby śledzić postęp w kursie.",
+  "nav_visualizers": "Wizualizacje",
+  "viz_title": "Wizualizacje algorytmów",
+  "viz_intro": "Oglądaj klasykę klatka po klatce — podświetlone porównania/zamiany w sortowaniach i kurczące się okno w wyszukiwaniu binarnym.",
+  "viz_sorting_title": "Sortowanie",
+  "viz_search_title": "Wyszukiwanie binarne",
+  "viz_values_label": "Wartości",
+  "viz_target_label": "Cel",
+  "viz_prev": "Wstecz",
+  "viz_next": "Dalej",
+  "viz_reset": "Resetuj",
+  "viz_found": "znaleziono na indeksie {{i}}",
+  "viz_absent": "nie ma w tablicy"
 }

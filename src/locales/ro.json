@@ -1378,5 +1378,17 @@
   "courses_empty": "Încă niciun curs — primul e pe drum.",
   "courses_load_error": "Cursul nu a putut fi încărcat.",
   "courses_drill_hint": "{{n}} exerciții pe pagina de exerciții",
-  "courses_login_progress": "Autentifică-te pentru a-ți urmări progresul prin curs."
+  "courses_login_progress": "Autentifică-te pentru a-ți urmări progresul prin curs.",
+  "nav_visualizers": "Vizualizări",
+  "viz_title": "Vizualizări de algoritmi",
+  "viz_intro": "Urmărește clasicii cadru cu cadru — comparări/schimburi evidențiate la sortări, fereastra care se strânge la căutarea binară.",
+  "viz_sorting_title": "Sortare",
+  "viz_search_title": "Căutare binară",
+  "viz_values_label": "Valori",
+  "viz_target_label": "Țintă",
+  "viz_prev": "Anterior",
+  "viz_next": "Următor",
+  "viz_reset": "Resetează",
+  "viz_found": "găsit pe poziția {{i}}",
+  "viz_absent": "nu e în vector"
 }

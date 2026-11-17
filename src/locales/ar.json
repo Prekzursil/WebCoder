@@ -1378,5 +1378,17 @@
   "courses_empty": "لا دورات بعد — الأولى في الطريق.",
   "courses_load_error": "تعذّر تحميل الدورة.",
   "courses_drill_hint": "{{n}} تمارين في صفحة التمارين",
-  "courses_login_progress": "سجّل الدخول لتتبع تقدمك في الدورة."
+  "courses_login_progress": "سجّل الدخول لتتبع تقدمك في الدورة.",
+  "nav_visualizers": "مُصوِّرات",
+  "viz_title": "مُصوِّرات الخوارزميات",
+  "viz_intro": "شاهد الخوارزميات الكلاسيكية إطارًا بإطار — مقارنات/تبديلات مميزة في الفرز، ونافذة تتقلص في البحث الثنائي.",
+  "viz_sorting_title": "الفرز",
+  "viz_search_title": "البحث الثنائي",
+  "viz_values_label": "القيم",
+  "viz_target_label": "الهدف",
+  "viz_prev": "السابق",
+  "viz_next": "التالي",
+  "viz_reset": "إعادة تعيين",
+  "viz_found": "وُجد في الفهرس {{i}}",
+  "viz_absent": "ليس في المصفوفة"
 }
