@@ -40,6 +40,7 @@ from users.permissions import IsAdminUser
 from problems.models import Problem
 from submissions.models import Submission, SubmissionTestResult
 from users.models import User
+from .jsonlog import JsonFormatter  # re-export (see __all__)
 
 # In-flight verdicts a submission can sit in while queued/being judged —
 # the "queue depth" signal for the metrics snapshot.
