@@ -54,9 +54,10 @@ export default function ClassInsights({ classroomId }: { classroomId: number }):
 
   const isTeacher = auth.isAuthenticated && auth.user?.role === 'TEACHER';
   const isAdmin = auth.isAuthenticated && auth.user?.role === 'ADMIN';
-  if (!isTeacher && !isAdmin) return null;
+  const canSee = isTeacher || isAdmin;
 
   useEffect(() => {
+    if (!canSee) return;
     let cancelled = false;
     ClassroomService.effortBoard(classroomId)
       .then((d) => !cancelled && setEffort(d.results))
@@ -67,7 +68,9 @@ export default function ClassInsights({ classroomId }: { classroomId: number }):
     return () => {
       cancelled = true;
     };
-  }, [classroomId]);
+  }, [classroomId, canSee]);
+
+  if (!canSee) return null;
 
   const importMembers = async () => {
     setError(null);
