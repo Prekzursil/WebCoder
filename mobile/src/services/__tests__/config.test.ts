@@ -16,7 +16,7 @@ describe('API_V1_URL derivation', () => {
 
   it('keeps an http base (path preserved, trailing slash trimmed)', () => {
     process.env.EXPO_PUBLIC_API_BASE = 'http://10.0.2.2:8010/api/v1/';
-    jest.isolateModule(() => {
+    jest.isolateModules(() => {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { API_V1_URL } = jest.requireActual('../config');
       expect(API_V1_URL).toBe('http://10.0.2.2:8010/api/v1');
@@ -26,7 +26,7 @@ describe('API_V1_URL derivation', () => {
   it('throws on a non-http(s) base', () => {
     process.env.EXPO_PUBLIC_API_BASE = 'ftp://10.0.2.2:8010/api/v1';
     expect(() =>
-      jest.isolateModule(() => {
+      jest.isolateModules(() => {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         jest.requireActual('../config');
       }),
@@ -35,7 +35,7 @@ describe('API_V1_URL derivation', () => {
 
   it('drops query and fragment from the derived base', () => {
     process.env.EXPO_PUBLIC_API_BASE = 'https://api.example.com/api/v1?token=x#frag';
-    jest.isolateModule(() => {
+    jest.isolateModules(() => {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { API_V1_URL } = jest.requireActual('../config');
       expect(API_V1_URL).toBe('https://api.example.com/api/v1');
