@@ -76,6 +76,8 @@ class SolutionsShowcaseTest(TestCase):
             row["id"] for row in self._get("?sort=shortest").data["results"]
         ]
         self.assertEqual(ids_shortest[0], short_code.id)
+        # Despite being the fastest, the long solution sorts last by length.
+        self.assertEqual(ids_shortest[-1], long_code.id)
         ids_newest = [row["id"] for row in self._get("?sort=newest").data["results"]]
         self.assertEqual(ids_newest[0], newest.id)
 
