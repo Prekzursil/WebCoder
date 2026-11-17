@@ -88,8 +88,10 @@ class LintRulesTest(TestCase):
         # java11 (neither the python nor the C arm) lints to nothing —
         # the elif-chain fall-through arm.
         self.assertEqual(
-            self._rules("class Main { public static void main(String[] a) {} }",
-                        language="java11"),
+            self._rules(
+                "class Main { public static void main(String[] a) {} }",
+                language="java11",
+            ),
             [],
         )
 
