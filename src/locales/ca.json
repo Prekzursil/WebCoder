@@ -1370,5 +1370,13 @@
   "insights_import_hint": "Enganxa noms d'usuari (separats per comes o salts de línia): els comptes existents s'inscriuen; els desconeguts es informen.",
   "insights_import_button": "Inscriure",
   "import_result": "Afegits {{a}} · ja membres {{b}} · falten: {{m}}",
-  "exam_pdf_link": "PDF d'examen"
+  "exam_pdf_link": "PDF d'examen",
+  "nav_courses": "Cursos",
+  "courses_title": "Cursos",
+  "courses_intro": "Camins estructurats: llegeix la idea, practica-la i resol els problemes — en ordre.",
+  "courses_lessons": "lliçons",
+  "courses_empty": "Encara no hi ha cursos: el primer està en camí.",
+  "courses_load_error": "No s'ha pogut carregar el curs.",
+  "courses_drill_hint": "{{n}} exercicis a la pàgina d'exercicis",
+  "courses_login_progress": "Inicia sessió per seguir el teu progrés al curs."
 }

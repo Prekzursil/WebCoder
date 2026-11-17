@@ -1370,5 +1370,13 @@
   "insights_import_hint": "Zalijepi korisnička imena (odvojena zarezom ili novim redom) — postojeći računi se upisuju; nepoznata imena se prijavljuju.",
   "insights_import_button": "Upiši",
   "import_result": "Dodano {{a}} · već članovi {{b}} · nedostaju: {{m}}",
-  "exam_pdf_link": "PDF ispita"
+  "exam_pdf_link": "PDF ispita",
+  "nav_courses": "Tečajevi",
+  "courses_title": "Tečajevi",
+  "courses_intro": "Strukturirane staze: pročitaj ideju, uvježbaj je, zatim riješi zadatke — redom.",
+  "courses_lessons": "lekcije",
+  "courses_empty": "Još nema tečajeva — prvi je na putu.",
+  "courses_load_error": "Učitavanje tečaja nije uspjelo.",
+  "courses_drill_hint": "{{n}} vježbi na stranici vježbi",
+  "courses_login_progress": "Prijavi se za praćenje napretka kroz tečaj."
 }

@@ -21,4 +21,11 @@ urlpatterns = [
         views.DrillAnswerView.as_view(),
         name="drill-answer",
     ),
+    # Wave E item 45: structured courses (Scratch→Python first).
+    path("courses/", views.CourseListView.as_view(), name="courses"),
+    path(
+        "courses/<slug:slug>/",
+        views.CourseDetailView.as_view(),
+        name="course-detail",
+    ),
 ]

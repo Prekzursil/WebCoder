@@ -517,6 +517,43 @@ export const LearningService = {
       nodes: SkillNode[];
       suggestion: { problem_id: number; title_i18n: Record<string, string> }[];
     }>('/learning/skills/'),
+  courses: () =>
+    apiFetch<{
+      count: number;
+      results: {
+        slug: string;
+        title_i18n: Record<string, string>;
+        description_i18n: Record<string, string>;
+        lesson_count: number;
+        problem_count: number;
+        solved_count: number;
+      }[];
+    }>('/learning/courses/'),
+  course: (slug: string) =>
+    apiFetch<{
+      slug: string;
+      title_i18n: Record<string, string>;
+      description_i18n: Record<string, string>;
+      lessons: {
+        id: number;
+        order: number;
+        title_i18n: Record<string, string>;
+        theory: {
+          front_en: string;
+          back_en: string;
+          front_ro: string;
+          back_ro: string;
+        } | null;
+        drills: { id: number; kind: string }[];
+        problems: {
+          id: number;
+          title_i18n: Record<string, string>;
+          difficulty: string;
+          is_solved: boolean;
+        }[];
+        solved_count: number;
+      }[];
+    }>(`/learning/courses/${slug}/`),
   theory: (tag?: string) =>
     apiFetch<{
       count: number;

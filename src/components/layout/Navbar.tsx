@@ -102,6 +102,7 @@ const Navbar: React.FC = () => {
     { href: '/sandbox-receipts', label: t('nav_receipts', 'Sandbox receipts') },
     { href: '/learning', label: t('nav_learning', 'Learning') },
     { href: '/drills', label: t('nav_drills', 'Drills') },
+    { href: '/courses', label: t('nav_courses', 'Courses') },
     // Wave D atestats (certifications): the holder's certificates.
     { href: '/certificates', label: t('nav_certificates', 'Certificates') },
     { href: '/submission-history', label: t('nav_submission_history', 'History') },

@@ -1370,5 +1370,13 @@
   "insights_import_hint": "Įklijuokite naudotojų vardus (atskirtus kableliu arba nauja eilute) — esamos paskyros įrašomos; nežinomi vardai pranešami.",
   "insights_import_button": "Įrašyti",
   "import_result": "Pridėta {{a}} · jau nariai {{b}} · trūksta: {{m}}",
-  "exam_pdf_link": "Egzamino PDF"
+  "exam_pdf_link": "Egzamino PDF",
+  "nav_courses": "Kursai",
+  "courses_title": "Kursai",
+  "courses_intro": "Struktūruoti keliai: perskaityk idėją, prisijunk, tada spręsk užduotis — tvarka.",
+  "courses_lessons": "pamokos",
+  "courses_empty": "Kol kas nėra kursų — pirmasis pakeliui.",
+  "courses_load_error": "Nepavyko įkelti kurso.",
+  "courses_drill_hint": "{{n}} pratimų praktikos puslapyje",
+  "courses_login_progress": "Prisijunkite, kad sektumėte pažangą kurse."
 }

@@ -1370,5 +1370,13 @@
   "insights_import_hint": "粘贴用户名（逗号或换行分隔）——已有账户会被注册；未知用户名会被报告。",
   "insights_import_button": "注册",
   "import_result": "已添加 {{a}} · 已是成员 {{b}} · 缺失：{{m}}",
-  "exam_pdf_link": "考试 PDF"
+  "exam_pdf_link": "考试 PDF",
+  "nav_courses": "课程",
+  "courses_title": "课程",
+  "courses_intro": "结构化路径：先读概念，再练习，然后按顺序解题。",
+  "courses_lessons": "课",
+  "courses_empty": "还没有课程——第一个即将上线。",
+  "courses_load_error": "课程加载失败。",
+  "courses_drill_hint": "练习页上有 {{n}} 个练习",
+  "courses_login_progress": "登录以跟踪你的课程进度。"
 }

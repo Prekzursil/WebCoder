@@ -1370,5 +1370,13 @@
   "insights_import_hint": "Cole nomes de usuário (separados por vírgula ou nova linha) — contas existentes são matriculadas; desconhecidos são relatados.",
   "insights_import_button": "Matricular",
   "import_result": "Adicionados {{a}} · já membros {{b}} · faltando: {{m}}",
-  "exam_pdf_link": "PDF da prova"
+  "exam_pdf_link": "PDF da prova",
+  "nav_courses": "Cursos",
+  "courses_title": "Cursos",
+  "courses_intro": "Trilhos estruturados: leia a ideia, pratique, depois resolva os problemas — em ordem.",
+  "courses_lessons": "lições",
+  "courses_empty": "Ainda sem cursos — o primeiro está a caminho.",
+  "courses_load_error": "Falha ao carregar o curso.",
+  "courses_drill_hint": "{{n}} exercícios na página de exercícios",
+  "courses_login_progress": "Entre para acompanhar seu progresso no curso."
 }

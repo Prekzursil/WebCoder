@@ -110,12 +110,17 @@ class Command(BaseCommand):
         created_tracks = self._seed_tracks(dry_run)
         created_cards, created_edges = self._seed_learning(dry_run)
         created_drills = self._seed_drills(dry_run)
+        from learning.courses import seed_courses
+
+        created_course = created_lesson = 0
+        if not dry_run:
+            created_course, created_lesson = seed_courses()
 
         self.stdout.write(
             self.style.SUCCESS(
                 f"seed_problems: created={created_problems} skipped(existing)={skipped} "
                 f"tracks_created={created_tracks} cards={created_cards} edges={created_edges} "
-                f"drills={created_drills}"
+                f"drills={created_drills} course={created_course}/{created_lesson}L"
                 f"{' (dry run)' if dry_run else ''}"
             )
         )

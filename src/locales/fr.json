@@ -1370,5 +1370,13 @@
   "insights_import_hint": "Collez les noms d'utilisateur (séparés par des virgules ou des retours à la ligne) — les comptes existants sont inscrits ; les inconnus sont signalés.",
   "insights_import_button": "Inscrire",
   "import_result": "Ajoutés {{a}} · déjà membres {{b}} · manquants : {{m}}",
-  "exam_pdf_link": "PDF d'examen"
+  "exam_pdf_link": "PDF d'examen",
+  "nav_courses": "Cours",
+  "courses_title": "Cours",
+  "courses_intro": "Parcours structurés : lisez l'idée, entraînez-vous, puis résolvez les problèmes — dans l'ordre.",
+  "courses_lessons": "leçons",
+  "courses_empty": "Pas encore de cours — le premier arrive.",
+  "courses_load_error": "Échec du chargement du cours.",
+  "courses_drill_hint": "{{n}} exercices sur la page d'exercices",
+  "courses_login_progress": "Connectez-vous pour suivre votre progression dans le cours."
 }

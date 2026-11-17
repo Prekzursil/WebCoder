@@ -1370,5 +1370,13 @@
   "insights_import_hint": "Illeszd be a felhasználóneveket (vesszővel vagy új sorral elválasztva) — a meglévő fiókok beiratkoznak; az ismeretlen neveket jelentjük.",
   "insights_import_button": "Beirat",
   "import_result": "Hozzáadva {{a}} · már tag {{b}} · hiányzik: {{m}}",
-  "exam_pdf_link": "Vizsga PDF"
+  "exam_pdf_link": "Vizsga PDF",
+  "nav_courses": "Kurzusok",
+  "courses_title": "Kurzusok",
+  "courses_intro": "Strukturált útvonalak: olvasd az ötletet, gyakorold, majd oldd meg a feladatokat — sorrendben.",
+  "courses_lessons": "leckék",
+  "courses_empty": "Még nincs kurzus — az első úton van.",
+  "courses_load_error": "A kurzus betöltése nem sikerült.",
+  "courses_drill_hint": "{{n}} gyakorlat a gyakorlatok oldalon",
+  "courses_login_progress": "Jelentkezz be a kurzus előrehaladásának követéséhez."
 }

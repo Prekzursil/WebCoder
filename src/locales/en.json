@@ -1370,5 +1370,13 @@
   "insights_import_hint": "Paste usernames (comma or newline separated) — existing accounts are enrolled; unknown names are reported.",
   "insights_import_button": "Enroll",
   "import_result": "Added {{a}} · already members {{b}} · missing: {{m}}",
-  "exam_pdf_link": "Exam PDF"
+  "exam_pdf_link": "Exam PDF",
+  "nav_courses": "Courses",
+  "courses_title": "Courses",
+  "courses_intro": "Structured paths: read the idea, drill it, then solve the problems — in order.",
+  "courses_lessons": "lessons",
+  "courses_empty": "No courses yet — the first one is on its way.",
+  "courses_load_error": "Failed to load the course.",
+  "courses_drill_hint": "{{n}} drills on the drills page",
+  "courses_login_progress": "Log in to track your progress through the course."
 }

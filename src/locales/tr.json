@@ -1370,5 +1370,13 @@
   "insights_import_hint": "Kullanıcı adlarını yapıştır (virgül veya yeni satırla ayrılmış) — mevcut hesaplar kaydedilir; bilinmeyen adlar raporlanır.",
   "insights_import_button": "Kaydet",
   "import_result": "Eklendi {{a}} · zaten üye {{b}} · eksik: {{m}}",
-  "exam_pdf_link": "Sınav PDF'i"
+  "exam_pdf_link": "Sınav PDF'i",
+  "nav_courses": "Kurslar",
+  "courses_title": "Kurslar",
+  "courses_intro": "Yapılandırılmış yollar: fikri oku, pratik yap, sonra problemleri sırayla çöz.",
+  "courses_lessons": "ders",
+  "courses_empty": "Henüz kurs yok — ilki yolda.",
+  "courses_load_error": "Kurs yüklenemedi.",
+  "courses_drill_hint": "alıştırma sayfasında {{n}} alıştırma",
+  "courses_login_progress": "Kurs ilerlemenizi takip etmek için giriş yapın."
 }

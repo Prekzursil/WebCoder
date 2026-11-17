@@ -128,3 +128,142 @@ class Drill(models.Model):
 
     def __str__(self):
         return f"{self.kind} #{self.id} ({self.tag_id})"
+
+
+class LessonProblem(models.Model):
+    """Ordered lesson↔problem membership."""
+
+    lesson = models.ForeignKey(
+        "learning.Lesson",
+        on_delete=models.CASCADE,
+        related_name="lesson_problems",
+        verbose_name=_("lesson"),
+    )
+    problem = models.ForeignKey(
+        "problems.Problem",
+        on_delete=models.CASCADE,
+        related_name="lesson_problems",
+        verbose_name=_("problem"),
+    )
+    order = models.PositiveIntegerField(_("order"), default=0)
+
+    class Meta:
+        verbose_name = _("lesson problem")
+        verbose_name_plural = _("lesson problems")
+        ordering = ["lesson", "order", "id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["lesson", "problem"], name="unique_problem_per_lesson"
+            )
+        ]
+
+    def __str__(self):
+        return "lesson %d · #%d problem %d" % (
+            self.lesson_id,
+            self.order,
+            self.problem_id,
+        )
+
+
+class Lesson(models.Model):
+    """One step of a course (item 45): theory + drills + problems.
+
+    A lesson's problems are plain problem references — block problems,
+    partial-code problems and normal ones all work, because the problem
+    page renders the right editor for each.
+    """
+
+    course = models.ForeignKey(
+        "learning.Course",
+        on_delete=models.CASCADE,
+        related_name="lessons",
+        verbose_name=_("course"),
+    )
+    order = models.PositiveIntegerField(_("order"), default=0)
+    title_i18n = models.JSONField(_("title (i18n)"))
+    theory_card = models.ForeignKey(
+        "learning.TheoryCard",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="lessons",
+        verbose_name=_("theory card"),
+    )
+    problems = models.ManyToManyField(
+        "problems.Problem",
+        through="learning.LessonProblem",
+        related_name="lessons",
+        verbose_name=_("problems"),
+    )
+    drills = models.ManyToManyField(
+        "learning.Drill",
+        through="learning.LessonDrill",
+        related_name="lessons",
+        blank=True,
+        verbose_name=_("drills"),
+    )
+
+    class Meta:
+        verbose_name = _("lesson")
+        verbose_name_plural = _("lessons")
+        ordering = ["course", "order", "id"]
+
+    def __str__(self):
+        if isinstance(self.title_i18n, dict):
+            return self.title_i18n.get("en", f"Lesson {self.id}")
+        return f"Lesson {self.id}"
+
+
+class LessonDrill(models.Model):
+    """Ordered lesson↔drill membership."""
+
+    lesson = models.ForeignKey(
+        "learning.Lesson",
+        on_delete=models.CASCADE,
+        related_name="lesson_drills",
+        verbose_name=_("lesson"),
+    )
+    drill = models.ForeignKey(
+        "learning.Drill",
+        on_delete=models.CASCADE,
+        related_name="lesson_rows",
+        verbose_name=_("drill"),
+    )
+    order = models.PositiveIntegerField(_("order"), default=0)
+
+    class Meta:
+        verbose_name = _("lesson drill")
+        verbose_name_plural = _("lesson drills")
+        ordering = ["lesson", "order", "id"]
+
+    def __str__(self):
+        return "lesson %d · drill %d" % (self.lesson_id, self.drill_id)
+
+
+class Course(models.Model):
+    """A structured course (item 45): ordered lessons with progress.
+
+    The Scratch→Python bridge ships as the first seeded course; lessons
+    lean on the surfaces that already exist (theory cards, drills,
+    problems — including the block editor problems from the wave D
+    engine), so the course layer stays a thin ordered wrapper.
+    """
+
+    slug = models.SlugField(_("slug"), max_length=140, unique=True)
+    title_i18n = models.JSONField(_("title (i18n)"))
+    description_i18n = models.JSONField(
+        _("description (i18n)"), default=dict, blank=True
+    )
+    is_public = models.BooleanField(_("public"), default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("course")
+        verbose_name_plural = _("courses")
+        ordering = ["id"]
+
+    def __str__(self):
+        if isinstance(self.title_i18n, dict):
+            return self.title_i18n.get("en", self.slug)
+        return self.slug

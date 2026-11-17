@@ -1370,5 +1370,13 @@
   "insights_import_hint": "사용자 이름을 붙여넣으세요(쉼표 또는 줄바꿈 구분) — 기존 계정은 등록되고 알 수 없는 이름은 보고됩니다.",
   "insights_import_button": "등록",
   "import_result": "추가 {{a}} · 이미 회원 {{b}} · 누락: {{m}}",
-  "exam_pdf_link": "시험 PDF"
+  "exam_pdf_link": "시험 PDF",
+  "nav_courses": "코스",
+  "courses_title": "코스",
+  "courses_intro": "구조화된 경로: 개념을 읽고, 연습하고, 순서대로 문제를 푸세요.",
+  "courses_lessons": "개의 레슨",
+  "courses_empty": "아직 코스가 없습니다 — 첫 코스가 준비 중입니다.",
+  "courses_load_error": "코스를 불러오지 못했습니다.",
+  "courses_drill_hint": "드릴 페이지에 {{n}}개의 드릴",
+  "courses_login_progress": "코스 진행 상황을 추적하려면 로그인하세요."
 }
