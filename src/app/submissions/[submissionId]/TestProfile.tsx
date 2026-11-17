@@ -109,7 +109,11 @@ const BAND_KEYS: Record<ClosenessType['band'], string> = {
   NONE: 'closeness_none',
 };
 
-export function ClosenessBadge({ closeness }: { closeness: ClosenessType | null | undefined }): ReactNode {
+export function ClosenessBadge({
+  closeness,
+}: {
+  closeness: ClosenessType | null | undefined;
+}): ReactNode {
   const { t } = useTranslation();
   if (!closeness) return null;
   const color = BAND_COLORS[closeness.band];
@@ -138,7 +142,10 @@ export function ClosenessBadge({ closeness }: { closeness: ClosenessType | null 
   );
 }
 
-function diffRows(expected: string, actual: string): { line: number; exp: string; act: string; first: boolean }[] {
+function diffRows(
+  expected: string,
+  actual: string,
+): { line: number; exp: string; act: string; first: boolean }[] {
   const expLines = expected.split('\n');
   const actLines = actual.split('\n');
   const rows: { line: number; exp: string; act: string; first: boolean }[] = [];
