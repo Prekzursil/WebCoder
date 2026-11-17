@@ -8,6 +8,9 @@ export interface TestCaseType {
   is_sample: boolean;
   points: number;
   order?: number;
+  subtask?: string;
+  /** [wave E item 6] per-test time bar override. */
+  time_limit_ms?: number | null;
 }
 
 export interface TestCaseUIManaged extends TestCaseType {

@@ -149,6 +149,12 @@ class LanguageSpec:
     #: class name, and Go/Kotlin compile through an ``sh -c`` string whose
     #: tokens cannot be swapped for the checker's file names.
     checker_capable: bool = True
+    #: Wave E item 18 (language version pinning): the exact pinned
+    #: toolchain the judge-runner image installs (Dockerfile.judge is the
+    #: authority; this field PUBLISHES it). Surfaced on
+    #: /api/v1/public/languages/ so problem pages, /help/judge and API
+    #: consumers all show the same version string the sandbox runs.
+    toolchain: str = ""
 
     def compile_argv(
         self,
@@ -207,6 +213,7 @@ _PYTHON3 = LanguageSpec(
     docker_image="python:3.11-slim",
     time_multiplier=3.0,
     memory_multiplier=1.5,
+    toolchain="CPython 3.11",
 )
 
 _CPP17 = LanguageSpec(
@@ -224,6 +231,7 @@ _CPP17 = LanguageSpec(
     compile_artifact="user_program",
     run_command=("./user_program",),
     docker_image="gcc:latest",
+    toolchain="g++ (Debian trixie, -std=c++17 -O2)",
 )
 
 # Matrix row 20 (modern toolchains): C++20 beside C++17 — the CF/DMOJ
@@ -244,6 +252,7 @@ _CPP20 = LanguageSpec(
     compile_artifact="user_program",
     run_command=("./user_program",),
     docker_image="gcc:latest",
+    toolchain="g++ (Debian trixie, -std=c++20 -O2)",
 )
 
 _C11 = LanguageSpec(
@@ -262,6 +271,7 @@ _C11 = LanguageSpec(
     compile_artifact="user_program",
     run_command=("./user_program",),
     docker_image="gcc:latest",
+    toolchain="gcc (Debian trixie, -std=c11 -O2)",
 )
 
 _JAVA11 = LanguageSpec(
@@ -281,6 +291,7 @@ _JAVA11 = LanguageSpec(
     time_multiplier=2.0,
     memory_floor_kb=524288,
     checker_capable=False,
+    toolchain="OpenJDK 21 javac (--release 11)",
 )
 
 _NODEJS20 = LanguageSpec(
@@ -293,6 +304,7 @@ _NODEJS20 = LanguageSpec(
     docker_image="node:20-slim",
     time_multiplier=2.0,
     memory_floor_kb=524288,
+    toolchain="Node.js 20 (Debian trixie)",
 )
 
 # RO-5 (competitive roadmap): Free Pascal — RO schools still teach it;
@@ -307,6 +319,7 @@ _PASCAL = LanguageSpec(
     compile_artifact="user_program",
     run_command=("./user_program",),
     docker_image="frolvlad/alpine-fpc",
+    toolchain="Free Pascal (fp-compiler)",
 )
 
 # ---------------------------------------------------------------------------
@@ -359,6 +372,7 @@ _GO = LanguageSpec(
     memory_floor_kb=262144,
     compile_timeout_s=60,
     checker_capable=False,
+    toolchain="Debian golang 1.24",
 )
 
 _RUST = LanguageSpec(
@@ -376,6 +390,7 @@ _RUST = LanguageSpec(
     run_command=("./user_program",),
     docker_image="rust:1-slim",
     compile_timeout_s=60,
+    toolchain="rustc (Debian trixie, single-file)",
 )
 
 _CSHARP = LanguageSpec(
@@ -393,6 +408,7 @@ _CSHARP = LanguageSpec(
     time_multiplier=2.0,
     memory_floor_kb=524288,
     compile_timeout_s=60,
+    toolchain="Mono mcs + mono-runtime 6",
 )
 
 _RUBY = LanguageSpec(
@@ -405,6 +421,7 @@ _RUBY = LanguageSpec(
     docker_image="ruby:3.3-slim",
     time_multiplier=3.0,
     memory_multiplier=1.5,
+    toolchain="ruby (Debian trixie)",
 )
 
 _KOTLIN = LanguageSpec(
@@ -444,6 +461,7 @@ _KOTLIN = LanguageSpec(
     memory_floor_kb=524288,
     compile_timeout_s=120,
     checker_capable=False,
+    toolchain="kotlinc 2.0.21 (sha256-pinned)",
 )
 
 _LUA = LanguageSpec(
@@ -455,6 +473,7 @@ _LUA = LanguageSpec(
     run_command=("lua5.4", "user_code.lua"),
     docker_image="nickblah/lua:5.4",
     time_multiplier=2.0,
+    toolchain="Lua 5.4",
 )
 
 _PHP = LanguageSpec(
@@ -467,6 +486,7 @@ _PHP = LanguageSpec(
     docker_image="php:8.4-cli",
     time_multiplier=3.0,
     memory_multiplier=1.5,
+    toolchain="PHP CLI (Debian trixie)",
 )
 
 _HASKELL = LanguageSpec(
@@ -485,6 +505,7 @@ _HASKELL = LanguageSpec(
     docker_image="haskell:9.6-slim",
     memory_floor_kb=262144,
     compile_timeout_s=90,
+    toolchain="GHC (Debian trixie)",
 )
 
 #: All supported languages, keyed by submission-side language id.

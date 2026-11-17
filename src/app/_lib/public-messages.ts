@@ -180,6 +180,7 @@ export const PUBLIC_KEYS: string[] = [
   'judge_docs_intro',
   'judge_docs_limits',
   'judge_docs_language',
+  'judge_docs_toolchain',
   'judge_docs_compile',
   'judge_docs_run',
   'judge_docs_limits_column',

@@ -103,6 +103,9 @@ class PublicLanguagesView(APIView):
             {
                 "id": spec.language_id,
                 "name": spec.display_name,
+                # Wave E item 18: the pinned toolchain string (single
+                # source: the registry mirrors Dockerfile.judge).
+                "toolchain": spec.toolchain,
                 "compile_command": list(spec.compile_command or ()),
                 "run_command": list(spec.run_command),
                 # Language-fair limits (J5): the exact multipliers the judge

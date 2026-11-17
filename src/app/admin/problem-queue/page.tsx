@@ -10,6 +10,7 @@ import { ProblemType } from '@/types';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import ProtectedRoute from '@/components/common/ProtectedRoute';
 import TableScroll from '@/components/common/TableScroll';
+import TestsPreviewPanel from './TestsPreviewPanel';
 
 // Ported from frontend/webcoder_ui/src/pages/admin/ProblemVerificationQueuePage.tsx
 // (CRA reference). Route: /admin/problem-queue (CRA App.tsx:42) —
@@ -42,6 +43,8 @@ export function ProblemVerificationQueuePage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [feedbackMap, setFeedbackMap] = useState<{ [problemId: number]: string }>({});
+  // [wave E items 16/17] the expanded tests-preview row per problem.
+  const [previewId, setPreviewId] = useState<number | null>(null);
 
   const fetchPendingProblems = async () => {
     if (auth.isAuthenticated) {
@@ -151,53 +154,79 @@ export function ProblemVerificationQueuePage() {
               </thead>
               <tbody>
                 {pendingProblems.map((problem) => (
-                  <tr key={problem.id}>
-                    <td>{problem.id}</td>
-                    <td>
-                      <Link href={`/problems/${problem.id}/edit`}>
-                        {problem.title_i18n[i18n.language] || problem.title_i18n.en}
-                      </Link>
-                    </td>
-                    <td>{problem.author?.username || t('unknown_author', 'Unknown')}</td>
-                    <td>{problem.difficulty}</td>
-                    <td>
-                      <textarea
-                        value={feedbackMap[problem.id] || ''}
-                        onChange={(e) => handleFeedbackChange(problem.id, e.target.value)}
-                        rows={2}
-                        style={{ width: '90%' }}
-                        placeholder={t('feedback_placeholder_rejection', 'Required for rejection')}
-                      />
-                    </td>
-                    <td style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                      <button
-                        onClick={() => handleApproveProblem(problem.id)}
-                        style={{
-                          background: 'rgba(74,222,128,0.15)',
-                          color: 'var(--success)',
-                          border: '1px solid rgba(74,222,128,0.3)',
-                          borderRadius: '6px',
-                          padding: '4px 12px',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        {t('approve_button', 'Approve')}
-                      </button>
-                      <button
-                        onClick={() => handleRejectProblem(problem.id)}
-                        style={{
-                          background: 'rgba(248,113,113,0.15)',
-                          color: 'var(--danger)',
-                          border: '1px solid rgba(248,113,113,0.3)',
-                          borderRadius: '6px',
-                          padding: '4px 12px',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        {t('reject_button', 'Reject')}
-                      </button>
-                    </td>
-                  </tr>
+                  <React.Fragment key={problem.id}>
+                    <tr>
+                      <td>{problem.id}</td>
+                      <td>
+                        <Link href={`/problems/${problem.id}/edit`}>
+                          {problem.title_i18n[i18n.language] || problem.title_i18n.en}
+                        </Link>
+                      </td>
+                      <td>{problem.author?.username || t('unknown_author', 'Unknown')}</td>
+                      <td>{problem.difficulty}</td>
+                      <td>
+                        <textarea
+                          value={feedbackMap[problem.id] || ''}
+                          onChange={(e) => handleFeedbackChange(problem.id, e.target.value)}
+                          rows={2}
+                          style={{ width: '90%' }}
+                          placeholder={t(
+                            'feedback_placeholder_rejection',
+                            'Required for rejection',
+                          )}
+                        />
+                      </td>
+                      <td style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <button
+                          onClick={() => handleApproveProblem(problem.id)}
+                          style={{
+                            background: 'rgba(74,222,128,0.15)',
+                            color: 'var(--success)',
+                            border: '1px solid rgba(74,222,128,0.3)',
+                            borderRadius: '6px',
+                            padding: '4px 12px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {t('approve_button', 'Approve')}
+                        </button>
+                        <button
+                          onClick={() => setPreviewId(previewId === problem.id ? null : problem.id)}
+                          data-testid={`preview-toggle-${problem.id}`}
+                          style={{
+                            background: 'rgba(129,140,248,0.15)',
+                            color: 'var(--accent)',
+                            border: '1px solid rgba(129,140,248,0.3)',
+                            borderRadius: '6px',
+                            padding: '4px 12px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {t('verify_preview_tests', 'Tests')}
+                        </button>
+                        <button
+                          onClick={() => handleRejectProblem(problem.id)}
+                          style={{
+                            background: 'rgba(248,113,113,0.15)',
+                            color: 'var(--danger)',
+                            border: '1px solid rgba(248,113,113,0.3)',
+                            borderRadius: '6px',
+                            padding: '4px 12px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {t('reject_button', 'Reject')}
+                        </button>
+                      </td>
+                    </tr>
+                    {previewId === problem.id && (
+                      <tr>
+                        <td colSpan={6} style={{ padding: 0, background: 'var(--surface)' }}>
+                          <TestsPreviewPanel problemId={problem.id} />
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>

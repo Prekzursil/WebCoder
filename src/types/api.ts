@@ -193,6 +193,8 @@ export interface AssignmentSolutionsResponse {
 export interface LanguageRow {
   id: string;
   name: string;
+  /** [wave E item 18] the pinned toolchain string (registry single source). */
+  toolchain?: string;
   compile_command: string[];
   run_command: string[];
   /** Language-fair limits (J5): the judge's exact multipliers. */

@@ -13,6 +13,7 @@ import {
 import type { LanguageRow } from '@/types/api';
 import { useAuth } from '@/context/AuthContext';
 import { ProblemType, TagType, TestCaseType, TestCaseUIManaged } from '@/types';
+import StressPanel from '../[problemId]/edit/StressPanel';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import SubmissionStatusDisplay from '@/components/common/SubmissionStatusDisplay';
 
@@ -1240,6 +1241,9 @@ export default function ProblemFormPage() {
               {t('add_test_case_button', 'Add Test Case')}
             </button>
           </div>
+          {/* [wave E item 12] the stress helper beside the tests it feeds:
+              cross-check a solution vs a brute force on generated inputs. */}
+          <StressPanel language={allowedLanguages[0] ?? 'python3'} />
         </div>
 
         <button

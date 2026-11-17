@@ -24,6 +24,7 @@ from .community import (
     RelatedArticlesView,
 )
 from .presubmit import PreSubmitLintView, PreSubmitSamplesView
+from .strength import TestStrengthView
 
 app_name = "problems"
 
@@ -94,6 +95,13 @@ urlpatterns = [
     # Wave E items 8/9/10: pre-submit assistance — the static lint (with
     # the constraint-aware overflow reading) and the sample dress-rehearsal
     # run that costs no submission.
+    # Wave E item 16: per-test catch-rate scoring for the authoring and
+    # verification surfaces (author/verifier/admin only).
+    path(
+        "<int:problem_id>/test-strength/",
+        TestStrengthView.as_view(),
+        name="problem-test-strength",
+    ),
     path(
         "<int:problem_id>/lint/",
         PreSubmitLintView.as_view(),

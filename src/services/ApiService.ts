@@ -432,6 +432,64 @@ export interface SampleRunResult {
   mismatch_hint: string | null;
 }
 
+/** Wave E item 16 — testcase strength scoring (verifier surface). */
+export interface TestStrengthRow {
+  test_id: number;
+  order: number;
+  is_sample: boolean;
+  subtask: string;
+  points: number;
+  time_limit_ms: number | null;
+  wrong_solutions: number;
+  caught: number;
+  catch_rate: number | null;
+}
+
+export const VerificationService = {
+  getTestStrength: (problemId: number | string) =>
+    apiFetch<{
+      problem_id: number;
+      calibrated: boolean;
+      wrong_solutions: number;
+      suite_strength: number | null;
+      tests: TestStrengthRow[];
+    }>(`/problems/${problemId}/test-strength/`),
+  rejudgeSubmission: (submissionId: number | string) =>
+    apiFetch<{ detail: string; id: number }>(`/submissions/submissions/${submissionId}/rejudge/`, {
+      method: 'POST',
+    }),
+};
+
+/** Wave E item 12 — the JDG-11 stress runner, surfaced for authors. */
+export interface StressRunResponse {
+  id: number;
+  iterations: number;
+  found: boolean;
+  mismatch: {
+    phase: string;
+    input?: string;
+    verdict?: string;
+    solution_output?: string;
+    reference_output?: string;
+  } | null;
+}
+
+export const StressService = {
+  run: (payload: {
+    generator_language: string;
+    generator_code: string;
+    solution_language: string;
+    solution_code: string;
+    reference_language: string;
+    reference_code: string;
+    iterations: number;
+  }) =>
+    apiFetch<StressRunResponse>('/problems/tools/stress/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+};
+
 export const PreSubmitService = {
   lint: (problemId: number | string, language: string, code: string) =>
     apiFetch<{ count: number; warnings: PreSubmitWarning[] }>(`/problems/${problemId}/lint/`, {
@@ -721,6 +779,8 @@ export const SubmissionService = {
 };
 
 export const TestCaseService = {
+  listTestCases: (problemId: number | string) =>
+    apiFetch<PaginatedResponse<TestCaseType>>(`/problems/testcases/?problem_id=${problemId}`),
   createTestCase: (testCaseData: Record<string, unknown>) =>
     apiFetch<TestCaseType>('/problems/testcases/', {
       method: 'POST',
