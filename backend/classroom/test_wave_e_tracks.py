@@ -87,12 +87,13 @@ class SeededTracksTest(TestCase):
             }
         ]
         command = Command()
-        with mock.patch.object(
-            Command, "_seed_curriculum", return_value={}
-        ), mock.patch(
-            "problems.seed_data.STUDY_TRACKS", fake_tracks
-        ), mock.patch(
-            "problems.models.Problem.objects.filter", return_value=Problem.objects.none()
+        with (
+            mock.patch.object(Command, "_seed_curriculum", return_value={}),
+            mock.patch("problems.seed_data.STUDY_TRACKS", fake_tracks),
+            mock.patch(
+                "problems.models.Problem.objects.filter",
+                return_value=Problem.objects.none(),
+            ),
         ):
             created = command._seed_tracks(dry_run=False)
         # The track row is created but zero items attach (both arms skip).
