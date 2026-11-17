@@ -73,7 +73,7 @@ describe('DrillsPage', () => {
       accepted: null,
     });
     render(<DrillsPage />);
-    const first = await screen.findAllByTestId('drill-1');
+    await screen.findAllByTestId('drill-1');
     fireEvent.click(screen.getAllByRole('button', { name: '6' })[0]);
     fireEvent.click(screen.getAllByRole('button', { name: /check/i })[0]);
     await waitFor(() => {
@@ -111,7 +111,7 @@ describe('DrillsPage', () => {
       accepted: null,
     });
     render(<DrillsPage />);
-    const first = await screen.findAllByTestId('drill-1');
+    await screen.findAllByTestId('drill-1');
     fireEvent.click(screen.getAllByRole('button', { name: '4' })[0]);
     fireEvent.click(screen.getAllByRole('button', { name: /check/i })[0]);
     await waitFor(() => {
