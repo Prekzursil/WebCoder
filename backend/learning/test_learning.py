@@ -28,6 +28,17 @@ RE = Submission.VerdictStatus.RUNTIME_ERROR
 TLE = Submission.VerdictStatus.TIME_LIMIT_EXCEEDED
 
 
+def test_verdict_constants_match_the_enum():
+    from learning.engine import AC as E_AC, CE, MLE, RE as E_RE, TLE, WA as E_WA
+
+    assert E_AC == Submission.VerdictStatus.ACCEPTED
+    assert E_WA == Submission.VerdictStatus.WRONG_ANSWER
+    assert TLE == Submission.VerdictStatus.TIME_LIMIT_EXCEEDED
+    assert E_RE == Submission.VerdictStatus.RUNTIME_ERROR
+    assert CE == Submission.VerdictStatus.COMPILE_ERROR
+    assert MLE == Submission.VerdictStatus.MEMORY_LIMIT_EXCEEDED
+
+
 def _seed():
     call_command("seed_problems", stdout=io.StringIO())
 
