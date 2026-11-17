@@ -501,6 +501,34 @@ function SubmissionDetailPage() {
         </>
       )}
 
+      {/* [wave E item 14] compile-error explainers — bilingual hints
+          mapped from the raw diagnostics, CE verdicts only. */}
+      {submission.verdict === 'CE' &&
+        submission.compile_hints &&
+        submission.compile_hints.length > 0 && (
+          <div
+            data-testid="compile-hints"
+            style={{
+              background: hexAlpha(palette.warn, 0.08),
+              border: `1px solid ${hexAlpha(palette.warn, 0.25)}`,
+              borderRadius: 'var(--radius-lg)',
+              padding: '1rem 1.5rem',
+              marginBottom: '1.25rem',
+            }}
+          >
+            <div className="micro-label" style={{ color: palette.warn, marginBottom: '0.5rem' }}>
+              {t('compile_hints_title', 'What does this error mean?')}
+            </div>
+            <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.88rem' }}>
+              {submission.compile_hints.map((h, i) => (
+                <li key={i} style={{ marginBottom: '6px' }}>
+                  {i18n.language.startsWith('ro') ? h.hint_ro : h.hint_en}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
       {submission.detailed_feedback && (
         <>
           <h2

@@ -1264,5 +1264,13 @@
   "diff_viewer_title": "Різниця виводу — очікуваний vs ваш",
   "diff_first_mismatch": "перва розбіжність у рядку {{n}}",
   "diff_expected": "Очікується",
-  "diff_yours": "Ваш"
+  "diff_yours": "Ваш",
+  "presubmit_check": "Перевірити код",
+  "presubmit_run_samples": "Запустити приклади",
+  "presubmit_running": "Перевірка…",
+  "presubmit_warnings": "Перевірки перед надсиланням ({{n}})",
+  "presubmit_no_warnings": "Попереджень немає — нічого очевидного не заважає надіслати рішення.",
+  "presubmit_samples": "Результати на прикладах ({{n}})",
+  "compile_hints_title": "Що означає ця помилка?",
+  "problem_form_constraint_max": "Максимальне значення в обмеженнях (необов'язково)"
 }

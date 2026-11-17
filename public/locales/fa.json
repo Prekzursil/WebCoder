@@ -1264,5 +1264,13 @@
   "diff_viewer_title": "تفاوت خروجی — مورد انتظار در برابر شما",
   "diff_first_mismatch": "اولین ناسازگاری در خط {{n}}",
   "diff_expected": "مورد انتظار",
-  "diff_yours": "شما"
+  "diff_yours": "شما",
+  "presubmit_check": "بررسی کد",
+  "presubmit_run_samples": "اجرای نمونهها",
+  "presubmit_running": "در حال بررسی…",
+  "presubmit_warnings": "بررسیهای پیش از ارسال ({{n}})",
+  "presubmit_no_warnings": "هیچ هشداری نیست — مانع آشکاری برای ارسال وجود ندارد.",
+  "presubmit_samples": "نتایج نمونه ({{n}})",
+  "compile_hints_title": "این خطا چه معنایی دارد؟",
+  "problem_form_constraint_max": "بیشینه مقدار در قیود (اختیاری)"
 }

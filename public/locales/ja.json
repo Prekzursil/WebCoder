@@ -1264,5 +1264,13 @@
   "diff_viewer_title": "出力の差分 — 期待値 vs あなたのもの",
   "diff_first_mismatch": "最初の不一致は {{n}} 行目",
   "diff_expected": "期待値",
-  "diff_yours": "あなたのもの"
+  "diff_yours": "あなたのもの",
+  "presubmit_check": "コードを確認",
+  "presubmit_run_samples": "サンプルを実行",
+  "presubmit_running": "確認中…",
+  "presubmit_warnings": "提出前チェック（{{n}}）",
+  "presubmit_no_warnings": "警告なし — 提出を妨げる明らかな問題はありません。",
+  "presubmit_samples": "サンプルの結果（{{n}}）",
+  "compile_hints_title": "このエラーは何を意味しますか？",
+  "problem_form_constraint_max": "制約の最大値（任意）"
 }

@@ -1264,5 +1264,13 @@
   "diff_viewer_title": "Diff di output — atteso vs tuo",
   "diff_first_mismatch": "prima divergenza alla riga {{n}}",
   "diff_expected": "Atteso",
-  "diff_yours": "Tuo"
+  "diff_yours": "Tuo",
+  "presubmit_check": "Controlla il codice",
+  "presubmit_run_samples": "Esegui esempi",
+  "presubmit_running": "Controllo…",
+  "presubmit_warnings": "Controlli pre-invio ({{n}})",
+  "presubmit_no_warnings": "Nessun avviso — nulla di evidente ti separa da un invio.",
+  "presubmit_samples": "Risultati degli esempi ({{n}})",
+  "compile_hints_title": "Cosa significa questo errore?",
+  "problem_form_constraint_max": "Valore massimo nei vincoli (opzionale)"
 }

@@ -1264,5 +1264,13 @@
   "diff_viewer_title": "Çıktı farkı — beklenen vs seninki",
   "diff_first_mismatch": "ilk uyuşmazlık {{n}}. satırda",
   "diff_expected": "Beklenen",
-  "diff_yours": "Seninki"
+  "diff_yours": "Seninki",
+  "presubmit_check": "Kodu kontrol et",
+  "presubmit_run_samples": "Örnekleri çalıştır",
+  "presubmit_running": "Kontrol ediliyor…",
+  "presubmit_warnings": "Gönderim öncesi kontroller ({{n}})",
+  "presubmit_no_warnings": "Uyarı yok — gönderimin önünde bariz bir engel yok.",
+  "presubmit_samples": "Örnek sonuçları ({{n}})",
+  "compile_hints_title": "Bu hata ne anlama geliyor?",
+  "problem_form_constraint_max": "Kısıtlamalardaki maksimum değer (isteğe bağlı)"
 }

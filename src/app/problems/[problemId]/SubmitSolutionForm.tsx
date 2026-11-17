@@ -29,6 +29,7 @@ import { useAuth } from '@/context/AuthContext';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 import SubmissionStatusDisplay from '@/components/common/SubmissionStatusDisplay';
 import CodeEditor from './CodeEditor';
+import PreSubmitPanel from './PreSubmitPanel';
 import { palette, hexAlpha } from '@/theme/tokens';
 
 // [wave D] Blockly requires the DOM — client-side only.
@@ -384,6 +385,9 @@ export default function SubmitSolutionForm({
             ? t('submitting_button_text', 'Submitting...')
             : t('submit_button', 'Submit')}
         </button>
+        {/* [wave E items 8/9/10] pre-submit assistance — lint + sample
+            dress rehearsal; costs no submission. */}
+        <PreSubmitPanel problemId={problemId} language={selectedLanguage} code={code} />
       </form>
       {/* Rendered OUTSIDE the form, as in the CRA page: the modal's buttons
           carry no explicit type, so nesting them in the form would make them

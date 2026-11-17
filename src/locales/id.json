@@ -1264,5 +1264,13 @@
   "diff_viewer_title": "Perbedaan keluaran — yang diharapkan vs milikmu",
   "diff_first_mismatch": "ketidakcocokan pertama di baris {{n}}",
   "diff_expected": "Diharapkan",
-  "diff_yours": "Milikmu"
+  "diff_yours": "Milikmu",
+  "presubmit_check": "Periksa kode",
+  "presubmit_run_samples": "Jalankan contoh",
+  "presubmit_running": "Memeriksa…",
+  "presubmit_warnings": "Pemeriksaan pra-kirim ({{n}})",
+  "presubmit_no_warnings": "Tidak ada peringatan — tidak ada hal jelas yang menghalangi kirimanmu.",
+  "presubmit_samples": "Hasil contoh ({{n}})",
+  "compile_hints_title": "Apa arti kesalahan ini?",
+  "problem_form_constraint_max": "Nilai maksimum dalam batasan (opsional)"
 }

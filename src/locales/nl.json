@@ -1264,5 +1264,13 @@
   "diff_viewer_title": "Uitvoer-verschil — verwacht vs van jou",
   "diff_first_mismatch": "eerste afwijking op regel {{n}}",
   "diff_expected": "Verwacht",
-  "diff_yours": "Van jou"
+  "diff_yours": "Van jou",
+  "presubmit_check": "Code controleren",
+  "presubmit_run_samples": "Voorbeelden uitvoeren",
+  "presubmit_running": "Controleren…",
+  "presubmit_warnings": "Controles vóór indienen ({{n}})",
+  "presubmit_no_warnings": "Geen waarschuwingen — niets voor de hand liggends houdt een inzending tegen.",
+  "presubmit_samples": "Voorbeeldresultaten ({{n}})",
+  "compile_hints_title": "Wat betekent deze fout?",
+  "problem_form_constraint_max": "Maximale waarde in beperkingen (optioneel)"
 }

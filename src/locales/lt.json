@@ -1264,5 +1264,13 @@
   "diff_viewer_title": "Išvesties skirtumas — expected vs jūsų",
   "diff_first_mismatch": "pirmas nesutapimas eilutėje {{n}}",
   "diff_expected": "Tikėtasi",
-  "diff_yours": "Jūsų"
+  "diff_yours": "Jūsų",
+  "presubmit_check": "Patikrinkite kodą",
+  "presubmit_run_samples": "Paleisti pavyzdžius",
+  "presubmit_running": "Tikrinama…",
+  "presubmit_warnings": "Patikra prieš siunčiant ({{n}})",
+  "presubmit_no_warnings": "Įspėjimų nėra — niekas akivaizdaus nebeatskiras jūsų nuo siuntimo.",
+  "presubmit_samples": "Pavyzdžių rezultatai ({{n}})",
+  "compile_hints_title": "Ką reiškia ši klaida?",
+  "problem_form_constraint_max": "Maksimali reikšmė apribojimuose (neprivaloma)"
 }

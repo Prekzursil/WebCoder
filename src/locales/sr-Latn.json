@@ -1264,5 +1264,13 @@
   "diff_viewer_title": "Razlika izlaza — očekivano vs tvoje",
   "diff_first_mismatch": "prva razlika u redu {{n}}",
   "diff_expected": "Očekivano",
-  "diff_yours": "Tvoje"
+  "diff_yours": "Tvoje",
+  "presubmit_check": "Proveri kod",
+  "presubmit_run_samples": "Pokreni primere",
+  "presubmit_running": "Provera…",
+  "presubmit_warnings": "Provere pre slanja ({{n}})",
+  "presubmit_no_warnings": "Nema upozorenja — ništa očigledno ne stoji između vas i predaje.",
+  "presubmit_samples": "Rezultati primera ({{n}})",
+  "compile_hints_title": "Šta znači ova greška?",
+  "problem_form_constraint_max": "Najveća vrednost u ograničenjima (opciono)"
 }

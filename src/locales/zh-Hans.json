@@ -1264,5 +1264,13 @@
   "diff_viewer_title": "输出差异 — 期望 vs 你的",
   "diff_first_mismatch": "第 {{n}} 行首次不匹配",
   "diff_expected": "期望输出",
-  "diff_yours": "你的输出"
+  "diff_yours": "你的输出",
+  "presubmit_check": "检查代码",
+  "presubmit_run_samples": "运行示例",
+  "presubmit_running": "检查中…",
+  "presubmit_warnings": "提交前检查（{{n}}）",
+  "presubmit_no_warnings": "没有警告——没有什么明显的问题阻碍你提交。",
+  "presubmit_samples": "示例结果（{{n}}）",
+  "compile_hints_title": "这个错误是什么意思？",
+  "problem_form_constraint_max": "约束中的最大值（可选）"
 }

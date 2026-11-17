@@ -1264,5 +1264,13 @@
   "diff_viewer_title": "Output diff — expected vs yours",
   "diff_first_mismatch": "first mismatch at line {{n}}",
   "diff_expected": "Expected",
-  "diff_yours": "Yours"
+  "diff_yours": "Yours",
+  "presubmit_check": "Check code",
+  "presubmit_run_samples": "Run samples",
+  "presubmit_running": "Checking…",
+  "presubmit_warnings": "Pre-submit checks ({{n}})",
+  "presubmit_no_warnings": "No warnings — nothing obvious standing between you and a submission.",
+  "presubmit_samples": "Sample results ({{n}})",
+  "compile_hints_title": "What does this error mean?",
+  "problem_form_constraint_max": "Max value in constraints (optional)"
 }

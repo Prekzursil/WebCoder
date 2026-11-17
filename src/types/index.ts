@@ -35,6 +35,8 @@ export interface ProblemType {
   statement_i18n?: { [key: string]: string };
   default_time_limit_ms?: number;
   default_memory_limit_kb?: number;
+  /** [wave E item 10] constraint ceiling for the pre-submit overflow lint. */
+  constraint_max_value?: number | null;
   test_cases?: TestCaseType[];
   allowed_languages?: string[];
   custom_libraries_allowed?: string[]; // Added this based on backend model
@@ -142,6 +144,9 @@ export interface DetailedSubmissionType extends SubmissionType {
   runtime_percentile?: number | null;
   /** Wave E item 21: banded closeness reading, null when unscored. */
   closeness?: ClosenessType | null;
+  /** Wave E item 14: bilingual explainers mapped from the raw compiler
+   * diagnostics (CE verdicts only; empty otherwise). */
+  compile_hints?: { hint_en: string; hint_ro: string }[];
   user?: { username: string; id: number };
   test_results?: SubmissionTestResultType[];
 }

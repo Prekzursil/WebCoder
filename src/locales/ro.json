@@ -1264,5 +1264,13 @@
   "diff_viewer_title": "Diferență de ieșire — așteptat vs al tău",
   "diff_first_mismatch": "prima nepotrivire la linia {{n}}",
   "diff_expected": "Așteptat",
-  "diff_yours": "Al tău"
+  "diff_yours": "Al tău",
+  "presubmit_check": "Verifică codul",
+  "presubmit_run_samples": "Rulează exemplele",
+  "presubmit_running": "Se verifică…",
+  "presubmit_warnings": "Verificări înainte de trimitere ({{n}})",
+  "presubmit_no_warnings": "Niciun avertisment — nimic evident nu te mai desparte de o trimitere.",
+  "presubmit_samples": "Rezultate pe exemple ({{n}})",
+  "compile_hints_title": "Ce înseamnă această eroare?",
+  "problem_form_constraint_max": "Valoarea maximă din restricții (opțional)"
 }

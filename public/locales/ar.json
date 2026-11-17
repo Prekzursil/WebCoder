@@ -1264,5 +1264,13 @@
   "diff_viewer_title": "فرق المخرجات — المتوقع مقابل نتيجتك",
   "diff_first_mismatch": "أول عدم تطابق في السطر {{n}}",
   "diff_expected": "المتوقع",
-  "diff_yours": "نتيجتك"
+  "diff_yours": "نتيجتك",
+  "presubmit_check": "افحص الكود",
+  "presubmit_run_samples": "شغّل الأمثلة",
+  "presubmit_running": "جارٍ الفحص…",
+  "presubmit_warnings": "فحوصات قبل الإرسال ({{n}})",
+  "presubmit_no_warnings": "لا تحذيرات — لا شيء واضح يحول بينك وبين الإرسال.",
+  "presubmit_samples": "نتائج الأمثلة ({{n}})",
+  "compile_hints_title": "ماذا يعني هذا الخطأ؟",
+  "problem_form_constraint_max": "القيمة القصوى في القيود (اختياري)"
 }
