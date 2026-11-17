@@ -380,6 +380,71 @@ class SampleRunTest(TestCase):
         self.assertEqual(response.data["samples"][0]["verdict"], "RE")
         self.assertIsNone(response.data["samples"][0]["expected"])
 
+    def test_tle_sample_records_timeout_audit_row(self):
+        from scratch.models import ScratchRun
+
+        with (
+            mock.patch(
+                f"{PRESUBMIT}.compile_code_in_sandbox",
+                return_value=(True, "", "/tmp/x"),
+            ),
+            mock.patch(
+                f"{PRESUBMIT}.run_code_in_sandbox",
+                return_value=(
+                    Submission.VerdictStatus.TIME_LIMIT_EXCEEDED,
+                    -1,
+                    -1,
+                    "",
+                    "",
+                ),
+            ),
+        ):
+            response = self._run("while True: pass")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["samples"][0]["verdict"], "TLE")
+        # The audit row marks the worst outcome across samples (TIMEOUT
+        # outranks RUNTIME_ERROR).
+        record = ScratchRun.objects.filter(
+            user=self.user, stdin_data=f"samples:{self.problem.id}"
+        ).latest("id")
+        self.assertEqual(record.status, ScratchRun.Status.TIMEOUT)
+
+    def test_tle_then_re_keeps_timeout_as_worst(self):
+        from scratch.models import ScratchRun
+
+        with (
+            mock.patch(
+                f"{PRESUBMIT}.compile_code_in_sandbox",
+                return_value=(True, "", "/tmp/x"),
+            ),
+            mock.patch(
+                f"{PRESUBMIT}.run_code_in_sandbox",
+                side_effect=[
+                    (
+                        Submission.VerdictStatus.TIME_LIMIT_EXCEEDED,
+                        -1,
+                        -1,
+                        "",
+                        "",
+                    ),
+                    (
+                        Submission.VerdictStatus.RUNTIME_ERROR,
+                        -1,
+                        -1,
+                        "",
+                        "traceback",
+                    ),
+                ],
+            ),
+        ):
+            response = self._run("mixed")
+        self.assertEqual(response.status_code, 200)
+        record = ScratchRun.objects.filter(
+            user=self.user, stdin_data=f"samples:{self.problem.id}"
+        ).latest("id")
+        # A later RE cannot downgrade an earlier TIMEOUT.
+        self.assertEqual(record.status, ScratchRun.Status.TIMEOUT)
+
     def test_compile_error_short_circuits(self):
         with mock.patch(
             f"{PRESUBMIT}.compile_code_in_sandbox",
