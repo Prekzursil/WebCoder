@@ -1370,5 +1370,13 @@
   "insights_import_hint": "Wklej nazwy użytkowników (oddzielone przecinkiem lub nową linią) — istniejące konta zostaną zapisane; nieznane nazwy zostaną zgłoszone.",
   "insights_import_button": "Zapisz",
   "import_result": "Dodano {{a}} · już członkowie {{b}} · brakuje: {{m}}",
-  "exam_pdf_link": "PDF egzaminu"
+  "exam_pdf_link": "PDF egzaminu",
+  "nav_courses": "Kursy",
+  "courses_title": "Kursy",
+  "courses_intro": "Ustrukturyzowane ścieżki: przeczytaj pomysł, poćwicz, potem rozwiąż zadania — po kolei.",
+  "courses_lessons": "lekcje",
+  "courses_empty": "Jeszcze żadnych kursów — pierwszy w drodze.",
+  "courses_load_error": "Nie udało się wczytać kursu.",
+  "courses_drill_hint": "{{n}} ćwiczeń na stronie ćwiczeń",
+  "courses_login_progress": "Zaloguj się, aby śledzić postęp w kursie."
 }

@@ -1370,5 +1370,13 @@
   "insights_import_hint": "ユーザー名を貼り付け（カンマまたは改行区切り）— 既存アカウントは登録され、未知の名前は報告されます。",
   "insights_import_button": "登録",
   "import_result": "追加 {{a}} · 既にメンバー {{b}} · 不在: {{m}}",
-  "exam_pdf_link": "試験PDF"
+  "exam_pdf_link": "試験PDF",
+  "nav_courses": "コース",
+  "courses_title": "コース",
+  "courses_intro": "構造化された学習経路：考え方を読み、ドリルで練習し、順番に問題を解く。",
+  "courses_lessons": "レッスン",
+  "courses_empty": "コースはまだありません — 最初のものが準備中です。",
+  "courses_load_error": "コースの読み込みに失敗しました。",
+  "courses_drill_hint": "ドリルページに{{n}}個のドリル",
+  "courses_login_progress": "コースの進捗を追跡するにはログインしてください。"
 }

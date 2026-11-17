@@ -1370,5 +1370,13 @@
   "insights_import_hint": "Pega nombres de usuario (separados por comas o saltos de línea): las cuentas existentes se inscriben; los desconocidos se informan.",
   "insights_import_button": "Inscribir",
   "import_result": "Añadidos {{a}} · ya miembros {{b}} · faltan: {{m}}",
-  "exam_pdf_link": "PDF del examen"
+  "exam_pdf_link": "PDF del examen",
+  "nav_courses": "Cursos",
+  "courses_title": "Cursos",
+  "courses_intro": "Rutas estructuradas: lee la idea, practícala y resuelve los problemas, en orden.",
+  "courses_lessons": "lecciones",
+  "courses_empty": "Aún no hay cursos: el primero está en camino.",
+  "courses_load_error": "No se pudo cargar el curso.",
+  "courses_drill_hint": "{{n}} ejercicios en la página de ejercicios",
+  "courses_login_progress": "Inicia sesión para seguir tu progreso en el curso."
 }

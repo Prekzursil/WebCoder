@@ -1370,5 +1370,13 @@
   "insights_import_hint": "Tempel nama pengguna (dipisah koma atau baris baru) — akun yang ada didaftarkan; nama tak dikenal dilaporkan.",
   "insights_import_button": "Daftarkan",
   "import_result": "Ditambah {{a}} · sudah anggota {{b}} · hilang: {{m}}",
-  "exam_pdf_link": "PDF ujian"
+  "exam_pdf_link": "PDF ujian",
+  "nav_courses": "Kursus",
+  "courses_title": "Kursus",
+  "courses_intro": "Jalur terstruktur: baca idenya, latih, lalu selesaikan soalnya — berurutan.",
+  "courses_lessons": "pelajaran",
+  "courses_empty": "Belum ada kursus — yang pertama sedang dalam perjalanan.",
+  "courses_load_error": "Gagal memuat kursus.",
+  "courses_drill_hint": "{{n}} latihan di halaman latihan",
+  "courses_login_progress": "Masuk untuk melacak progres kursusmu."
 }

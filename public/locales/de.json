@@ -1370,5 +1370,13 @@
   "insights_import_hint": "Benutzernamen einfügen (durch Komma oder Zeilenumbruch getrennt) — bestehende Konten werden eingeschrieben; unbekannte Namen werden gemeldet.",
   "insights_import_button": "Einschreiben",
   "import_result": "Hinzugefügt {{a}} · bereits Mitglieder {{b}} · fehlend: {{m}}",
-  "exam_pdf_link": "Prüfungs-PDF"
+  "exam_pdf_link": "Prüfungs-PDF",
+  "nav_courses": "Kurse",
+  "courses_title": "Kurse",
+  "courses_intro": "Strukturierte Pfade: die Idee lesen, üben, dann die Aufgaben lösen — in dieser Reihenfolge.",
+  "courses_lessons": "Lektionen",
+  "courses_empty": "Noch keine Kurse — der erste ist auf dem Weg.",
+  "courses_load_error": "Kurs konnte nicht geladen werden.",
+  "courses_drill_hint": "{{n}} Übungen auf der Übungsseite",
+  "courses_login_progress": "Melde dich an, um deinen Kursfortschritt zu verfolgen."
 }

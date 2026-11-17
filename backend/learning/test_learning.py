@@ -230,6 +230,14 @@ class MistakeProfileTest(TestCase):
         plan = practice_plan(self.user, days=7)
         self.assertTrue(all(day["kind"] is not None for day in plan["days"][:6]))
 
+    def test_str_fallbacks_without_title_dicts(self):
+        from learning.models import Course as CourseModel, Lesson as LessonModel
+
+        course = CourseModel(slug="x")
+        lesson = LessonModel(id=99)
+        self.assertEqual(str(course), "x")
+        self.assertEqual(str(lesson), "Lesson 99")
+
     def test_str_methods(self):
         edge = SkillEdge.objects.first()
         card = TheoryCard.objects.first()

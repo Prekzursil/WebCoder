@@ -1370,5 +1370,13 @@
   "insights_import_hint": "貼上使用者名稱（逗號或換行分隔）——已有帳戶會被註冊；未知名稱會被回報。",
   "insights_import_button": "註冊",
   "import_result": "已新增 {{a}} · 已是成員 {{b}} · 缺少：{{m}}",
-  "exam_pdf_link": "考試 PDF"
+  "exam_pdf_link": "考試 PDF",
+  "nav_courses": "課程",
+  "courses_title": "課程",
+  "courses_intro": "結構化路徑：先讀概念，再練習，然後按順序解題。",
+  "courses_lessons": "課",
+  "courses_empty": "還沒有課程——第一個即將上線。",
+  "courses_load_error": "課程載入失敗。",
+  "courses_drill_hint": "練習頁上有 {{n}} 個練習",
+  "courses_login_progress": "登入以追蹤你的課程進度。"
 }

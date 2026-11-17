@@ -1370,5 +1370,13 @@
   "insights_import_hint": "Lipește numele de utilizator (separate prin virgulă sau rând nou) — conturile existente se înscriu; cele necunoscute sunt raportate.",
   "insights_import_button": "Înscrie",
   "import_result": "Adăugați {{a}} · deja membri {{b}} · lipsesc: {{m}}",
-  "exam_pdf_link": "PDF examen"
+  "exam_pdf_link": "PDF examen",
+  "nav_courses": "Cursuri",
+  "courses_title": "Cursuri",
+  "courses_intro": "Trasee structurate: citește ideea, exerseaz-o, apoi rezolvă problemele — în ordine.",
+  "courses_lessons": "lecțiuni",
+  "courses_empty": "Încă niciun curs — primul e pe drum.",
+  "courses_load_error": "Cursul nu a putut fi încărcat.",
+  "courses_drill_hint": "{{n}} exerciții pe pagina de exerciții",
+  "courses_login_progress": "Autentifică-te pentru a-ți urmări progresul prin curs."
 }

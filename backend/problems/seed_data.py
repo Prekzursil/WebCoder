@@ -254,6 +254,13 @@ THEORY_CARDS = [
         "back_ro": "Nu are niciun divizor în [2, floor(sqrt(n))]. Verificarea până la sqrt(n) e O(√n) pe număr — testul prin împărțiri succesive.",
     },
     {
+        "tag": "implementation",
+        "front_en": "What are the three parts of every program?",
+        "back_en": "Read the input, compute the answer, print the output. Every judge problem is this shape — get the I/O contract right first.",
+        "front_ro": "Care sunt cele trei părți ale oricărui program?",
+        "back_ro": "Citește datele, calculează răspunsul, afișează rezultatul. Orice problemă de evaluator are acest tipar — stabilește întâi contractul de intrare/ieșire.",
+    },
+    {
         "tag": "arrays",
         "front_en": "What does a prefix-sum array buy you?",
         "back_en": "Any range sum [l, r] in O(1) as sum[r] - sum[l-1], after one O(n) precompute — the classic trade of memory for query speed.",

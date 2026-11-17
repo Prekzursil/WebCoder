@@ -13,7 +13,7 @@ from problems.models import Tag
 from users.statistics import tag_skill_profile
 
 from .engine import mistake_profile, practice_plan, review_queue
-from .models import SkillEdge, TheoryCard
+from .models import Course, SkillEdge, TheoryCard
 
 
 class ReviewQueueView(APIView):
@@ -212,3 +212,107 @@ class DailyDrillsView(APIView):
             for d in daily_drills()
         ]
         return Response({"count": len(rows), "results": rows})
+
+
+class CourseListView(APIView):
+    """GET /api/v1/learning/courses/ (item 45): public catalog with the
+    caller's per-course progress (solved lesson problems)."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        from submissions.models import Submission
+
+        solved = set()
+        if request.user.is_authenticated:
+            solved = set(
+                Submission.objects.filter(
+                    user=request.user, verdict=Submission.VerdictStatus.ACCEPTED
+                ).values_list("problem_id", flat=True)
+            )
+        courses = []
+        for course in (
+            Course.objects.filter(is_public=True)
+            .prefetch_related(
+                "lessons__theory_card",
+                "lessons__drills",
+                "lessons__problems",
+            )
+            .order_by("id")
+        ):
+            lessons = list(course.lessons.all())
+            problem_ids = [p.id for lesson in lessons for p in lesson.problems.all()]
+            solved_count = sum(1 for pid in problem_ids if pid in solved)
+            courses.append(
+                {
+                    "slug": course.slug,
+                    "title_i18n": course.title_i18n,
+                    "description_i18n": course.description_i18n,
+                    "lesson_count": len(lessons),
+                    "problem_count": len(problem_ids),
+                    "solved_count": solved_count,
+                }
+            )
+        return Response({"count": len(courses), "results": courses})
+
+
+class CourseDetailView(APIView):
+    """GET /api/v1/learning/courses/{slug}/ — the full lesson sequence
+    with theory, drills and problems (per-problem solved marks)."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, slug):
+        from submissions.models import Submission
+
+        course = Course.objects.filter(slug=slug, is_public=True).first()
+        if course is None:
+            return Response({"detail": "Not found."}, status=404)
+        solved = set()
+        if request.user.is_authenticated:
+            solved = set(
+                Submission.objects.filter(
+                    user=request.user, verdict=Submission.VerdictStatus.ACCEPTED
+                ).values_list("problem_id", flat=True)
+            )
+        lessons = []
+        for lesson in course.lessons.prefetch_related(
+            "theory_card", "drills", "problems"
+        ).order_by("order", "id"):
+            problems = [
+                {
+                    "id": p.id,
+                    "title_i18n": p.title_i18n,
+                    "difficulty": p.difficulty,
+                    "is_solved": p.id in solved,
+                }
+                for p in lesson.problems.all()
+            ]
+            lessons.append(
+                {
+                    "id": lesson.id,
+                    "order": lesson.order,
+                    "title_i18n": lesson.title_i18n,
+                    "theory": {
+                        "front_ro": lesson.theory_card.front_ro,
+                        "front_en": lesson.theory_card.front_en,
+                        "back_ro": lesson.theory_card.back_ro,
+                        "back_en": lesson.theory_card.back_en,
+                    }
+                    if lesson.theory_card
+                    else None,
+                    "drills": [
+                        {"id": d.id, "kind": d.kind} for d in lesson.drills.all()
+                    ],
+                    "problems": problems,
+                    "solved_count": sum(1 for p in problems if p["is_solved"]),
+                }
+            )
+        return Response(
+            {
+                "slug": course.slug,
+                "title_i18n": course.title_i18n,
+                "description_i18n": course.description_i18n,
+                "lessons": lessons,
+            }
+        )

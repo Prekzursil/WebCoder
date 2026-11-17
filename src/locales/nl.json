@@ -1370,5 +1370,13 @@
   "insights_import_hint": "Plak gebruikersnamen (gescheiden door komma of nieuwe regel) — bestaande accounts worden ingeschreven; onbekende namen worden gemeld.",
   "insights_import_button": "Inschrijven",
   "import_result": "Toegevoegd {{a}} · al lid {{b}} · ontbreken: {{m}}",
-  "exam_pdf_link": "Examen-PDF"
+  "exam_pdf_link": "Examen-PDF",
+  "nav_courses": "Cursussen",
+  "courses_title": "Cursussen",
+  "courses_intro": "Gestructureerde paden: lees het idee, oefen, en los daarna de problemen op — in volgorde.",
+  "courses_lessons": "lessen",
+  "courses_empty": "Nog geen cursussen — de eerste is onderweg.",
+  "courses_load_error": "Cursus kon niet geladen worden.",
+  "courses_drill_hint": "{{n}} oefeningen op de oefenpagina",
+  "courses_login_progress": "Log in om je voortgang in de cursus te volgen."
 }
