@@ -1,6 +1,6 @@
 # WebCoder API backend (Django 5.2 + DRF + Celery).
 # Used by the repo-root docker-compose.yml `backend` service.
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -11,7 +11,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # submissions/judge_utils/backend.py). Only the CLI is needed; the daemon
 # socket is mounted by docker-compose.yml.
 #
-# `docker-cli` (not docker.io): Debian trixie — the current python:3.11-slim
+# `docker-cli` (not docker.io): Debian trixie — the current python:3.12-slim
 # base — split the CLI into a separate package; docker.io now installs the
 # daemon stack WITHOUT /usr/bin/docker (verified on the live rebuild
 # 2026-10-21: `Setting up docker.io` succeeded yet the binary was absent,
