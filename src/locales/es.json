@@ -1264,5 +1264,13 @@
   "diff_viewer_title": "Diferencia de salida — esperado vs tuyo",
   "diff_first_mismatch": "primera discrepancia en la línea {{n}}",
   "diff_expected": "Esperado",
-  "diff_yours": "Tuyo"
+  "diff_yours": "Tuyo",
+  "presubmit_check": "Comprobar código",
+  "presubmit_run_samples": "Ejecutar ejemplos",
+  "presubmit_running": "Comprobando…",
+  "presubmit_warnings": "Comprobaciones previas ({{n}})",
+  "presubmit_no_warnings": "Sin avisos — nada obvio se interpone entre tú y un envío.",
+  "presubmit_samples": "Resultados de ejemplos ({{n}})",
+  "compile_hints_title": "¿Qué significa este error?",
+  "problem_form_constraint_max": "Valor máximo en las restricciones (opcional)"
 }

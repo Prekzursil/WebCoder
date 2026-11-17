@@ -23,6 +23,7 @@ from .community import (
     ProblemCommunityEditorialsView,
     RelatedArticlesView,
 )
+from .presubmit import PreSubmitLintView, PreSubmitSamplesView
 
 app_name = "problems"
 
@@ -89,6 +90,19 @@ urlpatterns = [
         "<int:problem_id>/offline-bundle/",
         OfflineBundleView.as_view(),
         name="problem-offline-bundle",
+    ),
+    # Wave E items 8/9/10: pre-submit assistance — the static lint (with
+    # the constraint-aware overflow reading) and the sample dress-rehearsal
+    # run that costs no submission.
+    path(
+        "<int:problem_id>/lint/",
+        PreSubmitLintView.as_view(),
+        name="problem-presubmit-lint",
+    ),
+    path(
+        "<int:problem_id>/run-samples/",
+        PreSubmitSamplesView.as_view(),
+        name="problem-presubmit-samples",
     ),
     path("", include(router.urls)),
 ]

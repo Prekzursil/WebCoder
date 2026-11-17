@@ -1264,5 +1264,13 @@
   "diff_viewer_title": "Khác biệt đầu ra — mong đợi vs của bạn",
   "diff_first_mismatch": "không khớp đầu tiên ở dòng {{n}}",
   "diff_expected": "Mong đợi",
-  "diff_yours": "Của bạn"
+  "diff_yours": "Của bạn",
+  "presubmit_check": "Kiểm tra mã",
+  "presubmit_run_samples": "Chạy ví dụ",
+  "presubmit_running": "Đang kiểm tra…",
+  "presubmit_warnings": "Kiểm tra trước khi nộp ({{n}})",
+  "presubmit_no_warnings": "Không có cảnh báo — không có gì rõ ràng cản trở bạn nộp bài.",
+  "presubmit_samples": "Kết quả ví dụ ({{n}})",
+  "compile_hints_title": "Lỗi này có nghĩa là gì?",
+  "problem_form_constraint_max": "Giá trị lớn nhất trong ràng buộc (tùy chọn)"
 }

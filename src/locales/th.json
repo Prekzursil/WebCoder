@@ -1264,5 +1264,13 @@
   "diff_viewer_title": "ผลต่างเอาต์พุต — ที่คาด vs ของคุณ",
   "diff_first_mismatch": "ไม่ตรงกันครั้งแรกที่บรรทัด {{n}}",
   "diff_expected": "ที่คาดหวัง",
-  "diff_yours": "ของคุณ"
+  "diff_yours": "ของคุณ",
+  "presubmit_check": "ตรวจโค้ด",
+  "presubmit_run_samples": "รันตัวอย่าง",
+  "presubmit_running": "กำลังตรวจ…",
+  "presubmit_warnings": "ตรวจก่อนส่ง ({{n}})",
+  "presubmit_no_warnings": "ไม่มีคำเตือน — ไม่มีอะไรชัดเจนขวางการส่งของคุณ",
+  "presubmit_samples": "ผลตัวอย่าง ({{n}})",
+  "compile_hints_title": "ข้อผิดพลาดนี้หมายความว่าอะไร",
+  "problem_form_constraint_max": "ค่าสูงสุดในเงื่อนไข (ไม่บังคับ)"
 }

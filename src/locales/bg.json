@@ -1264,5 +1264,13 @@
   "diff_viewer_title": "Разлика в изхода — очакван срещу вашия",
   "diff_first_mismatch": "първо несъответствие на ред {{n}}",
   "diff_expected": "Очаквано",
-  "diff_yours": "Вашият"
+  "diff_yours": "Вашият",
+  "presubmit_check": "Провери кода",
+  "presubmit_run_samples": "Пусни примерите",
+  "presubmit_running": "Проверка…",
+  "presubmit_warnings": "Проверки преди изпращане ({{n}})",
+  "presubmit_no_warnings": "Няма предупреждения — нищо очевидно не стои между вас и изпращането.",
+  "presubmit_samples": "Резултати на примерите ({{n}})",
+  "compile_hints_title": "Какво означава тази грешка?",
+  "problem_form_constraint_max": "Максимална стойност в ограниченията (по избор)"
 }

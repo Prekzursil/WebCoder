@@ -166,6 +166,9 @@ class ProblemSerializer(serializers.ModelSerializer):
             "difficulty_source",
             "default_time_limit_ms",
             "default_memory_limit_kb",
+            # Wave E item 10: the constraint ceiling driving the pre-submit
+            # int-overflow warning.
+            "constraint_max_value",
             # Language-fair limits (J5): the shipped per-language multiplier
             # resolution, surfaced so the problem page can SHOW the effective
             # limit for every allowed language (owner requirement).

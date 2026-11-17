@@ -1264,5 +1264,13 @@
   "diff_viewer_title": "Разница вывода — ожидаемый vs ваш",
   "diff_first_mismatch": "первое расхождение в строке {{n}}",
   "diff_expected": "Ожидается",
-  "diff_yours": "Ваш"
+  "diff_yours": "Ваш",
+  "presubmit_check": "Проверить код",
+  "presubmit_run_samples": "Запустить примеры",
+  "presubmit_running": "Проверка…",
+  "presubmit_warnings": "Проверки перед отправкой ({{n}})",
+  "presubmit_no_warnings": "Предупреждений нет — ничего очевидного не мешает отправить решение.",
+  "presubmit_samples": "Результаты на примерах ({{n}})",
+  "compile_hints_title": "Что означает эта ошибка?",
+  "problem_form_constraint_max": "Максимальное значение в ограничениях (необязательно)"
 }

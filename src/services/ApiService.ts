@@ -413,6 +413,38 @@ export const ToolingService = {
     ),
 };
 
+/** Wave E items 8/9 — pre-submit assistance. */
+export interface PreSubmitWarning {
+  rule: string;
+  line: number;
+  severity: 'hint' | 'warning';
+  message_en: string;
+  message_ro: string;
+}
+
+export interface SampleRunResult {
+  test_id: number;
+  order: number;
+  verdict: string;
+  time_ms: number | null;
+  output: string;
+  expected: string | null;
+  mismatch_hint: string | null;
+}
+
+export const PreSubmitService = {
+  lint: (problemId: number | string, language: string, code: string) =>
+    apiFetch<{ count: number; warnings: PreSubmitWarning[] }>(`/problems/${problemId}/lint/`, {
+      method: 'POST',
+      body: JSON.stringify({ language, code }),
+    }),
+  runSamples: (problemId: number | string, language: string, code: string) =>
+    apiFetch<{ compile_error: string | null; samples: SampleRunResult[] }>(
+      `/problems/${problemId}/run-samples/`,
+      { method: 'POST', body: JSON.stringify({ language, code }) },
+    ),
+};
+
 export const CommunityService = {
   getFeed: (page = 1) => apiFetch<FeedResponse>(`/community/feed/?page=${page}`),
   getSolutions: (problemId: number | string) =>

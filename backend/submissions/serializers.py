@@ -113,6 +113,10 @@ class SubmissionSerializer(serializers.ModelSerializer):
     # instead of a bare WA. None when the problem has no score denominator
     # or the submission has not been scored yet.
     closeness = serializers.SerializerMethodField()
+    # Wave E item 14 (compile-error explainers): beginner-friendly
+    # bilingual hints mapped from the raw compiler diagnostics on CE
+    # verdicts; empty on every other verdict.
+    compile_hints = serializers.SerializerMethodField()
 
     test_results = SubmissionTestResultSerializer(
         many=True, read_only=True
@@ -135,6 +139,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
             "max_score",
             "runtime_percentile",
             "closeness",
+            "compile_hints",
             "detailed_feedback",
             "contest",
             "test_results",  # Add test results + contest (read-only id)
@@ -151,6 +156,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
             "max_score",
             "runtime_percentile",
             "closeness",
+            "compile_hints",
             "detailed_feedback",
             "contest",
             "test_results",
@@ -162,7 +168,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
     def get_closeness(self, obj):
         """Item 21: banded score ratio. SOLVED at full score; SO_CLOSE at
         >= 75%; HALFWAY at >= 50%; STARTED above zero; NONE at zero; None
-        before scoring or when the problem carries no points at all.
+        before scoring or when the problem has no points at all.
         """
         max_score = obj.problem.full_score if obj.problem_id else 0
         if obj.score is None or max_score <= 0:
@@ -179,6 +185,15 @@ class SubmissionSerializer(serializers.ModelSerializer):
         else:
             band = "NONE"
         return {"band": band, "ratio": round(ratio, 4)}
+
+    def get_compile_hints(self, obj):
+        """Item 14: hints only on compile errors — other verdicts keep the
+        field as an empty list (shape stability for the client)."""
+        if obj.verdict != Submission.VerdictStatus.COMPILE_ERROR:
+            return []
+        from .explain import explain_compile_errors
+
+        return explain_compile_errors(obj.detailed_feedback)
 
     def get_runtime_percentile(self, obj):
         time_ms = obj.execution_time_ms

@@ -1264,5 +1264,13 @@
   "diff_viewer_title": "Kimenet-különbség — elvárt vs tiéd",
   "diff_first_mismatch": "első eltérés a(z) {{n}}. sorban",
   "diff_expected": "Elvárt",
-  "diff_yours": "Tiéd"
+  "diff_yours": "Tiéd",
+  "presubmit_check": "Kód ellenőrzése",
+  "presubmit_run_samples": "Példák futtatása",
+  "presubmit_running": "Ellenőrzés…",
+  "presubmit_warnings": "Beküldés előtti ellenőrzések ({{n}})",
+  "presubmit_no_warnings": "Nincs figyelmeztetés — semmi nyilvánvaló nem áll a beküldés útjában.",
+  "presubmit_samples": "Példaeredmények ({{n}})",
+  "compile_hints_title": "Mit jelent ez a hiba?",
+  "problem_form_constraint_max": "Maximális érték a megkötésekben (opcionális)"
 }

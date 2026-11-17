@@ -1264,5 +1264,13 @@
   "diff_viewer_title": "출력 차이 — 기대값 vs 내 결과",
   "diff_first_mismatch": "{{n}}번째 줄에서 첫 불일치",
   "diff_expected": "기대값",
-  "diff_yours": "내 결과"
+  "diff_yours": "내 결과",
+  "presubmit_check": "코드 확인",
+  "presubmit_run_samples": "예제 실행",
+  "presubmit_running": "확인 중…",
+  "presubmit_warnings": "제출 전 확인({{n}})",
+  "presubmit_no_warnings": "경고 없음 — 제출을 막는 뚜렷한 문제가 없습니다.",
+  "presubmit_samples": "예제 결과({{n}})",
+  "compile_hints_title": "이 오류는 무슨 뜻인가요?",
+  "problem_form_constraint_max": "제약 조건의 최댓값(선택)"
 }

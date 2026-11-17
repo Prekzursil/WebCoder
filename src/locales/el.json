@@ -1264,5 +1264,13 @@
   "diff_viewer_title": "Διαφορά εξόδου — αναμενόμενο vs δικό σας",
   "diff_first_mismatch": "πρώτη ασυμφωνία στη γραμμή {{n}}",
   "diff_expected": "Αναμενόμενο",
-  "diff_yours": "Δικό σας"
+  "diff_yours": "Δικό σας",
+  "presubmit_check": "Έλεγχος κώδικα",
+  "presubmit_run_samples": "Εκτέλεση παραδειγμάτων",
+  "presubmit_running": "Έλεγχος…",
+  "presubmit_warnings": "Έλεγχοι πριν την υποβολή ({{n}})",
+  "presubmit_no_warnings": "Καμία προειδοποίηση — τίποτα προφανές δεν στέκεται μεταξύ σας και μιας υποβολής.",
+  "presubmit_samples": "Αποτελέσματα παραδειγμάτων ({{n}})",
+  "compile_hints_title": "Τι σημαίνει αυτό το σφάλμα;",
+  "problem_form_constraint_max": "Μέγιστη τιμή στους περιορισμούς (προαιρετικά)"
 }

@@ -48,6 +48,9 @@ export default function ProblemFormPage() {
   const [difficulty, setDifficulty] = useState<string>('EASY');
   const [defaultTimeLimitMs, setDefaultTimeLimitMs] = useState<number>(1000);
   const [defaultMemoryLimitKb, setDefaultMemoryLimitKb] = useState<number>(262144);
+  // [wave E item 10] the constraint ceiling for the pre-submit overflow
+  // warning (null = no warning).
+  const [constraintMaxValue, setConstraintMaxValue] = useState<number | null>(null);
   const [status, setStatus] = useState<string>('DRAFT');
   const [allowedLanguages, setAllowedLanguages] = useState<string[]>(['python3', 'cpp17']);
   const [comparisonMode, setComparisonMode] = useState<string>('LINES_STRIP_EXACT');
@@ -128,6 +131,7 @@ export default function ProblemFormPage() {
           setDifficulty(data.difficulty || 'EASY');
           setDefaultTimeLimitMs(data.default_time_limit_ms || 1000);
           setDefaultMemoryLimitKb(data.default_memory_limit_kb || 262144);
+          setConstraintMaxValue(data.constraint_max_value ?? null);
           setStatus(data.status || 'DRAFT');
           setAllowedLanguages(data.allowed_languages || ['python3', 'cpp17']);
           setComparisonMode(data.comparison_mode || 'LINES_STRIP_EXACT');
@@ -298,6 +302,7 @@ export default function ProblemFormPage() {
       difficulty: difficulty,
       default_time_limit_ms: defaultTimeLimitMs,
       default_memory_limit_kb: defaultMemoryLimitKb,
+      constraint_max_value: constraintMaxValue,
       status: status,
       allowed_languages: allowedLanguages,
       comparison_mode: comparisonMode,
@@ -526,6 +531,20 @@ export default function ProblemFormPage() {
               value={defaultMemoryLimitKb}
               onChange={(e) => setDefaultMemoryLimitKb(parseInt(e.target.value, 10))}
               required
+              style={inputStyle}
+            />
+          </div>
+          <div style={fieldStyle}>
+            <label htmlFor="constraint_max_value" style={labelStyle}>
+              {t('problem_form_constraint_max', 'Max value in constraints (optional)')}:
+            </label>
+            <input
+              type="number"
+              id="constraint_max_value"
+              value={constraintMaxValue ?? ''}
+              onChange={(e) =>
+                setConstraintMaxValue(e.target.value === '' ? null : parseInt(e.target.value, 10))
+              }
               style={inputStyle}
             />
           </div>

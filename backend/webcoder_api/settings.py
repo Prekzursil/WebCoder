@@ -343,6 +343,9 @@ REST_FRAMEWORK = {
         "scratch": os.environ.get("THROTTLE_SCRATCH_RATE", "20/hour"),
         # JDG-11 stress runner: same judge-adjacent ceiling as scratch.
         "stress": os.environ.get("THROTTLE_STRESS_RATE", "20/hour"),
+        # Wave E items 8/9: pre-submit assistance (lint + sample runs) —
+        # sample runs execute code, so they share the scratch ceiling.
+        "sample_run": os.environ.get("THROTTLE_SAMPLE_RUN_RATE", "20/hour"),
         # Contest clarifications (CON-4): participants get a bounded question
         # budget so the jury queue cannot be flooded mid-contest.
         "clarification": os.environ.get("THROTTLE_CLARIFICATION_RATE", "10/hour"),

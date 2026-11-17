@@ -58,6 +58,7 @@ REST_FRAMEWORK = {
         "submit": "10000/min",
         "scratch": "10000/min",
         "stress": "10000/min",
+        "sample_run": "10000/min",
         "clarification": "10000/min",
         "message_send": "10000/min",
         "message_thread": "10000/min",

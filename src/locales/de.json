@@ -1264,5 +1264,13 @@
   "diff_viewer_title": "Ausgabe-Diff — erwartet vs. deins",
   "diff_first_mismatch": "erste Abweichung in Zeile {{n}}",
   "diff_expected": "Erwartet",
-  "diff_yours": "Deins"
+  "diff_yours": "Deins",
+  "presubmit_check": "Code prüfen",
+  "presubmit_run_samples": "Beispiele ausführen",
+  "presubmit_running": "Prüfen…",
+  "presubmit_warnings": "Prüfungen vor dem Absenden ({{n}})",
+  "presubmit_no_warnings": "Keine Warnungen — nichts Offensichtliches steht einer Abfrage im Weg.",
+  "presubmit_samples": "Beispielergebnisse ({{n}})",
+  "compile_hints_title": "Was bedeutet dieser Fehler?",
+  "problem_form_constraint_max": "Maximalwert der Restriktionen (optional)"
 }

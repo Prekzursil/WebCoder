@@ -1264,5 +1264,13 @@
   "diff_viewer_title": "Шығыс айырмасы — күтілетін vs сіздікі",
   "diff_first_mismatch": "алғашқы сәйкессіздік {{n}}-жолда",
   "diff_expected": "Күтілетін",
-  "diff_yours": "Сіздікі"
+  "diff_yours": "Сіздікі",
+  "presubmit_check": "Кодты тексеру",
+  "presubmit_run_samples": "Үлгілерді іске қосу",
+  "presubmit_running": "Тексерілуде…",
+  "presubmit_warnings": "Жіберу алдындағы тексерулер ({{n}})",
+  "presubmit_no_warnings": "Ескерту жоқ — жіберуге тән кедергі жоқ.",
+  "presubmit_samples": "Үлгі нәтижелері ({{n}})",
+  "compile_hints_title": "Бұл қате не деген сөз?",
+  "problem_form_constraint_max": "Шектеулердегі максималды мән (міндетті емес)"
 }

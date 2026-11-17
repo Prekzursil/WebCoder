@@ -1264,5 +1264,13 @@
   "diff_viewer_title": "Diferència de sortida — esperat vs el teu",
   "diff_first_mismatch": "primera discrepància a la línia {{n}}",
   "diff_expected": "Esperat",
-  "diff_yours": "El teu"
+  "diff_yours": "El teu",
+  "presubmit_check": "Comprova el codi",
+  "presubmit_run_samples": "Executa exemples",
+  "presubmit_running": "Comprovant…",
+  "presubmit_warnings": "Comprovacions prèvies ({{n}})",
+  "presubmit_no_warnings": "Sense avisos — res evident no et separa d'un lliurament.",
+  "presubmit_samples": "Resultats dels exemples ({{n}})",
+  "compile_hints_title": "Què vol dir aquest error?",
+  "problem_form_constraint_max": "Valor màxim a les restriccions (opcional)"
 }
