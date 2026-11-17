@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { DetailedSubmissionType, SubmissionTestResultType } from '@/types';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import CopyButton from '@/components/common/CopyButton';
+import TestProfile, { ClosenessBadge } from './TestProfile';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { palette, hexAlpha } from '@/theme/tokens';
@@ -261,6 +262,11 @@ function SubmissionDetailPage() {
             metaCell(t('memory_label', 'Memory'), <>{result.memory_used_kb} KB</>)}
         </div>
 
+        {/* [wave E items 6/7/19/25] used-vs-bar meters and, for exposed
+            tests, the expected-vs-actual line diff with the first
+            mismatch highlighted. */}
+        <TestProfile result={result} />
+
         {result.actual_output && (result.verdict === 'WA' || result.verdict === 'RE') && (
           <div style={{ marginTop: '0.75rem' }}>
             <div style={microLabel}>{t('actual_output_label', 'Actual Output (truncated)')}</div>
@@ -338,6 +344,8 @@ function SubmissionDetailPage() {
         >
           {t('submission_detail_header', 'Submission Detail')} #{submission.id}
           <VerdictPill verdict={submission.verdict} />
+          {/* [wave E item 21] the "Am I close?" band for partial scores */}
+          <ClosenessBadge closeness={submission.closeness} />
           {isPolling && (
             <span style={{ fontSize: '0.8rem', color: 'var(--muted)', fontWeight: 400 }}>
               ({t('polling_status', 'Polling for updates...')})

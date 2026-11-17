@@ -1250,5 +1250,19 @@
   "filter_editorial": "มีเฉลย",
   "contests_scoreboard_hidden": "จะซ่อนกระดานคะแนนไปจนกว่าการแข่งขันจะจบ",
   "contests_hide_scoreboard_label": "ซ่อนกระดานคะแนนไปจนกว่าการแข่งขันจะจบ",
-  "identity_bio": "แนะนำตัว"
+  "identity_bio": "แนะนำตัว",
+  "profile_near_limit": "ใกล้ขีดจำกัด",
+  "profile_over_limit": "เกินขีดจำกัด",
+  "profile_time_bar": "เวลาเทียบขีดจำกัด",
+  "profile_memory_bar": "หน่วยความจำเทียบขีดจำกัด",
+  "closeness_solved": "แก้แล้ว",
+  "closeness_so_close": "ใกล้มาก!",
+  "closeness_halfway": "ครึ่งทางแล้ว",
+  "closeness_started": "ได้คะแนนแล้ว",
+  "closeness_none": "ยังไม่มี",
+  "closeness_title": "การส่งนี้ใกล้คะแนนเต็มแค่ไหน",
+  "diff_viewer_title": "ผลต่างเอาต์พุต — ที่คาด vs ของคุณ",
+  "diff_first_mismatch": "ไม่ตรงกันครั้งแรกที่บรรทัด {{n}}",
+  "diff_expected": "ที่คาดหวัง",
+  "diff_yours": "ของคุณ"
 }

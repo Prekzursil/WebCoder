@@ -1250,5 +1250,19 @@
   "filter_editorial": "Có lời giải",
   "contests_scoreboard_hidden": "Bảng điểm bị ẩn đến khi kỳ thi kết thúc.",
   "contests_hide_scoreboard_label": "Ẩn bảng điểm đến khi kỳ thi kết thúc",
-  "identity_bio": "Giới thiệu"
+  "identity_bio": "Giới thiệu",
+  "profile_near_limit": "gần giới hạn",
+  "profile_over_limit": "vượt giới hạn",
+  "profile_time_bar": "Thời gian so với giới hạn",
+  "profile_memory_bar": "Bộ nhớ so với giới hạn",
+  "closeness_solved": "Đã giải",
+  "closeness_so_close": "Sắp được rồi!",
+  "closeness_halfway": "Đi được nửa đường",
+  "closeness_started": "Đã có điểm",
+  "closeness_none": "Chưa",
+  "closeness_title": "Bài nộp này đã gần điểm tối đa bao nhiêu",
+  "diff_viewer_title": "Khác biệt đầu ra — mong đợi vs của bạn",
+  "diff_first_mismatch": "không khớp đầu tiên ở dòng {{n}}",
+  "diff_expected": "Mong đợi",
+  "diff_yours": "Của bạn"
 }

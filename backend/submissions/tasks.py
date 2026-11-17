@@ -450,6 +450,11 @@ def judge_submission_task(self, submission_id):
         tc_error = ""
 
         for i, tc in enumerate(test_cases):
+            # Wave E item 6 (per-test time bars): an explicit per-test
+            # override beats the language-adjusted effective limit; the
+            # resolved bar is persisted on the result row (items 19/25) so
+            # the UI never re-derives it.
+            test_eff_time_ms = tc.time_limit_ms if tc.time_limit_ms else eff_time_ms
             if problem.problem_type == Problem.ProblemType.OUTPUT_ONLY:
                 # JDG-3: no execution — the answer text is the candidate
                 # output for this test; tc_verdict=ACCEPTED flows into the
@@ -492,7 +497,7 @@ def judge_submission_task(self, submission_id):
                         submission_dir,
                         interactive_spec,
                         interactive_dir,
-                        eff_time_ms,
+                        test_eff_time_ms,
                         eff_mem_kb,
                     )
                     final_tc_verdict = pair_verdict
@@ -529,6 +534,8 @@ def judge_submission_task(self, submission_id):
                     verdict=final_tc_verdict,
                     execution_time_ms=tc_time if tc_time != -1 else None,
                     memory_used_kb=tc_mem if tc_mem != -1 else None,
+                    limit_time_ms=test_eff_time_ms,
+                    limit_memory_kb=eff_mem_kb,
                     actual_output="",
                     error_output=tc_error[:10000],
                 )
@@ -560,7 +567,7 @@ def judge_submission_task(self, submission_id):
                     executable_path_str,
                     judge_language,
                     tc.input_data,
-                    eff_time_ms,
+                    test_eff_time_ms,
                     eff_mem_kb,
                     submission_dir,
                     problem.custom_libraries_allowed,  # Pass custom libraries here as well
@@ -626,6 +633,8 @@ def judge_submission_task(self, submission_id):
                 verdict=final_tc_verdict,
                 execution_time_ms=tc_time if tc_time != -1 else None,
                 memory_used_kb=tc_mem if tc_mem != -1 else None,
+                limit_time_ms=test_eff_time_ms,
+                limit_memory_kb=eff_mem_kb,
                 actual_output=tc_output[:10000],
                 error_output=tc_error[:10000],
             )

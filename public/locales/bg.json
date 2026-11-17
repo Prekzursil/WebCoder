@@ -1250,5 +1250,19 @@
   "filter_editorial": "С разбор",
   "contests_scoreboard_hidden": "Класирането е скрито до края на състезанието.",
   "contests_hide_scoreboard_label": "Скрий класирането до края на състезанието",
-  "identity_bio": "За мен"
+  "identity_bio": "За мен",
+  "profile_near_limit": "близо до лимита",
+  "profile_over_limit": "над лимита",
+  "profile_time_bar": "Време срещу лимит",
+  "profile_memory_bar": "Памет срещу лимит",
+  "closeness_solved": "Решено",
+  "closeness_so_close": "Толкова близо!",
+  "closeness_halfway": "По средата",
+  "closeness_started": "Точки на таблото",
+  "closeness_none": "Още не",
+  "closeness_title": "Колко близо беше това решение до пълния брой точки",
+  "diff_viewer_title": "Разлика в изхода — очакван срещу вашия",
+  "diff_first_mismatch": "първо несъответствие на ред {{n}}",
+  "diff_expected": "Очаквано",
+  "diff_yours": "Вашият"
 }

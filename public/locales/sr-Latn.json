@@ -1250,5 +1250,19 @@
   "filter_editorial": "S rešenjem",
   "contests_scoreboard_hidden": "Poredak je skriven do kraja takmičenja.",
   "contests_hide_scoreboard_label": "Sakrij poredak do kraja takmičenja",
-  "identity_bio": "O sebi"
+  "identity_bio": "O sebi",
+  "profile_near_limit": "blizu ograničenja",
+  "profile_over_limit": "iznad ograničenja",
+  "profile_time_bar": "Vreme vs ograničenje",
+  "profile_memory_bar": "Memorija vs ograničenje",
+  "closeness_solved": "Rešeno",
+  "closeness_so_close": "Blizu!",
+  "closeness_halfway": "Na pola puta",
+  "closeness_started": "Bodovi na tabli",
+  "closeness_none": "Još ne",
+  "closeness_title": "Koliko je ovo predaja bila blizu maksimalnog broja bodova",
+  "diff_viewer_title": "Razlika izlaza — očekivano vs tvoje",
+  "diff_first_mismatch": "prva razlika u redu {{n}}",
+  "diff_expected": "Očekivano",
+  "diff_yours": "Tvoje"
 }

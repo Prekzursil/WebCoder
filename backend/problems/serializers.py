@@ -34,6 +34,9 @@ class TestCaseSerializer(serializers.ModelSerializer):
             "points",
             "subtask",
             "order",
+            # Wave E item 6: optional per-test time bar (null = the
+            # problem/language effective limit applies).
+            "time_limit_ms",
         ]
 
     def to_representation(self, instance):
