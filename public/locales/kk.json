@@ -1357,5 +1357,18 @@
   "drills_wrong": "Дәл емес.",
   "drills_accepted": "қабылданады",
   "drills_micro_placeholder": "жоқ жол…",
-  "drills_login_to_check": "Жауабыңды тексеру үшін кіріңіз."
+  "drills_login_to_check": "Жауабыңды тексеру үшін кіріңіз.",
+  "insights_tab_effort": "Қажырлық тақтасы",
+  "insights_tab_heatmap": "Сәтсіздік картасы",
+  "insights_tab_import": "Оқушыларды импорттау",
+  "insights_col_user": "оқушы",
+  "insights_col_attempts": "әрекет",
+  "insights_col_active_days": "белсенді күндер",
+  "insights_col_solved": "шешілді",
+  "insights_report_card": "ата-ана есебі",
+  "insights_no_teme": "Әлі тапсырма жоқ.",
+  "insights_import_hint": "Пайдаланушы аттарын қойыңыз (үтірден немесе жаңа жолмен бөлінген) — бар тіркелгілер жазылады; белгісіз аттар хабарланады.",
+  "insights_import_button": "Жазу",
+  "import_result": "Қосылды {{a}} · қазіргі мүшелер {{b}} · жоқ: {{m}}",
+  "exam_pdf_link": "Emtiхан PDF"
 }

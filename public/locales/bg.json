@@ -1357,5 +1357,18 @@
   "drills_wrong": "Не съвсем.",
   "drills_accepted": "прието",
   "drills_micro_placeholder": "липсващият ред…",
-  "drills_login_to_check": "Влезте, за да проверите отговора си."
+  "drills_login_to_check": "Влезте, за да проверите отговора си.",
+  "insights_tab_effort": "Табло за усилия",
+  "insights_tab_heatmap": "Карта на грешките",
+  "insights_tab_import": "Импорт на ученици",
+  "insights_col_user": "ученик",
+  "insights_col_attempts": "опити",
+  "insights_col_active_days": "активни дни",
+  "insights_col_solved": "решени",
+  "insights_report_card": "бележник",
+  "insights_no_teme": "Още няма задачи.",
+  "insights_import_hint": "Поставете потребителски имена (разделени със запетая или нов ред) — съществуващите акаунти се записват; неизвестните се докладват.",
+  "insights_import_button": "Запиши",
+  "import_result": "Добавени {{a}} · вече членове {{b}} · липсват: {{m}}",
+  "exam_pdf_link": "PDF на изпита"
 }

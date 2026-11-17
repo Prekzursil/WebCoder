@@ -1357,5 +1357,18 @@
   "drills_wrong": "还差一点。",
   "drills_accepted": "可接受",
   "drills_micro_placeholder": "缺失的一行…",
-  "drills_login_to_check": "登录以检查你的答案。"
+  "drills_login_to_check": "登录以检查你的答案。",
+  "insights_tab_effort": "努力榜",
+  "insights_tab_heatmap": "失败热力图",
+  "insights_tab_import": "导入学生",
+  "insights_col_user": "学生",
+  "insights_col_attempts": "尝试",
+  "insights_col_active_days": "活跃天数",
+  "insights_col_solved": "已解决",
+  "insights_report_card": "家长报告",
+  "insights_no_teme": "还没有作业。",
+  "insights_import_hint": "粘贴用户名（逗号或换行分隔）——已有账户会被注册；未知用户名会被报告。",
+  "insights_import_button": "注册",
+  "import_result": "已添加 {{a}} · 已是成员 {{b}} · 缺失：{{m}}",
+  "exam_pdf_link": "考试 PDF"
 }

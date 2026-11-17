@@ -1357,5 +1357,18 @@
   "drills_wrong": "惜しい。",
   "drills_accepted": "許容",
   "drills_micro_placeholder": "足りない行…",
-  "drills_login_to_check": "答えを確認するにはログインしてください。"
+  "drills_login_to_check": "答えを確認するにはログインしてください。",
+  "insights_tab_effort": "努力ボード",
+  "insights_tab_heatmap": "失敗ヒートマップ",
+  "insights_tab_import": "生徒をインポート",
+  "insights_col_user": "生徒",
+  "insights_col_attempts": "試行",
+  "insights_col_active_days": "活動日数",
+  "insights_col_solved": "解決",
+  "insights_report_card": "保護者向けレポート",
+  "insights_no_teme": "まだ課題はありません。",
+  "insights_import_hint": "ユーザー名を貼り付け（カンマまたは改行区切り）— 既存アカウントは登録され、未知の名前は報告されます。",
+  "insights_import_button": "登録",
+  "import_result": "追加 {{a}} · 既にメンバー {{b}} · 不在: {{m}}",
+  "exam_pdf_link": "試験PDF"
 }

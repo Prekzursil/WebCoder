@@ -1357,5 +1357,18 @@
   "drills_wrong": "Не зовсім.",
   "drills_accepted": "прийнято",
   "drills_micro_placeholder": "відсутній рядок…",
-  "drills_login_to_check": "Увійдіть, щоб перевірити відповідь."
+  "drills_login_to_check": "Увійдіть, щоб перевірити відповідь.",
+  "insights_tab_effort": "Дошка зусиль",
+  "insights_tab_heatmap": "Карта невдач",
+  "insights_tab_import": "Імпорт учнів",
+  "insights_col_user": "учень",
+  "insights_col_attempts": "спроби",
+  "insights_col_active_days": "активні дні",
+  "insights_col_solved": "вирішено",
+  "insights_report_card": "звіт для батьків",
+  "insights_no_teme": "Завдань ще немає.",
+  "insights_import_hint": "Вставте імена користувачів (через кому або новий рядок) — наявні акаунти зараховуються; невідомі імена повідомляються.",
+  "insights_import_button": "Зарахувати",
+  "import_result": "Додано {{a}} · вже учасники {{b}} · бракує: {{m}}",
+  "exam_pdf_link": "PDF іспиту"
 }

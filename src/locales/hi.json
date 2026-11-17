@@ -1357,5 +1357,18 @@
   "drills_wrong": "पूरी तरह नहीं।",
   "drills_accepted": "स्वीकृत",
   "drills_micro_placeholder": "छूटी हुई पंक्ति…",
-  "drills_login_to_check": "अपना उत्तर जाँचने के लिए लॉग इन करें।"
+  "drills_login_to_check": "अपना उत्तर जाँचने के लिए लॉग इन करें।",
+  "insights_tab_effort": "प्रयास बोर्ड",
+  "insights_tab_heatmap": "विफलता हीटमैप",
+  "insights_tab_import": "छात्र आयात करें",
+  "insights_col_user": "छात्र",
+  "insights_col_attempts": "प्रयास",
+  "insights_col_active_days": "सक्रिय दिन",
+  "insights_col_solved": "हल",
+  "insights_report_card": "अभिभावक रिपोर्ट",
+  "insights_no_teme": "अभी कोई गृहकार्य नहीं।",
+  "insights_import_hint": "यूज़रनेम पेस्ट करें (कॉमा या नई पंक्ति से अलग) — मौजूदा खाते नामांकित होंगे; अज्ञात नाम रिपोर्ट किए जाएँगे।",
+  "insights_import_button": "नामांकन",
+  "import_result": "जोड़े गए {{a}} · पहले से सदस्य {{b}} · गायब: {{m}}",
+  "exam_pdf_link": "परीक्षा PDF"
 }

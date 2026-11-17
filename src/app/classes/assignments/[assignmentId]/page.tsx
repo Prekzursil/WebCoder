@@ -303,6 +303,15 @@ export default function AssignmentDetailPage() {
             >
               {t('assignment_export_csv', '⬇ Export grades (CSV)')}
             </a>
+            {/* [wave E item 41] the printable exam sheet (statements as
+                one PDF) — same cookie-riding plain link. */}
+            <a
+              href={`/classroom/assignments/${assignment.id}/exam-pdf`}
+              data-testid="exam-pdf"
+              style={{ color: palette.accent, fontWeight: 600 }}
+            >
+              {t('exam_pdf_link', 'Exam PDF')}
+            </a>
           </div>
           {grid.students.length === 0 || grid.problems.length === 0 ? (
             <EmptyState

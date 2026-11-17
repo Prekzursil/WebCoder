@@ -1357,5 +1357,18 @@
   "drills_wrong": "Ne visai.",
   "drills_accepted": "priimta",
   "drills_micro_placeholder": "trūkstama eilutė…",
-  "drills_login_to_check": "Prisijunkite, kad patikrintumėte atsakymą."
+  "drills_login_to_check": "Prisijunkite, kad patikrintumėte atsakymą.",
+  "insights_tab_effort": "Pastangų lenta",
+  "insights_tab_heatmap": "Klaidų žemėlapis",
+  "insights_tab_import": "Importuoti mokinius",
+  "insights_col_user": "mokinys",
+  "insights_col_attempts": "bandymai",
+  "insights_col_active_days": "aktyvios dienos",
+  "insights_col_solved": "išspręsta",
+  "insights_report_card": "pažymėjimas",
+  "insights_no_teme": "Kol kas nėra užduočių.",
+  "insights_import_hint": "Įklijuokite naudotojų vardus (atskirtus kableliu arba nauja eilute) — esamos paskyros įrašomos; nežinomi vardai pranešami.",
+  "insights_import_button": "Įrašyti",
+  "import_result": "Pridėta {{a}} · jau nariai {{b}} · trūksta: {{m}}",
+  "exam_pdf_link": "Egzamino PDF"
 }

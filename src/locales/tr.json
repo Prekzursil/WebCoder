@@ -1357,5 +1357,18 @@
   "drills_wrong": "Tam değil.",
   "drills_accepted": "kabul edildi",
   "drills_micro_placeholder": "eksik satır…",
-  "drills_login_to_check": "Cevabını kontrol etmek için giriş yap."
+  "drills_login_to_check": "Cevabını kontrol etmek için giriş yap.",
+  "insights_tab_effort": "Çaba tablosu",
+  "insights_tab_heatmap": "Hata ısı haritası",
+  "insights_tab_import": "Öğrencileri içe aktar",
+  "insights_col_user": "öğrenci",
+  "insights_col_attempts": "deneme",
+  "insights_col_active_days": "aktif günler",
+  "insights_col_solved": "çözüldü",
+  "insights_report_card": "veli raporu",
+  "insights_no_teme": "Henüz ödev yok.",
+  "insights_import_hint": "Kullanıcı adlarını yapıştır (virgül veya yeni satırla ayrılmış) — mevcut hesaplar kaydedilir; bilinmeyen adlar raporlanır.",
+  "insights_import_button": "Kaydet",
+  "import_result": "Eklendi {{a}} · zaten üye {{b}} · eksik: {{m}}",
+  "exam_pdf_link": "Sınav PDF'i"
 }

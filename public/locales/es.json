@@ -1357,5 +1357,18 @@
   "drills_wrong": "No exactamente.",
   "drills_accepted": "aceptado",
   "drills_micro_placeholder": "la línea que falta…",
-  "drills_login_to_check": "Inicia sesión para comprobar tu respuesta."
+  "drills_login_to_check": "Inicia sesión para comprobar tu respuesta.",
+  "insights_tab_effort": "Tablero de esfuerzo",
+  "insights_tab_heatmap": "Mapa de fallos",
+  "insights_tab_import": "Importar alumnos",
+  "insights_col_user": "alumno",
+  "insights_col_attempts": "intentos",
+  "insights_col_active_days": "días activos",
+  "insights_col_solved": "resueltos",
+  "insights_report_card": "boletín",
+  "insights_no_teme": "Aún no hay tareas.",
+  "insights_import_hint": "Pega nombres de usuario (separados por comas o saltos de línea): las cuentas existentes se inscriben; los desconocidos se informan.",
+  "insights_import_button": "Inscribir",
+  "import_result": "Añadidos {{a}} · ya miembros {{b}} · faltan: {{m}}",
+  "exam_pdf_link": "PDF del examen"
 }

@@ -1357,5 +1357,18 @@
   "drills_wrong": "Nu chiar.",
   "drills_accepted": "acceptat",
   "drills_micro_placeholder": "linia lipsă…",
-  "drills_login_to_check": "Autentifică-te pentru a-ți verifica răspunsul."
+  "drills_login_to_check": "Autentifică-te pentru a-ți verifica răspunsul.",
+  "insights_tab_effort": "Clasamentul efortului",
+  "insights_tab_heatmap": "Harta eșecurilor",
+  "insights_tab_import": "Importă elevi",
+  "insights_col_user": "elev",
+  "insights_col_attempts": "încercări",
+  "insights_col_active_days": "zile active",
+  "insights_col_solved": "rezolvate",
+  "insights_report_card": "fișă pentru părinți",
+  "insights_no_teme": "Încă nicio temă.",
+  "insights_import_hint": "Lipește numele de utilizator (separate prin virgulă sau rând nou) — conturile existente se înscriu; cele necunoscute sunt raportate.",
+  "insights_import_button": "Înscrie",
+  "import_result": "Adăugați {{a}} · deja membri {{b}} · lipsesc: {{m}}",
+  "exam_pdf_link": "PDF examen"
 }

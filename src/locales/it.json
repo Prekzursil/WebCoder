@@ -1357,5 +1357,18 @@
   "drills_wrong": "Non proprio.",
   "drills_accepted": "accettato",
   "drills_micro_placeholder": "la riga mancante…",
-  "drills_login_to_check": "Accedi per controllare la tua risposta."
+  "drills_login_to_check": "Accedi per controllare la tua risposta.",
+  "insights_tab_effort": "Classifica dell'impegno",
+  "insights_tab_heatmap": "Mappa dei fallimenti",
+  "insights_tab_import": "Importa studenti",
+  "insights_col_user": "studente",
+  "insights_col_attempts": "tentativi",
+  "insights_col_active_days": "giorni attivi",
+  "insights_col_solved": "risolti",
+  "insights_report_card": "pagella",
+  "insights_no_teme": "Ancora nessun compito.",
+  "insights_import_hint": "Incolla username (separati da virgola o a capo) — gli account esistenti vengono iscritti; i nomi sconosciuti vengono segnalati.",
+  "insights_import_button": "Iscrivere",
+  "import_result": "Aggiunti {{a}} · già membri {{b}} · mancanti: {{m}}",
+  "exam_pdf_link": "PDF d'esame"
 }
