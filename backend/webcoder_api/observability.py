@@ -40,7 +40,11 @@ from users.permissions import IsAdminUser
 from problems.models import Problem
 from submissions.models import Submission, SubmissionTestResult
 from users.models import User
-from .jsonlog import JsonFormatter as JsonFormatter  # re-export (ruff F401 stable form)
+from . import jsonlog
+
+#: Re-export (assignment, not an import statement): callers import
+#: JsonFormatter from this module.
+JsonFormatter = jsonlog.JsonFormatter
 
 # In-flight verdicts a submission can sit in while queued/being judged —
 # the "queue depth" signal for the metrics snapshot.
