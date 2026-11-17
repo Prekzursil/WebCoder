@@ -1347,5 +1347,15 @@
   "learning_skills_title": "Įgūdžių grafikas",
   "learning_requires": "reikalauja {{tags}}",
   "learning_theory_title": "Teorijos kortelės",
-  "learning_flip_hint": "spustelėkite apvertimui"
+  "learning_flip_hint": "spustelėkite apvertimui",
+  "nav_drills": "Pratimai",
+  "drills_title": "Pratimai",
+  "drills_intro": "Dvi minutės praktikos tarp užduočių: perskaityk kodą, įvertink sudėtingumą, užpildyk eilutę.",
+  "drills_daily_title": "Šiandieninis įšilimas",
+  "drills_check": "Patikrinti",
+  "drills_correct": "Teisingai!",
+  "drills_wrong": "Ne visai.",
+  "drills_accepted": "priimta",
+  "drills_micro_placeholder": "trūkstama eilutė…",
+  "drills_login_to_check": "Prisijunkite, kad patikrintumėte atsakymą."
 }

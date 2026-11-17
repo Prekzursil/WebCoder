@@ -1347,5 +1347,15 @@
   "learning_skills_title": "Fähigkeitsgraph",
   "learning_requires": "benötigt {{tags}}",
   "learning_theory_title": "Theoriekarten",
-  "learning_flip_hint": "klicken zum Umdrehen"
+  "learning_flip_hint": "klicken zum Umdrehen",
+  "nav_drills": "Übungen",
+  "drills_title": "Übungen",
+  "drills_intro": "Zwei Minuten Übung zwischen Aufgaben: Code lesen, Komplexität einschätzen, die Zeile ergänzen.",
+  "drills_daily_title": "Heutiges Aufwärmen",
+  "drills_check": "Prüfen",
+  "drills_correct": "Richtig!",
+  "drills_wrong": "Nicht ganz.",
+  "drills_accepted": "akzeptiert",
+  "drills_micro_placeholder": "die fehlende Zeile…",
+  "drills_login_to_check": "Melde dich an, um deine Antwort zu prüfen."
 }

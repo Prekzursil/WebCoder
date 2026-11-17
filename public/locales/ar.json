@@ -1347,5 +1347,15 @@
   "learning_skills_title": "رسم المهارات",
   "learning_requires": "يتطلب {{tags}}",
   "learning_theory_title": "بطاقات النظرية",
-  "learning_flip_hint": "انقر للقلب"
+  "learning_flip_hint": "انقر للقلب",
+  "nav_drills": "تمارين",
+  "drills_title": "تمارين",
+  "drills_intro": "تدريب لمدة دقيقتين بين المسائل: اقرأ الكود، وقدّر التعقيد، وأكمل السطر.",
+  "drills_daily_title": "إحماء اليوم",
+  "drills_check": "تحقق",
+  "drills_correct": "صحيح!",
+  "drills_wrong": "ليس تمامًا.",
+  "drills_accepted": "مقبول",
+  "drills_micro_placeholder": "السطر الناقص…",
+  "drills_login_to_check": "سجّل الدخول للتحقق من إجابتك."
 }

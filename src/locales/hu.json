@@ -1347,5 +1347,15 @@
   "learning_skills_title": "Készséggráf",
   "learning_requires": "igényel: {{tags}}",
   "learning_theory_title": "Elméleti kártyák",
-  "learning_flip_hint": "kattints a fordításhoz"
+  "learning_flip_hint": "kattints a fordításhoz",
+  "nav_drills": "Gyakorlatok",
+  "drills_title": "Gyakorlatok",
+  "drills_intro": "Kétperces gyakorlás feladatok között: olvasd a kódot, ítéld a komplexitást, egészítsd ki a sort.",
+  "drills_daily_title": "Mai bemelegítés",
+  "drills_check": "Ellenőrzés",
+  "drills_correct": "Helyes!",
+  "drills_wrong": "Nem egészen.",
+  "drills_accepted": "elfogadott",
+  "drills_micro_placeholder": "a hiányzó sor…",
+  "drills_login_to_check": "Jelentkezz be a válaszod ellenőrzéséhez."
 }

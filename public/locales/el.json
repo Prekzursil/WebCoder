@@ -1347,5 +1347,15 @@
   "learning_skills_title": "Γράφημα δεξιοτήτων",
   "learning_requires": "απαιτεί {{tags}}",
   "learning_theory_title": "Κάρτες θεωρίας",
-  "learning_flip_hint": "κλικ για αναστροφή"
+  "learning_flip_hint": "κλικ για αναστροφή",
+  "nav_drills": "Ασκήσεις",
+  "drills_title": "Ασκήσεις",
+  "drills_intro": "Δίλεπτη εξάσκηση μεταξύ προβλημάτων: διάβασε τον κώδικα, κρίνε την πολυπλοκότητα, συμπλήρωσε τη γραμμή.",
+  "drills_daily_title": "Σημερινή προθέρμανση",
+  "drills_check": "Έλεγχος",
+  "drills_correct": "Σωστά!",
+  "drills_wrong": "Όχι ακριβώς.",
+  "drills_accepted": "αποδεκτό",
+  "drills_micro_placeholder": "η γραμμή που λείπει…",
+  "drills_login_to_check": "Συνδεθείτε για να ελέγξετε την απάντησή σας."
 }

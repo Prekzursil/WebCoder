@@ -1347,5 +1347,15 @@
   "learning_skills_title": "نمودار مهارت",
   "learning_requires": "نیازمند {{tags}}",
   "learning_theory_title": "کارت‌های تئوری",
-  "learning_flip_hint": "برای برگرداندن کلیک کنید"
+  "learning_flip_hint": "برای برگرداندن کلیک کنید",
+  "nav_drills": "تمرین‌ها",
+  "drills_title": "تمرین‌ها",
+  "drills_intro": "تمرین دو دقیقه‌ای بین مسئله‌ها: کد را بخوان، پیچیدگی را بسنج، خط را کامل کن.",
+  "drills_daily_title": "گرم کردن امروز",
+  "drills_check": "بررسی",
+  "drills_correct": "درست!",
+  "drills_wrong": "دقیقاً نه.",
+  "drills_accepted": "پذیرفته",
+  "drills_micro_placeholder": "خط مفقود…",
+  "drills_login_to_check": "برای بررسی پاسخ وارد شوید."
 }

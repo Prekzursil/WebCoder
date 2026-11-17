@@ -1347,5 +1347,15 @@
   "learning_skills_title": "Vaardigheidsgraaf",
   "learning_requires": "vereist {{tags}}",
   "learning_theory_title": "Theoriekaarten",
-  "learning_flip_hint": "klik om te draaien"
+  "learning_flip_hint": "klik om te draaien",
+  "nav_drills": "Oefeningen",
+  "drills_title": "Oefeningen",
+  "drills_intro": "Twee minuten oefening tussen problemen: lees de code, beoordeel de complexiteit, vul de regel aan.",
+  "drills_daily_title": "Warm-up van vandaag",
+  "drills_check": "Controleren",
+  "drills_correct": "Juist!",
+  "drills_wrong": "Niet helemaal.",
+  "drills_accepted": "geaccepteerd",
+  "drills_micro_placeholder": "de ontbrekende regel…",
+  "drills_login_to_check": "Log in om je antwoord te controleren."
 }

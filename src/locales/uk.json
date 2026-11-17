@@ -1347,5 +1347,15 @@
   "learning_skills_title": "Граф навичок",
   "learning_requires": "потребує {{tags}}",
   "learning_theory_title": "Картки теорії",
-  "learning_flip_hint": "натисніть, щоб перевернути"
+  "learning_flip_hint": "натисніть, щоб перевернути",
+  "nav_drills": "Вправи",
+  "drills_title": "Вправи",
+  "drills_intro": "Двохвилинна практика між задачами: прочитайте код, оцініть складність, доповніть рядок.",
+  "drills_daily_title": "Розминка на сьогодні",
+  "drills_check": "Перевірити",
+  "drills_correct": "Правильно!",
+  "drills_wrong": "Не зовсім.",
+  "drills_accepted": "прийнято",
+  "drills_micro_placeholder": "відсутній рядок…",
+  "drills_login_to_check": "Увійдіть, щоб перевірити відповідь."
 }

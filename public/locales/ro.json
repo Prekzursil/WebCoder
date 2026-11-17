@@ -1347,5 +1347,15 @@
   "learning_skills_title": "Graful competențelor",
   "learning_requires": "necesită {{tags}}",
   "learning_theory_title": "Carduri de teorie",
-  "learning_flip_hint": "click pentru întoarcere"
+  "learning_flip_hint": "click pentru întoarcere",
+  "nav_drills": "Exerciții",
+  "drills_title": "Exerciții",
+  "drills_intro": "Practică de două minute între probleme: citește codul, apreciază complexitatea, completează linia.",
+  "drills_daily_title": "Încălzirea de azi",
+  "drills_check": "Verifică",
+  "drills_correct": "Corect!",
+  "drills_wrong": "Nu chiar.",
+  "drills_accepted": "acceptat",
+  "drills_micro_placeholder": "linia lipsă…",
+  "drills_login_to_check": "Autentifică-te pentru a-ți verifica răspunsul."
 }

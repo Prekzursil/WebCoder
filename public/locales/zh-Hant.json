@@ -1347,5 +1347,15 @@
   "learning_skills_title": "技能圖譜",
   "learning_requires": "需要 {{tags}}",
   "learning_theory_title": "理論卡片",
-  "learning_flip_hint": "點擊翻轉"
+  "learning_flip_hint": "點擊翻轉",
+  "nav_drills": "練習",
+  "drills_title": "練習",
+  "drills_intro": "題目之間的兩分鐘練習：讀程式碼、判斷複雜度、補全一行。",
+  "drills_daily_title": "今日熱身",
+  "drills_check": "檢查",
+  "drills_correct": "正確！",
+  "drills_wrong": "還差一點。",
+  "drills_accepted": "可接受",
+  "drills_micro_placeholder": "缺失的一行…",
+  "drills_login_to_check": "登入以檢查你的答案。"
 }

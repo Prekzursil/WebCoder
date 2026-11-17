@@ -128,3 +128,87 @@ class TheoryCardsView(APIView):
                 ],
             }
         )
+
+
+class DrillsView(APIView):
+    """GET /api/v1/learning/drills/?kind= (items 36/37/38): the deck.
+
+    Options ride the payload WITHOUT the answer (answers go through the
+    answer endpoint); explanations are revealed on a correct reply.
+    """
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        from .models import Drill
+
+        qs = Drill.objects.select_related("tag").order_by("kind", "order", "id")
+        kind = request.query_params.get("kind")
+        if kind:
+            qs = qs.filter(kind=kind)
+        rows = [
+            {
+                "id": d.id,
+                "kind": d.kind,
+                "tag": d.tag.slug,
+                "code": d.payload.get("code", ""),
+                "question_ro": d.payload.get("question_ro", ""),
+                "question_en": d.payload.get("question_en", ""),
+                "options_ro": d.payload.get("options_ro"),
+                "options_en": d.payload.get("options_en"),
+            }
+            for d in qs
+        ]
+        return Response({"count": len(rows), "results": rows})
+
+
+class DrillAnswerView(APIView):
+    """POST /api/v1/learning/drills/{id}/answer/ {answer}: check + reveal."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, drill_id: int):
+        from .drills import check_answer
+        from .models import Drill
+
+        drill = Drill.objects.filter(pk=drill_id).first()
+        if drill is None:
+            return Response({"detail": "Not found."}, status=404)
+        correct, error = check_answer(drill, request.data.get("answer"))
+        payload = drill.payload or {}
+        return Response(
+            {
+                "correct": correct,
+                "error": error,
+                # The explanation is the reward: revealed only on a
+                # correct reply (cheap spoiler gate; the code is public).
+                "explanation_ro": payload.get("explanation_ro") if correct else "",
+                "explanation_en": payload.get("explanation_en") if correct else "",
+                "accepted": payload.get("accepted") if correct else None,
+            }
+        )
+
+
+class DailyDrillsView(APIView):
+    """GET /api/v1/learning/drills/daily/ (item 40): the deterministic
+    warmup set — one drill per kind, same for everyone today."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        from .drills import daily_drills
+
+        rows = [
+            {
+                "id": d.id,
+                "kind": d.kind,
+                "tag": d.tag.slug,
+                "code": (d.payload or {}).get("code", ""),
+                "question_ro": (d.payload or {}).get("question_ro", ""),
+                "question_en": (d.payload or {}).get("question_en", ""),
+                "options_ro": (d.payload or {}).get("options_ro"),
+                "options_en": (d.payload or {}).get("options_en"),
+            }
+            for d in daily_drills()
+        ]
+        return Response({"count": len(rows), "results": rows})

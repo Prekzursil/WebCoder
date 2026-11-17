@@ -1347,5 +1347,15 @@
   "learning_skills_title": "Граф навыков",
   "learning_requires": "требует {{tags}}",
   "learning_theory_title": "Карточки теории",
-  "learning_flip_hint": "нажмите, чтобы перевернуть"
+  "learning_flip_hint": "нажмите, чтобы перевернуть",
+  "nav_drills": "Упражнения",
+  "drills_title": "Упражнения",
+  "drills_intro": "Двухминутная практика между задачами: прочитайте код, оцените сложность, дополните строку.",
+  "drills_daily_title": "Разминка на сегодня",
+  "drills_check": "Проверить",
+  "drills_correct": "Верно!",
+  "drills_wrong": "Не совсем.",
+  "drills_accepted": "принято",
+  "drills_micro_placeholder": "недостающая строка…",
+  "drills_login_to_check": "Войдите, чтобы проверить ответ."
 }

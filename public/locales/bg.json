@@ -1347,5 +1347,15 @@
   "learning_skills_title": "Граф на уменията",
   "learning_requires": "изисква {{tags}}",
   "learning_theory_title": "Карти от теория",
-  "learning_flip_hint": "щракнете за обръщане"
+  "learning_flip_hint": "щракнете за обръщане",
+  "nav_drills": "Упражнения",
+  "drills_title": "Упражнения",
+  "drills_intro": "Двуминутна практика между задачите: прочети кода, оцени сложността, допълни реда.",
+  "drills_daily_title": "Днешното загряване",
+  "drills_check": "Провери",
+  "drills_correct": "Вярно!",
+  "drills_wrong": "Не съвсем.",
+  "drills_accepted": "прието",
+  "drills_micro_placeholder": "липсващият ред…",
+  "drills_login_to_check": "Влезте, за да проверите отговора си."
 }

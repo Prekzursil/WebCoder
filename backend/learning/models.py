@@ -81,3 +81,50 @@ class TheoryCard(models.Model):
 
     def __str__(self):
         return f"{self.tag_id}: {self.front_en[:40]}"
+
+
+class Drill(models.Model):
+    """A practice drill (wave E items 36/37/38/40).
+
+    Three kinds, one JSON payload contract:
+
+    - ``READ_CODE`` (item 36): a code snippet + "what does this output?"
+      — the options are the choices, the answer the right index.
+    - ``COMPLEXITY`` (item 38): a snippet + complexity options.
+    - ``MICRO`` (item 37): fill-the-line micro-exercise built on the
+      partial-code discipline — the payload carries the template with a
+      ``___`` blank and the accepted answer lines (normalized compare).
+
+    The daily warmup (item 40) is a deterministic date-hash pick over the
+    three kinds — no new state.
+    """
+
+    class Kind(models.TextChoices):
+        READ_CODE = "READ_CODE", _("Read the code")
+        COMPLEXITY = "COMPLEXITY", _("Complexity drill")
+        MICRO = "MICRO", _("Fill the line")
+
+    kind = models.CharField(_("kind"), max_length=12, choices=Kind.choices)
+    tag = models.ForeignKey(
+        "problems.Tag",
+        on_delete=models.CASCADE,
+        related_name="drills",
+        verbose_name=_("tag"),
+    )
+    payload = models.JSONField(
+        _("payload"),
+        help_text=_(
+            "{code, question_ro, question_en, options_ro[], options_en[], "
+            "answer (index or accepted lines), explanation_ro, explanation_en}"
+        ),
+    )
+    order = models.PositiveIntegerField(_("order"), default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("drill")
+        verbose_name_plural = _("drills")
+        ordering = ["kind", "order", "id"]
+
+    def __str__(self):
+        return f"{self.kind} #{self.id} ({self.tag_id})"

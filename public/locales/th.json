@@ -1347,5 +1347,15 @@
   "learning_skills_title": "กราฟทักษะ",
   "learning_requires": "ต้องมี {{tags}}",
   "learning_theory_title": "บัตรทฤษฎี",
-  "learning_flip_hint": "คลิกเพื่อพลิก"
+  "learning_flip_hint": "คลิกเพื่อพลิก",
+  "nav_drills": "แบบฝึกหัด",
+  "drills_title": "แบบฝึกหัด",
+  "drills_intro": "ฝึกสองนาทีระหว่างโจทย์: อ่านโค้ด ประเมินความซับซ้อน เติมบรรทัด",
+  "drills_daily_title": "วอร์มอัพวันนี้",
+  "drills_check": "ตรวจ",
+  "drills_correct": "ถูกต้อง!",
+  "drills_wrong": "ยังไม่ค่อย",
+  "drills_accepted": "ยอมรับ",
+  "drills_micro_placeholder": "บรรทัดที่ขาด…",
+  "drills_login_to_check": "เข้าสู่ระบบเพื่อตรวจคำตอบ"
 }

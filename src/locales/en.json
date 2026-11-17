@@ -1347,5 +1347,15 @@
   "learning_skills_title": "Skill graph",
   "learning_requires": "requires {{tags}}",
   "learning_theory_title": "Theory cards",
-  "learning_flip_hint": "click to flip"
+  "learning_flip_hint": "click to flip",
+  "nav_drills": "Drills",
+  "drills_title": "Drills",
+  "drills_intro": "Two-minute practice between problems: read the code, judge the complexity, fill the line.",
+  "drills_daily_title": "Today's warmup",
+  "drills_check": "Check",
+  "drills_correct": "Correct!",
+  "drills_wrong": "Not quite.",
+  "drills_accepted": "accepted",
+  "drills_micro_placeholder": "the missing line…",
+  "drills_login_to_check": "Log in to check your answer."
 }

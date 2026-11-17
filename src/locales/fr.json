@@ -1347,5 +1347,15 @@
   "learning_skills_title": "Graphe de compétences",
   "learning_requires": "nécessite {{tags}}",
   "learning_theory_title": "Cartes de théorie",
-  "learning_flip_hint": "cliquez pour retourner"
+  "learning_flip_hint": "cliquez pour retourner",
+  "nav_drills": "Exercices",
+  "drills_title": "Exercices",
+  "drills_intro": "Deux minutes d'exercice entre deux problèmes : lisez le code, jugez la complexité, complétez la ligne.",
+  "drills_daily_title": "Échauffement du jour",
+  "drills_check": "Vérifier",
+  "drills_correct": "Correct !",
+  "drills_wrong": "Pas tout à fait.",
+  "drills_accepted": "accepté",
+  "drills_micro_placeholder": "la ligne manquante…",
+  "drills_login_to_check": "Connectez-vous pour vérifier votre réponse."
 }

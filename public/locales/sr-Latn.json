@@ -1347,5 +1347,15 @@
   "learning_skills_title": "Graf veština",
   "learning_requires": "zahteva {{tags}}",
   "learning_theory_title": "Kartice teorije",
-  "learning_flip_hint": "klikni za okretanje"
+  "learning_flip_hint": "klikni za okretanje",
+  "nav_drills": "Vežbe",
+  "drills_title": "Vežbe",
+  "drills_intro": "Dva minuta vežbe između zadataka: pročitaj kod, proceni složenost, dopuni liniju.",
+  "drills_daily_title": "Današnje zagrevanje",
+  "drills_check": "Proveri",
+  "drills_correct": "Tačno!",
+  "drills_wrong": "Nije baš.",
+  "drills_accepted": "prihvaćeno",
+  "drills_micro_placeholder": "red koji nedostaje…",
+  "drills_login_to_check": "Prijavi se za proveru odgovora."
 }
