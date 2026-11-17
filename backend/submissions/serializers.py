@@ -73,9 +73,7 @@ class SubmissionTestResultSerializer(serializers.ModelSerializer):
                 # line diff of expected vs actual output.
                 if obj.test_case.is_sample or self._privileged(obj):
                     details["input_data"] = obj.test_case.input_data
-                    details["expected_output_data"] = (
-                        obj.test_case.expected_output_data
-                    )
+                    details["expected_output_data"] = obj.test_case.expected_output_data
                 return details
         except ObjectDoesNotExist:
             # Unset required FK (unsaved/defensive display path) — schema stays NOT NULL.

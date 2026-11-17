@@ -74,9 +74,12 @@ class PerTestLimitTest(TestCase):
             seen_limits.append(time_ms)
             return (AC, 10, 1000, stdin, "")
 
-        with mock.patch(f"{TASKS}.run_code_in_sandbox", side_effect=fake_run), mock.patch(
-            f"{TASKS}.compile_code_in_sandbox",
-            return_value=(True, "", "/tmp/x"),
+        with (
+            mock.patch(f"{TASKS}.run_code_in_sandbox", side_effect=fake_run),
+            mock.patch(
+                f"{TASKS}.compile_code_in_sandbox",
+                return_value=(True, "", "/tmp/x"),
+            ),
         ):
             _call(sub.id)
         sub.refresh_from_db()
@@ -109,15 +112,19 @@ class PerTestLimitTest(TestCase):
         self.problem.interactor_language = "python3"
         self.problem.save()
         sub = self._sub()
-        with mock.patch(
-            f"{TASKS}.compile_code_in_sandbox", return_value=(True, "", "/tmp/x")
-        ), mock.patch(
-            f"{TASKS}.compile_interactor",
-            return_value=(True, "", object()),
-        ) as compile_i, mock.patch(
-            f"{TASKS}.run_interactive_pair",
-            return_value=(AC, 5, 512, None, ""),
-        ) as run_pair:
+        with (
+            mock.patch(
+                f"{TASKS}.compile_code_in_sandbox", return_value=(True, "", "/tmp/x")
+            ),
+            mock.patch(
+                f"{TASKS}.compile_interactor",
+                return_value=(True, "", object()),
+            ) as compile_i,
+            mock.patch(
+                f"{TASKS}.run_interactive_pair",
+                return_value=(AC, 5, 512, None, ""),
+            ) as run_pair,
+        ):
             _call(sub.id)
         compile_i.assert_called_once()
         # Two tests -> two pair runs, one per resolved bar.
@@ -201,17 +208,13 @@ class TestResultVisibilityTest(TestCase):
         for viewer in (self.owner, self.verifier):
             data = self._serialize(self._row(self.tc_hidden), viewer)
             self.assertEqual(data["actual_output"], "captured")
-            self.assertEqual(
-                data["test_case_details"]["input_data"], "hidden-in"
-            )
+            self.assertEqual(data["test_case_details"]["input_data"], "hidden-in")
         # Anonymous (no request in context) sees the stripped shape too.
         data = SubmissionTestResultSerializer(self._row(self.tc_hidden)).data
         self.assertIsNone(data["actual_output"])
 
     def test_hidden_row_visible_to_staff(self):
-        staff = User.objects.create_user(
-            username="staff", password="p", is_staff=True
-        )
+        staff = User.objects.create_user(username="staff", password="p", is_staff=True)
         data = self._serialize(self._row(self.tc_hidden), staff)
         self.assertEqual(data["actual_output"], "captured")
         self.assertEqual(data["test_case_details"]["input_data"], "hidden-in")
