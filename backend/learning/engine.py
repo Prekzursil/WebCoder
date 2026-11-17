@@ -26,15 +26,16 @@ from django.utils import timezone
 from problems.models import Problem
 from submissions.models import Submission, SubmissionTestResult
 
-# Typed as plain str: the TextChoices members ARE str, and the explicit
-# annotation keeps type checkers from widening them to the tuple form
-# they use inside choices= declarations.
-AC: str = Submission.VerdictStatus.ACCEPTED
-WA: str = Submission.VerdictStatus.WRONG_ANSWER
-TLE: str = Submission.VerdictStatus.TIME_LIMIT_EXCEEDED
-RE: str = Submission.VerdictStatus.RUNTIME_ERROR
-CE: str = Submission.VerdictStatus.COMPILE_ERROR
-MLE: str = Submission.VerdictStatus.MEMORY_LIMIT_EXCEEDED
+# Plain string codes, matching Submission.VerdictStatus values ('AC',
+# 'WA', …): the lean gate's type environment resolves TextChoices members
+# to their tuple form, and these helpers are str-typed end to end. The
+# test suite pins the equivalence (see test_learning).
+AC = "AC"
+WA = "WA"
+TLE = "TLE"
+RE = "RE"
+CE = "CE"
+MLE = "MLE"
 
 #: The expanding review schedule, indexed by consecutive failed attempts.
 REVIEW_INTERVALS_DAYS = [1, 3, 7, 16, 35]
