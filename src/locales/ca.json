@@ -1462,5 +1462,12 @@
   "teams_members_col": "Membres",
   "teams_roster_title": "Equips",
   "teams_team": "Equip",
-  "prediction_hint": "Les prediccions es bloquegen al primer enviament; el teu historial de precisió és a la pàgina de valoracions."
+  "prediction_hint": "Les prediccions es bloquegen al primer enviament; el teu historial de precisió és a la pàgina de valoracions.",
+  "annotation_peak": "Màxim de carrera: {{rating}}",
+  "annotation_medal": "Medalla: {{medal}}",
+  "annotation_promoted": "Promocionat a {{division}}",
+  "annotation_demoted": "Descendit a {{division}}",
+  "division_changes_title": "Promocions de divisió",
+  "percentile_overall": "Top {{p}}% general",
+  "percentile_school": "Top {{p}}% a {{school}}"
 }

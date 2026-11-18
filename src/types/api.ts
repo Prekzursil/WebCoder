@@ -622,6 +622,10 @@ export interface UserRatingHistory {
   bio?: string;
   rating: MyRating;
   history: RatingHistoryEntry[];
+  /** Wave F item 51 — per-history-index graph annotations. */
+  annotations?: Record<string, RatingGraphAnnotation>;
+  /** Wave F item 53 — the current division chip. */
+  division?: string | null;
 }
 
 // =================================
@@ -1000,4 +1004,47 @@ export interface CalibrationProfile {
   mean_abs_error: number | null;
   bias: number | null;
   results: CalibrationRow[];
+}
+
+// ---- Wave F ratings depth (items 51/52/53) ----
+
+export interface RatingGraphAnnotation {
+  peak?: number;
+  medal?: 'GOLD' | 'SILVER' | 'BRONZE';
+  division_change?: 'promoted' | 'demoted';
+  division?: string;
+}
+
+export interface DivisionTableRow {
+  name: string;
+  min_rating: number;
+  players: number;
+}
+
+export interface UserDivisionProfile {
+  division: string | null;
+  rated: boolean;
+  display_rating?: number;
+  changes: {
+    contest: number;
+    title: string;
+    from: string;
+    to: string;
+    kind: 'promoted' | 'demoted';
+    rating: number;
+  }[];
+}
+
+export interface PercentileCohort {
+  name?: string;
+  percentile: number;
+  total: number;
+}
+
+export interface UserPercentiles {
+  rated: boolean;
+  display_rating?: number;
+  overall?: PercentileCohort;
+  school?: PercentileCohort | null;
+  county?: PercentileCohort | null;
 }

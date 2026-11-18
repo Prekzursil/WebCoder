@@ -9,6 +9,9 @@ import PublicRatingProfilePage, { chartPoints } from './page';
 
 const api = vi.hoisted(() => ({
   getRatingHistory: vi.fn(),
+  // Wave F items 52/53 — division profile + cohort percentiles.
+  getUserDivisions: vi.fn().mockResolvedValue({ division: null, rated: false, changes: [] }),
+  getPercentiles: vi.fn().mockResolvedValue({ rated: false }),
 }));
 
 vi.mock('@/services/ApiService', () => ({
@@ -147,5 +150,67 @@ describe('PublicRatingProfilePage', () => {
       expect(screen.getByTestId('rating-profile-error')).toBeInTheDocument();
     });
     expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
+  });
+});
+
+describe('rating profile — divisions, percentiles, annotations (wave F)', () => {
+  beforeEach(() => {
+    api.getRatingHistory.mockReset().mockResolvedValue({
+      ...RATED,
+      annotations: {
+        '0': { peak: 1250 },
+        '1': { peak: 1542, medal: 'GOLD', division_change: 'promoted', division: 'Div 2' },
+      },
+      division: 'Div 2',
+    });
+    api.getUserDivisions.mockReset().mockResolvedValue({
+      division: 'Div 2',
+      rated: true,
+      changes: [
+        {
+          contest: 2,
+          title: 'Second round',
+          from: 'Div 3',
+          to: 'Div 2',
+          kind: 'promoted',
+          rating: 1542,
+        },
+      ],
+    });
+    api.getPercentiles.mockReset().mockResolvedValue({
+      rated: true,
+      display_rating: 1542,
+      overall: { percentile: 90.0, total: 40 },
+      school: { name: 'CNERV', percentile: 66.7, total: 3 },
+      county: null,
+    });
+  });
+  afterEach(() => cleanup());
+
+  it('renders the division chip and the percentile line', async () => {
+    render(<PublicRatingProfilePage />);
+    expect(await screen.findByTestId('rating-profile-division')).toHaveTextContent('Div 2');
+    const pct = await screen.findByTestId('rating-profile-percentiles');
+    expect(pct.textContent).toContain('Top 10% overall');
+    expect(pct.textContent).toContain('CNERV');
+  });
+
+  it('lists division promotions under the history table', async () => {
+    render(<PublicRatingProfilePage />);
+    const change = await screen.findByTestId('division-change-2');
+    expect(change.textContent).toContain('Div 3');
+    expect(change.textContent).toContain('Div 2');
+  });
+
+  it('annotates chart points (peaks, medals, division crossings)', async () => {
+    render(<PublicRatingProfilePage />);
+    await screen.findByTestId('rating-profile-chart');
+    const svg = document.querySelector('svg');
+    expect(svg).toBeTruthy();
+    // The medal + promotion markers render as <text> nodes on the chart.
+    const markers = Array.from(svg?.querySelectorAll('text') ?? []);
+    const markerText = markers.map((node) => node.textContent ?? '').join(' ');
+    expect(markerText).toContain('\u{1F947}');
+    expect(markerText).toContain('\u21e7');
   });
 });

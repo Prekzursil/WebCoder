@@ -1462,5 +1462,12 @@
   "teams_members_col": "Membri",
   "teams_roster_title": "Echipe",
   "teams_team": "Echipă",
-  "prediction_hint": "Predicțiile se blochează la prima trimitere; istoricul de acuratețe se află pe pagina de ratinguri."
+  "prediction_hint": "Predicțiile se blochează la prima trimitere; istoricul de acuratețe se află pe pagina de ratinguri.",
+  "annotation_peak": "Maximă carierei: {{rating}}",
+  "annotation_medal": "Medalie: {{medal}}",
+  "annotation_promoted": "Promovat în {{division}}",
+  "annotation_demoted": "Retrogradat în {{division}}",
+  "division_changes_title": "Promovări de divizie",
+  "percentile_overall": "Top {{p}}% general",
+  "percentile_school": "Top {{p}}% la {{school}}"
 }

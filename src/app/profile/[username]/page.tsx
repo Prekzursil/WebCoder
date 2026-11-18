@@ -17,7 +17,7 @@ import { RatingService } from '@/services/ApiService';
 import UserChip from '@/components/common/UserChip';
 import EmptyState from '@/components/common/EmptyState';
 import PageHeader from '@/components/common/PageHeader';
-import { UserRatingHistory } from '@/types/api';
+import { UserDivisionProfile, UserPercentiles, UserRatingHistory } from '@/types/api';
 import { palette, hexAlpha } from '@/theme/tokens';
 
 /** Chart geometry — one viewBox, scales with its container. */
@@ -65,10 +65,19 @@ export default function PublicRatingProfilePage() {
   const [data, setData] = useState<UserRatingHistory | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  // Wave F items 52/53 — division profile + cohort percentiles.
+  const [divisions, setDivisions] = useState<UserDivisionProfile | null>(null);
+  const [percentiles, setPercentiles] = useState<UserPercentiles | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
+    RatingService.getUserDivisions(username)
+      .then(setDivisions)
+      .catch(() => setDivisions(null));
+    RatingService.getPercentiles(username)
+      .then(setPercentiles)
+      .catch(() => setPercentiles(null));
     try {
       setData(await RatingService.getRatingHistory(username));
     } catch (err) {
@@ -159,6 +168,37 @@ export default function PublicRatingProfilePage() {
                 {t('rating_profile_not_rated', 'Not rated yet')}
               </span>
             )}
+            {divisions?.rated && divisions.division && (
+              <span
+                data-testid="rating-profile-division"
+                style={{
+                  border: `1px solid ${palette.accent}`,
+                  color: palette.accent,
+                  borderRadius: 999,
+                  padding: '2px 10px',
+                  fontWeight: 700,
+                  fontSize: '0.8rem',
+                }}
+              >
+                {divisions.division}
+              </span>
+            )}
+            {percentiles?.rated && percentiles.overall && (
+              <span
+                data-testid="rating-profile-percentiles"
+                style={{ color: palette.muted, fontSize: '0.85rem' }}
+              >
+                {t('percentile_overall', 'Top {{p}}% overall', {
+                  p: Math.max(1, Math.round(100 - percentiles.overall.percentile)),
+                })}
+                {percentiles.school
+                  ? ` · ${t('percentile_school', 'Top {{p}}% at {{school}}', {
+                      p: Math.max(1, Math.round(100 - percentiles.school.percentile)),
+                      school: percentiles.school.name ?? '',
+                    })}`
+                  : ''}
+              </span>
+            )}
           </div>
 
           {data.bio ? (
@@ -218,9 +258,66 @@ export default function PublicRatingProfilePage() {
                 {chart.points
                   .split(' ')
                   .map((pair) => pair.split(',').map(Number))
-                  .map(([cx, cy], i) => (
-                    <circle key={i} cx={cx} cy={cy} r={3.5} fill={band?.color ?? palette.accent} />
-                  ))}
+                  .map(([cx, cy], i) => {
+                    const mark = data.annotations?.[String(i)];
+                    return (
+                      <g key={i}>
+                        <circle
+                          cx={cx}
+                          cy={cy}
+                          r={mark ? 5 : 3.5}
+                          fill={band?.color ?? palette.accent}
+                        />
+                        {/* Item 51 — annotated points: career-high peaks,
+                            medals and division crossings. */}
+                        {mark?.peak !== undefined && (
+                          <title>
+                            {t('annotation_peak', 'Career high: {{rating}}', {
+                              rating: mark.peak,
+                            })}
+                          </title>
+                        )}
+                        {mark?.medal && (
+                          <>
+                            <title>
+                              {t('annotation_medal', 'Medal: {{medal}}', {
+                                medal: mark.medal,
+                              })}
+                            </title>
+                            <text x={cx} y={cy - 9} fontSize={12} textAnchor="middle">
+                              {mark.medal === 'GOLD'
+                                ? '\u{1F947}'
+                                : mark.medal === 'SILVER'
+                                  ? '\u{1F948}'
+                                  : '\u{1F949}'}
+                            </text>
+                          </>
+                        )}
+                        {mark?.division_change && (
+                          <>
+                            <title>
+                              {mark.division_change === 'promoted'
+                                ? t('annotation_promoted', 'Promoted to {{division}}', {
+                                    division: mark.division ?? '',
+                                  })
+                                : t('annotation_demoted', 'Demoted to {{division}}', {
+                                    division: mark.division ?? '',
+                                  })}
+                            </title>
+                            <text
+                              x={cx}
+                              y={cy + 16}
+                              fontSize={12}
+                              textAnchor="middle"
+                              fill={palette.accent}
+                            >
+                              {mark.division_change === 'promoted' ? '\u21E7' : '\u21E9'}
+                            </text>
+                          </>
+                        )}
+                      </g>
+                    );
+                  })}
               </svg>
               <figcaption
                 style={{
@@ -301,6 +398,35 @@ export default function PublicRatingProfilePage() {
                 </tbody>
               </table>
             </div>
+          )}
+          {divisions && divisions.changes.length > 0 && (
+            <section style={{ marginTop: 20 }} data-testid="rating-profile-division-changes">
+              <h3 style={{ fontSize: '1rem' }}>
+                {t('division_changes_title', 'Division promotions')}
+              </h3>
+              <ul style={{ listStyle: 'none', padding: 0, display: 'grid', gap: 6 }}>
+                {divisions.changes.map((change) => (
+                  <li
+                    key={change.contest + '-' + change.to}
+                    data-testid={'division-change-' + change.contest}
+                    style={{ fontSize: '0.9rem' }}
+                  >
+                    <span
+                      style={{
+                        color: change.kind === 'promoted' ? palette.success : palette.danger,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {change.kind === 'promoted' ? '\u21E7' : '\u21E9'} {change.from} {'\u2192'}{' '}
+                      {change.to}
+                    </span>{' '}
+                    <span style={{ color: palette.muted }}>
+                      {change.title} {'\u00B7'} {change.rating}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
           )}
         </>
       )}

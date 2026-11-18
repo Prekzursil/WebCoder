@@ -1462,5 +1462,12 @@
   "teams_members_col": "सदस्य",
   "teams_roster_title": "टीमें",
   "teams_team": "टीम",
-  "prediction_hint": "भविष्यवाणियाँ आपकी पहली सबमिशन पर लॉक हो जाती हैं; सटीकता इतिहास रेटिंग पेज पर है।"
+  "prediction_hint": "भविष्यवाणियाँ आपकी पहली सबमिशन पर लॉक हो जाती हैं; सटीकता इतिहास रेटिंग पेज पर है।",
+  "annotation_peak": "करियर का शिखर: {{rating}}",
+  "annotation_medal": "पदक: {{medal}}",
+  "annotation_promoted": "{{division}} में पदोन्नत",
+  "annotation_demoted": "{{division}} में अवनत",
+  "division_changes_title": "डिवीज़न पदोन्नति",
+  "percentile_overall": "कुल मिलाकर टॉप {{p}}%",
+  "percentile_school": "{{school}} में टॉप {{p}}%"
 }

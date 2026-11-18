@@ -18,4 +18,16 @@ urlpatterns = [
         views.UserCalibrationView.as_view(),
         name="user_calibration",
     ),
+    # Wave F items 51/52/53 — graph annotations, percentiles, divisions.
+    path("divisions/", views.DivisionsView.as_view(), name="divisions"),
+    path(
+        "users/<str:username>/divisions/",
+        views.UserDivisionsView.as_view(),
+        name="user_divisions",
+    ),
+    path(
+        "users/<str:username>/percentiles/",
+        views.UserPercentilesView.as_view(),
+        name="user_percentiles",
+    ),
 ]

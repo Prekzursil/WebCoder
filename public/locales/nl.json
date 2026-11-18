@@ -1462,5 +1462,12 @@
   "teams_members_col": "Leden",
   "teams_roster_title": "Teams",
   "teams_team": "Team",
-  "prediction_hint": "Voorspellingen vergrendelen bij je eerste inzending; je nauwkeurigheidsgeschiedenis staat op de ratingspagina."
+  "prediction_hint": "Voorspellingen vergrendelen bij je eerste inzending; je nauwkeurigheidsgeschiedenis staat op de ratingspagina.",
+  "annotation_peak": "Carrièrehoogtepunt: {{rating}}",
+  "annotation_medal": "Medaille: {{medal}}",
+  "annotation_promoted": "Gepromoveerd naar {{division}}",
+  "annotation_demoted": "Gedegradeerd naar {{division}}",
+  "division_changes_title": "Divisie-promoties",
+  "percentile_overall": "Top {{p}}% overall",
+  "percentile_school": "Top {{p}}% op {{school}}"
 }

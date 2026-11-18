@@ -1462,5 +1462,12 @@
   "teams_members_col": "Членове",
   "teams_roster_title": "Отбори",
   "teams_team": "Отбор",
-  "prediction_hint": "Предсказанията се заключват при първото изпращане; историята на точността е в страницата с рейтингите."
+  "prediction_hint": "Предсказанията се заключват при първото изпращане; историята на точността е в страницата с рейтингите.",
+  "annotation_peak": "Кариерен връх: {{rating}}",
+  "annotation_medal": "Медал: {{medal}}",
+  "annotation_promoted": "Повишен в {{division}}",
+  "annotation_demoted": "Понижен в {{division}}",
+  "division_changes_title": "Повишения в дивизията",
+  "percentile_overall": "Топ {{p}}% общо",
+  "percentile_school": "Топ {{p}}% в {{school}}"
 }

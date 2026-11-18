@@ -1462,5 +1462,12 @@
   "teams_members_col": "Członkowie",
   "teams_roster_title": "Drużyny",
   "teams_team": "Drużyna",
-  "prediction_hint": "Przewidywania blokują się przy pierwszym zgłoszeniu; historia trafności jest na stronie rankingów."
+  "prediction_hint": "Przewidywania blokują się przy pierwszym zgłoszeniu; historia trafności jest na stronie rankingów.",
+  "annotation_peak": "Rekord kariery: {{rating}}",
+  "annotation_medal": "Medal: {{medal}}",
+  "annotation_promoted": "Awans do {{division}}",
+  "annotation_demoted": "Spadek do {{division}}",
+  "division_changes_title": "Awanse dywizji",
+  "percentile_overall": "Top {{p}}% ogółem",
+  "percentile_school": "Top {{p}}% w {{school}}"
 }

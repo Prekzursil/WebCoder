@@ -1462,5 +1462,12 @@
   "teams_members_col": "メンバー",
   "teams_roster_title": "チーム",
   "teams_team": "チーム",
-  "prediction_hint": "予想は最初の提出で確定します。精度の履歴はレーティングページにあります。"
+  "prediction_hint": "予想は最初の提出で確定します。精度の履歴はレーティングページにあります。",
+  "annotation_peak": "キャリアハイ: {{rating}}",
+  "annotation_medal": "メダル: {{medal}}",
+  "annotation_promoted": "{{division}} へ昇格",
+  "annotation_demoted": "{{division}} へ降格",
+  "division_changes_title": "ディビジョン昇格",
+  "percentile_overall": "全体上位 {{p}}%",
+  "percentile_school": "{{school}} で上位 {{p}}%"
 }

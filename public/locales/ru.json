@@ -1462,5 +1462,12 @@
   "teams_members_col": "Участники",
   "teams_roster_title": "Команды",
   "teams_team": "Команда",
-  "prediction_hint": "Прогнозы фиксируются при первой посылке; история точности — на странице рейтингов."
+  "prediction_hint": "Прогнозы фиксируются при первой посылке; история точности — на странице рейтингов.",
+  "annotation_peak": "Рекорд карьеры: {{rating}}",
+  "annotation_medal": "Медаль: {{medal}}",
+  "annotation_promoted": "Повышение до {{division}}",
+  "annotation_demoted": "Понижение до {{division}}",
+  "division_changes_title": "Повышения дивизиона",
+  "percentile_overall": "Топ {{p}}% в общем зачёте",
+  "percentile_school": "Топ {{p}}% в {{school}}"
 }
