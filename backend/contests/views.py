@@ -1212,6 +1212,9 @@ class ContestViewSet(viewsets.ModelViewSet):
                     "open": contest.state() != Contest.State.FINISHED,
                 }
             )
+        # Anonymous POSTs are rejected by the viewset permission policy
+        # (predict is IsAuthenticated in get_permissions), so request.user
+        # is always authenticated here — no in-action 401 branch is needed.
         raw_rank = request.data.get("predicted_rank")
         try:
             predicted_rank = int(raw_rank)
