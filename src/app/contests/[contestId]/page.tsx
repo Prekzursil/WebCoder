@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
+import CommentaryPanel from './CommentaryPanel';
+import HacksPanel from './HacksPanel';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
@@ -22,7 +24,7 @@ import * as themeTokens from '@/theme/tokens';
 import EmptyState from '@/components/common/EmptyState';
 import PageHeader from '@/components/common/PageHeader';
 
-type Tab = 'problems' | 'standings' | 'clarifications' | 'ratings';
+type Tab = 'problems' | 'standings' | 'clarifications' | 'ratings' | 'commentary' | 'hacks';
 
 export default function ContestDetailPage() {
   const params = useParams<{ contestId: string }>();
@@ -187,12 +189,29 @@ export default function ContestDetailPage() {
   const windowNeedsStart =
     contest.is_window && registered && contest.my_participation?.virtual_start == null;
   const canSeeRatings = contest.state === 'FINISHED' && contest.is_rated;
+  // Wave F item 54 — the long-contest day counter (day N of M).
+  const totalDays = Math.max(
+    1,
+    Math.ceil(
+      (new Date(contest.end_at).getTime() - new Date(contest.start_at).getTime()) / 86_400_000,
+    ),
+  );
+  const contestDay = Math.min(
+    totalDays,
+    Math.max(1, Math.ceil((Date.now() - new Date(contest.start_at).getTime()) / 86_400_000)),
+  );
 
   const tabs: { key: Tab; label: string }[] = [
     { key: 'problems', label: t('contest_tab_problems', 'Problems') },
     { key: 'standings', label: t('contest_tab_standings', 'Standings') },
     ...(auth.isAuthenticated && contest.state === 'RUNNING'
       ? [{ key: 'clarifications' as Tab, label: t('contest_tab_clarifications', 'Clarifications') }]
+      : []),
+    // Wave F item 56: the organizer broadcast feed (always readable).
+    { key: 'commentary', label: t('contest_tab_commentary', 'Commentary') },
+    // Wave F item 48: the lock-to-hack phase lives while the contest runs.
+    ...(contest.state === 'RUNNING'
+      ? [{ key: 'hacks' as Tab, label: t('contest_tab_hacks', 'Hacks') }]
       : []),
     ...(canSeeRatings
       ? [{ key: 'ratings' as Tab, label: t('contest_tab_rating_changes', 'Rating changes') }]
@@ -211,6 +230,10 @@ export default function ContestDetailPage() {
         subtitle={`${fmt(contest.start_at)} → ${fmt(contest.end_at)} · ${contest.format}${
           contest.is_rated ? ` · ★ ${t('contest_rated', 'Rated')}` : ''
         }${contest.is_window ? ` · ⏱ ${t('contest_windowed', 'Windowed')} (${contest.per_user_duration_minutes} min)` : ''}${
+          contest.is_long_contest
+            ? ` · 🐢 ${t('contest_long', 'Long challenge')} — ${t('contest_day_of', 'day {{n}} of {{m}}', { n: contestDay, m: totalDays })}`
+            : ''
+        }${
           contest.rated_rating_min != null || contest.rated_rating_max != null
             ? ` · ${t('contest_division', 'Division')}: ${contest.rated_rating_min ?? 0}–${contest.rated_rating_max ?? '∞'}`
             : ''
@@ -420,6 +443,16 @@ export default function ContestDetailPage() {
               />
               {t('contest_friends_only', 'Friends only')}
             </label>
+            {/* Wave F item 58 — the frozen-board suspense view. */}
+            {contest.freeze_at && contest.state === 'RUNNING' && (
+              <Link
+                href={`/contests/${contest.id}/drama`}
+                data-testid="contest-drama-link"
+                style={{ marginLeft: '0.75rem', color: palette.warn, fontWeight: 600 }}
+              >
+                ❄ {t('contest_drama_link', 'Freeze drama')}
+              </Link>
+            )}
             {awards && awards.count > 0 && boardSection === 'official' && (
               <p data-testid="contest-awards" style={{ marginBottom: 10, color: palette.muted }}>
                 {awards.results.map((a) => (
@@ -430,7 +463,12 @@ export default function ContestDetailPage() {
                 ))}
               </p>
             )}
-            <StandingsBoard standings={standings} t={t} />
+            <StandingsBoard
+              standings={standings}
+              t={t}
+              contestId={contest.id}
+              finished={contest.state === 'FINISHED'}
+            />
           </>
         ))}
 
@@ -542,6 +580,12 @@ export default function ContestDetailPage() {
             </tbody>
           </table>
         ))}
+
+      {tab === 'commentary' && (
+        <CommentaryPanel contestId={contest.id} canManage={Boolean(contest.can_manage)} />
+      )}
+
+      {tab === 'hacks' && <HacksPanel contestId={contest.id} problems={problems} />}
     </main>
   );
 }
@@ -550,9 +594,12 @@ interface StandingsBoardProps {
   standings: StandingsResponse;
   // The page's i18next t(), passed in so this stays a pure component.
   t: TFunction;
+  // Wave F item 57 — replay links ride every row once the contest is over.
+  contestId?: number;
+  finished?: boolean;
 }
 
-function StandingsBoard({ standings, t }: StandingsBoardProps) {
+function StandingsBoard({ standings, t, contestId, finished }: StandingsBoardProps) {
   const { palette: colors } = themeTokens;
   // Hidden boards (DMOJ/campion): the notice replaces the board entirely —
   // it must render before the empty-count early return below.
@@ -606,6 +653,20 @@ function StandingsBoard({ standings, t }: StandingsBoardProps) {
                 <td style={{ padding: 8 }}>
                   <UserChip username={row.user.username} href={`/profile/${row.user.username}`} />{' '}
                   <FollowButton username={row.user.username} />
+                  {contestId && finished && (
+                    <Link
+                      href={`/contests/${contestId}/replay/${row.user.username}`}
+                      data-testid={`replay-link-${row.user.username}`}
+                      style={{
+                        marginLeft: 8,
+                        fontSize: '0.85rem',
+                        color: themeTokens.palette.accent,
+                      }}
+                      title={t('replay_link_title', 'Replay this contest run')}
+                    >
+                      ↻
+                    </Link>
+                  )}
                 </td>
                 {row.problems.map((cell) => (
                   <td

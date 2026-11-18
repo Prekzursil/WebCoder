@@ -70,6 +70,13 @@ def check_contest_submission(
         return False, "Start your personal contest clock before submitting."
     if not participation.window_open(now):
         return False, "Your contest window is not open."
+    # Open hacks (item 48): a LOCKED problem trades resubmission rights for
+    # hacking rights — the lock is irreversible by contract.
+    if participation.locked_problems.filter(problem_id=problem_id).exists():
+        return False, (
+            "You locked this problem to unlock hacking — it can no longer be "
+            "resubmitted."
+        )
     return _cooldown_ok(contest, user, now)
 
 

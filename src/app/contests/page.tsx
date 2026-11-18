@@ -11,6 +11,7 @@ import EmptyState from '@/components/common/EmptyState';
 import PageHeader from '@/components/common/PageHeader';
 
 type StateFilter = '' | 'UPCOMING' | 'RUNNING' | 'FINISHED';
+type KindFilter = '' | 'long';
 
 /** CON-10: the contest calendar feed. Build-time constant (NEXT_PUBLIC_API_BASE
  * is inlined at compile time) — not a user-influenced URL. */
@@ -48,6 +49,7 @@ export default function ContestsPage() {
   const [error, setError] = useState<string | null>(null);
   const [nextPage, setNextPage] = useState<number | null>(1);
   const [stateFilter, setStateFilter] = useState<StateFilter>('');
+  const [kindFilter, setKindFilter] = useState<KindFilter>('');
 
   const nextStart =
     contests
@@ -57,13 +59,16 @@ export default function ContestsPage() {
   const countdown = useCountdown(nextStart);
 
   const load = useCallback(
-    async (page: number, state: StateFilter) => {
+    async (page: number, state: StateFilter, kind: KindFilter) => {
       const append = page > 1;
       if (append) setLoadingMore(true);
       else setLoading(true);
       setError(null);
       try {
-        const response = await ContestService.getContests(state ? { state } : {}, { page });
+        const response = await ContestService.getContests(
+          { ...(state ? { state } : {}), ...(kind ? { kind } : {}) },
+          { page },
+        );
         setContests((prev) => (append ? [...prev, ...response.results] : response.results));
         setNextPage(response.next ? page + 1 : null);
       } catch (err) {
@@ -81,8 +86,8 @@ export default function ContestsPage() {
   );
 
   useEffect(() => {
-    load(1, stateFilter);
-  }, [load, stateFilter]);
+    load(1, stateFilter, kindFilter);
+  }, [load, stateFilter, kindFilter]);
 
   const stateBadge = (state: Contest['state']) =>
     state === 'RUNNING'
@@ -137,6 +142,23 @@ export default function ContestsPage() {
                   : t('contest_state_finished', 'Finished')}
           </button>
         ))}
+        <button
+          type="button"
+          onClick={() => setKindFilter(kindFilter === 'long' ? '' : 'long')}
+          aria-pressed={kindFilter === 'long'}
+          data-testid="contests-kind-long"
+          style={{
+            padding: '6px 14px',
+            borderRadius: 999,
+            border: `1px solid ${kindFilter === 'long' ? palette.accent : palette.border}`,
+            background: kindFilter === 'long' ? hexAlpha(palette.accent, 0.15) : 'transparent',
+            color: kindFilter === 'long' ? palette.accent : palette.foreground,
+            cursor: 'pointer',
+            fontWeight: 600,
+          }}
+        >
+          🐢 {t('contests_filter_long', 'Long challenges')}
+        </button>
         <a
           href={CALENDAR_ICS_URL}
           style={{ marginLeft: 'auto', color: palette.accent, fontWeight: 600 }}
@@ -160,7 +182,7 @@ export default function ContestsPage() {
       ) : error ? (
         <div role="alert" style={{ color: palette.danger, marginBottom: 12 }}>
           {error}{' '}
-          <button type="button" onClick={() => load(1, stateFilter)}>
+          <button type="button" onClick={() => load(1, stateFilter, kindFilter)}>
             {t('retry', 'Retry')}
           </button>
         </div>
@@ -211,6 +233,14 @@ export default function ContestsPage() {
                     ⏱ {t('contest_windowed', 'Windowed')}
                   </span>
                 )}
+                {contest.is_long_contest && (
+                  <span
+                    data-testid={`contest-long-${contest.id}`}
+                    style={{ color: palette.success, fontSize: 13 }}
+                  >
+                    🐢 {t('contest_long', 'Long challenge')}
+                  </span>
+                )}
                 <span style={{ color: palette.muted, fontSize: 13 }}>
                   {t('contest_problems_count', '{{count}} problems', {
                     count: contest.problem_count,
@@ -233,7 +263,7 @@ export default function ContestsPage() {
         <button
           type="button"
           disabled={loadingMore}
-          onClick={() => load(nextPage, stateFilter)}
+          onClick={() => load(nextPage, stateFilter, kindFilter)}
           style={{ marginTop: 16, padding: '8px 18px' }}
         >
           {loadingMore ? t('loading_more', 'Loading…') : t('load_more', 'Load more')}

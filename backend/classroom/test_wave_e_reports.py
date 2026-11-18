@@ -69,15 +69,37 @@ class ReportsBase(TestCase):
         )
         return sub
 
+    def _submit_at(self, user, verdict, score, when):
+        """A submission at an EXPLICIT instant — for date-bucketing tests
+        that must not depend on the wall clock at run time."""
+        sub = Submission.objects.create(
+            user=user,
+            problem=self.problem,
+            language="python3",
+            code="x",
+            verdict=verdict,
+            score=score,
+        )
+        Submission.objects.filter(pk=sub.pk).update(submission_time=when)
+        return sub
+
 
 class EffortAndHeatmapTest(ReportsBase):
     """Items 43/44: the analytics derivations."""
 
     def test_effort_board_ranks_grinders(self):
         # st attempts 3 times (2 active days); lz a single AC.
-        self._submit(self.student, WA, 10, minutes_ago=2000)
-        self._submit(self.student, WA, 20, minutes_ago=1500)
-        self._submit(self.student, WA, 30, minutes_ago=100)
+        # The two "old day" submissions are pinned to fixed clock times on
+        # explicit dates (10:00 and 10:30 two days ago, 10:00 yesterday):
+        # minutes_ago offsets straddle midnight depending on the wall clock
+        # at run time, which made active_days flake (3 dates at night runs).
+        def pinned(days_ago: int, minute: int = 0):
+            moment = timezone.now() - timedelta(days=days_ago)
+            return moment.replace(hour=10, minute=minute, second=0, microsecond=0)
+
+        self._submit_at(self.student, WA, 10, pinned(2, 0))
+        self._submit_at(self.student, WA, 20, pinned(2, 30))
+        self._submit_at(self.student, WA, 30, pinned(1, 0))
         self._submit(self.lazy, AC, 100)
         board = effort_board(self.classroom)
         rows = {r["username"]: r for r in board["results"]}

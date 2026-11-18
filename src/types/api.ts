@@ -382,6 +382,8 @@ export interface Contest {
   pretest_mode: boolean;
   rated_rating_min: number | null;
   rated_rating_max: number | null;
+  /** Item 54 — the multi-day Long-Challenge axis. */
+  is_long_contest?: boolean;
   created_by: number;
   created_by_username: string;
   // OPS-7 (Wave D, groundwork): display-only sponsor attribution.
@@ -464,6 +466,102 @@ export interface Clarification {
   is_broadcast: boolean;
   is_hidden: boolean;
   created_at: string;
+}
+
+// ---- Wave F contest depth (items 48/54/56/57/58) ----
+
+/** Item 56 — organizer commentary lines pinned to minute offsets. */
+export interface ContestCommentaryRow {
+  id: number;
+  author: number;
+  author_username: string;
+  minute_offset: number;
+  text: string;
+  created_at: string;
+}
+
+export interface ContestCommentaryResponse {
+  count: number;
+  results: ContestCommentaryRow[];
+}
+
+/** Item 48 — a submitted counter-test against another participant. */
+export interface HackRow {
+  id: number;
+  contest: number;
+  problem_label: string;
+  hacker: number;
+  hacker_username: string;
+  target_id: number;
+  target_username: string;
+  input_data: string;
+  verdict: 'PENDING' | 'SUCCESSFUL' | 'UNSUCCESSFUL' | 'INVALID';
+  feedback: string;
+  judged_at: string | null;
+  created_at: string;
+}
+
+export interface HacksResponse {
+  count: number;
+  results: HackRow[];
+  window_open: boolean;
+}
+
+/** A hackable solution (lock-gated, code included — reading is the game). */
+export interface HackTargetRow {
+  id: number;
+  user: { username: string };
+  problem_id: number;
+  problem_label: string;
+  language: string;
+  verdict: string;
+  score: number;
+  code: string;
+  submission_time: string;
+}
+
+export interface HackTargetsResponse {
+  count: number;
+  results: HackTargetRow[];
+}
+
+/** Item 57 — one user's contest timeline. */
+export interface ReplayEvent {
+  minute_offset: number;
+  problem_label: string;
+  problem_id: number;
+  verdict: string;
+  score: number;
+  problem_best: number;
+  problem_max: number;
+  total: number;
+  submission_id: number;
+}
+
+export interface ContestReplay {
+  contest: number;
+  username: string;
+  is_virtual: boolean;
+  events: ReplayEvent[];
+  final_rank: number | null;
+  rating_change: { delta: number; rating: number } | null;
+}
+
+/** Item 58 — the frozen-board suspense view. */
+export interface DramaRow {
+  rank: number;
+  user: { id: number; username: string };
+  score: number;
+  solved: number;
+  hidden_submissions: number;
+}
+
+export interface ContestDrama {
+  is_frozen: boolean;
+  freeze_at: string | null;
+  reveal_at: string;
+  seconds_until_reveal: number;
+  results: DramaRow[];
 }
 
 export interface RatingBand {
