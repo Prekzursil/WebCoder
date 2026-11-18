@@ -41,6 +41,18 @@ class FeedView(APIView):
         page = max(1, page)
         per_page = 25
         rows = services.recent_feed(limit=per_page * page)
+        # Item 65 — the following filter: only the people the caller
+        # follows (ignored for anonymous callers — the full feed stays).
+        following = request.query_params.get("following", "") in ("1", "true")
+        if following and request.user.is_authenticated:
+            from users.models import Follow
+
+            followed = set(
+                Follow.objects.filter(follower=request.user).values_list(
+                    "target_id", flat=True
+                )
+            )
+            rows = [row for row in rows if row.get("user_id") in followed]
         window = rows[(page - 1) * per_page : page * per_page]
         return Response(
             {
@@ -109,6 +121,8 @@ class SolutionsView(APIView):
                         "execution_time_ms": row.execution_time_ms,
                         "memory_used_kb": row.memory_used_kb,
                         "submission_time": row.submission_time,
+                        # Item 61 — the author-chosen sharing license.
+                        "license": row.license,
                     }
                     for row in rows
                 ],

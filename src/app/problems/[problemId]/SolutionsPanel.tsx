@@ -141,7 +141,42 @@ export default function SolutionsPanel({ problemId }: { problemId: number }) {
                       · {row.code_length} B
                     </span>
                   )}
-                </button>
+                </button>{' '}
+                <span
+                  data-testid={`solution-license-${row.id}`}
+                  style={{
+                    fontSize: '0.7rem',
+                    color: palette.muted,
+                    border: `1px solid ${palette.border}`,
+                    borderRadius: 999,
+                    padding: '1px 8px',
+                  }}
+                  title={t('solution_license_title', 'Sharing license')}
+                >
+                  {row.license ?? 'PLATFORM_DISPLAY'}
+                </span>
+                {auth.user && row.user === auth.user.username && (
+                  <select
+                    aria-label={t('solution_license_title', 'Sharing license')}
+                    data-testid={`solution-license-select-${row.id}`}
+                    value={row.license ?? 'PLATFORM_DISPLAY'}
+                    onChange={async (e) => {
+                      await CommunityService.setSubmissionLicense(row.id, e.target.value);
+                      setRows((current) =>
+                        (current ?? []).map((r) =>
+                          r.id === row.id ? { ...r, license: e.target.value } : r,
+                        ),
+                      );
+                    }}
+                    style={{ fontSize: '0.75rem', marginLeft: 8 }}
+                  >
+                    {['PLATFORM_DISPLAY', 'MIT', 'CC0', 'CC_BY_SA'].map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+                )}
                 {openId === row.id && (
                   <pre
                     data-testid={`solution-code-${row.id}`}

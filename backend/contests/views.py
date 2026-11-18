@@ -1212,10 +1212,6 @@ class ContestViewSet(viewsets.ModelViewSet):
                     "open": contest.state() != Contest.State.FINISHED,
                 }
             )
-        if not request.user.is_authenticated:
-            return Response(
-                {"detail": "Sign in to predict."}, status=status.HTTP_401_UNAUTHORIZED
-            )
         raw_rank = request.data.get("predicted_rank")
         try:
             predicted_rank = int(raw_rank)

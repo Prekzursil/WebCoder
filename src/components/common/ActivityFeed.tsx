@@ -5,21 +5,25 @@ import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { CommunityService } from '@/services/ApiService';
 import { FeedRow } from '@/types/api';
-import { palette } from '@/theme/tokens';
+import { useAuth } from '@/context/AuthContext';
+import { palette, hexAlpha } from '@/theme/tokens';
 
 /**
  * COM-3 — the live activity feed: recent public verdicts (user, problem,
- * language, verdict — code never leaves the judge). One fetch per mount,
- * the "site heartbeat" the roadmap wants on the home page.
+ * language, verdict — code never leaves the judge). Item 65 adds the
+ * "Following" filter: only the people the caller follows.
  */
 export default function ActivityFeed() {
   const { t, i18n } = useTranslation();
+  const auth = useAuth();
   const lang = i18n.language === 'ro' ? 'ro' : 'en';
   const [rows, setRows] = useState<FeedRow[] | null>(null);
+  const [following, setFollowing] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    CommunityService.getFeed()
+    setRows(null);
+    CommunityService.getFeed(1, following)
       .then((data) => {
         if (!cancelled) setRows(data.results);
       })
@@ -27,17 +31,42 @@ export default function ActivityFeed() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [following]);
 
   return (
     <section aria-label={t('feed_title', 'Live activity')} data-testid="activity-feed">
-      <h3>{t('feed_title', 'Live activity')}</h3>
+      <h3 style={{ display: 'flex', gap: 10, alignItems: 'baseline' }}>
+        {t('feed_title', 'Live activity')}
+        {auth.isAuthenticated && (
+          <button
+            type="button"
+            onClick={() => setFollowing((value) => !value)}
+            aria-pressed={following}
+            data-testid="feed-following-toggle"
+            style={{
+              fontSize: '0.75rem',
+              padding: '2px 10px',
+              borderRadius: 999,
+              cursor: 'pointer',
+              border: `1px solid ${following ? palette.accent : palette.border}`,
+              background: following ? hexAlpha(palette.accent, 0.15) : 'transparent',
+              color: following ? palette.accent : palette.muted,
+            }}
+          >
+            {t('feed_following', 'Following')}
+          </button>
+        )}
+      </h3>
       {rows === null ? (
         <p aria-busy="true" style={{ color: palette.muted }}>
           {t('feed_loading', 'Loading recent verdicts…')}
         </p>
       ) : rows.length === 0 ? (
-        <p style={{ color: palette.muted }}>{t('feed_empty', 'No public activity yet.')}</p>
+        <p style={{ color: palette.muted }}>
+          {following
+            ? t('feed_following_empty', 'Nothing from the people you follow yet.')
+            : t('feed_empty', 'No public activity yet.')}
+        </p>
       ) : (
         <ul style={{ listStyle: 'none', padding: 0 }}>
           {rows.slice(0, 8).map((row) => (

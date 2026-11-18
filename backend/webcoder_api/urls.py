@@ -64,6 +64,10 @@ urlpatterns = [
         "api/v1/community/",
         include("community_depth.urls", namespace="community_depth_api_v1"),
     ),
+    path(
+        "api/v1/community/",
+        include("publishing.urls", namespace="publishing_api_v1"),
+    ),
     # Public read-only API (competitive roadmap OPS-1).
     path("api/v1/public/", include("public_api.urls", namespace="public_api")),
     # Community problem translations (i18n & translation platform wave).

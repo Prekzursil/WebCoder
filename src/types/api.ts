@@ -855,6 +855,8 @@ export interface SolutionRow {
   execution_time_ms: number | null;
   memory_used_kb: number | null;
   submission_time: string;
+  /** [wave F item 61] the author-chosen sharing license. */
+  license?: string;
 }
 
 export interface SolutionsResponse {
@@ -1047,4 +1049,65 @@ export interface UserPercentiles {
   overall?: PercentileCohort;
   school?: PercentileCohort | null;
   county?: PercentileCohort | null;
+}
+
+// ---- Wave F publishing: blogs, wiki, WA-help, licenses (items 61-64) ----
+
+export type SolutionLicense = 'PLATFORM_DISPLAY' | 'MIT' | 'CC0' | 'CC_BY_SA';
+
+export interface BlogPostRow {
+  id: number;
+  author: number;
+  author_username: string;
+  title: string;
+  slug: string;
+  body: string;
+  lang: string;
+  status: 'DRAFT' | 'PUBLISHED';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WikiListRow {
+  slug: string;
+  title_ro: string;
+  title_en: string;
+  updated_at: string;
+}
+
+export interface WikiPageRow {
+  slug: string;
+  title_ro: string;
+  title_en: string;
+  body_ro: string;
+  body_en: string;
+  updated_by_username: string | null;
+  updated_at: string;
+}
+
+export interface WikiRevisionRow {
+  id: number;
+  editor: string | null;
+  note: string;
+  created_at: string;
+}
+
+export interface WaHelpAnswerRow {
+  id: number;
+  author: string;
+  body: string;
+  is_accepted: boolean;
+  created_at: string;
+}
+
+export interface WaHelpRow {
+  id: number;
+  submission: number;
+  asker: number;
+  asker_username: string;
+  problem_title: Record<string, string> | null;
+  question: string;
+  status: 'OPEN' | 'ANSWERED';
+  answers: WaHelpAnswerRow[];
+  created_at: string;
 }

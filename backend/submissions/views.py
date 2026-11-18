@@ -1,4 +1,5 @@
 from rest_framework import viewsets, permissions, status, generics
+from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
@@ -198,3 +199,34 @@ class SubmissionCreateView(generics.CreateAPIView):
         # User is passed from the view to serializer.save()
         # serializer.save() will call the serializer's create method and return the instance
         return serializer.save(user=self.request.user)
+
+
+class SubmissionLicenseView(APIView):
+    """POST /submissions/{id}/license/ — the author relicenses their own
+    ACCEPTED source (item 61: solution sharing with explicit licenses)."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, submission_id):
+        submission = Submission.objects.filter(pk=submission_id).first()
+        if submission is None:
+            return Response({"detail": "Not found."}, status=404)
+        if submission.user_id != request.user.id:
+            return Response(
+                {"detail": "Only the author may relicense this source."},
+                status=403,
+            )
+        if submission.verdict != Submission.VerdictStatus.ACCEPTED:
+            return Response(
+                {"detail": "Only accepted sources can be shared under a license."},
+                status=400,
+            )
+        choice = (request.data.get("license") or "").strip()
+        if choice not in Submission.License.values:
+            return Response(
+                {"license": "Choose one of: " + ", ".join(Submission.License.values)},
+                status=400,
+            )
+        submission.license = choice
+        submission.save(update_fields=["license"])
+        return Response({"id": submission.id, "license": submission.license})

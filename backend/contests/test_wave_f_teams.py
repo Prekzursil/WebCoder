@@ -457,3 +457,71 @@ class DunderTests(TeamsCupsBase):
             user=self.alice, contest=contest, predicted_rank=1
         )
         self.assertIn("predicts", str(prediction))
+
+
+class BranchClosureTests(TeamsCupsBase):
+    """CI branch-coverage closures for the wave F contest code."""
+
+    def test_school_cup_with_name_via_serializer(self):
+        # The happy path through the serializer's school-gate branch.
+        self.client.force_authenticate(self.admin)
+        response = self.client.post(
+            "/api/v1/contests/",
+            {
+                "title_i18n": {"en": "Cup"},
+                "start_at": "2026-12-01T10:00:00Z",
+                "end_at": "2026-12-01T12:00:00Z",
+                "is_school_cup": True,
+                "school_name": "Liceul de Informatica",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+        self.assertEqual(response.data["school_name"], "Liceul de Informatica")
+
+    def test_explicit_non_school_cup_create(self):
+        # is_school_cup present-and-False exercises the serializer's
+        # skip branch (not just the absent default).
+        self.client.force_authenticate(self.admin)
+        response = self.client.post(
+            "/api/v1/contests/",
+            {
+                "title_i18n": {"en": "Plain"},
+                "start_at": "2026-12-01T10:00:00Z",
+                "end_at": "2026-12-01T12:00:00Z",
+                "is_school_cup": False,
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+        self.assertFalse(response.data["is_school_cup"])
+
+    def test_predict_anonymous_401(self):
+        contest = self.mk_contest()
+        response = self.client.post(
+            f"/api/v1/contests/{contest.id}/predict/",
+            {"predicted_rank": 1},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_actual_rank_missing_from_populated_board(self):
+        from contests.teams import actual_rank
+
+        finished = self.mk_contest(
+            start_at=self.now - timedelta(hours=3),
+            end_at=self.now - timedelta(hours=1),
+        )
+        part = ContestParticipation.objects.create(contest=finished, user=self.bob)
+        ContestScore.objects.create(
+            participation=part,
+            contest_problem=finished.contest_problems.get(),
+            best_score=100,
+            best_score_frozen=100,
+            first_ac_at=self.now - timedelta(hours=2),
+            first_ac_at_frozen=self.now - timedelta(hours=2),
+            last_improvement=self.now - timedelta(hours=2),
+            last_improvement_frozen=self.now - timedelta(hours=2),
+        )
+        # alice never sat: standings exist but she is absent → None.
+        self.assertIsNone(actual_rank(finished, self.alice.id))
