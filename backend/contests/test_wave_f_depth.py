@@ -697,6 +697,19 @@ class ReferenceSolutionVisibilityTests(WaveFContestBase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_reference_solution_can_be_cleared(self):
+        # Blank reference_language short-circuits the registry check; the
+        # pair rule accepts ("" + "") as "no reference solution".
+        self.client.force_authenticate(self.admin)
+        response = self.client.patch(
+            f"/api/v1/problems/problems/{self.problem.id}/",
+            {"reference_solution_code": "", "reference_language": ""},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        self.problem.refresh_from_db()
+        self.assertEqual(self.problem.reference_solution_code, "")
+
 
 class NotFoundGuardTests(WaveFContestBase):
     """Every new Wave F action 404s cleanly on unknown/foreign contests."""
