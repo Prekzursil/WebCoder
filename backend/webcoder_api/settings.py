@@ -351,6 +351,9 @@ REST_FRAMEWORK = {
         # Wave E items 8/9: pre-submit assistance (lint + sample runs) —
         # sample runs execute code, so they share the scratch ceiling.
         "sample_run": os.environ.get("THROTTLE_SAMPLE_RUN_RATE", "20/hour"),
+        # Wave G item 89 (guest try-it): anonymous sandbox execution —
+        # the tightest judge-adjacent scope on the site, keyed by IP.
+        "scratch_guest": os.environ.get("THROTTLE_SCRATCH_GUEST_RATE", "5/hour"),
         # Contest clarifications (CON-4): participants get a bounded question
         # budget so the jury queue cannot be flooded mid-contest.
         "clarification": os.environ.get("THROTTLE_CLARIFICATION_RATE", "10/hour"),

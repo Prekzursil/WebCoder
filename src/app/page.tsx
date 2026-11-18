@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { getProblems } from './problems/_lib/problems-api';
 import { createTranslator, getLocale } from './_lib/public-i18n';
 import HomeSignUpButton from './HomeSignUpButton';
+import FeatureTour from '@/components/common/FeatureTour';
 import ActivityFeed from '@/components/common/ActivityFeed';
 import AnnouncementPanel from '@/components/common/AnnouncementPanel';
 import styles from './home.module.css';
@@ -75,6 +76,8 @@ export default async function HomePage() {
       />
       {/* [Q11] the app shell in providers.tsx owns the single <main> landmark;
           this page-level wrapper is purely presentational. */}
+      {/* Wave G item 94: first-visit spotlight tour (dismissed via localStorage). */}
+      <FeatureTour />
       <div className={styles.home} aria-label="WebCoder home page">
         <div className={styles.badge} aria-hidden="true">
           {t('home_badge', '✦ Competitive Programming Platform')}
@@ -89,7 +92,7 @@ export default async function HomePage() {
             'Sharpen your skills, solve challenging problems, and compete with a community of developers from around the world. Whether you are a beginner or an expert, WebCoder has something for you.',
           )}
         </p>
-        <div className={styles.actions}>
+        <div className={styles.actions} data-tour="start">
           <Link href="/problems" className={`${styles.button} ${styles.buttonPrimary}`}>
             {t('view_problems_button', 'View Problems')} →
           </Link>

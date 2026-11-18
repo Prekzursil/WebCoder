@@ -27,6 +27,31 @@
   gap: 0.5rem;
 }
 
+/* [Wave G item 75] Split view: 50/50 statement|editor with independent
+   scroll panes (the toggle sets data-split="on" on this grid). Wide
+   screens only — the narrow layout keeps its single column. */
+@media (min-width: 1024px) {
+  .detailGrid[data-split='on'] {
+    gridTemplateColumns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .detailGrid[data-split='on'] > div:first-child {
+    max-height: calc(100vh - 150px);
+    overflow-y: auto;
+    padding-inline-end: 4px;
+    scrollbar-gutter: stable;
+  }
+
+  .detailGrid[data-split='on'] .submitColumn {
+    position: static;
+    max-height: calc(100vh - 150px);
+    overflow-y: auto;
+    padding-inline-end: 4px;
+    scrollbar-gutter: stable;
+  }
+}
+
 @media (max-width: 1023.98px) {
   .detailGrid {
     gridTemplateColumns: 1fr;

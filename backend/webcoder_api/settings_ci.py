@@ -57,6 +57,7 @@ REST_FRAMEWORK = {
         "auth": "10000/min",
         "submit": "10000/min",
         "scratch": "10000/min",
+        "scratch_guest": "10000/min",
         "stress": "10000/min",
         "sample_run": "10000/min",
         "clarification": "10000/min",

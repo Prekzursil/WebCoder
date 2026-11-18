@@ -980,11 +980,17 @@ export const ProblemService = {
       { method: 'POST' },
     ),
   getProblems: (
-    filters: { status?: string; authorId?: number | string; curriculumNode?: number | string } = {},
+    filters: {
+      status?: string;
+      authorId?: number | string;
+      curriculumNode?: number | string;
+      search?: string;
+    } = {},
     page: { page?: number; pageSize?: number } = {},
   ) => {
     const params = new URLSearchParams();
     if (filters.status !== undefined) params.set('status', filters.status);
+    if (filters.search !== undefined) params.set('search', filters.search);
     if (filters.authorId !== undefined) params.set('authorId', String(filters.authorId));
     if (filters.curriculumNode !== undefined)
       params.set('curriculum_node', String(filters.curriculumNode));
@@ -1132,6 +1138,15 @@ export const ScratchService = {
       time_ms?: number;
       memory_kb?: number;
     }>('/scratch/', { method: 'POST', body: JSON.stringify(payload) }),
+  // Wave G item 89 — anonymous guest try-it (IP-throttled, tighter caps).
+  runGuest: (payload: { language: string; code: string; input?: string }) =>
+    apiFetch<{
+      status: string;
+      output: string;
+      error: string;
+      time_ms?: number;
+      memory_kb?: number;
+    }>('/scratch/guest/', { method: 'POST', body: JSON.stringify(payload) }),
 };
 
 export const SubmissionService = {

@@ -73,3 +73,39 @@ class StressRun(models.Model):
 
     def __str__(self):
         return "stress %d by %s" % (self.id, self.user_id)
+
+
+class GuestScratchRun(models.Model):
+    """PII-free audit log for anonymous guest try-it runs (wave G item 89).
+
+    The guest surface needs the same abuse-audit discipline as the
+    authenticated one, without storing personal data: the IP is kept only
+    as a salted hash (abuse correlation) and the source is truncated.
+    """
+
+    class Status(models.TextChoices):
+        OK = "OK", _("OK")
+        COMPILE_ERROR = "COMPILE_ERROR", _("Compile error")
+        RUNTIME_ERROR = "RUNTIME_ERROR", _("Runtime error")
+        TIMEOUT = "TIMEOUT", _("Timeout")
+
+    ip_hash = models.CharField(_("ip hash"), max_length=32, db_index=True)
+    language = models.CharField(_("language"), max_length=20)
+    source_code = models.TextField(_("source code (truncated)"))
+    stdout_data = models.TextField(_("stdout data"), blank=True, default="")
+    error_data = models.TextField(_("error data"), blank=True, default="")
+    status = models.CharField(
+        _("status"), max_length=16, choices=Status.choices, default=Status.OK
+    )
+    execution_time_ms = models.IntegerField(_("execution time (ms)"), default=-1)
+    memory_used_kb = models.IntegerField(_("memory used (KB)"), default=-1)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("guest scratch run")
+        verbose_name_plural = _("guest scratch runs")
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["ip_hash", "-created_at"])]
+
+    def __str__(self):
+        return f"GuestScratchRun {self.id} ({self.language})"

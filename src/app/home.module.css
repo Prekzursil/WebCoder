@@ -94,13 +94,13 @@
 
 .buttonOutlined {
   background-color: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--wash-14);
+  color: var(--ink-85);
 }
 
 .buttonOutlined:hover {
-  background-color: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.3);
+  background-color: var(--wash-6);
+  border-color: var(--wash-24);
   transform: translateY(-1px);
 }
 
@@ -112,7 +112,7 @@
   gap: 2.5rem;
   margin-top: 4rem;
   padding-top: 3rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--wash-6);
 }
 
 .statItem {
