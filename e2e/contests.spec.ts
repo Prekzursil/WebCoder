@@ -21,7 +21,7 @@ test.describe('contests surface (mock api)', () => {
 
     await expect(page.getByRole('link', { name: 'Autumn Open 2026' })).toBeVisible();
     await expect(page.getByTestId('contest-state-1')).toHaveText(/Running/);
-    await expect(page.getByText('★ Rated')).toBeVisible();
+    await expect(page.getByText('★ Rated').first()).toBeVisible();
     // ICS calendar feed link (CON-10).
     await expect(page.getByTestId('contests-ics-link')).toHaveAttribute(
       'href',

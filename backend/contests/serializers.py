@@ -90,6 +90,9 @@ class ContestSerializer(serializers.ModelSerializer):
             "rated_rating_min",
             "rated_rating_max",
             "is_long_contest",
+            "is_team_contest",
+            "is_school_cup",
+            "school_name",
             "problem_ids",
             "created_by",
             "created_by_username",
@@ -147,6 +150,20 @@ class ContestSerializer(serializers.ModelSerializer):
         if lo is not None and hi is not None and lo > hi:
             raise serializers.ValidationError(
                 {"rated_rating_min": "Division minimum exceeds its maximum."}
+            )
+        # Wave F: school cups name their school; team contests never carry
+        # individual ratings (the rating engine is per-user).
+        if attrs.get("is_school_cup", getattr(self.instance, "is_school_cup", False)):
+            school = attrs.get("school_name", getattr(self.instance, "school_name", ""))
+            if not school:
+                raise serializers.ValidationError(
+                    {"school_name": "School cups must name their school."}
+                )
+        if attrs.get(
+            "is_team_contest", getattr(self.instance, "is_team_contest", False)
+        ) and attrs.get("is_rated", getattr(self.instance, "is_rated", False)):
+            raise serializers.ValidationError(
+                {"is_rated": "Team contests cannot be rated (ratings are per-user)."}
             )
         # CON-9: non-admin creators (CREATOR/TEACHER) run PRIVATE, unrated
         # mashups from the APPROVED pool — the community-contest guardrail.
@@ -247,10 +264,17 @@ class ContestDetailSerializer(ContestSerializer):
 
 
 class RegistrationSerializer(serializers.Serializer):
-    """POST /contests/{id}/register/ body: PRIVATE contests need the code."""
+    """POST /contests/{id}/register/ body: PRIVATE contests need the code;
+    team contests need the team name (created when new, joined when existing)."""
 
     access_code = serializers.CharField(
         required=False, allow_blank=True, trim_whitespace=True
+    )
+    team_name = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        trim_whitespace=True,
+        max_length=80,
     )
 
 

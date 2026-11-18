@@ -316,6 +316,37 @@ const messagingState = {
 
 const virtualStarted = new Set();
 
+// Wave F items 49/55: mutable prediction + team fixtures.
+let myPrediction = null;
+
+function urlKindTeams(req) {
+  const url = new URL(req.url, 'http://mock.local');
+  return url.searchParams.get('section') === 'teams';
+}
+
+const MOCK_TEAMS = [
+  {
+    id: 1,
+    name: 'Echipa Albastra',
+    captain: 'e2e_tester',
+    members: ['e2e_tester', 'rival'],
+    member_count: 2,
+    max_members: 3,
+  },
+];
+
+const MOCK_TEAM_STANDINGS = [
+  {
+    rank: 1,
+    team: 'Echipa Albastra',
+    team_id: 1,
+    members: ['e2e_tester', 'rival'],
+    score: 150,
+    solved: 2,
+    problems: [],
+  },
+];
+
 // Wave F contest depth (items 48/56/58): commentary lines + hack feed rows.
 const MOCK_COMMENTARY = [
   {
@@ -359,6 +390,8 @@ const MOCK_CONTESTS = [
     start_at: '2026-10-01T10:00:00Z',
     end_at: '2999-01-01T12:00:00Z',
     freeze_at: null,
+    // Wave F item 49: the mock's flagship contest runs the team flow.
+    is_team_contest: true,
     is_window: false,
     per_user_duration_minutes: 180,
     pretest_mode: false,
@@ -389,6 +422,29 @@ const MOCK_CONTESTS = [
     state: 'FINISHED',
     problem_count: 2,
     participant_count: 2,
+    my_participation: null,
+    can_manage: false,
+  },
+  {
+    id: 90,
+    title_i18n: { en: 'Olympiad School Cup — Cluj', ro: 'Cupa Școlilor — Cluj' },
+    description_i18n: {},
+    visibility: 'PUBLIC',
+    is_rated: true,
+    format: 'IOI',
+    start_at: '2999-02-01T10:00:00Z',
+    end_at: '2999-02-01T12:00:00Z',
+    freeze_at: null,
+    is_school_cup: true,
+    school_name: 'Colegiul National Emil Racovita',
+    is_window: false,
+    per_user_duration_minutes: 120,
+    pretest_mode: false,
+    created_by: 2,
+    created_by_username: 'admin_e2e',
+    state: 'UPCOMING',
+    problem_count: 3,
+    participant_count: 0,
     my_participation: null,
     can_manage: false,
   },
@@ -1662,6 +1718,75 @@ const server = createServer((req, res) => {
         ? MOCK_CONTESTS.filter((c) => c.is_long_contest)
         : MOCK_CONTESTS;
     json(res, 200, paged(rows));
+    return;
+  }
+
+  // ---- Wave F teams / prediction / calibration (items 49/50/55) ----
+  const predict = path.match(/^\/api\/v1\/contests\/(\d+)\/predict\/$/);
+  if (predict) {
+    if (req.method === 'GET') {
+      json(res, 200, { prediction: myPrediction ?? null, open: true });
+      return;
+    }
+    if (req.method === 'POST') {
+      const user = sessionUser(req);
+      if (!user) {
+        json(res, 401, { detail: 'Sign in to predict.' });
+        return;
+      }
+      readBody(req, (body) => {
+        const rank = Number(body.predicted_rank);
+        if (!Number.isInteger(rank) || rank < 1) {
+          json(res, 400, { predicted_rank: 'An integer rank is required.' });
+          return;
+        }
+        myPrediction = rank;
+        json(res, 201, { contest: Number(predict[1]), predicted_rank: rank });
+      });
+      return;
+    }
+  }
+
+  const teamsList = path.match(/^\/api\/v1\/contests\/(\d+)\/teams\/$/);
+  if (req.method === 'GET' && teamsList) {
+    json(res, 200, {
+      count: MOCK_TEAMS.length,
+      results: MOCK_TEAMS,
+    });
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/api/v1/contests/1/standings/' && urlKindTeams(req)) {
+    json(res, 200, {
+      count: MOCK_TEAM_STANDINGS.length,
+      next: null,
+      previous: null,
+      results: MOCK_TEAM_STANDINGS,
+      format: 'IOI',
+      frozen: false,
+      section: 'teams',
+      team_size: 3,
+    });
+    return;
+  }
+
+  const calibration = path.match(/^\/api\/v1\/ratings\/users\/([^/]+)\/calibration\/$/);
+  if (req.method === 'GET' && calibration) {
+    json(res, 200, {
+      count: 1,
+      mean_abs_error: 2,
+      bias: -2,
+      results: [
+        {
+          contest: 3,
+          title: 'Spring Replay 2025',
+          predicted_rank: 1,
+          actual_rank: 3,
+          error: -2,
+          state: 'FINISHED',
+        },
+      ],
+    });
     return;
   }
 

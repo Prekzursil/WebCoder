@@ -158,6 +158,26 @@ class Contest(models.Model):
             "Multi-day challenge (catalog 'Long challenges' section, day counter)."
         ),
     )
+    # Team contests (item 49, the ICPC pattern): participants sit in teams of
+    # up to ContestTeam.MAX_MEMBERS; any member's submission scores for the
+    # team's board row (standings ?section=teams).
+    is_team_contest = models.BooleanField(
+        _("team contest"),
+        default=False,
+        help_text=_("Participants register as teams (ICPC style)."),
+    )
+    # School cups (item 50): eligibility scoped to one school's students.
+    is_school_cup = models.BooleanField(
+        _("school cup"),
+        default=False,
+        help_text=_("Eligibility gate: only students of school_name may register."),
+    )
+    school_name = models.CharField(
+        _("school name"),
+        max_length=160,
+        blank=True,
+        help_text=_("The school this cup belongs to (school-cup eligibility gate)."),
+    )
 
     # Set once by the finalize beat task when the contest ends: marks that
     # the end-of-contest pass (full-suite rejudge of pretest submissions)
@@ -622,3 +642,92 @@ class ContestCommentary(models.Model):
 
     def __str__(self):
         return f"commentary #{self.id} @ +{self.minute_offset}m of contest {self.contest_id}"
+
+
+class ContestTeam(models.Model):
+    """A team sitting a team contest (item 49, the ICPC pattern).
+
+    The captain creates the team by registering with ``team_name``; up to
+    ``MAX_MEMBERS`` participants may join (each still gets their own
+    ContestParticipation so per-user gating keeps working — the team row is
+    an aggregate over the members' score rows).
+    """
+
+    MAX_MEMBERS = 3
+
+    contest = models.ForeignKey(Contest, on_delete=models.CASCADE, related_name="teams")
+    name = models.CharField(_("name"), max_length=80)
+    captain = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="captained_teams",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("contest team")
+        verbose_name_plural = _("contest teams")
+        ordering = ["contest", "name"]
+        constraints = [
+            models.UniqueConstraint(fields=["contest", "name"], name="unique_team_name")
+        ]
+
+    def __str__(self):
+        return f"{self.name} @ {self.contest_id}"
+
+
+class ContestTeamMember(models.Model):
+    """Membership row: one user per team (one team per user per contest is
+    enforced by the registration flow)."""
+
+    team = models.ForeignKey(
+        ContestTeam, on_delete=models.CASCADE, related_name="members"
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="contest_teams",
+    )
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("contest team member")
+        verbose_name_plural = _("contest team members")
+        constraints = [
+            models.UniqueConstraint(fields=["team", "user"], name="unique_team_member")
+        ]
+
+    def __str__(self):
+        return f"{self.user_id} in team {self.team_id}"
+
+
+class ContestPrediction(models.Model):
+    """Self-prediction for calibration (item 55): before a rated contest's
+    start (or before the predictor's first submission), a participant
+    commits to a predicted final rank. Finalization pairs the prediction
+    with the actual rank — the calibration view turns the history into a
+    bias/accuracy profile."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="contest_predictions",
+    )
+    contest = models.ForeignKey(
+        Contest, on_delete=models.CASCADE, related_name="predictions"
+    )
+    predicted_rank = models.PositiveIntegerField(_("predicted final rank"))
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("contest prediction")
+        verbose_name_plural = _("contest predictions")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "contest"], name="unique_prediction"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user_id} predicts #{self.predicted_rank} @ {self.contest_id}"

@@ -171,3 +171,19 @@ def contest_rating_rollback(request, contest_id):
         return Response({"detail": "Organizer only."}, status=status.HTTP_403_FORBIDDEN)
     message = rollback_contest_ratings(contest)
     return Response({"detail": message})
+
+
+class UserCalibrationView(APIView):
+    """GET /api/v1/ratings/users/{username}/calibration/ — the item-55
+    self-prediction profile: every prediction paired with the actual rank,
+    mean absolute error and the optimism/pessimism bias."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, username):
+        user = User.objects.filter(username=username).first()
+        if user is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        from contests.teams import calibration
+
+        return Response(calibration(user))

@@ -384,6 +384,10 @@ export interface Contest {
   rated_rating_max: number | null;
   /** Item 54 — the multi-day Long-Challenge axis. */
   is_long_contest?: boolean;
+  /** Items 49/50 — ICPC-style teams and school-scoped cups. */
+  is_team_contest?: boolean;
+  is_school_cup?: boolean;
+  school_name?: string;
   created_by: number;
   created_by_username: string;
   // OPS-7 (Wave D, groundwork): display-only sponsor attribution.
@@ -941,3 +945,59 @@ export interface CertificateType {
 }
 
 export type GetMyCertificatesResponse = PaginatedResponse<CertificateType>;
+
+// ---- Wave F teams / school cups / calibration (items 49/50/55) ----
+
+export interface ContestTeamRow {
+  id: number;
+  name: string;
+  captain: string;
+  members: string[];
+  member_count: number;
+  max_members: number;
+}
+
+export interface ContestTeamsResponse {
+  count: number;
+  results: ContestTeamRow[];
+}
+
+export interface TeamStandingsRow {
+  rank: number;
+  team: string;
+  team_id: number;
+  members: string[];
+  score: number;
+  solved: number;
+  problems: StandingsProblemCell[];
+}
+
+export interface TeamStandingsResponse {
+  count: number;
+  results: TeamStandingsRow[];
+  format: string;
+  frozen: boolean;
+  section: 'teams';
+  team_size: number;
+}
+
+export interface ContestPredictionState {
+  prediction: number | null;
+  open: boolean;
+}
+
+export interface CalibrationRow {
+  contest: number;
+  title: string;
+  predicted_rank: number;
+  actual_rank: number | null;
+  error: number | null;
+  state: string;
+}
+
+export interface CalibrationProfile {
+  count: number;
+  mean_abs_error: number | null;
+  bias: number | null;
+  results: CalibrationRow[];
+}
