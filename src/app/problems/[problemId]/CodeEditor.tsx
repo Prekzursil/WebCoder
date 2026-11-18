@@ -11,6 +11,7 @@ import type { ReactNode } from 'react';
 import { Prec } from '@codemirror/state';
 import { keymap } from '@codemirror/view';
 import { dracula } from '@uiw/codemirror-theme-dracula';
+import { useThemeMode } from '@/context/ThemeModeContext';
 import { python } from '@codemirror/lang-python';
 import { cpp } from '@codemirror/lang-cpp';
 import { java } from '@codemirror/lang-java';
@@ -47,6 +48,9 @@ export default function CodeEditor({
   ariaLabel,
   height = '380px',
 }: CodeEditorProps): ReactNode {
+  // [Wave G item 79] the editor follows the site theme — dracula on dark,
+  // the built-in light theme when the visitor flipped to light.
+  const { mode } = useThemeMode();
   const extensions = useMemo(() => {
     const exts = [];
     const langFactory = language ? LANGUAGE_EXTENSIONS[language] : undefined;
@@ -74,7 +78,7 @@ export default function CodeEditor({
       <ReactCodeMirror
         value={value}
         onChange={onChange}
-        theme={dracula}
+        theme={mode === 'light' ? 'light' : dracula}
         height={height}
         extensions={extensions}
         basicSetup={{

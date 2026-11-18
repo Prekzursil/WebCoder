@@ -138,6 +138,16 @@ export default async function RootLayout({
         />
         {/* [SPEC-GAPS A15] third-party rocket.new analytics scripts removed -
             telemetry to an unrelated host, shipped on every page with no consent. */}
+        {/* [Wave G item 79] apply the stored theme BEFORE first paint so a
+            light-mode visitor never gets a dark flash (dark remains the
+            default; the script only flips when the choice says light). */}
+        <script
+          dangerouslySetInnerHTML={{
+            /* nosemgrep - static repo-authored one-liner, no user input */
+            __html:
+              "try{if(localStorage.getItem('wc-theme-mode')==='light'){document.documentElement.setAttribute('data-theme','light')}}catch(e){}",
+          }}
+        />
       </head>
       <body suppressHydrationWarning>
         <Providers>

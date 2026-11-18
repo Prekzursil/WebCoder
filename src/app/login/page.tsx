@@ -164,6 +164,12 @@ const LoginPage: React.FC = () => {
               {t('register_link_text', 'Register here')}
             </Link>
           </Typography>
+          {/* Wave G item 89: the guest first-run path, one click away. */}
+          <Typography variant="body2" align="center" sx={{ mt: 1 }}>
+            <Link component={NextLink} href="/try" variant="body2" data-testid="login-try-link">
+              {t('try_guest_link', 'Just exploring? Try the judge without an account →')}
+            </Link>
+          </Typography>
         </Box>
       </Box>
     </Container>

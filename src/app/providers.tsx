@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useMemo } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { AuthProvider } from '@/context/AuthContext';
@@ -9,37 +9,43 @@ import Footer from '@/components/layout/Footer';
 import ServiceWorkerRegistrar from '@/components/common/ServiceWorkerRegistrar';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
-import { palette, fontFamily, typeRamp, radius } from '@/theme/tokens';
+import { palette, lightPalette, fontFamily, typeRamp, radius, hexAlpha } from '@/theme/tokens';
+import { ThemeModeProvider, useThemeMode } from '@/context/ThemeModeContext';
+import CommandPalette from '@/components/common/CommandPalette';
+import ShortcutHelp from '@/components/common/ShortcutHelp';
 
 import '@/i18n';
 import { localeDirection, normalizeUiLocale } from '@/i18n';
 
-// Theme built entirely from src/theme/tokens.ts — no literal colors here.
-// [SPEC-GAPS A2/A12]
-const darkTheme = createTheme({
+// Themes built entirely from src/theme/tokens.ts — no literal colors here.
+// [SPEC-GAPS A2/A12] Item 79: the MUI palette follows the site theme mode
+// (dark default, light counterpart from lightPalette).
+function buildTheme(mode: 'dark' | 'light') {
+  const p = mode === 'light' ? lightPalette : palette;
+  return createTheme({
   palette: {
-    mode: 'dark',
+    mode,
     background: {
-      default: palette.bg,
-      paper: palette.surface,
+      default: p.bg,
+      paper: p.surface,
     },
     text: {
-      primary: palette.foreground,
-      secondary: palette.muted,
+      primary: p.foreground,
+      secondary: p.muted,
     },
     primary: {
-      main: palette.accent,
+      main: p.accent,
     },
     error: {
-      main: palette.danger,
+      main: p.danger,
     },
     success: {
-      main: palette.success,
+      main: p.success,
     },
     warning: {
-      main: palette.warn,
+      main: p.warn,
     },
-    divider: palette.border,
+    divider: p.border,
   },
   typography: {
     fontFamily: fontFamily.sans,
@@ -61,13 +67,13 @@ const darkTheme = createTheme({
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-notchedOutline': {
-            borderColor: palette.border,
+            borderColor: p.border,
           },
           '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: palette.borderStrong,
+            borderColor: p.borderStrong,
           },
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: palette.accent,
+            borderColor: p.accent,
           },
         },
       },
@@ -76,7 +82,7 @@ const darkTheme = createTheme({
       styleOverrides: {
         root: {
           backgroundImage: 'none',
-          border: `1px solid ${palette.border}`,
+          border: `1px solid ${p.border}`,
         },
       },
     },
@@ -88,22 +94,22 @@ const darkTheme = createTheme({
         {
           props: { variant: 'contained', color: 'primary' },
           style: {
-            background: palette.accent,
-            color: palette.onAccent,
+            background: p.accent,
+            color: p.onAccent,
             fontWeight: 600,
             '&:hover': {
-              background: palette.accentHover,
+              background: p.accentHover,
             },
           },
         },
         {
           props: { variant: 'outlined', color: 'primary' },
           style: {
-            borderColor: 'rgba(56,189,248,0.4)',
-            color: palette.accent,
+            borderColor: hexAlpha(p.accent, 0.4),
+            color: p.accent,
             '&:hover': {
-              borderColor: palette.accent,
-              background: 'rgba(56,189,248,0.08)',
+              borderColor: p.accent,
+              background: hexAlpha(p.accent, 0.08),
             },
           },
         },
@@ -112,7 +118,7 @@ const darkTheme = createTheme({
     MuiDivider: {
       styleOverrides: {
         root: {
-          borderColor: palette.border,
+          borderColor: p.border,
         },
       },
     },
@@ -124,10 +130,14 @@ const darkTheme = createTheme({
       },
     },
   },
-});
+  });
+}
 
 export default function Providers({ children }: { children: ReactNode }) {
   const { t, i18n } = useTranslation();
+  const { mode } = useThemeMode();
+  const muiTheme = useMemo(() => buildTheme(mode), [mode]);
+  const surfacePalette = mode === 'light' ? lightPalette : palette;
 
   useEffect(() => {
     // [Q5/Q12] i18n initializes pinned to 'en' (SSR/hydration safety), which
@@ -153,29 +163,35 @@ export default function Providers({ children }: { children: ReactNode }) {
 
   return (
     <AppRouterCacheProvider options={{ key: 'mui' }}>
-      <ThemeProvider theme={darkTheme}>
-        <CssBaseline />
-        <AuthProvider>
-          {/* Keyboard skip link + one main landmark for every route. [Q11] */}
-          <a href="#main-content" className="skip-link">
-            {t('skip_to_content', 'Skip to content')}
-          </a>
-          <Navbar />
-          <main id="main-content">{children}</main>
-          <Footer />
-          <Toaster
-            toastOptions={{
-              style: {
-                background: palette.surface,
-                color: palette.foreground,
-                border: `1px solid ${palette.border}`,
-              },
-            }}
-          />
-          {/* OPS-6: PWA service-worker registration (production only) */}
-          <ServiceWorkerRegistrar />
-        </AuthProvider>
-      </ThemeProvider>
+      <ThemeModeProvider>
+        <ThemeProvider theme={muiTheme}>
+          <CssBaseline />
+          <AuthProvider>
+            {/* Keyboard skip link + one main landmark for every route. [Q11] */}
+            <a href="#main-content" className="skip-link">
+              {t('skip_to_content', 'Skip to content')}
+            </a>
+            <Navbar />
+            <main id="main-content">{children}</main>
+            <Footer />
+            <Toaster
+              toastOptions={{
+                style: {
+                  background: surfacePalette.surface,
+                  color: surfacePalette.foreground,
+                  border: `1px solid ${surfacePalette.border}`,
+                },
+              }}
+            />
+            {/* OPS-6: PWA service-worker registration (production only) */}
+            <ServiceWorkerRegistrar />
+            {/* Wave G item 80: the Ctrl-K command palette (global). */}
+            <CommandPalette />
+            {/* Wave G item 81: the "?" keyboard map overlay (global). */}
+            <ShortcutHelp />
+          </AuthProvider>
+        </ThemeProvider>
+      </ThemeModeProvider>
     </AppRouterCacheProvider>
   );
 }

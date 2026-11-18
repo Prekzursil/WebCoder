@@ -23,6 +23,7 @@ import SolutionsPanel from './SolutionsPanel';
 import DiscussionsPanel from './DiscussionsPanel';
 import EditorialEtiquetteBanner from './EditorialEtiquetteBanner';
 import PrintButton from './PrintButton';
+import SplitViewToggle from './SplitViewToggle';
 import StatementHistory from './StatementHistory';
 import ScratchPanel from './ScratchPanel';
 import CopyButton from '@/components/common/CopyButton';
@@ -271,7 +272,7 @@ export default async function ProblemDetailPage({ params, searchParams }: Proble
       </div>
 
       {/* Responsive two-column layout [A1] */}
-      <div className={styles.detailGrid}>
+      <div className={styles.detailGrid} data-detail-grid>
         {/* Left: problem content */}
         <div>
           {/* Problem header card */}
@@ -856,7 +857,19 @@ export default async function ProblemDetailPage({ params, searchParams }: Proble
         {/* Right: submit solution */}
         <div className={styles.submitColumn}>
           <div style={card}>
-            {sectionHeader('var(--success)', t('submit_solution_header', 'Submit Solution'))}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '8px',
+                marginBottom: '0.5rem',
+              }}
+            >
+              {sectionHeader('var(--success)', t('submit_solution_header', 'Submit Solution'))}
+              {/* Wave G item 75: statement|editor split layout. */}
+              <SplitViewToggle />
+            </div>
             <SubmitSolutionForm
               problemId={problemId}
               allowedLanguages={problem.allowed_languages || []}

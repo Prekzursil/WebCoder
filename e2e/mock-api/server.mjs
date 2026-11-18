@@ -1269,6 +1269,18 @@ const server = createServer((req, res) => {
     return;
   }
 
+  // Wave G item 89: the anonymous guest try-it run.
+  if (req.method === 'POST' && path === '/api/v1/scratch/guest/') {
+    json(res, 200, {
+      status: 'OK',
+      output: 'Salut, world!\n',
+      error: '',
+      time_ms: 9,
+      memory_kb: 2048,
+    });
+    return;
+  }
+
   // Wave A: curriculum tree (EDU-9) + starter trio (ONB-1) + solved ids (F5).
   if (req.method === 'GET' && path === '/api/v1/problems/curriculum/') {
     json(

@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
+import ThemeToggle from '@/components/common/ThemeToggle';
 import { NotificationService } from '@/services/ApiService';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
@@ -190,7 +191,13 @@ const Navbar: React.FC = () => {
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
   const renderSearchForm = (idPrefix: string) => (
-    <form className={styles.searchForm} onSubmit={submitSearch} role="search" key={idPrefix}>
+    <form
+      className={styles.searchForm}
+      onSubmit={submitSearch}
+      role="search"
+      key={idPrefix}
+      data-tour="search"
+    >
       <span className={styles.searchIcon} aria-hidden="true">
         <SearchIcon fontSize="small" />
       </span>
@@ -229,8 +236,8 @@ const Navbar: React.FC = () => {
           <MenuIcon />
         </button>
 
-        {/* Brand */}
-        <Link href="/" className={styles.brand}>
+        {/* Brand — [wave G item 94] feature-tour anchor */}
+        <Link href="/" className={styles.brand} data-tour="brand">
           <span className={styles.brandMark}>W</span>
           {t('app_title', 'WebCoder')}
         </Link>
@@ -246,6 +253,7 @@ const Navbar: React.FC = () => {
               href={href}
               className={`nav-link ${isActive(href) ? 'nav-link--active' : ''}`}
               aria-current={isActive(href) ? 'page' : undefined}
+              data-tour={href === '/problems' ? 'problems' : href === '/contests' ? 'contests' : undefined}
             >
               {label}
             </Link>
@@ -254,6 +262,8 @@ const Navbar: React.FC = () => {
 
         {/* Right cluster: bell · avatar menu / login+register · language */}
         <div className={styles.rightCluster}>
+          {/* Wave G item 79: dark/light toggle, always visible */}
+          <ThemeToggle className={styles.iconBtn} />
           {auth.isAuthenticated ? (
             <>
               <Link

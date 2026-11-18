@@ -55,6 +55,63 @@ export const palette = {
 
   /** Navbar logo / brand mark gradient. [SPEC-GAPS A2: dedicated token] */
   brandGradient: 'linear-gradient(135deg, #38bdf8 0%, #818cf8 100%)',
+
+  /**
+   * Surface "washes" — translucent ink overlays for hover states, button
+   * fills and row hovers. Dark mode washes are white-based; light mode
+   * (lightPalette below) flips them to dark-based. Extracted as tokens so
+   * the globals.css idioms could leave hardcoded rgba() behind (item 79:
+   * a real light theme, not a half-one).
+   */
+  wash4: 'rgba(255, 255, 255, 0.04)',
+  wash5: 'rgba(255, 255, 255, 0.05)',
+  wash6: 'rgba(255, 255, 255, 0.06)',
+  wash14: 'rgba(255, 255, 255, 0.14)',
+  wash24: 'rgba(255, 255, 255, 0.24)',
+  ink70: 'rgba(255, 255, 255, 0.7)',
+  ink85: 'rgba(255, 255, 255, 0.85)',
+} as const;
+
+/**
+ * Light palette (wave G item 79 — full dark mode ships WITH its light
+ * counterpart so the toggle is honest). Values chosen for WCAG AA on
+ * white/near-white surfaces; mirrors the html[data-theme='light'] block
+ * in globals.css.
+ */
+export const lightPalette = {
+  bg: '#f1f5f9',
+  surface: '#ffffff',
+  surface2: '#e2e8f0',
+  border: 'rgba(15, 23, 42, 0.1)',
+  borderStrong: 'rgba(15, 23, 42, 0.16)',
+
+  foreground: '#0f172a',
+  body: '#1e293b',
+  muted: '#475569',
+  textTertiary: '#52607a',
+
+  accent: '#0369a1',
+  accentHover: '#075985',
+  onAccent: '#ffffff',
+
+  danger: '#b91c1c',
+  success: '#15803d',
+  warn: '#a16207',
+  violet: '#6d28d9',
+  violetSoft: '#4f46e5',
+  orange: '#c2410c',
+  pink: '#be185d',
+  blue: '#1d4ed8',
+
+  brandGradient: 'linear-gradient(135deg, #0369a1 0%, #4f46e5 100%)',
+
+  wash4: 'rgba(15, 23, 42, 0.04)',
+  wash5: 'rgba(15, 23, 42, 0.05)',
+  wash6: 'rgba(15, 23, 42, 0.06)',
+  wash14: 'rgba(15, 23, 42, 0.12)',
+  wash24: 'rgba(15, 23, 42, 0.2)',
+  ink70: 'rgba(15, 23, 42, 0.7)',
+  ink85: 'rgba(15, 23, 42, 0.85)',
 } as const;
 
 /** RAT-3 rating-band colors (Wave B): mirrors backend
@@ -147,6 +204,13 @@ export const cssVars: Record<string, string> = {
   '--pink': palette.pink,
   '--blue': palette.blue,
   '--brand-gradient': palette.brandGradient,
+  '--wash-4': palette.wash4,
+  '--wash-5': palette.wash5,
+  '--wash-6': palette.wash6,
+  '--wash-14': palette.wash14,
+  '--wash-24': palette.wash24,
+  '--ink-70': palette.ink70,
+  '--ink-85': palette.ink85,
   '--font-sans': fontFamily.sans,
   '--font-mono': fontFamily.mono,
   '--radius-sm': `${radius.sm}px`,
