@@ -81,7 +81,11 @@ export default function CommentaryPanel({
           </button>
         </div>
       )}
-      {error && <p role="alert" style={{ color: palette.danger }}>{error}</p>}
+      {error && (
+        <p role="alert" style={{ color: palette.danger }}>
+          {error}
+        </p>
+      )}
       {rows === null ? (
         <p aria-busy="true">{t('commentary_loading', 'Loading commentary…')}</p>
       ) : rows.length === 0 ? (

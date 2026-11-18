@@ -57,7 +57,11 @@ export default function ContestDramaPage() {
           ← {t('back_to_contest', 'Back to the contest')}
         </Link>
       </p>
-      {error && <p role="alert" style={{ color: palette.danger }}>{error}</p>}
+      {error && (
+        <p role="alert" style={{ color: palette.danger }}>
+          {error}
+        </p>
+      )}
       {!drama && !error && <p aria-busy="true">{t('loading', 'Loading…')}</p>}
       {drama && (
         <>
@@ -73,9 +77,7 @@ export default function ContestDramaPage() {
               : t('drama_not_frozen', 'The board is live — nothing is hidden.')}
           </p>
           {drama.results.length === 0 ? (
-            <p style={{ color: palette.muted }}>
-              {t('drama_empty', 'No standings rows yet.')}
-            </p>
+            <p style={{ color: palette.muted }}>{t('drama_empty', 'No standings rows yet.')}</p>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse' }} data-testid="drama-table">
               <thead>
@@ -96,7 +98,10 @@ export default function ContestDramaPage() {
                   >
                     <td style={{ padding: 8 }}>{row.rank}</td>
                     <td>
-                      <Link href={`/profile/${row.user.username}`} style={{ color: palette.foreground }}>
+                      <Link
+                        href={`/profile/${row.user.username}`}
+                        style={{ color: palette.foreground }}
+                      >
                         {row.user.username}
                       </Link>
                     </td>

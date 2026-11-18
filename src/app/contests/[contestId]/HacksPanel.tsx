@@ -43,7 +43,10 @@ export default function HacksPanel({
       setError(null);
       const [feed, targetList] = await Promise.all([
         ContestService.getHacks(contestId),
-        ContestService.getHackTargets(contestId).catch(() => ({ count: 0, results: [] as HackTargetRow[] })),
+        ContestService.getHackTargets(contestId).catch(() => ({
+          count: 0,
+          results: [] as HackTargetRow[],
+        })),
       ]);
       setHacks(feed.results);
       setWindowOpen(feed.window_open);
@@ -102,7 +105,10 @@ export default function HacksPanel({
       >
         {windowOpen
           ? t('hacks_window_open', 'Hacking window is OPEN — lock a solved problem to hack others.')
-          : t('hacks_window_closed', 'The hacking window is closed (it opens at the freeze, or from the start when no freeze is set).')}
+          : t(
+              'hacks_window_closed',
+              'The hacking window is closed (it opens at the freeze, or from the start when no freeze is set).',
+            )}
       </p>
 
       {problems && problems.length > 0 && (
@@ -127,9 +133,15 @@ export default function HacksPanel({
         </div>
       )}
 
-      {error && <p role="alert" style={{ color: palette.danger }}>{error}</p>}
+      {error && (
+        <p role="alert" style={{ color: palette.danger }}>
+          {error}
+        </p>
+      )}
       {message && (
-        <p data-testid="hack-message" style={{ color: palette.success }}>{message}</p>
+        <p data-testid="hack-message" style={{ color: palette.success }}>
+          {message}
+        </p>
       )}
 
       {targets && targets.length > 0 && (
@@ -137,7 +149,10 @@ export default function HacksPanel({
           <h4>{t('hack_targets_title', 'Hackable solutions')}</h4>
           <ul style={{ listStyle: 'none', padding: 0, display: 'grid', gap: 8 }}>
             {targets.map((target) => (
-              <li key={target.id} style={{ border: `1px solid ${palette.border}`, borderRadius: 10, padding: 10 }}>
+              <li
+                key={target.id}
+                style={{ border: `1px solid ${palette.border}`, borderRadius: 10, padding: 10 }}
+              >
                 <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' }}>
                   <strong>{target.problem_label}</strong>
                   <span>{target.user.username}</span>
@@ -202,7 +217,10 @@ export default function HacksPanel({
         <p aria-busy="true">{t('hacks_loading', 'Loading hacks…')}</p>
       ) : hacks.length === 0 ? (
         <p style={{ color: palette.muted }}>
-          {t('hacks_empty', 'No hacks yet — successful counter-tests land here as they are judged.')}
+          {t(
+            'hacks_empty',
+            'No hacks yet — successful counter-tests land here as they are judged.',
+          )}
         </p>
       ) : (
         <ul style={{ listStyle: 'none', padding: 0, display: 'grid', gap: 8 }}>

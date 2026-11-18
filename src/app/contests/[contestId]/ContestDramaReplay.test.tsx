@@ -28,7 +28,6 @@ beforeEach(() => {
 
 afterEach(() => cleanup());
 
-
 describe('ContestDramaPage (item 58)', () => {
   it('shows frozen standings with hidden-submission counts', async () => {
     params.current = { contestId: '3' };

@@ -198,12 +198,7 @@ export default function ContestDetailPage() {
   );
   const contestDay = Math.min(
     totalDays,
-    Math.max(
-      1,
-      Math.ceil(
-        (Date.now() - new Date(contest.start_at).getTime()) / 86_400_000,
-      ),
-    ),
+    Math.max(1, Math.ceil((Date.now() - new Date(contest.start_at).getTime()) / 86_400_000)),
   );
 
   const tabs: { key: Tab; label: string }[] = [
@@ -662,7 +657,11 @@ function StandingsBoard({ standings, t, contestId, finished }: StandingsBoardPro
                     <Link
                       href={`/contests/${contestId}/replay/${row.user.username}`}
                       data-testid={`replay-link-${row.user.username}`}
-                      style={{ marginLeft: 8, fontSize: '0.85rem', color: themeTokens.palette.accent }}
+                      style={{
+                        marginLeft: 8,
+                        fontSize: '0.85rem',
+                        color: themeTokens.palette.accent,
+                      }}
                       title={t('replay_link_title', 'Replay this contest run')}
                     >
                       ↻

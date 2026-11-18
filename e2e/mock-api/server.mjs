@@ -316,7 +316,6 @@ const messagingState = {
 
 const virtualStarted = new Set();
 
-
 // Wave F contest depth (items 48/56/58): commentary lines + hack feed rows.
 const MOCK_COMMENTARY = [
   {
@@ -1658,9 +1657,10 @@ const server = createServer((req, res) => {
   if (req.method === 'GET' && path === '/api/v1/contests/') {
     // Item 54: the long-challenge catalog axis.
     const url = new URL(req.url, 'http://mock.local');
-    const rows = url.searchParams.get('kind') === 'long'
-      ? MOCK_CONTESTS.filter((c) => c.is_long_contest)
-      : MOCK_CONTESTS;
+    const rows =
+      url.searchParams.get('kind') === 'long'
+        ? MOCK_CONTESTS.filter((c) => c.is_long_contest)
+        : MOCK_CONTESTS;
     json(res, 200, paged(rows));
     return;
   }
@@ -1703,8 +1703,20 @@ const server = createServer((req, res) => {
       reveal_at: '2026-11-01T11:00:00Z',
       seconds_until_reveal: 1800,
       results: [
-        { rank: 1, user: { id: 1, username: 'e2e_tester' }, score: 100, solved: 1, hidden_submissions: 0 },
-        { rank: 2, user: { id: 2, username: 'rival' }, score: 50, solved: 0, hidden_submissions: 2 },
+        {
+          rank: 1,
+          user: { id: 1, username: 'e2e_tester' },
+          score: 100,
+          solved: 1,
+          hidden_submissions: 0,
+        },
+        {
+          rank: 2,
+          user: { id: 2, username: 'rival' },
+          score: 50,
+          solved: 0,
+          hidden_submissions: 2,
+        },
       ],
     });
     return;
@@ -1719,8 +1731,28 @@ const server = createServer((req, res) => {
       final_rank: 2,
       rating_change: { delta: 20, rating: 1520 },
       events: [
-        { minute_offset: 10, problem_label: 'A', problem_id: 1, verdict: 'WA', score: 10, problem_best: 10, problem_max: 100, total: 10, submission_id: 51 },
-        { minute_offset: 40, problem_label: 'A', problem_id: 1, verdict: 'AC', score: 100, problem_best: 100, problem_max: 100, total: 100, submission_id: 52 },
+        {
+          minute_offset: 10,
+          problem_label: 'A',
+          problem_id: 1,
+          verdict: 'WA',
+          score: 10,
+          problem_best: 10,
+          problem_max: 100,
+          total: 10,
+          submission_id: 51,
+        },
+        {
+          minute_offset: 40,
+          problem_label: 'A',
+          problem_id: 1,
+          verdict: 'AC',
+          score: 100,
+          problem_best: 100,
+          problem_max: 100,
+          total: 100,
+          submission_id: 52,
+        },
       ],
     });
     return;

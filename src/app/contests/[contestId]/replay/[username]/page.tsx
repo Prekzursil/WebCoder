@@ -46,9 +46,7 @@ export default function ContestReplayPage() {
     [replay],
   );
   const scrub = minute ?? lastMinute;
-  const visible = replay
-    ? replay.events.filter((event) => event.minute_offset <= scrub)
-    : [];
+  const visible = replay ? replay.events.filter((event) => event.minute_offset <= scrub) : [];
   const runningTotal = visible.length > 0 ? visible[visible.length - 1].total : 0;
 
   return (
@@ -65,7 +63,11 @@ export default function ContestReplayPage() {
           ← {t('back_to_contest', 'Back to the contest')}
         </Link>
       </p>
-      {error && <p role="alert" style={{ color: palette.danger }}>{error}</p>}
+      {error && (
+        <p role="alert" style={{ color: palette.danger }}>
+          {error}
+        </p>
+      )}
       {!replay && !error && <p aria-busy="true">{t('loading', 'Loading…')}</p>}
       {replay && (
         <>
@@ -127,9 +129,7 @@ export default function ContestReplayPage() {
                     <span>
                       {event.score}/{event.problem_max}
                     </span>
-                    <span style={{ marginLeft: 'auto', fontWeight: 700 }}>
-                      Σ {event.total}
-                    </span>
+                    <span style={{ marginLeft: 'auto', fontWeight: 700 }}>Σ {event.total}</span>
                   </li>
                 );
               })}

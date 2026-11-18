@@ -1293,8 +1293,7 @@ export const ContestService = {
     apiFetch<{ virtual_start: string; effective_end: string }>(`/contests/${id}/start/`, {
       method: 'POST',
     }),
-  getProblems: (id: number | string) =>
-    apiFetch<ContestProblemRow[]>(`/contests/${id}/problems/`),
+  getProblems: (id: number | string) => apiFetch<ContestProblemRow[]>(`/contests/${id}/problems/`),
   getStandings: (
     id: number | string,
     page = 1,
@@ -1312,8 +1311,7 @@ export const ContestService = {
       `/contests/${id}/virtual-start/`,
       { method: 'POST' },
     ),
-  getAwards: (id: number | string) =>
-    apiFetch<ContestAwardsResponse>(`/contests/${id}/awards/`),
+  getAwards: (id: number | string) => apiFetch<ContestAwardsResponse>(`/contests/${id}/awards/`),
   createContest: (data: Record<string, unknown>) =>
     apiFetch<Contest>('/contests/', {
       method: 'POST',
@@ -1370,8 +1368,7 @@ export const ContestService = {
     apiFetch<HacksResponse>(`/contests/${id}/hacks/${mine ? '?mine=1' : ''}`),
   getReplay: (id: number | string, username: string) =>
     apiFetch<ContestReplay>(`/contests/${id}/replay/${encodeURIComponent(username)}/`),
-  getDrama: (id: number | string) =>
-    apiFetch<ContestDrama>(`/contests/${id}/drama/`),
+  getDrama: (id: number | string) => apiFetch<ContestDrama>(`/contests/${id}/drama/`),
 };
 
 // =================================

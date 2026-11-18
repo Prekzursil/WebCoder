@@ -135,9 +135,7 @@ describe('CommentaryPanel (item 56)', () => {
 describe('HacksPanel (item 48)', () => {
   it('shows the window state, lock buttons, targets and the feed', async () => {
     render(<HacksPanel contestId={1} problems={PROBLEMS} />);
-    expect(
-      await screen.findByText(/Hacking window is OPEN/i, { exact: false }),
-    ).toBeTruthy();
+    expect(await screen.findByText(/Hacking window is OPEN/i, { exact: false })).toBeTruthy();
     expect(screen.getByTestId('hack-lock-A')).toBeTruthy();
     expect(screen.getByText('bob')).toBeTruthy();
     expect(screen.getByTestId('hack-row-5').textContent).toContain('SUCCESSFUL');
@@ -175,8 +173,6 @@ describe('HacksPanel (item 48)', () => {
     render(<HacksPanel contestId={1} problems={PROBLEMS} />);
     await screen.findByTestId('hack-lock-A');
     fireEvent.click(screen.getByTestId('hack-lock-A'));
-    await waitFor(() =>
-      expect(screen.getByRole('alert').textContent).toContain('fully solving'),
-    );
+    await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('fully solving'));
   });
 });

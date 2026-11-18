@@ -64,9 +64,7 @@ test.describe('wave F contest depth (mock api)', () => {
     await expect(page.getByTestId('replay-running-total')).toHaveText('100');
   });
 
-  test('standings rows link to each participant replay on finished contests', async ({
-    page,
-  }) => {
+  test('standings rows link to each participant replay on finished contests', async ({ page }) => {
     await page.goto('/contests/3');
     await page.getByRole('button', { name: 'Standings' }).click();
     const link = page.getByTestId('replay-link-e2e_tester');
