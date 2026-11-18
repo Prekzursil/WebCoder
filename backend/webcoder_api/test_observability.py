@@ -245,6 +245,8 @@ class TestBeatSchedule:
             "owner-weekly-metrics",  # ANA-1 (Wave D): Monday snapshot
             "weekly-digest",  # UXP-5b: weekly practice digest (no-ops
             # without EMAIL_HOST — see RUNBOOK §email)
+            "award-monthly-contributors",  # Wave F item 67: monthly
+            # contributor-of-the-month (self-guarded, idempotent)
         }
         assert (
             CELERY_BEAT_SCHEDULE["leaderboard-nightly-recompute"]["task"]

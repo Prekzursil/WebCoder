@@ -1111,3 +1111,59 @@ export interface WaHelpRow {
   answers: WaHelpAnswerRow[];
   created_at: string;
 }
+
+// ---- Wave F recognition: reputation, awards, AMAs, requests (66-69) ----
+
+export interface ReputationProfile {
+  honor: number;
+  breakdown: Record<string, number>;
+  tier: string;
+  next_tier: { name: string; honor_needed: number } | null;
+  privileges: string[];
+  tiers: { name: string; min_honor: number }[];
+}
+
+export interface AwardRow {
+  id: number;
+  username: string;
+  kind: string;
+  reason: string;
+  period: string;
+  created_at: string;
+}
+
+export interface AmaListRow {
+  id: number;
+  host: string;
+  title: string;
+  status: 'SCHEDULED' | 'LIVE' | 'CLOSED';
+  starts_at: string;
+}
+
+export interface AmaQuestionRow {
+  id: number;
+  author: string;
+  question: string;
+  answer: string;
+  answered_at: string | null;
+  upvotes: number;
+}
+
+export interface AmaDetailRow extends AmaListRow {
+  description: string;
+  ends_at: string;
+  questions: AmaQuestionRow[];
+}
+
+export interface ProblemRequestRow {
+  id: number;
+  requester: number;
+  requester_username: string;
+  title: string;
+  description: string;
+  status: 'OPEN' | 'PLANNED' | 'FULFILLED' | 'DECLINED';
+  fulfilled_problem: number | null;
+  fulfilled_problem_title: Record<string, string> | null;
+  vote_count: number;
+  created_at: string;
+}
