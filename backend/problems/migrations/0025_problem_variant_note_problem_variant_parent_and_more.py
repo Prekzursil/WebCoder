@@ -7,6 +7,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
+        ("problems", "0024_problem_publish_at_testbounty_savedsearch"),
         ("problems", "0023_problem_reference_language_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
