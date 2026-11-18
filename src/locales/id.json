@@ -1462,5 +1462,12 @@
   "teams_members_col": "Anggota",
   "teams_roster_title": "Tim",
   "teams_team": "Tim",
-  "prediction_hint": "Prediksi terkunci pada kiriman pertamamu; riwayat akurasimu ada di halaman rating."
+  "prediction_hint": "Prediksi terkunci pada kiriman pertamamu; riwayat akurasimu ada di halaman rating.",
+  "annotation_peak": "Rekor karier: {{rating}}",
+  "annotation_medal": "Medali: {{medal}}",
+  "annotation_promoted": "Naik ke {{division}}",
+  "annotation_demoted": "Turun ke {{division}}",
+  "division_changes_title": "Promosi divisi",
+  "percentile_overall": "Top {{p}}% keseluruhan",
+  "percentile_school": "Top {{p}}% di {{school}}"
 }

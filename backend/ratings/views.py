@@ -20,6 +20,12 @@ from contests.views import _fetch_contest, can_manage_contest
 
 from .glicko import RATING_BANDS, rating_band
 from .models import RatingHistory, UserRating
+from .divisions import (
+    division_thresholds,
+    graph_annotations,
+    percentiles,
+    user_division,
+)
 from .services import user_public_summary
 
 User = get_user_model()
@@ -118,6 +124,10 @@ class UserRatingHistoryView(APIView):
                     }
                     for h in history
                 ],
+                # Item 51 — per-point annotations (career highs, medals,
+                # division crossings) + the current division chip.
+                "annotations": graph_annotations(user),
+                "division": user_division(user)["division"],
             }
         )
 
@@ -187,3 +197,40 @@ class UserCalibrationView(APIView):
         from contests.teams import calibration
 
         return Response(calibration(user))
+
+
+class DivisionsView(APIView):
+    """GET /api/v1/ratings/divisions/ — item 53: the promotion cutoff table
+    with the current population per division."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        return Response({"divisions": division_thresholds()})
+
+
+class UserDivisionsView(APIView):
+    """GET /api/v1/ratings/users/{username}/divisions/ — the user's current
+    division and every promotion/demotion they earned."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, username):
+        user = User.objects.filter(username=username).first()
+        if user is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(user_division(user))
+
+
+class UserPercentilesView(APIView):
+    """GET /api/v1/ratings/users/{username}/percentiles/ — item 52: the
+    display-rating percentile overall and inside the user's school/county
+    cohorts (empty cohorts stay null)."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, username):
+        user = User.objects.filter(username=username).first()
+        if user is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(percentiles(user))

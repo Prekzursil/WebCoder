@@ -1462,5 +1462,12 @@
   "teams_members_col": "Membres",
   "teams_roster_title": "Équipes",
   "teams_team": "Équipe",
-  "prediction_hint": "Les prédictions se verrouillent à votre première soumission ; votre historique de précision est sur la page des classements."
+  "prediction_hint": "Les prédictions se verrouillent à votre première soumission ; votre historique de précision est sur la page des classements.",
+  "annotation_peak": "Record en carrière : {{rating}}",
+  "annotation_medal": "Médaille : {{medal}}",
+  "annotation_promoted": "Promu en {{division}}",
+  "annotation_demoted": "Relégué en {{division}}",
+  "division_changes_title": "Promotions de division",
+  "percentile_overall": "Top {{p}} % au global",
+  "percentile_school": "Top {{p}} % à {{school}}"
 }

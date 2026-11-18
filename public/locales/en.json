@@ -1462,5 +1462,12 @@
   "teams_members_col": "Members",
   "teams_roster_title": "Teams",
   "teams_team": "Team",
-  "prediction_hint": "Predictions lock at your first submission; your accuracy history lives on the ratings page."
+  "prediction_hint": "Predictions lock at your first submission; your accuracy history lives on the ratings page.",
+  "annotation_peak": "Career high: {{rating}}",
+  "annotation_medal": "Medal: {{medal}}",
+  "annotation_promoted": "Promoted to {{division}}",
+  "annotation_demoted": "Demoted to {{division}}",
+  "division_changes_title": "Division promotions",
+  "percentile_overall": "Top {{p}}% overall",
+  "percentile_school": "Top {{p}}% at {{school}}"
 }

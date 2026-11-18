@@ -1462,5 +1462,12 @@
   "teams_members_col": "成員",
   "teams_roster_title": "隊伍",
   "teams_team": "隊伍",
-  "prediction_hint": "預測在你的首次提交時鎖定；準確度歷史顯示在評分頁。"
+  "prediction_hint": "預測在你的首次提交時鎖定；準確度歷史顯示在評分頁。",
+  "annotation_peak": "生涯新高：{{rating}}",
+  "annotation_medal": "獎牌：{{medal}}",
+  "annotation_promoted": "晉升至 {{division}}",
+  "annotation_demoted": "降至 {{division}}",
+  "division_changes_title": "部門晉升",
+  "percentile_overall": "總體前 {{p}}%",
+  "percentile_school": "在 {{school}} 前 {{p}}%"
 }

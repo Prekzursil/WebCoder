@@ -1462,5 +1462,12 @@
   "teams_members_col": "Мүшелер",
   "teams_roster_title": "Командалар",
   "teams_team": "Команда",
-  "prediction_hint": "Болжамдар алғашқы жіберілімде бекітіледі; дәлдік тарихы рейтинг бетінде."
+  "prediction_hint": "Болжамдар алғашқы жіберілімде бекітіледі; дәлдік тарихы рейтинг бетінде.",
+  "annotation_peak": "Мансап рекорды: {{rating}}",
+  "annotation_medal": "Медаль: {{medal}}",
+  "annotation_promoted": "{{division}} дивизионына көтерілді",
+  "annotation_demoted": "{{division}} дивизионына түсірілді",
+  "division_changes_title": "Дивизион көтерілімдері",
+  "percentile_overall": "Жалпы топ {{p}}%",
+  "percentile_school": "{{school}} мектебінде топ {{p}}%"
 }

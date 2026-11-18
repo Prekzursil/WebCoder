@@ -73,6 +73,9 @@ import {
   ContestReplay,
   ContestTeamsResponse,
   CalibrationProfile,
+  DivisionTableRow,
+  UserDivisionProfile,
+  UserPercentiles,
   TeamStandingsResponse,
   HackRow,
   HackTargetsResponse,
@@ -1403,6 +1406,12 @@ export const RatingService = {
   // Wave F item 55 — the self-prediction calibration profile.
   getCalibration: (username: string) =>
     apiFetch<CalibrationProfile>(`/ratings/users/${encodeURIComponent(username)}/calibration/`),
+  // Wave F items 51/52/53 — divisions + percentiles.
+  getDivisions: () => apiFetch<{ divisions: DivisionTableRow[] }>('/ratings/divisions/'),
+  getUserDivisions: (username: string) =>
+    apiFetch<UserDivisionProfile>(`/ratings/users/${encodeURIComponent(username)}/divisions/`),
+  getPercentiles: (username: string) =>
+    apiFetch<UserPercentiles>(`/ratings/users/${encodeURIComponent(username)}/percentiles/`),
 };
 
 // =================================

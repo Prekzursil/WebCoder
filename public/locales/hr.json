@@ -1462,5 +1462,12 @@
   "teams_members_col": "Članovi",
   "teams_roster_title": "Timovi",
   "teams_team": "Tim",
-  "prediction_hint": "Predviđanja se zaključavaju pri prvom radu; tvoja povijest točnosti je na stranici s ocjenama."
+  "prediction_hint": "Predviđanja se zaključavaju pri prvom radu; tvoja povijest točnosti je na stranici s ocjenama.",
+  "annotation_peak": "Karijerni maksimum: {{rating}}",
+  "annotation_medal": "Medalja: {{medal}}",
+  "annotation_promoted": "Promoviran u {{division}}",
+  "annotation_demoted": "Degradiran u {{division}}",
+  "division_changes_title": "Promocije divizije",
+  "percentile_overall": "Top {{p}}% ukupno",
+  "percentile_school": "Top {{p}}% na {{school}}"
 }

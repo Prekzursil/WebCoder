@@ -1462,5 +1462,12 @@
   "teams_members_col": "สมาชิก",
   "teams_roster_title": "ทีม",
   "teams_team": "ทีม",
-  "prediction_hint": "การทำนายจะล็อกเมื่อส่งครั้งแรก ประวัติความแม่นอยู่ที่หน้าเรตติ้ง"
+  "prediction_hint": "การทำนายจะล็อกเมื่อส่งครั้งแรก ประวัติความแม่นอยู่ที่หน้าเรตติ้ง",
+  "annotation_peak": "สูงสุดในอาชีพ: {{rating}}",
+  "annotation_medal": "เหรียญ: {{medal}}",
+  "annotation_promoted": "เลื่อนขึ้นสู่ {{division}}",
+  "annotation_demoted": "ตกลงสู่ {{division}}",
+  "division_changes_title": "การเลื่อนระดับดิวิชัน",
+  "percentile_overall": "ท็อป {{p}}% โดยรวม",
+  "percentile_school": "ท็อป {{p}}% ที่ {{school}}"
 }

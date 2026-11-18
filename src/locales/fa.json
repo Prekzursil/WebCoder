@@ -1462,5 +1462,12 @@
   "teams_members_col": "اعضا",
   "teams_roster_title": "تیم‌ها",
   "teams_team": "تیم",
-  "prediction_hint": "پیش‌بینی‌ها با اولین ارسال قفل می‌شوند؛ تاریخچه دقت شما در صفحه رتبه‌بندی است."
+  "prediction_hint": "پیش‌بینی‌ها با اولین ارسال قفل می‌شوند؛ تاریخچه دقت شما در صفحه رتبه‌بندی است.",
+  "annotation_peak": "اوج دوران: {{rating}}",
+  "annotation_medal": "مدال: {{medal}}",
+  "annotation_promoted": "ارتقا به {{division}}",
+  "annotation_demoted": "سقوط به {{division}}",
+  "division_changes_title": "ارتقاهای بخش",
+  "percentile_overall": "{{p}}٪ برتر کل",
+  "percentile_school": "{{p}}٪ برتر در {{school}}"
 }

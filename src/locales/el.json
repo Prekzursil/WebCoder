@@ -1462,5 +1462,12 @@
   "teams_members_col": "Μέλη",
   "teams_roster_title": "Ομάδες",
   "teams_team": "Ομάδα",
-  "prediction_hint": "Οι προβλέψεις κλειδώνουν με την πρώτη υποβολή· το ιστορικό ακρίβειας βρίσκεται στη σελίδα αξιολογήσεων."
+  "prediction_hint": "Οι προβλέψεις κλειδώνουν με την πρώτη υποβολή· το ιστορικό ακρίβειας βρίσκεται στη σελίδα αξιολογήσεων.",
+  "annotation_peak": "Ρεκόρ καριέρας: {{rating}}",
+  "annotation_medal": "Μετάλλιο: {{medal}}",
+  "annotation_promoted": "Αναβάθμιση σε {{division}}",
+  "annotation_demoted": "Υποβιβασμός σε {{division}}",
+  "division_changes_title": "Αναβαθμίσεις κατηγορίας",
+  "percentile_overall": "Τοπ {{p}}% συνολικά",
+  "percentile_school": "Τοπ {{p}}% στο {{school}}"
 }

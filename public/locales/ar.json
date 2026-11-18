@@ -1462,5 +1462,12 @@
   "teams_members_col": "الأعضاء",
   "teams_roster_title": "الفرق",
   "teams_team": "الفريق",
-  "prediction_hint": "تُقفل التوقعات عند أول إرسالية؛ سجل دقتك موجود في صفحة التقييمات."
+  "prediction_hint": "تُقفل التوقعات عند أول إرسالية؛ سجل دقتك موجود في صفحة التقييمات.",
+  "annotation_peak": "الأعلى في المسيرة: {{rating}}",
+  "annotation_medal": "ميدالية: {{medal}}",
+  "annotation_promoted": "ترقية إلى {{division}}",
+  "annotation_demoted": "هبوط إلى {{division}}",
+  "division_changes_title": "ترقيات القسم",
+  "percentile_overall": "الأعلى {{p}}% إجمالاً",
+  "percentile_school": "الأعلى {{p}}% في {{school}}"
 }

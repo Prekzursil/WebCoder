@@ -1462,5 +1462,12 @@
   "teams_members_col": "Thành viên",
   "teams_roster_title": "Các đội",
   "teams_team": "Đội",
-  "prediction_hint": "Dự đoán sẽ khóa ở bài nạp đầu tiên; lịch sử độ chính xác nằm ở trang xếp hạng."
+  "prediction_hint": "Dự đoán sẽ khóa ở bài nạp đầu tiên; lịch sử độ chính xác nằm ở trang xếp hạng.",
+  "annotation_peak": "Đỉnh cao sự nghiệp: {{rating}}",
+  "annotation_medal": "Huy chương: {{medal}}",
+  "annotation_promoted": "Thăng hạng lên {{division}}",
+  "annotation_demoted": "Hạ xuống {{division}}",
+  "division_changes_title": "Thăng hạng giải",
+  "percentile_overall": "Top {{p}}% tổng thể",
+  "percentile_school": "Top {{p}}% tại {{school}}"
 }

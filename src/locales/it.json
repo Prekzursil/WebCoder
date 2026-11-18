@@ -1462,5 +1462,12 @@
   "teams_members_col": "Membri",
   "teams_roster_title": "Squadre",
   "teams_team": "Squadra",
-  "prediction_hint": "Le previsioni si bloccano al primo invio; la tua cronologia di precisione è nella pagina dei rating."
+  "prediction_hint": "Le previsioni si bloccano al primo invio; la tua cronologia di precisione è nella pagina dei rating.",
+  "annotation_peak": "Massimo in carriera: {{rating}}",
+  "annotation_medal": "Medaglia: {{medal}}",
+  "annotation_promoted": "Promosso in {{division}}",
+  "annotation_demoted": "Retrocesso in {{division}}",
+  "division_changes_title": "Promozioni di divisione",
+  "percentile_overall": "Top {{p}}% assoluto",
+  "percentile_school": "Top {{p}}% a {{school}}"
 }

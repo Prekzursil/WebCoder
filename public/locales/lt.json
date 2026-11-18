@@ -1462,5 +1462,12 @@
   "teams_members_col": "Nariai",
   "teams_roster_title": "Komandos",
   "teams_team": "Komanda",
-  "prediction_hint": "Prognozės užsifiksuoja pirmame pateikime; tikslumo istorija yra reitingų puslapyje."
+  "prediction_hint": "Prognozės užsifiksuoja pirmame pateikime; tikslumo istorija yra reitingų puslapyje.",
+  "annotation_peak": "Karjeros rekordas: {{rating}}",
+  "annotation_medal": "Medalis: {{medal}}",
+  "annotation_promoted": "Paaukštintas į {{division}}",
+  "annotation_demoted": "Nuleistas į {{division}}",
+  "division_changes_title": "Divizionų paaukštinimai",
+  "percentile_overall": "Top {{p}}% apskritai",
+  "percentile_school": "Top {{p}}% {{school}}"
 }

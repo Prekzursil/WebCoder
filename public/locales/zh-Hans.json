@@ -1462,5 +1462,12 @@
   "teams_members_col": "成员",
   "teams_roster_title": "队伍",
   "teams_team": "队伍",
-  "prediction_hint": "预测在你的首次提交时锁定；准确度历史显示在评分页。"
+  "prediction_hint": "预测在你的首次提交时锁定；准确度历史显示在评分页。",
+  "annotation_peak": "生涯新高：{{rating}}",
+  "annotation_medal": "奖牌：{{medal}}",
+  "annotation_promoted": "晋升至 {{division}}",
+  "annotation_demoted": "降至 {{division}}",
+  "division_changes_title": "部门晋升",
+  "percentile_overall": "总体前 {{p}}%",
+  "percentile_school": "在 {{school}} 前 {{p}}%"
 }

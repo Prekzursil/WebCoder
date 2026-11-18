@@ -1721,6 +1721,51 @@ const server = createServer((req, res) => {
     return;
   }
 
+  // ---- Wave F ratings depth (items 51/52/53) ----
+  if (req.method === 'GET' && path === '/api/v1/ratings/divisions/') {
+    json(res, 200, {
+      divisions: [
+        { name: 'Div 4', min_rating: 0, players: 12 },
+        { name: 'Div 3', min_rating: 1200, players: 8 },
+        { name: 'Div 2', min_rating: 1600, players: 3 },
+        { name: 'Div 1', min_rating: 1900, players: 1 },
+      ],
+    });
+    return;
+  }
+
+  const userDivisions = path.match(/^\/api\/v1\/ratings\/users\/([^/]+)\/divisions\/$/);
+  if (req.method === 'GET' && userDivisions) {
+    json(res, 200, {
+      division: 'Div 2',
+      rated: true,
+      display_rating: 1512,
+      changes: [
+        {
+          contest: 2,
+          title: 'Second demo round',
+          from: 'Div 3',
+          to: 'Div 2',
+          kind: 'promoted',
+          rating: 1512,
+        },
+      ],
+    });
+    return;
+  }
+
+  const userPercentiles = path.match(/^\/api\/v1\/ratings\/users\/([^/]+)\/percentiles\/$/);
+  if (req.method === 'GET' && userPercentiles) {
+    json(res, 200, {
+      rated: true,
+      display_rating: 1512,
+      overall: { percentile: 90.0, total: 40 },
+      school: { name: 'CNERV', percentile: 66.7, total: 3 },
+      county: { name: 'Cluj', percentile: 75.0, total: 4 },
+    });
+    return;
+  }
+
   // ---- Wave F teams / prediction / calibration (items 49/50/55) ----
   const predict = path.match(/^\/api\/v1\/contests\/(\d+)\/predict\/$/);
   if (predict) {
@@ -2109,6 +2154,12 @@ const server = createServer((req, res) => {
           rating_before: 1480,
         },
       ],
+      // Wave F item 51 — graph annotations + the division chip.
+      annotations: {
+        '0': { peak: 1480 },
+        '1': { peak: 1512, medal: 'GOLD', division_change: 'promoted', division: 'Div 2' },
+      },
+      division: 'Div 2',
     });
     return;
   }

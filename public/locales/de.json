@@ -1462,5 +1462,12 @@
   "teams_members_col": "Mitglieder",
   "teams_roster_title": "Teams",
   "teams_team": "Team",
-  "prediction_hint": "Vorhersagen sperren bei deiner ersten Einreichung; deine Genauigkeitshistorie steht auf der Bewertungsseite."
+  "prediction_hint": "Vorhersagen sperren bei deiner ersten Einreichung; deine Genauigkeitshistorie steht auf der Bewertungsseite.",
+  "annotation_peak": "Karrierehoch: {{rating}}",
+  "annotation_medal": "Medaille: {{medal}}",
+  "annotation_promoted": "Aufgestiegen in {{division}}",
+  "annotation_demoted": "Abgestiegen in {{division}}",
+  "division_changes_title": "Divisions-Aufstiege",
+  "percentile_overall": "Top {{p}} % insgesamt",
+  "percentile_school": "Top {{p}} % an {{school}}"
 }

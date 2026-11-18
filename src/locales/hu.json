@@ -1462,5 +1462,12 @@
   "teams_members_col": "Tagok",
   "teams_roster_title": "Csapatok",
   "teams_team": "Csapat",
-  "prediction_hint": "A jóslat az első beküldésnél zárolódik; a pontossági előzmények a rating oldalon vannak."
+  "prediction_hint": "A jóslat az első beküldésnél zárolódik; a pontossági előzmények a rating oldalon vannak.",
+  "annotation_peak": "Karrier-csúcs: {{rating}}",
+  "annotation_medal": "Érem: {{medal}}",
+  "annotation_promoted": "Előléptetve: {{division}}",
+  "annotation_demoted": "Visszasorolva: {{division}}",
+  "division_changes_title": "Osztály-előléptetések",
+  "percentile_overall": "Top {{p}}% összesítve",
+  "percentile_school": "Top {{p}}% a(z) {{school}} intézményben"
 }

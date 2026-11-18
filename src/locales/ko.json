@@ -1462,5 +1462,12 @@
   "teams_members_col": "멤버",
   "teams_roster_title": "팀",
   "teams_team": "팀",
-  "prediction_hint": "예측은 첫 제출 시 잠깁니다. 정확도 기록은 레이팅 페이지에 있습니다."
+  "prediction_hint": "예측은 첫 제출 시 잠깁니다. 정확도 기록은 레이팅 페이지에 있습니다.",
+  "annotation_peak": "커리어 최고: {{rating}}",
+  "annotation_medal": "메달: {{medal}}",
+  "annotation_promoted": "{{division}}(으)로 승격",
+  "annotation_demoted": "{{division}}(으)로 강등",
+  "division_changes_title": "디비전 승격",
+  "percentile_overall": "전체 상위 {{p}}%",
+  "percentile_school": "{{school}} 상위 {{p}}%"
 }

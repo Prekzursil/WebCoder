@@ -1462,5 +1462,12 @@
   "teams_members_col": "Üyeler",
   "teams_roster_title": "Takımlar",
   "teams_team": "Takım",
-  "prediction_hint": "Tahminler ilk gönderimde kilitlenir; isabet geçmişin puan sayfasında."
+  "prediction_hint": "Tahminler ilk gönderimde kilitlenir; isabet geçmişin puan sayfasında.",
+  "annotation_peak": "Kariyer rekoru: {{rating}}",
+  "annotation_medal": "Madalya: {{medal}}",
+  "annotation_promoted": "{{division}} divisionına yükseldi",
+  "annotation_demoted": "{{division}} divisionına düştü",
+  "division_changes_title": "Division yükselmeleri",
+  "percentile_overall": "Genel ilk {{p}}%",
+  "percentile_school": "{{school}} okulunda ilk {{p}}%"
 }
