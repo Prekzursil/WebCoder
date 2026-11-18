@@ -451,6 +451,14 @@ class Problem(models.Model):
         blank=True,
         help_text=_("Registry language of the reference solution."),
     )
+    # Scheduled content drops (item 131): an APPROVED problem stays hidden
+    # from the public catalog until this instant passes (null = immediate).
+    publish_at = models.DateTimeField(
+        _("publish at"),
+        null=True,
+        blank=True,
+        help_text=_("Scheduled visibility — the catalog hides the problem until then."),
+    )
     verifier_feedback = models.TextField(
         _("verifier feedback"),
         blank=True,
@@ -1017,3 +1025,93 @@ class ProblemListItem(models.Model):
             self.position,
             self.problem_id,
         )
+
+
+class SavedSearch(models.Model):
+    """Item 129 — a user's saved catalog query (the filter preset chip).
+
+    ``params`` stores the exact querystring fields the catalog understands
+    (difficulty, tag_ids, curriculum, source, solved, search, sort…);
+    applying a search is the catalog receiving those params back.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="saved_searches",
+        verbose_name=_("user"),
+    )
+    name = models.CharField(_("name"), max_length=80)
+    params = models.JSONField(
+        _("params"),
+        default=dict,
+        help_text=_("Catalog filter params (querystring shape)."),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("saved search")
+        verbose_name_plural = _("saved searches")
+        ordering = ["user", "-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "name"], name="unique_saved_search_name"
+            )
+        ]
+
+    def __str__(self):
+        return f"search '{self.name}' for user {self.user_id}"
+
+
+class ProblemBounty(models.Model):
+    """Item 133 — a community bounty for missing/weak tests on a problem.
+
+    The requester pledges contribution points (their honor, not money);
+    a contributor claims the bounty by submitting strengthened tests, and
+    the verifier who approves the tests marks the bounty FULFILLED,
+    crediting the contributor in the reason. Pledges are capped so one
+    user cannot lock an unbounded balance.
+    """
+
+    class Status(models.TextChoices):
+        OPEN = "OPEN", _("Open")
+        FULFILLED = "FULFILLED", _("Fulfilled")
+        CANCELLED = "CANCELLED", _("Cancelled")
+
+    MAX_POINTS = 500
+
+    problem = models.ForeignKey(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name="test_bounties",
+        verbose_name=_("problem"),
+    )
+    requester = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="posted_bounties",
+        verbose_name=_("requester"),
+    )
+    points = models.PositiveIntegerField(_("pledged points"))
+    description = models.TextField(_("description"), max_length=2000)
+    status = models.CharField(
+        _("status"), max_length=10, choices=Status.choices, default=Status.OPEN
+    )
+    claimed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="claimed_bounties",
+        verbose_name=_("claimed by"),
+    )
+    resolution_note = models.CharField(_("resolution note"), max_length=200, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("testcase bounty")
+        verbose_name_plural = _("testcase bounties")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"bounty #{self.id} ({self.points}p) on problem {self.problem_id}"

@@ -24,6 +24,7 @@ from .community import (
     RelatedArticlesView,
 )
 from .presubmit import PreSubmitLintView, PreSubmitSamplesView
+from . import content_ops_views
 from .strength import TestStrengthView
 from .random_problem import RandomProblemView
 
@@ -117,4 +118,46 @@ urlpatterns = [
     # the "random" path can never collide with the /{pk}/ detail route.
     path("random/", RandomProblemView.as_view(), name="problem-random"),
     path("", include(router.urls)),
+    # Wave F items 125/129/131/132/133 — versioning, saved searches, drops,
+    # analytics, bounties.
+    path(
+        "author-analytics/",
+        content_ops_views.AuthorAnalyticsView.as_view(),
+        name="author_analytics",
+    ),
+    path(
+        "drops/",
+        content_ops_views.DropsView.as_view(),
+        name="content_drops",
+    ),
+    path(
+        "searches/",
+        content_ops_views.SavedSearchView.as_view(),
+        name="saved_searches",
+    ),
+    path(
+        "problems/<int:problem_id>/changelog/",
+        content_ops_views.ChangelogView.as_view(),
+        name="problem_changelog",
+    ),
+    path(
+        "problems/<int:problem_id>/revisions/<int:revision_id>/restore/",
+        content_ops_views.RestoreRevisionView.as_view(),
+        name="revision_restore",
+    ),
+    path(
+        "problems/<int:problem_id>/bounties/",
+        content_ops_views.BountyListView.as_view(),
+        name="problem_bounties",
+    ),
+    path(
+        "bounties/<int:bounty_id>/claim/",
+        content_ops_views.BountyClaimView.as_view(),
+        name="bounty_claim",
+    ),
+    path(
+        "bounties/<int:bounty_id>/resolve/",
+        content_ops_views.BountyResolveView.as_view(),
+        name="bounty_resolve",
+    ),
 ]

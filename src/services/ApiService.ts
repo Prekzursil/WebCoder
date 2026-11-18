@@ -77,6 +77,10 @@ import {
   DivisionTableRow,
   AmaDetailRow,
   AmaListRow,
+  AuthorAnalytics,
+  ChangelogRow,
+  DropRow,
+  SavedSearchRow,
   AwardRow,
   EmbedProblem,
   SetterCV,
@@ -907,6 +911,30 @@ export const TrackService = {
 };
 
 export const ProblemService = {
+  // Wave F items 125/129/131/132 — content ops.
+  getAuthorAnalytics: (username?: string) =>
+    apiFetch<AuthorAnalytics>(
+      `/problems/author-analytics/${username ? `?username=${encodeURIComponent(username)}` : ''}`,
+    ),
+  getDrops: () => apiFetch<{ count: number; results: DropRow[] }>('/problems/drops/'),
+  listSavedSearches: () =>
+    apiFetch<{ count: number; results: SavedSearchRow[] }>('/problems/searches/'),
+  saveSavedSearch: (name: string, params: Record<string, unknown>) =>
+    apiFetch<SavedSearchRow>('/problems/searches/', {
+      method: 'POST',
+      body: JSON.stringify({ name, params }),
+    }),
+  deleteSavedSearch: (id: number) =>
+    apiFetch<{ detail?: string }>(`/problems/searches/?id=${id}`, { method: 'DELETE' }),
+  getChangelog: (problemId: number) =>
+    apiFetch<{ count: number; results: ChangelogRow[] }>(
+      `/problems/problems/${problemId}/changelog/`,
+    ),
+  restoreRevision: (problemId: number, revisionId: number) =>
+    apiFetch<{ detail: string }>(
+      `/problems/problems/${problemId}/revisions/${revisionId}/restore/`,
+      { method: 'POST' },
+    ),
   getProblems: (
     filters: { status?: string; authorId?: number | string; curriculumNode?: number | string } = {},
     page: { page?: number; pageSize?: number } = {},

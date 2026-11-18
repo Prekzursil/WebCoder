@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import SavedSearchesStrip from './SavedSearchesStrip';
 import { useAuth } from '@/context/AuthContext';
 import { ProblemType, TagType } from '@/types';
 import { AuthService, ProblemService, RandomProblemService } from '@/services/ApiService';
@@ -185,6 +186,13 @@ export default function ProblemsListClient({
   // [RO-6] The archive browse axis is server-filtered the same way:
   // ?archive=1 + optional ?source_year= / ?grade_group= refinements.
   const urlArchive = searchParams.get('archive') === '1';
+  // [wave F item 129] the saved-search payload mirrors the URL filter set.
+  const currentParams = Object.fromEntries(
+    searchParams
+      .entries()
+      .filter(([key]) => key !== 'page')
+      .map(([key, value]) => [key, value]),
+  );
   const urlYear = searchParams.get('source_year') ?? '';
   const urlGroup = searchParams.get('grade_group') ?? '';
   const [yearDraft, setYearDraft] = useState(urlYear);
@@ -381,6 +389,9 @@ export default function ProblemsListClient({
           'Browse the public competitive programming problem catalog.',
         )}
       />
+
+      {/* [wave F item 129] saved searches: save/apply the current filter set */}
+      <SavedSearchesStrip currentParams={currentParams} />
 
       {/* [roadmap ONB-1] first-run path: the /start trio */}
       <Link

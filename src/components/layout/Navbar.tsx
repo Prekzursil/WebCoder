@@ -117,6 +117,15 @@ const Navbar: React.FC = () => {
     ...(canCreateProblems
       ? [
           { href: '/problems/create', label: t('nav_create_problem', 'Create Problem') },
+          {
+            href: '/author/wizard',
+            label: t('nav_author_wizard', 'Authoring wizard'),
+          },
+          { href: '/author/tools', label: t('nav_author_tools', 'Author tools') },
+          {
+            href: '/author/analytics',
+            label: t('nav_author_analytics', 'Author analytics'),
+          },
           { href: '/my-created-problems', label: t('nav_my_created_problems', 'My Problems') },
         ]
       : []),
