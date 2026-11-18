@@ -1582,5 +1582,18 @@
   "tools_creators_only": "هذه الأدوات لمؤلفي المسائل والمدققين.",
   "nav_author_wizard": "Authoring wizard",
   "nav_author_tools": "Author tools",
-  "nav_author_analytics": "Author analytics"
+  "nav_author_analytics": "Author analytics",
+  "wizard_title": "معالج التأليف",
+  "wizard_subtitle": "سبع خطوات من الفكرة إلى التقديم — مع فحوصات إنجاز مباشرة.",
+  "wizard_problem_id": "معرف المسألة المسودة (اختياري)",
+  "wizard_new_problem": "ابدأ مسألة جديدة →",
+  "wizard_creators_only": "المعالج مخصص لمؤلفي المسائل والمدققين.",
+  "wizard_lint_title": "فحص نص المسألة",
+  "wizard_lint_clean": "لا تحذيرات — نص المسألة مقروء جيدًا.",
+  "wizard_readability_title": "قابلية القراءة",
+  "wizard_readability_consistent": "النسخ اللغوية متسقة في القراءة.",
+  "wizard_readability_drift": "النسخ اللغوية تتباين في مستوى القراءة — بسّط الأصعب.",
+  "wizard_translation_title": "الترجمة المرافقة",
+  "wizard_translation_complete": "جميع الحقول المترجمة مكتملة.",
+  "wizard_translation_gaps": "بعض الحقول المترجمة مفقودة — أكملها قبل التقديم."
 }

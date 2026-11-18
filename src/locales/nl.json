@@ -1582,5 +1582,18 @@
   "tools_creators_only": "Deze tools zijn voor probleemauteurs en -verificateurs.",
   "nav_author_wizard": "Authoring wizard",
   "nav_author_tools": "Author tools",
-  "nav_author_analytics": "Author analytics"
+  "nav_author_analytics": "Author analytics",
+  "wizard_title": "Auteurswizard",
+  "wizard_subtitle": "Zeven stappen van idee naar inzending — met live controles.",
+  "wizard_problem_id": "Concept-id (optioneel)",
+  "wizard_new_problem": "Nieuw probleem beginnen →",
+  "wizard_creators_only": "De wizard is voor probleemauteurs en verificateurs.",
+  "wizard_lint_title": "Statement-lint",
+  "wizard_lint_clean": "Geen waarschuwingen — de tekst leest prettig.",
+  "wizard_readability_title": "Leesbaarheid",
+  "wizard_readability_consistent": "De talen lezen consistent.",
+  "wizard_readability_drift": "De talen wijken af in niveau — vereenvoudig de moeilijkste.",
+  "wizard_translation_title": "Begeleidende vertaling",
+  "wizard_translation_complete": "Alle gelokaliseerde velden zijn gevuld.",
+  "wizard_translation_gaps": "Sommige gelokaliseerde velden ontbreken — vul ze voor inzending."
 }

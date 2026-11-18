@@ -1582,5 +1582,18 @@
   "tools_creators_only": "Тези инструменти са за създатели и проверители на задачи.",
   "nav_author_wizard": "Authoring wizard",
   "nav_author_tools": "Author tools",
-  "nav_author_analytics": "Author analytics"
+  "nav_author_analytics": "Author analytics",
+  "wizard_title": "Помощник за създаване",
+  "wizard_subtitle": "Седем стъпки от идеята до подаването — с проверка на готовността на живо.",
+  "wizard_problem_id": "Id на черновата (по избор)",
+  "wizard_new_problem": "Започни нова задача →",
+  "wizard_creators_only": "Помощникът е за създатели и проверители на задачи.",
+  "wizard_lint_title": "Линт на условието",
+  "wizard_lint_clean": "Няма предупреждения — условието се чете добре.",
+  "wizard_readability_title": "Четимост",
+  "wizard_readability_consistent": "Езиковите версии се четат съгласувано.",
+  "wizard_readability_drift": "Езиковите версии се различават — опростете по-трудната.",
+  "wizard_translation_title": "Съпроводен превод",
+  "wizard_translation_complete": "Всички локализирани полета са попълнени.",
+  "wizard_translation_gaps": "Липсват някои локализирани полета — попълнете преди подаване."
 }

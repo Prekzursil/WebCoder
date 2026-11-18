@@ -1582,5 +1582,18 @@
   "tools_creators_only": "Šie įrankiai skirti uždavinių kūrėjams ir tikrintojams.",
   "nav_author_wizard": "Authoring wizard",
   "nav_author_tools": "Author tools",
-  "nav_author_analytics": "Author analytics"
+  "nav_author_analytics": "Author analytics",
+  "wizard_title": "Kūrimo vedlys",
+  "wizard_subtitle": "Septyni žingsniai nuo idėjos iki pateikimo — su tikra užbaigtimo patikra.",
+  "wizard_problem_id": "Juodraščio id (neprivaloma)",
+  "wizard_new_problem": "Pradėti naują uždavinį →",
+  "wizard_creators_only": "Vedlys skirtas uždavinių kūrėjams ir tikrintojams.",
+  "wizard_lint_title": "Sąlygos lint",
+  "wizard_lint_clean": "Įspėjimų nėra — sąlyga skaitoma gerai.",
+  "wizard_readability_title": "Skaitomumas",
+  "wizard_readability_consistent": "Kalbos skaitomos vienodai.",
+  "wizard_readability_drift": "Kalbos skiriasi lygiu — supaprastink sudėtingesnę.",
+  "wizard_translation_title": "Lydintis vertimas",
+  "wizard_translation_complete": "Visi lokalizuoti laukai užpildyti.",
+  "wizard_translation_gaps": "Trūksta kai kurių lokalizuotų laukų — užpildyk prieš pateikiant."
 }

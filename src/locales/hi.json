@@ -1582,5 +1582,18 @@
   "tools_creators_only": "ये उपकरण प्रॉब्लम लेखकों और सत्यापकों के लिए हैं।",
   "nav_author_wizard": "Authoring wizard",
   "nav_author_tools": "Author tools",
-  "nav_author_analytics": "Author analytics"
+  "nav_author_analytics": "Author analytics",
+  "wizard_title": "रचना विज़ार्ड",
+  "wizard_subtitle": "विचार से सबमिशन तक सात चरण — लाइव पूर्णता जाँच के साथ।",
+  "wizard_problem_id": "ड्राफ़्ट प्रॉब्लम आईडी (वैकल्पिक)",
+  "wizard_new_problem": "नया प्रॉब्लम शुरू करें →",
+  "wizard_creators_only": "विज़ार्ड प्रॉब्लम लेखकों और सत्यापकों के लिए है।",
+  "wizard_lint_title": "स्टेटमेंट लिंट",
+  "wizard_lint_clean": "कोई चेतावनी नहीं — कथन अच्छा पढ़ा जाता है।",
+  "wizard_readability_title": "पठनीयता",
+  "wizard_readability_consistent": "भाषा संस्करण लगातार पढ़े जाते हैं।",
+  "wizard_readability_drift": "भाषा संस्करणों का स्तर भिन्न है — कठिन को सरल करें।",
+  "wizard_translation_title": "साइडकार अनुवाद",
+  "wizard_translation_complete": "सभी स्थानीयकृत फ़ील्ड भरे गए हैं।",
+  "wizard_translation_gaps": "कुछ स्थानीयकृत फ़ील्ड गायब हैं — सबमिट करने से पहले पूरे करें।"
 }

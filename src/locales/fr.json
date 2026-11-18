@@ -1582,5 +1582,18 @@
   "tools_creators_only": "Ces outils sont pour les auteurs et vérificateurs de problèmes.",
   "nav_author_wizard": "Authoring wizard",
   "nav_author_tools": "Author tools",
-  "nav_author_analytics": "Author analytics"
+  "nav_author_analytics": "Author analytics",
+  "wizard_title": "Assistant de création",
+  "wizard_subtitle": "Sept étapes de l'idée à la soumission — avec vérifications en direct.",
+  "wizard_problem_id": "Id du brouillon (optionnel)",
+  "wizard_new_problem": "Commencer un nouveau problème →",
+  "wizard_creators_only": "L'assistant est pour les auteurs et vérificateurs de problèmes.",
+  "wizard_lint_title": "Analyse de l'énoncé",
+  "wizard_lint_clean": "Aucun avertissement — l'énoncé se lit bien.",
+  "wizard_readability_title": "Lisibilité",
+  "wizard_readability_consistent": "Les langues se lisent de façon cohérente.",
+  "wizard_readability_drift": "Les langues divergent en niveau — simplifiez la plus difficile.",
+  "wizard_translation_title": "Traduction associée",
+  "wizard_translation_complete": "Tous les champs localisés sont remplis.",
+  "wizard_translation_gaps": "Des champs localisés manquent — complétez-les avant d'envoyer."
 }

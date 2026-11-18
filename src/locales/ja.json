@@ -1582,5 +1582,18 @@
   "tools_creators_only": "これらのツールは問題作成者と検証者向けです。",
   "nav_author_wizard": "Authoring wizard",
   "nav_author_tools": "Author tools",
-  "nav_author_analytics": "Author analytics"
+  "nav_author_analytics": "Author analytics",
+  "wizard_title": "作成ウィザード",
+  "wizard_subtitle": "アイデアから提出までの7ステップ — 完了チェック付き。",
+  "wizard_problem_id": "下書き問題ID（任意）",
+  "wizard_new_problem": "新しい問題を始める →",
+  "wizard_creators_only": "ウィザードは問題作成者と検証者向けです。",
+  "wizard_lint_title": "問題文リント",
+  "wizard_lint_clean": "警告なし — 問題文は読みやすい。",
+  "wizard_readability_title": "読みやすさ",
+  "wizard_readability_consistent": "各言語版の一貫した読みやすさです。",
+  "wizard_readability_drift": "言語版で読みやすさがばらつきます — 難しい方を簡潔に。",
+  "wizard_translation_title": "サイドカー翻訳",
+  "wizard_translation_complete": "すべてのローカライズ済みフィールドが入力済みです。",
+  "wizard_translation_gaps": "未入力のローカライズフィールドがあります — 提出前に完了してください。"
 }

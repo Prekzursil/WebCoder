@@ -1582,5 +1582,18 @@
   "tools_creators_only": "این ابزارها برای نویسندگان و راستی‌آزمایان مسئله است.",
   "nav_author_wizard": "Authoring wizard",
   "nav_author_tools": "Author tools",
-  "nav_author_analytics": "Author analytics"
+  "nav_author_analytics": "Author analytics",
+  "wizard_title": "ویزارد نگارش",
+  "wizard_subtitle": "هفت گام از ایده تا ارسال — با بررسی زنده کامل بودن.",
+  "wizard_problem_id": "شناسه مسئله پیش‌نویس (اختیاری)",
+  "wizard_new_problem": "شروع مسئله جدید →",
+  "wizard_creators_only": "ویزارد برای نویسندگان و راستی‌آزمایان مسئله است.",
+  "wizard_lint_title": "لینت صورت مسئله",
+  "wizard_lint_clean": "بدون هشدار — صورت مسئله خوب خوانده می‌شود.",
+  "wizard_readability_title": "خوانایی",
+  "wizard_readability_consistent": "نسخه‌های زبانی همخوان خوانده می‌شوند.",
+  "wizard_readability_drift": "نسخه‌های زبانی در سطح خوانایی واگرا هستند — سخت‌تر را ساده کنید.",
+  "wizard_translation_title": "ترجمه همراه",
+  "wizard_translation_complete": "همه فیلدهای بومی‌سازی‌شده پر شده‌اند.",
+  "wizard_translation_gaps": "برخی فیلدهای بومی‌سازی‌شده غایب‌اند — پیش از ارسال کامل کنید."
 }

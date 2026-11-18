@@ -1582,5 +1582,18 @@
   "tools_creators_only": "Estas herramientas son para creadores y verificadores de problemas.",
   "nav_author_wizard": "Authoring wizard",
   "nav_author_tools": "Author tools",
-  "nav_author_analytics": "Author analytics"
+  "nav_author_analytics": "Author analytics",
+  "wizard_title": "Asistente de creación",
+  "wizard_subtitle": "Siete pasos de la idea al envío — con verificaciones de finalización en vivo.",
+  "wizard_problem_id": "Id del borrador (opcional)",
+  "wizard_new_problem": "Empezar un problema nuevo →",
+  "wizard_creators_only": "El asistente es para creadores y verificadores de problemas.",
+  "wizard_lint_title": "Lint del enunciado",
+  "wizard_lint_clean": "Sin avisos — el enunciado se lee bien.",
+  "wizard_readability_title": "Legibilidad",
+  "wizard_readability_consistent": "Los idiomas leen de forma consistente.",
+  "wizard_readability_drift": "Los idiomas difieren en nivel de lectura — simplifica el más difícil.",
+  "wizard_translation_title": "Traducción acompañante",
+  "wizard_translation_complete": "Todos los campos localizados están completos.",
+  "wizard_translation_gaps": "Faltan campos localizados — complétalos antes de enviar."
 }

@@ -1582,5 +1582,18 @@
   "tools_creators_only": "Эти инструменты — для авторов и верификаторов задач.",
   "nav_author_wizard": "Authoring wizard",
   "nav_author_tools": "Author tools",
-  "nav_author_analytics": "Author analytics"
+  "nav_author_analytics": "Author analytics",
+  "wizard_title": "Мастер создания",
+  "wizard_subtitle": "Семь шагов от идеи до отправки — с живой проверкой готовности.",
+  "wizard_problem_id": "Id черновика (необязательно)",
+  "wizard_new_problem": "Начать новую задачу →",
+  "wizard_creators_only": "Мастер — для авторов и верификаторов задач.",
+  "wizard_lint_title": "Линтер условия",
+  "wizard_lint_clean": "Предупреждений нет — условие читается хорошо.",
+  "wizard_readability_title": "Читаемость",
+  "wizard_readability_consistent": "Языковые версии читаются согласованно.",
+  "wizard_readability_drift": "Языковые версии расходятся по уровню — упростите более сложную.",
+  "wizard_translation_title": "Сопутствующий перевод",
+  "wizard_translation_complete": "Все локализованные поля заполнены.",
+  "wizard_translation_gaps": "Некоторые локализованные поля отсутствуют — заполните до отправки."
 }

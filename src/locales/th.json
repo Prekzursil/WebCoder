@@ -1582,5 +1582,18 @@
   "tools_creators_only": "เครื่องมือเหล่านี้สำหรับผู้เขียนและผู้ตรวจโจทย์",
   "nav_author_wizard": "Authoring wizard",
   "nav_author_tools": "Author tools",
-  "nav_author_analytics": "Author analytics"
+  "nav_author_analytics": "Author analytics",
+  "wizard_title": "วิซาร์ดสร้างโจทย์",
+  "wizard_subtitle": "เจ็ดขั้นจากไอเดียถึงส่ง — พร้อมตรวจความสมบูรณ์แบบสด",
+  "wizard_problem_id": "id ของโจทย์ร่าง (ไม่บังคับ)",
+  "wizard_new_problem": "เริ่มโจทย์ใหม่ →",
+  "wizard_creators_only": "วิซาร์ดมีไว้สำหรับผู้เขียนและผู้ตรวจโจทย์",
+  "wizard_lint_title": "ตรวจโจทย์",
+  "wizard_lint_clean": "ไม่มีคำเตือน — โจทย์อ่านง่าย",
+  "wizard_readability_title": "ความอ่านง่าย",
+  "wizard_readability_consistent": "แต่ละภาษาอ่านสอดคล้องกัน",
+  "wizard_readability_drift": "แต่ละภาษาระดับการอ่านต่างกัน — ทำฉบับที่ยากให้ง่ายขึ้น",
+  "wizard_translation_title": "คำแปลประกอบ",
+  "wizard_translation_complete": "ทุกฟิลด์แปลภาษาถูกกรอกครบ",
+  "wizard_translation_gaps": "ฟิลด์แปลบางส่วนขาดหาย — เติมให้ครบก่อนส่ง"
 }

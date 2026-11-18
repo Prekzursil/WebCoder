@@ -2000,6 +2000,78 @@ const server = createServer((req, res) => {
     return;
   }
 
+  // ---- Wave F statement quality (items 121/123/124/134) ----
+  if (path === '/api/v1/problems/wizard/steps/') {
+    if (!sessionUser(req)) {
+      json(res, 401, { detail: 'Authentication credentials were not provided.' });
+      return;
+    }
+    json(res, 200, {
+      count: 7,
+      steps: [
+        { key: 'basics', title_en: 'Basics', description_en: 'd', fields: [], complete: true },
+        { key: 'limits', title_en: 'Limits', description_en: 'd', fields: [], complete: true },
+        { key: 'samples', title_en: 'Samples', description_en: 'd', fields: [], complete: false },
+        { key: 'tests', title_en: 'Tests', description_en: 'd', fields: [], complete: false },
+        {
+          key: 'reference',
+          title_en: 'Reference',
+          description_en: 'd',
+          fields: [],
+          complete: false,
+        },
+        {
+          key: 'translation',
+          title_en: 'Translation',
+          description_en: 'd',
+          fields: [],
+          complete: false,
+        },
+        { key: 'review', title_en: 'Review', description_en: 'd', fields: [], complete: false },
+      ],
+    });
+    return;
+  }
+  const stmtLint = path.match(/^\/api\/v1\/problems\/problems\/(\d+)\/statement-lint\/$/);
+  if (req.method === 'POST' && stmtLint) {
+    json(res, 200, {
+      count: 1,
+      warnings: [
+        {
+          code: 'missing_constraints_en',
+          locale: 'en',
+          message: "No 'constraints' section found.",
+        },
+      ],
+    });
+    return;
+  }
+  const readability = path.match(/^\/api\/v1\/problems\/problems\/(\d+)\/readability\/$/);
+  if (req.method === 'GET' && readability) {
+    json(res, 200, {
+      locales: {
+        en: { score: 71.2, band: 'plain', words: 40, sentences: 3 },
+        ro: { score: 66.0, band: 'plain', words: 38, sentences: 3 },
+      },
+      consistent: true,
+    });
+    return;
+  }
+  const translationStatus = path.match(
+    /^\/api\/v1\/problems\/problems\/(\d+)\/translation-status\/$/,
+  );
+  if (req.method === 'GET' && translationStatus) {
+    json(res, 200, {
+      fields: ['title', 'statement', 'hints'],
+      locales: {
+        en: { title: true, statement: true, hints: true },
+        ro: { title: true, statement: true, hints: false },
+      },
+      complete: false,
+    });
+    return;
+  }
+
   // ---- Wave F recognition (items 66-69) ----
   if (path === '/api/v1/community/reputation/me/') {
     if (!sessionUser(req)) {

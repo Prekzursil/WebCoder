@@ -1582,5 +1582,18 @@
   "tools_creators_only": "Aceste unelte sunt pentru creatorii și verificatorii de probleme.",
   "nav_author_wizard": "Asistent de creare",
   "nav_author_tools": "Unelte autor",
-  "nav_author_analytics": "Statistici de autor"
+  "nav_author_analytics": "Statistici de autor",
+  "wizard_title": "Asistent de creare",
+  "wizard_subtitle": "Șapte pași de la idee la trimitere — cu verificări live de completare.",
+  "wizard_problem_id": "Id-ul problemei ciornă (opțional)",
+  "wizard_new_problem": "Începe o problemă nouă →",
+  "wizard_creators_only": "Asistentul este pentru creatorii și verificatorii de probleme.",
+  "wizard_lint_title": "Verificare enunț",
+  "wizard_lint_clean": "Nicio avertizare — enunțul se citește bine.",
+  "wizard_readability_title": "Lizibilitate",
+  "wizard_readability_consistent": "Variantele de limbă sunt consecvente.",
+  "wizard_readability_drift": "Variantele diferă la nivel de lectură — simplific-o pe cea grea.",
+  "wizard_translation_title": "Traducerea însoțitoare",
+  "wizard_translation_complete": "Toate câmpurile localizate sunt completate.",
+  "wizard_translation_gaps": "Unele câmpuri localizate lipsesc — completează-le înainte de trimitere."
 }
