@@ -77,6 +77,8 @@ import {
   DivisionTableRow,
   AmaDetailRow,
   AmaListRow,
+  AttachmentRow,
+  VariantRow,
   ReadabilityReport,
   StatementLintWarning,
   TranslationStatus,
@@ -915,6 +917,30 @@ export const TrackService = {
 };
 
 export const ProblemService = {
+  // Wave F items 122/126/128 — generator DSL, variants, attachments.
+  generateTests: (problemId: number, dsl: string, count = 5, seed = 0) =>
+    apiFetch<{ created: number; first: string }>(
+      `/problems/problems/${problemId}/generate-tests/`,
+      { method: 'POST', body: JSON.stringify({ dsl, count, seed }) },
+    ),
+  spawnVariant: (problemId: number, note?: string) =>
+    apiFetch<{ variant_id: number; root_id: number; title: string }>(
+      `/problems/problems/${problemId}/variants/`,
+      { method: 'POST', body: JSON.stringify(note ? { note } : {}) },
+    ),
+  listVariants: (problemId: number) =>
+    apiFetch<{ root: number; count: number; variants: VariantRow[] }>(
+      `/problems/problems/${problemId}/variants/list/`,
+    ),
+  uploadAttachment: (problemId: number, name: string, contentBase64 = 'eA==') =>
+    apiFetch<{ id: number; name: string }>(`/problems/problems/${problemId}/attachments/`, {
+      method: 'POST',
+      body: JSON.stringify({ name, content_base64: contentBase64, kind: 'inline' }),
+    }),
+  listAttachments: (problemId: number) =>
+    apiFetch<{ count: number; results: AttachmentRow[] }>(
+      `/problems/problems/${problemId}/attachments/`,
+    ),
   // Wave F items 121/123/124/134 — wizard + statement quality.
   getWizardSteps: (problemId?: number) =>
     apiFetch<{ count: number; steps: WizardStep[] }>(

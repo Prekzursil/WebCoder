@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "언어판 간 읽기 수준이 다릅니다 — 어려운 쪽을 단순화하세요.",
   "wizard_translation_title": "사이드카 번역",
   "wizard_translation_complete": "모든 현지화 필드가 채워졌습니다.",
-  "wizard_translation_gaps": "일부 현지화 필드가 누락되었습니다 — 제출 전 완료하세요."
+  "wizard_translation_gaps": "일부 현지화 필드가 누락되었습니다 — 제출 전 완료하세요.",
+  "tools_title": "작성 도구",
+  "tools_subtitle": "테스트 생성기, 변형 패밀리, 첨부파일.",
+  "gen_title": "테스트 생성기 (DSL)",
+  "gen_run": "테스트 생성",
+  "gen_created": "{{count}}개 테스트 생성; 첫 입력: {{first}}",
+  "variants_title": "변형 패밀리",
+  "variants_spawn": "변형 생성",
+  "variant_spawned": "변형 #{{id}} 생성됨",
+  "variants_empty": "아직 변형이 없습니다.",
+  "attachments_title": "지문 첨부파일",
+  "attachments_upload": "업로드",
+  "attachments_name": "파일 이름",
+  "attachments_empty": "아직 첨부파일이 없습니다.",
+  "attachment_uploaded": "{{name}} 업로드됨"
 }

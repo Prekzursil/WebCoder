@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "各語言版本閱讀水平漂移——請簡化較難的版本。",
   "wizard_translation_title": "伴隨翻譯",
   "wizard_translation_complete": "所有在地化欄位均已填寫。",
-  "wizard_translation_gaps": "部分在地化欄位缺失——提交前請補全。"
+  "wizard_translation_gaps": "部分在地化欄位缺失——提交前請補全。",
+  "tools_title": "作者工具",
+  "tools_subtitle": "測試產生器、變體家族與題面附件。",
+  "gen_title": "測試案例產生器（DSL）",
+  "gen_run": "產生測試",
+  "gen_created": "已建立 {{count}} 個測試；首個輸入：{{first}}",
+  "variants_title": "變體家族",
+  "variants_spawn": "產生變體",
+  "variant_spawned": "已建立變體 #{{id}}",
+  "variants_empty": "還沒有變體。",
+  "attachments_title": "題面附件",
+  "attachments_upload": "上傳",
+  "attachments_name": "檔名",
+  "attachments_empty": "還沒有附件。",
+  "attachment_uploaded": "已上傳 {{name}}"
 }

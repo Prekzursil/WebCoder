@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "Οι γλωσσικές εκδόσεις αποκλίνουν — απλοποιήστε τη δυσκολότερη.",
   "wizard_translation_title": "Συνοδευτική μετάφραση",
   "wizard_translation_complete": "Όλα τα τοπικοποιημένα πεδία συμπληρώθηκαν.",
-  "wizard_translation_gaps": "Λείπουν ορισμένα τοπικοποιημένα πεδία — συμπληρώστε πριν την υποβολή."
+  "wizard_translation_gaps": "Λείπουν ορισμένα τοπικοποιημένα πεδία — συμπληρώστε πριν την υποβολή.",
+  "tools_title": "Εργαλεία συγγραφέα",
+  "tools_subtitle": "Γεννήτριες τεστ, οικογένειες παραλλαγών και συνημμένα.",
+  "gen_title": "Γεννήτρια τεστ (DSL)",
+  "gen_run": "Δημιουργία τεστ",
+  "gen_created": "Δημιουργήθηκαν {{count}} τεστ· πρώτη είσοδος: {{first}}",
+  "variants_title": "Οικογένεια παραλλαγών",
+  "variants_spawn": "Δημιουργία παραλλαγής",
+  "variant_spawned": "Δημιουργήθηκε παραλλαγή #{{id}}",
+  "variants_empty": "Καμία παραλλαγή ακόμη.",
+  "attachments_title": "Συνημμένα εκφώνησης",
+  "attachments_upload": "Μεταφόρτωση",
+  "attachments_name": "Όνομα αρχείου",
+  "attachments_empty": "Κανένα συνημμένο ακόμη.",
+  "attachment_uploaded": "Μεταφορτώθηκε {{name}}"
 }

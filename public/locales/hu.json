@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "A nyelvváltozatok szintje eltér — egyszerűsítsd a nehezebbet.",
   "wizard_translation_title": "Kísérő fordítás",
   "wizard_translation_complete": "Minden honosított mező ki van töltve.",
-  "wizard_translation_gaps": "Néhány honosított mező hiányzik — egészítsd ki beküldés előtt."
+  "wizard_translation_gaps": "Néhány honosított mező hiányzik — egészítsd ki beküldés előtt.",
+  "tools_title": "Szerzői eszközök",
+  "tools_subtitle": "Tesztgenerátorok, variánscsaládok és mellékletek.",
+  "gen_title": "Tesztgenerátor (DSL)",
+  "gen_run": "Tesztek generálása",
+  "gen_created": "{{count}} teszt létrehozva; első bemenet: {{first}}",
+  "variants_title": "Variánscsalád",
+  "variants_spawn": "Variáns létrehozása",
+  "variant_spawned": "#{{id}} variáns létrehozva",
+  "variants_empty": "Még nincs variáns.",
+  "attachments_title": "Feladatszöveg-mellékletek",
+  "attachments_upload": "Feltöltés",
+  "attachments_name": "Fájlnév",
+  "attachments_empty": "Még nincs melléklet.",
+  "attachment_uploaded": "{{name}} feltöltve"
 }

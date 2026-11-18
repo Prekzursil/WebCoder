@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "Kalbos skiriasi lygiu — supaprastink sudėtingesnę.",
   "wizard_translation_title": "Lydintis vertimas",
   "wizard_translation_complete": "Visi lokalizuoti laukai užpildyti.",
-  "wizard_translation_gaps": "Trūksta kai kurių lokalizuotų laukų — užpildyk prieš pateikiant."
+  "wizard_translation_gaps": "Trūksta kai kurių lokalizuotų laukų — užpildyk prieš pateikiant.",
+  "tools_title": "Autoriaus įrankiai",
+  "tools_subtitle": "Testų generatoriai, variantų šeimos ir priedai.",
+  "gen_title": "Testų generatorius (DSL)",
+  "gen_run": "Generuoti testus",
+  "gen_created": "Sukurta {{count}} testų; pirmoji įvestis: {{first}}",
+  "variants_title": "Variantų šeima",
+  "variants_spawn": "Sukurti variantą",
+  "variant_spawned": "Variantas #{{id}} sukurtas",
+  "variants_empty": "Variantų dar nėra.",
+  "attachments_title": "Sąlygos priedai",
+  "attachments_upload": "Įkelti",
+  "attachments_name": "Failo pavadinimas",
+  "attachments_empty": "Priedų dar nėra.",
+  "attachment_uploaded": "Įkelta {{name}}"
 }

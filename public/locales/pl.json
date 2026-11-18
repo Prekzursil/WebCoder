@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "Wersje różnią się poziomem — uprość trudniejszą.",
   "wizard_translation_title": "Tłumaczenie towarzyszące",
   "wizard_translation_complete": "Wszystkie zlokalizowane pola są wypełnione.",
-  "wizard_translation_gaps": "Brakuje niektórych zlokalizowanych pól — uzupełnij przed zgłoszeniem."
+  "wizard_translation_gaps": "Brakuje niektórych zlokalizowanych pól — uzupełnij przed zgłoszeniem.",
+  "tools_title": "Narzędzia autora",
+  "tools_subtitle": "Generatory testów, rodziny wariantów i załączniki.",
+  "gen_title": "Generator testów (DSL)",
+  "gen_run": "Generuj testy",
+  "gen_created": "Utworzono {{count}} testów; pierwsza dana: {{first}}",
+  "variants_title": "Rodzina wariantów",
+  "variants_spawn": "Utwórz wariant",
+  "variant_spawned": "Utworzono wariant #{{id}}",
+  "variants_empty": "Brak wariantów.",
+  "attachments_title": "Załączniki do treści",
+  "attachments_upload": "Prześlij",
+  "attachments_name": "Nazwa pliku",
+  "attachments_empty": "Brak załączników.",
+  "attachment_uploaded": "Przesłano {{name}}"
 }

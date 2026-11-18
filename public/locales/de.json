@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "Die Sprachen driften im Leseniveau — vereinfache die schwierigere.",
   "wizard_translation_title": "Begleitübersetzung",
   "wizard_translation_complete": "Alle lokalisierten Felder sind gefüllt.",
-  "wizard_translation_gaps": "Einige lokalisierte Felder fehlen — vor der Einreichung ergänzen."
+  "wizard_translation_gaps": "Einige lokalisierte Felder fehlen — vor der Einreichung ergänzen.",
+  "tools_title": "Autoren-Tools",
+  "tools_subtitle": "Testgeneratoren, Variantenfamilien und Anhänge.",
+  "gen_title": "Testgenerator (DSL)",
+  "gen_run": "Tests generieren",
+  "gen_created": "{{count}} Tests erstellt; erste Eingabe: {{first}}",
+  "variants_title": "Variantenfamilie",
+  "variants_spawn": "Variante erzeugen",
+  "variant_spawned": "Variante #{{id}} erstellt",
+  "variants_empty": "Noch keine Varianten.",
+  "attachments_title": "Aufgabenanhänge",
+  "attachments_upload": "Hochladen",
+  "attachments_name": "Dateiname",
+  "attachments_empty": "Noch keine Anhänge.",
+  "attachment_uploaded": "{{name}} hochgeladen"
 }

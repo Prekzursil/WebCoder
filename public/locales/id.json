@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "Versi bahasa berbeda tingkat bacanya — sederhanakan yang lebih sulit.",
   "wizard_translation_title": "Terjemahan pendamping",
   "wizard_translation_complete": "Semua field terlokalisasi terisi.",
-  "wizard_translation_gaps": "Beberapa field terlokalisasi belum ada — lengkapi sebelum mengirim."
+  "wizard_translation_gaps": "Beberapa field terlokalisasi belum ada — lengkapi sebelum mengirim.",
+  "tools_title": "Alat penulis",
+  "tools_subtitle": "Generator uji, keluarga varian, dan lampiran.",
+  "gen_title": "Generator soal uji (DSL)",
+  "gen_run": "Buat uji",
+  "gen_created": "{{count}} uji dibuat; masukan pertama: {{first}}",
+  "variants_title": "Keluarga varian",
+  "variants_spawn": "Buat varian",
+  "variant_spawned": "Varian #{{id}} dibuat",
+  "variants_empty": "Belum ada varian.",
+  "attachments_title": "Lampiran soal",
+  "attachments_upload": "Unggah",
+  "attachments_name": "Nama berkas",
+  "attachments_empty": "Belum ada lampiran.",
+  "attachment_uploaded": "{{name}} diunggah"
 }

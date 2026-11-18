@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "Els idiomes divergeixen en el nivell — simplifica el més difícil.",
   "wizard_translation_title": "Traducció acompanyant",
   "wizard_translation_complete": "Tots els camps localitzats estan complets.",
-  "wizard_translation_gaps": "Falten alguns camps localitzats — completa'ls abans d'enviar."
+  "wizard_translation_gaps": "Falten alguns camps localitzats — completa'ls abans d'enviar.",
+  "tools_title": "Eines d'autor",
+  "tools_subtitle": "Generadors de proves, famílies de variants i adjunts.",
+  "gen_title": "Generador de proves (DSL)",
+  "gen_run": "Genera proves",
+  "gen_created": "{{count}} proves creades; primera entrada: {{first}}",
+  "variants_title": "Família de variants",
+  "variants_spawn": "Crea variant",
+  "variant_spawned": "Variant #{{id}} creat",
+  "variants_empty": "Encara no hi ha variants.",
+  "attachments_title": "Adjunts de l'enunciat",
+  "attachments_upload": "Puja",
+  "attachments_name": "Nom del fitxer",
+  "attachments_empty": "Encara no hi ha adjunts.",
+  "attachment_uploaded": "{{name}} pujat"
 }

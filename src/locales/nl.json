@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "De talen wijken af in niveau — vereenvoudig de moeilijkste.",
   "wizard_translation_title": "Begeleidende vertaling",
   "wizard_translation_complete": "Alle gelokaliseerde velden zijn gevuld.",
-  "wizard_translation_gaps": "Sommige gelokaliseerde velden ontbreken — vul ze voor inzending."
+  "wizard_translation_gaps": "Sommige gelokaliseerde velden ontbreken — vul ze voor inzending.",
+  "tools_title": "Auteurshulpmiddelen",
+  "tools_subtitle": "Testgenerators, variantfamilies en bijlagen.",
+  "gen_title": "Testgenerator (DSL)",
+  "gen_run": "Tests genereren",
+  "gen_created": "{{count}} tests gemaakt; eerste invoer: {{first}}",
+  "variants_title": "Variantfamilie",
+  "variants_spawn": "Variant maken",
+  "variant_spawned": "Variant #{{id}} aangemaakt",
+  "variants_empty": "Nog geen varianten.",
+  "attachments_title": "Statementbijlagen",
+  "attachments_upload": "Uploaden",
+  "attachments_name": "Bestandsnaam",
+  "attachments_empty": "Nog geen bijlagen.",
+  "attachment_uploaded": "{{name}} geüpload"
 }

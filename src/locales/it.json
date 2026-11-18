@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "Le lingue divergono nel livello — semplifica la più difficile.",
   "wizard_translation_title": "Traduzione a fianco",
   "wizard_translation_complete": "Tutti i campi localizzati sono compilati.",
-  "wizard_translation_gaps": "Mancano alcuni campi localizzati — completali prima di inviare."
+  "wizard_translation_gaps": "Mancano alcuni campi localizzati — completali prima di inviare.",
+  "tools_title": "Strumenti autore",
+  "tools_subtitle": "Generatori di test, famiglie di varianti e allegati.",
+  "gen_title": "Generatore di test (DSL)",
+  "gen_run": "Genera test",
+  "gen_created": "{{count}} test creati; primo input: {{first}}",
+  "variants_title": "Famiglia di varianti",
+  "variants_spawn": "Crea variante",
+  "variant_spawned": "Variante #{{id}} creata",
+  "variants_empty": "Ancora nessuna variante.",
+  "attachments_title": "Allegati dell'enunciato",
+  "attachments_upload": "Carica",
+  "attachments_name": "Nome file",
+  "attachments_empty": "Ancora nessun allegato.",
+  "attachment_uploaded": "{{name}} caricato"
 }

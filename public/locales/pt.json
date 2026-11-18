@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "Os idiomas divergem no nível — simplifique o mais difícil.",
   "wizard_translation_title": "Tradução acompanhante",
   "wizard_translation_complete": "Todos os campos localizados estão preenchidos.",
-  "wizard_translation_gaps": "Alguns campos localizados faltam — complete antes de enviar."
+  "wizard_translation_gaps": "Alguns campos localizados faltam — complete antes de enviar.",
+  "tools_title": "Ferramentas de autor",
+  "tools_subtitle": "Geradores de teste, famílias de variantes e anexos.",
+  "gen_title": "Gerador de testes (DSL)",
+  "gen_run": "Gerar testes",
+  "gen_created": "{{count}} testes criados; primeira entrada: {{first}}",
+  "variants_title": "Família de variantes",
+  "variants_spawn": "Criar variante",
+  "variant_spawned": "Variante #{{id}} criada",
+  "variants_empty": "Ainda sem variantes.",
+  "attachments_title": "Anexos do enunciado",
+  "attachments_upload": "Enviar",
+  "attachments_name": "Nome do arquivo",
+  "attachments_empty": "Ainda sem anexos.",
+  "attachment_uploaded": "{{name}} enviado"
 }

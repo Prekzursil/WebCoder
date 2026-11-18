@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "النسخ اللغوية تتباين في مستوى القراءة — بسّط الأصعب.",
   "wizard_translation_title": "الترجمة المرافقة",
   "wizard_translation_complete": "جميع الحقول المترجمة مكتملة.",
-  "wizard_translation_gaps": "بعض الحقول المترجمة مفقودة — أكملها قبل التقديم."
+  "wizard_translation_gaps": "بعض الحقول المترجمة مفقودة — أكملها قبل التقديم.",
+  "tools_title": "أدوات المؤلف",
+  "tools_subtitle": "مولدات الاختبار وعائلات المتغيرات والمرفقات.",
+  "gen_title": "مولد حالات الاختبار (DSL)",
+  "gen_run": "أنشئ اختبارات",
+  "gen_created": "تم إنشاء {{count}} اختبارًا؛ المدخل الأول: {{first}}",
+  "variants_title": "عائلة المتغيرات",
+  "variants_spawn": "أنشئ متغيرًا",
+  "variant_spawned": "تم إنشاء المتغير #{{id}}",
+  "variants_empty": "لا متغيرات بعد.",
+  "attachments_title": "مرفقات نص المسألة",
+  "attachments_upload": "ارفع",
+  "attachments_name": "اسم الملف",
+  "attachments_empty": "لا مرفقات بعد.",
+  "attachment_uploaded": "تم رفع {{name}}"
 }

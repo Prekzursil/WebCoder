@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "แต่ละภาษาระดับการอ่านต่างกัน — ทำฉบับที่ยากให้ง่ายขึ้น",
   "wizard_translation_title": "คำแปลประกอบ",
   "wizard_translation_complete": "ทุกฟิลด์แปลภาษาถูกกรอกครบ",
-  "wizard_translation_gaps": "ฟิลด์แปลบางส่วนขาดหาย — เติมให้ครบก่อนส่ง"
+  "wizard_translation_gaps": "ฟิลด์แปลบางส่วนขาดหาย — เติมให้ครบก่อนส่ง",
+  "tools_title": "เครื่องมือผู้เขียน",
+  "tools_subtitle": "ตัวสร้างเทส ตระกูลรูปแบบ และไฟล์แนบ",
+  "gen_title": "ตัวสร้างเทสเคส (DSL)",
+  "gen_run": "สร้างเทส",
+  "gen_created": "สร้าง {{count}} เทส; อินพุตแรก: {{first}}",
+  "variants_title": "ตระกูลรูปแบบ",
+  "variants_spawn": "สร้างรูปแบบ",
+  "variant_spawned": "สร้างรูปแบบ #{{id}} แล้ว",
+  "variants_empty": "ยังไม่มีรูปแบบ",
+  "attachments_title": "ไฟล์แนบโจทย์",
+  "attachments_upload": "อัปโหลด",
+  "attachments_name": "ชื่อไฟล์",
+  "attachments_empty": "ยังไม่มีไฟล์แนบ",
+  "attachment_uploaded": "อัปโหลด {{name}} แล้ว"
 }

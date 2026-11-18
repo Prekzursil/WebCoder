@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "نسخه‌های زبانی در سطح خوانایی واگرا هستند — سخت‌تر را ساده کنید.",
   "wizard_translation_title": "ترجمه همراه",
   "wizard_translation_complete": "همه فیلدهای بومی‌سازی‌شده پر شده‌اند.",
-  "wizard_translation_gaps": "برخی فیلدهای بومی‌سازی‌شده غایب‌اند — پیش از ارسال کامل کنید."
+  "wizard_translation_gaps": "برخی فیلدهای بومی‌سازی‌شده غایب‌اند — پیش از ارسال کامل کنید.",
+  "tools_title": "ابزار نویسنده",
+  "tools_subtitle": "مولدهای تست، خانواده‌های واریانت و پیوست‌ها.",
+  "gen_title": "مولد تست‌کیس (DSL)",
+  "gen_run": "تولید تست",
+  "gen_created": "{{count}} تست ساخته شد؛ ورودی اول: {{first}}",
+  "variants_title": "خانواده واریانت",
+  "variants_spawn": "ساخت واریانت",
+  "variant_spawned": "واریانت #{{id}} ساخته شد",
+  "variants_empty": "هنوز واریانتی نیست.",
+  "attachments_title": "پیوست‌های صورت مسئله",
+  "attachments_upload": "بارگذاری",
+  "attachments_name": "نام فایل",
+  "attachments_empty": "هنوز پیوستی نیست.",
+  "attachment_uploaded": "{{name}} بارگذاری شد"
 }

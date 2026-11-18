@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "Dil sürümleri okuma düzeyinde ayrışıyor — zor olanı sadeleştir.",
   "wizard_translation_title": "Yan çeviri",
   "wizard_translation_complete": "Tüm yerelleştirilmiş alanlar dolu.",
-  "wizard_translation_gaps": "Bazı yerelleştirilmiş alanlar eksik — göndermeden önce tamamla."
+  "wizard_translation_gaps": "Bazı yerelleştirilmiş alanlar eksik — göndermeden önce tamamla.",
+  "tools_title": "Yazar araçları",
+  "tools_subtitle": "Test üreteçleri, varyant aileleri ve ekler.",
+  "gen_title": "Test üreteci (DSL)",
+  "gen_run": "Test üret",
+  "gen_created": "{{count}} test üretildi; ilk girdi: {{first}}",
+  "variants_title": "Varyant ailesi",
+  "variants_spawn": "Varyant oluştur",
+  "variant_spawned": "Varyant #{{id}} oluşturuldu",
+  "variants_empty": "Henüz varyant yok.",
+  "attachments_title": "Problem ekleri",
+  "attachments_upload": "Yükle",
+  "attachments_name": "Dosya adı",
+  "attachments_empty": "Henüz ek yok.",
+  "attachment_uploaded": "{{name}} yüklendi"
 }
