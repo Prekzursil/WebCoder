@@ -118,6 +118,18 @@ class SetterCVTests(WidgetsBase):
         self.assertEqual(response.data["problems_by_difficulty"]["EASY"], 1)
         self.assertNotIn("EXTREME", response.data["problems_by_difficulty"])
 
+    def test_blurb_only_update_on_fresh_profile(self):
+        # Fresh profile, blurb-only PUT: the links branch stays skipped.
+        self.client.force_authenticate(self.alice)
+        response = self.client.put(
+            "/api/v1/users/username/alice/setter-cv/",
+            {"blurb": "just words"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200, response.data)
+        profile = SetterProfile.objects.get(user=self.alice)
+        self.assertEqual(profile.links, [])
+
     def test_stranger_cannot_edit(self):
         self.client.force_authenticate(self.bob)
         response = self.client.put(
