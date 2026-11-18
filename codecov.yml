@@ -1,0 +1,21 @@
+codecov:
+  require_ci_to_pass: true
+
+flags:
+  backend:
+    paths:
+      - backend/
+  frontend:
+    paths:
+      - frontend/
+
+coverage:
+  status:
+    project:
+      default:
+        target: 100.0%
+        threshold: 0%
+    patch:
+      default:
+        target: 100.0%
+        threshold: 0%
