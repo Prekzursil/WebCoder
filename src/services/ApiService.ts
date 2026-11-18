@@ -75,6 +75,11 @@ import {
   BlogPostRow,
   CalibrationProfile,
   DivisionTableRow,
+  AmaDetailRow,
+  AmaListRow,
+  AwardRow,
+  ProblemRequestRow,
+  ReputationProfile,
   WaHelpRow,
   WikiListRow,
   WikiPageRow,
@@ -748,6 +753,46 @@ export const CommunityService = {
   getWikiHistory: (slug: string) =>
     apiFetch<{ count: number; results: WikiRevisionRow[] }>(`/community/wiki/${slug}/history/`),
   getWaHelpQueue: () => apiFetch<{ count: number; results: WaHelpRow[] }>('/community/wa-help/'),
+  // ---- Wave F items 66-69: reputation, awards, AMAs, requests ----
+  getMyReputation: () => apiFetch<ReputationProfile>('/community/reputation/me/'),
+  getReputationTiers: () =>
+    apiFetch<{ tiers: { name: string; min_honor: number }[] }>(
+      '/community/reputation/tiers/',
+    ),
+  getAwards: (username?: string) => {
+    const qs = username ? `?username=${encodeURIComponent(username)}` : '';
+    return apiFetch<PaginatedResponse<AwardRow>>(`/community/awards/${qs}`);
+  },
+  getAmas: () => apiFetch<{ count: number; results: AmaListRow[] }>('/community/amas/'),
+  getAma: (id: number) => apiFetch<AmaDetailRow>(`/community/amas/${id}/`),
+  askAmaQuestion: (sessionId: number, question: string) =>
+    apiFetch<{ id: number }>(`/community/amas/${sessionId}/questions/`, {
+      method: 'POST',
+      body: JSON.stringify({ question }),
+    }),
+  answerAmaQuestion: (questionId: number, answer: string) =>
+    apiFetch<{ id: number; answer: string }>(
+      `/community/amas/questions/${questionId}/answer/`,
+      { method: 'POST', body: JSON.stringify({ answer }) },
+    ),
+  upvoteAmaQuestion: (questionId: number) =>
+    apiFetch<{ upvotes: number; voted: boolean }>(
+      `/community/amas/questions/${questionId}/upvote/`,
+      { method: 'POST' },
+    ),
+  getProblemRequests: () =>
+    apiFetch<PaginatedResponse<ProblemRequestRow>>('/community/problem-requests/'),
+  createProblemRequest: (data: { title: string; description: string }) =>
+    apiFetch<ProblemRequestRow>('/community/problem-requests/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  voteProblemRequest: (requestId: number) =>
+    apiFetch<{ votes: number; voted: boolean }>(
+      `/community/problem-requests/${requestId}/vote/`,
+      { method: 'POST' },
+    ),
+
   createWaHelpRequest: (submissionId: number, question: string) =>
     apiFetch<WaHelpRow>('/community/wa-help/', {
       method: 'POST',

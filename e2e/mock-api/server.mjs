@@ -316,6 +316,55 @@ const messagingState = {
 
 const virtualStarted = new Set();
 
+// Wave F recognition fixtures (items 67-69).
+const MOCK_AWARDS = [
+  {
+    id: 1,
+    username: 'e2e_tester',
+    kind: 'HELPING_HAND',
+    reason: 'WA queue hero',
+    period: '',
+    created_at: '2026-11-12T10:00:00Z',
+  },
+];
+
+const MOCK_AMAS = [
+  {
+    id: 1,
+    host: 'medalist',
+    title: 'Ask me about ONI',
+    description: 'Three medals, one story.',
+    status: 'LIVE',
+    starts_at: '2026-11-10T18:00:00Z',
+    ends_at: '2026-11-10T20:00:00Z',
+    questions: [
+      {
+        id: 11,
+        author: 'rival',
+        question: 'How did you train?',
+        answer: 'Daily drills + mock contests.',
+        answered_at: '2026-11-10T18:30:00Z',
+        upvotes: 4,
+      },
+    ],
+  },
+];
+
+const MOCK_REQUESTS = [
+  {
+    id: 5,
+    requester: 2,
+    requester_username: 'admin_e2e',
+    title: 'More graph problems',
+    description: 'A full BFS/DFS chapter please.',
+    status: 'OPEN',
+    fulfilled_problem: null,
+    fulfilled_problem_title: null,
+    vote_count: 5,
+    created_at: '2026-11-01T10:00:00Z',
+  },
+];
+
 // Wave F publishing fixtures (items 62-64).
 const MOCK_BLOGS = [
   {
@@ -1766,6 +1815,136 @@ const server = createServer((req, res) => {
         ? MOCK_CONTESTS.filter((c) => c.is_long_contest)
         : MOCK_CONTESTS;
     json(res, 200, paged(rows));
+    return;
+  }
+
+  // ---- Wave F recognition (items 66-69) ----
+  if (path === '/api/v1/community/reputation/me/') {
+    if (!sessionUser(req)) {
+      json(res, 401, { detail: 'Authentication credentials were not provided.' });
+      return;
+    }
+    json(res, 200, {
+      honor: 30,
+      breakdown: { approved_problem: 3 },
+      tier: 'Contributor',
+      next_tier: { name: 'Trusted', honor_needed: 70 },
+      privileges: ['blog_publish', 'wiki_edit', 'wa_help_answer'],
+      tiers: [
+        { name: 'Newcomer', min_honor: 0 },
+        { name: 'Contributor', min_honor: 25 },
+      ],
+    });
+    return;
+  }
+  if (path === '/api/v1/community/reputation/tiers/') {
+    json(res, 200, {
+      tiers: [
+        { name: 'Newcomer', min_honor: 0 },
+        { name: 'Contributor', min_honor: 25 },
+        { name: 'Trusted', min_honor: 100 },
+        { name: 'Mentor', min_honor: 300 },
+        { name: 'Legend', min_honor: 1000 },
+      ],
+    });
+    return;
+  }
+  if (req.method === 'GET' && path === '/api/v1/community/awards/') {
+    json(res, 200, {
+      count: MOCK_AWARDS.length,
+      next: null,
+      previous: null,
+      results: MOCK_AWARDS,
+    });
+    return;
+  }
+  if (req.method === 'GET' && path === '/api/v1/community/amas/') {
+    json(res, 200, {
+      count: MOCK_AMAS.length,
+      results: MOCK_AMAS.map((session) => ({
+        id: session.id,
+        host: session.host,
+        title: session.title,
+        status: session.status,
+        starts_at: session.starts_at,
+      })),
+    });
+    return;
+  }
+  const amaDetail = path.match(/^\/api\/v1\/community\/amas\/(\d+)\/$/);
+  if (req.method === 'GET' && amaDetail) {
+    json(
+      res,
+      200,
+      MOCK_AMAS.find((session) => session.id === Number(amaDetail[1])),
+    );
+    return;
+  }
+  const amaAsk = path.match(/^\/api\/v1\/community\/amas\/(\d+)\/questions\/$/);
+  if (req.method === 'POST' && amaAsk) {
+    const user = sessionUser(req);
+    if (!user) {
+      json(res, 401, { detail: 'Sign in to ask.' });
+      return;
+    }
+    readBody(req, (body) => {
+      json(res, 201, {
+        id: 50,
+        author: user.username,
+        question: body.question ?? '',
+        answer: '',
+        answered_at: null,
+        upvotes: 0,
+      });
+    });
+    return;
+  }
+  const amaUpvote = path.match(/^\/api\/v1\/community\/amas\/questions\/(\d+)\/upvote\/$/);
+  if (req.method === 'POST' && amaUpvote) {
+    json(res, 200, { upvotes: 3, voted: true });
+    return;
+  }
+  const amaAnswer = path.match(/^\/api\/v1\/community\/amas\/questions\/(\d+)\/answer\/$/);
+  if (req.method === 'POST' && amaAnswer) {
+    readBody(req, (body) => {
+      json(res, 200, { id: Number(amaAnswer[1]), answer: body.answer ?? '' });
+    });
+    return;
+  }
+  if (req.method === 'GET' && path === '/api/v1/community/problem-requests/') {
+    json(res, 200, {
+      count: MOCK_REQUESTS.length,
+      next: null,
+      previous: null,
+      results: MOCK_REQUESTS,
+    });
+    return;
+  }
+  if (path === '/api/v1/community/problem-requests/' && req.method === 'POST') {
+    const user = sessionUser(req);
+    if (!user) {
+      json(res, 401, { detail: 'Sign in to open a request.' });
+      return;
+    }
+    readBody(req, (body) => {
+      json(res, 201, {
+        id: 60,
+        requester: user.id,
+        requester_username: user.username,
+        title: body.title ?? '',
+        description: body.description ?? '',
+        status: 'OPEN',
+        fulfilled_problem: null,
+        fulfilled_problem_title: null,
+        vote_count: 0,
+        created_at: new Date().toISOString(),
+      });
+    });
+    return;
+  }
+  const requestVote = path.match(/^\/api\/v1\/community\/problem-requests\/(\d+)\/vote\/$/);
+  if (req.method === 'POST' && requestVote) {
+    json(res, 200, { votes: 6, voted: true });
     return;
   }
 

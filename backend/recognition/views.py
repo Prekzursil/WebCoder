@@ -223,7 +223,9 @@ class AmaDetailView(APIView):
     """GET /community/amas/{id}/ — the session with its questions."""
 
     def get(self, request, session_id):
-        session = AmaSession.objects.filter(pk=session_id).select_related("host").first()
+        session = (
+            AmaSession.objects.filter(pk=session_id).select_related("host").first()
+        )
         if session is None:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         return Response(_ama_payload(session))
@@ -242,7 +244,9 @@ class AmaAskView(APIView):
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         if session.status() != AmaSession.Status.LIVE:
             return Response(
-                {"detail": f"This AMA is {session.status().lower()} — questions are closed."},
+                {
+                    "detail": f"This AMA is {session.status().lower()} — questions are closed."
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
         serializer = AmaQuestionSerializer(data=request.data)
@@ -271,9 +275,11 @@ class AmaAnswerView(APIView):
     def post(self, request, question_id):
         if not request.user.is_authenticated:
             return Response({"detail": "Sign in."}, status=status.HTTP_401_UNAUTHORIZED)
-        question = AmaQuestion.objects.select_related("session__host").filter(
-            pk=question_id
-        ).first()
+        question = (
+            AmaQuestion.objects.select_related("session__host")
+            .filter(pk=question_id)
+            .first()
+        )
         if question is None:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         if question.session.host_id != request.user.id and not _is_admin(request.user):
@@ -301,9 +307,7 @@ class AmaUpvoteView(APIView):
         question = AmaQuestion.objects.filter(pk=question_id).first()
         if question is None:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
-        vote = AmaVote.objects.filter(
-            user=request.user, question=question
-        ).first()
+        vote = AmaVote.objects.filter(user=request.user, question=question).first()
         if vote is not None:
             vote.delete()
             question.upvotes = max(0, question.upvotes - 1)
@@ -376,7 +380,9 @@ class ProblemRequestListView(APIView):
         row = ProblemRequest.objects.create(
             requester=request.user, **serializer.validated_data
         )
-        return Response(ProblemRequestSerializer(row).data, status=status.HTTP_201_CREATED)
+        return Response(
+            ProblemRequestSerializer(row).data, status=status.HTTP_201_CREATED
+        )
 
 
 class ProblemRequestVoteView(APIView):
@@ -392,9 +398,7 @@ class ProblemRequestVoteView(APIView):
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         from .models import ProblemRequestVote
 
-        vote = ProblemRequestVote.objects.filter(
-            user=request.user, request=row
-        ).first()
+        vote = ProblemRequestVote.objects.filter(user=request.user, request=row).first()
         if vote is not None:
             vote.delete()
             row.vote_count = max(0, row.vote_count - 1)
@@ -424,9 +428,7 @@ class ProblemRequestStatusView(APIView):
             )
         problem = None
         if choice == ProblemRequest.Status.FULFILLED:
-            problem = Problem.objects.filter(
-                pk=request.data.get("problem_id")
-            ).first()
+            problem = Problem.objects.filter(pk=request.data.get("problem_id")).first()
             if problem is None:
                 return Response(
                     {"problem_id": "Fulfilled requests need a problem id."},

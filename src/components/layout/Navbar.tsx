@@ -94,6 +94,7 @@ const Navbar: React.FC = () => {
     { href: '/blogs', label: t('nav_blogs', 'Blogs') },
     { href: '/wiki', label: t('nav_wiki', 'Wiki') },
     { href: '/wa-help', label: t('nav_wa_help', 'WA help') },
+    { href: '/amas', label: t('nav_amas', 'Community') },
     { href: '/blocks', label: t('nav_blocks', 'Blocks') },
   ];
 

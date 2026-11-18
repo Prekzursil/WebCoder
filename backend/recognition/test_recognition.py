@@ -6,13 +6,13 @@ problem-request board (69).
 """
 
 from datetime import timedelta
+from unittest import mock
 
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from forum.models import Post, Thread
 from problems.models import Problem
 from recognition.models import (
     AmaQuestion,
@@ -133,7 +133,6 @@ class AwardTests(RecognitionBase):
         return self.now.replace(day=3)
 
     def test_monthly_award_task_idempotent(self):
-        from unittest import mock
 
         self.grant_honor(self.alice, 20)
         with mock.patch(
@@ -151,7 +150,6 @@ class AwardTests(RecognitionBase):
             self.assertIn("already awarded", result)
 
     def test_monthly_award_task_window_and_empty(self):
-        from unittest import mock
 
         # Late in the month: outside the award window.
         late = self.now.replace(day=20)
@@ -194,9 +192,6 @@ class AwardTests(RecognitionBase):
         )
         for obj in (award, session, question, vote, request, request_vote):
             self.assertTrue(str(obj))
-
-
-from unittest import mock  # noqa: E402  (used by test_monthly_award_task_window)
 
 
 class AmaTests(RecognitionBase):
@@ -338,9 +333,13 @@ class AmaTests(RecognitionBase):
         self.assertEqual(response.data["count"], 1)
         self.assertEqual(response.data["results"][0]["status"], "LIVE")
         self.client.force_authenticate(self.bob)
-        response = self.client.post("/api/v1/community/amas/999/questions/", {"question": "x"})
+        response = self.client.post(
+            "/api/v1/community/amas/999/questions/", {"question": "x"}
+        )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        response = self.client.post("/api/v1/community/amas/questions/999/answer/", {"answer": "x"})
+        response = self.client.post(
+            "/api/v1/community/amas/questions/999/answer/", {"answer": "x"}
+        )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         response = self.client.post("/api/v1/community/amas/questions/999/upvote/")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
