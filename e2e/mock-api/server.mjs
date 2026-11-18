@@ -1918,6 +1918,88 @@ const server = createServer((req, res) => {
     return;
   }
 
+  // ---- Wave F content ops (items 125/129/131/132) ----
+  if (path === '/api/v1/problems/author-analytics/') {
+    if (!sessionUser(req)) {
+      json(res, 401, { detail: 'Authentication credentials are not provided.' });
+      return;
+    }
+    json(res, 200, {
+      problems_total: 6,
+      problems_approved: 4,
+      by_difficulty: { EASY: 2, MEDIUM: 1, HARD: 1 },
+      submissions_total: 120,
+      acceptance_rate: 42.5,
+      unique_solvers: 33,
+      editorial_coverage: 3,
+      open_test_bounties: 2,
+    });
+    return;
+  }
+  if (path === '/api/v1/problems/drops/') {
+    if (!sessionUser(req)) {
+      json(res, 401, { detail: 'Authentication credentials are not provided.' });
+      return;
+    }
+    json(res, 200, {
+      count: 1,
+      results: [{ problem_id: 9, title: 'Graph Marathon', publish_at: '2026-12-01T10:00:00Z' }],
+    });
+    return;
+  }
+  if (path === '/api/v1/problems/searches/') {
+    if (!sessionUser(req)) {
+      json(res, 401, { detail: 'Authentication credentials are not provided.' });
+      return;
+    }
+    if (req.method === 'GET') {
+      json(res, 200, {
+        count: 1,
+        results: [{ id: 7, name: 'Easy graphs', params: { difficulty: 'EASY' } }],
+      });
+      return;
+    }
+    if (req.method === 'POST') {
+      readBody(req, (body) => {
+        json(res, 201, { id: 8, name: body.name ?? '', params: body.params ?? {} });
+      });
+      return;
+    }
+    if (req.method === 'DELETE') {
+      res.writeHead(204);
+      res.end();
+      return;
+    }
+  }
+  const changelog = path.match(/^\/api\/v1\/problems\/problems\/(\d+)\/changelog\/$/);
+  if (req.method === 'GET' && changelog) {
+    json(res, 200, {
+      count: 2,
+      results: [
+        {
+          id: 2,
+          kind: 'statement',
+          edited_by: 'admin_e2e',
+          note: 'clarify',
+          created_at: '2026-11-10T10:00:00Z',
+        },
+        {
+          id: 1,
+          kind: 'statement',
+          edited_by: 'admin_e2e',
+          note: 'initial',
+          created_at: '2026-11-01T10:00:00Z',
+        },
+      ],
+    });
+    return;
+  }
+  const restore = path.match(/^\/api\/v1\/problems\/problems\/(\d+)\/revisions\/(\d+)\/restore\/$/);
+  if (req.method === 'POST' && restore) {
+    json(res, 200, { detail: 'Restored revision 1.' });
+    return;
+  }
+
   // ---- Wave F recognition (items 66-69) ----
   if (path === '/api/v1/community/reputation/me/') {
     if (!sessionUser(req)) {

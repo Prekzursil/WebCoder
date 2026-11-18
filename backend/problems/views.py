@@ -225,6 +225,26 @@ class ProblemViewSet(viewsets.ModelViewSet):
         else:
             # Anonymous users only see APPROVED problems
             qs = Problem.objects.filter(status=Problem.ProblemStatus.APPROVED)
+        # Scheduled content drops (item 131): future-dated APPROVED
+        # problems stay hidden from non-staff/non-authors (and non-owners)
+        # until the drop moment passes.
+        from django.utils import timezone as _tz
+
+        now = _tz.now()
+        if user.is_authenticated and (
+            user.is_staff
+            or getattr(user, "role", "")
+            in (User.Roles.ADMIN, User.Roles.PROBLEM_VERIFIER)
+        ):
+            pass  # staff/verifiers see scheduled problems (the calendar view)
+        else:
+            drop_gate = models.Q(publish_at__isnull=True) | models.Q(
+                publish_at__lte=now
+            )
+            if user.is_authenticated:
+                qs = (qs.filter(drop_gate) | qs.filter(author=user)).distinct()
+            else:
+                qs = qs.filter(drop_gate)
         # Curriculum browse axis (competitive roadmap EDU-9): filter by the
         # chapter/grade node the catalog is drilling into. Exact node match
         # v1 — the tree itself provides the drill-down ids.

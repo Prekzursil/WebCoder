@@ -1201,3 +1201,36 @@ export interface EmbedProblem {
   solved_by: number;
   solve_url: string;
 }
+
+// ---- Wave F content ops (items 125/129/131/132) ----
+
+export interface ChangelogRow {
+  id: number;
+  kind: string;
+  edited_by: string | null;
+  note: string;
+  created_at: string;
+}
+
+export interface SavedSearchRow {
+  id: number;
+  name: string;
+  params: Record<string, string | string[]>;
+}
+
+export interface DropRow {
+  problem_id: number;
+  title: string;
+  publish_at: string;
+}
+
+export interface AuthorAnalytics {
+  problems_total: number;
+  problems_approved: number;
+  by_difficulty: Record<string, number>;
+  submissions_total: number;
+  acceptance_rate: number | null;
+  unique_solvers: number;
+  editorial_coverage: number;
+  open_test_bounties: number;
+}
