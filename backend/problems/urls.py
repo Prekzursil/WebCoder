@@ -161,7 +161,6 @@ urlpatterns = [
         content_ops_views.BountyResolveView.as_view(),
         name="bounty_resolve",
     ),
-
     # Wave F items 121/123/124/134 — statement quality + wizard scaffold.
     path(
         "wizard/steps/",
