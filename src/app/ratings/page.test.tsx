@@ -7,7 +7,17 @@ import type { User } from '@/types';
 // color-band handles, the caller's own rating card, and the empty state
 // for a platform with no rated contests yet.
 
-const api = vi.hoisted(() => ({ getLadder: vi.fn(), getMyRating: vi.fn() }));
+const api = vi.hoisted(() => ({
+  getLadder: vi.fn(),
+  getMyRating: vi.fn(),
+  // Wave F item 55: the calibration card fetches the predictor profile.
+  getCalibration: vi.fn().mockResolvedValue({
+    count: 0,
+    mean_abs_error: null,
+    bias: null,
+    results: [],
+  }),
+}));
 
 vi.mock('@/services/ApiService', () => ({
   RatingService: api,

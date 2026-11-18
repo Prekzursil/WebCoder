@@ -3,6 +3,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import CommentaryPanel from './CommentaryPanel';
 import HacksPanel from './HacksPanel';
+import TeamsPanel from './TeamsPanel';
+import PredictionPanel from './PredictionPanel';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
@@ -24,7 +26,14 @@ import * as themeTokens from '@/theme/tokens';
 import EmptyState from '@/components/common/EmptyState';
 import PageHeader from '@/components/common/PageHeader';
 
-type Tab = 'problems' | 'standings' | 'clarifications' | 'ratings' | 'commentary' | 'hacks';
+type Tab =
+  | 'problems'
+  | 'standings'
+  | 'clarifications'
+  | 'ratings'
+  | 'commentary'
+  | 'hacks'
+  | 'teams';
 
 export default function ContestDetailPage() {
   const params = useParams<{ contestId: string }>();
@@ -48,6 +57,7 @@ export default function ContestDetailPage() {
   // COM-4: friends-only standings (viewer + followed).
   const [friendsOnly, setFriendsOnly] = useState(false);
   const [awards, setAwards] = useState<ContestAwardsResponse | null>(null);
+  const [teamName, setTeamName] = useState('');
 
   const loadContest = useCallback(async () => {
     if (!contestId) return;
@@ -119,10 +129,14 @@ export default function ContestDetailPage() {
   }, [contestId, contest]);
 
   const register = async () => {
-    if (!contestId) return;
+    if (!contestId || !contest) return;
     setActionError(null);
     try {
-      await ContestService.register(contestId);
+      if (contest.is_team_contest) {
+        await ContestService.register(contestId, undefined, teamName.trim() || undefined);
+      } else {
+        await ContestService.register(contestId);
+      }
       await loadContest();
     } catch (err) {
       setActionError(err instanceof Error ? err.message : String(err));
@@ -209,6 +223,10 @@ export default function ContestDetailPage() {
       : []),
     // Wave F item 56: the organizer broadcast feed (always readable).
     { key: 'commentary', label: t('contest_tab_commentary', 'Commentary') },
+    // Wave F item 49: the teams surface on team contests.
+    ...(contest.is_team_contest
+      ? [{ key: 'teams' as Tab, label: t('contest_tab_teams', 'Teams') }]
+      : []),
     // Wave F item 48: the lock-to-hack phase lives while the contest runs.
     ...(contest.state === 'RUNNING'
       ? [{ key: 'hacks' as Tab, label: t('contest_tab_hacks', 'Hacks') }]
@@ -233,6 +251,12 @@ export default function ContestDetailPage() {
           contest.is_long_contest
             ? ` · 🐢 ${t('contest_long', 'Long challenge')} — ${t('contest_day_of', 'day {{n}} of {{m}}', { n: contestDay, m: totalDays })}`
             : ''
+        }${
+          contest.is_school_cup
+            ? ` · 🏫 ${t('contest_school_cup', 'School cup')}: ${contest.school_name ?? ''}`
+            : ''
+        }${
+          contest.is_team_contest ? ` · 👥 ${t('contest_team_contest', 'Team contest')} (3v3)` : ''
         }${
           contest.rated_rating_min != null || contest.rated_rating_max != null
             ? ` · ${t('contest_division', 'Division')}: ${contest.rated_rating_min ?? 0}–${contest.rated_rating_max ?? '∞'}`
@@ -280,9 +304,31 @@ export default function ContestDetailPage() {
             {t('contest_login_to_register', 'Log in to register')}
           </Link>
         ) : !registered && contest.state !== 'FINISHED' ? (
-          <button type="button" onClick={register} style={{ padding: '8px 18px' }}>
-            {t('contest_register', 'Register')}
-          </button>
+          contest.is_team_contest ? (
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <input
+                value={teamName}
+                onChange={(e) => setTeamName(e.target.value)}
+                placeholder={t('register_team_name', 'Team name (new or existing)')}
+                aria-label={t('register_team_name', 'Team name (new or existing)')}
+                data-testid="register-team-input"
+                style={{ padding: '8px 10px' }}
+              />
+              <button
+                type="button"
+                onClick={register}
+                disabled={!teamName.trim()}
+                data-testid="register-team-button"
+                style={{ padding: '8px 18px' }}
+              >
+                {t('register_with_team', 'Register as team')}
+              </button>
+            </div>
+          ) : (
+            <button type="button" onClick={register} style={{ padding: '8px 18px' }}>
+              {t('contest_register', 'Register')}
+            </button>
+          )
         ) : null}
         {windowNeedsStart && contest.state === 'RUNNING' && (
           <button type="button" onClick={startClock} style={{ padding: '8px 18px' }}>
@@ -319,6 +365,12 @@ export default function ContestDetailPage() {
           </span>
         )}
       </div>
+
+      {auth.isAuthenticated && contest.state !== 'FINISHED' && (
+        <div style={{ marginBottom: 14 }}>
+          <PredictionPanel contestId={contest.id} isOpen />
+        </div>
+      )}
 
       {actionError && (
         <p role="alert" style={{ color: palette.danger, marginBottom: 12 }}>
@@ -586,6 +638,8 @@ export default function ContestDetailPage() {
       )}
 
       {tab === 'hacks' && <HacksPanel contestId={contest.id} problems={problems} />}
+
+      {tab === 'teams' && <TeamsPanel contestId={contest.id} />}
     </main>
   );
 }

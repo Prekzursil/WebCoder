@@ -5,8 +5,11 @@ from .models import (
     ContestAward,
     ContestCommentary,
     ContestParticipation,
+    ContestPrediction,
     ContestProblem,
     ContestScore,
+    ContestTeam,
+    ContestTeamMember,
     Hack,
 )
 
@@ -64,4 +67,21 @@ class HackAdmin(admin.ModelAdmin):
 @admin.register(ContestCommentary)
 class ContestCommentaryAdmin(admin.ModelAdmin):
     list_display = ("contest", "author", "minute_offset", "created_at")
+    list_filter = ("contest",)
+
+
+@admin.register(ContestTeam)
+class ContestTeamAdmin(admin.ModelAdmin):
+    list_display = ("contest", "name", "captain")
+    list_filter = ("contest",)
+
+
+@admin.register(ContestTeamMember)
+class ContestTeamMemberAdmin(admin.ModelAdmin):
+    list_display = ("team", "user", "joined_at")
+
+
+@admin.register(ContestPrediction)
+class ContestPredictionAdmin(admin.ModelAdmin):
+    list_display = ("contest", "user", "predicted_rank")
     list_filter = ("contest",)

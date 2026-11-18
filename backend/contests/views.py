@@ -131,6 +131,7 @@ class ContestViewSet(viewsets.ModelViewSet):
             "replay",
             "drama",
             "hacks",
+            "teams",
         ):
             return [permissions.AllowAny()]
         if self.action in (
@@ -144,6 +145,7 @@ class ContestViewSet(viewsets.ModelViewSet):
             "clarification_hide",
             "lock",
             "hack_targets",
+            "predict",
         ):
             # Organizer-only actions check can_manage_contest() inside.
             return [permissions.IsAuthenticated()]
@@ -266,6 +268,56 @@ class ContestViewSet(viewsets.ModelViewSet):
                 return Response(
                     {"detail": "Invalid access code."}, status=status.HTTP_403_FORBIDDEN
                 )
+        # Item 50 — school cups gate registration on the caller's school.
+        if contest.is_school_cup:
+            caller_school = (getattr(request.user, "school", "") or "").strip()
+            if (
+                not caller_school
+                or caller_school.lower() != contest.school_name.strip().lower()
+            ):
+                return Response(
+                    {
+                        "detail": (
+                            f"This cup is for students of {contest.school_name} — "
+                            "set your school on your profile first."
+                        )
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+        # Item 49 — team contests ride the team flow: join the named team
+        # (created when new, captained by the creator), capped at
+        # ContestTeam.MAX_MEMBERS.
+        team = None
+        team_name = serializer.validated_data.get("team_name") or ""
+        if contest.is_team_contest:
+            if not team_name:
+                return Response(
+                    {"detail": "Team contests need a team name."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            from .models import ContestTeam, ContestTeamMember
+
+            team = ContestTeam.objects.filter(
+                contest=contest, name__iexact=team_name
+            ).first()
+            if team is None:
+                team = ContestTeam.objects.create(
+                    contest=contest, name=team_name, captain=request.user
+                )
+            elif team.members.count() >= ContestTeam.MAX_MEMBERS:
+                return Response(
+                    {
+                        "detail": (
+                            f"Team '{team.name}' is full "
+                            f"({ContestTeam.MAX_MEMBERS} members max)."
+                        )
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            elif team.members.filter(user=request.user).exists():
+                return Response(
+                    {"detail": "Already registered."}, status=status.HTTP_409_CONFLICT
+                )
         participation, created = ContestParticipation.objects.get_or_create(
             contest=contest, user=request.user, is_virtual=False
         )
@@ -273,8 +325,17 @@ class ContestViewSet(viewsets.ModelViewSet):
             return Response(
                 {"detail": "Already registered."}, status=status.HTTP_409_CONFLICT
             )
+        if team is not None:
+            from .models import ContestTeamMember
+
+            ContestTeamMember.objects.get_or_create(team=team, user=request.user)
         return Response(
-            {"contest": contest.id, "user": request.user.id, "virtual_start": None},
+            {
+                "contest": contest.id,
+                "user": request.user.id,
+                "virtual_start": None,
+                "team": team.name if team is not None else None,
+            },
             status=status.HTTP_201_CREATED,
         )
 
@@ -361,6 +422,29 @@ class ContestViewSet(viewsets.ModelViewSet):
         # ``?section=virtual`` board never shows official sittings.
         section = request.query_params.get("section", "official")
         virtual_board = section == "virtual"
+        # Item 49 — the team board: per-team aggregates over member rows.
+        if section == "teams":
+            from .models import ContestTeam
+            from .teams import teams_ranking
+
+            if not contest.is_team_contest:
+                return Response(
+                    {"detail": "This contest is not a team contest."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            results = teams_ranking(contest)
+            return Response(
+                {
+                    "count": len(results),
+                    "next": None,
+                    "previous": None,
+                    "results": results,
+                    "format": contest.format,
+                    "frozen": False,
+                    "section": "teams",
+                    "team_size": ContestTeam.MAX_MEMBERS,
+                }
+            )
 
         # Hidden boards (DMOJ/campion): non-organizers get an explicitly
         # empty envelope while the contest runs — the FE renders the
@@ -1072,4 +1156,101 @@ class ContestViewSet(viewsets.ModelViewSet):
                 ),
                 "results": results,
             }
+        )
+
+    # ------------------------------------------------------------------
+    # Wave F — teams (49), school cups (50), self-prediction (55).
+    # ------------------------------------------------------------------
+
+    @action(detail=True, methods=["get"])
+    def teams(self, request, pk=None):
+        """Item 49 — the contest's teams with their members (captain first)."""
+        contest = self._visible_contest_or_none(request, pk)
+        if contest is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        if not contest.is_team_contest:
+            return Response(
+                {"detail": "This contest is not a team contest."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        from .models import ContestTeam
+
+        results = []
+        for team in contest.teams.prefetch_related("members__user").order_by("name"):
+            members = list(team.members.select_related("user").order_by("joined_at"))
+            results.append(
+                {
+                    "id": team.id,
+                    "name": team.name,
+                    "captain": team.captain.username,
+                    "members": [member.user.username for member in members],
+                    "member_count": len(members),
+                    "max_members": ContestTeam.MAX_MEMBERS,
+                }
+            )
+        return Response({"count": len(results), "results": results})
+
+    @action(detail=True, methods=["get", "post"])
+    def predict(self, request, pk=None):
+        """Item 55 — self-prediction: commit a predicted final rank before
+        the contest starts (or before the predictor's first submission);
+        the calibration profile lives under /ratings."""
+        from django.utils import timezone as dj_timezone
+
+        from .models import ContestPrediction
+
+        contest = self._visible_contest_or_none(request, pk)
+        if contest is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        if request.method == "GET":
+            prediction = ContestPrediction.objects.filter(
+                contest=contest, user=request.user
+            ).first()
+            return Response(
+                {
+                    "prediction": (prediction.predicted_rank if prediction else None),
+                    "open": contest.state() != Contest.State.FINISHED,
+                }
+            )
+        if not request.user.is_authenticated:
+            return Response(
+                {"detail": "Sign in to predict."}, status=status.HTTP_401_UNAUTHORIZED
+            )
+        raw_rank = request.data.get("predicted_rank")
+        try:
+            predicted_rank = int(raw_rank)
+        except (TypeError, ValueError):
+            return Response(
+                {"predicted_rank": "An integer rank is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if predicted_rank < 1:
+            return Response(
+                {"predicted_rank": "Rank starts at 1."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        now = dj_timezone.now()
+        if contest.state(now) == Contest.State.FINISHED:
+            return Response(
+                {"detail": "The contest already finished."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if Submission.objects.filter(contest=contest, user=request.user).exists():
+            return Response(
+                {
+                    "detail": (
+                        "Too late — you already submitted; predictions lock at "
+                        "your first submission."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        prediction, _created = ContestPrediction.objects.update_or_create(
+            contest=contest,
+            user=request.user,
+            defaults={"predicted_rank": predicted_rank},
+        )
+        return Response(
+            {"contest": contest.id, "predicted_rank": prediction.predicted_rank},
+            status=status.HTTP_201_CREATED,
         )

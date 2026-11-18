@@ -13,4 +13,9 @@ urlpatterns = [
         views.UserRatingHistoryView.as_view(),
         name="user_rating_history",
     ),
+    path(
+        "users/<str:username>/calibration/",
+        views.UserCalibrationView.as_view(),
+        name="user_calibration",
+    ),
 ]

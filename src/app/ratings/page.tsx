@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RatingService } from '@/services/ApiService';
+import CalibrationCard from './CalibrationCard';
 import { useAuth } from '@/context/AuthContext';
 import UserChip from '@/components/common/UserChip';
 import { MyRating, RatingLadderRow } from '@/types/api';
@@ -95,6 +96,8 @@ export default function RatingsPage() {
           )}
         </div>
       )}
+
+      {auth.isAuthenticated && auth.user && <CalibrationCard username={auth.user.username} />}
 
       {error && (
         <div role="alert" style={{ color: palette.danger, marginBottom: 12 }}>

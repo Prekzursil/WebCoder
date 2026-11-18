@@ -69,7 +69,11 @@ import {
   ContestCommentaryResponse,
   ContestCommentaryRow,
   ContestDrama,
+  ContestPredictionState,
   ContestReplay,
+  ContestTeamsResponse,
+  CalibrationProfile,
+  TeamStandingsResponse,
   HackRow,
   HackTargetsResponse,
   HacksResponse,
@@ -1284,10 +1288,13 @@ export const ContestService = {
     return apiFetch<GetContestsResponse>(`/contests/${qs ? `?${qs}` : ''}`);
   },
   getContest: (id: number | string) => apiFetch<Contest>(`/contests/${id}/`),
-  register: (id: number | string, accessCode?: string) =>
-    apiFetch<{ contest: number; user: number }>(`/contests/${id}/register/`, {
+  register: (id: number | string, accessCode?: string, teamName?: string) =>
+    apiFetch<{ contest: number; user: number; team: string | null }>(`/contests/${id}/register/`, {
       method: 'POST',
-      body: JSON.stringify(accessCode ? { access_code: accessCode } : {}),
+      body: JSON.stringify({
+        ...(accessCode ? { access_code: accessCode } : {}),
+        ...(teamName ? { team_name: teamName } : {}),
+      }),
     }),
   startPersonalClock: (id: number | string) =>
     apiFetch<{ virtual_start: string; effective_end: string }>(`/contests/${id}/start/`, {
@@ -1369,6 +1376,17 @@ export const ContestService = {
   getReplay: (id: number | string, username: string) =>
     apiFetch<ContestReplay>(`/contests/${id}/replay/${encodeURIComponent(username)}/`),
   getDrama: (id: number | string) => apiFetch<ContestDrama>(`/contests/${id}/drama/`),
+  // ---- Wave F items 49/50/55 ----
+  getTeams: (id: number | string) => apiFetch<ContestTeamsResponse>(`/contests/${id}/teams/`),
+  getTeamStandings: (id: number | string) =>
+    apiFetch<TeamStandingsResponse>(`/contests/${id}/standings/?section=teams`),
+  getPrediction: (id: number | string) =>
+    apiFetch<ContestPredictionState>(`/contests/${id}/predict/`),
+  predict: (id: number | string, predictedRank: number) =>
+    apiFetch<{ contest: number; predicted_rank: number }>(`/contests/${id}/predict/`, {
+      method: 'POST',
+      body: JSON.stringify({ predicted_rank: predictedRank }),
+    }),
 };
 
 // =================================
@@ -1382,6 +1400,9 @@ export const RatingService = {
   getMyRating: () => apiFetch<MyRating>('/ratings/ratings/me/'),
   getRatingHistory: (username: string) =>
     apiFetch<UserRatingHistory>(`/ratings/ratings/users/${encodeURIComponent(username)}/`),
+  // Wave F item 55 — the self-prediction calibration profile.
+  getCalibration: (username: string) =>
+    apiFetch<CalibrationProfile>(`/ratings/users/${encodeURIComponent(username)}/calibration/`),
 };
 
 // =================================
