@@ -1,5 +1,12 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+
+from .profile_widgets import (
+    EmbedProblemView,
+    SetterCVView,
+    SolveCardSvgView,
+    SolveCardView,
+)
 from .views import (
     UserRegistrationView,
     PasswordChangeView,
@@ -29,6 +36,27 @@ router.register(r"admin/manage", AdminUserViewSet, basename="admin-user-manageme
 router.register(r"", UserViewSet, basename="user")
 
 urlpatterns = [
+    # Wave F items 70-72 — setter CVs, solve cards, embeddable widgets.
+    path(
+        "username/<str:username>/setter-cv/",
+        SetterCVView.as_view(),
+        name="user_setter_cv",
+    ),
+    path(
+        "cards/solve/<str:username>/<int:problem_id>/",
+        SolveCardView.as_view(),
+        name="solve_card",
+    ),
+    path(
+        "cards/solve/<str:username>/<int:problem_id>/svg/",
+        SolveCardSvgView.as_view(),
+        name="solve_card_svg",
+    ),
+    path(
+        "embed/problems/<int:problem_id>/",
+        EmbedProblemView.as_view(),
+        name="embed_problem",
+    ),
     path("register/", UserRegistrationView.as_view(), name="user_register"),
     path("me/", UserMeView.as_view(), name="user_me"),
     path("password/change/", PasswordChangeView.as_view(), name="password_change"),

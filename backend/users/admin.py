@@ -22,3 +22,11 @@ admin.site.register(User, UserAdmin)
 class OwnerWeeklySnapshotAdmin(admin.ModelAdmin):
     list_display = ("week", "captured_at")
     readonly_fields = ("week", "captured_at", "payload")
+
+
+from .models import SetterProfile  # noqa: E402
+
+
+@admin.register(SetterProfile)
+class SetterProfileAdmin(admin.ModelAdmin):
+    list_display = ("user", "updated_at")

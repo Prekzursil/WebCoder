@@ -1818,6 +1818,106 @@ const server = createServer((req, res) => {
     return;
   }
 
+  // Wave F item 71 — submission detail for the share-card e2e (AC row).
+  const submissionDetail = path.match(/^\/api\/v1\/submissions\/submissions\/(\d+)\/$/);
+  if (req.method === 'GET' && submissionDetail) {
+    json(res, 200, {
+      id: Number(submissionDetail[1]),
+      user: { id: 1, username: 'e2e_tester' },
+      problem: { id: 1, title_i18n: { en: 'Two Sum' } },
+      language: 'python3',
+      code: 'print(1)',
+      verdict: 'AC',
+      score: 100,
+      submission_time: '2026-11-15T10:00:00Z',
+      execution_time_ms: 42,
+      memory_used_kb: 12000,
+      test_results: [],
+    });
+    return;
+  }
+
+  // ---- Wave F profile widgets (items 70-72) ----
+  const setterCv = path.match(/^\/api\/v1\/users\/username\/([^/]+)\/setter-cv\/$/);
+  if (setterCv) {
+    if (req.method === 'GET') {
+      json(res, 200, {
+        username: decodeURIComponent(setterCv[1]),
+        blurb: 'Olympiad problem setter since 2019.',
+        links: ['https://guru.dev'],
+        problems_approved: 12,
+        problems_by_difficulty: { EASY: 4, MEDIUM: 6, HARD: 2 },
+        community_editorials: 3,
+        articles: 1,
+        contests_contributed: 2,
+        member_since: '2026-01-01T00:00:00Z',
+      });
+      return;
+    }
+    if (req.method === 'PUT') {
+      readBody(req, (body) => {
+        json(res, 200, {
+          username: decodeURIComponent(setterCv[1]),
+          blurb: body.blurb ?? '',
+          links: body.links ?? [],
+          problems_approved: 12,
+          problems_by_difficulty: { EASY: 4, MEDIUM: 6, HARD: 2 },
+          community_editorials: 3,
+          articles: 1,
+          contests_contributed: 2,
+          member_since: '2026-01-01T00:00:00Z',
+        });
+      });
+      return;
+    }
+  }
+  const embedProblem = path.match(/^\/api\/v1\/users\/embed\/problems\/(\d+)\/$/);
+  if (req.method === 'GET' && embedProblem) {
+    const problem = MOCK_PROBLEMS.find((row) => row.id === Number(embedProblem[1]));
+    if (!problem) {
+      json(res, 404, { detail: 'Not found.' });
+      return;
+    }
+    json(res, 200, {
+      problem_id: problem.id,
+      title: problem.title_i18n.en ?? 'Problem',
+      difficulty: problem.difficulty,
+      time_limit_ms: problem.default_time_limit_ms,
+      memory_limit_kb: problem.default_memory_limit_kb,
+      samples: (problem.test_cases ?? [])
+        .filter((tc) => tc.is_sample)
+        .map((tc) => ({
+          input_data: tc.input_data,
+          expected_output_data: tc.expected_output_data,
+        })),
+      solved_by: 42,
+      solve_url: `/problems/${problem.id}`,
+    });
+    return;
+  }
+  const solveCard = path.match(/^\/api\/v1\/users\/cards\/solve\/([^/]+)\/(\d+)\/$/);
+  if (req.method === 'GET' && solveCard) {
+    json(res, 200, {
+      username: decodeURIComponent(solveCard[1]),
+      problem_id: Number(solveCard[2]),
+      problem_title: 'Two Sum',
+      difficulty: 'EASY',
+      ordinal: 7,
+      solved_at: '2026-11-15T10:00:00Z',
+    });
+    return;
+  }
+  const solveCardSvg = path.match(/^\/api\/v1\/users\/cards\/solve\/([^/]+)\/(\d+)\/svg\/$/);
+  if (req.method === 'GET' && solveCardSvg) {
+    res.writeHead(200, { 'Content-Type': 'image/svg+xml' });
+    res.end(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="200"><text x="32" y="96">SOLVED ${decodeURIComponent(
+        solveCardSvg[1],
+      )}</text></svg>`,
+    );
+    return;
+  }
+
   // ---- Wave F recognition (items 66-69) ----
   if (path === '/api/v1/community/reputation/me/') {
     if (!sessionUser(req)) {

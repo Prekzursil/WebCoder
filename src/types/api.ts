@@ -1167,3 +1167,37 @@ export interface ProblemRequestRow {
   vote_count: number;
   created_at: string;
 }
+
+// ---- Wave F profile widgets (items 70-72) ----
+
+export interface SetterCV {
+  username: string;
+  blurb: string;
+  links: string[];
+  problems_approved: number;
+  problems_by_difficulty: Record<string, number>;
+  community_editorials: number;
+  articles: number;
+  contests_contributed: number;
+  member_since: string;
+}
+
+export interface SolveCardData {
+  username: string;
+  problem_id: number;
+  problem_title: string;
+  difficulty: string;
+  ordinal: number;
+  solved_at: string | null;
+}
+
+export interface EmbedProblem {
+  problem_id: number;
+  title: string;
+  difficulty: string;
+  time_limit_ms: number;
+  memory_limit_kb: number;
+  samples: { input_data: string; expected_output_data: string }[];
+  solved_by: number;
+  solve_url: string;
+}

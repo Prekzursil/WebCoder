@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
+import { SolveCardShare } from '@/components/share/ShareWidgets';
 import { SubmissionService } from '@/services/ApiService';
 import { useAuth } from '@/context/AuthContext';
 import { DetailedSubmissionType, SubmissionTestResultType } from '@/types';
@@ -437,6 +438,16 @@ function SubmissionDetailPage() {
             )}
         </div>
       </div>
+
+      {/* Wave F item 71 — the shareable solve card (own AC submissions). */}
+      {submission.verdict === 'AC' && (
+        <SolveCardShare
+          username={submission.user?.username ?? ''}
+          problemId={
+            typeof submission.problem === 'number' ? submission.problem : submission.problem.id
+          }
+        />
+      )}
 
       <h2
         className="micro-label"
