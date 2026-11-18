@@ -26,6 +26,7 @@ from .community import (
 from .presubmit import PreSubmitLintView, PreSubmitSamplesView
 from . import content_ops_views
 from .strength import TestStrengthView
+from . import statement_quality_views
 from .random_problem import RandomProblemView
 
 app_name = "problems"
@@ -159,5 +160,27 @@ urlpatterns = [
         "bounties/<int:bounty_id>/resolve/",
         content_ops_views.BountyResolveView.as_view(),
         name="bounty_resolve",
+    ),
+
+    # Wave F items 121/123/124/134 — statement quality + wizard scaffold.
+    path(
+        "wizard/steps/",
+        statement_quality_views.WizardStepsView.as_view(),
+        name="wizard_steps",
+    ),
+    path(
+        "problems/<int:problem_id>/statement-lint/",
+        statement_quality_views.StatementLintView.as_view(),
+        name="statement_lint",
+    ),
+    path(
+        "problems/<int:problem_id>/readability/",
+        statement_quality_views.ReadabilityView.as_view(),
+        name="statement_readability",
+    ),
+    path(
+        "problems/<int:problem_id>/translation-status/",
+        statement_quality_views.TranslationStatusView.as_view(),
+        name="translation_status",
     ),
 ]

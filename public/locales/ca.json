@@ -1582,5 +1582,18 @@
   "tools_creators_only": "Aquestes eines són per a creadors i verificadors de problemes.",
   "nav_author_wizard": "Authoring wizard",
   "nav_author_tools": "Author tools",
-  "nav_author_analytics": "Author analytics"
+  "nav_author_analytics": "Author analytics",
+  "wizard_title": "Assistent de creació",
+  "wizard_subtitle": "Set passos de la idea a l'enviament — amb verificacions en directe.",
+  "wizard_problem_id": "Id de l'esborrany (opcional)",
+  "wizard_new_problem": "Comença un problema nou →",
+  "wizard_creators_only": "L'assistènt és per a creadors i verificadors de problemes.",
+  "wizard_lint_title": "Lint de l'enunciat",
+  "wizard_lint_clean": "Sense avisos — l'enunciat es llegeix bé.",
+  "wizard_readability_title": "Llegibilitat",
+  "wizard_readability_consistent": "Els idiomes es llegeixen coherentment.",
+  "wizard_readability_drift": "Els idiomes divergeixen en el nivell — simplifica el més difícil.",
+  "wizard_translation_title": "Traducció acompanyant",
+  "wizard_translation_complete": "Tots els camps localitzats estan complets.",
+  "wizard_translation_gaps": "Falten alguns camps localitzats — completa'ls abans d'enviar."
 }

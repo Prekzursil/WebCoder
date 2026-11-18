@@ -1582,5 +1582,18 @@
   "tools_creators_only": "Ovi su alati za autore i verifikatore zadataka.",
   "nav_author_wizard": "Authoring wizard",
   "nav_author_tools": "Author tools",
-  "nav_author_analytics": "Author analytics"
+  "nav_author_analytics": "Author analytics",
+  "wizard_title": "Čarobnjak za izradu",
+  "wizard_subtitle": "Sedam koraka od ideje do predaje — s provjerama dovršenosti uživo.",
+  "wizard_problem_id": "Id nacrta (neobavezno)",
+  "wizard_new_problem": "Započni novi zadatak →",
+  "wizard_creators_only": "Čarobnjak je za autore i verifikatore zadataka.",
+  "wizard_lint_title": "Lint teksta zadatka",
+  "wizard_lint_clean": "Nema upozorenja — tekst se dobro čita.",
+  "wizard_readability_title": "Čitljivost",
+  "wizard_readability_consistent": "Jezici se čitaju dosljedno.",
+  "wizard_readability_drift": "Jezici se razlikuju u razini — pojednostavi teži.",
+  "wizard_translation_title": "Prateći prijevod",
+  "wizard_translation_complete": "Sva lokalizirana polja su ispunjena.",
+  "wizard_translation_gaps": "Nedostaju neka lokalizirana polja — popuni ih prije predaje."
 }

@@ -1582,5 +1582,18 @@
   "tools_creators_only": "Αυτά τα εργαλεία είναι για συγγραφείς και ελεγκτές ασκήσεων.",
   "nav_author_wizard": "Authoring wizard",
   "nav_author_tools": "Author tools",
-  "nav_author_analytics": "Author analytics"
+  "nav_author_analytics": "Author analytics",
+  "wizard_title": "Οδηγός δημιουργίας",
+  "wizard_subtitle": "Επτά βήματα από την ιδέα until την υποβολή — με ζωντανούς ελέγχους.",
+  "wizard_problem_id": "Id πρόχειρου (προαιρετικό)",
+  "wizard_new_problem": "Ξεκινήστε νέα άσκηση →",
+  "wizard_creators_only": "Ο οδηγός είναι για συγγραφείς και ελεγκτές ασκήσεων.",
+  "wizard_lint_title": "Lint εκφώνησης",
+  "wizard_lint_clean": "Καμία προειδοποίηση — η εκφώνηση διαβάζεται καλά.",
+  "wizard_readability_title": "Αναγνωσιμότητα",
+  "wizard_readability_consistent": "Οι γλωσσικές εκδόσεις διαβάζονται με συνέπεια.",
+  "wizard_readability_drift": "Οι γλωσσικές εκδόσεις αποκλίνουν — απλοποιήστε τη δυσκολότερη.",
+  "wizard_translation_title": "Συνοδευτική μετάφραση",
+  "wizard_translation_complete": "Όλα τα τοπικοποιημένα πεδία συμπληρώθηκαν.",
+  "wizard_translation_gaps": "Λείπουν ορισμένα τοπικοποιημένα πεδία — συμπληρώστε πριν την υποβολή."
 }

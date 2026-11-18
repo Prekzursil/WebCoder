@@ -1582,5 +1582,18 @@
   "tools_creators_only": "Alat ini untuk pembuat dan verifikator soal.",
   "nav_author_wizard": "Authoring wizard",
   "nav_author_tools": "Author tools",
-  "nav_author_analytics": "Author analytics"
+  "nav_author_analytics": "Author analytics",
+  "wizard_title": "Wizard pembuatan",
+  "wizard_subtitle": "Tujuh langkah dari ide hingga pengiriman — dengan pemeriksaan langsung.",
+  "wizard_problem_id": "Id draf soal (opsional)",
+  "wizard_new_problem": "Mulai soal baru →",
+  "wizard_creators_only": "Wizard ini untuk pembuat dan verifikator soal.",
+  "wizard_lint_title": "Lint soal",
+  "wizard_lint_clean": "Tidak ada peringatan — soal mudah dibaca.",
+  "wizard_readability_title": "Keterbacaan",
+  "wizard_readability_consistent": "Versi bahasa terbaca konsisten.",
+  "wizard_readability_drift": "Versi bahasa berbeda tingkat bacanya — sederhanakan yang lebih sulit.",
+  "wizard_translation_title": "Terjemahan pendamping",
+  "wizard_translation_complete": "Semua field terlokalisasi terisi.",
+  "wizard_translation_gaps": "Beberapa field terlokalisasi belum ada — lengkapi sebelum mengirim."
 }

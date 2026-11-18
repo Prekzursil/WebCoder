@@ -1582,5 +1582,18 @@
   "tools_creators_only": "이 도구는 문제 작성자와 검증자를 위한 것입니다.",
   "nav_author_wizard": "Authoring wizard",
   "nav_author_tools": "Author tools",
-  "nav_author_analytics": "Author analytics"
+  "nav_author_analytics": "Author analytics",
+  "wizard_title": "출제 마법사",
+  "wizard_subtitle": "아이디어에서 제출까지 일곱 단계 — 실시간 완료 확인 포함.",
+  "wizard_problem_id": "초안 문제 ID (선택)",
+  "wizard_new_problem": "새 문제 시작 →",
+  "wizard_creators_only": "마법사는 문제 작성자와 검증자를 위한 것입니다.",
+  "wizard_lint_title": "지문 린트",
+  "wizard_lint_clean": "경고 없음 — 지문이 읽기 좋습니다.",
+  "wizard_readability_title": "가독성",
+  "wizard_readability_consistent": "언어판이 일관되게 읽힙니다.",
+  "wizard_readability_drift": "언어판 간 읽기 수준이 다릅니다 — 어려운 쪽을 단순화하세요.",
+  "wizard_translation_title": "사이드카 번역",
+  "wizard_translation_complete": "모든 현지화 필드가 채워졌습니다.",
+  "wizard_translation_gaps": "일부 현지화 필드가 누락되었습니다 — 제출 전 완료하세요."
 }

@@ -1582,5 +1582,18 @@
   "tools_creators_only": "Bu araçlar problem yazarları ve doğrulayıcıları içindir.",
   "nav_author_wizard": "Yazım sihirbazı",
   "nav_author_tools": "Yazar araçları",
-  "nav_author_analytics": "Yazar analitiği"
+  "nav_author_analytics": "Yazar analitiği",
+  "wizard_title": "Yazım sihirbazı",
+  "wizard_subtitle": "Fikirden göndermeye yedi adım — canlı tamamlama kontrolleriyle.",
+  "wizard_problem_id": "Taslak problem kimliği (isteğe bağlı)",
+  "wizard_new_problem": "Yeni problem başlat →",
+  "wizard_creators_only": "Sihirbaz problem yazarları ve doğrulayıcıları içindir.",
+  "wizard_lint_title": "Problem lint",
+  "wizard_lint_clean": "Uyarı yok — problem iyi okunuyor.",
+  "wizard_readability_title": "Okunabilirlik",
+  "wizard_readability_consistent": "Dil sürümleri tutarlı okunuyor.",
+  "wizard_readability_drift": "Dil sürümleri okuma düzeyinde ayrışıyor — zor olanı sadeleştir.",
+  "wizard_translation_title": "Yan çeviri",
+  "wizard_translation_complete": "Tüm yerelleştirilmiş alanlar dolu.",
+  "wizard_translation_gaps": "Bazı yerelleştirilmiş alanlar eksik — göndermeden önce tamamla."
 }

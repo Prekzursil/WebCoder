@@ -1582,5 +1582,18 @@
   "tools_creators_only": "Ezek az eszközök feladatszerzőknek és -ellenőröknek szólnak.",
   "nav_author_wizard": "Authoring wizard",
   "nav_author_tools": "Author tools",
-  "nav_author_analytics": "Author analytics"
+  "nav_author_analytics": "Author analytics",
+  "wizard_title": "Szerzői varázsló",
+  "wizard_subtitle": "Hét lépés az ötlettől a beküldésig — élő készültség-ellenőrzéssel.",
+  "wizard_problem_id": "Vázlat azonosító (opcionális)",
+  "wizard_new_problem": "Új feladat indítása →",
+  "wizard_creators_only": "A varázsló feladatszerzőknek és -ellenőröknek szól.",
+  "wizard_lint_title": "Feladatszöveg-lint",
+  "wizard_lint_clean": "Nincs figyelmeztetés — a szöveg jól olvasható.",
+  "wizard_readability_title": "Olvashatóság",
+  "wizard_readability_consistent": "A nyelvváltozatok konzisztensen olvashatók.",
+  "wizard_readability_drift": "A nyelvváltozatok szintje eltér — egyszerűsítsd a nehezebbet.",
+  "wizard_translation_title": "Kísérő fordítás",
+  "wizard_translation_complete": "Minden honosított mező ki van töltve.",
+  "wizard_translation_gaps": "Néhány honosított mező hiányzik — egészítsd ki beküldés előtt."
 }

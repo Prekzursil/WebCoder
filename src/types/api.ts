@@ -1234,3 +1234,33 @@ export interface AuthorAnalytics {
   editorial_coverage: number;
   open_test_bounties: number;
 }
+
+// ---- Wave F statement quality (items 121/123/124/134) ----
+
+export interface WizardStep {
+  key: string;
+  title_en: string;
+  description_en: string;
+  fields: string[];
+  complete: boolean;
+}
+
+export interface StatementLintWarning {
+  code: string;
+  locale: string;
+  message: string;
+}
+
+export interface ReadabilityReport {
+  locales: Record<
+    string,
+    { score: number | null; band: string | null; words: number; sentences: number }
+  >;
+  consistent: boolean | null;
+}
+
+export interface TranslationStatus {
+  fields: string[];
+  locales: Record<string, Record<string, boolean>>;
+  complete: boolean;
+}
