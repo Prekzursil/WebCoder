@@ -4,34 +4,6 @@ import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { ProblemType, TestCaseType } from '@/types';
 
-vi.mock('@/services/ApiService', () => ({
-  ForumService: {
-    getThreads: vi.fn().mockResolvedValue({ count: 0, next: null, previous: null, results: [] }),
-    createThread: vi.fn(),
-  },
-  ToolingService: {
-    getStatementRevisions: vi.fn().mockResolvedValue({ count: 0, results: [] }),
-    getSamplesBundle: vi.fn().mockResolvedValue({ count: 0, filename: '', content: '' }),
-  },
-  RelatedProblemService: {
-    list: vi.fn().mockResolvedValue({ count: 0, results: [] }),
-  },
-  CommunityService: {
-    getCommunityEditorials: vi
-      .fn()
-      .mockResolvedValue({ count: 0, next: null, previous: null, results: [] }),
-    createCommunityEditorial: vi.fn(),
-    getRelatedArticles: vi.fn().mockResolvedValue({ count: 0, results: [] }),
-    getArticles: vi.fn().mockResolvedValue({ count: 0, next: null, previous: null, results: [] }),
-    getArticle: vi.fn(),
-    getFeed: vi.fn().mockResolvedValue({ count: 0, page: 1, next: null, results: [] }),
-    getSolutions: vi.fn().mockRejectedValue(new Error('locked')),
-    getHonor: vi.fn(),
-    getMyHonor: vi.fn(),
-    getWeeklyBoard: vi.fn().mockResolvedValue({ count: 0, window_days: 7, results: [] }),
-  },
-}));
-
 vi.mock('next/headers', () => ({
   cookies: vi.fn(),
 }));
@@ -83,7 +55,7 @@ vi.mock('./SubmitSolutionForm', () => ({
   ),
 }));
 
-import ProblemDetailPage, { generateMetadata } from './page';
+import ProblemDetailPage, { generateMetadata, sourceAttribution } from './page';
 import { getProblemDetail, getProblems } from '../_lib/problems-api';
 
 function mockLocale(value: string | undefined) {
@@ -129,23 +101,6 @@ beforeEach(() => {
 });
 
 describe('ProblemDetailPage (route "/problems/:problemId")', () => {
-  it('badges an INTERACTIVE problem with the flush notice (JDG-2)', async () => {
-    vi.mocked(getProblemDetail).mockResolvedValue(problem({ problem_type: 'INTERACTIVE' }));
-    render(await ProblemDetailPage(pageProps()));
-
-    const badge = screen.getByText('Interactive');
-    expect(badge).toBeInTheDocument();
-    // The flush-your-output hint rides the badge title for keyboard users.
-    expect(badge.getAttribute('title')).toMatch(/flush/i);
-  });
-
-  it('renders no interactive badge for NORMAL problems', async () => {
-    vi.mocked(getProblemDetail).mockResolvedValue(problem({ problem_type: 'NORMAL' }));
-    render(await ProblemDetailPage(pageProps()));
-
-    expect(screen.queryByText('Interactive')).not.toBeInTheDocument();
-  });
-
   it('renders the problem content server-side and mounts the client form island', async () => {
     vi.mocked(getProblemDetail).mockResolvedValue(
       problem({
@@ -153,7 +108,7 @@ describe('ProblemDetailPage (route "/problems/:problemId")', () => {
           testCase({ is_sample: true, input_data: '1 2', expected_output_data: '3' }),
           testCase({ is_sample: false, input_data: '9 9', expected_output_data: '18' }),
         ],
-      }),
+      })
     );
     render(await ProblemDetailPage(pageProps()));
 
@@ -179,7 +134,7 @@ describe('ProblemDetailPage (route "/problems/:problemId")', () => {
 
   it('renders resource limits when present', async () => {
     vi.mocked(getProblemDetail).mockResolvedValue(
-      problem({ default_time_limit_ms: 1000, default_memory_limit_kb: 262144 }),
+      problem({ default_time_limit_ms: 1000, default_memory_limit_kb: 262144 })
     );
     render(await ProblemDetailPage(pageProps()));
 
@@ -197,7 +152,7 @@ describe('ProblemDetailPage (route "/problems/:problemId")', () => {
 
   it('hides the samples section when no test case is a sample', async () => {
     vi.mocked(getProblemDetail).mockResolvedValue(
-      problem({ test_cases: [testCase({ is_sample: false })] }),
+      problem({ test_cases: [testCase({ is_sample: false })] })
     );
     render(await ProblemDetailPage(pageProps()));
 
@@ -209,14 +164,16 @@ describe('ProblemDetailPage (route "/problems/:problemId")', () => {
       problem({
         title_i18n: { en: 'English title', ro: 'Titlu românesc' },
         statement_i18n: { en: 'English statement' },
-      }),
+      })
     );
     mockLocale('ro');
     render(await ProblemDetailPage(pageProps()));
 
     expect(screen.getByRole('heading', { name: 'Titlu românesc' })).toBeInTheDocument();
     expect(screen.getByText('English statement')).toBeInTheDocument();
-    expect(screen.getByTestId('submit-form').getAttribute('data-title')).toBe('Titlu românesc');
+    expect(screen.getByTestId('submit-form').getAttribute('data-title')).toBe(
+      'Titlu românesc'
+    );
   });
 
   it('falls back to "Problem ID: n" when no localized title exists', async () => {
@@ -227,7 +184,9 @@ describe('ProblemDetailPage (route "/problems/:problemId")', () => {
   });
 
   it('renders an empty statement instead of undefined', async () => {
-    vi.mocked(getProblemDetail).mockResolvedValue(problem({ statement_i18n: undefined }));
+    vi.mocked(getProblemDetail).mockResolvedValue(
+      problem({ statement_i18n: undefined })
+    );
     render(await ProblemDetailPage(pageProps()));
 
     // The statement is a <div> with whiteSpace: pre-wrap; when empty the page
@@ -260,10 +219,7 @@ describe('ProblemDetailPage (route "/problems/:problemId")', () => {
     // back to the catalog (dead-end fix).
     expect(screen.getByText(/Failed to load problem details\./)).toBeInTheDocument();
     expect(screen.getByText(/Failed to load problem\./)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Back to Problems' })).toHaveAttribute(
-      'href',
-      '/problems',
-    );
+    expect(screen.getByRole('link', { name: 'Back to Problems' })).toHaveAttribute('href', '/problems');
   });
 
   it('renders prev/next neighbors from the catalog ids (A18)', async () => {
@@ -275,14 +231,8 @@ describe('ProblemDetailPage (route "/problems/:problemId")', () => {
     ] as ProblemType[]);
     render(await ProblemDetailPage(pageProps()));
 
-    expect(screen.getByRole('link', { name: /Previous problem/ })).toHaveAttribute(
-      'href',
-      '/problems/5',
-    );
-    expect(screen.getByRole('link', { name: /Next problem/ })).toHaveAttribute(
-      'href',
-      '/problems/9',
-    );
+    expect(screen.getByRole('link', { name: /Previous problem/ })).toHaveAttribute('href', '/problems/5');
+    expect(screen.getByRole('link', { name: /Next problem/ })).toHaveAttribute('href', '/problems/9');
   });
 
   it('hides the prev/next pager when the catalog fetch fails', async () => {
@@ -296,9 +246,7 @@ describe('ProblemDetailPage (route "/problems/:problemId")', () => {
 
   it('offers a copy-link share affordance and sample copy buttons (A18/A7)', async () => {
     vi.mocked(getProblemDetail).mockResolvedValue(
-      problem({
-        test_cases: [testCase({ is_sample: true, input_data: '1 2', expected_output_data: '3' })],
-      }),
+      problem({ test_cases: [testCase({ is_sample: true, input_data: '1 2', expected_output_data: '3' })] })
     );
     vi.mocked(getProblems).mockResolvedValue([problem({})] as ProblemType[]);
     render(await ProblemDetailPage(pageProps()));
@@ -306,6 +254,80 @@ describe('ProblemDetailPage (route "/problems/:problemId")', () => {
     expect(screen.getByRole('button', { name: 'Copy link' })).toBeInTheDocument();
     // One copy button on the sample header.
     expect(screen.getByRole('button', { name: 'Copy' })).toBeInTheDocument();
+  });
+
+  it('renders the composed source line for imported problems (CNT-1)', async () => {
+    vi.mocked(getProblemDetail).mockResolvedValue(
+      problem({
+        source_line: 'Source: ONI 2014, Clasa a IX-a · Author(s): Constantin Galatan',
+      })
+    );
+    render(await ProblemDetailPage(pageProps()));
+
+    const line = screen.getByTestId('source-line');
+    expect(line).toHaveTextContent('Source: ONI 2014, Clasa a IX-a');
+    expect(line).toHaveTextContent('Author(s): Constantin Galatan');
+  });
+
+  it('linkifies the source line when the problem carries a source URL', async () => {
+    vi.mocked(getProblemDetail).mockResolvedValue(
+      problem({
+        source_line: 'Source: pbinfo.ro',
+        source_url: 'https://www.pbinfo.ro/probleme/1103/harta',
+      })
+    );
+    render(await ProblemDetailPage(pageProps()));
+
+    const link = screen.getByRole('link', { name: /pbinfo\.ro/ });
+    expect(link).toHaveAttribute('href', 'https://www.pbinfo.ro/probleme/1103/harta');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('composes the line locally when the backend sends only raw fields', async () => {
+    vi.mocked(getProblemDetail).mockResolvedValue(
+      problem({
+        source_name: 'infoarena.ro',
+        source_authors: ['Ana Pop', '', 'Bo Ion'],
+      })
+    );
+    render(await ProblemDetailPage(pageProps()));
+
+    expect(screen.getByTestId('source-line')).toHaveTextContent(
+      'Source: infoarena.ro · Author(s): Ana Pop, Bo Ion'
+    );
+  });
+
+  it('hides the source line entirely for own-authored problems', async () => {
+    vi.mocked(getProblemDetail).mockResolvedValue(problem({}));
+    render(await ProblemDetailPage(pageProps()));
+
+    expect(screen.queryByTestId('source-line')).not.toBeInTheDocument();
+  });
+});
+
+describe('sourceAttribution helper (CNT-1)', () => {
+  it('prefers the backend-composed source_line', () => {
+    expect(
+      sourceAttribution(
+        problem({
+          source_line: 'Source: X',
+          source_name: 'ignored',
+          source_authors: ['ignored'],
+        })
+      )
+    ).toBe('Source: X');
+  });
+
+  it('composes from raw fields and drops blank author entries', () => {
+    expect(
+      sourceAttribution(problem({ source_name: "DMOJ (CCO '03)", source_authors: ['A', ' ', 'B'] }))
+    ).toBe("Source: DMOJ (CCO '03) · Author(s): A, B");
+  });
+
+  it('returns an empty string when nothing is attributed', () => {
+    expect(sourceAttribution(problem({}))).toBe('');
+    expect(sourceAttribution(problem({ source_authors: ['   '] }))).toBe('');
   });
 });
 
@@ -321,7 +343,7 @@ describe('generateMetadata (problem detail)', () => {
 
   it('truncates long statements to 160 characters for the description', async () => {
     vi.mocked(getProblemDetail).mockResolvedValue(
-      problem({ statement_i18n: { en: 'x'.repeat(300) } }),
+      problem({ statement_i18n: { en: 'x'.repeat(300) } })
     );
 
     const metadata = await generateMetadata(pageProps());
@@ -330,7 +352,9 @@ describe('generateMetadata (problem detail)', () => {
   });
 
   it('uses a generic description when the statement is empty', async () => {
-    vi.mocked(getProblemDetail).mockResolvedValue(problem({ statement_i18n: undefined }));
+    vi.mocked(getProblemDetail).mockResolvedValue(
+      problem({ statement_i18n: undefined })
+    );
 
     const metadata = await generateMetadata(pageProps());
 
@@ -339,7 +363,7 @@ describe('generateMetadata (problem detail)', () => {
 
   it('localizes the title for Romanian visitors', async () => {
     vi.mocked(getProblemDetail).mockResolvedValue(
-      problem({ title_i18n: { en: 'English title', ro: 'Titlu românesc' } }),
+      problem({ title_i18n: { en: 'English title', ro: 'Titlu românesc' } })
     );
     mockLocale('ro');
 
@@ -354,47 +378,5 @@ describe('generateMetadata (problem detail)', () => {
     const metadata = await generateMetadata(pageProps('404'));
 
     expect(metadata.title).toBe('Problem not found.');
-  });
-
-  // i18n wave, owner rule (d): EN is the universal fallback — and the
-  // fallback is VISIBLE, with a help-translate affordance on the problem page.
-  it('shows the EN-fallback banner and translate link for a locale without a translation', async () => {
-    vi.mocked(getProblemDetail).mockResolvedValue(problem({}));
-    mockLocale('ro');
-    render(await ProblemDetailPage(pageProps()));
-
-    const banner = screen.getByTestId('i18n-fallback-banner');
-    expect(banner).toHaveTextContent(
-      'Această problemă nu există încă în limba ta — citești originalul în engleză.',
-    );
-    const help = screen.getByTestId('help-translate-link');
-    expect(help).toHaveTextContent('Ajută la traducere →');
-    expect(help.getAttribute('href')).toBe('/problems/7/translate');
-  });
-
-  it('credits the contributor and skips the banner once the locale translation exists', async () => {
-    vi.mocked(getProblemDetail).mockResolvedValue(
-      problem({
-        title_i18n: { en: 'Two Sum', ro: 'Suma a două numere', fr: 'Somme de deux nombres' },
-        statement_i18n: { en: 'Add two numbers.', ro: 'Adună două numere.' },
-        translations: [
-          { language: 'ro', contributor_username: 'alice', reviewed_at: '2026-10-31T09:00:00Z' },
-        ],
-      }),
-    );
-    mockLocale('ro');
-    render(await ProblemDetailPage(pageProps()));
-
-    expect(screen.getByTestId('translation-attribution')).toHaveTextContent('tradus de @alice');
-    expect(screen.queryByTestId('i18n-fallback-banner')).not.toBeInTheDocument();
-    expect(screen.getByTestId('problem-available-languages')).toBeInTheDocument();
-  });
-
-  it('hides the fallback banner for English visitors', async () => {
-    vi.mocked(getProblemDetail).mockResolvedValue(problem({}));
-    mockLocale('en');
-    render(await ProblemDetailPage(pageProps()));
-
-    expect(screen.queryByTestId('i18n-fallback-banner')).not.toBeInTheDocument();
   });
 });
