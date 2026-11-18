@@ -77,7 +77,13 @@ class GuestScratchEndpointTest(TestCase):
             ),
             mock.patch(
                 f"{SCRATCH}.run_code_in_sandbox",
-                return_value=(Submission.VerdictStatus.TIME_LIMIT_EXCEEDED, -1, -1, "", ""),
+                return_value=(
+                    Submission.VerdictStatus.TIME_LIMIT_EXCEEDED,
+                    -1,
+                    -1,
+                    "",
+                    "",
+                ),
             ),
         ):
             response = self.client.post("/api/v1/scratch/guest/", self.payload)
@@ -91,7 +97,13 @@ class GuestScratchEndpointTest(TestCase):
             ),
             mock.patch(
                 f"{SCRATCH}.run_code_in_sandbox",
-                return_value=(Submission.VerdictStatus.RUNTIME_ERROR, -1, -1, "", "boom"),
+                return_value=(
+                    Submission.VerdictStatus.RUNTIME_ERROR,
+                    -1,
+                    -1,
+                    "",
+                    "boom",
+                ),
             ),
         ):
             response = self.client.post("/api/v1/scratch/guest/", self.payload)
