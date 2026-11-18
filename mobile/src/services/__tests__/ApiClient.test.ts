@@ -8,6 +8,7 @@ import {
   collectAllPages,
   cookieFromResponse,
   extractErrorMessage,
+  sameOriginUrl,
   setTokenStore,
   setUnauthorizedHandler,
   __resetForTests,
@@ -25,6 +26,25 @@ describe('apiUrl (same-origin relative paths only)', () => {
   });
   it('rejects traversal fragments', () => {
     expect(() => apiUrl('/a/../..')).toThrow(/non-relative API path/);
+  });
+});
+
+describe('sameOriginUrl (origin allowlist for request URLs)', () => {
+  const base = 'http://10.0.2.2:8010/api/v1';
+  it('returns a URL that stays on the base origin', () => {
+    const url = sameOriginUrl(`${base}/problems/`, base);
+    expect(url).toContain('/api/v1/problems/');
+    expect(new URL(url).origin).toBe(new URL(base).origin);
+  });
+  it('rejects a URL that resolves to another origin', () => {
+    expect(() => sameOriginUrl('https://evil.example/x', base)).toThrow(
+      /cross-origin URL/,
+    );
+    // Protocol-relative input has no parseable origin without a base, so
+    // the URL parser itself rejects it before the origin comparison.
+    expect(() =>
+      sameOriginUrl('//evil.example/x', 'https://api.example.com'),
+    ).toThrow();
   });
 });
 

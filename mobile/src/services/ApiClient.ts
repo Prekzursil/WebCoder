@@ -86,26 +86,33 @@ export function cookieFromResponse(
 let refreshInFlight: Promise<boolean> | null = null;
 
 /**
+ * Parse `raw` and return it only if it resolves to the same origin as
+ * `base`: the URL-parsing/origin-allowlist counterpart of the relative
+ * path checks in apiUrl. Anything that would direct a request at
+ * another host (absolute URL to another origin, protocol-relative
+ * '//host', credential tricks) is rejected before it can reach
+ * fetch() (js/request-forgery).
+ */
+export function sameOriginUrl(raw: string, base: string): string {
+  const url = new URL(raw);
+  if (url.origin !== new URL(base).origin) {
+    throw new Error(`Refusing cross-origin URL: ${raw}`);
+  }
+  return url.toString();
+}
+
+/**
  * Same-origin relative API path only: no absolute URLs, no
  * protocol-relative '//host', no '..' escapes. Callers pass paths like
  * '/problems/'; anything else would redirect the authenticated fetch to
- * an attacker-chosen destination (js/request-forgery).
- *
- * Defense in depth: the concatenated URL is also PARSED and its origin
- * compared against the configured API origin — a value that somehow
- * slips past the prefix checks still cannot leave the API host.
+ * an attacker-chosen destination. The result is additionally
+ * origin-pinned via sameOriginUrl as defense in depth.
  */
-const API_ORIGIN: string = new URL(API_V1_URL).origin;
-
 export function apiUrl(path: string): string {
   if (!path.startsWith('/') || path.startsWith('//') || path.includes('..')) {
     throw new Error(`Refusing non-relative API path: ${path}`);
   }
-  const url = new URL(`${API_V1_URL}${path}`);
-  if (url.origin !== API_ORIGIN) {
-    throw new Error(`Refusing non-relative API path: ${path}`);
-  }
-  return url.toString();
+  return sameOriginUrl(`${API_V1_URL}${path}`, API_V1_URL);
 }
 
 async function refreshTokens(): Promise<boolean> {
