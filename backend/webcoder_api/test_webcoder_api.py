@@ -70,17 +70,17 @@ def _exec_settings():
 
 
 def test_package_exports_celery_app():
-    import webcoder_api.celery
+    from webcoder_api import celery
 
     # import_module keeps this scope to ONE import form of webcoder_api
     # while still asserting the package surface.
     webcoder_api = importlib.import_module("webcoder_api")
     assert webcoder_api.__all__ == ("celery_app",)
-    assert webcoder_api.celery_app is webcoder_api.celery.app
+    assert webcoder_api.celery_app is celery.app
 
 
 def test_celery_app_configuration():
-    import webcoder_api.celery as celery_mod
+    from webcoder_api import celery as celery_mod
 
     app = celery_mod.app
     assert app.main == "webcoder_api"
@@ -287,7 +287,7 @@ def test_celery_non_filesystem_broker_skips_transport_options():
     install the filesystem transport options (single-branch 100% gate)."""
     from django.test import override_settings
 
-    import webcoder_api.celery as celery_mod
+    from webcoder_api import celery as celery_mod
 
     try:
         with override_settings(CELERY_BROKER_URL="redis://redis:6379/0"):

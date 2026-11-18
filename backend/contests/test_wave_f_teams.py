@@ -268,6 +268,45 @@ class SchoolCupTests(TeamsCupsBase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_school_cup_with_name_is_accepted(self):
+        """A school cup that names its school clears the eligibility gate
+        on create (the valid twin of test_school_cup_requires_name)."""
+        self.client.force_authenticate(self.admin)
+        response = self.client.post(
+            "/api/v1/contests/",
+            {
+                "title_i18n": {"en": "Named Cup"},
+                "start_at": "2026-12-01T10:00:00Z",
+                "end_at": "2026-12-01T12:00:00Z",
+                "is_school_cup": True,
+                "school_name": "Colegiul Național „Emil Racoviță”",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+        contest = Contest.objects.get(title_i18n__en="Named Cup")
+        self.assertTrue(contest.is_school_cup)
+        self.assertEqual(contest.school_name, "Colegiul Național „Emil Racoviță”")
+
+    def test_team_contest_unrated_is_accepted(self):
+        """A team contest without individual ratings is the valid shape:
+        the serializer only rejects team+rated, not team alone."""
+        self.client.force_authenticate(self.admin)
+        response = self.client.post(
+            "/api/v1/contests/",
+            {
+                "title_i18n": {"en": "Team Bowl"},
+                "start_at": "2026-12-01T10:00:00Z",
+                "end_at": "2026-12-01T12:00:00Z",
+                "is_team_contest": True,
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+        contest = Contest.objects.get(title_i18n__en="Team Bowl")
+        self.assertTrue(contest.is_team_contest)
+        self.assertFalse(contest.is_rated)
+
 
 class PredictionTests(TeamsCupsBase):
     def setUp(self):
@@ -433,6 +472,32 @@ class CalibrationTests(TeamsCupsBase):
         )
         profile = calibration(self.alice)
         # Predicted but never sat: no actual rank, no error, excluded from MAE.
+        self.assertIsNone(profile["results"][0]["actual_rank"])
+        self.assertIsNone(profile["results"][0]["error"])
+        self.assertEqual(profile["count"], 0)
+
+    def test_calibration_absent_but_field_not_empty(self):
+        """actual_rank walks a NON-empty official field that does not
+        contain the predictor: the standings loop iterates (another user
+        is ranked) and returns None only after exhausting it."""
+        finished = self.mk_contest(
+            start_at=self.now - timedelta(hours=3),
+            end_at=self.now - timedelta(hours=1),
+        )
+        ContestPrediction.objects.create(
+            user=self.alice, contest=finished, predicted_rank=1
+        )
+        part = ContestParticipation.objects.create(contest=finished, user=self.bob)
+        ContestScore.objects.create(
+            participation=part,
+            contest_problem=finished.contest_problems.get(),
+            best_score=100,
+            best_score_frozen=100,
+            first_ac_at=self.now - timedelta(hours=2),
+            first_ac_at_frozen=self.now - timedelta(hours=2),
+        )
+        profile = calibration(self.alice)
+        # Bob is on the board, alice never sat: her actual rank stays None.
         self.assertIsNone(profile["results"][0]["actual_rank"])
         self.assertIsNone(profile["results"][0]["error"])
         self.assertEqual(profile["count"], 0)
