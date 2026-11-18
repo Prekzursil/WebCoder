@@ -96,7 +96,9 @@ class SetterCVTests(WidgetsBase):
         self.assertEqual(profile.links, ["https://x.dev"])
 
     def test_partial_updates(self):
-        SetterProfile.objects.create(user=self.alice, blurb="keep", links=["https://x.dev"])
+        SetterProfile.objects.create(
+            user=self.alice, blurb="keep", links=["https://x.dev"]
+        )
         self.client.force_authenticate(self.alice)
         response = self.client.put(
             "/api/v1/users/username/alice/setter-cv/",
