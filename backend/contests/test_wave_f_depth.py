@@ -488,7 +488,6 @@ class HackViewTests(WaveFContestBase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_lock_view_unknown_problem(self):
-        response = self.client.post(f"/api/v1/contests/{self.contest.id}/lock/999999/")
         self.client.force_authenticate(self.alice)
         response = self.client.post(f"/api/v1/contests/{self.contest.id}/lock/999999/")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
