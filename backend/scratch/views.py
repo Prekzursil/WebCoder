@@ -179,7 +179,7 @@ class GuestScratchRunView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        record_kwargs = dict(
+        record_kwargs: dict[str, object] = dict(
             ip_hash=_hash_ip(request),
             language=language,
             source_code=code[:GUEST_SOURCE_STORED_CAP],
