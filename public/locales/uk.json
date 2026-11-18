@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "Мовні версії розходяться за рівнем — спростіть складнішу.",
   "wizard_translation_title": "Супутній переклад",
   "wizard_translation_complete": "Усі локалізовані поля заповнені.",
-  "wizard_translation_gaps": "Деяких локалізованих полів бракує — заповніть до надсилання."
+  "wizard_translation_gaps": "Деяких локалізованих полів бракує — заповніть до надсилання.",
+  "tools_title": "Інструменти автора",
+  "tools_subtitle": "Генератори тестів, сімейства варіантів і вкладення.",
+  "gen_title": "Генератор тестів (DSL)",
+  "gen_run": "Згенерувати тести",
+  "gen_created": "Створено тестів: {{count}}; перший ввід: {{first}}",
+  "variants_title": "Сімейство варіантів",
+  "variants_spawn": "Створити варіант",
+  "variant_spawned": "Варіант #{{id}} створено",
+  "variants_empty": "Варіантів ще немає.",
+  "attachments_title": "Додатки до умови",
+  "attachments_upload": "Завантажити",
+  "attachments_name": "Назва файлу",
+  "attachments_empty": "Додатків ще немає.",
+  "attachment_uploaded": "{{name}} завантажено"
 }

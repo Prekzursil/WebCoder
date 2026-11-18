@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "Variantele diferă la nivel de lectură — simplific-o pe cea grea.",
   "wizard_translation_title": "Traducerea însoțitoare",
   "wizard_translation_complete": "Toate câmpurile localizate sunt completate.",
-  "wizard_translation_gaps": "Unele câmpuri localizate lipsesc — completează-le înainte de trimitere."
+  "wizard_translation_gaps": "Unele câmpuri localizate lipsesc — completează-le înainte de trimitere.",
+  "tools_title": "Unelte autor",
+  "tools_subtitle": "Generatoare de teste, familii de variante și atașamente.",
+  "gen_title": "Generator de teste (DSL)",
+  "gen_run": "Generează teste",
+  "gen_created": "Am creat {{count}} teste; primul input: {{first}}",
+  "variants_title": "Familie de variante",
+  "variants_spawn": "Creează variantă",
+  "variant_spawned": "Varianta #{{id}} creată",
+  "variants_empty": "Nicio variantă încă.",
+  "attachments_title": "Atașamente enunț",
+  "attachments_upload": "Încarcă",
+  "attachments_name": "Nume fișier",
+  "attachments_empty": "Niciun atașament încă.",
+  "attachment_uploaded": "Încărcat {{name}}"
 }

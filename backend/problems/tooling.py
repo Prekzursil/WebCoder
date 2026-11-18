@@ -808,6 +808,30 @@ def _tests_from_zip(package: zipfile.ZipFile) -> list[tuple[str, str, str, bool]
         input_text = package.read(name).decode("utf-8", errors="replace")
         is_sample = any(part.lower() == "sample" for part in parts)
         pairs.append((stem, input_text, answer, is_sample))
+    # Legacy Polygon layout (item 127): extensionless ``tests/<n>`` input
+    # files paired with ``tests/<n>.a`` answers (or .ans/.out siblings).
+    seen = {pair[0] for pair in pairs}
+    for name in names:
+        if not _safe_member_name(name) or name.endswith("/"):
+            continue
+        parts = re.split(r"[/\\]", name)
+        if parts[0].lower() != "tests" or len(parts) != 2:
+            continue
+        if "." in parts[1]:
+            continue  # answers and other files carry extensions
+        stem = name
+        if stem in seen:
+            continue
+        answer = None
+        for ext in _ANSWER_SUFFIXES:
+            candidate = stem + ext
+            if candidate in names:
+                answer = package.read(candidate).decode("utf-8", errors="replace")
+                break
+        if answer is None:
+            continue
+        input_text = package.read(name).decode("utf-8", errors="replace")
+        pairs.append((stem, input_text, answer, False))
     return pairs
 
 

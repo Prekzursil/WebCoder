@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "Езиковите версии се различават — опростете по-трудната.",
   "wizard_translation_title": "Съпроводен превод",
   "wizard_translation_complete": "Всички локализирани полета са попълнени.",
-  "wizard_translation_gaps": "Липсват някои локализирани полета — попълнете преди подаване."
+  "wizard_translation_gaps": "Липсват някои локализирани полета — попълнете преди подаване.",
+  "tools_title": "Инструменти за автор",
+  "tools_subtitle": "Генератори за тестове, семейства варианти и прикачени файлове.",
+  "gen_title": "Генератор на тестове (DSL)",
+  "gen_run": "Генерирай тестове",
+  "gen_created": "Създадени тестове: {{count}}; първи вход: {{first}}",
+  "variants_title": "Семейство варианти",
+  "variants_spawn": "Създай вариант",
+  "variant_spawned": "Вариант #{{id}} създаден",
+  "variants_empty": "Още няма варианти.",
+  "attachments_title": "Прикачени файлове към условието",
+  "attachments_upload": "Качи",
+  "attachments_name": "Име на файла",
+  "attachments_empty": "Още няма прикачени файлове.",
+  "attachment_uploaded": "{{name}} качен"
 }

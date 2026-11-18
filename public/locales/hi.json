@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "भाषा संस्करणों का स्तर भिन्न है — कठिन को सरल करें।",
   "wizard_translation_title": "साइडकार अनुवाद",
   "wizard_translation_complete": "सभी स्थानीयकृत फ़ील्ड भरे गए हैं।",
-  "wizard_translation_gaps": "कुछ स्थानीयकृत फ़ील्ड गायब हैं — सबमिट करने से पहले पूरे करें।"
+  "wizard_translation_gaps": "कुछ स्थानीयकृत फ़ील्ड गायब हैं — सबमिट करने से पहले पूरे करें।",
+  "tools_title": "लेखक उपकरण",
+  "tools_subtitle": "टेस्ट जनरेटर, वैरिएंट परिवार और अनुलग्नक।",
+  "gen_title": "टेस्टकेस जनरेटर (DSL)",
+  "gen_run": "टेस्ट जनरेट करें",
+  "gen_created": "{{count}} टेस्ट बनाए; पहला इनपुट: {{first}}",
+  "variants_title": "वैरिएंट परिवार",
+  "variants_spawn": "वैरिएंट बनाएँ",
+  "variant_spawned": "वैरिएंट #{{id}} बनाया गया",
+  "variants_empty": "अभी कोई वैरिएंट नहीं है।",
+  "attachments_title": "कथन अनुलग्नक",
+  "attachments_upload": "अपलोड करें",
+  "attachments_name": "फ़ाइल नाम",
+  "attachments_empty": "अभी कोई अनुलग्नक नहीं है।",
+  "attachment_uploaded": "{{name}} अपलोड हुआ"
 }

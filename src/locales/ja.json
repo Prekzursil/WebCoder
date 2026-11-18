@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "言語版で読みやすさがばらつきます — 難しい方を簡潔に。",
   "wizard_translation_title": "サイドカー翻訳",
   "wizard_translation_complete": "すべてのローカライズ済みフィールドが入力済みです。",
-  "wizard_translation_gaps": "未入力のローカライズフィールドがあります — 提出前に完了してください。"
+  "wizard_translation_gaps": "未入力のローカライズフィールドがあります — 提出前に完了してください。",
+  "tools_title": "作成ツール",
+  "tools_subtitle": "テストジェネレーター、バリアント族、添付ファイル。",
+  "gen_title": "テストジェネレーター（DSL）",
+  "gen_run": "テストを生成",
+  "gen_created": "{{count}}件のテストを生成。最初の入力: {{first}}",
+  "variants_title": "バリアント族",
+  "variants_spawn": "バリアントを作成",
+  "variant_spawned": "バリアント #{{id}} を作成しました",
+  "variants_empty": "まだバリアントはありません。",
+  "attachments_title": "問題文の添付",
+  "attachments_upload": "アップロード",
+  "attachments_name": "ファイル名",
+  "attachments_empty": "まだ添付はありません。",
+  "attachment_uploaded": "{{name}} をアップロードしました"
 }

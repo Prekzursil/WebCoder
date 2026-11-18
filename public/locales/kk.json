@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "Тіл нұсқаларының деңгейі алшақ — қиынырағын жеңілдет.",
   "wizard_translation_title": "Қосалқы аударма",
   "wizard_translation_complete": "Барлық локализацияланған өрістер толтырылған.",
-  "wizard_translation_gaps": "Кейбір локализацияланған өрістер жоқ — жібермес бұрын толтыр."
+  "wizard_translation_gaps": "Кейбір локализацияланған өрістер жоқ — жібермес бұрын толтыр.",
+  "tools_title": "Автор құралдары",
+  "tools_subtitle": "Тест генераторлары, вариант отбасылары және тіркемелер.",
+  "gen_title": "Тест генераторы (DSL)",
+  "gen_run": "Тестерді генерациялау",
+  "gen_created": "{{count}} тест жасалды; алғашқы енгізу: {{first}}",
+  "variants_title": "Вариант отбасысы",
+  "variants_spawn": "Вариант жасау",
+  "variant_spawned": "#{{id}} варианты жасалды",
+  "variants_empty": "Әзірге варианттар жоқ.",
+  "attachments_title": "Шарт тіркемелері",
+  "attachments_upload": "Жүктеу",
+  "attachments_name": "Файл атауы",
+  "attachments_empty": "Әзірге тіркемелер жоқ.",
+  "attachment_uploaded": "{{name}} жүктелді"
 }

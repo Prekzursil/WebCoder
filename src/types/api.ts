@@ -1264,3 +1264,20 @@ export interface TranslationStatus {
   locales: Record<string, Record<string, boolean>>;
   complete: boolean;
 }
+
+// ---- Wave F authoring ops (items 122/126/128) ----
+
+export interface VariantRow {
+  id: number;
+  title: string;
+  note: string;
+  status: string;
+}
+
+export interface AttachmentRow {
+  id: number;
+  name: string;
+  kind: string;
+  size_bytes: number;
+  url: string;
+}

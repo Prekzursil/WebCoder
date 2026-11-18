@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "各语言版本阅读水平漂移——请简化较难的版本。",
   "wizard_translation_title": "伴随翻译",
   "wizard_translation_complete": "所有本地化字段均已填写。",
-  "wizard_translation_gaps": "部分本地化字段缺失——提交前请补全。"
+  "wizard_translation_gaps": "部分本地化字段缺失——提交前请补全。",
+  "tools_title": "作者工具",
+  "tools_subtitle": "测试生成器、变体家族与题面附件。",
+  "gen_title": "测试用例生成器（DSL）",
+  "gen_run": "生成测试",
+  "gen_created": "已创建 {{count}} 个测试；首个输入：{{first}}",
+  "variants_title": "变体家族",
+  "variants_spawn": "生成变体",
+  "variant_spawned": "已创建变体 #{{id}}",
+  "variants_empty": "还没有变体。",
+  "attachments_title": "题面附件",
+  "attachments_upload": "上传",
+  "attachments_name": "文件名",
+  "attachments_empty": "还没有附件。",
+  "attachment_uploaded": "已上传 {{name}}"
 }

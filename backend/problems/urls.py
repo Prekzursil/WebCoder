@@ -26,6 +26,7 @@ from .community import (
 from .presubmit import PreSubmitLintView, PreSubmitSamplesView
 from . import content_ops_views
 from .strength import TestStrengthView
+from . import authoring_ops
 from . import statement_quality_views
 from .random_problem import RandomProblemView
 
@@ -181,5 +182,26 @@ urlpatterns = [
         "problems/<int:problem_id>/translation-status/",
         statement_quality_views.TranslationStatusView.as_view(),
         name="translation_status",
+    ),
+    # Wave F items 122/126/128 — generator DSL, variants, attachments.
+    path(
+        "problems/<int:problem_id>/generate-tests/",
+        authoring_ops.GenerateTestsView.as_view(),
+        name="generate_tests",
+    ),
+    path(
+        "problems/<int:problem_id>/variants/",
+        authoring_ops.VariantSpawnView.as_view(),
+        name="variant_spawn",
+    ),
+    path(
+        "problems/<int:problem_id>/variants/list/",
+        authoring_ops.VariantListView.as_view(),
+        name="variant_list",
+    ),
+    path(
+        "problems/<int:problem_id>/attachments/",
+        authoring_ops.AttachmentView.as_view(),
+        name="statement_attachments",
     ),
 ]

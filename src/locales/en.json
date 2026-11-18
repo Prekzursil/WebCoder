@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "Locales drift in reading level — simplify the harder one.",
   "wizard_translation_title": "Translation sidecar",
   "wizard_translation_complete": "Every localized field is filled.",
-  "wizard_translation_gaps": "Some localized fields are missing — finish them before submitting."
+  "wizard_translation_gaps": "Some localized fields are missing — finish them before submitting.",
+  "tools_title": "Author tools",
+  "tools_subtitle": "Test generators, variant families and statement attachments.",
+  "gen_title": "Testcase generator (DSL)",
+  "gen_run": "Generate tests",
+  "gen_created": "Created {{count}} tests; first input: {{first}}",
+  "variants_title": "Variant family",
+  "variants_spawn": "Spawn variant",
+  "variant_spawned": "Variant #{{id}} created",
+  "variants_empty": "No variants yet.",
+  "attachments_title": "Statement attachments",
+  "attachments_upload": "Upload",
+  "attachments_name": "File name",
+  "attachments_empty": "No attachments yet.",
+  "attachment_uploaded": "Uploaded {{name}}"
 }

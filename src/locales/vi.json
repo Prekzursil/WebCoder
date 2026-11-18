@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "Các bản dịch lệch mức đọc — đơn giản hóa bản khó hơn.",
   "wizard_translation_title": "Bản dịch kèm theo",
   "wizard_translation_complete": "Mọi trường bản địa hóa đã được điền.",
-  "wizard_translation_gaps": "Thiếu một số trường bản dịch — hoàn thành trước khi nộp."
+  "wizard_translation_gaps": "Thiếu một số trường bản dịch — hoàn thành trước khi nộp.",
+  "tools_title": "Công cụ tác giả",
+  "tools_subtitle": "Bộ tạo kiểm thử, họ biến thể và tệp đính kèm.",
+  "gen_title": "Bộ tạo test (DSL)",
+  "gen_run": "Tạo test",
+  "gen_created": "Đã tạo {{count}} test; input đầu: {{first}}",
+  "variants_title": "Họ biến thể",
+  "variants_spawn": "Tạo biến thể",
+  "variant_spawned": "Đã tạo biến thể #{{id}}",
+  "variants_empty": "Chưa có biến thể nào.",
+  "attachments_title": "Tệp đính kèm đề bài",
+  "attachments_upload": "Tải lên",
+  "attachments_name": "Tên tệp",
+  "attachments_empty": "Chưa có tệp đính kèm nào.",
+  "attachment_uploaded": "Đã tải lên {{name}}"
 }

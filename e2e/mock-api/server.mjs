@@ -2072,6 +2072,71 @@ const server = createServer((req, res) => {
     return;
   }
 
+  // Wave F authoring-ops fixtures (item 128).
+  const MOCK_ATTACHMENTS = [
+    {
+      id: 1,
+      name: 'figure.png',
+      kind: 'inline',
+      size_bytes: 512,
+      url: '/media/mock-figure.png',
+    },
+  ];
+
+  // ---- Wave F authoring ops (items 122/126/128) ----
+  const generateTests = path.match(/^\/api\/v1\/problems\/problems\/(\d+)\/generate-tests\/$/);
+  if (req.method === 'POST' && generateTests) {
+    readBody(req, (body) => {
+      json(res, 201, {
+        created: body.count ?? 5,
+        first: '42 7',
+        note: 'Inputs generated',
+      });
+    });
+    return;
+  }
+  const variantSpawn = path.match(/^\/api\/v1\/problems\/problems\/(\d+)\/variants\/$/);
+  if (req.method === 'POST' && variantSpawn) {
+    json(res, 201, {
+      variant_id: 12,
+      root_id: Number(variantSpawn[1]),
+      title: 'Two Sum — variant 1',
+    });
+    return;
+  }
+  const variantList = path.match(/^\/api\/v1\/problems\/problems\/(\d+)\/variants\/list\/$/);
+  if (req.method === 'GET' && variantList) {
+    json(res, 200, {
+      root: Number(variantList[1]),
+      count: 2,
+      variants: [
+        { id: Number(variantList[1]), title: 'Two Sum', note: '', status: 'DRAFT' },
+        { id: 12, title: 'Two Sum — variant 1', note: '', status: 'DRAFT' },
+      ],
+    });
+    return;
+  }
+  const attachments = path.match(/^\/api\/v1\/problems\/problems\/(\d+)\/attachments\/$/);
+  if (attachments) {
+    if (req.method === 'GET') {
+      json(res, 200, { count: 1, results: MOCK_ATTACHMENTS });
+      return;
+    }
+    if (req.method === 'POST') {
+      readBody(req, (body) => {
+        json(res, 201, {
+          id: 2,
+          name: body.name ?? '',
+          kind: body.kind ?? 'inline',
+          size_bytes: 4,
+          url: '/media/mock',
+          uploaded_at: new Date().toISOString(),
+        });
+      });
+      return;
+    }
+  }
+
   // ---- Wave F recognition (items 66-69) ----
   if (path === '/api/v1/community/reputation/me/') {
     if (!sessionUser(req)) {

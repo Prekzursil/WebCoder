@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "Jezici se razlikuju u razini — pojednostavi teži.",
   "wizard_translation_title": "Prateći prijevod",
   "wizard_translation_complete": "Sva lokalizirana polja su ispunjena.",
-  "wizard_translation_gaps": "Nedostaju neka lokalizirana polja — popuni ih prije predaje."
+  "wizard_translation_gaps": "Nedostaju neka lokalizirana polja — popuni ih prije predaje.",
+  "tools_title": "Alati autora",
+  "tools_subtitle": "Generatori testova, obitelji varijanti i privici.",
+  "gen_title": "Generator testova (DSL)",
+  "gen_run": "Generiraj testove",
+  "gen_created": "Stvoreno {{count}} testova; prvi ulaz: {{first}}",
+  "variants_title": "Obitelj varijanti",
+  "variants_spawn": "Stvori varijantu",
+  "variant_spawned": "Varijanta #{{id}} stvorena",
+  "variants_empty": "Još nema varijanti.",
+  "attachments_title": "Privici teksta zadatka",
+  "attachments_upload": "Prenesi",
+  "attachments_name": "Naziv datoteke",
+  "attachments_empty": "Još nema privica.",
+  "attachment_uploaded": "{{name}} preneseno"
 }

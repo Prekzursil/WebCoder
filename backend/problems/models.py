@@ -459,6 +459,18 @@ class Problem(models.Model):
         blank=True,
         help_text=_("Scheduled visibility — the catalog hides the problem until then."),
     )
+    # Variant families (item 126): children point at the family ROOT; the
+    # root itself points at nothing. variant_note records the per-variant
+    # parameter tweak ("bounds doubled", "queries offline", …).
+    variant_parent = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="variant_children",
+        verbose_name=_("variant parent (family root)"),
+    )
+    variant_note = models.CharField(_("variant note"), max_length=200, blank=True)
     verifier_feedback = models.TextField(
         _("verifier feedback"),
         blank=True,
@@ -474,6 +486,16 @@ class Problem(models.Model):
                 "en", self.title_i18n.get("ro", f"Problem {self.id}")
             )
         return f"Problem {self.id}"
+
+    @property
+    def variant_root(self):
+        """The family root: the problem itself when it has no parent."""
+        current = self
+        seen = set()
+        while current.variant_parent_id is not None and current.id not in seen:
+            seen.add(current.id)
+            current = current.variant_parent
+        return current
 
     class Meta:
         verbose_name = _("problem")
@@ -1115,3 +1137,42 @@ class ProblemBounty(models.Model):
 
     def __str__(self):
         return f"bounty #{self.id} ({self.points}p) on problem {self.problem_id}"
+
+
+class StatementAttachment(models.Model):
+    """Item 128 — a file attached to a problem statement (figure, PDF,
+    dataset sketch). Stored on the media storage; the statement embeds it
+    by URL. Author/verifier-visible in the authoring flow."""
+
+    class Kind(models.TextChoices):
+        INLINE = "inline", _("Inline (rendered in the statement)")
+        DOWNLOAD = "download", _("Download")
+
+    problem = models.ForeignKey(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name="attachments",
+        verbose_name=_("problem"),
+    )
+    name = models.CharField(_("name"), max_length=120)
+    kind = models.CharField(
+        _("kind"), max_length=10, choices=Kind.choices, default=Kind.INLINE
+    )
+    file = models.FileField(_("file"), max_length=300)
+    size_bytes = models.PositiveIntegerField(_("size (bytes)"), default=0)
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="uploaded_attachments",
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("statement attachment")
+        verbose_name_plural = _("statement attachments")
+        ordering = ["problem", "id"]
+
+    def __str__(self):
+        return f"attachment {self.name} (problem {self.problem_id})"

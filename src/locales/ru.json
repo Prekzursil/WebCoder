@@ -1595,5 +1595,19 @@
   "wizard_readability_drift": "Языковые версии расходятся по уровню — упростите более сложную.",
   "wizard_translation_title": "Сопутствующий перевод",
   "wizard_translation_complete": "Все локализованные поля заполнены.",
-  "wizard_translation_gaps": "Некоторые локализованные поля отсутствуют — заполните до отправки."
+  "wizard_translation_gaps": "Некоторые локализованные поля отсутствуют — заполните до отправки.",
+  "tools_title": "Инструменты автора",
+  "tools_subtitle": "Генераторы тестов, семейства вариантов и вложения.",
+  "gen_title": "Генератор тестов (DSL)",
+  "gen_run": "Сгенерировать тесты",
+  "gen_created": "Создано тестов: {{count}}; первая входная строка: {{first}}",
+  "variants_title": "Семейство вариантов",
+  "variants_spawn": "Создать вариант",
+  "variant_spawned": "Вариант #{{id}} создан",
+  "variants_empty": "Вариантов пока нет.",
+  "attachments_title": "Вложения к условию",
+  "attachments_upload": "Загрузить",
+  "attachments_name": "Имя файла",
+  "attachments_empty": "Вложений пока нет.",
+  "attachment_uploaded": "{{name}} загружен"
 }
