@@ -104,13 +104,13 @@ def hackable_targets(contest: Contest, participation: ContestParticipation):
     )
 
 
-def _run_pair(problem, target: Submission, hack_input: str):
+def _run_pair(problem, target: Submission, hack_input: str) -> dict[str, str]:
     """Compile + run reference and target on the hack input.
 
-    Returns ``(status, detail)`` where status is one of
-    ``invalid`` (reference failed — not a usable test), ``crash``
-    (target failed by verdict) or ``compared`` (both ran; detail carries
-    the outputs). Raises ``ValueError`` on compile failures.
+    Returns a result dict; ``result["kind"]`` is one of ``invalid``
+    (reference failed — not a usable test), ``crash`` (target failed by
+    verdict) or ``compared`` (both ran; the dict carries both outputs under
+    ``reference``/``target``). Raises ``ValueError`` on compile failures.
     """
     if not problem.reference_solution_code or not problem.reference_language:
         raise ValueError(
@@ -121,15 +121,15 @@ def _run_pair(problem, target: Submission, hack_input: str):
         ok_ref, out_ref, exe_ref = compile_code_in_sandbox(
             problem.reference_solution_code, problem.reference_language, workspace
         )
-        if not ok_ref:
+        if not ok_ref or exe_ref is None:
             raise ValueError(f"Reference solution failed to compile: {out_ref[:200]}")
         ok_tgt, out_tgt, exe_tgt = compile_code_in_sandbox(
             target.code, target.language, workspace
         )
-        if not ok_tgt:
+        if not ok_tgt or exe_tgt is None:
             raise ValueError(f"Target solution failed to compile: {out_tgt[:200]}")
 
-        ref_verdict, _t, _m, ref_out, ref_err = run_code_in_sandbox(
+        ref_verdict, _t, _m, ref_out, _ref_err = run_code_in_sandbox(
             exe_ref,
             problem.reference_language,
             hack_input,
@@ -137,7 +137,7 @@ def _run_pair(problem, target: Submission, hack_input: str):
             HACK_MEMORY_LIMIT_KB,
             workspace,
         )
-        tgt_verdict, _t2, _m2, tgt_out, tgt_err = run_code_in_sandbox(
+        tgt_verdict, _t2, _m2, tgt_out, _tgt_err = run_code_in_sandbox(
             exe_tgt,
             target.language,
             hack_input,
@@ -147,17 +147,23 @@ def _run_pair(problem, target: Submission, hack_input: str):
         )
 
     if str(ref_verdict) != str(Submission.VerdictStatus.ACCEPTED):
-        return (
-            "invalid",
-            f"Reference solution fails on this input ({ref_verdict}) — "
-            "the hack input is not a valid test.",
-        )
+        return {
+            "kind": "invalid",
+            "message": (
+                f"Reference solution fails on this input ({ref_verdict}) — "
+                "the hack input is not a valid test."
+            ),
+        }
     if str(tgt_verdict) != str(Submission.VerdictStatus.ACCEPTED):
-        return (
-            "crash",
-            f"Target submission fails on this input ({tgt_verdict}).",
-        )
-    return "compared", {"reference": ref_out or "", "target": tgt_out or ""}
+        return {
+            "kind": "crash",
+            "message": f"Target submission fails on this input ({tgt_verdict}).",
+        }
+    return {
+        "kind": "compared",
+        "reference": ref_out or "",
+        "target": tgt_out or "",
+    }
 
 
 def judge_hack(hack: Hack) -> Hack:
@@ -168,7 +174,7 @@ def judge_hack(hack: Hack) -> Hack:
     problem = hack.contest_problem.problem
     target = hack.target
     try:
-        status, detail = _run_pair(problem, target, hack.input_data)
+        result = _run_pair(problem, target, hack.input_data)
     except ValueError as exc:
         hack.verdict = Hack.Verdict.INVALID
         hack.feedback = str(exc)
@@ -176,16 +182,16 @@ def judge_hack(hack: Hack) -> Hack:
         hack.save(update_fields=["verdict", "feedback", "judged_at"])
         return hack
 
-    if status == "invalid":
+    if result["kind"] == "invalid":
         hack.verdict = Hack.Verdict.INVALID
-        hack.feedback = detail
-    elif status == "crash":
+        hack.feedback = result["message"]
+    elif result["kind"] == "crash":
         hack.verdict = Hack.Verdict.SUCCESSFUL
-        hack.feedback = detail
+        hack.feedback = result["message"]
     else:
         ok, hint = compare_outputs_detailed(
-            detail["target"],
-            detail["reference"],
+            result["target"],
+            result["reference"],
             problem.comparison_mode,
             problem.float_comparison_epsilon,
         )
