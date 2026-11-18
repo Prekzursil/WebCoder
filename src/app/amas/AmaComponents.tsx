@@ -7,7 +7,6 @@ import { CommunityService } from '@/services/ApiService';
 import { AmaListRow, ProblemRequestRow, ReputationProfile } from '@/types/api';
 import { useAuth } from '@/context/AuthContext';
 import { palette } from '@/theme/tokens';
-import PageHeader from '@/components/common/PageHeader';
 import EmptyState from '@/components/common/EmptyState';
 
 /**
