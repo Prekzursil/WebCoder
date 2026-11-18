@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "Gewertete Wettkämpfe",
   "tour_step_contests_body": "Wöchentliche Wettkämpfe mit Ratings, Scoreboards und Kalender-Feed. Lehrer können auch private Klassenwettkämpfe ausrichten.",
   "tour_step_start_title": "Beginne mit drei Klassikern",
-  "tour_step_start_body": "Der /start-Pfad wählt eine leichte Aufgabe pro Paradigma — deine erste akzeptierte Einreichung ist drei Klicks entfernt."
+  "tour_step_start_body": "Der /start-Pfad wählt eine leichte Aufgabe pro Paradigma — deine erste akzeptierte Einreichung ist drei Klicks entfernt.",
+  "annotations_title": "Meine Notizen (privat)",
+  "annotations_hint": "Wähle eine Textstelle, klicke auf „Auswahl übernehmen“ und lege deine eigene Notiz an. Nur du siehst sie.",
+  "annotations_capture": "Auswahl übernehmen",
+  "annotations_note_placeholder": "Deine Notiz…",
+  "annotations_add": "Notiz hinzufügen",
+  "annotations_delete": "Löschen",
+  "annotations_save_failed": "Die Notiz konnte nicht gespeichert werden.",
+  "annotations_delete_failed": "Die Notiz konnte nicht gelöscht werden.",
+  "offline_pack_save": "Offline-Paket",
+  "offline_pack_building": "Wird erstellt…",
+  "offline_pack_failed": "Das Offline-Paket konnte nicht erstellt werden.",
+  "identity_timezone": "Anzeige-Zeitzone",
+  "identity_timezone_utc": "UTC (Standard)"
 }

@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "рейтингтік жарыстар",
   "tour_step_contests_body": "Рейтингтер, кестелер және күнтізбе ағыны бар апталық стильдегі жарыстар. Мұғалімдер жеке сынып жарыстарын да өткізе алады.",
   "tour_step_start_title": "үш классиктен баста",
-  "tour_step_start_body": "/start жолы әр парадигмаға бір оңай есеп таңдайды — алғашқы қабылданған жіберуіңіз үш клик қашықтықта."
+  "tour_step_start_body": "/start жолы әр парадигмаға бір оңай есеп таңдайды — алғашқы қабылданған жіберуіңіз үш клик қашықтықта.",
+  "annotations_title": "менің жазбаларым (жеке)",
+  "annotations_hint": "Мәтіндегі сөйлемді таңдап, «Таңдауды алу» түймесін басып, өз жазбаңды сақта. Оларды тек сен көресің.",
+  "annotations_capture": "Таңдауды алу",
+  "annotations_note_placeholder": "жазбаң…",
+  "annotations_add": "жазба қосу",
+  "annotations_delete": "жою",
+  "annotations_save_failed": "жазбаны сақтау мүмкін болмады.",
+  "annotations_delete_failed": "жазбаны жою мүмкін болмады.",
+  "offline_pack_save": "офлайн жинақ",
+  "offline_pack_building": "жасалуда…",
+  "offline_pack_failed": "офлайн жинақты жасау мүмкін болмады.",
+  "identity_timezone": "көрсету уақыт белдеуі",
+  "identity_timezone_utc": "UTC (әдепкі)"
 }

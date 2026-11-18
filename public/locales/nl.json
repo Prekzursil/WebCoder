@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "Gewaardeerde wedstrijden",
   "tour_step_contests_body": "Wekelijkse wedstrijden met ratings, scoreboards en kalenderfeed. Docenten kunnen ook privé-klassenwedstrijden houden.",
   "tour_step_start_title": "Begin met drie klassiekers",
-  "tour_step_start_body": "Het /start-pad kiest één makkelijk probleem per paradigma — je eerste geaccepteerde inzending is drie klikken verwijderd."
+  "tour_step_start_body": "Het /start-pad kiest één makkelijk probleem per paradigma — je eerste geaccepteerde inzending is drie klikken verwijderd.",
+  "annotations_title": "Mijn notities (privé)",
+  "annotations_hint": "Selecteer een zin in de opgave, klik op “Selectie vastleggen” en bewaar je eigen notitie. Alleen jij ziet ze.",
+  "annotations_capture": "Selectie vastleggen",
+  "annotations_note_placeholder": "Jouw notitie…",
+  "annotations_add": "Notitie toevoegen",
+  "annotations_delete": "Verwijderen",
+  "annotations_save_failed": "Kon de notitie niet opslaan.",
+  "annotations_delete_failed": "Kon de notitie niet verwijderen.",
+  "offline_pack_save": "Offline pakket",
+  "offline_pack_building": "Bezig met maken…",
+  "offline_pack_failed": "Kon het offline pakket niet maken.",
+  "identity_timezone": "Weergavetijdzone",
+  "identity_timezone_utc": "UTC (standaard)"
 }

@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "Рейтингові контести",
   "tour_step_contests_body": "Щотижневі контести з рейтингами, таблицями результатів і календарною стрічкою. Вчителі також можуть проводити приватні класні контести.",
   "tour_step_start_title": "Почніть із трьох класичних задач",
-  "tour_step_start_body": "Шлях /start обирає по одній легкій задачі на парадигму — ваше перше прийняте надсилання за три кліки."
+  "tour_step_start_body": "Шлях /start обирає по одній легкій задачі на парадигму — ваше перше прийняте надсилання за три кліки.",
+  "annotations_title": "Мої нотатки (приватні)",
+  "annotations_hint": "Виділіть фразу в умові, натисніть «Захопити виділення» і збережіть свою нотатку. Їх бачите лише ви.",
+  "annotations_capture": "Захопити виділення",
+  "annotations_note_placeholder": "Ваша нотатка…",
+  "annotations_add": "Додати нотатку",
+  "annotations_delete": "Видалити",
+  "annotations_save_failed": "Не вдалося зберегти нотатку.",
+  "annotations_delete_failed": "Не вдалося видалити нотатку.",
+  "offline_pack_save": "Офлайн-пакет",
+  "offline_pack_building": "Створення…",
+  "offline_pack_failed": "Не вдалося створити офлайн-пакет.",
+  "identity_timezone": "Часовий пояс відображення",
+  "identity_timezone_utc": "UTC (типово)"
 }

@@ -341,7 +341,13 @@ export const AuthService = {
     apiFetch<LoginResponse>('/auth/login/', { method: 'POST', body: JSON.stringify(credentials) }),
   getMe: () => apiFetch<User>('/users/me/'),
   /** RO-3/LEG-2: the self-service identity slice (county/school/is_minor). */
-  updateMe: (data: { county?: string; school?: string; isMinor?: boolean; bio?: string }) =>
+  updateMe: (data: {
+    county?: string;
+    school?: string;
+    isMinor?: boolean;
+    bio?: string;
+    timezone?: string;
+  }) =>
     apiFetch<User>('/users/me/', {
       method: 'PATCH',
       body: JSON.stringify({
@@ -349,6 +355,7 @@ export const AuthService = {
         school: data.school,
         ...(data.bio !== undefined ? { bio: data.bio } : {}),
         ...(data.isMinor !== undefined ? { is_minor: data.isMinor } : {}),
+        ...(data.timezone !== undefined ? { timezone: data.timezone } : {}),
       }),
     }),
   // [F5] Solved/attempted problem-id sets for the catalog indicator column.
@@ -1147,6 +1154,46 @@ export const ScratchService = {
       time_ms?: number;
       memory_kb?: number;
     }>('/scratch/guest/', { method: 'POST', body: JSON.stringify(payload) }),
+};
+
+export const DraftService = {
+  // Wave G item 76 — cross-device code drafts (one per problem).
+  get: (problemId: number | string) =>
+    apiFetch<{ language: string; code: string; updated_at: string } | undefined>(
+      `/submissions/drafts/${problemId}/`,
+    ),
+  save: (problemId: number | string, language: string, code: string) =>
+    apiFetch<{ language: string; code: string; updated_at: string }>(
+      `/submissions/drafts/${problemId}/`,
+      { method: 'PUT', body: JSON.stringify({ language, code }) },
+    ),
+  clear: (problemId: number | string) =>
+    apiFetch<{ deleted: number }>(`/submissions/drafts/${problemId}/`, {
+      method: 'DELETE',
+    }),
+};
+
+export const StudyAidService = {
+  // Wave G item 78 — the caller's private statement annotations.
+  listAnnotations: (problemId: number | string) =>
+    apiFetch<{ id: number; quote: string; note: string; updated_at: string }[]>(
+      `/problems/${problemId}/annotations/`,
+    ),
+  addAnnotation: (problemId: number | string, quote: string, note: string) =>
+    apiFetch<{ id: number; quote: string; note: string; updated_at: string }>(
+      `/problems/${problemId}/annotations/`,
+      { method: 'POST', body: JSON.stringify({ quote, note }) },
+    ),
+  deleteAnnotation: (problemId: number | string, annotationId: number) =>
+    apiFetch<{ deleted: string }>(
+      `/problems/${problemId}/annotations/?annotation_id=${annotationId}`,
+      { method: 'DELETE' },
+    ),
+  // Wave G item 92 — the self-contained offline statement pack.
+  getStatementPack: (problemId: number | string, lang: string) =>
+    apiFetch<{ problem_id: number; lang: string; html: string }>(
+      `/problems/${problemId}/statement-pack/?lang=${lang}`,
+    ),
 };
 
 export const SubmissionService = {

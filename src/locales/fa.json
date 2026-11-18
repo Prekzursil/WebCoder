@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "مسابقه‌های ریت‌دار",
   "tour_step_contests_body": "مسابقه‌های هفتگی با ریتینگ، تابلوی امتیازات و فید تقویم. معلمان همچنین می‌توانند مسابقه‌های خصوصی کلاسی برگزار کنند.",
   "tour_step_start_title": "با سه مسئله کلاسیک شروع کنید",
-  "tour_step_start_body": "مسیر /start برای هر پارادایم یک مسئله آسان انتخاب می‌کند — اولین ارسال پذیرفته‌شده شما سه کلیک فاصله دارد."
+  "tour_step_start_body": "مسیر /start برای هر پارادایم یک مسئله آسان انتخاب می‌کند — اولین ارسال پذیرفته‌شده شما سه کلیک فاصله دارد.",
+  "annotations_title": "یادداشت‌های من (خصوصی)",
+  "annotations_hint": "یک عبارت در صورت مسئله انتخاب کنید، «گرفتن انتخاب» را فشار دهید و یادداشت خود را نگه دارید. فقط شما می‌بینید.",
+  "annotations_capture": "گرفتن انتخاب",
+  "annotations_note_placeholder": "یادداشت شما…",
+  "annotations_add": "افزودن یادداشت",
+  "annotations_delete": "حذف",
+  "annotations_save_failed": "ذخیره یادداشت ناموفق بود.",
+  "annotations_delete_failed": "حذف یادداشت ناموفق بود.",
+  "offline_pack_save": "بسته آفلاین",
+  "offline_pack_building": "در حال ساخت…",
+  "offline_pack_failed": "ساخت بسته آفلاین ناموفق بود.",
+  "identity_timezone": "منطقه زمانی نمایش",
+  "identity_timezone_utc": "UTC (پیش‌فرض)"
 }

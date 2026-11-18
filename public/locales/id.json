@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "Lomba berating",
   "tour_step_contests_body": "Lomba gaya mingguan dengan rating, papan skor, dan feed kalender. Guru juga bisa menyelenggarakan lomba kelas privat.",
   "tour_step_start_title": "Mulai dengan tiga soal klasik",
-  "tour_step_start_body": "Jalur /start memilih satu soal mudah per paradigma — kiriman diterima pertamamu tiga klik lagi."
+  "tour_step_start_body": "Jalur /start memilih satu soal mudah per paradigma — kiriman diterima pertamamu tiga klik lagi.",
+  "annotations_title": "Catatan saya (privat)",
+  "annotations_hint": "Pilih frasa di soal, tekan “Tangkap pilihan”, dan simpan catatanmu. Hanya kamu yang melihatnya.",
+  "annotations_capture": "Tangkap pilihan",
+  "annotations_note_placeholder": "Catatanmu…",
+  "annotations_add": "Tambah catatan",
+  "annotations_delete": "Hapus",
+  "annotations_save_failed": "Tidak dapat menyimpan catatan.",
+  "annotations_delete_failed": "Tidak dapat menghapus catatan.",
+  "offline_pack_save": "Paket offline",
+  "offline_pack_building": "Membangun…",
+  "offline_pack_failed": "Tidak dapat membuat paket offline.",
+  "identity_timezone": "Zona waktu tampilan",
+  "identity_timezone_utc": "UTC (bawaan)"
 }

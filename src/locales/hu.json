@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "Értékelt versenyek",
   "tour_step_contests_body": "Heti stílusú versenyek ratingekkel, eredménytáblákkal és naptár-feeddel. Tanárok privát osztályversenyeket is rendezhetnek.",
   "tour_step_start_title": "Kezdd három klasszikussal",
-  "tour_step_start_body": "A /start útvonal paradigmánként egy könnyű feladatot választ — az első elfogadott beküldésed három kattintásra van."
+  "tour_step_start_body": "A /start útvonal paradigmánként egy könnyű feladatot választ — az első elfogadott beküldésed három kattintásra van.",
+  "annotations_title": "Jegyzeteim (privát)",
+  "annotations_hint": "Jelölj ki egy mondatot a feladatban, nyomd meg a „Kijelölés rögzítése” gombot, és írd meg a jegyzetedet. Csak te látod.",
+  "annotations_capture": "Kijelölés rögzítése",
+  "annotations_note_placeholder": "A jegyzeted…",
+  "annotations_add": "Jegyzet hozzáadása",
+  "annotations_delete": "Törlés",
+  "annotations_save_failed": "A jegyzet nem menthető.",
+  "annotations_delete_failed": "A jegyzet nem törölhető.",
+  "offline_pack_save": "Offline csomag",
+  "offline_pack_building": "Elkészítés…",
+  "offline_pack_failed": "Az offline csomag nem hozható létre.",
+  "identity_timezone": "Megjelenítési időzóna",
+  "identity_timezone_utc": "UTC (alapértelmezett)"
 }

@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "مسابقات مصنّفة",
   "tour_step_contests_body": "مسابقات أسبوعية مع تقييمات ولوحات نتائج وتغذية تقويم. يمكن للمعلمين أيضًا تنظيم مسابقات صفية خاصة.",
   "tour_step_start_title": "ابدأ بثلاث مسائل كلاسيكية",
-  "tour_step_start_body": "يختار مسار /start مشكلة سهلة لكل نمط — أول مشاركة مقبولة لك على بعد ثلاث نقرات."
+  "tour_step_start_body": "يختار مسار /start مشكلة سهلة لكل نمط — أول مشاركة مقبولة لك على بعد ثلاث نقرات.",
+  "annotations_title": "ملاحظاتي (خاصة)",
+  "annotations_hint": "حدد عبارة في نص المسألة، واضغط «التقط التحديد»، واحتفظ بملاحظتك. أنت وحدك تراها.",
+  "annotations_capture": "التقط التحديد",
+  "annotations_note_placeholder": "ملاحظتك…",
+  "annotations_add": "أضف ملاحظة",
+  "annotations_delete": "حذف",
+  "annotations_save_failed": "تعذّر حفظ الملاحظة.",
+  "annotations_delete_failed": "تعذّر حذف الملاحظة.",
+  "offline_pack_save": "حزمة دون اتصال",
+  "offline_pack_building": "جارٍ الإنشاء…",
+  "offline_pack_failed": "تعذّر إنشاء الحزمة دون اتصال.",
+  "identity_timezone": "المنطقة الزمنية للعرض",
+  "identity_timezone_utc": "UTC (افتراضي)"
 }

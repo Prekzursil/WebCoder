@@ -68,6 +68,13 @@ vi.mock('./ScratchPanel', () => ({
     allowedLanguages.length ? <div data-testid="scratch-panel" /> : null,
 }));
 
+vi.mock('./AnnotationsPanel', () => ({
+  // The panel is covered by its own test with the auth context; here it
+  // is a stub so the page tests stay provider-free.
+  __esModule: true,
+  default: () => null,
+}));
+
 vi.mock('./BookmarkButton', () => ({
   default: () => <div data-testid="bookmark-button" />,
 }));

@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "การแข่งขันแบบมีเรตติ้ง",
   "tour_step_contests_body": "การแข่งขันรายสัปดาห์พร้อมเรตติ้ง สกอร์บอร์ด และฟีดปฏิทิน ครูยังสามารถจัดการแข่งขันส่วนตัวของห้องเรียนได้",
   "tour_step_start_title": "เริ่มจากสามโจทย์คลาสสิก",
-  "tour_step_start_body": "เส้นทาง /start เลือกโจทย์ง่ายหนึ่งข้อต่อหนึ่ง paradigm — การส่งที่ได้รับการยอมรับครั้งแรกของคุณห่างออกไปแค่สามคลิก"
+  "tour_step_start_body": "เส้นทาง /start เลือกโจทย์ง่ายหนึ่งข้อต่อหนึ่ง paradigm — การส่งที่ได้รับการยอมรับครั้งแรกของคุณห่างออกไปแค่สามคลิก",
+  "annotations_title": "โน้ตของฉัน (ส่วนตัว)",
+  "annotations_hint": "เลือกข้อความในโจทย์ กด “จับการเลือก” และบันทึกโน้ตของคุณ มีเพียงคุณที่เห็น",
+  "annotations_capture": "จับการเลือก",
+  "annotations_note_placeholder": "โน้ตของคุณ…",
+  "annotations_add": "เพิ่มโน้ต",
+  "annotations_delete": "ลบ",
+  "annotations_save_failed": "บันทึกโน้ตไม่สำเร็จ",
+  "annotations_delete_failed": "ลบโน้ตไม่สำเร็จ",
+  "offline_pack_save": "แพ็กออฟไลน์",
+  "offline_pack_building": "กำลังสร้าง…",
+  "offline_pack_failed": "สร้างแพ็กออฟไลน์ไม่สำเร็จ",
+  "identity_timezone": "เขตเวลาที่แสดง",
+  "identity_timezone_utc": "UTC (ค่าเริ่มต้น)"
 }

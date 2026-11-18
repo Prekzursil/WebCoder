@@ -7,6 +7,7 @@ import { ContestService } from '@/services/ApiService';
 import { Contest } from '@/types/api';
 import { API_BASE_URL } from '@/lib/api-config';
 import { palette, hexAlpha } from '@/theme/tokens';
+import { displayTimezone, formatInTimezone } from '@/lib/datetime';
 import EmptyState from '@/components/common/EmptyState';
 import PageHeader from '@/components/common/PageHeader';
 
@@ -96,8 +97,12 @@ export default function ContestsPage() {
         ? { label: t('contest_state_upcoming', 'Upcoming'), color: palette.accent }
         : { label: t('contest_state_finished', 'Finished'), color: palette.muted };
 
-  const fmt = (iso: string) =>
-    new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  // [wave G item 87] contest times render in the visitor's display zone.
+  // The IdentityCard save mirrors the account timezone into localStorage,
+  // so the guest path and the account path share one display source (and
+  // this page stays mountable without the auth provider in unit tests).
+  const tz = displayTimezone();
+  const fmt = (iso: string) => formatInTimezone(iso, tz);
 
   return (
     <main style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 16px' }}>

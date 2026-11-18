@@ -60,6 +60,19 @@ class User(AbstractUser):
         ),
     )
 
+    # Wave G item 87 — display timezone: an IANA name ('Europe/Bucharest')
+    # used ONLY for presentation (contest times, assignment deadlines,
+    # history timestamps rendered in the visitor's wall clock). The judge
+    # and every scoring window stay server-UTC; nothing interprets this
+    # as an offset for correctness-relevant math.
+    timezone = models.CharField(
+        _("display timezone"),
+        max_length=64,
+        blank=True,
+        default="",
+        help_text=_("IANA timezone name for displaying times (UTC when empty)."),
+    )
+
     # GDPR account control (round-2 LEG-1/X5): set when the account is
     # soft-deleted; the purge_deleted_users beat task removes user-authored
     # side content once this timestamp passes (submissions/leaderboard stay,

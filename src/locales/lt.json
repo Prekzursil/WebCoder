@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "Vertinami konkursai",
   "tour_step_contests_body": "Kas savaitę stiliaus konkursai su reitingais, rezultatų lentelėmis ir kalendoriaus kanalu. Mokytojai gali rengti ir privačius klasės konkursus.",
   "tour_step_start_title": "Pradėk nuo trijų klasikų",
-  "tour_step_start_body": "Kelias /start parenka po vieną lengvą uždavinį kiekvienam paradigmos tipui — jūsų pirmasis priimtas pateikimas už trijų paspaudimų."
+  "tour_step_start_body": "Kelias /start parenka po vieną lengvą uždavinį kiekvienam paradigmos tipui — jūsų pirmasis priimtas pateikimas už trijų paspaudimų.",
+  "annotations_title": "Mano užrašai (privatu)",
+  "annotations_hint": "Pažymėk frazę sąlygoje, spausk „Fiksuoti pažymėtą“ ir laikyk savo užrašą. Matai tik tu.",
+  "annotations_capture": "Fiksuoti pažymėtą",
+  "annotations_note_placeholder": "Tavo užrašas…",
+  "annotations_add": "Pridėti užrašą",
+  "annotations_delete": "Ištrinti",
+  "annotations_save_failed": "Nepavyko išsaugoti užrašo.",
+  "annotations_delete_failed": "Nepavyko ištrinti užrašo.",
+  "offline_pack_save": "Offline paketas",
+  "offline_pack_building": "Kuriama…",
+  "offline_pack_failed": "Nepavyko sukurti offline paketo.",
+  "identity_timezone": "Rodomoji laiko juosta",
+  "identity_timezone_utc": "UTC (numatyta)"
 }

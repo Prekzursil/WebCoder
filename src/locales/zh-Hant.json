@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "計分賽",
   "tour_step_contests_body": "週賽風格的比賽，附積分、排行榜與行事曆訂閱。教師也可以舉辦私密班級賽。",
   "tour_step_start_title": "從三道經典題開始",
-  "tour_step_start_body": "/start 路徑為每種範式各挑一道簡單題——距離你的第一次通過提交只差三步。"
+  "tour_step_start_body": "/start 路徑為每種範式各挑一道簡單題——距離你的第一次通過提交只差三步。",
+  "annotations_title": "我的筆記（私密）",
+  "annotations_hint": "在題面中選取一段文字，點擊「擷取選區」，寫下你自己的筆記。只有你能看到。",
+  "annotations_capture": "擷取選區",
+  "annotations_note_placeholder": "你的筆記…",
+  "annotations_add": "新增筆記",
+  "annotations_delete": "刪除",
+  "annotations_save_failed": "無法儲存筆記。",
+  "annotations_delete_failed": "無法刪除筆記。",
+  "offline_pack_save": "離線包",
+  "offline_pack_building": "產生中…",
+  "offline_pack_failed": "無法產生離線包。",
+  "identity_timezone": "顯示時區",
+  "identity_timezone_utc": "UTC（預設）"
 }
