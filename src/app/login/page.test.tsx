@@ -229,21 +229,18 @@ describe('LoginPage', () => {
       'Login failed. Please check your credentials.',
     ],
     ['a non-Error rejection', 'network down', 'Login failed. Please check your credentials.'],
-  ])(
-    'surfaces the API failure when the API rejects with %s',
-    async (_label, rejection, expected) => {
-      const { unmount } = renderLogin();
-      loginMock.mockRejectedValueOnce(rejection);
+  ])('surfaces the API failure when the API rejects with %s', async (_label, rejection, expected) => {
+    const { unmount } = renderLogin();
+    loginMock.mockRejectedValueOnce(rejection);
 
-      submitCredentials('Ada', 'wrong-password');
+    submitCredentials('Ada', 'wrong-password');
 
-      const alert = await screen.findByRole('alert');
-      expect(alert).toHaveTextContent(expected);
-      expect(authMock.login).not.toHaveBeenCalled();
-      expect(routerMock.push).not.toHaveBeenCalled();
-      unmount();
-    },
-  );
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent(expected);
+    expect(authMock.login).not.toHaveBeenCalled();
+    expect(routerMock.push).not.toHaveBeenCalled();
+    unmount();
+  });
 
   it('builds social-login URLs from NEXT_PUBLIC_API_BASE when set', async () => {
     vi.stubEnv('NEXT_PUBLIC_API_BASE', 'https://api.webcoder.example');
