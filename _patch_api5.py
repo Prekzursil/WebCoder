@@ -1,15 +1,15 @@
 import pathlib
 
-p = pathlib.Path('src/services/ApiService.ts')
-s = p.read_text(encoding='utf-8')
+p = pathlib.Path("src/services/ApiService.ts")
+s = p.read_text(encoding="utf-8")
 
 anchor = "  getWaHelpQueue: () =>"
 if anchor not in s:
     # PR5 worktree predates PR4 — anchor on the weekly board instead
     anchor = "  getWeeklyBoard: () =>"
 idx = s.index(anchor)
-end = s.index('\n  },', idx)
-addition = '''
+end = s.index("\n  },", idx)
+addition = """
   // ---- Wave F items 66-69: reputation, awards, AMAs, requests ----
   getMyReputation: () =>
     apiFetch<ReputationProfile>('/community/reputation/me/'),
@@ -59,14 +59,14 @@ addition = '''
     apiFetch<{ votes: number; voted: boolean }>(
       `/community/problem-requests/${requestId}/vote/`,
       { method: 'POST' },
-    ),'''
+    ),"""
 s = s[:end] + addition + s[end:]
 
 # imports
 old = "  WaHelpRow,\n  WikiListRow,"
 if old in s:
     new = "  AmaDetailRow,\n  AmaListRow,\n  AwardRow,\n  ProblemRequestRow,\n  ReputationProfile,\n  WaHelpRow,\n  WikiListRow,"
-  # placeholder — replaced below
+# placeholder — replaced below
 else:
     new = None
 
@@ -76,5 +76,5 @@ if new is None:
     new = "  AmaDetailRow,\n  AmaListRow,\n  AwardRow,\n  CalibrationProfile,\n  ProblemRequestRow,\n  ReputationProfile,\n  TeamStandingsResponse,"
 assert old in s, f"import anchor missing: {old!r}"
 s = s.replace(old, new, 1)
-p.write_text(s, encoding='utf-8', newline='\n')
-print('api ok')
+p.write_text(s, encoding="utf-8", newline="\n")
+print("api ok")

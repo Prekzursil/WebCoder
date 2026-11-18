@@ -44,7 +44,14 @@ class ReportsBase(TestCase):
         self.assignment = Assignment.objects.create(
             classroom=self.classroom,
             title_i18n={"en": "HW1", "ro": "T1"},
-            available_from=timezone.now() - timedelta(days=2),
+            # 3 days, not 2: the grinder test pins submissions to fixed
+            # clock times up to ~72h old (10:00 two days ago), so a 2-day
+            # window set 'now-to-the-second' excludes them depending on the
+            # run time of day (CI 10:12 -> active_days 3; local 14:05 ->
+            # attempts 1). Widening the window start keeps every fixture
+            # submission inside at any hour; the out-of-window test still
+            # pins 30 days, far outside either way.
+            available_from=timezone.now() - timedelta(days=3),
             due_at=timezone.now() + timedelta(days=2),
         )
         self.ap = AssignmentProblem.objects.create(
