@@ -107,6 +107,7 @@ INSTALLED_APPS = [
     "classroom",
     "community_depth",
     "publishing",
+    "recognition",
     "public_api",
     # Wave E learning engine (spaced-repeat queue, skill graph, theory
     # cards, practice plan, mistake profile).
@@ -532,6 +533,12 @@ CELERY_BEAT_SCHEDULE = {
     "weekly-digest": {
         "task": "notifications.tasks.weekly_digest_task",
         "schedule": crontab(hour=7, minute=30, day_of_week=1),
+    },
+    # Item 67 (Wave F): monthly contributor-of-the-month award — the task
+    # self-guards outside the first week of a month and to a single row.
+    "award-monthly-contributors": {
+        "task": "recognition.tasks.award_monthly_contributors",
+        "schedule": crontab(hour=2, minute=30),
     },
     # ANA-1 (Wave D): freeze the week's owner-analytics derivations every
     # Monday morning — the weekly dashboard's trend strip.
