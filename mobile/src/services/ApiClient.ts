@@ -90,12 +90,22 @@ let refreshInFlight: Promise<boolean> | null = null;
  * protocol-relative '//host', no '..' escapes. Callers pass paths like
  * '/problems/'; anything else would redirect the authenticated fetch to
  * an attacker-chosen destination (js/request-forgery).
+ *
+ * Defense in depth: the concatenated URL is also PARSED and its origin
+ * compared against the configured API origin — a value that somehow
+ * slips past the prefix checks still cannot leave the API host.
  */
+const API_ORIGIN: string = new URL(API_V1_URL).origin;
+
 export function apiUrl(path: string): string {
   if (!path.startsWith('/') || path.startsWith('//') || path.includes('..')) {
     throw new Error(`Refusing non-relative API path: ${path}`);
   }
-  return `${API_V1_URL}${path}`;
+  const url = new URL(`${API_V1_URL}${path}`);
+  if (url.origin !== API_ORIGIN) {
+    throw new Error(`Refusing non-relative API path: ${path}`);
+  }
+  return url.toString();
 }
 
 async function refreshTokens(): Promise<boolean> {

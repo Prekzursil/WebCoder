@@ -15,6 +15,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 
 from problems.models import Problem
+from translations import ai_curator
 from translations.ai_curator import (
     CuratorConfig,
     OpenAICompatibleCurator,
@@ -399,8 +400,6 @@ class DefaultTransportTests(TestCase):
     """The real requests-backed transport (mocked socket, real code path)."""
 
     def test_posts_with_timeout_and_returns_json(self):
-        import translations.ai_curator as ai_curator
-
         seen = {}
 
         class FakeResponse:
@@ -428,8 +427,6 @@ class DefaultTransportTests(TestCase):
         self.assertEqual(seen["json"], {"model": "m"})
 
     def test_http_error_status_propagates(self):
-        import translations.ai_curator as ai_curator
-
         class FakeResponse:
             def raise_for_status(self):
                 raise ai_curator.requests.HTTPError("500")
