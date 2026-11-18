@@ -143,9 +143,8 @@ export default async function RootLayout({
             default; the script only flips when the choice says light). */}
         <script
           dangerouslySetInnerHTML={{
-            /* nosemgrep - static repo-authored one-liner, no user input */
             __html:
-              "try{if(localStorage.getItem('wc-theme-mode')==='light'){document.documentElement.setAttribute('data-theme','light')}}catch(e){}",
+              /* nosemgrep - static repo-authored one-liner, no user input */ "try{if(localStorage.getItem('wc-theme-mode')==='light'){document.documentElement.setAttribute('data-theme','light')}}catch(e){}",
           }}
         />
       </head>
