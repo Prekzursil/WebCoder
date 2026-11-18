@@ -78,6 +78,8 @@ import {
   AmaDetailRow,
   AmaListRow,
   AwardRow,
+  EmbedProblem,
+  SetterCV,
   ProblemRequestRow,
   ReputationProfile,
   WaHelpRow,
@@ -695,6 +697,16 @@ export const PreSubmitService = {
 };
 
 export const CommunityService = {
+  // ---- Wave F items 70-72: setter CV, solve cards, embeds ----
+  getSetterCV: (username: string) =>
+    apiFetch<SetterCV>(`/users/username/${encodeURIComponent(username)}/setter-cv/`),
+  saveSetterCV: (username: string, data: { blurb?: string; links?: string[] }) =>
+    apiFetch<SetterCV>(`/users/username/${encodeURIComponent(username)}/setter-cv/`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  getEmbedProblem: (problemId: number | string) =>
+    apiFetch<EmbedProblem>(`/users/embed/problems/${problemId}/`),
   getFeed: (page = 1, following = false) =>
     apiFetch<FeedResponse>(`/community/feed/?page=${page}${following ? '&following=1' : ''}`),
   getSolutions: (problemId: number | string, params: { sort?: string; language?: string } = {}) => {

@@ -180,3 +180,32 @@ class Follow(models.Model):
 
     def __str__(self):
         return f"{self.follower_id} -> {self.target_id}"
+
+
+class SetterProfile(models.Model):
+    """Item 70 — the author-editable side of the setter CV: a short blurb
+    and up to five links (personal site, GitHub, editorial portfolio…)."""
+
+    MAX_LINKS = 5
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="setter_profile",
+        verbose_name=_("user"),
+    )
+    blurb = models.TextField(_("blurb"), max_length=600, blank=True)
+    links = models.JSONField(
+        _("links"),
+        default=list,
+        blank=True,
+        help_text=_("Up to 5 external links (strings)."),
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("setter profile")
+        verbose_name_plural = _("setter profiles")
+
+    def __str__(self):
+        return f"setter-cv: {self.user_id}"

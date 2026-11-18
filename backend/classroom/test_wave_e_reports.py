@@ -95,11 +95,15 @@ class EffortAndHeatmapTest(ReportsBase):
     """Items 43/44: the analytics derivations."""
 
     def test_effort_board_ranks_grinders(self):
-        # st attempts 3 times (2 active days); lz a single AC.
-        # The two "old day" submissions are pinned to fixed clock times on
-        # explicit dates (10:00 and 10:30 two days ago, 10:00 yesterday):
-        # minutes_ago offsets straddle midnight depending on the wall clock
-        # at run time, which made active_days flake (3 dates at night runs).
+        # st attempts 4 times (2 active days); lz a single AC. Every
+        # submission sits on a pinned instant (10:00/10:30 two days ago,
+        # 10:00/10:30 yesterday) and the window is widened to 3 days so
+        # the pins always fall inside — fully wall-clock independent.
+        Assignment.objects.filter(pk=self.assignment.pk).update(
+            available_from=timezone.now() - timedelta(days=3),
+            due_at=timezone.now() + timedelta(days=3),
+        )
+
         def pinned(days_ago: int, minute: int = 0):
             moment = timezone.now() - timedelta(days=days_ago)
             return moment.replace(hour=10, minute=minute, second=0, microsecond=0)
@@ -107,10 +111,11 @@ class EffortAndHeatmapTest(ReportsBase):
         self._submit_at(self.student, WA, 10, pinned(2, 0))
         self._submit_at(self.student, WA, 20, pinned(2, 30))
         self._submit_at(self.student, WA, 30, pinned(1, 0))
+        self._submit_at(self.student, WA, 40, pinned(1, 30))
         self._submit(self.lazy, AC, 100)
         board = effort_board(self.classroom)
         rows = {r["username"]: r for r in board["results"]}
-        self.assertEqual(rows["st"]["attempts"], 3)
+        self.assertEqual(rows["st"]["attempts"], 4)
         self.assertEqual(rows["st"]["active_days"], 2)
         self.assertEqual(rows["st"]["problems_solved"], 0)
         self.assertEqual(rows["lz"]["problems_solved"], 1)
