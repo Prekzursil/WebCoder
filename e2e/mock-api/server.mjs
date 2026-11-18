@@ -316,6 +316,54 @@ const messagingState = {
 
 const virtualStarted = new Set();
 
+// Wave F publishing fixtures (items 62-64).
+const MOCK_BLOGS = [
+  {
+    id: 1,
+    author: 2,
+    author_username: 'admin_e2e',
+    title: 'How we seeded the starter pack',
+    slug: 'how-we-seeded-the-starter-pack',
+    body: 'The story of the first 25 bilingual problems…',
+    lang: 'en',
+    status: 'PUBLISHED',
+    created_at: '2026-11-05T10:00:00Z',
+    updated_at: '2026-11-05T10:00:00Z',
+  },
+];
+
+const MOCK_WIKI = [
+  {
+    slug: 'cautare-binara',
+    title_ro: 'Căutare binară',
+    title_en: 'Binary search',
+    body_ro: 'Căutarea binară găsește elementul în O(log n) pași.',
+    body_en: 'Binary search finds the element in O(log n) steps.',
+  },
+];
+
+const MOCK_WA_HELP = [
+  {
+    id: 30,
+    submission: 42,
+    asker: 1,
+    asker_username: 'e2e_tester',
+    problem_title: { en: 'Two Sum' },
+    question: 'Why WA on test 4?',
+    status: 'OPEN',
+    answers: [
+      {
+        id: 31,
+        author: 'rival',
+        body: 'You forgot to sort the array.',
+        is_accepted: false,
+        created_at: '2026-11-10T08:00:00Z',
+      },
+    ],
+    created_at: '2026-11-10T07:00:00Z',
+  },
+];
+
 // Wave F items 49/55: mutable prediction + team fixtures.
 let myPrediction = null;
 
@@ -798,7 +846,7 @@ function corsHeaders(req) {
     'Access-Control-Allow-Origin': req.headers.origin ?? '*',
     Vary: 'Origin',
     'Access-Control-Allow-Credentials': 'true',
-    'Access-Control-Allow-Methods': 'GET,POST,PATCH,DELETE,OPTIONS',
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
     'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-CSRFToken',
   };
 }
@@ -1721,6 +1769,182 @@ const server = createServer((req, res) => {
     return;
   }
 
+  // ---- Wave F publishing (items 61-65) ----
+  if (req.method === 'GET' && path === '/api/v1/community/blogs/') {
+    const url = new URL(req.url, 'http://mock.local');
+    const author = url.searchParams.get('author');
+    let rows = MOCK_BLOGS;
+    if (author) rows = rows.filter((row) => row.author_username === author);
+    json(res, 200, { count: rows.length, next: null, previous: null, results: rows });
+    return;
+  }
+  if (path === '/api/v1/community/blogs/' && req.method === 'POST') {
+    const user = sessionUser(req);
+    if (!user) {
+      json(res, 401, { detail: 'Authentication credentials were not provided.' });
+      return;
+    }
+    readBody(req, (body) => {
+      const slug = String(body.title || 'post')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-');
+      json(res, 201, {
+        id: 100,
+        author: user.id,
+        author_username: user.username,
+        title: body.title ?? '',
+        slug,
+        body: body.body ?? '',
+        lang: body.lang ?? 'en',
+        status: body.status ?? 'DRAFT',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+    });
+    return;
+  }
+  if (req.method === 'GET' && path === '/api/v1/community/wiki/') {
+    json(res, 200, {
+      count: MOCK_WIKI.length,
+      results: MOCK_WIKI.map((page) => ({
+        slug: page.slug,
+        title_ro: page.title_ro,
+        title_en: page.title_en,
+        updated_at: '2026-11-10T10:00:00Z',
+      })),
+    });
+    return;
+  }
+  const wikiPage = path.match(/^\/api\/v1\/community\/wiki\/([^/]+)\/$/);
+  if (wikiPage && req.method === 'GET') {
+    const page = MOCK_WIKI.find((row) => row.slug === wikiPage[1]);
+    if (!page) {
+      json(res, 404, { detail: 'No such wiki page.' });
+      return;
+    }
+    json(res, 200, {
+      ...page,
+      updated_by_username: 'e2e_tester',
+      updated_at: '2026-11-10T10:00:00Z',
+    });
+    return;
+  }
+  if (wikiPage && req.method === 'PUT') {
+    const user = sessionUser(req);
+    if (!user) {
+      json(res, 401, { detail: 'Sign in to edit the wiki.' });
+      return;
+    }
+    readBody(req, (body) => {
+      const existing = MOCK_WIKI.find((row) => row.slug === wikiPage[1]);
+      const updated = {
+        slug: wikiPage[1],
+        title_ro: body.title_ro ?? '',
+        title_en: body.title_en ?? '',
+        body_ro: body.body_ro ?? '',
+        body_en: body.body_en ?? '',
+      };
+      if (existing) {
+        Object.assign(existing, updated);
+      } else {
+        MOCK_WIKI.push(updated);
+      }
+      json(res, 201, {
+        ...updated,
+        updated_by_username: user.username,
+        updated_at: new Date().toISOString(),
+      });
+    });
+    return;
+  }
+  const wikiHistory = path.match(/^\/api\/v1\/community\/wiki\/([^/]+)\/history\/$/);
+  if (req.method === 'GET' && wikiHistory) {
+    json(res, 200, {
+      count: 1,
+      results: [{ id: 1, editor: 'e2e_tester', note: 'seed', created_at: '2026-11-10T10:00:00Z' }],
+    });
+    return;
+  }
+  if (req.method === 'GET' && path === '/api/v1/community/wa-help/') {
+    json(res, 200, { count: MOCK_WA_HELP.length, results: MOCK_WA_HELP });
+    return;
+  }
+  if (path === '/api/v1/community/wa-help/' && req.method === 'POST') {
+    const user = sessionUser(req);
+    if (!user) {
+      json(res, 401, { detail: 'Sign in to ask for help.' });
+      return;
+    }
+    readBody(req, (body) => {
+      json(res, 201, {
+        id: 55,
+        submission: body.submission_id,
+        asker: user.id,
+        asker_username: user.username,
+        problem_title: { en: 'Two Sum' },
+        question: body.question ?? '',
+        status: 'OPEN',
+        answers: [],
+        created_at: new Date().toISOString(),
+      });
+    });
+    return;
+  }
+  const waAnswer = path.match(/^\/api\/v1\/community\/wa-help\/(\d+)\/answers\/$/);
+  if (req.method === 'POST' && waAnswer) {
+    const user = sessionUser(req);
+    if (!user) {
+      json(res, 401, { detail: 'Sign in to answer.' });
+      return;
+    }
+    readBody(req, (body) => {
+      json(res, 201, {
+        id: 77,
+        author: user.username,
+        body: body.body ?? '',
+        is_accepted: false,
+        created_at: new Date().toISOString(),
+      });
+    });
+    return;
+  }
+  const waAccept = path.match(/^\/api\/v1\/community\/wa-help\/(\d+)\/accept\/(\d+)\/$/);
+  if (req.method === 'POST' && waAccept) {
+    json(res, 200, { detail: 'Accepted.', answer: Number(waAccept[2]) });
+    return;
+  }
+  const license = path.match(/^\/api\/v1\/submissions\/submissions\/(\d+)\/license\/$/);
+  if (req.method === 'POST' && license) {
+    readBody(req, (body) => {
+      json(res, 200, { id: Number(license[1]), license: body.license ?? 'MIT' });
+    });
+    return;
+  }
+  if (
+    req.method === 'GET' &&
+    path === '/api/v1/community/feed/' &&
+    new URL(req.url, 'http://mock.local').searchParams.get('following') === '1'
+  ) {
+    json(res, 200, {
+      count: 1,
+      page: 1,
+      results: [
+        {
+          id: 601,
+          user: 'rival',
+          user_id: 5,
+          problem: { id: 2, title_i18n: { en: 'Reverse String' } },
+          language: 'python3',
+          verdict: 'AC',
+          score: 100,
+          submission_time: '2026-11-10T09:00:00Z',
+        },
+      ],
+      next: null,
+    });
+    return;
+  }
+
   // ---- Wave F ratings depth (items 51/52/53) ----
   if (req.method === 'GET' && path === '/api/v1/ratings/divisions/') {
     json(res, 200, {
@@ -2156,8 +2380,8 @@ const server = createServer((req, res) => {
       ],
       // Wave F item 51 — graph annotations + the division chip.
       annotations: {
-        '0': { peak: 1480 },
-        '1': { peak: 1512, medal: 'GOLD', division_change: 'promoted', division: 'Div 2' },
+        0: { peak: 1480 },
+        1: { peak: 1512, medal: 'GOLD', division_change: 'promoted', division: 'Div 2' },
       },
       division: 'Div 2',
     });

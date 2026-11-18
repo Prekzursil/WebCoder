@@ -40,11 +40,29 @@ class Submission(models.Model):
         related_name="submissions",
         verbose_name=_("problem"),
     )
+
     # Contest-bound submissions (competitive roadmap CON-1): set when the
     # submission was made through a contest's gated submit path; null for
     # ordinary practice submissions and for post-contest upsolving (which
     # deliberately goes through the problem page — CON-5 archive behaviour).
     # SET_NULL keeps the submission readable if the contest row is removed.
+    # Item 61 — solution-sharing license. PLATFORM_DISPLAY is the terms'
+    # default (the platform may display the source, COM-7); the author may
+    # relicense their own AC source (MIT / CC0 / CC BY-SA).
+    class License(models.TextChoices):
+        PLATFORM_DISPLAY = "PLATFORM_DISPLAY", _("Platform display right")
+        MIT = "MIT", _("MIT")
+        CC0 = "CC0", _("CC0")
+        CC_BY_SA = "CC_BY_SA", _("CC BY-SA 4.0")
+
+    license = models.CharField(
+        _("license"),
+        max_length=20,
+        choices=License.choices,
+        default=License.PLATFORM_DISPLAY,
+        help_text=_("How others may reuse this source once shared."),
+    )
+
     contest = models.ForeignKey(
         "contests.Contest",
         on_delete=models.SET_NULL,

@@ -135,8 +135,8 @@ def test_urlpatterns_wiring():
     from webcoder_api import urls as project_urls
 
     assert (
-        len(project_urls.urlpatterns) == 31
-    )  # + public API (OPS-1) + microsoft SSO lane (OPS-3) + leaderboard, notifications, forum, auth/csrf (SP1), healthz/readyz/metrics (X3), scratch (X7), contests (CON-1), ratings (RAT-1), classroom (EDU-1), community (COM-3/7, RAT-8/9/10), translations (i18n wave), messages (COM-5), learning (wave E)
+        len(project_urls.urlpatterns) == 32
+    )  # + public API (OPS-1) + microsoft SSO lane (OPS-3) + leaderboard, notifications, forum, auth/csrf (SP1), healthz/readyz/metrics (X3), scratch (X7), contests (CON-1), ratings (RAT-1), classroom (EDU-1), community (COM-3/7, RAT-8/9/10), translations (i18n wave), messages (COM-5), learning (wave E), publishing (wave F blogs/wiki/wa-help)
     assert reverse("token_obtain_pair") == "/api/v1/token/"
     # Assert the frontend-facing simplejwt ROUTES resolve (not reverse names):
     # with dj-rest-auth's USE_JWT mode active its /auth/token/* routes register

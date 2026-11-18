@@ -72,8 +72,13 @@ import {
   ContestPredictionState,
   ContestReplay,
   ContestTeamsResponse,
+  BlogPostRow,
   CalibrationProfile,
   DivisionTableRow,
+  WaHelpRow,
+  WikiListRow,
+  WikiPageRow,
+  WikiRevisionRow,
   UserDivisionProfile,
   UserPercentiles,
   TeamStandingsResponse,
@@ -685,7 +690,8 @@ export const PreSubmitService = {
 };
 
 export const CommunityService = {
-  getFeed: (page = 1) => apiFetch<FeedResponse>(`/community/feed/?page=${page}`),
+  getFeed: (page = 1, following = false) =>
+    apiFetch<FeedResponse>(`/community/feed/?page=${page}${following ? '&following=1' : ''}`),
   getSolutions: (problemId: number | string, params: { sort?: string; language?: string } = {}) => {
     const search = new URLSearchParams();
     if (params.sort) search.set('sort', params.sort);
@@ -702,6 +708,60 @@ export const CommunityService = {
       '/community/leaderboard/weekly/',
     ),
 
+  // ---- Wave F items 61-65 ----
+  setSubmissionLicense: (submissionId: number, license: string) =>
+    apiFetch<{ id: number; license: string }>(`/submissions/submissions/${submissionId}/license/`, {
+      method: 'POST',
+      body: JSON.stringify({ license }),
+    }),
+  getBlogs: (params: { author?: string; mine?: boolean; page?: number } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.author) qs.set('author', params.author);
+    if (params.mine) qs.set('mine', '1');
+    if (params.page) qs.set('page', String(params.page));
+    const query = qs.toString();
+    return apiFetch<PaginatedResponse<BlogPostRow>>(`/community/blogs/${query ? `?${query}` : ''}`);
+  },
+  createBlogPost: (data: { title: string; body: string; lang: string; status: string }) =>
+    apiFetch<BlogPostRow>('/community/blogs/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  deleteBlogPost: (slug: string) =>
+    apiFetch<{ detail?: string }>(`/community/blogs/${slug}/`, { method: 'DELETE' }),
+  getWikiList: () => apiFetch<{ count: number; results: WikiListRow[] }>('/community/wiki/'),
+  getWikiPage: (slug: string) => apiFetch<WikiPageRow>(`/community/wiki/${slug}/`),
+  saveWikiPage: (
+    slug: string,
+    data: {
+      title_ro: string;
+      title_en?: string;
+      body_ro: string;
+      body_en?: string;
+      note?: string;
+    },
+  ) =>
+    apiFetch<WikiPageRow>(`/community/wiki/${slug}/`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  getWikiHistory: (slug: string) =>
+    apiFetch<{ count: number; results: WikiRevisionRow[] }>(`/community/wiki/${slug}/history/`),
+  getWaHelpQueue: () => apiFetch<{ count: number; results: WaHelpRow[] }>('/community/wa-help/'),
+  createWaHelpRequest: (submissionId: number, question: string) =>
+    apiFetch<WaHelpRow>('/community/wa-help/', {
+      method: 'POST',
+      body: JSON.stringify({ submission_id: submissionId, question }),
+    }),
+  answerWaHelp: (requestId: number, body: string) =>
+    apiFetch<{ id: number }>(`/community/wa-help/${requestId}/answers/`, {
+      method: 'POST',
+      body: JSON.stringify({ body }),
+    }),
+  acceptWaHelp: (requestId: number, answerId: number) =>
+    apiFetch<{ detail: string }>(`/community/wa-help/${requestId}/accept/${answerId}/`, {
+      method: 'POST',
+    }),
   getCommunityEditorials: (
     problemId: number | string,
     params: { lang?: string; page?: number } = {},

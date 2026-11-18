@@ -90,6 +90,10 @@ const Navbar: React.FC = () => {
     { href: '/ratings', label: t('nav_ratings', 'Ratings') },
     { href: '/leaderboard', label: t('nav_leaderboard', 'Leaderboard') },
     { href: '/forum', label: t('nav_forum', 'Forum') },
+    // Wave F items 62/63/64 — blogs, wiki and the WA-help queue.
+    { href: '/blogs', label: t('nav_blogs', 'Blogs') },
+    { href: '/wiki', label: t('nav_wiki', 'Wiki') },
+    { href: '/wa-help', label: t('nav_wa_help', 'WA help') },
     { href: '/blocks', label: t('nav_blocks', 'Blocks') },
   ];
 
