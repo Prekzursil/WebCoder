@@ -9,8 +9,10 @@ from .models import (
     CLARIFICATION_CANNED_ANSWERS,
     Clarification,
     Contest,
+    ContestCommentary,
     ContestParticipation,
     ContestProblem,
+    Hack,
 )
 
 
@@ -87,6 +89,7 @@ class ContestSerializer(serializers.ModelSerializer):
             "editorial_delay_minutes",
             "rated_rating_min",
             "rated_rating_max",
+            "is_long_contest",
             "problem_ids",
             "created_by",
             "created_by_username",
@@ -249,6 +252,69 @@ class RegistrationSerializer(serializers.Serializer):
     access_code = serializers.CharField(
         required=False, allow_blank=True, trim_whitespace=True
     )
+
+
+class HackSerializer(serializers.ModelSerializer):
+    """List/detail shape for open hacks (item 48).
+
+    The target's SOURCE is deliberately excluded from the feed rows —
+    hackable code is served only through the authenticated ``targets``
+    listing (lock-gated), never in the public hack log.
+    """
+
+    hacker_username = serializers.CharField(source="hacker.username", read_only=True)
+    target_username = serializers.CharField(
+        source="target.user.username", read_only=True
+    )
+    problem_label = serializers.CharField(
+        source="contest_problem.label", read_only=True
+    )
+    target_id = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Hack
+        fields = [
+            "id",
+            "contest",
+            "problem_label",
+            "hacker",
+            "hacker_username",
+            "target_id",
+            "target_username",
+            "input_data",
+            "verdict",
+            "feedback",
+            "judged_at",
+            "created_at",
+        ]
+        read_only_fields = fields
+
+
+class HackCreateSerializer(serializers.Serializer):
+    """POST /contests/{id}/hacks/ — a counter-test against one submission."""
+
+    target_submission_id = serializers.IntegerField()
+    input_data = serializers.CharField(
+        max_length=200_000, trim_whitespace=False, allow_blank=False
+    )
+
+
+class CommentarySerializer(serializers.ModelSerializer):
+    """Contest commentary lines (item 56) — organizer broadcast feed."""
+
+    author_username = serializers.CharField(source="author.username", read_only=True)
+
+    class Meta:
+        model = ContestCommentary
+        fields = ["id", "author", "author_username", "minute_offset", "text", "created_at"]
+        read_only_fields = ["id", "author", "author_username", "created_at"]
+
+
+class CommentaryCreateSerializer(serializers.Serializer):
+    """POST /contests/{id}/commentary/ — organizer-only."""
+
+    text = serializers.CharField(max_length=1000, trim_whitespace=False)
+    minute_offset = serializers.IntegerField(required=False, min_value=0, default=0)
 
 
 class ClarificationSerializer(serializers.ModelSerializer):

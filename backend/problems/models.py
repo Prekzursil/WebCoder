@@ -436,6 +436,21 @@ class Problem(models.Model):
         null=True,
         help_text=_("Language of the custom checker (e.g., 'cpp17', 'python3')."),
     )
+    # Reference ("model") solution — the author's correct program used to
+    # derive expected outputs for arbitrary inputs (contest hacks, backlog
+    # item 48; also the expected-output generator's engine). Author/verifier/
+    # admin only; NEVER serialized to non-privileged callers.
+    reference_solution_code = models.TextField(
+        _("reference solution code"),
+        blank=True,
+        help_text=_("The author's correct solution (hacks + expected outputs)."),
+    )
+    reference_language = models.CharField(
+        _("reference solution language"),
+        max_length=50,
+        blank=True,
+        help_text=_("Registry language of the reference solution."),
+    )
     verifier_feedback = models.TextField(
         _("verifier feedback"),
         blank=True,

@@ -316,6 +316,36 @@ const messagingState = {
 
 const virtualStarted = new Set();
 
+
+// Wave F contest depth (items 48/56/58): commentary lines + hack feed rows.
+const MOCK_COMMENTARY = [
+  {
+    id: 1,
+    contest: 1,
+    author: 2,
+    author_username: 'admin_e2e',
+    minute_offset: 5,
+    text: 'Problem A hides a two-pointer trick.',
+    created_at: '2026-11-01T10:05:00Z',
+  },
+];
+
+const MOCK_HACKS = [
+  {
+    id: 5,
+    contest: 1,
+    problem_label: 'A',
+    hacker: 1,
+    hacker_username: 'e2e_tester',
+    target_id: 9,
+    target_username: 'rival',
+    input_data: '2',
+    verdict: 'SUCCESSFUL',
+    feedback: 'Wrong answer on the hack input.',
+    judged_at: '2026-11-01T10:00:00Z',
+    created_at: '2026-11-01T09:58:00Z',
+  },
+];
 const MOCK_CONTESTS = [
   {
     id: 1,
@@ -349,8 +379,9 @@ const MOCK_CONTESTS = [
     is_rated: false,
     format: 'IOI',
     start_at: '2025-03-01T10:00:00Z',
-    end_at: '2025-03-01T12:00:00Z',
+    end_at: '2025-03-11T12:00:00Z',
     freeze_at: null,
+    is_long_contest: true,
     is_window: false,
     per_user_duration_minutes: 120,
     pretest_mode: false,
@@ -1624,12 +1655,152 @@ const server = createServer((req, res) => {
     return;
   }
 
-  if (req.method === 'GET' && path === '/api/v1/contests/contests/') {
-    json(res, 200, paged(MOCK_CONTESTS));
+  if (req.method === 'GET' && path === '/api/v1/contests/') {
+    // Item 54: the long-challenge catalog axis.
+    const url = new URL(req.url, 'http://mock.local');
+    const rows = url.searchParams.get('kind') === 'long'
+      ? MOCK_CONTESTS.filter((c) => c.is_long_contest)
+      : MOCK_CONTESTS;
+    json(res, 200, paged(rows));
     return;
   }
 
-  const contestDetail = path.match(/^\/api\/v1\/contests\/contests\/(\d+)\/$/);
+  // ---- Wave F contest depth (items 48/56/57/58) ----
+  const commentary = path.match(/^\/api\/v1\/contests\/(\d+)\/commentary\/$/);
+  if (commentary) {
+    if (req.method === 'GET') {
+      json(res, 200, {
+        count: MOCK_COMMENTARY.length,
+        results: MOCK_COMMENTARY.filter((c) => c.contest === Number(commentary[1])),
+      });
+      return;
+    }
+    if (req.method === 'POST') {
+      const user = sessionUser(req);
+      if (!user || user.role !== 'ADMIN') {
+        json(res, 403, { detail: 'Organizer only.' });
+        return;
+      }
+      readBody(req, (body) => {
+        json(res, 201, {
+          id: 99,
+          author: user.id,
+          author_username: user.username,
+          minute_offset: body.minute_offset ?? 0,
+          text: body.text ?? '',
+          created_at: new Date().toISOString(),
+        });
+      });
+      return;
+    }
+  }
+
+  const dramaView = path.match(/^\/api\/v1\/contests\/(\d+)\/drama\/$/);
+  if (req.method === 'GET' && dramaView) {
+    json(res, 200, {
+      is_frozen: true,
+      freeze_at: '2026-11-01T10:00:00Z',
+      reveal_at: '2026-11-01T11:00:00Z',
+      seconds_until_reveal: 1800,
+      results: [
+        { rank: 1, user: { id: 1, username: 'e2e_tester' }, score: 100, solved: 1, hidden_submissions: 0 },
+        { rank: 2, user: { id: 2, username: 'rival' }, score: 50, solved: 0, hidden_submissions: 2 },
+      ],
+    });
+    return;
+  }
+
+  const replayView = path.match(/^\/api\/v1\/contests\/(\d+)\/replay\/([^/]+)\/$/);
+  if (req.method === 'GET' && replayView) {
+    json(res, 200, {
+      contest: Number(replayView[1]),
+      username: decodeURIComponent(replayView[2]),
+      is_virtual: false,
+      final_rank: 2,
+      rating_change: { delta: 20, rating: 1520 },
+      events: [
+        { minute_offset: 10, problem_label: 'A', problem_id: 1, verdict: 'WA', score: 10, problem_best: 10, problem_max: 100, total: 10, submission_id: 51 },
+        { minute_offset: 40, problem_label: 'A', problem_id: 1, verdict: 'AC', score: 100, problem_best: 100, problem_max: 100, total: 100, submission_id: 52 },
+      ],
+    });
+    return;
+  }
+
+  const hackFeed = path.match(/^\/api\/v1\/contests\/(\d+)\/hacks\/$/);
+  if (hackFeed) {
+    if (req.method === 'GET') {
+      json(res, 200, {
+        count: MOCK_HACKS.length,
+        results: MOCK_HACKS,
+        window_open: true,
+      });
+      return;
+    }
+    if (req.method === 'POST') {
+      const user = sessionUser(req);
+      if (!user) {
+        json(res, 401, { detail: 'Sign in to submit hacks.' });
+        return;
+      }
+      readBody(req, (body) => {
+        json(res, 201, {
+          id: 77,
+          contest: Number(hackFeed[1]),
+          problem_label: 'A',
+          hacker: user.id,
+          hacker_username: user.username,
+          target_id: body.target_submission_id,
+          target_username: 'rival',
+          input_data: body.input_data ?? '',
+          verdict: 'SUCCESSFUL',
+          feedback: 'Wrong answer on the hack input.',
+          judged_at: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+        });
+      });
+      return;
+    }
+  }
+
+  const hackTargets = path.match(/^\/api\/v1\/contests\/(\d+)\/hacks\/targets\/$/);
+  if (req.method === 'GET' && hackTargets) {
+    if (!sessionUser(req)) {
+      json(res, 403, { detail: 'Register for the contest first.' });
+      return;
+    }
+    json(res, 200, {
+      count: 1,
+      results: [
+        {
+          id: 9,
+          user: { username: 'rival' },
+          problem_id: 1,
+          problem_label: 'A',
+          language: 'python3',
+          verdict: 'AC',
+          score: 100,
+          code: 'n = int(input())\nprint(n + 1)',
+          submission_time: '2026-11-01T09:40:00Z',
+        },
+      ],
+    });
+    return;
+  }
+
+  const hackLock = path.match(/^\/api\/v1\/contests\/(\d+)\/lock\/(\d+)\/$/);
+  if (req.method === 'POST' && hackLock) {
+    if (!sessionUser(req)) {
+      json(res, 401, { detail: 'Authentication credentials were not provided.' });
+      return;
+    }
+    json(res, 200, {
+      detail: 'Locked — you can now hack this problem’s solutions.',
+      contest_problem: Number(hackLock[2]),
+    });
+    return;
+  }
+
+  const contestDetail = path.match(/^\/api\/v1\/contests\/(\d+)\/$/);
   if (req.method === 'GET' && contestDetail) {
     const contest = MOCK_CONTESTS.find((c) => c.id === Number(contestDetail[1]));
     if (contest) {
@@ -1653,7 +1824,7 @@ const server = createServer((req, res) => {
     return;
   }
 
-  const contestRegister = path.match(/^\/api\/v1\/contests\/contests\/(\d+)\/register\/$/);
+  const contestRegister = path.match(/^\/api\/v1\/contests\/(\d+)\/register\/$/);
   if (req.method === 'POST' && contestRegister) {
     if (!sessionUser(req)) {
       json(res, 401, { detail: 'Authentication credentials were not provided.' });
@@ -1663,13 +1834,13 @@ const server = createServer((req, res) => {
     return;
   }
 
-  const contestProblems = path.match(/^\/api\/v1\/contests\/contests\/(\d+)\/problems\/$/);
+  const contestProblems = path.match(/^\/api\/v1\/contests\/(\d+)\/problems\/$/);
   if (req.method === 'GET' && contestProblems) {
     json(res, 200, MOCK_CONTEST_PROBLEMS);
     return;
   }
 
-  const contestStandings = path.match(/^\/api\/v1\/contests\/contests\/(\d+)\/standings\/$/);
+  const contestStandings = path.match(/^\/api\/v1\/contests\/(\d+)\/standings\/$/);
   if (req.method === 'GET' && contestStandings) {
     if (
       Number(contestStandings[1]) === 77 &&
@@ -1696,7 +1867,7 @@ const server = createServer((req, res) => {
     return;
   }
 
-  const contestAwards = path.match(/^\/api\/v1\/contests\/contests\/(\d+)\/awards\/$/);
+  const contestAwards = path.match(/^\/api\/v1\/contests\/(\d+)\/awards\/$/);
   if (req.method === 'GET' && contestAwards) {
     json(res, 200, {
       count: 1,
@@ -1705,7 +1876,7 @@ const server = createServer((req, res) => {
     return;
   }
 
-  const contestVirtualStart = path.match(/^\/api\/v1\/contests\/contests\/(\d+)\/virtual-start\/$/);
+  const contestVirtualStart = path.match(/^\/api\/v1\/contests\/(\d+)\/virtual-start\/$/);
   if (req.method === 'POST' && contestVirtualStart) {
     if (!sessionUser(req)) {
       json(res, 401, { detail: 'Authentication credentials were not provided.' });

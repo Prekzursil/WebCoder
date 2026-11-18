@@ -147,6 +147,17 @@ class Contest(models.Model):
         blank=True,
         help_text=_("Registration gate: caller's display rating must be <= this."),
     )
+    # Long contests (backlog item 54, the CodeChef Long-Challenge pattern):
+    # a multi-day/multi-week contest emphasising partial credit and stamina
+    # over the 2–3h sprint. Presentation + catalog axis; the engine itself
+    # already supports arbitrary start/end spans.
+    is_long_contest = models.BooleanField(
+        _("long contest"),
+        default=False,
+        help_text=_(
+            "Multi-day challenge (catalog 'Long challenges' section, day counter)."
+        ),
+    )
 
     # Set once by the finalize beat task when the contest ends: marks that
     # the end-of-contest pass (full-suite rejudge of pretest submissions)
@@ -272,6 +283,16 @@ class ContestParticipation(models.Model):
     # disqualified rows keep their scores but vanish from standings/ratings.
     is_disqualified = models.BooleanField(_("disqualified"), default=False)
     disqualification_reason = models.TextField(_("disqualification reason"), blank=True)
+    # Open hacks (backlog item 48, the Codeforces lock-to-hack contract):
+    # a participant who fully solved a board problem may LOCK it — from then
+    # on they cannot resubmit that problem (enforced in gating), and in
+    # exchange may read and hack other participants' solutions for it.
+    locked_problems = models.ManyToManyField(
+        "ContestProblem",
+        blank=True,
+        related_name="locked_by",
+        verbose_name=_("locked problems"),
+    )
 
     class Meta:
         verbose_name = _("contest participation")
@@ -501,3 +522,105 @@ class ContestAward(models.Model):
 
     def __str__(self):
         return f"{self.medal} for user {self.user_id} on contest {self.contest_id}"
+
+
+#: Open-hacks scoring (backlog item 48, the Codeforces fixed-points model).
+HACK_SUCCESS_POINTS = 100
+HACK_FAIL_PENALTY = 50
+
+
+class Hack(models.Model):
+    """A counter-test against another participant's solution (item 48).
+
+    The Codeforces open-hacking contract: after locking a fully-solved
+    board problem, a participant reads other participants' solutions for it
+    and submits an adversarial input. Judging runs the hack input through
+    BOTH the target submission and the problem's reference (model)
+    solution — the hack is SUCCESSFUL when the target fails while the
+    reference still passes (wrong answer / TLE / crash), UNSUCCESSFUL when
+    the target survives.
+    """
+
+    class Verdict(models.TextChoices):
+        PENDING = "PENDING", _("Pending")
+        SUCCESSFUL = "SUCCESSFUL", _("Successful")
+        UNSUCCESSFUL = "UNSUCCESSFUL", _("Unsuccessful")
+        INVALID = "INVALID", _("Invalid input")
+
+    contest = models.ForeignKey(
+        Contest, on_delete=models.CASCADE, related_name="hacks"
+    )
+    contest_problem = models.ForeignKey(
+        ContestProblem, on_delete=models.CASCADE, related_name="hacks"
+    )
+    hacker = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="submitted_hacks",
+    )
+    target = models.ForeignKey(
+        "submissions.Submission",
+        on_delete=models.CASCADE,
+        related_name="hacks_against",
+    )
+    input_data = models.TextField(_("hack input"))
+    verdict = models.CharField(
+        _("verdict"), max_length=14, choices=Verdict.choices, default=Verdict.PENDING
+    )
+    feedback = models.TextField(
+        _("feedback"), blank=True, help_text=_("Judging outcome details.")
+    )
+    judged_at = models.DateTimeField(_("judged at"), null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("hack")
+        verbose_name_plural = _("hacks")
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["contest", "-created_at"])]
+        constraints = [
+            # One live attempt per (hacker, target, input): resubmitting the
+            # identical counter-test is a no-op (409 from the view).
+            models.UniqueConstraint(
+                fields=["hacker", "target", "input_data"],
+                name="unique_hack_attempt",
+            )
+        ]
+
+    def __str__(self):
+        return f"hack #{self.id} by {self.hacker_id} on submission {self.target_id}"
+
+
+class ContestCommentary(models.Model):
+    """Organizer commentary line during/after a contest (item 56).
+
+    The AtCoder-livestream / broadcast pattern: short timestamped notes
+    ("problem C hides a two-pointer trick", "we found a bug in B's tests —
+    stay tuned") that stay readable afterwards as the contest's story.
+    ``minute_offset`` pins each line to a moment relative to the start.
+    """
+
+    contest = models.ForeignKey(
+        Contest, on_delete=models.CASCADE, related_name="commentary"
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="contest_commentary",
+    )
+    minute_offset = models.PositiveIntegerField(
+        _("minute offset"),
+        default=0,
+        help_text=_("Minutes after the contest start this line belongs to."),
+    )
+    text = models.TextField(_("text"), max_length=1000)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("contest commentary line")
+        verbose_name_plural = _("contest commentary lines")
+        ordering = ["minute_offset", "id"]
+        indexes = [models.Index(fields=["contest", "minute_offset"])]
+
+    def __str__(self):
+        return f"commentary #{self.id} @ +{self.minute_offset}m of contest {self.contest_id}"

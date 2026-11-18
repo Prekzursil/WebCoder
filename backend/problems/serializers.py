@@ -187,6 +187,11 @@ class ProblemSerializer(serializers.ModelSerializer):
             "float_comparison_epsilon",
             "checker_code",
             "checker_language",  # Added checker fields
+            # Reference solution (hack/expected-output engine) — writable by
+            # the author side only, and stripped from representations for
+            # every non-privileged viewer in to_representation below.
+            "reference_solution_code",
+            "reference_language",
             "problem_type",
             "interactor_code",
             "interactor_language",  # JDG-2 interactive fields
@@ -211,6 +216,29 @@ class ProblemSerializer(serializers.ModelSerializer):
 
     def get_has_editorial(self, obj) -> bool:
         return bool(getattr(obj, "has_editorial", False))
+
+    def _viewer_may_see_reference(self, obj) -> bool:
+        """The reference solution is the answer key: author, verifier and
+        staff only — never serialized to contestants or the public (the
+        hack pipeline reads it server-side through the model)."""
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        if user is None or not getattr(user, "is_authenticated", False):
+            return False
+        return (
+            user.is_superuser
+            or user.is_staff
+            or getattr(user, "role", "") == "ADMIN"
+            or obj.author_id == user.id
+            or obj.verifier_id == user.id
+        )
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if not self._viewer_may_see_reference(instance):
+            data.pop("reference_solution_code", None)
+            data.pop("reference_language", None)
+        return data
 
     def validate_allowed_languages(self, value):
         """Every declared allowed language must be a judge-registry id.
@@ -245,6 +273,20 @@ class ProblemSerializer(serializers.ModelSerializer):
                 f"{', '.join((*SUPPORTED_LANGUAGE_IDS, SCRATCH_LANGUAGE_ID))}."
             )
         return value
+
+    def validate_reference_language(self, value):
+        """A declared reference language must be a judge-registry id (blank
+        = no reference solution)."""
+        if not value:
+            return value
+        from submissions.judge_utils.languages import get_language
+
+        if get_language(str(value)) is None:
+            raise serializers.ValidationError(
+                f"Unknown reference_language '{value}' — use a judge registry id."
+            )
+        return value
+
 
     def _validate_localized(self, value, field_name):
         """EN-mandatory validation (i18n wave, owner rule (b)).
@@ -473,6 +515,21 @@ class ProblemSerializer(serializers.ModelSerializer):
                     "OUTPUT_ONLY problems are not executed — an interactor "
                     "cannot apply. Remove interactor_code."
                 )
+        # Reference solution (Wave F): both halves together or neither — a
+        # lone language would make hack judging fail confusingly.
+        ref_code = attrs.get(
+            "reference_solution_code",
+            getattr(self.instance, "reference_solution_code", "") or "",
+        )
+        ref_language = attrs.get(
+            "reference_language",
+            getattr(self.instance, "reference_language", "") or "",
+        )
+        if bool(ref_code) != bool(ref_language):
+            raise serializers.ValidationError(
+                "reference_solution_code and reference_language must be set "
+                "together (or both left empty)."
+            )
         return attrs
 
     def create(self, validated_data):

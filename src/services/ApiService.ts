@@ -66,6 +66,13 @@ import {
   UserRatingHistory,
   ContestAwardsResponse,
   StandingsResponse,
+  ContestCommentaryResponse,
+  ContestCommentaryRow,
+  ContestDrama,
+  ContestReplay,
+  HackRow,
+  HackTargetsResponse,
+  HacksResponse,
   UpdateProblemResponse,
   cursorParamFromUrl,
   AssignmentSolutionsResponse,
@@ -1265,28 +1272,29 @@ export const NotificationService = {
 
 export const ContestService = {
   getContests: (
-    filters: { state?: 'UPCOMING' | 'RUNNING' | 'FINISHED' } = {},
+    filters: { state?: 'UPCOMING' | 'RUNNING' | 'FINISHED'; kind?: 'long' } = {},
     page: { page?: number; pageSize?: number } = {},
   ) => {
     const params = new URLSearchParams();
     if (filters.state) params.set('state', filters.state);
+    if (filters.kind) params.set('kind', filters.kind);
     if (page.page !== undefined) params.set('page', String(page.page));
     if (page.pageSize !== undefined) params.set('page_size', String(page.pageSize));
     const qs = params.toString();
-    return apiFetch<GetContestsResponse>(`/contests/contests/${qs ? `?${qs}` : ''}`);
+    return apiFetch<GetContestsResponse>(`/contests/${qs ? `?${qs}` : ''}`);
   },
-  getContest: (id: number | string) => apiFetch<Contest>(`/contests/contests/${id}/`),
+  getContest: (id: number | string) => apiFetch<Contest>(`/contests/${id}/`),
   register: (id: number | string, accessCode?: string) =>
-    apiFetch<{ contest: number; user: number }>(`/contests/contests/${id}/register/`, {
+    apiFetch<{ contest: number; user: number }>(`/contests/${id}/register/`, {
       method: 'POST',
       body: JSON.stringify(accessCode ? { access_code: accessCode } : {}),
     }),
   startPersonalClock: (id: number | string) =>
-    apiFetch<{ virtual_start: string; effective_end: string }>(`/contests/contests/${id}/start/`, {
+    apiFetch<{ virtual_start: string; effective_end: string }>(`/contests/${id}/start/`, {
       method: 'POST',
     }),
   getProblems: (id: number | string) =>
-    apiFetch<ContestProblemRow[]>(`/contests/contests/${id}/problems/`),
+    apiFetch<ContestProblemRow[]>(`/contests/${id}/problems/`),
   getStandings: (
     id: number | string,
     page = 1,
@@ -1297,28 +1305,28 @@ export const ContestService = {
     if (section) params.set('section', section);
     // COM-4: friends-only standings (viewer + followed).
     if (friends) params.set('friends', '1');
-    return apiFetch<StandingsResponse>(`/contests/contests/${id}/standings/?${params.toString()}`);
+    return apiFetch<StandingsResponse>(`/contests/${id}/standings/?${params.toString()}`);
   },
   startVirtual: (id: number | string) =>
     apiFetch<{ virtual_start: string; effective_end: string; is_virtual: boolean }>(
-      `/contests/contests/${id}/virtual-start/`,
+      `/contests/${id}/virtual-start/`,
       { method: 'POST' },
     ),
   getAwards: (id: number | string) =>
-    apiFetch<ContestAwardsResponse>(`/contests/contests/${id}/awards/`),
+    apiFetch<ContestAwardsResponse>(`/contests/${id}/awards/`),
   createContest: (data: Record<string, unknown>) =>
-    apiFetch<Contest>('/contests/contests/', {
+    apiFetch<Contest>('/contests/', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
   unfreeze: (id: number | string) =>
-    apiFetch<{ detail: string }>(`/contests/contests/${id}/unfreeze/`, { method: 'POST' }),
+    apiFetch<{ detail: string }>(`/contests/${id}/unfreeze/`, { method: 'POST' }),
   getClarifications: (id: number | string) =>
     apiFetch<{ results: Clarification[]; canned_answers?: string[] }>(
-      `/contests/contests/${id}/clarifications/`,
+      `/contests/${id}/clarifications/`,
     ),
   askClarification: (id: number | string, question: string, problemId?: number | null) =>
-    apiFetch<Clarification>(`/contests/contests/${id}/clarifications/`, {
+    apiFetch<Clarification>(`/contests/${id}/clarifications/`, {
       method: 'POST',
       body: JSON.stringify({ question, problem: problemId ?? null }),
     }),
@@ -1328,7 +1336,7 @@ export const ContestService = {
     answer: string,
     broadcast: boolean,
   ) =>
-    apiFetch<Clarification>(`/contests/contests/${id}/clarifications/${clarificationId}/answer/`, {
+    apiFetch<Clarification>(`/contests/${id}/clarifications/${clarificationId}/answer/`, {
       method: 'POST',
       body: JSON.stringify({ answer, is_broadcast: broadcast }),
     }),
@@ -1338,7 +1346,32 @@ export const ContestService = {
       is_rated: boolean;
       discarded: boolean;
       changes: RatingChangeRow[];
-    }>(`/contests/contests/${id}/rating-changes/`),
+    }>(`/contests/${id}/rating-changes/`),
+  // ---- Wave F contest depth (items 48/56/57/58) ----
+  getCommentary: (id: number | string) =>
+    apiFetch<ContestCommentaryResponse>(`/contests/${id}/commentary/`),
+  postCommentary: (id: number | string, text: string, minuteOffset = 0) =>
+    apiFetch<ContestCommentaryRow>(`/contests/${id}/commentary/`, {
+      method: 'POST',
+      body: JSON.stringify({ text, minute_offset: minuteOffset }),
+    }),
+  lockProblem: (id: number | string, contestProblemId: number) =>
+    apiFetch<{ detail: string }>(`/contests/${id}/lock/${contestProblemId}/`, {
+      method: 'POST',
+    }),
+  getHackTargets: (id: number | string) =>
+    apiFetch<HackTargetsResponse>(`/contests/${id}/hacks/targets/`),
+  submitHack: (id: number | string, targetSubmissionId: number, inputData: string) =>
+    apiFetch<HackRow>(`/contests/${id}/hacks/`, {
+      method: 'POST',
+      body: JSON.stringify({ target_submission_id: targetSubmissionId, input_data: inputData }),
+    }),
+  getHacks: (id: number | string, mine = false) =>
+    apiFetch<HacksResponse>(`/contests/${id}/hacks/${mine ? '?mine=1' : ''}`),
+  getReplay: (id: number | string, username: string) =>
+    apiFetch<ContestReplay>(`/contests/${id}/replay/${encodeURIComponent(username)}/`),
+  getDrama: (id: number | string) =>
+    apiFetch<ContestDrama>(`/contests/${id}/drama/`),
 };
 
 // =================================
