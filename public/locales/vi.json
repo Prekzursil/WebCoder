@@ -1582,5 +1582,18 @@
   "tools_creators_only": "Các công cụ này dành cho người soạn và kiểm duyệt bài.",
   "nav_author_wizard": "Authoring wizard",
   "nav_author_tools": "Author tools",
-  "nav_author_analytics": "Author analytics"
+  "nav_author_analytics": "Author analytics",
+  "wizard_title": "Trình tạo bài",
+  "wizard_subtitle": "Bảy bước từ ý tưởng đến nộp bài — kiểm tra hoàn thành trực tiếp.",
+  "wizard_problem_id": "Id bản nháp (tùy chọn)",
+  "wizard_new_problem": "Bắt đầu bài mới →",
+  "wizard_creators_only": "Trình tạo dành cho người soạn và người kiểm duyệt bài.",
+  "wizard_lint_title": "Kiểm tra đề bài",
+  "wizard_lint_clean": "Không có cảnh báo — đề bài đọc tốt.",
+  "wizard_readability_title": "Độ dễ đọc",
+  "wizard_readability_consistent": "Các bản dịch đọc nhất quán.",
+  "wizard_readability_drift": "Các bản dịch lệch mức đọc — đơn giản hóa bản khó hơn.",
+  "wizard_translation_title": "Bản dịch kèm theo",
+  "wizard_translation_complete": "Mọi trường bản địa hóa đã được điền.",
+  "wizard_translation_gaps": "Thiếu một số trường bản dịch — hoàn thành trước khi nộp."
 }

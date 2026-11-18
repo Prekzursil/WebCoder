@@ -77,6 +77,10 @@ import {
   DivisionTableRow,
   AmaDetailRow,
   AmaListRow,
+  ReadabilityReport,
+  StatementLintWarning,
+  TranslationStatus,
+  WizardStep,
   AuthorAnalytics,
   ChangelogRow,
   DropRow,
@@ -911,6 +915,20 @@ export const TrackService = {
 };
 
 export const ProblemService = {
+  // Wave F items 121/123/124/134 — wizard + statement quality.
+  getWizardSteps: (problemId?: number) =>
+    apiFetch<{ count: number; steps: WizardStep[] }>(
+      `/problems/wizard/steps/${problemId ? `?problem_id=${problemId}` : ''}`,
+    ),
+  statementLint: (problemId: number) =>
+    apiFetch<{ count: number; warnings: StatementLintWarning[] }>(
+      `/problems/problems/${problemId}/statement-lint/`,
+      { method: 'POST' },
+    ),
+  getReadability: (problemId: number) =>
+    apiFetch<ReadabilityReport>(`/problems/problems/${problemId}/readability/`),
+  getTranslationStatus: (problemId: number) =>
+    apiFetch<TranslationStatus>(`/problems/problems/${problemId}/translation-status/`),
   // Wave F items 125/129/131/132 — content ops.
   getAuthorAnalytics: (username?: string) =>
     apiFetch<AuthorAnalytics>(

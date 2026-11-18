@@ -1582,5 +1582,18 @@
   "tools_creators_only": "Ці інструменти — для авторів і верифікаторів задач.",
   "nav_author_wizard": "Authoring wizard",
   "nav_author_tools": "Author tools",
-  "nav_author_analytics": "Author analytics"
+  "nav_author_analytics": "Author analytics",
+  "wizard_title": "Майстер створення",
+  "wizard_subtitle": "Сім кроків від ідеї до надсилання — з живою перевіркою готовності.",
+  "wizard_problem_id": "Id чернетки (необов'язково)",
+  "wizard_new_problem": "Почати нову задачу →",
+  "wizard_creators_only": "Майстер — для авторів і верифікаторів задач.",
+  "wizard_lint_title": "Лінтер умови",
+  "wizard_lint_clean": "Попереджень немає — умова читається добре.",
+  "wizard_readability_title": "Читабельність",
+  "wizard_readability_consistent": "Мовні версії читаються узгоджено.",
+  "wizard_readability_drift": "Мовні версії розходяться за рівнем — спростіть складнішу.",
+  "wizard_translation_title": "Супутній переклад",
+  "wizard_translation_complete": "Усі локалізовані поля заповнені.",
+  "wizard_translation_gaps": "Деяких локалізованих полів бракує — заповніть до надсилання."
 }

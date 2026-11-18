@@ -1582,5 +1582,18 @@
   "tools_creators_only": "These tools are for problem creators and verifiers.",
   "nav_author_wizard": "Authoring wizard",
   "nav_author_tools": "Author tools",
-  "nav_author_analytics": "Author analytics"
+  "nav_author_analytics": "Author analytics",
+  "wizard_title": "Authoring wizard",
+  "wizard_subtitle": "Seven steps from idea to submission — with live completion checks.",
+  "wizard_problem_id": "Draft problem id (optional)",
+  "wizard_new_problem": "Start a new problem →",
+  "wizard_creators_only": "The wizard is for problem creators and verifiers.",
+  "wizard_lint_title": "Statement lint",
+  "wizard_lint_clean": "No warnings — the statement reads well.",
+  "wizard_readability_title": "Readability",
+  "wizard_readability_consistent": "Locales read consistently.",
+  "wizard_readability_drift": "Locales drift in reading level — simplify the harder one.",
+  "wizard_translation_title": "Translation sidecar",
+  "wizard_translation_complete": "Every localized field is filled.",
+  "wizard_translation_gaps": "Some localized fields are missing — finish them before submitting."
 }

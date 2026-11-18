@@ -1582,5 +1582,18 @@
   "tools_creators_only": "Questi strumenti sono per autori e verificatori di problemi.",
   "nav_author_wizard": "Authoring wizard",
   "nav_author_tools": "Author tools",
-  "nav_author_analytics": "Author analytics"
+  "nav_author_analytics": "Author analytics",
+  "wizard_title": "Procedura guidata di creazione",
+  "wizard_subtitle": "Sette passi dall'idea all'invio — con controlli di completamento in tempo reale.",
+  "wizard_problem_id": "Id della bozza (opzionale)",
+  "wizard_new_problem": "Inizia un nuovo problema →",
+  "wizard_creators_only": "La procedura è per autori e verificatori di problemi.",
+  "wizard_lint_title": "Lint dell'enunciato",
+  "wizard_lint_clean": "Nessun avviso — l'enunciato si legge bene.",
+  "wizard_readability_title": "Leggibilità",
+  "wizard_readability_consistent": "Le lingue si leggono in modo coerente.",
+  "wizard_readability_drift": "Le lingue divergono nel livello — semplifica la più difficile.",
+  "wizard_translation_title": "Traduzione a fianco",
+  "wizard_translation_complete": "Tutti i campi localizzati sono compilati.",
+  "wizard_translation_gaps": "Mancano alcuni campi localizzati — completali prima di inviare."
 }

@@ -1582,5 +1582,18 @@
   "tools_creators_only": "这些工具面向题目作者与审核者。",
   "nav_author_wizard": "Authoring wizard",
   "nav_author_tools": "Author tools",
-  "nav_author_analytics": "Author analytics"
+  "nav_author_analytics": "Author analytics",
+  "wizard_title": "出题向导",
+  "wizard_subtitle": "从想法到提交的七个步骤——带实时完成检查。",
+  "wizard_problem_id": "草稿题目编号（可选）",
+  "wizard_new_problem": "开始新题目 →",
+  "wizard_creators_only": "向导面向题目作者与审核者。",
+  "wizard_lint_title": "题面检查",
+  "wizard_lint_clean": "没有警告——题面易读。",
+  "wizard_readability_title": "可读性",
+  "wizard_readability_consistent": "各语言版本阅读体验一致。",
+  "wizard_readability_drift": "各语言版本阅读水平漂移——请简化较难的版本。",
+  "wizard_translation_title": "伴随翻译",
+  "wizard_translation_complete": "所有本地化字段均已填写。",
+  "wizard_translation_gaps": "部分本地化字段缺失——提交前请补全。"
 }

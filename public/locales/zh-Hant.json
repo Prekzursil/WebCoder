@@ -1582,5 +1582,18 @@
   "tools_creators_only": "這些工具面向題目作者與審核者。",
   "nav_author_wizard": "Authoring wizard",
   "nav_author_tools": "Author tools",
-  "nav_author_analytics": "Author analytics"
+  "nav_author_analytics": "Author analytics",
+  "wizard_title": "出題精靈",
+  "wizard_subtitle": "從想法到提交的七個步驟——帶即時完成檢查。",
+  "wizard_problem_id": "草稿題目編號（可選）",
+  "wizard_new_problem": "開始新題目 →",
+  "wizard_creators_only": "精靈面向題目作者與審核者。",
+  "wizard_lint_title": "題面檢查",
+  "wizard_lint_clean": "沒有警告——題面易讀。",
+  "wizard_readability_title": "可讀性",
+  "wizard_readability_consistent": "各語言版本閱讀體驗一致。",
+  "wizard_readability_drift": "各語言版本閱讀水平漂移——請簡化較難的版本。",
+  "wizard_translation_title": "伴隨翻譯",
+  "wizard_translation_complete": "所有在地化欄位均已填寫。",
+  "wizard_translation_gaps": "部分在地化欄位缺失——提交前請補全。"
 }
