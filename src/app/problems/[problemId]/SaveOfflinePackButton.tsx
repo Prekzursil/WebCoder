@@ -34,7 +34,7 @@ export default function SaveOfflinePackButton({
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement('a');
       anchor.href = url;
-      const safe = title.replace(/[^\w\-]+/g, '-').slice(0, 40) || 'problem';
+      const safe = title.replace(/[^\w-]+/g, '-').slice(0, 40) || 'problem';
       anchor.download = `webcoder-${safe}-${pack.lang}.html`;
       document.body.appendChild(anchor);
       anchor.click();
