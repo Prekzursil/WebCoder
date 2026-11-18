@@ -741,7 +741,10 @@ class ContestViewSet(viewsets.ModelViewSet):
         if request.method == "GET":
             rows = contest.commentary.select_related("author").all()
             return Response(
-                {"count": rows.count(), "results": CommentarySerializer(rows, many=True).data}
+                {
+                    "count": rows.count(),
+                    "results": CommentarySerializer(rows, many=True).data,
+                }
             )
         if not can_manage_contest(request.user, contest):
             return Response(
@@ -809,9 +812,7 @@ class ContestViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
         rows = hackable_targets(contest, participation)
-        labels = {
-            cp.problem_id: cp.label for cp in contest.contest_problems.all()
-        }
+        labels = {cp.problem_id: cp.label for cp in contest.contest_problems.all()}
         results = [
             {
                 "id": sub.id,
@@ -864,7 +865,9 @@ class ContestViewSet(viewsets.ModelViewSet):
             )
         target = (
             Submission.objects.select_related("problem", "user")
-            .filter(pk=serializer.validated_data["target_submission_id"], contest=contest)
+            .filter(
+                pk=serializer.validated_data["target_submission_id"], contest=contest
+            )
             .first()
         )
         if target is None:
@@ -883,9 +886,10 @@ class ContestViewSet(viewsets.ModelViewSet):
         contest_problem = contest.contest_problems.filter(
             problem_id=target.problem_id
         ).first()
-        if contest_problem is None or not participation.locked_problems.filter(
-            pk=contest_problem.pk
-        ).exists():
+        if (
+            contest_problem is None
+            or not participation.locked_problems.filter(pk=contest_problem.pk).exists()
+        ):
             return Response(
                 {
                     "detail": (
@@ -932,7 +936,9 @@ class ContestViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         target_user = User.objects.filter(username=username).first()
         if target_user is None:
-            return Response({"detail": "No such user."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "No such user."}, status=status.HTTP_404_NOT_FOUND
+            )
         participation = (
             ContestParticipation.objects.filter(contest=contest, user=target_user)
             .order_by("is_virtual")
@@ -940,18 +946,14 @@ class ContestViewSet(viewsets.ModelViewSet):
         )
         if participation is None:
             return Response(
-                {"detail": "That user did not participate."}, status=status.HTTP_404_NOT_FOUND
+                {"detail": "That user did not participate."},
+                status=status.HTTP_404_NOT_FOUND,
             )
         start = participation.effective_start()
-        labels = {
-            cp.problem_id: cp.label for cp in contest.contest_problems.all()
-        }
-        maxima = {
-            cp.problem_id: cp.points for cp in contest.contest_problems.all()
-        }
-        subs = (
-            Submission.objects.filter(contest=contest, user=target_user)
-            .order_by("submission_time", "id")
+        labels = {cp.problem_id: cp.label for cp in contest.contest_problems.all()}
+        maxima = {cp.problem_id: cp.points for cp in contest.contest_problems.all()}
+        subs = Submission.objects.filter(contest=contest, user=target_user).order_by(
+            "submission_time", "id"
         )
         best: dict[int, float] = {}
         events = []
@@ -993,9 +995,7 @@ class ContestViewSet(viewsets.ModelViewSet):
         )
         from ratings.models import RatingHistory
 
-        rating = RatingHistory.objects.filter(
-            contest=contest, user=target_user
-        ).first()
+        rating = RatingHistory.objects.filter(contest=contest, user=target_user).first()
         return Response(
             {
                 "contest": contest.id,

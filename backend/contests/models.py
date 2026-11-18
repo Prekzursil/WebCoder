@@ -547,9 +547,7 @@ class Hack(models.Model):
         UNSUCCESSFUL = "UNSUCCESSFUL", _("Unsuccessful")
         INVALID = "INVALID", _("Invalid input")
 
-    contest = models.ForeignKey(
-        Contest, on_delete=models.CASCADE, related_name="hacks"
-    )
+    contest = models.ForeignKey(Contest, on_delete=models.CASCADE, related_name="hacks")
     contest_problem = models.ForeignKey(
         ContestProblem, on_delete=models.CASCADE, related_name="hacks"
     )

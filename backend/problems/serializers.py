@@ -287,7 +287,6 @@ class ProblemSerializer(serializers.ModelSerializer):
             )
         return value
 
-
     def _validate_localized(self, value, field_name):
         """EN-mandatory validation (i18n wave, owner rule (b)).
 

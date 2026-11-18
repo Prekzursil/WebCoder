@@ -56,7 +56,9 @@ def hack_window_open(contest: Contest, now=None) -> bool:
 
 
 def lock_problem(
-    contest: Contest, participation: ContestParticipation, contest_problem: ContestProblem
+    contest: Contest,
+    participation: ContestParticipation,
+    contest_problem: ContestProblem,
 ) -> tuple[bool, str]:
     """Lock a fully-solved board problem for a participation.
 
@@ -233,15 +235,17 @@ def visible_hacks_queryset(contest: Contest, user):
     qs = Hack.objects.filter(contest=contest).select_related(
         "hacker", "target", "target__user", "contest_problem"
     )
-    if user and user.is_authenticated and (
-        user.is_superuser
-        or user.is_staff
-        or user.role == "ADMIN"
-        or contest.created_by_id == user.id
+    if (
+        user
+        and user.is_authenticated
+        and (
+            user.is_superuser
+            or user.is_staff
+            or user.role == "ADMIN"
+            or contest.created_by_id == user.id
+        )
     ):
         return qs
     if user and user.is_authenticated:
-        return qs.filter(
-            Q(hacker=user) | Q(verdict=Hack.Verdict.SUCCESSFUL)
-        )
+        return qs.filter(Q(hacker=user) | Q(verdict=Hack.Verdict.SUCCESSFUL))
     return qs.filter(verdict=Hack.Verdict.SUCCESSFUL)

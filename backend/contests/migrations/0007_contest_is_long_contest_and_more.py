@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("contests", "0006_contest_hide_scoreboard_until_end"),
         ("submissions", "0005_submissiontestresult_limit_memory_kb_and_more"),

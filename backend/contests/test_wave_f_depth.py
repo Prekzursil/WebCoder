@@ -19,7 +19,6 @@ from contests.hacks import (
     hackable_targets,
     judge_hack,
     lock_problem,
-    visible_hacks_queryset,
 )
 from contests.models import (
     Contest,
@@ -106,7 +105,6 @@ class WaveFContestBase(TestCase):
         )
         return sub
 
-
     def mk_sub(self, contest, user, verdict, score, at, problem=None):
         """A contest submission at an explicit instant (auto_now_add is
         bypassed via update, same as the Wave B helper)."""
@@ -140,9 +138,7 @@ class HackWindowTests(WaveFContestBase):
     def test_window_opens_at_freeze_or_start(self):
         no_freeze = self.mk_contest()
         self.assertTrue(hack_window_open(no_freeze))
-        frozen = self.mk_contest(
-            freeze_at=self.now + timedelta(minutes=30)
-        )
+        frozen = self.mk_contest(freeze_at=self.now + timedelta(minutes=30))
         self.assertFalse(hack_window_open(frozen))
         frozen.freeze_at = self.now - timedelta(minutes=5)
         frozen.save()
@@ -465,50 +461,36 @@ class HackViewTests(WaveFContestBase):
 
     def test_targets_listing(self):
         self.client.force_authenticate(self.alice)
-        response = self.client.get(
-            f"/api/v1/contests/{self.contest.id}/hacks/targets/"
-        )
+        response = self.client.get(f"/api/v1/contests/{self.contest.id}/hacks/targets/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 1)
         self.assertEqual(response.data["results"][0]["code"], self.bob_sub.code)
 
     def test_targets_requires_registration(self):
         self.client.force_authenticate(self.admin)
-        response = self.client.get(
-            f"/api/v1/contests/{self.contest.id}/hacks/targets/"
-        )
+        response = self.client.get(f"/api/v1/contests/{self.contest.id}/hacks/targets/")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_lock_view(self):
         cp = self.contest.contest_problems.get()
         self.client.force_authenticate(self.bob)
-        response = self.client.post(
-            f"/api/v1/contests/{self.contest.id}/lock/{cp.id}/"
-        )
+        response = self.client.post(f"/api/v1/contests/{self.contest.id}/lock/{cp.id}/")
         self.assertEqual(response.status_code, 200, response.data)
         # Locking again -> 400.
-        response = self.client.post(
-            f"/api/v1/contests/{self.contest.id}/lock/{cp.id}/"
-        )
+        response = self.client.post(f"/api/v1/contests/{self.contest.id}/lock/{cp.id}/")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_lock_view_requires_registration(self):
         cp = self.contest.contest_problems.get()
         newcomer = User.objects.create_user(username="carol", password="pw")
         self.client.force_authenticate(newcomer)
-        response = self.client.post(
-            f"/api/v1/contests/{self.contest.id}/lock/{cp.id}/"
-        )
+        response = self.client.post(f"/api/v1/contests/{self.contest.id}/lock/{cp.id}/")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_lock_view_unknown_problem(self):
-        response = self.client.post(
-            f"/api/v1/contests/{self.contest.id}/lock/999999/"
-        )
+        response = self.client.post(f"/api/v1/contests/{self.contest.id}/lock/999999/")
         self.client.force_authenticate(self.alice)
-        response = self.client.post(
-            f"/api/v1/contests/{self.contest.id}/lock/999999/"
-        )
+        response = self.client.post(f"/api/v1/contests/{self.contest.id}/lock/999999/")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
@@ -521,7 +503,8 @@ class CommentaryTests(WaveFContestBase):
     def test_post_organizer_and_list_public(self):
         self.client.force_authenticate(self.organizer)
         response = self.client.post(
-            self.url, {"text": "Problem A hides a two-pointer trick.", "minute_offset": 5}
+            self.url,
+            {"text": "Problem A hides a two-pointer trick.", "minute_offset": 5},
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
         self.assertEqual(response.data["author_username"], "organizer")
@@ -587,9 +570,7 @@ class ReplayTests(WaveFContestBase):
             delta=20,
             contests_count=3,
         )
-        response = self.client.get(
-            f"/api/v1/contests/{self.contest.id}/replay/alice/"
-        )
+        response = self.client.get(f"/api/v1/contests/{self.contest.id}/replay/alice/")
         self.assertEqual(response.status_code, 200, response.data)
         self.assertEqual(len(response.data["events"]), 2)
         first, second = response.data["events"]
@@ -602,22 +583,16 @@ class ReplayTests(WaveFContestBase):
     def test_replay_out_of_window_skipped(self):
         before = self.now - timedelta(hours=5)
         self.mk_sub(self.contest, self.alice, "AC", 100, before)
-        response = self.client.get(
-            f"/api/v1/contests/{self.contest.id}/replay/alice/"
-        )
+        response = self.client.get(f"/api/v1/contests/{self.contest.id}/replay/alice/")
         self.assertEqual(response.data["events"], [])
 
     def test_replay_unknown_user_404(self):
-        response = self.client.get(
-            f"/api/v1/contests/{self.contest.id}/replay/nobody/"
-        )
+        response = self.client.get(f"/api/v1/contests/{self.contest.id}/replay/nobody/")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_replay_non_participant_404(self):
         User.objects.create_user(username="carol", password="pw")
-        response = self.client.get(
-            f"/api/v1/contests/{self.contest.id}/replay/carol/"
-        )
+        response = self.client.get(f"/api/v1/contests/{self.contest.id}/replay/carol/")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 

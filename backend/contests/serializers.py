@@ -306,7 +306,14 @@ class CommentarySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ContestCommentary
-        fields = ["id", "author", "author_username", "minute_offset", "text", "created_at"]
+        fields = [
+            "id",
+            "author",
+            "author_username",
+            "minute_offset",
+            "text",
+            "created_at",
+        ]
         read_only_fields = ["id", "author", "author_username", "created_at"]
 
 
