@@ -104,9 +104,19 @@ export default function CommandPalette(): ReactNode {
     };
     const items: CommandItem[] = [
       { id: 'home', label: t('nav_home', 'Home'), hint: '/', run: go('/') },
-      { id: 'problems', label: t('nav_problems', 'Problems'), hint: '/problems', run: go('/problems') },
+      {
+        id: 'problems',
+        label: t('nav_problems', 'Problems'),
+        hint: '/problems',
+        run: go('/problems'),
+      },
       { id: 'tracks', label: t('nav_tracks', 'Tracks'), hint: '/tracks', run: go('/tracks') },
-      { id: 'contests', label: t('nav_contests', 'Contests'), hint: '/contests', run: go('/contests') },
+      {
+        id: 'contests',
+        label: t('nav_contests', 'Contests'),
+        hint: '/contests',
+        run: go('/contests'),
+      },
       { id: 'ratings', label: t('nav_ratings', 'Ratings'), hint: '/ratings', run: go('/ratings') },
       {
         id: 'leaderboard',
@@ -115,12 +125,27 @@ export default function CommandPalette(): ReactNode {
         run: go('/leaderboard'),
       },
       { id: 'forum', label: t('nav_forum', 'Forum'), hint: '/forum', run: go('/forum') },
-      { id: 'start', label: t('start_page_title', 'Start here'), hint: '/start', run: go('/start') },
-      { id: 'try', label: t('try_guest_title', 'Try it without an account'), hint: '/try', run: go('/try') },
+      {
+        id: 'start',
+        label: t('start_page_title', 'Start here'),
+        hint: '/start',
+        run: go('/start'),
+      },
+      {
+        id: 'try',
+        label: t('try_guest_title', 'Try it without an account'),
+        hint: '/try',
+        run: go('/try'),
+      },
     ];
     if (auth.isAuthenticated) {
       items.push(
-        { id: 'profile', label: t('nav_profile', 'Profile'), hint: '/profile', run: go('/profile') },
+        {
+          id: 'profile',
+          label: t('nav_profile', 'Profile'),
+          hint: '/profile',
+          run: go('/profile'),
+        },
         {
           id: 'my-submissions',
           label: t('nav_my_submissions', 'My Submissions'),
@@ -137,7 +162,12 @@ export default function CommandPalette(): ReactNode {
     } else {
       items.push(
         { id: 'login', label: t('nav_login', 'Login'), hint: '/login', run: go('/login') },
-        { id: 'register', label: t('nav_register', 'Register'), hint: '/register', run: go('/register') },
+        {
+          id: 'register',
+          label: t('nav_register', 'Register'),
+          hint: '/register',
+          run: go('/register'),
+        },
       );
     }
     return items;
@@ -232,11 +262,22 @@ export default function CommandPalette(): ReactNode {
             placeholder={t('palette_placeholder', 'Type a command or search problems…')}
             aria-label={t('palette_placeholder', 'Type a command or search problems…')}
             aria-controls="command-palette-list"
-            style={{ flex: 1, background: 'transparent', border: 'none', color: 'var(--foreground)' }}
+            style={{
+              flex: 1,
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--foreground)',
+            }}
           />
           <span
             aria-hidden="true"
-            style={{ fontSize: '0.7rem', color: 'var(--muted)', border: '1px solid var(--border)', borderRadius: 4, padding: '2px 6px' }}
+            style={{
+              fontSize: '0.7rem',
+              color: 'var(--muted)',
+              border: '1px solid var(--border)',
+              borderRadius: 4,
+              padding: '2px 6px',
+            }}
           >
             esc
           </span>
@@ -246,7 +287,13 @@ export default function CommandPalette(): ReactNode {
           ref={listRef}
           role="listbox"
           aria-label={t('palette_results', 'Results')}
-          style={{ listStyle: 'none', margin: 0, padding: '4px', maxHeight: '46vh', overflowY: 'auto' }}
+          style={{
+            listStyle: 'none',
+            margin: 0,
+            padding: '4px',
+            maxHeight: '46vh',
+            overflowY: 'auto',
+          }}
         >
           {items.length === 0 && (
             <li style={{ padding: '12px', color: 'var(--muted)', fontSize: '0.85rem' }}>

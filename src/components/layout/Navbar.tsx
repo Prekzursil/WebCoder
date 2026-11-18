@@ -253,7 +253,9 @@ const Navbar: React.FC = () => {
               href={href}
               className={`nav-link ${isActive(href) ? 'nav-link--active' : ''}`}
               aria-current={isActive(href) ? 'page' : undefined}
-              data-tour={href === '/problems' ? 'problems' : href === '/contests' ? 'contests' : undefined}
+              data-tour={
+                href === '/problems' ? 'problems' : href === '/contests' ? 'contests' : undefined
+              }
             >
               {label}
             </Link>

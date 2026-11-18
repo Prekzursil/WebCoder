@@ -23,113 +23,113 @@ import { localeDirection, normalizeUiLocale } from '@/i18n';
 function buildTheme(mode: 'dark' | 'light') {
   const p = mode === 'light' ? lightPalette : palette;
   return createTheme({
-  palette: {
-    mode,
-    background: {
-      default: p.bg,
-      paper: p.surface,
-    },
-    text: {
-      primary: p.foreground,
-      secondary: p.muted,
-    },
-    primary: {
-      main: p.accent,
-    },
-    error: {
-      main: p.danger,
-    },
-    success: {
-      main: p.success,
-    },
-    warning: {
-      main: p.warn,
-    },
-    divider: p.border,
-  },
-  typography: {
-    fontFamily: fontFamily.sans,
-    pageTitle: typeRamp.pageTitle,
-    sectionLabel: typeRamp.sectionLabel,
-    microLabel: typeRamp.microLabel,
-    // mono is delivered via the --font-mono token (globals.css `code, pre`)
-  },
-  shape: {
-    borderRadius: radius.lg,
-  },
-  components: {
-    MuiTextField: {
-      defaultProps: {
-        variant: 'outlined',
+    palette: {
+      mode,
+      background: {
+        default: p.bg,
+        paper: p.surface,
       },
+      text: {
+        primary: p.foreground,
+        secondary: p.muted,
+      },
+      primary: {
+        main: p.accent,
+      },
+      error: {
+        main: p.danger,
+      },
+      success: {
+        main: p.success,
+      },
+      warning: {
+        main: p.warn,
+      },
+      divider: p.border,
     },
-    MuiOutlinedInput: {
-      styleOverrides: {
-        root: {
-          '& .MuiOutlinedInput-notchedOutline': {
+    typography: {
+      fontFamily: fontFamily.sans,
+      pageTitle: typeRamp.pageTitle,
+      sectionLabel: typeRamp.sectionLabel,
+      microLabel: typeRamp.microLabel,
+      // mono is delivered via the --font-mono token (globals.css `code, pre`)
+    },
+    shape: {
+      borderRadius: radius.lg,
+    },
+    components: {
+      MuiTextField: {
+        defaultProps: {
+          variant: 'outlined',
+        },
+      },
+      MuiOutlinedInput: {
+        styleOverrides: {
+          root: {
+            '& .MuiOutlinedInput-notchedOutline': {
+              borderColor: p.border,
+            },
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: p.borderStrong,
+            },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderColor: p.accent,
+            },
+          },
+        },
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            backgroundImage: 'none',
+            border: `1px solid ${p.border}`,
+          },
+        },
+      },
+      MuiButton: {
+        // MUI v6+ dropped the composite `containedPrimary` / `outlinedPrimary`
+        // styleOverrides keys; `variants` is the supported equivalent. Colours and
+        // hover states below are unchanged from the original overrides.
+        variants: [
+          {
+            props: { variant: 'contained', color: 'primary' },
+            style: {
+              background: p.accent,
+              color: p.onAccent,
+              fontWeight: 600,
+              '&:hover': {
+                background: p.accentHover,
+              },
+            },
+          },
+          {
+            props: { variant: 'outlined', color: 'primary' },
+            style: {
+              borderColor: hexAlpha(p.accent, 0.4),
+              color: p.accent,
+              '&:hover': {
+                borderColor: p.accent,
+                background: hexAlpha(p.accent, 0.08),
+              },
+            },
+          },
+        ],
+      },
+      MuiDivider: {
+        styleOverrides: {
+          root: {
             borderColor: p.border,
           },
-          '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: p.borderStrong,
-          },
-          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: p.accent,
+        },
+      },
+      MuiAlert: {
+        styleOverrides: {
+          root: {
+            borderRadius: radius.md,
           },
         },
       },
     },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          backgroundImage: 'none',
-          border: `1px solid ${p.border}`,
-        },
-      },
-    },
-    MuiButton: {
-      // MUI v6+ dropped the composite `containedPrimary` / `outlinedPrimary`
-      // styleOverrides keys; `variants` is the supported equivalent. Colours and
-      // hover states below are unchanged from the original overrides.
-      variants: [
-        {
-          props: { variant: 'contained', color: 'primary' },
-          style: {
-            background: p.accent,
-            color: p.onAccent,
-            fontWeight: 600,
-            '&:hover': {
-              background: p.accentHover,
-            },
-          },
-        },
-        {
-          props: { variant: 'outlined', color: 'primary' },
-          style: {
-            borderColor: hexAlpha(p.accent, 0.4),
-            color: p.accent,
-            '&:hover': {
-              borderColor: p.accent,
-              background: hexAlpha(p.accent, 0.08),
-            },
-          },
-        },
-      ],
-    },
-    MuiDivider: {
-      styleOverrides: {
-        root: {
-          borderColor: p.border,
-        },
-      },
-    },
-    MuiAlert: {
-      styleOverrides: {
-        root: {
-          borderRadius: radius.md,
-        },
-      },
-    },
-  },
   });
 }
 

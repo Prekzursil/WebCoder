@@ -36,7 +36,11 @@ export default function ThemeToggle({ className }: { className?: string }): Reac
         cursor: 'pointer',
       }}
     >
-      {isDark ? <DarkModeOutlinedIcon fontSize="small" /> : <LightModeOutlinedIcon fontSize="small" />}
+      {isDark ? (
+        <DarkModeOutlinedIcon fontSize="small" />
+      ) : (
+        <LightModeOutlinedIcon fontSize="small" />
+      )}
     </button>
   );
 }

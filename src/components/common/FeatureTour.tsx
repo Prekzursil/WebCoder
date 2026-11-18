@@ -143,8 +143,7 @@ export default function FeatureTour(): ReactNode {
   if (!visible) return null;
 
   const shade = 'rgba(2, 6, 23, 0.72)';
-  const cardBelow =
-    hole === null || hole.top + hole.height + 230 < window.innerHeight;
+  const cardBelow = hole === null || hole.top + hole.height + 230 < window.innerHeight;
 
   return (
     <div>
@@ -194,7 +193,14 @@ export default function FeatureTour(): ReactNode {
             total: STEPS.length,
           })}
         </div>
-        <strong style={{ display: 'block', fontSize: '1rem', color: 'var(--foreground)', marginBottom: 6 }}>
+        <strong
+          style={{
+            display: 'block',
+            fontSize: '1rem',
+            color: 'var(--foreground)',
+            marginBottom: 6,
+          }}
+        >
           {t(step.titleKey, step.titleDefault)}
         </strong>
         <p style={{ fontSize: '0.875rem', color: 'var(--body)', lineHeight: 1.6, margin: 0 }}>
@@ -228,7 +234,9 @@ export default function FeatureTour(): ReactNode {
                 }
               }}
             >
-              {index === STEPS.length - 1 ? t('tour_done', 'Start solving') : t('tour_next', 'Next')}
+              {index === STEPS.length - 1
+                ? t('tour_done', 'Start solving')
+                : t('tour_next', 'Next')}
             </button>
           </span>
         </div>

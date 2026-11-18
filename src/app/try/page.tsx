@@ -67,9 +67,7 @@ export default function TryItPage(): ReactNode {
     } catch (err) {
       const status = (err as { status?: number }).status;
       if (status === 429) {
-        setError(
-          t('try_throttled', 'Guest runs are limited — create a free account for more.'),
-        );
+        setError(t('try_throttled', 'Guest runs are limited — create a free account for more.'));
       } else {
         setError(t('try_failed', 'The run failed. Try again in a moment.'));
       }
@@ -107,7 +105,9 @@ export default function TryItPage(): ReactNode {
         }}
       >
         <div className="card" style={{ padding: '1rem' }}>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '0.75rem' }}>
+          <div
+            style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '0.75rem' }}
+          >
             <label className="micro-label" htmlFor="try-language" style={{ color: 'var(--muted)' }}>
               {t('language_label', 'Language')}
             </label>
@@ -142,7 +142,11 @@ export default function TryItPage(): ReactNode {
             height="300px"
           />
           <div style={{ marginTop: '0.75rem' }}>
-            <label className="micro-label" htmlFor="try-stdin" style={{ color: 'var(--muted)', display: 'block', marginBottom: 4 }}>
+            <label
+              className="micro-label"
+              htmlFor="try-stdin"
+              style={{ color: 'var(--muted)', display: 'block', marginBottom: 4 }}
+            >
               {t('try_stdin_label', 'Input (stdin)')}
             </label>
             <textarea
