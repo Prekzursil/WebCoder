@@ -116,6 +116,8 @@ INSTALLED_APPS = [
     "translations",
     # Wave G section H: integrity & safety.
     "integrity",
+    # Wave G section G: analytics & insights.
+    "analytics",
     # COM-5 (competitive roadmap, owner reversal 2026-10-30): private 1:1
     # message threads with the full safety stack.
     "messaging",

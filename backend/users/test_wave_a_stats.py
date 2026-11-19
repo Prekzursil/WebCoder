@@ -379,3 +379,19 @@ class TestCoverageClosure:
         snapshot = activation_snapshot()
         assert snapshot["d1_active"] == 1
         assert snapshot["d7_active"] == 2
+
+
+from django.test import TestCase as _DjangoTestCase  # noqa: E402
+
+
+class HourNullSkipTest(_DjangoTestCase):
+    """The None/out-of-range hour guard in the time-of-day bins."""
+
+    def test_none_and_out_of_range_hours_skipped(self):
+        from users.statistics import _safe_bin
+
+        self.assertEqual(_safe_bin(None, [0] * 24), ([0] * 24, False))
+        self.assertEqual(_safe_bin(24, [0] * 24), ([0] * 24, False))
+        bins, hit = _safe_bin(5, [0] * 24)
+        self.assertTrue(hit)
+        self.assertEqual(bins[5], 1)

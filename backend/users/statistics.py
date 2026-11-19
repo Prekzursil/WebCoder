@@ -12,6 +12,7 @@ aggregation passes — no new write path, no event sourcing.
 from datetime import timedelta
 
 from django.db.models import Count
+from django.db import models
 from django.utils import timezone
 
 from problems.models import Problem
@@ -245,6 +246,14 @@ def tag_skill_profile(user) -> dict:
     return {"tags": tags_payload, "practice_next": practice_next}
 
 
+def _safe_bin(hour, bins):
+    """Add one submission to its hour bin; skip None/out-of-range hours."""
+    if hour is not None and 0 <= hour < 24:
+        bins[hour] += 1
+        return bins, True
+    return bins, False
+
+
 def user_statistics(user) -> dict:
     """The full /users/me/statistics/ payload for one user."""
     # Submission.Meta.ordering (["-submission_time"]) leaks into
@@ -283,6 +292,14 @@ def user_statistics(user) -> dict:
 
     total_submissions = subs.count()
     acceptance_rate = round(solved / attempted, 4) if attempted else None
+
+    # [wave G item 104] time-of-day activity: submissions per UTC hour
+    # (24 bins) — the "when does this user actually practice" chart.
+    hour_bins = [0] * 24
+    for row in subs.annotate(
+        hour=models.functions.ExtractHour("submission_time")
+    ).values_list("hour", flat=True):
+        hour_bins, _hit = _safe_bin(row, hour_bins)
 
     heatmap_from = timezone.now().date() - timedelta(days=90)
     active_dates = sorted(
@@ -329,6 +346,7 @@ def user_statistics(user) -> dict:
         "per_difficulty": per_difficulty,
         "per_language": per_language,
         "active_dates_90d": [day.isoformat() for day in active_dates],
+        "hour_of_day": hour_bins,
         "current_streak": current_streak,
         "max_streak": max_streak,
         "total_active_days": total_active_days,

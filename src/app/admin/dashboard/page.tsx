@@ -12,6 +12,7 @@ import ProtectedRoute from '@/components/common/ProtectedRoute';
 import SiteStats from './SiteStats';
 import IntegrityPanel from './IntegrityPanel';
 import OwnerAnalytics from './OwnerAnalytics';
+import AnalyticsPanels from './AnalyticsPanels';
 
 // Ported from frontend/webcoder_ui/src/pages/admin/AdminDashboardPage.tsx (CRA reference).
 // Route: /admin/dashboard (CRA App.tsx:43) — ADMIN only.
@@ -105,6 +106,7 @@ export function AdminDashboardPage() {
       <section style={{ marginTop: '2rem' }}>
         <h3>{t('owner_analytics_title', 'Owner Analytics')}</h3>
         <IntegrityPanel />
+        <AnalyticsPanels />
         <OwnerAnalytics />
       </section>
 

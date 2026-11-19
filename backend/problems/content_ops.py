@@ -28,7 +28,7 @@ def problem_changelog(problem, limit: int = 50) -> list[dict]:
     rows = (
         StatementRevision.objects.filter(problem=problem)
         .select_related("edited_by")
-        .order_by("-created_at")[:limit]
+        .order_by("-created_at", "-id")[:limit]
     )
     return [
         {

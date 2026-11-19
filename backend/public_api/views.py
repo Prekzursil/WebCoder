@@ -290,3 +290,82 @@ class PublicRoot(APIView):
                 ],
             }
         )
+
+
+class PublicStandingsView(APIView):
+    """GET /public/contests/{id}/standings/ (wave G item 106).
+
+    The freeze-filtered PUBLIC scoreboard (top 100), exactly as the
+    in-app standings render for an anonymous visitor.
+    """
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, contest_id):
+        from contests.awards import build_ranking_input
+        from contests.formats import rank_contest
+        from contests.models import Contest
+
+        contest = Contest.objects.filter(
+            pk=contest_id, visibility=Contest.Visibility.PUBLIC
+        ).first()
+        if contest is None:
+            return Response({"detail": "Not found."}, status=404)
+        frozen = contest.freeze_at is not None
+        ranking_input = build_ranking_input(contest, virtual=False, frozen=frozen)
+        standings = rank_contest(contest, ranking_input)
+        by_user = {entry["user_id"]: entry for entry in ranking_input}
+        results = []
+        for position, standing in enumerate(standings[:100], start=1):
+            entry = by_user[standing.user_id]
+            results.append(
+                {
+                    "rank": position,
+                    "user": entry["user"].username,
+                    "score": standing.total_score,
+                    "solved": standing.solved,
+                    "penalty_minutes": None
+                    if standing.penalty_minutes == float("inf")
+                    else round(standing.penalty_minutes, 2),
+                    "problems": sorted(entry["rows"], key=lambda r: r["label"]),
+                }
+            )
+        return Response(
+            {
+                "contest": contest.id,
+                "title_i18n": contest.title_i18n,
+                "state": contest.state(),
+                "frozen": frozen,
+                "format": contest.format,
+                "results": results,
+            }
+        )
+
+
+class PublicUserProfileView(APIView):
+    """GET /public/users/{username}/ (wave G item 106).
+
+    The public rating snapshot (minors answer with the private marker —
+    LEG-2 / item 90 parity).
+    """
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, username):
+        from ratings.views import UserRatingHistoryView
+        from users.models import User
+
+        user = User.objects.filter(username=username).first()
+        if user is None:
+            return Response({"detail": "Not found."}, status=404)
+        if user.is_minor:
+            viewer = getattr(request, "user", None)
+            if not (
+                viewer
+                and viewer.is_authenticated
+                and (viewer.id == user.id or viewer.role == User.Roles.ADMIN)
+            ):
+                return Response({"username": user.username, "private": True})
+        inner = UserRatingHistoryView()
+        inner.request = request
+        return inner.get(request, username)

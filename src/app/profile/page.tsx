@@ -31,6 +31,8 @@ interface StatisticsPayload {
   per_difficulty: Record<string, { solved: number; attempted: number }>;
   per_language: Record<string, number>;
   active_dates_90d: string[];
+  /** [wave G item 104] submissions per UTC hour (24 bins). */
+  hour_of_day?: number[];
   current_streak: number;
   max_streak: number;
   total_active_days: number;
@@ -515,6 +517,32 @@ function ProfileOverview({ user }: { user: User }) {
         </div>
       </div>
 
+      {/* [wave G item 104] Time-of-day activity: 24 UTC bins. */}
+      {stats?.hour_of_day && stats.hour_of_day.some((n) => n > 0) && (
+        <div style={{ marginTop: '1rem' }} data-testid="time-of-day">
+          <div className="micro-label" style={{ color: 'var(--muted)', marginBottom: '0.35rem' }}>
+            {t('tod_header', 'When you practice (UTC)')}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '2px', height: 60 }}>
+            {stats.hour_of_day.map((count, hour) => {
+              const max = Math.max(...stats.hour_of_day!, 1);
+              return (
+                <div
+                  key={hour}
+                  title={`${hour}:00 — ${count}`}
+                  style={{
+                    flex: 1,
+                    height: `${(100 * count) / max}%`,
+                    minHeight: count > 0 ? 3 : 1,
+                    background: count > 0 ? 'var(--accent)' : 'var(--surface-2)',
+                    borderRadius: 2,
+                  }}
+                />
+              );
+            })}
+          </div>
+        </div>
+      )}
       {/* RAT-7: per-tag skill profile + practice-next */}
       <TagProfilePanel profile={stats?.tag_profile} />
 
