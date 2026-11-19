@@ -7,6 +7,9 @@ import * as ApiService from '@/services/ApiService';
 // lesson sequence with a flippable theory card, drills and problems.
 
 vi.mock('@/services/ApiService', () => ({
+  // [wave G item 82/88] the palette/onboarding surfaces need these.
+  SearchService: { federated: vi.fn().mockResolvedValue({ query: '', results: {} }) },
+  OnboardingService: { get: vi.fn().mockResolvedValue({ steps: [], done: 0, total: 0 }) },
   LearningService: { courses: vi.fn(), course: vi.fn() },
 }));
 vi.mock('@/context/AuthContext', () => ({
