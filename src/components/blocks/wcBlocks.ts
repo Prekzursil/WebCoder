@@ -48,14 +48,14 @@ export function registerBlockTypes(
       type: 'wc_input_number',
       message0: '%{BKY_WC_INPUT_NUMBER}',
       output: 'Number',
-      colour: '%{BKY_TEXTS_HUE}',
+      colour: 230, // classic scratch-blocks TEXTS_HUE; v2 dropped the %{BKY_*_HUE} Msg constants, so the literal hue is used
       tooltip: '%{BKY_WC_INPUT_NUMBER_TIP}',
     },
     {
       type: 'wc_input_line',
       message0: '%{BKY_WC_INPUT_LINE}',
       output: 'String',
-      colour: '%{BKY_TEXTS_HUE}',
+      colour: 230, // classic scratch-blocks TEXTS_HUE; v2 dropped the %{BKY_*_HUE} Msg constants, so the literal hue is used
       tooltip: '%{BKY_WC_INPUT_LINE_TIP}',
     },
   ]);

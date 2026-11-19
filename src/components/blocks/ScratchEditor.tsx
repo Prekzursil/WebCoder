@@ -13,6 +13,7 @@
 // render the editor.
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { SCRATCH_CATEGORY_COLOURS, SCRATCH_CATEGORY_FALLBACK } from '@/theme/tokens';
 import { useTranslation } from 'react-i18next';
 import { palette } from '@/theme/tokens';
 
@@ -98,7 +99,8 @@ export function buildToolboxXml(
       })
       .join('');
     const label = labels[category] ?? category;
-    parts.push(`<category name="${label}">${blocks}</category>`);
+    const colour = SCRATCH_CATEGORY_COLOURS[category] ?? SCRATCH_CATEGORY_FALLBACK;
+    parts.push(`<category name="${label}" colour="${colour}">${blocks}</category>`);
   }
   return `<xml xmlns="https://developers.google.com/blockly/xml">${parts.join('')}</xml>`;
 }
@@ -327,9 +329,14 @@ export default function ScratchEditor({
       const workspace = (
         Blockly as unknown as {
           inject: (el: HTMLElement, options: Record<string, unknown>) => unknown;
+          ScratchBlocksTheme: unknown;
         }
       ).inject(blocksRef.current, {
         toolbox,
+        // v2's default-theme resolution hits an unpopulated block style in
+        // this manual (non-scratch-gui) wiring; the exported Scratch theme
+        // is complete and validated.
+        theme: (Blockly as unknown as { ScratchBlocksTheme: unknown }).ScratchBlocksTheme,
         media: '/scratch-blocks-media/',
         zoom: { controls: true, startScale: 0.75, maxScale: 1.5, minScale: 0.25 },
         trashcan: true,
@@ -383,7 +390,7 @@ export default function ScratchEditor({
     })().catch((exc) => {
       if (!cancelled) {
         setError(exc instanceof Error ? exc.message : 'Failed to load the Scratch editor.');
-      }
+              }
     });
 
     return () => {

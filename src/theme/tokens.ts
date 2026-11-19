@@ -226,3 +226,21 @@ export function hexAlpha(hex: string, alpha: number): string {
   const a = Math.round(Math.min(Math.max(alpha, 0), 1) * 255);
   return `${hex}${a.toString(16).padStart(2, '0')}`;
 }
+
+/**
+ * Scratch (Blockly toolbox) category colours — scratch-blocks 2.x requires an
+ * explicit colour attribute on every toolbox <category>; these mirror the
+ * official Scratch editor palette per category and live here (the design-token
+ * SSOT) because the Blockly toolbox takes literal colour strings, not CSS vars.
+ */
+export const SCRATCH_CATEGORY_COLOURS: Record<string, string> = {
+  events: '#FFBF00',
+  control: '#FFAB19',
+  looks: '#9966FF',
+  sensing: '#5CB1D6',
+  operators: '#59C059',
+  variables: '#FF8C1A',
+};
+
+/** Fallback toolbox category colour (Scratch "motion" blue). */
+export const SCRATCH_CATEGORY_FALLBACK = '#4C97FF';
