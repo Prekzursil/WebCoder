@@ -12,7 +12,8 @@ import type { ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
-import { ProblemService } from '@/services/ApiService';
+import { ProblemService, SearchService } from '@/services/ApiService';
+import type { FederatedHits } from '@/services/ApiService';
 import SearchIcon from '@mui/icons-material/Search';
 
 interface CommandItem {
@@ -41,6 +42,7 @@ export default function CommandPalette(): ReactNode {
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const [problemHits, setProblemHits] = useState<ProblemHit[]>([]);
+  const [federated, setFederated] = useState<FederatedHits | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
@@ -79,6 +81,7 @@ export default function CommandPalette(): ReactNode {
     const q = query.trim();
     if (!open || q.length < 2) {
       setProblemHits([]);
+      setFederated(null);
       return;
     }
     let cancelled = false;
@@ -90,12 +93,21 @@ export default function CommandPalette(): ReactNode {
         .catch(() => {
           if (!cancelled) setProblemHits([]);
         });
+      // [wave G item 82] federated hits: threads, articles, contests, users.
+      const locale = (i18n.language ?? 'en').startsWith('ro') ? 'ro' : 'en';
+      SearchService.federated(q, locale)
+        .then((data) => {
+          if (!cancelled) setFederated(data.results);
+        })
+        .catch(() => {
+          if (!cancelled) setFederated(null);
+        });
     }, 250);
     return () => {
       cancelled = true;
       clearTimeout(handle);
     };
-  }, [query, open]);
+  }, [query, open, i18n.language]);
 
   const navCommands: CommandItem[] = useMemo(() => {
     const go = (href: string) => () => {
@@ -187,8 +199,55 @@ export default function CommandPalette(): ReactNode {
         router.push(`/problems/${hit.id}`);
       },
     }));
-    return [...filteredNav, ...problemItems];
-  }, [navCommands, query, problemHits, i18n.language, t, close, router]);
+    const federatedItems: CommandItem[] = [];
+    if (q.trim().length >= 2 && federated) {
+      for (const row of federated.threads) {
+        federatedItems.push({
+          id: `thread-${row.id}`,
+          label: row.title,
+          hint: t('palette_kind_thread', 'forum'),
+          run: () => {
+            close();
+            router.push(`/forum/threads/${row.id}`);
+          },
+        });
+      }
+      for (const row of federated.articles) {
+        federatedItems.push({
+          id: `article-${row.id}`,
+          label: row.title,
+          hint: t('palette_kind_article', 'article'),
+          run: () => {
+            close();
+            router.push(`/wiki`);
+          },
+        });
+      }
+      for (const row of federated.contests) {
+        federatedItems.push({
+          id: `contest-${row.id}`,
+          label: row.title,
+          hint: t('palette_kind_contest', 'contest'),
+          run: () => {
+            close();
+            router.push(`/contests/${row.id}`);
+          },
+        });
+      }
+      for (const row of federated.users) {
+        federatedItems.push({
+          id: `user-${row.id}`,
+          label: row.username,
+          hint: t('palette_kind_user', 'user'),
+          run: () => {
+            close();
+            router.push(`/profile/${encodeURIComponent(row.username)}`);
+          },
+        });
+      }
+    }
+    return [...filteredNav, ...problemItems, ...federatedItems];
+  }, [navCommands, query, problemHits, federated, i18n.language, t, close, router]);
 
   useEffect(() => {
     setActiveIndex(0);

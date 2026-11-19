@@ -71,6 +71,7 @@ describe('IdentityCard (RO-3)', () => {
         school: '',
         isMinor: true,
         timezone: '',
+        notificationDigest: 'none',
         bio: 'Graphs, then segment trees.',
       }),
     );

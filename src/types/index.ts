@@ -186,6 +186,8 @@ export interface User {
   is_minor?: boolean;
   /** [wave G item 87] display timezone (IANA; '' = UTC). */
   timezone?: string;
+  /** [wave G item 84] digest frequency: none/daily/weekly. */
+  notification_digest?: string;
 }
 
 export interface AdminUserType extends User {

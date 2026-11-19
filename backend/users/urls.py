@@ -16,6 +16,7 @@ from .views import (
     UserViewSet,
     UserStatisticsView,
     UserSolvedIdsView,
+    UserOnboardingView,
     AccountExportView,
     AccountDeleteView,
     ActivationMetricsView,
@@ -77,6 +78,12 @@ urlpatterns = [
         name="user_statistics",
     ),
     path("me/solved-ids/", UserSolvedIdsView.as_view(), name="user_solved_ids"),
+    # Wave G item 88 — the first-hour checklist.
+    path(
+        "me/onboarding/",
+        UserOnboardingView.as_view(),
+        name="user_onboarding",
+    ),
     path("me/export/", AccountExportView.as_view(), name="account_export"),
     path("me/delete/", AccountDeleteView.as_view(), name="account_delete"),
     # OPS-2 (Wave D): TOTP enrollment lifecycle + personal API tokens.

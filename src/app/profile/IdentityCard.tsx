@@ -21,6 +21,7 @@ export default function IdentityCard() {
   const [isMinor, setIsMinor] = useState(Boolean(user?.is_minor));
   const [bio, setBio] = useState(user?.bio ?? '');
   const [timezone, setTimezone] = useState(user?.timezone ?? '');
+  const [digest, setDigest] = useState(user?.notification_digest ?? 'none');
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   if (!user) return null;
@@ -35,6 +36,7 @@ export default function IdentityCard() {
         isMinor: isMinor,
         bio: bio.slice(0, 500),
         timezone: timezone.trim(),
+        notificationDigest: digest,
       });
       // Guests share the picker — persist the choice locally too so
       // unauthenticated pages render in the same zone.
@@ -197,6 +199,34 @@ export default function IdentityCard() {
                 {zone}
               </option>
             ))}
+          </select>
+        </label>
+        {/* [wave G item 84] notification digest frequency. */}
+        <label
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.25rem',
+            fontSize: '0.85rem',
+            color: 'var(--muted)',
+          }}
+        >
+          {t('digest_label', 'Notification digest')}
+          <select
+            value={digest}
+            onChange={(e) => setDigest(e.target.value)}
+            data-testid="identity-digest"
+            style={{
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid var(--border)',
+              borderRadius: '8px',
+              color: 'var(--foreground)',
+              padding: '8px',
+            }}
+          >
+            <option value="none">{t('digest_none', 'No digest (in-app only)')}</option>
+            <option value="daily">{t('digest_daily', 'Daily email')}</option>
+            <option value="weekly">{t('digest_weekly', 'Weekly email')}</option>
           </select>
         </label>
         <div>

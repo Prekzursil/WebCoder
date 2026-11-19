@@ -119,3 +119,73 @@ def weekly_digest_task():
         sent += 1
     logger.info("weekly_digest: sent %d emails.", sent)
     return sent
+
+
+@shared_task
+def notification_digest_task(period="daily"):
+    """Wave G item 84 — the notification digest email.
+
+    For every user whose ``notification_digest`` matches the period:
+    collect the unread notifications, send ONE summary email, and mark
+    exactly those notifications read (the digest IS the read receipt —
+    otherwise the inbox would re-count them forever).
+
+    Transport guard mirrors weekly_digest_task: a no-op without
+    ``EMAIL_HOST`` (the local/console default), so dev stacks never send.
+    """
+    import logging
+
+    from django.conf import settings as dj_settings
+    from django.contrib.auth import get_user_model
+    from django.core.mail import send_mail
+
+    logger = logging.getLogger(__name__)
+
+    if period not in ("daily", "weekly"):
+        raise ValueError(f"unknown digest period: {period!r}")
+    host = getattr(dj_settings, "EMAIL_HOST", "")
+    if not host:
+        logger.info(
+            "notification_digest(%s): skipped — no mail host configured.", period
+        )
+        return 0
+
+    User = get_user_model()
+    users = User.objects.filter(is_active=True, notification_digest=period).exclude(
+        email=""
+    )
+    sent = 0
+    for user in users:
+        unread = list(
+            Notification.objects.filter(recipient=user, read_at__isnull=True).order_by(
+                "-created_at"
+            )[:25]
+        )
+        if not unread:
+            continue
+        lines = []
+        for note in unread:
+            verb = note.verb
+            when = note.created_at.strftime("%Y-%m-%d %H:%M UTC")
+            lines.append(f"- [{verb}] {when}")
+        send_mail(
+            subject=(
+                "WebCoder — notificări necitite / your unread notifications "
+                f"({len(unread)})"
+            ),
+            message=(
+                "Notificările tale din ultimele zile / your recent notifications:\n\n"
+                + "\n".join(lines)
+                + "\n\n— WebCoder"
+            ),
+            from_email=None,  # settings.DEFAULT_FROM_EMAIL
+            recipient_list=[user.email],
+            fail_silently=True,
+        )
+        now = timezone.now()
+        for note in unread:
+            note.read_at = now
+        Notification.objects.bulk_update(unread, ["read_at"])
+        sent += 1
+    logger.info("notification_digest(%s): sent %d emails.", period, sent)
+    return sent

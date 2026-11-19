@@ -24,7 +24,7 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 from users import views as users_views
-from webcoder_api import observability
+from webcoder_api import observability, search
 
 urlpatterns = [
     path("", RedirectView.as_view(url="/api/v1/problems/", permanent=False)),
@@ -33,6 +33,10 @@ urlpatterns = [
     # /readyz pings db+cache+broker (readiness). Unauthenticated by design —
     # they leak no data beyond up/down per component.
     path("healthz", observability.healthz, name="healthz"),
+    # Wave G item 82: federated search across public surfaces.
+    path(
+        "api/v1/search/", search.FederatedSearchView.as_view(), name="federated_search"
+    ),
     path("readyz", observability.readyz, name="readyz"),
     path("api/v1/users/", include("users.urls", namespace="users_api_v1")),
     path("api/v1/problems/", include("problems.urls", namespace="problems_api_v1")),

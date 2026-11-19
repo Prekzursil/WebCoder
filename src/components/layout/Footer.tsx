@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import A11yModePicker from '@/components/common/A11yModePicker';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
@@ -59,6 +60,9 @@ const Footer: React.FC = () => {
 
   return (
     <footer className={styles.footer} aria-label="Site footer">
+      <div style={{ padding: '0 1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+        <A11yModePicker />
+      </div>
       <div className={styles.inner}>
         <div className={styles.topRow}>
           <div className={styles.brandBlock}>

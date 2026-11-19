@@ -331,6 +331,32 @@ export async function collectAllCursorPages<T>(
   return out;
 }
 
+export interface FederatedHits {
+  problems: { id: number; title: string; difficulty?: string }[];
+  threads: { id: number; title: string; problem?: number | null }[];
+  articles: { id: number; title: string }[];
+  contests: { id: number; title: string; start_at?: string }[];
+  users: { id: number; username: string }[];
+}
+
+export const SearchService = {
+  // Wave G item 82 — one query across every public surface.
+  federated: (q: string, lang = 'en') =>
+    apiFetch<{ query: string; results: FederatedHits }>(
+      `/search/?q=${encodeURIComponent(q)}&lang=${lang}`,
+    ),
+};
+
+export const OnboardingService = {
+  // Wave G item 88 — the computed first-hour checklist.
+  get: () =>
+    apiFetch<{
+      steps: { key: string; done: boolean }[];
+      done: number;
+      total: number;
+    }>('/users/me/onboarding/'),
+};
+
 export const AuthService = {
   register: (userData: Record<string, unknown>) =>
     apiFetch<RegisterResponse>('/users/register/', {
@@ -347,6 +373,7 @@ export const AuthService = {
     isMinor?: boolean;
     bio?: string;
     timezone?: string;
+    notificationDigest?: string;
   }) =>
     apiFetch<User>('/users/me/', {
       method: 'PATCH',
@@ -356,6 +383,9 @@ export const AuthService = {
         ...(data.bio !== undefined ? { bio: data.bio } : {}),
         ...(data.isMinor !== undefined ? { is_minor: data.isMinor } : {}),
         ...(data.timezone !== undefined ? { timezone: data.timezone } : {}),
+        ...(data.notificationDigest !== undefined
+          ? { notification_digest: data.notificationDigest }
+          : {}),
       }),
     }),
   // [F5] Solved/attempted problem-id sets for the catalog indicator column.

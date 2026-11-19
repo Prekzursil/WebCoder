@@ -5,6 +5,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 
+// [wave G item 88] the checklist is covered by its own test (with the
+// auth context); here it is a stub so the page tests stay provider-free.
+vi.mock('@/components/common/OnboardingChecklist', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 vi.mock('next/headers', () => ({
   cookies: vi.fn(),
 }));
