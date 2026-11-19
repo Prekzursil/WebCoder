@@ -233,7 +233,11 @@ export default function ScratchEditor({
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const onChangeRef = useRef(onProjectChange);
-  onChangeRef.current = onProjectChange;
+  // Latest-ref pattern: keep the callback fresh WITHOUT reading/writing
+  // the ref during render (react-hooks/refs).
+  useEffect(() => {
+    onChangeRef.current = onProjectChange;
+  }, [onProjectChange]);
 
   const pushConsole = useCallback((line: string) => {
     setConsoleLines((lines) => [...lines.slice(-40), line]);

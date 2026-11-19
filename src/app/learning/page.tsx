@@ -34,6 +34,8 @@ const sectionTitle: React.CSSProperties = {
 };
 
 export default function LearningPage(): ReactNode {
+  // Mount-time snapshot keeps due-day math pure during render (react-hooks/purity).
+  const [now] = useState(() => Date.now());
   const { t, i18n } = useTranslation();
   const auth = useAuth();
   const [queue, setQueue] = useState<{ due: number; results: ReviewCard[] } | null>(null);
@@ -135,7 +137,7 @@ export default function LearningPage(): ReactNode {
                     : t('learning_due_in', 'in {{n}}d', {
                         n: Math.max(
                           0,
-                          Math.ceil((new Date(c.due_at).getTime() - Date.now()) / 86_400_000),
+                          Math.ceil((new Date(c.due_at).getTime() - now) / 86_400_000),
                         ),
                       })}
                   {' · '}

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { render, waitFor, act, cleanup } from '@testing-library/react';
 import { AuthProvider, useAuth } from './AuthContext';
@@ -28,7 +29,12 @@ const user: User = { id: 1, username: 'tester', email: 'tester@example.com', rol
 let authState: ReturnType<typeof useAuth> | undefined;
 
 const Probe = () => {
-  authState = useAuth();
+  const ctx = useAuth();
+  // Capture during an effect, not by reassigning a module-level binding
+  // during render (react-hooks/globals).
+  useEffect(() => {
+    authState = ctx;
+  }, [ctx]);
   return null;
 };
 

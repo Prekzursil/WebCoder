@@ -23,14 +23,17 @@ export default function TrackDetailPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // Hoist to a simple binding so the manual deps match what React Compiler
+  // infers (react-hooks/preserve-manual-memoization).
+  const slug = params?.slug;
   const load = useCallback(async () => {
-    if (!params?.slug) return;
+    if (!slug) return;
     try {
-      setTrack(await TrackService.get(params.slug));
+      setTrack(await TrackService.get(slug));
     } catch {
       setError(t('tracks_not_found', 'Track not found.'));
     }
-  }, [params?.slug, t]);
+  }, [slug, t]);
 
   useEffect(() => {
     load();

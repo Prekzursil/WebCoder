@@ -47,6 +47,8 @@ export default function ForumPage() {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<SortBy>('activity');
 
+  // Hoisted so the dependency list below stays a simple expression (react-hooks/use-memo).
+  const categoryAxis = activeCategory === 'editorial' ? 'editorial' : 'plain';
   const loadFirstPage = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -76,7 +78,7 @@ export default function ForumPage() {
     // category chips stay client-side filters over the loaded rows —
     // clicking them must not flash a loading state.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [t, langFilter, activeCategory === 'editorial' ? 'editorial' : 'plain']);
+  }, [t, langFilter, categoryAxis]);
 
   useEffect(() => {
     loadFirstPage();
