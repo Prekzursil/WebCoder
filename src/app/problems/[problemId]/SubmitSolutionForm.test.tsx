@@ -13,6 +13,12 @@ vi.mock('@/services/ApiService', () => ({
     createSubmission: vi.fn(),
     getSubmissionDetail: vi.fn(),
   },
+  // Wave G item 76: the draft endpoints the form autosaves through.
+  DraftService: {
+    get: vi.fn().mockResolvedValue(undefined),
+    save: vi.fn().mockResolvedValue({}),
+    clear: vi.fn().mockResolvedValue({ deleted: 0 }),
+  },
 }));
 
 // [A6] CodeMirror is heavy and needs a real layout engine — stub it with a

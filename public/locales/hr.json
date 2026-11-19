@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "Natjecanja s rejtingom",
   "tour_step_contests_body": "Natjecanja u tjednom stilu s rejtingima, poredcima i feedom kalendara. Nastavnici mogu održavati i privatna razredna natjecanja.",
   "tour_step_start_title": "Počni s tri klasika",
-  "tour_step_start_body": "Putanja /start bira jedan lakši zadatak po paradigmi — tvoj prvi prihvaćeni upload je na tri klika."
+  "tour_step_start_body": "Putanja /start bira jedan lakši zadatak po paradigmi — tvoj prvi prihvaćeni upload je na tri klika.",
+  "annotations_title": "Moje bilješke (privatno)",
+  "annotations_hint": "Odaberi frazu u tekstu, pritisni „Snimi odabir” i zapiši svoju bilješku. Samo ih ti vidiš.",
+  "annotations_capture": "Snimi odabir",
+  "annotations_note_placeholder": "Tvoja bilješka…",
+  "annotations_add": "Dodaj bilješku",
+  "annotations_delete": "Izbriši",
+  "annotations_save_failed": "Bilješku nije moguće spremiti.",
+  "annotations_delete_failed": "Bilješku nije moguće izbrisati.",
+  "offline_pack_save": "Offline paket",
+  "offline_pack_building": "Izrada…",
+  "offline_pack_failed": "Offline paket nije moguće stvoriti.",
+  "identity_timezone": "Vremenska zona prikaza",
+  "identity_timezone_utc": "UTC (zadano)"
 }

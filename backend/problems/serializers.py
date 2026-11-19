@@ -37,6 +37,9 @@ class TestCaseSerializer(serializers.ModelSerializer):
             # Wave E item 6: optional per-test time bar (null = the
             # problem/language effective limit applies).
             "time_limit_ms",
+            # Wave G item 86: localized sample comments.
+            "comment_ro",
+            "comment_en",
         ]
 
     def to_representation(self, instance):

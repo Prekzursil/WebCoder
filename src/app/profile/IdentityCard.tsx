@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext';
 import { AuthService } from '@/services/ApiService';
+import { storeGuestTimezone, timezoneOptions } from '@/lib/datetime';
 import { palette } from '@/theme/tokens';
 
 /**
@@ -19,6 +20,7 @@ export default function IdentityCard() {
   const [school, setSchool] = useState(user?.school ?? '');
   const [isMinor, setIsMinor] = useState(Boolean(user?.is_minor));
   const [bio, setBio] = useState(user?.bio ?? '');
+  const [timezone, setTimezone] = useState(user?.timezone ?? '');
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   if (!user) return null;
@@ -32,7 +34,11 @@ export default function IdentityCard() {
         school: school.trim(),
         isMinor: isMinor,
         bio: bio.slice(0, 500),
+        timezone: timezone.trim(),
       });
+      // Guests share the picker — persist the choice locally too so
+      // unauthenticated pages render in the same zone.
+      storeGuestTimezone(timezone.trim());
       // The next /users/me/ read picks the update up; the saved
       // marker confirms it for the user.
       void updated;
@@ -162,6 +168,37 @@ export default function IdentityCard() {
             'Optional. Your county/school powers the county Top-100 boards; if you are under 16, they stay private and you appear only on the global board (GDPR age rules).',
           )}
         </p>
+        {/* [wave G item 87] display-timezone picker (IANA zones). */}
+        <label
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.25rem',
+            fontSize: '0.85rem',
+            color: 'var(--muted)',
+          }}
+        >
+          {t('identity_timezone', 'Display timezone')}
+          <select
+            value={timezone}
+            onChange={(e) => setTimezone(e.target.value)}
+            data-testid="identity-timezone"
+            style={{
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid var(--border)',
+              borderRadius: '8px',
+              color: 'var(--foreground)',
+              padding: '8px',
+            }}
+          >
+            <option value="">{t('identity_timezone_utc', 'UTC (default)')}</option>
+            {timezoneOptions().map((zone) => (
+              <option key={zone} value={zone}>
+                {zone}
+              </option>
+            ))}
+          </select>
+        </label>
         <div>
           <button type="submit" disabled={status === 'saving'} data-testid="identity-save">
             {status === 'saving'

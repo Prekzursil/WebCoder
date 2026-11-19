@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "Kỳ thi có rating",
   "tour_step_contests_body": "Kỳ thi kiểu hàng tuần với rating, bảng điểm và feed lịch. Giáo viên cũng có thể tổ chức kỳ thi lớp riêng tư.",
   "tour_step_start_title": "Bắt đầu với ba bài kinh điển",
-  "tour_step_start_body": "Lộ trình /start chọn một bài dễ cho mỗi paradigm — bài nộp được chấp nhận đầu tiên của bạn chỉ cách ba cú nhấp."
+  "tour_step_start_body": "Lộ trình /start chọn một bài dễ cho mỗi paradigm — bài nộp được chấp nhận đầu tiên của bạn chỉ cách ba cú nhấp.",
+  "annotations_title": "Ghi chú của tôi (riêng tư)",
+  "annotations_hint": "Chọn một cụm trong đề bài, bấm «Chụp vùng chọn» và lưu ghi chú của riêng bạn. Chỉ bạn thấy chúng.",
+  "annotations_capture": "Chụp vùng chọn",
+  "annotations_note_placeholder": "Ghi chú của bạn…",
+  "annotations_add": "Thêm ghi chú",
+  "annotations_delete": "Xóa",
+  "annotations_save_failed": "Không thể lưu ghi chú.",
+  "annotations_delete_failed": "Không thể xóa ghi chú.",
+  "offline_pack_save": "Gói offline",
+  "offline_pack_building": "Đang tạo…",
+  "offline_pack_failed": "Không thể tạo gói offline.",
+  "identity_timezone": "Múi giờ hiển thị",
+  "identity_timezone_utc": "UTC (mặc định)"
 }

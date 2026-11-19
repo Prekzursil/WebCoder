@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "Рейтингирани състезания",
   "tour_step_contests_body": "Седмични състезания с рейтинги, класации и календарен канал. Учителите могат да организират и частни класни състезания.",
   "tour_step_start_title": "Започнете с три класики",
-  "tour_step_start_body": "Пътят /start избира по една лесна задача за всяка парадигма — първото ви прието испращане е на три клика."
+  "tour_step_start_body": "Пътят /start избира по една лесна задача за всяка парадигма — първото ви прието испращане е на три клика.",
+  "annotations_title": "Моите бележки (лични)",
+  "annotations_hint": "Изберете фраза от условието, натиснете „Улови избраното“ и запазете бележката си. Виждате ги само вие.",
+  "annotations_capture": "Улови избраното",
+  "annotations_note_placeholder": "Вашата бележка…",
+  "annotations_add": "Добави бележка",
+  "annotations_delete": "Изтрий",
+  "annotations_save_failed": "Бележката не можа да бъде запазена.",
+  "annotations_delete_failed": "Бележката не можа да бъде изтрита.",
+  "offline_pack_save": "Офлайн пакет",
+  "offline_pack_building": "Изгражда се…",
+  "offline_pack_failed": "Офлайн пакетът не можа да бъде създаден.",
+  "identity_timezone": "Часова зона за показване",
+  "identity_timezone_utc": "UTC (по подразбиране)"
 }

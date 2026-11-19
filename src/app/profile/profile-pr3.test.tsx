@@ -70,6 +70,7 @@ describe('IdentityCard (RO-3)', () => {
         county: 'Cluj',
         school: '',
         isMinor: true,
+        timezone: '',
         bio: 'Graphs, then segment trees.',
       }),
     );

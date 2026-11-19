@@ -23,6 +23,8 @@ import SolutionsPanel from './SolutionsPanel';
 import DiscussionsPanel from './DiscussionsPanel';
 import EditorialEtiquetteBanner from './EditorialEtiquetteBanner';
 import PrintButton from './PrintButton';
+import SaveOfflinePackButton from './SaveOfflinePackButton';
+import AnnotationsPanel from './AnnotationsPanel';
 import SplitViewToggle from './SplitViewToggle';
 import StatementHistory from './StatementHistory';
 import ScratchPanel from './ScratchPanel';
@@ -595,12 +597,13 @@ export default async function ProblemDetailPage({ params, searchParams }: Proble
           <RelatedProblemsStrip problemId={Number(problemId)} />
           <SolutionsPanel problemId={Number(problemId)} />
           {/* COM-1: per-problem discussion threads on the problem page. */}
+          <AnnotationsPanel problemId={problemId} />
           <DiscussionsPanel problemId={Number(problemId)} />
           <StatementHistory problemId={Number(problemId)} />
 
           {/* Problem statement */}
           <div style={{ marginBottom: '0.5rem' }} data-noprint>
-            <PrintButton />
+            <PrintButton /> <SaveOfflinePackButton problemId={problemId} title={problemTitle} />
           </div>
           <div style={card}>
             {sectionHeader('var(--accent)', t('problem_statement_header', 'Problem Statement'))}
@@ -701,6 +704,26 @@ export default async function ProblemDetailPage({ params, searchParams }: Proble
                       </span>
                       <CopyButton text={tc.input_data} style={{}} />
                     </div>
+                    {(
+                      locale === 'ro'
+                        ? tc.comment_ro || tc.comment_en
+                        : tc.comment_en || tc.comment_ro
+                    ) ? (
+                      <p
+                        style={{
+                          margin: 0,
+                          padding: '6px 14px',
+                          fontSize: '0.78rem',
+                          color: 'var(--muted)',
+                          fontStyle: 'italic',
+                          borderBottom: '1px solid var(--border)',
+                        }}
+                      >
+                        {locale === 'ro'
+                          ? tc.comment_ro || tc.comment_en
+                          : tc.comment_en || tc.comment_ro}
+                      </p>
+                    ) : null}
                     <div className={styles.sampleGrid}>
                       <div style={{ padding: '1rem', borderRight: '1px solid var(--border)' }}>
                         <div

@@ -1,5 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from .drafts import DraftView
 from .views import SubmissionCreateView, SubmissionLicenseView, SubmissionViewSet
 
 app_name = "submissions"
@@ -14,6 +15,8 @@ router.register(r"submissions", SubmissionViewSet, basename="submission")
 urlpatterns = [
     path("", include(router.urls)),
     path("submit/", SubmissionCreateView.as_view(), name="submission_create"),
+    # Wave G item 76 — cross-device code drafts (per problem).
+    path("drafts/<int:problem_id>/", DraftView.as_view(), name="code_draft"),
     # Wave F item 61 — author relicensing of shared AC sources.
     path(
         "submissions/<int:submission_id>/license/",

@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "Konkursy z ratingiem",
   "tour_step_contests_body": "Konkursy w stylu tygodniowym z ratingami, tablicami wyników i kanałem kalendarza. Nauczyciele mogą też prowadzić prywatne konkursy klasowe.",
   "tour_step_start_title": "Zacznij od trzech klasyków",
-  "tour_step_start_body": "Ścieżka /start wybiera jedno łatwe zadanie na paradygmat — Twoja pierwsza zaakceptowana wysyłka jest o trzy kliknięcia."
+  "tour_step_start_body": "Ścieżka /start wybiera jedno łatwe zadanie na paradygmat — Twoja pierwsza zaakceptowana wysyłka jest o trzy kliknięcia.",
+  "annotations_title": "Moje notatki (prywatne)",
+  "annotations_hint": "Zaznacz fragment treści, naciśnij „Przechwytuj zaznaczenie” i zapisz własną notatkę. Widzisz je tylko ty.",
+  "annotations_capture": "Przechwytaj zaznaczenie",
+  "annotations_note_placeholder": "Twoja notatka…",
+  "annotations_add": "Dodaj notatkę",
+  "annotations_delete": "Usuń",
+  "annotations_save_failed": "Nie udało się zapisać notatki.",
+  "annotations_delete_failed": "Nie udało się usunąć notatki.",
+  "offline_pack_save": "Pakiet offline",
+  "offline_pack_building": "Tworzenie…",
+  "offline_pack_failed": "Nie udało się utworzyć pakietu offline.",
+  "identity_timezone": "Strefa czasowa wyświetlania",
+  "identity_timezone_utc": "UTC (domyślnie)"
 }

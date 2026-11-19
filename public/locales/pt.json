@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "Concursos com rating",
   "tour_step_contests_body": "Concursos semanais com ratings, placares e feed de calendário. Professores também podem criar concursos privados de turma.",
   "tour_step_start_title": "Comece com três clássicos",
-  "tour_step_start_body": "O caminho /start escolhe um problema fácil por paradigma — sua primeira submissão aceita está a três cliques."
+  "tour_step_start_body": "O caminho /start escolhe um problema fácil por paradigma — sua primeira submissão aceita está a três cliques.",
+  "annotations_title": "Minhas notas (privadas)",
+  "annotations_hint": "Selecione uma frase do enunciado, pressione “Capturar seleção” e guarde sua nota. Só você as vê.",
+  "annotations_capture": "Capturar seleção",
+  "annotations_note_placeholder": "Sua nota…",
+  "annotations_add": "Adicionar nota",
+  "annotations_delete": "Excluir",
+  "annotations_save_failed": "Não foi possível salvar a anotação.",
+  "annotations_delete_failed": "Não foi possível excluir a anotação.",
+  "offline_pack_save": "Pacote offline",
+  "offline_pack_building": "Gerando…",
+  "offline_pack_failed": "Não foi possível gerar o pacote offline.",
+  "identity_timezone": "Fuso horário de exibição",
+  "identity_timezone_utc": "UTC (padrão)"
 }

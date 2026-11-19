@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "Rated contests",
   "tour_step_contests_body": "Weekly-style contests with ratings, scoreboards and a calendar feed. Teachers can run private class contests too.",
   "tour_step_start_title": "Start with three classics",
-  "tour_step_start_body": "The /start path picks one easy problem per paradigm — your first accepted submission is three clicks away."
+  "tour_step_start_body": "The /start path picks one easy problem per paradigm — your first accepted submission is three clicks away.",
+  "annotations_title": "My notes (private)",
+  "annotations_hint": "Select a phrase in the statement, press “Capture selection”, and keep your own note on it. Only you see these.",
+  "annotations_capture": "Capture selection",
+  "annotations_note_placeholder": "Your note…",
+  "annotations_add": "Add note",
+  "annotations_delete": "Delete",
+  "annotations_save_failed": "Could not save the annotation.",
+  "annotations_delete_failed": "Could not delete the annotation.",
+  "offline_pack_save": "Offline pack",
+  "offline_pack_building": "Building…",
+  "offline_pack_failed": "Could not build the offline pack.",
+  "identity_timezone": "Display timezone",
+  "identity_timezone_utc": "UTC (default)"
 }

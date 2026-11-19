@@ -173,3 +173,45 @@ class SubmissionTestResult(models.Model):
         verbose_name_plural = _("submission test results")
         ordering = ["submission", "test_case__order"]
         unique_together = ("submission", "test_case")
+
+
+class CodeDraft(models.Model):
+    """Cross-device code draft (wave G item 76).
+
+    One draft per (user, problem): the editor autosaves here, and any
+    device the user signs in on restores the latest code. Deliberately
+    NOT versioned — the submission history already is the audit trail;
+    this is the "pick up where you left off" affordance.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="code_drafts",
+        verbose_name=_("user"),
+    )
+    problem = models.ForeignKey(
+        "problems.Problem",
+        on_delete=models.CASCADE,
+        related_name="drafts",
+        verbose_name=_("problem"),
+    )
+    language = models.CharField(_("language"), max_length=20)
+    code = models.TextField(_("code"))
+    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("code draft")
+        verbose_name_plural = _("code drafts")
+        ordering = ["-updated_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "problem"], name="uniq_draft_user_problem"
+            )
+        ]
+
+    def __str__(self):
+        return (
+            f"CodeDraft user={self.user_id} problem={self.problem_id} ({self.language})"
+        )

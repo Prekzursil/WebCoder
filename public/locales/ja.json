@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "レーテッドコンテスト",
   "tour_step_contests_body": "レーティング、スコアボード、カレンダーフィード付きの週次スタイルコンテスト。教師はプライベートなクラスコンテストも開催できます。",
   "tour_step_start_title": "3つの定番から始める",
-  "tour_step_start_body": "/startパスはパラダイムごとに簡単な問題を1つ選びます — 初のAC提出まであと3クリック。"
+  "tour_step_start_body": "/startパスはパラダイムごとに簡単な問題を1つ選びます — 初のAC提出まであと3クリック。",
+  "annotations_title": "マイノート（非公開）",
+  "annotations_hint": "問題文のフレーズを選択して「選択をキャプチャ」を押し、自分のノートを保存します。あなただけが見られます。",
+  "annotations_capture": "選択をキャプチャ",
+  "annotations_note_placeholder": "ノート…",
+  "annotations_add": "ノートを追加",
+  "annotations_delete": "削除",
+  "annotations_save_failed": "ノートを保存できませんでした。",
+  "annotations_delete_failed": "ノートを削除できませんでした。",
+  "offline_pack_save": "オフラインパック",
+  "offline_pack_building": "作成中…",
+  "offline_pack_failed": "オフラインパックを作成できませんでした。",
+  "identity_timezone": "表示タイムゾーン",
+  "identity_timezone_utc": "UTC（デフォルト）"
 }

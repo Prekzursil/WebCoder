@@ -24,7 +24,7 @@
 import React, { useState, FormEvent, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
-import { SubmissionService } from '@/services/ApiService';
+import { DraftService, SubmissionService } from '@/services/ApiService';
 import { useAuth } from '@/context/AuthContext';
 import ConfirmationModal from '@/components/common/ConfirmationModal';
 import SubmissionStatusDisplay from '@/components/common/SubmissionStatusDisplay';
@@ -167,6 +167,43 @@ export default function SubmitSolutionForm({
     setSubmissionError(null);
   }, [code, selectedLanguage]);
 
+  // [wave G item 76] Cross-device drafts: restore the saved draft on
+  // mount (before any typing), then autosave debounced. Block problems
+  // (Blockly/Scratch/partial-code) keep their own editors out of this —
+  // a text draft would fight the project JSON.
+  const draftLoadedRef = React.useRef(false);
+  useEffect(() => {
+    // Auth hydrates asynchronously — wait for it to resolve before the
+    // one-shot restore (a guest never loads a draft; an account loads
+    // exactly once, after hydration).
+    if (draftLoadedRef.current || !auth.isAuthenticated || blockConfig || codeTemplate) {
+      return;
+    }
+    draftLoadedRef.current = true;
+    DraftService.get(problemId)
+      .then((draft) => {
+        if (draft && draft.code) {
+          setCode(draft.code);
+          if (draft.language) setSelectedLanguage(draft.language);
+        }
+      })
+      .catch(() => {
+        /* 204/no draft or offline — the starter template stands */
+      });
+  }, [auth.isAuthenticated, problemId, blockConfig, codeTemplate]);
+
+  useEffect(() => {
+    if (!auth.isAuthenticated || blockConfig || codeTemplate) return;
+    if (!code.trim()) return; // never persist an empty draft over a real one
+    const handle = setTimeout(() => {
+      DraftService.save(problemId, selectedLanguage, code).catch(() => {
+        /* autosave is best-effort */
+      });
+    }, 1500);
+    return () => clearTimeout(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code, selectedLanguage, problemId]);
+
   // [F14] Poll the fresh submission until the judge resolves a verdict.
   useEffect(() => {
     if (lastSubmissionId == null || polledVerdict != null) return;
@@ -225,6 +262,11 @@ export default function SubmitSolutionForm({
       setLastSubmissionId(response.id); // [F14]
       setPolledVerdict(null);
       setCode('');
+      // [wave G item 76] the draft served its purpose — clear it so the
+      // next visit starts fresh instead of resurrecting submitted code.
+      DraftService.clear(problemId).catch(() => {
+        /* best-effort cleanup */
+      });
     } catch (err) {
       const message = err instanceof Error ? err.message : '';
       setSubmissionError(message || t('submission_failed_error', 'Submission failed.'));

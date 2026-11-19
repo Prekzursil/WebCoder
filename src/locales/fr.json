@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "Concours notés",
   "tour_step_contests_body": "Concours hebdomadaires avec ratings, classements et flux calendrier. Les enseignants peuvent aussi créer des concours privés de classe.",
   "tour_step_start_title": "Commencez par trois classiques",
-  "tour_step_start_body": "Le parcours /start choisit un problème facile par paradigme — votre première soumission acceptée est à trois clics."
+  "tour_step_start_body": "Le parcours /start choisit un problème facile par paradigme — votre première soumission acceptée est à trois clics.",
+  "annotations_title": "Mes notes (privées)",
+  "annotations_hint": "Sélectionnez une phrase de l'énoncé, appuyez sur « Capturer la sélection » et gardez votre note. Vous seul les voyez.",
+  "annotations_capture": "Capturer la sélection",
+  "annotations_note_placeholder": "Votre note…",
+  "annotations_add": "Ajouter la note",
+  "annotations_delete": "Supprimer",
+  "annotations_save_failed": "Impossible d'enregistrer l'annotation.",
+  "annotations_delete_failed": "Impossible de supprimer l'annotation.",
+  "offline_pack_save": "Pack hors ligne",
+  "offline_pack_building": "Génération…",
+  "offline_pack_failed": "Impossible de générer le pack hors ligne.",
+  "identity_timezone": "Fuseau horaire d'affichage",
+  "identity_timezone_utc": "UTC (par défaut)"
 }

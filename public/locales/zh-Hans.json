@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "积分赛",
   "tour_step_contests_body": "周赛风格的比赛，带积分、排行榜和日历订阅。教师也可以组织私密的班级赛。",
   "tour_step_start_title": "从三道经典题开始",
-  "tour_step_start_body": "/start 路径为每种范式各挑一道简单题——距离你的第一次通过提交只差三步。"
+  "tour_step_start_body": "/start 路径为每种范式各挑一道简单题——距离你的第一次通过提交只差三步。",
+  "annotations_title": "我的笔记（私密）",
+  "annotations_hint": "在题面中选中一段文字，点击“捕获选区”，写下你自己的笔记。只有你能看到。",
+  "annotations_capture": "捕获选区",
+  "annotations_note_placeholder": "你的笔记…",
+  "annotations_add": "添加笔记",
+  "annotations_delete": "删除",
+  "annotations_save_failed": "无法保存笔记。",
+  "annotations_delete_failed": "无法删除笔记。",
+  "offline_pack_save": "离线包",
+  "offline_pack_building": "生成中…",
+  "offline_pack_failed": "无法生成离线包。",
+  "identity_timezone": "显示时区",
+  "identity_timezone_utc": "UTC（默认）"
 }

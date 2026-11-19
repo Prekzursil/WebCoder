@@ -11,6 +11,9 @@ export interface TestCaseType {
   subtask?: string;
   /** [wave E item 6] per-test time bar override. */
   time_limit_ms?: number | null;
+  /** [wave G item 86] localized sample comments (active locale, fallback). */
+  comment_ro?: string;
+  comment_en?: string;
 }
 
 export interface TestCaseUIManaged extends TestCaseType {
@@ -181,6 +184,8 @@ export interface User {
   school?: string;
   /** LEG-2: self-declared minor — county/school stay private to others. */
   is_minor?: boolean;
+  /** [wave G item 87] display timezone (IANA; '' = UTC). */
+  timezone?: string;
 }
 
 export interface AdminUserType extends User {

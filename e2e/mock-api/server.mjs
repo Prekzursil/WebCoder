@@ -61,6 +61,9 @@ const MOCK_PROBLEMS = [
         expected_output_data: '[0,1]',
         is_sample: true,
         points: 10,
+        // Wave G item 86: localized sample comments.
+        comment_en: 'The classic pair.',
+        comment_ro: 'Perechea clasică.',
       },
     ],
   },
@@ -1277,6 +1280,62 @@ const server = createServer((req, res) => {
       error: '',
       time_ms: 9,
       memory_kb: 2048,
+    });
+    return;
+  }
+
+  // Wave G item 76: cross-device code drafts.
+  const draftMatch = path.match(/^\/api\/v1\/submissions\/drafts\/(\d+)\/$/);
+  if (draftMatch) {
+    if (req.method === 'GET') {
+      json(res, 200, {
+        language: 'python3',
+        code: 'print(40 + 2)',
+        updated_at: '2026-11-18T10:00:00Z',
+      });
+      return;
+    }
+    if (req.method === 'PUT') {
+      json(res, 200, req.body || { language: 'python3', code: '' });
+      return;
+    }
+    if (req.method === 'DELETE') {
+      json(res, 200, { deleted: 1 });
+      return;
+    }
+  }
+
+  // Wave G item 78: private statement annotations.
+  const annotationMatch = path.match(/^\/api\/v1\/problems\/(\d+)\/annotations\/$/);
+  if (annotationMatch) {
+    if (req.method === 'GET') {
+      json(res, 200, [
+        { id: 5, quote: 'add up to target', note: 'hash map!', updated_at: '2026-11-17T09:00:00Z' },
+      ]);
+      return;
+    }
+    if (req.method === 'POST') {
+      json(res, 201, {
+        id: 6,
+        quote: (req.body && req.body.quote) || 'q',
+        note: (req.body && req.body.note) || 'n',
+        updated_at: '2026-11-18T10:00:00Z',
+      });
+      return;
+    }
+    if (req.method === 'DELETE') {
+      json(res, 200, { deleted: '6' });
+      return;
+    }
+  }
+
+  // Wave G item 92: the offline statement pack.
+  const packMatch = path.match(/^\/api\/v1\/problems\/(\d+)\/statement-pack\/$/);
+  if (packMatch) {
+    json(res, 200, {
+      problem_id: Number(packMatch[1]),
+      lang: 'en',
+      html: '<!DOCTYPE html><html><head><title>Two Sum</title></head><body><h1>Two Sum</h1><p>offline pack</p></body></html>',
     });
     return;
   }

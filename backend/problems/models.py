@@ -566,6 +566,16 @@ class TestCase(models.Model):
         ),
     )
 
+    # Wave G item 86 — localized sample comments: the author's per-test
+    # explanation shown beside the sample (I/O conventions, edge note),
+    # rendered in the viewer's locale with the other one as fallback.
+    comment_ro = models.CharField(
+        _("sample comment (RO)"), max_length=280, blank=True, default=""
+    )
+    comment_en = models.CharField(
+        _("sample comment (EN)"), max_length=280, blank=True, default=""
+    )
+
     # For large data, consider FileField:
     # input_file = models.FileField(upload_to='test_cases/inputs/', null=True, blank=True)
     # output_file = models.FileField(upload_to='test_cases/outputs/', null=True, blank=True)
@@ -1176,3 +1186,42 @@ class StatementAttachment(models.Model):
 
     def __str__(self):
         return f"attachment {self.name} (problem {self.problem_id})"
+
+
+class StatementAnnotation(models.Model):
+    """Private per-user statement annotation (wave G item 78).
+
+    The anchor is a short quote the reader selected in the statement; the
+    note is their own markdown. Only the author ever sees their
+    annotations — this is a study aid, not UGC.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="statement_annotations",
+        verbose_name=_("user"),
+    )
+    problem = models.ForeignKey(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name="annotations",
+        verbose_name=_("problem"),
+    )
+    quote = models.CharField(
+        _("quoted text"), max_length=500, help_text=_("The anchored statement excerpt.")
+    )
+    note = models.TextField(_("note"))
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+
+    class Meta:
+        verbose_name = _("statement annotation")
+        verbose_name_plural = _("statement annotations")
+        ordering = ["-updated_at"]
+        indexes = [models.Index(fields=["user", "problem", "-updated_at"])]
+
+    def __str__(self):
+        return (
+            f"annotation {self.id} by user={self.user_id} on problem={self.problem_id}"
+        )

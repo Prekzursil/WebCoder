@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "रेटेड प्रतियोगिताएँ",
   "tour_step_contests_body": "साप्ताहिक-शैली प्रतियोगिताएँ रेटिंग, स्कोरबोर्ड और कैलेंडर फ़ीड के साथ। शिक्षक निजी कक्षा प्रतियोगिताएँ भी आयोजित कर सकते हैं।",
   "tour_step_start_title": "तीन क्लासिक से शुरू करें",
-  "tour_step_start_body": "/start पथ हर पैराडाइम के लिए एक आसान समस्या चुनता है — आपकी पहली स्वीकृत सबमिशन तीन क्लिक दूर है।"
+  "tour_step_start_body": "/start पथ हर पैराडाइम के लिए एक आसान समस्या चुनता है — आपकी पहली स्वीकृत सबमिशन तीन क्लिक दूर है।",
+  "annotations_title": "मेरे नोट्स (निजी)",
+  "annotations_hint": "कथन में एक वाक्य चुनें, “चयन पकड़ें” दबाएँ और अपना नोट रखें। ये केवल आप देखते हैं।",
+  "annotations_capture": "चयन पकड़ें",
+  "annotations_note_placeholder": "आपका नोट…",
+  "annotations_add": "नोट जोड़ें",
+  "annotations_delete": "हटाएँ",
+  "annotations_save_failed": "नोट सहेजा नहीं जा सका।",
+  "annotations_delete_failed": "नोट हटाया नहीं जा सका।",
+  "offline_pack_save": "ऑफ़लाइन पैक",
+  "offline_pack_building": "बना रहा है…",
+  "offline_pack_failed": "ऑफ़लाइन पैक नहीं बना सका।",
+  "identity_timezone": "प्रदर्शन समय क्षेत्र",
+  "identity_timezone_utc": "UTC (डिफ़ॉल्ट)"
 }

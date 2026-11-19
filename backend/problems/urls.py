@@ -7,6 +7,7 @@ from .views import (
     ProblemViewSet,
     TestCaseViewSet,
 )
+from .study_aids import AnnotationsView, StatementPackView
 from .tooling import (
     AssignmentSolutionsExportView,
     GenerateOutputsView,
@@ -95,6 +96,18 @@ urlpatterns = [
         "<int:problem_id>/offline-bundle/",
         OfflineBundleView.as_view(),
         name="problem-offline-bundle",
+    ),
+    # Wave G items 78/92: private statement annotations + the offline
+    # statement pack.
+    path(
+        "<int:problem_id>/annotations/",
+        AnnotationsView.as_view(),
+        name="problem-annotations",
+    ),
+    path(
+        "<int:problem_id>/statement-pack/",
+        StatementPackView.as_view(),
+        name="problem-statement-pack",
     ),
     # Wave E items 8/9/10: pre-submit assistance — the static lint (with
     # the constraint-aware overflow reading) and the sample dress-rehearsal

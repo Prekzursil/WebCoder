@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "Concursuri notate",
   "tour_step_contests_body": "Concursuri în stil săptămânal cu ratinguri, clasamente și feed de calendar. Profesorii pot organiza și concursuri private de clasă.",
   "tour_step_start_title": "Începe cu trei clasice",
-  "tour_step_start_body": "Traseul /start alege o problemă ușoară per paradigmă — prima ta trimitere acceptată e la trei click-uri distanță."
+  "tour_step_start_body": "Traseul /start alege o problemă ușoară per paradigmă — prima ta trimitere acceptată e la trei click-uri distanță.",
+  "annotations_title": "Notele mele (private)",
+  "annotations_hint": "Selectează o frază din enunț, apasă „Capturează selecția” și păstrează-ți nota. Doar tu le vezi.",
+  "annotations_capture": "Capturează selecția",
+  "annotations_note_placeholder": "Nota ta…",
+  "annotations_add": "Adaugă nota",
+  "annotations_delete": "Șterge",
+  "annotations_save_failed": "Nota nu a putut fi salvată.",
+  "annotations_delete_failed": "Nota nu a putut fi ștearsă.",
+  "offline_pack_save": "Pachet offline",
+  "offline_pack_building": "Se generează…",
+  "offline_pack_failed": "Pachetul offline nu a putut fi generat.",
+  "identity_timezone": "Fus orar de afișare",
+  "identity_timezone_utc": "UTC (implicit)"
 }

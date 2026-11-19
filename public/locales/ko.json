@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "레이티드 대회",
   "tour_step_contests_body": "레이팅, 스코어보드, 캘린더 피드가 있는 주간 스타일 대회. 교사는 비공개 클래스 대회도 열 수 있습니다.",
   "tour_step_start_title": "세 가지 클래식으로 시작",
-  "tour_step_start_body": "/start 경로는 패러다임마다 쉬운 문제를 하나 골라 줍니다 — 첫 AC 제출까지 세 번의 클릭뿐."
+  "tour_step_start_body": "/start 경로는 패러다임마다 쉬운 문제를 하나 골라 줍니다 — 첫 AC 제출까지 세 번의 클릭뿐.",
+  "annotations_title": "내 노트 (비공개)",
+  "annotations_hint": "문제에서 구절을 선택하고 '선택 캡처'를 눌러 자신의 노트를 남기세요. 회원님만 볼 수 있습니다.",
+  "annotations_capture": "선택 캡처",
+  "annotations_note_placeholder": "노트…",
+  "annotations_add": "노트 추가",
+  "annotations_delete": "삭제",
+  "annotations_save_failed": "노트를 저장할 수 없습니다.",
+  "annotations_delete_failed": "노트를 삭제할 수 없습니다.",
+  "offline_pack_save": "오프라인 팩",
+  "offline_pack_building": "생성 중…",
+  "offline_pack_failed": "오프라인 팩을 만들 수 없습니다.",
+  "identity_timezone": "표시 시간대",
+  "identity_timezone_utc": "UTC (기본값)"
 }

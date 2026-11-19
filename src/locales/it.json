@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "Gare con rating",
   "tour_step_contests_body": "Gare stile settimanale con rating, classifiche e feed calendario. Gli insegnanti possono anche creare gare private di classe.",
   "tour_step_start_title": "Inizia con tre classici",
-  "tour_step_start_body": "Il percorso /start sceglie un problema facile per paradigma — il tuo primo invio accettato è a tre clic."
+  "tour_step_start_body": "Il percorso /start sceglie un problema facile per paradigma — il tuo primo invio accettato è a tre clic.",
+  "annotations_title": "I miei appunti (privati)",
+  "annotations_hint": "Seleziona una frase del testo, premi “Cattura selezione” e conserva la tua nota. Solo tu le vedi.",
+  "annotations_capture": "Cattura selezione",
+  "annotations_note_placeholder": "La tua nota…",
+  "annotations_add": "Aggiungi appunto",
+  "annotations_delete": "Elimina",
+  "annotations_save_failed": "Impossibile salvare l'appunto.",
+  "annotations_delete_failed": "Impossibile eliminare l'appunto.",
+  "offline_pack_save": "Pacchetto offline",
+  "offline_pack_building": "Generazione…",
+  "offline_pack_failed": "Impossibile generare il pacchetto offline.",
+  "identity_timezone": "Fuso orario di visualizzazione",
+  "identity_timezone_utc": "UTC (predefinito)"
 }

@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "Concursos valorats",
   "tour_step_contests_body": "Concursos setmanals amb ratings, marcadors i feed de calendari. Els professors també poden fer concursos privats de classe.",
   "tour_step_start_title": "Comença amb tres clàssics",
-  "tour_step_start_body": "El camí /start tria un problema fàcil per paradigma — el teu primer enviament acceptat és a tres clics."
+  "tour_step_start_body": "El camí /start tria un problema fàcil per paradigma — el teu primer enviament acceptat és a tres clics.",
+  "annotations_title": "Les meves notes (privades)",
+  "annotations_hint": "Selecciona una frase de l'enunciat, prem “Captura selecció” i desa la teva nota. Només tu les veus.",
+  "annotations_capture": "Captura selecció",
+  "annotations_note_placeholder": "La teva nota…",
+  "annotations_add": "Afegeix nota",
+  "annotations_delete": "Suprimeix",
+  "annotations_save_failed": "No s'ha pogut desar l'anotació.",
+  "annotations_delete_failed": "No s'ha pogut suprimir l'anotació.",
+  "offline_pack_save": "Paquet fora de línia",
+  "offline_pack_building": "Generant…",
+  "offline_pack_failed": "No s'ha pogut generar el paquet fora de línia.",
+  "identity_timezone": "Fus horari de visualització",
+  "identity_timezone_utc": "UTC (per defecte)"
 }

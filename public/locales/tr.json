@@ -1659,5 +1659,18 @@
   "tour_step_contests_title": "Puanlı yarışmalar",
   "tour_step_contests_body": "Reytingler, skor tabloları ve takvim akışı olan haftalık tarz yarışmalar. Öğretmenler özel sınıf yarışmaları da düzenleyebilir.",
   "tour_step_start_title": "Üç klasikle başla",
-  "tour_step_start_body": "/start yolu her paradigma için bir kolay problem seçer — ilk kabul edilen gönderimine üç tık mesafe."
+  "tour_step_start_body": "/start yolu her paradigma için bir kolay problem seçer — ilk kabul edilen gönderimine üç tık mesafe.",
+  "annotations_title": "Notlarım (özel)",
+  "annotations_hint": "Metinden bir ifade seç, “Seçimi yakala”ya bas ve kendi notunu tut. Bunları sadece sen görürsün.",
+  "annotations_capture": "Seçimi yakala",
+  "annotations_note_placeholder": "Notun…",
+  "annotations_add": "Not ekle",
+  "annotations_delete": "Sil",
+  "annotations_save_failed": "Not kaydedilemedi.",
+  "annotations_delete_failed": "Not silinemedi.",
+  "offline_pack_save": "Çevrimdışı paket",
+  "offline_pack_building": "Oluşturuluyor…",
+  "offline_pack_failed": "Çevrimdışı paket oluşturulamadı.",
+  "identity_timezone": "Görüntüleme saat dilimi",
+  "identity_timezone_utc": "UTC (varsayılan)"
 }
