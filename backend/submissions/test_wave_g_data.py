@@ -48,7 +48,7 @@ class DraftsTest(TestCase):
         )
         self.assertEqual(first.status_code, 200)
         self.assertEqual(first.data["code"], "print(1)")
-        second = self.client.put(
+        self.client.put(
             self.url, {"language": "python3", "code": "print(2)"}, format="json"
         )
         self.assertEqual(CodeDraft.objects.count(), 1)  # upsert, not append
