@@ -277,7 +277,7 @@ class FederatedSearchLocaleTest(TestCase):
         _approved_problem()
         client = APIClient()
         ro = client.get("/api/v1/search/?q=suma&lang=ro").data["results"]
-        self.assertTrue(len(ro["problems"]) >= 1)
+        self.assertGreaterEqual(len(ro["problems"]), 1)
         # An invalid locale falls back to English without error.
         bad = client.get("/api/v1/search/?q=sum&lang=zz")
         self.assertEqual(bad.status_code, 200)
