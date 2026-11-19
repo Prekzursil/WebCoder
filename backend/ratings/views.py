@@ -97,6 +97,17 @@ class UserRatingHistoryView(APIView):
         user = User.objects.filter(username=username).first()
         if user is None:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        # Wave G item 90 (LEG-2 completion): a minor's public profile is
+        # private by default — only the handle and a private marker go
+        # out to anyone but the account itself or an admin. The rating
+        # history, bio and annotations stay off the public internet.
+        viewer = getattr(request, "user", None)
+        if user.is_minor and not (
+            viewer
+            and viewer.is_authenticated
+            and (viewer.id == user.id or viewer.role == "ADMIN" or viewer.is_superuser)
+        ):
+            return Response({"username": user.username, "private": True})
         summary = user_public_summary(user)
         history = (
             RatingHistory.objects.filter(user=user)

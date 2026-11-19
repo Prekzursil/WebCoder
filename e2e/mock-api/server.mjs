@@ -1340,6 +1340,38 @@ const server = createServer((req, res) => {
     return;
   }
 
+  // Wave G item 82: federated search.
+  if (path === '/api/v1/search/') {
+    json(res, 200, {
+      query: '',
+      results: {
+        problems: [],
+        threads: [{ id: 7, title: 'Two Sum thread', problem: null }],
+        articles: [],
+        contests: [{ id: 3, title: 'Two Sum Cup', start_at: '2026-12-01T10:00:00Z' }],
+        users: [{ id: 4, username: 'twosummer' }],
+      },
+    });
+    return;
+  }
+
+  // Wave G item 88: the onboarding checklist.
+  if (path === '/api/v1/users/me/onboarding/') {
+    json(res, 200, {
+      steps: [
+        { key: 'account', done: true },
+        { key: 'first_submission', done: true },
+        { key: 'first_ac', done: false },
+        { key: 'first_contest', done: false },
+        { key: 'profile_bio', done: false },
+        { key: 'joined_class', done: false },
+      ],
+      done: 2,
+      total: 6,
+    });
+    return;
+  }
+
   // Wave A: curriculum tree (EDU-9) + starter trio (ONB-1) + solved ids (F5).
   if (req.method === 'GET' && path === '/api/v1/problems/curriculum/') {
     json(

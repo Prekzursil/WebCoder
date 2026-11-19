@@ -45,6 +45,9 @@ vi.mock('@/context/AuthContext', () => ({
 }));
 
 vi.mock('@/services/ApiService', () => ({
+  // [wave G item 82/88] the palette/onboarding surfaces need these.
+  SearchService: { federated: vi.fn().mockResolvedValue({ query: '', results: {} }) },
+  OnboardingService: { get: vi.fn().mockResolvedValue({ steps: [], done: 0, total: 0 }) },
   AuthService: {
     login: vi.fn(),
     register: vi.fn(),

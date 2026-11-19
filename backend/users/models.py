@@ -73,6 +73,34 @@ class User(AbstractUser):
         help_text=_("IANA timezone name for displaying times (UTC when empty)."),
     )
 
+    # Wave G item 84 — notification digest frequency. The beat-scheduled
+    # notification_digest_task emails one summary per period and marks the
+    # digested notifications read.
+    notification_digest = models.CharField(
+        _("notification digest"),
+        max_length=8,
+        choices=[
+            ("none", _("No digest")),
+            ("daily", _("Daily")),
+            ("weekly", _("Weekly")),
+        ],
+        default="none",
+    )
+
+    # Wave G item 90 (LEG-2) — the parental-consent record for minor
+    # accounts (GDPR Art. 8 / Legea 190/2018: RO kept the
+    # information-society consent age at 16). Set by an admin when the
+    # signed consent (or the school-mediated enrollment attestation)
+    # arrives; null = consent not yet recorded.
+    parental_consent_at = models.DateTimeField(
+        _("parental consent recorded at"),
+        null=True,
+        blank=True,
+        help_text=_(
+            "When parental consent (or school-mediated enrollment) was recorded."
+        ),
+    )
+
     # GDPR account control (round-2 LEG-1/X5): set when the account is
     # soft-deleted; the purge_deleted_users beat task removes user-authored
     # side content once this timestamp passes (submissions/leaderboard stay,

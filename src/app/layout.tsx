@@ -13,7 +13,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://webcoder.momentstud
 // before first paint so a light-mode visitor never gets a dark flash.
 // Static repo-authored one-liner — no user input, no XSS surface.
 const THEME_PREPAINT_SCRIPT =
-  "try{if(localStorage.getItem('wc-theme-mode')==='light'){document.documentElement.setAttribute('data-theme','light')}}catch(e){}";
+  "try{if(localStorage.getItem('wc-theme-mode')==='light'){document.documentElement.setAttribute('data-theme','light')}var m=localStorage.getItem('wc-a11y-mode');if(m==='dyslexia'||m==='contrast'){document.documentElement.setAttribute('data-a11y',m)}}catch(e){}";
 
 export const metadata: Metadata = {
   // OPS-6 (Wave D): the PWA manifest - installable app shell, offline

@@ -6,9 +6,12 @@ import CommandPalette from './CommandPalette';
 // commands, queries the catalog once the query is long enough, and
 // routes on Enter.
 
-const api = vi.hoisted(() => ({ getProblems: vi.fn() }));
+const api = vi.hoisted(() => ({ getProblems: vi.fn(), federated: vi.fn() }));
 
 vi.mock('@/services/ApiService', () => ({
+  // [wave G item 82/88] the palette/onboarding surfaces need these.
+  SearchService: { federated: api.federated },
+  OnboardingService: { get: vi.fn().mockResolvedValue({ steps: [], done: 0, total: 0 }) },
   ProblemService: api,
 }));
 
