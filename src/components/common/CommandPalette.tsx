@@ -86,18 +86,18 @@ export default function CommandPalette(): ReactNode {
     }
     let cancelled = false;
     const handle = setTimeout(() => {
-      ProblemService.getProblems({ search: q }, { pageSize: 5 })
+      Promise.resolve(ProblemService.getProblems({ search: q }, { pageSize: 5 }))
         .then((data) => {
-          if (!cancelled) setProblemHits(data.results ?? []);
+          if (!cancelled) setProblemHits(data?.results ?? []);
         })
         .catch(() => {
           if (!cancelled) setProblemHits([]);
         });
       // [wave G item 82] federated hits: threads, articles, contests, users.
       const locale = (i18n.language ?? 'en').startsWith('ro') ? 'ro' : 'en';
-      SearchService.federated(q, locale)
+      Promise.resolve(SearchService.federated(q, locale))
         .then((data) => {
-          if (!cancelled) setFederated(data.results);
+          if (!cancelled) setFederated(data?.results ?? null);
         })
         .catch(() => {
           if (!cancelled) setFederated(null);
