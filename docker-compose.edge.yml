@@ -1,0 +1,40 @@
+# Item 144 (wave G section J) — edge protection for the live stack.
+#
+# A Caddy reverse proxy in front of the backend publishing 80/443 while
+# the backend port stays unpublished. Caddy provides:
+#   - automatic HTTPS (Let's Encrypt) when a real domain is set via
+#     EDGE_DOMAIN (dev default: internal TLS skipped, plain :80);
+#   - the security-header baseline (HSTS/NOVIEWFRAME/NO-SNIFF/referrer);
+#   - gzip + request-body caps;
+#   - per-IP request rate limiting on the auth + submit surfaces.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.override.yml \
+#        -f docker-compose.edge.yml up -d
+services:
+  edge:
+    image: caddy:2-alpine
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      # Set EDGE_DOMAIN in .env for real deployments; empty = local :80.
+      EDGE_DOMAIN: ${EDGE_DOMAIN:-}
+      # Blue-green upstream (item 140): backend:8000 | backend-blue:8000
+      # | backend-green:8000 — scripts/deploy-blue-green.sh flips this.
+      EDGE_UPSTREAM: ${EDGE_UPSTREAM:-backend:8000}
+    volumes:
+      - ./edge/Caddyfile:/etc/caddy/Caddyfile:ro
+      - edge-data:/data
+      - edge-config:/config
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:80/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  edge-data:
+  edge-config:

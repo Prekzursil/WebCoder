@@ -384,3 +384,95 @@ replies and missing config never reject a proposal — they mark `ai_verdict=err
 proposal proceeds into the ordinary human queue. When the URL is unset the pipeline is
 human-only. No vendor lock-in: any OpenAI-compatible endpoint works (OpenAI, Azure
 gateways, vLLM, Ollama, llama.cpp server, LM Studio…).
+
+## §status — public status page + judge queue transparency (items 135/139)
+
+`/status` on the frontend polls `GET /api/v1/ops/status/` (unauthenticated, aggregate-only):
+queue lanes (`contest`/`practice`), judge 24 h volume + execution stats, per-component state
+(`api`, `judge`) and the 1 h error rate from the item-145 stream. The judge component flips
+to `degraded` when the total backlog exceeds 50 — the same number that pages an operator
+during a contest (see §contest-replay for the alert wiring). Nothing user-identifying is in
+the payload; it is safe for external uptime monitors to scrape at 60 s intervals.
+
+## §autoscaling — worker scaling for contests (item 136)
+
+The decision function lives in `backend/ops/autoscale.py` (`recommended_workers`):
+`ceil((queue_depth + arrivals_per_minute) / 5)` clamped to [1, 6], plus one extra worker the
+moment the backlog crosses 15 (contest-start burst). The same function backs
+`GET /api/v1/ops/autoscale/` (admin; the dashboard card explains the number) and
+`scripts/judge-autoscale.sh`, which applies it:
+
+```bash
+scripts/judge-autoscale.sh --api http://127.0.0.1:8010 --token "$ADMIN_JWT" --dry-run
+scripts/judge-autoscale.sh --api http://127.0.0.1:8010 --token "$ADMIN_JWT"   # applies
+```
+
+During a rated contest, cron it every minute; outside, run before an expected spike. Manual
+override is plain compose: `docker compose -f docker-compose.yml -f docker-compose.override.yml
+up -d --scale celery-worker=4`. Workers consume both lanes (`default,judge,judge-contest`).
+The ceiling (6) matches the §costs VM sizing — raising it means re-deriving the cost floor.
+
+## §blue-green — near-zero-downtime deploys (item 140)
+
+Two ADDITIONAL compose services exist: `backend-blue` (:8010) and `backend-green` (:8020)
+(`docker-compose.blue.yml` / `.green.yml`). The plain `backend` service stays for dev.
+
+`scripts/deploy-blue-green.sh`:
+1. detects the running color; builds + starts the OTHER one (zero traffic);
+2. waits for its `/readyz` (db + cache + broker) — fails → old color untouched;
+3. runs `migrate` on the new color;
+4. if the edge proxy is up, flips `EDGE_UPSTREAM` to the new color and restarts edge;
+5. stands the old color down.
+
+Rollback: `scripts/deploy-blue-green.sh --no-build` (flips straight back; the old image is
+still local). In-contest rule: do NOT deploy during a rated window — the flip itself is
+safe, but migrations under end-of-contest re-judge load are not (§contest-replay).
+
+## §restore-drill — quarterly backup verification (item 142)
+
+§db-backups step 4, productized. `scripts/restore-drill.sh` (live stack running):
+
+1. picks the newest dump from the `pgbackups` volume;
+2. starts a THROWAWAY postgres (`webcoder-restore-drill`, :55432, auto-removed on exit);
+3. streams the dump through `pg_restore --clean --if-exists`;
+4. compares `users_user` / `problems_problem` / `submissions_submission` row counts
+   against the live DB — any mismatch fails the drill.
+
+Schedule it quarterly (calendar reminder; the log line is the record). A failing drill is a
+P1: the backup chain is broken and the next incident has no recovery point.
+
+## §edge — reverse proxy + header baseline (item 144)
+
+`docker-compose.edge.yml` + `edge/Caddyfile`: Caddy on :80/:443 proxying to
+`$EDGE_UPSTREAM` (default `backend:8000`; the blue-green flip changes it). Provides
+automatic HTTPS when `EDGE_DOMAIN` is set, the OWASP header baseline (HSTS, nosniff,
+DENY framing, referrer policy, permissions policy), gzip/zstd, and a 2 MB request-body cap.
+Per-IP rate limiting stays at the application layer (SP4 `ScopedRateThrottle`, scopes
+`login`/`submit`, Redis-backed) — stock Caddy has no rate module; operators wanting an
+edge-level kill switch can swap to a `caddy-ratelimit` image and add zones in the Caddyfile.
+
+## §loadtest — OPR-4 gate + the replay harness (item 138)
+
+`e2e/loadtest/replay.mjs` (zero-dep node): N virtual users log in, submit a small solution,
+poll the verdict, and record the wait. Exit gate (OPR-4): **p95 wait < 20 s, zero failures**.
+Stats math is unit-tested (`e2e/loadtest/lib-stats.test.ts`, runs under vitest).
+
+```bash
+docker compose exec -T backend python manage.py seed_load_users --count 30
+node e2e/loadtest/replay.mjs --api http://127.0.0.1:8010 --users 30 --submissions 2 --problem 1
+```
+
+The nightly workflow (`.github/workflows/e2e-nightly.yml`) runs this against a fresh
+runner stack every night (item 141) plus the real-backend Playwright subset; local runs use
+the live stack (Mode A). A red nightly after a judge change means the p95 gate regressed —
+treat it like a failing CI test, not a dashboard curiosity.
+
+## §costs — the cost model behind the dashboard (item 143)
+
+`GET /api/v1/ops/costs/` (admin; card on the dashboard) projects EUR/month from a
+published price table × live usage: `vm_worker` × workers, `vm_judge` × judge VMs,
+`storage_gb` × GB (submission + test-result bytes), `bandwidth_gb` × GB (submission
+payload egress estimate). Prices are list defaults; pin your real invoice values with
+`COST_PRICE_VM_WORKER` / `_VM_JUDGE` / `_STORAGE_GB` / `_BANDWIDTH_GB` (bad values fall
+back to defaults, never 500). The payload carries each line's formula — the total is
+auditable arithmetic, not a black box.

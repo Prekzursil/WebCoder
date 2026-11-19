@@ -3857,6 +3857,59 @@ const server = createServer((req, res) => {
     return;
   }
 
+  // [wave G items 135/139] public aggregate status feed.
+  if (req.method === 'GET' && path === '/api/v1/ops/status/') {
+    json(res, 200, {
+      generated_at: new Date().toISOString(),
+      overall: 'ok',
+      components: { api: { state: 'ok' }, judge: { state: 'ok', backlog: 2 } },
+      queue_lanes: { contest: 1, practice: 1 },
+      judge_last_24h: {
+        window_hours: 24,
+        judged: 128,
+        avg_execution_ms: 145,
+        max_execution_ms: 1990,
+      },
+      error_rate_1h: 0.0008,
+    });
+    return;
+  }
+  // [wave G items 136/143/145] admin operator surfaces.
+  if (req.method === 'GET' && path === '/api/v1/ops/autoscale/') {
+    json(res, 200, {
+      current_workers: 1,
+      recommended_workers: 2,
+      direction: 'up',
+      queue_depth: 11,
+    });
+    return;
+  }
+  if (req.method === 'GET' && path === '/api/v1/ops/costs/') {
+    json(res, 200, {
+      currency: 'EUR',
+      period: 'month',
+      lines: {
+        vm_worker: { formula: '1 × 12.0', eur: 12.0 },
+        vm_judge: { formula: '1 × 12.0', eur: 12.0 },
+        storage: { formula: '0.4 GB × 0.1', eur: 0.04 },
+        bandwidth: { formula: '0.2 GB × 0.05', eur: 0.01 },
+      },
+      total: 24.05,
+    });
+    return;
+  }
+  if (req.method === 'GET' && path === '/api/v1/ops/errors/') {
+    json(res, 200, {
+      window_hours: 24,
+      total: 2,
+      grouped: [
+        { digest: 'mock-d1', path: '/api/v1/problems/', method: 'GET', status_code: 500, count: 2 },
+      ],
+      events: [],
+    });
+    return;
+  }
+
   json(res, 404, { detail: `No mock for ${req.method} ${path}` });
 });
 

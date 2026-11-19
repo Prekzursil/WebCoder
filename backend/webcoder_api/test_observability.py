@@ -247,6 +247,8 @@ class TestBeatSchedule:
             # without EMAIL_HOST — see RUNBOOK §email)
             "award-monthly-contributors",  # Wave F item 67: monthly
             # contributor-of-the-month (self-guarded, idempotent)
+            "error-events-purge",  # Wave G item 145: 30-day error-event
+            # retention (the D-B10 purge pattern)
         }
         assert (
             CELERY_BEAT_SCHEDULE["leaderboard-nightly-recompute"]["task"]

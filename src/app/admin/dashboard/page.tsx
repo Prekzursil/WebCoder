@@ -12,7 +12,11 @@ import ProtectedRoute from '@/components/common/ProtectedRoute';
 import SiteStats from './SiteStats';
 import IntegrityPanel from './IntegrityPanel';
 import OwnerAnalytics from './OwnerAnalytics';
+<<<<<<< HEAD
 import AnalyticsPanels from './AnalyticsPanels';
+=======
+import OpsPanel from './OpsPanel';
+>>>>>>> 26f83975 (feat(ops): status page, judge queue transparency, autoscale advice, load-test harness, blue-green deploy, nightly e2e, restore drill, cost projection, edge proxy, error tracking [wave G items 135/136/138-145])
 
 // Ported from frontend/webcoder_ui/src/pages/admin/AdminDashboardPage.tsx (CRA reference).
 // Route: /admin/dashboard (CRA App.tsx:43) — ADMIN only.
@@ -109,6 +113,10 @@ export function AdminDashboardPage() {
         <AnalyticsPanels />
         <OwnerAnalytics />
       </section>
+
+      {/* [wave G items 136/143/145] Operator surface: error stream, cost
+          projection, worker autoscale recommendation. */}
+      <OpsPanel />
 
       <section style={{ marginTop: '2rem' }}>
         <h3>{t('user_management_title', 'User Management')}</h3>

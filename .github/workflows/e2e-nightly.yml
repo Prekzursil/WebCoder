@@ -1,0 +1,103 @@
+# Item 141 (wave G section J) — nightly prod-like e2e.
+#
+# The per-PR e2e lane runs hermetically against the mock API; this
+# workflow is the complement: once a night (or on demand) it brings up
+# the REAL compose stack — postgres + redis + backend + celery worker/
+# beat + socket-proxy — migrates, seeds problems and the 30 load users,
+# waits for /readyz, then runs:
+#   1. the real-backend Playwright subset (*-real.spec.ts) against it,
+#   2. the OPR-4 load gate (item 138): a 30-user submission replay whose
+#      p95 judge wait must stay under 20 s.
+#
+# Failures open an issue-ready report in the run artifacts. Judge
+# containers docker-exec through the runner's docker socket (Mode A,
+# RUNBOOK §docker).
+name: Nightly prod-like e2e
+
+on:
+  schedule:
+    # 03:15 UTC — after the nightly leaderboard recompute (03:00) and
+    # before the daily digest window.
+    - cron: "15 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      SECRET_KEY: nightly-ci-secret-key
+      POSTGRES_PASSWORD: nightly-ci-password
+      DJANGO_SETTINGS_MODULE: webcoder_api.settings
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: ./package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Bring up the prod-like stack
+        run: |
+          docker compose -f docker-compose.yml up -d \
+            postgres redis socket-proxy judge-runner backend celery-worker celery-beat
+
+      - name: Wait for readiness
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf http://127.0.0.1:8000/readyz; then echo "ready"; exit 0; fi
+            sleep 2
+          done
+          docker compose logs backend
+          exit 1
+
+      - name: Migrate + seed
+        run: |
+          docker compose exec -T backend python manage.py migrate --noinput
+          docker compose exec -T backend python manage.py seed_problems
+          ADMIN_USER=nightly-admin ADMIN_EMAIL=nightly@invalid \
+          ADMIN_PASS='NightlyAdmin-2026!x' \
+            docker compose exec -T -e ADMIN_USER -e ADMIN_EMAIL -e ADMIN_PASS \
+            backend python manage.py create_admin || true
+          docker compose exec -T backend python manage.py seed_load_users \
+            --count 30 --prefix load --password 'LoadPass-2026!x'
+
+      - name: Real-backend Playwright subset
+        run: npx playwright test e2e/blocks-real.spec.ts e2e/messages-real.spec.ts
+        env:
+          E2E_API_BASE: http://localhost:8000
+          E2E_ADMIN_USER: nightly-admin
+          E2E_ADMIN_PASS: NightlyAdmin-2026!x
+
+      - name: OPR-4 load gate (item 138)
+        run: |
+          PROBLEM_ID=$(curl -sf 'http://127.0.0.1:8000/api/v1/problems/?page_size=1' | \
+            python3 -c 'import json,sys; print(json.load(sys.stdin)["results"][0]["id"])')
+          node e2e/loadtest/replay.mjs \
+            --api http://127.0.0.1:8000 \
+            --users 30 --submissions 2 --problem "${PROBLEM_ID}" \
+            --prefix load --password 'LoadPass-2026!x'
+
+      - name: Stack logs on failure
+        if: failure()
+        run: docker compose logs --tail 200 backend celery-worker
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: nightly-playwright-report
+          path: playwright-report/
+          retention-days: 7
