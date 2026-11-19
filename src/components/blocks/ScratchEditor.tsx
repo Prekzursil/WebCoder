@@ -248,10 +248,10 @@ export default function ScratchEditor({
       const ScratchRender = (await import('scratch-render')).default;
       // scratch-storage ships its own types: named exports.
       const { ScratchStorage, AssetType } = await import('scratch-storage');
-      // Deep import: the package's "browser" field points at a shim with
-      // webpack inline-loader syntax that Turbopack cannot resolve; the
-      // dist bundle is the exact same module, self-contained.
-      const Blockly = (await import('scratch-blocks/dist/vertical.js')).default;
+      // scratch-blocks 2.x ships a single self-contained ESM bundle
+      // (dist/main.mjs) with named exports (inject, Msg, ...) — the old
+      // dist/vertical.js deep import is gone.
+      const Blockly = await import('scratch-blocks');
       if (cancelled) return;
 
       // RO block labels from the official scratch-l10n catalog (same

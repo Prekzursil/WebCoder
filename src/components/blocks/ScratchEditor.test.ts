@@ -5,7 +5,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('scratch-vm', () => ({ default: vi.fn() }));
-vi.mock('scratch-blocks/dist/vertical.js', () => ({ default: vi.fn() }));
+vi.mock('scratch-blocks', () => ({ inject: vi.fn(), Msg: {} }));
 vi.mock('scratch-render', () => ({ default: vi.fn() }));
 vi.mock('scratch-storage', () => ({
   ScratchStorage: vi.fn(),
