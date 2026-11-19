@@ -102,8 +102,17 @@ class Submission(models.Model):
     # Could be JSONField if structured feedback is desired
     detailed_feedback = models.TextField(_("detailed feedback"), blank=True)
 
-    # IP address of submission (optional, for auditing/security)
-    # ip_address = models.GenericIPAddressField(null=True, blank=True)
+    # IP address of submission (for auditing/security). Captured on
+    # create by the submit view (item 115's multi-account heuristics);
+    # stored as a plain char field so IPv6-mapped forms pass unchanged.
+    # Wave G item 116 — AI-assistance self-declaration: the submitter
+    # affirms generative-AI help produced part of this solution (outside
+    # rated rounds; the rated-contest ban is the /policies/ai page).
+    ai_assisted = models.BooleanField(_("AI-assisted (self-declared)"), default=False)
+
+    ip_address = models.GenericIPAddressField(
+        _("submitter IP"), null=True, blank=True, unpack_ipv4=True
+    )
 
     def __str__(self):
         return f"Submission {self.id} by {self.user.username} for Problem {self.problem_id} ({self.verdict})"

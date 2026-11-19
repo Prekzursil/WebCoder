@@ -118,6 +118,10 @@ export default function SubmitSolutionForm({
   // map to registry languages; unknown types still load as text.
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
+  // [wave G item 116] AI-assistance self-declaration (rated contests ban
+  // AI outright — see /policies/ai; this label is the practice-side honesty
+  // signal, shown on the submission wherever it renders).
+  const [aiAssisted, setAiAssisted] = useState(false);
 
   const EXTENSION_LANGUAGES: Record<string, string> = {
     py: 'python3',
@@ -251,6 +255,7 @@ export default function SubmitSolutionForm({
         language: selectedLanguage,
         code,
         ...(contestId ? { contest: contestId } : {}),
+        ai_assisted: aiAssisted,
       });
       setSubmissionStatus(
         t(
@@ -514,6 +519,25 @@ export default function SubmitSolutionForm({
         {/* [wave E items 8/9/10] pre-submit assistance — lint + sample
             dress rehearsal; costs no submission. */}
         <PreSubmitPanel problemId={problemId} language={selectedLanguage} code={code} />
+        {/* [wave G item 116] AI-assistance self-declaration. */}
+        <label
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '0.8rem',
+            color: 'var(--muted)',
+            marginTop: '0.5rem',
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={aiAssisted}
+            onChange={(e) => setAiAssisted(e.target.checked)}
+            data-testid="ai-assisted-toggle"
+          />
+          {t('ai_assisted_label', 'Generative AI helped me with this solution')}
+        </label>
       </form>
       {/* Rendered OUTSIDE the form, as in the CRA page: the modal's buttons
           carry no explicit type, so nesting them in the form would make them

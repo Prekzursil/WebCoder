@@ -37,6 +37,9 @@ urlpatterns = [
     path(
         "api/v1/search/", search.FederatedSearchView.as_view(), name="federated_search"
     ),
+    # Wave G section H: integrity & safety (scans, flags, abuse queue,
+    # audit trail, appeals, multi-account heuristics).
+    path("api/v1/integrity/", include("integrity.urls", namespace="integrity_api_v1")),
     path("readyz", observability.readyz, name="readyz"),
     path("api/v1/users/", include("users.urls", namespace="users_api_v1")),
     path("api/v1/problems/", include("problems.urls", namespace="problems_api_v1")),

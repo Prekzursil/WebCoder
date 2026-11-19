@@ -185,6 +185,8 @@ describe('SubmitSolutionForm (authenticated visitors)', () => {
       problem: 7,
       language: 'python3',
       code: 'print(3)',
+      // [115] the AI-assist declaration ships with every submission.
+      ai_assisted: false,
     });
     // The editor is cleared after a successful submission.
     expect(screen.getByLabelText(/Code:/i)).toHaveValue('');

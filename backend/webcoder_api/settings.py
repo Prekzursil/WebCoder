@@ -114,6 +114,8 @@ INSTALLED_APPS = [
     "learning",
     # Community problem translations (i18n & translation platform wave).
     "translations",
+    # Wave G section H: integrity & safety.
+    "integrity",
     # COM-5 (competitive roadmap, owner reversal 2026-10-30): private 1:1
     # message threads with the full safety stack.
     "messaging",

@@ -147,6 +147,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
             "previous_submission_id",
             "detailed_feedback",
             "contest",
+            "ai_assisted",
             "test_results",  # Add test results + contest (read-only id)
         ]
         read_only_fields = [
@@ -283,7 +284,7 @@ class SubmissionCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Submission
-        fields = ["problem", "language", "code", "contest"]
+        fields = ["problem", "language", "code", "contest", "ai_assisted"]
 
     def validate(self, attrs):
         """Submit-time validation: language registry + allowed_languages
