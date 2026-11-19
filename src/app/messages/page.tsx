@@ -8,7 +8,8 @@
 // this page never renders message markdown.
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { MessagingService } from '@/services/ApiService';
 import {

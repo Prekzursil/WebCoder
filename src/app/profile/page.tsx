@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, FormEvent, useEffect } from 'react';
-import { useRouter } from 'next/navigation';import IdentityCard from './IdentityCard';
+import { useRouter } from 'next/navigation';
+import IdentityCard from './IdentityCard';
 import TagProfilePanel from './TagProfilePanel';
 import type { TagProfile } from '@/types/api';
 import { useTranslation } from 'react-i18next';
