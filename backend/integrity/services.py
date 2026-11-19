@@ -44,12 +44,14 @@ def tokenize(source: str) -> list[str]:
 
 
 def shingles(source: str, k: int = K) -> set[str]:
-    """Hashed k-gram shingle set over the token stream."""
+    """Hashed k-gram shingle set over the token stream. sha256 (not a
+    truncated sha1): collision-resistance is free here and the quality
+    gate forbids weak-hash primitives."""
     tokens = tokenize(source)
     out = set()
     for i in range(max(0, len(tokens) - k + 1)):
         gram = "\x00".join(tokens[i : i + k])
-        out.add(hashlib.sha1(gram.encode()).hexdigest()[:16])
+        out.add(hashlib.sha256(gram.encode()).hexdigest()[:16])
     return out
 
 
