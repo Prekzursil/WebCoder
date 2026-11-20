@@ -155,9 +155,7 @@ class TestCommand:
     def test_replace_tests_drops_bad_imported_suite(self, admin, monkeypatch):
         problem = make_problem("SpecCalc", author=admin)
         TestCase.objects.create(
-            problem=problem, input_data="9
-", expected_output_data="WRONG
-", points=10
+            problem=problem, input_data="9\n", expected_output_data="WRONG\n", points=10
         )
         monkeypatch.setattr(
             "problems.management.commands.boost_hidden_tests.SPECS",
@@ -165,10 +163,7 @@ class TestCommand:
         )
         run("boost_hidden_tests", "--apply")
         inputs = set(TestCase.objects.filter(problem=problem).values_list("input_data", flat=True))
-        assert inputs == {"3
-", "0
-", "-7
-"}  # the bad row is gone
+        assert inputs == {"3\n", "0\n", "-7\n"}  # the bad row is gone
 
     def test_match_by_url_suffix(self, admin):
         problem = make_problem("Whatever", author=admin)
