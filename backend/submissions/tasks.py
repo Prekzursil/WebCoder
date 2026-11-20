@@ -678,6 +678,17 @@ def judge_submission_task(self, submission_id):
                 submission.detailed_feedback = f"Compiler Output:\n{compiler_output}\n\n{submission.detailed_feedback}"
             submission.save()
 
+            # Incremental test unlocking (problem-page wave, item C): a
+            # submission passing k of n tests unlocks test k+1's data for
+            # this user — monotone (only a strictly better count advances).
+            from problems.unlocks import update_unlock_state
+
+            update_unlock_state(
+                submission.user_id,
+                submission.problem_id,
+                sum(1 for _tc, ok, _frac in scored_results if ok),
+            )
+
             # Incremental leaderboard recompute (SPEC-GAPS D-B8): an AC on
             # an APPROVED problem may change this user's standings. Scheduled
             # on commit so a rolled-back transaction never emits the task;

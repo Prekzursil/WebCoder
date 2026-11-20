@@ -159,6 +159,7 @@ class ProblemViewSet(viewsets.ModelViewSet):
             "bookmarked",
             "statement_revisions",
             "related",
+            "tests_status",
         ]:
             # Read-shaped actions: the queryset already scopes problem
             # visibility; the editorial action additionally enforces the
@@ -578,6 +579,25 @@ class ProblemViewSet(viewsets.ModelViewSet):
         locale = getattr(request, "LANGUAGE_CODE", "en") or "en"
         return Response(hint_state_for(problem, request.user, locale[:2]))
 
+    @action(detail=True, methods=["get"], url_path="tests/status")
+    def tests_status(self, request, pk=None):
+        """Item C — the per-viewer test unlock board.
+
+        Every test with its status (locked / unlocked / solved); the
+        single unlocked boundary test exposes its input + expected for
+        debugging, samples stay public, and nothing beyond the earned
+        index is ever revealed (privileged viewers see everything).
+        """
+        from .unlocks import test_status_for, unlock_state_for
+
+        problem = self.get_object()
+        return Response(
+            {
+                "unlock_state": unlock_state_for(request.user, problem),
+                "tests": test_status_for(request.user, problem),
+            }
+        )
+
     @action(detail=True, methods=["get"], url_path="statistics")
     def statistics(self, request, pk=None):
         """Per-problem statistics (competitive roadmap UXP-7 / X9 core).
@@ -949,17 +969,12 @@ class TestCaseViewSet(viewsets.ModelViewSet):
                 {"detail": "kind must be 'input' or 'expected'"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        from .unlocks import may_view_test
+
         user = request.user if request.user.is_authenticated else None
-        may_manage = False
-        if user is not None:
-            may_manage = (
-                user.is_superuser
-                or user.is_staff
-                or user.role in (User.Roles.ADMIN, User.Roles.PROBLEM_VERIFIER)
-                or test_case.problem.author_id == user.id
-                or test_case.problem.verifier_id == user.id
-            )
-        if not test_case.is_sample and not may_manage:
+        # Item C: beside the edit-rights gate, a solver may fetch the
+        # single test their earned index unlocked (and public samples).
+        if not may_view_test(user, test_case):
             return Response({"detail": "hidden test"}, status=status.HTTP_403_FORBIDDEN)
         body = (
             test_case.input_data if kind == "input" else test_case.expected_output_data
