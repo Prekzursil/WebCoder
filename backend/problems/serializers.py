@@ -24,6 +24,14 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class TestCaseSerializer(serializers.ModelSerializer):
+    # Problem-page wave (item B2): sizes + inline-editability so the author
+    # UI can decide textarea vs preview+download without shipping the full
+    # payload for huge tests.
+    input_size = serializers.SerializerMethodField()
+    expected_size = serializers.SerializerMethodField()
+    input_editable = serializers.SerializerMethodField()
+    expected_editable = serializers.SerializerMethodField()
+
     class Meta:
         model = TestCase
         fields = [
@@ -41,7 +49,32 @@ class TestCaseSerializer(serializers.ModelSerializer):
             # Wave G item 86: localized sample comments.
             "comment_ro",
             "comment_en",
+            # Problem-page wave (item B2): display-threshold metadata.
+            "input_size",
+            "expected_size",
+            "input_editable",
+            "expected_editable",
         ]
+
+    def get_input_size(self, obj) -> int:
+        return len(obj.input_data or "")
+
+    def get_expected_size(self, obj) -> int:
+        return len(obj.expected_output_data or "")
+
+    def _editable(self, data: str) -> bool:
+        from django.conf import settings
+
+        threshold = int(
+            getattr(settings, "TESTCASE_INLINE_EDIT_THRESHOLD_BYTES", 10240)
+        )
+        return len(data or "") <= threshold
+
+    def get_input_editable(self, obj) -> bool:
+        return self._editable(obj.input_data)
+
+    def get_expected_editable(self, obj) -> bool:
+        return self._editable(obj.expected_output_data)
 
     def to_representation(self, instance):
         """
@@ -49,7 +82,8 @@ class TestCaseSerializer(serializers.ModelSerializer):
         from non-authorized users.
         """
         ret = super().to_representation(instance)
-        user = self.context["request"].user
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
 
         is_authorized = False
         if user and user.is_authenticated:

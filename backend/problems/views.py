@@ -1,4 +1,5 @@
 from django.db import models, transaction
+from django.http import HttpResponse
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -875,6 +876,13 @@ class TestCaseViewSet(viewsets.ModelViewSet):
     # The perform_create and perform_update/destroy methods will handle this.
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_permissions(self):
+        # Item B2: sample-test downloads are public (samples are already in
+        # the public statement; the view enforces the hidden-test gate).
+        if self.action == "download":
+            return [permissions.AllowAny()]
+        return super().get_permissions()
+
     def get_queryset(self):
         # Filter test cases based on the problem_id if provided in query_params
         # Or, if nested, this might be handled by the router
@@ -923,6 +931,45 @@ class TestCaseViewSet(viewsets.ModelViewSet):
             )
         _guard_contest_pin(problem, self.request.user)
         instance.delete()
+
+    @action(detail=True, methods=["get"], url_path="download")
+    def download(self, request, pk=None):
+        """Item B2 — raw download of one test field (?kind=input|expected).
+
+        For tests above the inline-edit display threshold the author UI
+        renders a preview + this link (large tests are managed via
+        archive upload). Sample tests are public; hidden tests require
+        the problem's edit rights — the same gate as reading them in the
+        serializer.
+        """
+        test_case = self.get_object()
+        kind = request.query_params.get("kind", "input")
+        if kind not in ("input", "expected"):
+            return Response(
+                {"detail": "kind must be 'input' or 'expected'"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        user = request.user if request.user.is_authenticated else None
+        may_manage = False
+        if user is not None:
+            may_manage = (
+                user.is_superuser
+                or user.is_staff
+                or user.role in (User.Roles.ADMIN, User.Roles.PROBLEM_VERIFIER)
+                or test_case.problem.author_id == user.id
+                or test_case.problem.verifier_id == user.id
+            )
+        if not test_case.is_sample and not may_manage:
+            return Response({"detail": "hidden test"}, status=status.HTTP_403_FORBIDDEN)
+        body = (
+            test_case.input_data if kind == "input" else test_case.expected_output_data
+        )
+        resp = HttpResponse(body, content_type="text/plain; charset=utf-8")
+        suffix = "in" if kind == "input" else "out"
+        resp["Content-Disposition"] = (
+            f'attachment; filename="test-{test_case.id}.{suffix}"'
+        )
+        return resp
 
 
 # models import moved to the top

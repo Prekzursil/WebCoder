@@ -30,6 +30,7 @@ from .strength import TestStrengthView
 from . import authoring_ops
 from . import statement_quality_views
 from .random_problem import RandomProblemView
+from .test_archive_views import DistributePointsView, ImportArchiveView
 
 app_name = "problems"
 
@@ -223,5 +224,17 @@ urlpatterns = [
         "authoring-drafts/<str:problem_id>/",
         authoring_ops.AuthoringDraftView.as_view(),
         name="authoring_draft",
+    ),
+    # Problem-page wave (item B): archive upload (preview + bulk create)
+    # and even point distribution across the suite.
+    path(
+        "problems/<int:problem_id>/tests/import-archive/",
+        ImportArchiveView.as_view(),
+        name="import_test_archive",
+    ),
+    path(
+        "problems/<int:problem_id>/tests/distribute/",
+        DistributePointsView.as_view(),
+        name="distribute_test_points",
     ),
 ]
