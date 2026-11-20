@@ -165,6 +165,10 @@ class ProblemViewSet(viewsets.ModelViewSet):
             self.permission_classes = [permissions.AllowAny]
         elif self.action == "rate":
             self.permission_classes = [permissions.IsAuthenticated]
+        elif self.action in ("unlock_source", "reveal_hint"):
+            # Item F/D: per-user economy actions — any authenticated user;
+            # the queryset scopes problem visibility.
+            self.permission_classes = [permissions.IsAuthenticated]
         else:
             self.permission_classes = [
                 permissions.IsAdminUser
@@ -372,6 +376,36 @@ class ProblemViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
         if problem.status == Problem.ProblemStatus.PENDING_APPROVAL:
+            # Item E: an editorial is MANDATORY before APPROVED — the full
+            # solution walkthrough must exist before the problem reaches
+            # the public catalog.
+            editorial = getattr(problem, "editorial", None)
+            editorial_ok = editorial is not None and bool(
+                (editorial.content_ro or "").strip()
+                or (editorial.content_en or "").strip()
+            )
+            if not editorial_ok:
+                return Response(
+                    {
+                        "status": (
+                            "problem cannot be approved without an editorial "
+                            "(write the full solution walkthrough first)"
+                        )
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            # Item G defense-in-depth: the declared point value must sit in
+            # the difficulty band at approve time even if a caller bypassed
+            # the serializer validation.
+            from .economics import validate_target_points
+
+            try:
+                validate_target_points(problem.difficulty, problem.target_points)
+            except Exception as exc:
+                return Response(
+                    {"status": f"problem cannot be approved: {exc}"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             problem.status = Problem.ProblemStatus.APPROVED
             problem.verifier = request.user
             problem.verifier_feedback = request.data.get(
@@ -479,6 +513,64 @@ class ProblemViewSet(viewsets.ModelViewSet):
         return Response(
             ProblemEditorialSerializer(editorial, context={"request": request}).data
         )
+
+    @action(detail=True, methods=["post"], url_path="unlock-source")
+    def unlock_source(self, request, pk=None):
+        """Item F — the source-code unlock economy.
+
+        The caller confirms the verbatim warning ("unlocking the source
+        code before the problem is solved means the problem will NOT
+        award points to this account") in the UI modal; this endpoint
+        records the PERMANENT per-user-per-problem forfeiture and returns
+        the reference source. Already-solved users get the source without
+        a forfeit (their AC makes it free); already-forfeited users just
+        re-fetch.
+        """
+        from .models import ProblemForfeit
+        from .score_service import has_solved
+
+        problem = self.get_object()
+        solved = has_solved(request.user.id, problem.id)
+        forfeit = ProblemForfeit.objects.filter(
+            user=request.user, problem=problem
+        ).first()
+        if not solved and forfeit is None:
+            forfeit = ProblemForfeit.objects.create(user=request.user, problem=problem)
+        return Response(
+            {
+                "reference_solution_code": problem.reference_solution_code,
+                "reference_language": problem.reference_language,
+                "forfeited": forfeit is not None,
+                "forfeited_at": forfeit.created_at if forfeit else None,
+                "editorial_unlocked": solved or forfeit is not None,
+            }
+        )
+
+    @action(detail=True, methods=["post"], url_path="hints/reveal")
+    def reveal_hint(self, request, pk=None):
+        """Item D — voluntarily reveal one hint tier (free, recorded).
+
+        Body: {"tier": 1|2|3}. Revealing is idempotent per (user, problem,
+        tier); the response carries the tier's content in the requester's
+        locale (fallback chain like the statement) plus the fresh state.
+        """
+        from .models import HintReveal
+
+        problem = self.get_object()
+        tier = request.data.get("tier")
+        if tier not in (1, 2, 3, "1", "2", "3"):
+            return Response(
+                {"detail": "tier must be 1, 2 or 3."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        tier = int(tier)
+        HintReveal.objects.get_or_create(
+            user=request.user, problem=problem, tier=tier
+        )
+        from .hints import hint_state_for
+
+        locale = getattr(request, "LANGUAGE_CODE", "en") or "en"
+        return Response(hint_state_for(problem, request.user, locale[:2]))
 
     @action(detail=True, methods=["get"], url_path="statistics")
     def statistics(self, request, pk=None):

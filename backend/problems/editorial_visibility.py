@@ -11,8 +11,11 @@ def editorial_visible_to(editorial, user):
 
     - PUBLIC: anyone (who can see the problem — the viewset queryset already
       scopes that).
-    - AFTER_AC: the requester has an AC submission on the problem, or is the
-      problem's author / a verifier / an admin (staff need it to review).
+    - AFTER_AC: the requester has an AC submission on the problem, has
+      permanently forfeited the problem's points via the source-code unlock
+      (wave item F — the "explicitly unlock early" lane of item E), or is
+      the problem's author / a verifier / an admin (staff need it to
+      review).
     - MANUAL: author / verifier / admin only.
     Anonymous users never pass AFTER_AC or MANUAL.
     """
@@ -28,8 +31,13 @@ def editorial_visible_to(editorial, user):
     if editorial.publish_policy == ProblemEditorial.PublishPolicy.PUBLIC:
         return True
     if editorial.publish_policy == ProblemEditorial.PublishPolicy.AFTER_AC:
+        from problems.models import ProblemForfeit
         from submissions.models import Submission
 
+        if ProblemForfeit.objects.filter(
+            user=user, problem_id=editorial.problem_id
+        ).exists():
+            return True
         return Submission.objects.filter(
             user=user,
             problem_id=editorial.problem_id,

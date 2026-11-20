@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from problems.admin import ProblemAdmin, TagAdmin
-from problems.models import Problem, Tag, TestCase as ProblemTestCase
+from problems.models import Problem, ProblemEditorial, Tag, TestCase as ProblemTestCase
 from problems.serializers import ProblemSerializer
 from problems.serializers import TestCaseSerializer as TCSerializer
 from users.models import User
@@ -277,6 +277,8 @@ class ProblemViewSetTest(TestCase):
 
     def test_approve_problem_pending(self):
         p = self._make(Problem.ProblemStatus.PENDING_APPROVAL)
+        # Item E: approval requires an editorial.
+        ProblemEditorial.objects.create(problem=p, content_en="Walkthrough.")
         self.client.force_authenticate(self.verifier)
         resp = self.client.post(
             f"/api/v1/problems/problems/{p.id}/approve/",

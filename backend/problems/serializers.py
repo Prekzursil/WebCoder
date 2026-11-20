@@ -119,6 +119,10 @@ class ProblemSerializer(serializers.ModelSerializer):
     # instead of re-deriving it from the i18n dicts.
     available_languages = serializers.SerializerMethodField()
 
+    # Problem-page wave (item G): the difficulty's point band, for the
+    # authoring UI's inline range hint.
+    point_bounds = serializers.SerializerMethodField()
+
     def get_available_languages(self, obj) -> list:
         return available_languages(obj)
 
@@ -167,6 +171,10 @@ class ProblemSerializer(serializers.ModelSerializer):
             "status",
             "difficulty",
             "difficulty_source",
+            # Problem-page wave (item G): the declared finite point value,
+            # bounded by the difficulty band (validated in validate()).
+            "target_points",
+            "point_bounds",
             "default_time_limit_ms",
             "default_memory_limit_kb",
             # Wave E item 10: the constraint ceiling driving the pre-submit
@@ -220,21 +228,34 @@ class ProblemSerializer(serializers.ModelSerializer):
     def get_has_editorial(self, obj) -> bool:
         return bool(getattr(obj, "has_editorial", False))
 
+    def get_point_bounds(self, obj) -> list[int] | None:
+        """The difficulty's (min, max) point band — the authoring UI's hint."""
+        from .economics import point_bounds
+
+        band = point_bounds(obj.difficulty)
+        return list(band) if band else None
+
     def _viewer_may_see_reference(self, obj) -> bool:
         """The reference solution is the answer key: author, verifier and
-        staff only — never serialized to contestants or the public (the
-        hack pipeline reads it server-side through the model)."""
+        staff always; a solver who forfeited the problem's points via the
+        source-code unlock (item F) bought permanent visibility; everyone
+        else never (the hack pipeline reads it server-side through the
+        model)."""
         request = self.context.get("request")
         user = getattr(request, "user", None)
         if user is None or not getattr(user, "is_authenticated", False):
             return False
-        return (
+        if (
             user.is_superuser
             or user.is_staff
             or getattr(user, "role", "") == "ADMIN"
             or obj.author_id == user.id
             or obj.verifier_id == user.id
-        )
+        ):
+            return True
+        from .models import ProblemForfeit
+
+        return ProblemForfeit.objects.filter(user=user, problem=obj).exists()
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -317,6 +338,54 @@ class ProblemSerializer(serializers.ModelSerializer):
 
     def validate_statement_i18n(self, value):
         return self._validate_localized(value, "statement_i18n")
+
+    def _validate_hints(self, value, field_name):
+        """Item D — the tiered hint ladder's stored shape.
+
+        A JSON list of at most 3 entries (1 gentle nudge, 2 stronger,
+        3 approach outline). Each entry is either a plain string (legacy
+        EDT-2 ladder) or an object {"content": str, "image": url?} for
+        graphical hints. (The field is non-nullable, so a value is always
+        present once DRF's own checks pass.)
+        """
+        if not isinstance(value, list):
+            raise serializers.ValidationError(
+                f"{field_name} must be a JSON list of hint entries."
+            )
+        if len(value) > 3:
+            raise serializers.ValidationError(
+                f"{field_name} supports at most 3 tiers (nudge / stronger / approach)."
+            )
+        for entry in value:
+            if isinstance(entry, str):
+                if not entry.strip():
+                    raise serializers.ValidationError(
+                        f"{field_name}: hint entries cannot be empty."
+                    )
+                continue
+            if isinstance(entry, dict):
+                content = entry.get("content")
+                image = entry.get("image", "")
+                if not isinstance(content, str) or not content.strip():
+                    raise serializers.ValidationError(
+                        f"{field_name}: object entries need non-empty 'content'."
+                    )
+                if image is not None and not isinstance(image, str):
+                    raise serializers.ValidationError(
+                        f"{field_name}: 'image' must be a URL string."
+                    )
+                continue
+            raise serializers.ValidationError(
+                f"{field_name}: each entry is a string or "
+                '{"content": str, "image": url}.'
+            )
+        return value
+
+    def validate_hints_ro(self, value):
+        return self._validate_hints(value, "hints_ro")
+
+    def validate_hints_en(self, value):
+        return self._validate_hints(value, "hints_en")
 
     def validate_io_input_filename(self, value):
         """FILES-mode filenames must be plain basenames (RO-4)."""
@@ -532,6 +601,37 @@ class ProblemSerializer(serializers.ModelSerializer):
                 "reference_solution_code and reference_language must be set "
                 "together (or both left empty)."
             )
+        # Problem-page wave (item G): the model-validation-layer point
+        # bounds, re-checked on every API write that touches the
+        # economics. On CREATE a missing point value defaults to the
+        # difficulty band's midpoint (an in-band starting point); on
+        # UPDATE the check fires when the payload touches either the
+        # point value or the difficulty — a legacy out-of-band row can
+        # still be PATCHed for unrelated fields (hints, statement), but
+        # the approval workflow re-checks and blocks it there.
+        from .economics import target_points_for_difficulty, validate_target_points
+
+        effective_difficulty = attrs.get(
+            "difficulty", getattr(self.instance, "difficulty", None)
+        )
+        touches_economics = (
+            "target_points" in attrs or "difficulty" in attrs or self.instance is None
+        )
+        if self.instance is None and "target_points" not in attrs:
+            attrs["target_points"] = target_points_for_difficulty(
+                effective_difficulty or "MEDIUM"
+            )
+        if touches_economics and effective_difficulty is not None:
+            effective_points = attrs.get(
+                "target_points",
+                getattr(self.instance, "target_points", None),
+            )
+            try:
+                validate_target_points(effective_difficulty, effective_points)
+            except Exception as exc:
+                raise serializers.ValidationError(
+                    getattr(exc, "message_dict", None) or str(exc)
+                ) from None
         return attrs
 
     def create(self, validated_data):
@@ -554,6 +654,10 @@ class ProblemEditorialSerializer(serializers.ModelSerializer):
             "problem",
             "content_ro",
             "content_en",
+            # Problem-page wave (item E): the mandatory editorial's reference
+            # implementations — at least Python and C++.
+            "solution_python",
+            "solution_cpp",
             "publish_policy",
             "author",
             "created_at",
@@ -574,6 +678,10 @@ class ProblemDetailSerializer(ProblemSerializer):
     # "translated by @user" credits on the problem page, sourced from
     # APPROVED proposals. Detail-only — the list serializer stays N+1-free.
     translations = serializers.SerializerMethodField()
+    # Problem-page wave (item D/F): the tiered-hint reveal state and the
+    # permanent forfeiture state, both per-viewer.
+    hint_state = serializers.SerializerMethodField()
+    forfeited = serializers.SerializerMethodField()
 
     class Meta(ProblemSerializer.Meta):
         fields = ProblemSerializer.Meta.fields + [
@@ -581,7 +689,26 @@ class ProblemDetailSerializer(ProblemSerializer):
             "has_editorial",
             "editorial_locked",
             "translations",
+            "hint_state",
+            "forfeited",
         ]
+
+    def get_hint_state(self, obj) -> dict:
+        from .hints import hint_state_for
+
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        locale = (getattr(request, "LANGUAGE_CODE", "en") or "en")[:2]
+        return hint_state_for(obj, user, locale)
+
+    def get_forfeited(self, obj) -> bool:
+        from .models import ProblemForfeit
+
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        if user is None or not getattr(user, "is_authenticated", False):
+            return False
+        return ProblemForfeit.objects.filter(user=user, problem=obj).exists()
 
     def get_translations(self, obj) -> list:
         from translations.models import TranslationProposal
