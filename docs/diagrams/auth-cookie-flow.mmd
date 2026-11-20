@@ -1,0 +1,37 @@
+sequenceDiagram
+    autonumber
+    actor B as Browser (Next.js)
+    participant A as Django API
+    participant R as Redis (blacklist/cache)
+    participant DB as PostgreSQL
+
+    Note over B,A: 1. Login
+    B->>A: POST /api/v1/auth/login/ {username, password}
+    A->>DB: verify credentials (throttle: auth 10/min)
+    A-->>B: 200 + Set-Cookie wc_access (5 min, httpOnly, SameSite=Lax)<br/>Set-Cookie wc_refresh (24 h, httpOnly)
+    Note over B: tokens are NEVER in localStorage
+
+    Note over B,A: 2. Authenticated calls
+    B->>A: GET /api/v1/users/me/ (credentials: include)
+    A->>A: JWT from cookie → user
+    A-->>B: 200 {user}
+
+    Note over B,A: 3. Unsafe methods (POST/PUT/DELETE)
+    B->>A: GET /api/v1/auth/csrf/
+    A-->>B: Set-Cookie csrftoken
+    B->>A: POST … + X-CSRFToken: <csrftoken><br/>(double-submit check)
+
+    Note over B,A: 4. Access-token expiry
+    B->>A: GET … → 401
+    B->>A: POST /api/v1/auth/token/refresh/ (EMPTY body)
+    A->>R: check old refresh token not blacklisted
+    A->>R: blacklist old, rotate new refresh
+    A-->>B: 200 + fresh wc_access / wc_refresh
+    B->>A: retry original call
+
+    Note over B,A: 5. Logout
+    B->>A: POST /api/v1/auth/logout/
+    A->>R: blacklist current refresh
+    A-->>B: cookies cleared
+
+    Note over A,DB: Non-browser clients (public API, CLI)<br/>keep using Bearer tokens from<br/>/api/v1/token/ + personal API tokens (OPS-2)

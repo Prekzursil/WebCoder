@@ -1,0 +1,973 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{caption}
+\captionsetup[table]{skip=6pt}
+\newcounter{none} % for unnumbered tables
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+% fallback for those not using the hyperref driver hyperxmp:
+\makeatletter
+\@ifundefined{xmpquote}{\newcommand{\xmpquote}[1]{#1}}{}
+\makeatother
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
+
+\begin{document}
+
+{
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+\section{Block Programming on WebCoder --- Blockly AND
+Scratch}\label{block-programming-on-webcoder--blockly-and-scratch}
+
+\begin{quote}
+Owner directive (2026-10-30): the platform ships \textbf{both} block
+engines --- Blockly \emph{and} Scratch --- not one or the other. Blockly
+is the structured bridge to typed code; Scratch is the familiarity layer
+(the Scratch cat, the stage, say/answer) for the youngest learners. This
+document is the complete guide to both: architecture, judge integration,
+authoring, learning, teaching, testing, security, troubleshooting and
+worked examples. It is written so a new contributor can extend the
+system without reading the code first.
+\end{quote}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{1. What shipped, in one
+paragraph}\label{1-what-shipped-in-one-paragraph}
+
+A problem can be a \textbf{block problem}. The creator picks a block
+\emph{engine} per problem:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Blockly}
+  (\texttt{block\_config.engine:\ \textquotesingle{}blockly\textquotesingle{}},
+  the default) --- a Blockly editor with a WebCoder-curated toolbox
+  (input/control/logic/math/text/
+  \textbf{lists}/\textbf{variables}/\textbf{functions}). Learners snap
+  blocks; Blockly\textquotesingle s official generators produce
+  \textbf{real Python 3 or JavaScript (Node 20)}; that generated source
+  is submitted and judged through the \textbf{normal pipeline} ---
+  identical limits, identical pipeline, identical verdicts.
+\item
+  \textbf{Scratch}
+  (\texttt{block\_config.engine:\ \textquotesingle{}scratch\textquotesingle{}})
+  --- a real Scratch editing experience on site: \textbf{scratch-vm +
+  scratch-blocks + scratch-render} (the same libraries
+  Scratch\textquotesingle s own GUI uses), with the Scratch cat, a live
+  stage, ask/answer input and say output. Learners edit a project; the
+  \textbf{project JSON (sb3)} is submitted as the pseudo-language
+  \texttt{scratch}, and the judge \textbf{transpiles it to Python}
+  (\texttt{backend/problems/scratch\_transpiler.py}) and judges that
+  through the normal pipeline under \textbf{python3\textquotesingle s
+  language-fair limits}.
+\end{itemize}
+
+Both engines are on the free playground at \textbf{\texttt{/blocks}}
+(engine switcher at the top). Both localize fully (RO/EN block labels +
+UI chrome via the ten-locale i18n catalogs).
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{2. Architecture}\label{2-architecture}
+
+\subsubsection{2.1 The two editors
+(frontend)}\label{21-the-two-editors-frontend}
+
+\begin{verbatim}
+src/components/blocks/
+├── BlockEditor.tsx      Blockly layer (PR #252, extended in this wave)
+├── wcBlocks.ts          the two site blocks (read number / read line) +
+│                        their Python/JS generator snippets
+├── complexity.ts        complexity-hint analyzer (pure, tested)
+└── ScratchEditor.tsx    Scratch layer (scratch-vm/blocks/render/storage)
+\end{verbatim}
+
+\textbf{BlockEditor} lazy-imports \texttt{blockly}
+(\texttt{next/dynamic}, \texttt{ssr:\ false} --- SSR never loads it),
+registers the two site blocks, applies the official RO or EN message
+pack plus the site-block messages, injects a workspace with the
+problem\textquotesingle s toolbox (or the default beginner toolbox),
+previews the generated code, and \textbf{analyzes the generated code for
+complexity hints} (§7). Generation goes through
+Blockly\textquotesingle s own \texttt{pythonGenerator} /
+\texttt{javascriptGenerator} --- we do not maintain a generator.
+
+\textbf{ScratchEditor} lazy-imports the Scratch stack:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{scratch-vm} --- the VM (block representation, threads, green
+  flag);
+\item
+  \texttt{scratch-blocks} --- the Scratch block editor (vertical blocks,
+  Scratch look-and-feel). Imported via its self-contained dist bundle
+  (\texttt{scratch-blocks/dist/vertical.js}): the
+  package\textquotesingle s \texttt{browser} field points at a shim
+  built with webpack inline-loader syntax that Turbopack cannot resolve
+  --- the dist bundle is the same module, loader-free (§14 covers
+  upgrade notes);
+\item
+  \texttt{scratch-render} --- the WebGL stage;
+\item
+  \texttt{scratch-storage} --- asset loading, with the \textbf{default
+  assets (the cat costume + backdrop) bundled locally} under
+  \texttt{public/scratch-assets/} so the starter project loads with zero
+  external requests;
+\item
+  \texttt{scratch-l10n} --- official RO block labels
+  (\texttt{scratch-l10n/editor/blocks/ro.json} applied onto
+  \texttt{Blockly.Msg}, exactly how scratch-gui localizes).
+\end{itemize}
+
+Wiring (same as scratch-gui, minimized):
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \texttt{storage} created; bundled assets pre-registered in
+  \texttt{storage.builtinHelper} under their md5 ids;
+\item
+  \texttt{vm.attachStorage(storage)};
+  \texttt{vm.attachRenderer(new\ ScratchRender(canvas))} (renderer init
+  is fault-tolerant: no WebGL ⇒ blank stage, but editing and export keep
+  working --- grading never needs the renderer);
+\item
+  \texttt{vm.start()};
+  \texttt{workspace.addChangeListener(vm.blockListener)} --- the
+  workspace is the editor, the VM holds the truth;
+\item
+  \texttt{vm.on(\textquotesingle{}workspaceUpdate\textquotesingle{},\ (\{xml\})\ =\textgreater{}\ Blockly.Xml.clearWorkspaceAndLoadFromXml(...))}
+  --- how a loaded project paints its blocks into the workspace;
+\item
+  \texttt{vm.loadProject(JSON.parse(starter))} then
+  \texttt{vm.emitWorkspaceUpdate()};
+\item
+  \textbf{export}:
+  \texttt{vm.on(\textquotesingle{}PROJECT\_CHANGED\textquotesingle{},\ ()\ =\textgreater{}\ onProjectChange(vm.toJSON()))}
+  --- \texttt{vm.toJSON()} is scratch-vm\textquotesingle s official sb3
+  serializer;
+\item
+  \textbf{run}: the green-flag button calls \texttt{vm.greenFlag()} (the
+  local stage); \texttt{say}/\texttt{think} blocks also stream into a
+  \textbf{console strip} under the stage
+  (\texttt{vm.runtime.on(\textquotesingle{}SAY\textquotesingle{})}),
+  mirroring what the judge will compare.
+\end{enumerate}
+
+\textbf{Scratch block media} (block icons) are served from
+\texttt{public/scratch-blocks-media/} (copied from
+\texttt{node\_modules/scratch-blocks/media/}; re-copy when upgrading
+scratch-blocks).
+
+\subsubsection{2.2 The judge integration
+(backend)}\label{22-the-judge-integration-backend}
+
+\begin{verbatim}
+problem.block_config                     (JSON column, problems/models.py)
+   engine: 'blockly' → generator + toolbox + starter (Blockly XML)
+   engine: 'scratch' → scratch_project (sb3 JSON) + scratch_blocks (opcodes)
+
+Submission.language
+   registry ids (python3, cpp17, …)  → judged directly
+   'scratch' (pseudo-language)       → transpiled then judged as python3
+\end{verbatim}
+
+\textbf{Blockly submissions} carry the \emph{generated source};
+\texttt{language} is the generator (\texttt{python3} /
+\texttt{nodejs20}). Nothing special exists in the judge for them --- by
+design.
+
+\textbf{Scratch submissions} carry the \emph{sb3 project JSON};
+\texttt{language} is \texttt{scratch}. Three enforcement points (the
+same defense-in-depth pattern as the wave-C library policy and wave-E
+template integrity):
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Submit-time validation} (\texttt{submissions/serializers.py}):
+  the problem must be
+  \texttt{engine:\ \textquotesingle{}scratch\textquotesingle{}}; the
+  project must parse, use only mapped opcodes \textbf{and} only the
+  problem\textquotesingle s curated allowlist
+  (\texttt{validate\_project}). Violations → HTTP 400 naming the block.
+\item
+  \textbf{Judge-time re-validation + transpile}
+  (\texttt{submissions/tasks.py}): the exact submitted bytes are
+  re-validated and transpiled (\texttt{transpile(submission.code)}); a
+  failure lands as \textbf{COMPILE\_ERROR} with the reason (a client
+  that skipped the API still cannot judge).
+\item
+  \textbf{Execution}: the transpiled Python is compiled/run under the
+  registry\textquotesingle s \texttt{python3} spec; effective limits
+  resolve through
+  \texttt{judged\_language(\textquotesingle{}scratch\textquotesingle{})\ ==\ \textquotesingle{}python3\textquotesingle{}}
+  --- i.e. \textbf{python3\textquotesingle s J5 multipliers (3× time,
+  1.5× memory)}, with
+  \texttt{Problem.limit\_overrides{[}\textquotesingle{}scratch\textquotesingle{}{]}}
+  still able to override either axis. See
+  \texttt{submissions/judge\_utils/languages.py}
+  (\texttt{SCRATCH\_LANGUAGE\_ID}, \texttt{SCRATCH\_JUDGED\_AS},
+  \texttt{judged\_language}).
+\end{enumerate}
+
+\subsubsection{2.3 Which judging path shipped and why (decision
+record)}\label{23-which-judging-path-shipped-and-why-decision-record}
+
+The owner requirement allowed two Scratch judging paths: headless
+scratch-vm execution inside the sandboxed judge, \textbf{or} transpiling
+the project to Python via a defined mapping, with the choice documented.
+\textbf{The transpiling path shipped.} Reasons:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Determinism.} scratch-vm is a 30-frames-per-second
+  soft-realtime VM designed around a browser stage; its thread
+  scheduling is frame-quantized. A judge must measure \emph{CPU time
+  against a limit} --- frame-stepped execution makes TLE semantics fuzzy
+  and verdicts machine-dependent. The transpiler\textquotesingle s
+  output is ordinary Python under the ordinary, deterministic judge.
+\item
+  \textbf{Language-fair limits compose.} The whole point of the
+  wave\textquotesingle s item A is per-language normalization. A
+  transpiled Scratch program \emph{is} a CPython program, so it inherits
+  python3\textquotesingle s multipliers for free. A headless scratch-vm
+  would have needed its own calibration with no external judge practice
+  to cite.
+\item
+  \textbf{Sandbox posture.} The judge-runner container is
+  network-isolated with a read-only rootfs; running scratch-vm there
+  would mean baking a \textasciitilde250 MB-unpacked node dependency
+  tree (scratch-vm pulls scratch-render, scratch-storage, scratch-audio,
+  \ldots) into the hardened image --- a large supply-chain and
+  image-size cost for a less deterministic outcome. The transpiler is
+  \textasciitilde600 lines of pure Python inside the existing worker.
+\item
+  \textbf{The learner-visible behavior is preserved.}
+  \texttt{ask}/\texttt{answer} map to stdin lines;
+  \texttt{say}/\texttt{think} map to stdout lines with
+  Scratch\textquotesingle s exact number rendering (§5.4). What the
+  learner watched on the stage is what the judge compares.
+\end{enumerate}
+
+The headless path remains a documented future option: if Scratch
+problems ever need stage-dependent semantics (sprite positions, pen,
+collisions), a scratch-vm lane in the judge image is the escape hatch
+--- the submission format (sb3 JSON) would not change.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{3. Authoring guide
+(creators)}\label{3-authoring-guide-creators}
+
+\subsubsection{3.1 Creating a Blockly
+problem}\label{31-creating-a-blockly-problem}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Create a problem as usual; under \textbf{Block programming} check the
+  box.
+\item
+  Engine \textbf{Blockly}; pick the generator (\textbf{Python 3} or
+  \textbf{JavaScript}).
+\item
+  Optionally paste a \textbf{Toolbox XML} --- the curated block set.
+  Omit it to get the default beginner toolbox (logic, loops, math, text,
+  input, \textbf{lists}, variables, \textbf{functions}). Copy a category
+  subset to curate, e.g. a variables+math-only problem:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{\textless{}}\KeywordTok{xml} \OtherTok{xmlns=}\StringTok{"https://developers.google.com/blockly/xml"}\NormalTok{\textgreater{}}
+\NormalTok{  \textless{}}\KeywordTok{category} \OtherTok{name=}\StringTok{"Input"} \OtherTok{colour=}\StringTok{"\%\{BKY\_TEXTS\_HUE\}"}\NormalTok{\textgreater{}}
+\NormalTok{    \textless{}}\KeywordTok{block} \OtherTok{type=}\StringTok{"wc\_input\_number"}\NormalTok{\textgreater{}\textless{}/}\KeywordTok{block}\NormalTok{\textgreater{}}
+\NormalTok{  \textless{}/}\KeywordTok{category}\NormalTok{\textgreater{}}
+\NormalTok{  \textless{}}\KeywordTok{category} \OtherTok{name=}\StringTok{"Math"} \OtherTok{colour=}\StringTok{"\%\{BKY\_MATH\_HUE\}"}\NormalTok{\textgreater{}}
+\NormalTok{    \textless{}}\KeywordTok{block} \OtherTok{type=}\StringTok{"math\_number"}\NormalTok{\textgreater{}\textless{}/}\KeywordTok{block}\NormalTok{\textgreater{}}
+\NormalTok{    \textless{}}\KeywordTok{block} \OtherTok{type=}\StringTok{"math\_arithmetic"}\NormalTok{\textgreater{}\textless{}/}\KeywordTok{block}\NormalTok{\textgreater{}}
+\NormalTok{    \textless{}}\KeywordTok{block} \OtherTok{type=}\StringTok{"math\_modulo"}\NormalTok{\textgreater{}\textless{}/}\KeywordTok{block}\NormalTok{\textgreater{}}
+\NormalTok{  \textless{}/}\KeywordTok{category}\NormalTok{\textgreater{}}
+\NormalTok{  \textless{}}\KeywordTok{category} \OtherTok{name=}\StringTok{"Variables"} \OtherTok{colour=}\StringTok{"\%\{BKY\_VARIABLES\_HUE\}"} \OtherTok{custom=}\StringTok{"VARIABLE"}\NormalTok{\textgreater{}\textless{}/}\KeywordTok{category}\NormalTok{\textgreater{}}
+\NormalTok{\textless{}/}\KeywordTok{xml}\NormalTok{\textgreater{}}
+\end{Highlighting}
+\end{Shaded}
+
+  Site blocks: \texttt{wc\_input\_number} (read an integer) and
+  \texttt{wc\_input\_line} (read a text line) --- generated Python
+  \texttt{int(input())} / \texttt{input()}; JS \texttt{wcReadNumber()} /
+  \texttt{wcReadLine()} with a one-shot stdin-reader preamble the editor
+  prepends automatically.
+\item
+  Optionally paste \textbf{Starter workspace XML} (pre-placed blocks).
+\item
+  Set \texttt{allowed\_languages} to the generator(s) you accept. The
+  generated code is judged exactly like typed code --- including the
+  language-fair limits shown on the problem page.
+\end{enumerate}
+
+\subsubsection{3.2 Creating a Scratch
+problem}\label{32-creating-a-scratch-problem}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Create a problem; check \textbf{Block programming}; engine
+  \textbf{Scratch}.
+\item
+  \textbf{Allowed languages}: tick \textbf{Scratch (blocks)} (the
+  pseudo-language; its effective limits --- python3\textquotesingle s
+  multipliers --- are shown on the checkbox like every other language).
+\item
+  Optionally paste a \textbf{starter Scratch project} (sb3
+  \texttt{project.json}). Default: the Scratch cat with
+  \texttt{when\ flag\ clicked\ →\ say\ "Hello!"}. \textbf{Declare the
+  variables you want learners to use in the starter} --- v1 offers the
+  palette\textquotesingle s variable blocks for pre-declared variables
+  (there is no "make a variable" modal in the curated editor; this is
+  the curated-set philosophy, not an oversight --- see §9 roadmap).
+\item
+  Optionally list \textbf{allowed Scratch blocks} (comma-separated
+  opcodes). The universe is the judged-mappable set
+  (\texttt{KNOWN\_OPCODES} in
+  \texttt{backend/problems/scratch\_transpiler.py}):
+
+  {\def\LTcaptype{none} % do not increment counter
+  \begin{longtable}[]{@{}ll@{}}
+  \toprule\noalign{}
+  Category & Opcodes \\
+  \midrule\noalign{}
+  \endhead
+  \bottomrule\noalign{}
+  \endlastfoot
+  Events & \texttt{event\_whenflagclicked} \\
+  Control & \texttt{control\_repeat}, \texttt{control\_repeat\_until},
+  \texttt{control\_whileUntil}, \texttt{control\_forever},
+  \texttt{control\_if}, \texttt{control\_if\_else},
+  \texttt{control\_stop} \\
+  Looks & \texttt{looks\_say}, \texttt{looks\_sayforsecs},
+  \texttt{looks\_think} \\
+  Sensing & \texttt{sensing\_askandwait}, \texttt{sensing\_answer} \\
+  Operators & \texttt{operator\_add/subtract/multiply/divide/mod},
+  \texttt{operator\_lt/gt/equals}, \texttt{operator\_and/or/not},
+  \texttt{operator\_mathop}
+  (abs/floor/ceiling/sqrt/sin/cos/tan/round) \\
+  Variables & \texttt{data\_variable}, \texttt{data\_setvariableto},
+  \texttt{data\_changevariableby} \\
+  \end{longtable}
+  }
+
+  Leave it empty for the full curated set. \texttt{control\_wait} (no
+  judged semantics) and \texttt{operator\_random} (nondeterministic) are
+  never offered.
+\item
+  \textbf{Testcases} are ordinary stdin/stdout pairs: each \texttt{ask}
+  consumes one input line; each \texttt{say}/\texttt{think} emits one
+  output line.
+\end{enumerate}
+
+\subsubsection{3.3 Scratch project packaging (how to produce the starter
+JSON)}\label{33-scratch-project-packaging-how-to-produce-the-starter-json}
+
+The starter is the sb3 \textbf{project.json} document (NOT the zipped
+.sb3). Ways to produce one:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{From this site}: open \texttt{/blocks}, switch the engine to
+  \textbf{Scratch}, build the starter (add variables first --- they
+  appear in the palette), then take the exported JSON from your
+  browser\textquotesingle s network tab
+  (\texttt{POST\ /api/v1/submissions/submit/} payload when submitting to
+  any scratch problem) --- or ask an admin to fetch it from the
+  submission.
+\item
+  \textbf{From the Scratch editor} (scratch.mit.edu): build the project,
+  File → Save to your computer (\texttt{.sb3}), then unzip and use
+  \texttt{project.json}. Costumes other than the bundled cat/backdrop
+  will load in the learner\textquotesingle s editor \textbf{from the
+  official asset CDN} (needs internet on the learner side); the judge
+  itself never fetches assets (blocks only).
+\end{itemize}
+
+Assets referenced by md5 that exist under
+\texttt{public/scratch-assets/} load locally with no network. The
+bundled pair: \texttt{bcf454acf82e4504149f7ffe07081dbc.svg} (the cat),
+\texttt{cd21514d0531fdffb22204e0ec5ed84a.svg} (the default backdrop).
+
+\subsubsection{3.4 What the creator UI
+enforces}\label{34-what-the-creator-ui-enforces}
+
+\texttt{block\_config} is validated at authoring time
+(\texttt{problems/serializers.py}): engine ∈ \{blockly, scratch\};
+Blockly keys (\texttt{generator}/\texttt{toolbox}/\texttt{starter}) vs
+Scratch keys (\texttt{scratch\_project}/\texttt{scratch\_blocks}) must
+not mix; \texttt{scratch\_blocks} entries must be judged-mappable
+opcodes; sizes are capped (XML 100 KB, project JSON 500 KB).
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{4. Learner guide}\label{4-learner-guide}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Blockly}: pick blocks from the categories, connect them, press
+  \emph{Show generated code} to see the real Python/JavaScript you built
+  --- then submit. It is judged like any submission; the problem page
+  shows the effective time/memory for your language. Watch the ⚠ hint
+  chips: they appear when the generated code has nested loops (an n²
+  surprise) or a loop that never stops.
+\item
+  \textbf{Scratch}: drag blocks from the palette (the Scratch cat is
+  your sprite). Use \texttt{ask\ and\ wait} to read input, \texttt{say}
+  to print, variables and operators to compute. Press the \textbf{green
+  flag} to run on the stage --- \texttt{say} lines also appear in the
+  console strip, which is exactly what the judge compares. Submit sends
+  your project; it is translated to Python behind the curtain and judged
+  with Python\textquotesingle s time limits.
+\end{itemize}
+
+Both playgrounds are free at \texttt{/blocks} --- no submission spent.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{5. The Scratch→Python mapping
+(precise)}\label{5-the-scratchpython-mapping-precise}
+
+Implemented in \texttt{backend/problems/scratch\_transpiler.py}
+(\textasciitilde100\% line coverage in
+\texttt{backend/problems/test\_scratch\_transpiler.py}, including
+executing the generated code). Everything outside the mapping raises a
+\texttt{TranspileError} naming the opcode --- never a silently-wrong
+translation.
+
+\subsubsection{5.1 Program shape}\label{51-program-shape}
+
+\begin{itemize}
+\tightlist
+\item
+  Scripts start at \texttt{when\ green\ flag\ clicked} hats. Multiple
+  flag scripts run \textbf{sequentially in stage order} (top-to-bottom,
+  left-to-right --- Scratch\textquotesingle s own ordering). Documented
+  deviation: Scratch runs them as parallel threads; the console problems
+  this layer targets are ask→compute→say scripts that are independent by
+  construction.
+\item
+  \texttt{stop\ all} → \texttt{sys.exit(0)};
+  \texttt{stop\ this\ script}/\texttt{other\ scripts} → \texttt{pass}
+  (sequential execution makes them equivalent).
+\item
+  Variables form one namespace (stage globals + sprite locals merged);
+  every declared variable is initialized to \texttt{0}
+  (Scratch\textquotesingle s default). Variable names are sanitized
+  (\texttt{1st\ value} → \texttt{v\_1st\_value}) and kept collision-free
+  (\texttt{print} → \texttt{print\_2}).
+\end{itemize}
+
+\subsubsection{5.2 Statements}\label{52-statements}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+Scratch & Python \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\texttt{set\ var\ to\ X} & \texttt{var\ =\ X} \\
+\texttt{change\ var\ by\ X} & \texttt{var\ =\ \_wc\_add(var,\ X)} \\
+\texttt{ask\ Q\ and\ wait} &
+\texttt{\_\ =\ \_wc\_fmt(Q);\ \_answer\ =\ input()} (the question is
+evaluated but never printed --- it is a stage bubble) \\
+\texttt{say\ M} / \texttt{think\ M} & \texttt{print(\_wc\_fmt(M))} \\
+\texttt{say\ M\ for\ N\ secs} & \texttt{print(\_wc\_fmt(M))} ---
+duration ignored (stage timing), documented \\
+\texttt{repeat\ N\ \{…\}} &
+\texttt{for\ \_wc\_i\ in\ range(int(\_wc\_num(N))):} \\
+\texttt{repeat\ until\ C\ \{…\}} & \texttt{while\ not\ C:} \\
+\texttt{while\ C\ \{…\}} / \texttt{until\ C\ \{…\}} & \texttt{while\ C:}
+/ \texttt{while\ not\ C:} \\
+\texttt{forever\ \{…\}} & \texttt{while\ True:} (pair with
+\texttt{stop\ all}) \\
+\texttt{if\ C\ \{…\}} / \texttt{if\ C\ \{…\}\ else\ \{…\}} &
+\texttt{if\ C:} / \texttt{if\ …\ else:} \\
+\end{longtable}
+}
+
+\subsubsection{5.3 Expressions}\label{53-expressions}
+
+Arithmetic is wrapped in \texttt{\_wc\_num} (Scratch treats non-numeric
+values as 0 in arithmetic); comparisons use
+\texttt{\_wc\_lt/\_wc\_gt/\_wc\_eq} (numbers compare numerically,
+everything else case-insensitively --- Scratch\textquotesingle s rules);
+\texttt{and/or/not} map directly; \texttt{answer} reads
+\texttt{\_answer}.
+
+\subsubsection{5.4 Semantic deltas compensated in the generated
+preamble}\label{54-semantic-deltas-compensated-in-the-generated-preamble}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+Scratch behavior & Helper \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\texttt{1/0\ =\ Infinity}, \texttt{0/0\ =\ NaN} & \texttt{\_wc\_div} \\
+\texttt{x\ mod\ 0\ =\ NaN}; \texttt{mod} sign follows the divisor &
+\texttt{\_wc\_mod} \\
+\texttt{round(2.5)\ =\ 3}, \texttt{round(-2.5)\ =\ -3} (halves away from
+zero) & \texttt{\_wc\_round} (Python\textquotesingle s round is
+banker\textquotesingle s) \\
+\texttt{sin/cos/tan} in \textbf{degrees} &
+\texttt{\_wc\_sin/\_wc\_cos/\_wc\_tan} \\
+\texttt{sqrt(-1)\ =\ NaN} & \texttt{\_wc\_sqrt} \\
+\texttt{say\ 3.0} prints \texttt{3}; \texttt{say\ true} prints
+\texttt{true} & \texttt{\_wc\_fmt} (also \texttt{Infinity}/\texttt{NaN}
+by name) \\
+\end{longtable}
+}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{6. Teacher guide}\label{6-teacher-guide}
+
+Block problems slot into classes/teme like any problem. Suggested ladder
+for the gimnaziu cohort:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Scratch, VERY\_EASY}: echo problems --- ask/say only (the ask
+  spec\textquotesingle s \texttt{sensing\_askandwait} +
+  \texttt{sensing\_answer}).
+\item
+  \textbf{Scratch}: sum of two numbers (variables +
+  \texttt{operator\_add}), last digit (\texttt{operator\_mod}), counting
+  loops (\texttt{control\_repeat}).
+\item
+  \textbf{Blockly (Python generator)}: same problems re-solved with
+  blocks whose generated code they can \emph{read} --- the bridge
+  lesson.
+\item
+  \textbf{Blockly → typed}: the learner re-submits the same problem in
+  typed Python; the generated-code preview makes the mapping visible.
+\end{enumerate}
+
+The curated block sets are the pedagogical control: a digit-extraction
+problem can allow only math/variables blocks, withholding string/text
+blocks exactly like the wave-C \texttt{py-no-string-ops} feature ban
+does for typed Python.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{7. Complexity hints}\label{7-complexity-hints}
+
+\texttt{src/components/blocks/complexity.ts} reads the
+\textbf{generated} code and surfaces advisory chips under the Blockly
+editor:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{nested-loops} --- a loop directly inside a loop: "if each loop
+  runs n times, the body runs n² times --- for n = 10⁵ that is 10¹⁰
+  steps and will time out".
+\item
+  \texttt{no-exit-forever} --- a \texttt{while\ True} with no
+  \texttt{break}/\texttt{exit} in its body.
+\end{itemize}
+
+It is indentation-based, works for both generators\textquotesingle{}
+output, and is a \textbf{hint, never a verdict} --- the judge still
+measures real time. (Pure function; unit-tested in
+\texttt{complexity.test.ts}.)
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{8. Testing strategy}\label{8-testing-strategy}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+Layer & What & Where \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Transpiler & full mapping + semantic helpers, \textbf{generated code is
+executed and its stdout asserted} &
+\texttt{backend/problems/test\_scratch\_transpiler.py} (93 tests) \\
+Submit gate & 400 paths: not a scratch problem, disallowed block,
+unmapped block, bad JSON &
+\texttt{backend/submissions/test\_scratch\_judge.py} \\
+Judge hook & transpiled code compiled under \texttt{python3}; transpile
+failure ⇒ COMPILE\_ERROR; effective limits (python3 multipliers;
+\texttt{scratch} override wins) &
+\texttt{backend/submissions/test\_scratch\_judge.py} \\
+Authoring & \texttt{block\_config} engine validation, opcode allowlist
+validation, \texttt{effective\_limits} scratch row &
+\texttt{backend/submissions/test\_scratch\_judge.py} \\
+Frontend units & toolbox construction/curation, variable extraction,
+default project, complexity analyzer &
+\texttt{src/components/blocks/*.test.ts} \\
+E2E (mock) & playground Scratch tab; scratch problem renders editor;
+submit POST payload is the project JSON under
+\texttt{language:\ \textquotesingle{}scratch\textquotesingle{}}; a 400
+surfaces its message & \texttt{e2e/scratch.spec.ts} (+ Blockly:
+\texttt{e2e/blocks.spec.ts}) \\
+E2E (live) & a real Scratch submission judged AC and a planted-WA judged
+WA --- see the wave\textquotesingle s live acceptance record & live
+stack, per-wave \\
+\end{longtable}
+}
+
+The i18n parity sweep (\texttt{src/i18n.parity.test.ts}) guarantees
+every new UI string exists in all ten locales --- the
+engines\textquotesingle{} RO/EN labels are first-class, not
+afterthoughts.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{9. Security notes}\label{9-security-notes}
+
+\begin{itemize}
+\tightlist
+\item
+  Scratch submissions are \textbf{data, not code}, until our own
+  deterministic transpiler turns them into Python. No learner-supplied
+  text is ever \texttt{eval}\textquotesingle d; the transpiler emits a
+  fixed AST-shaped subset (identifiers are sanitized and
+  collision-checked against builtins).
+\item
+  The three-gate defense (submit 400 → judge re-validation → registry
+  execution) mirrors waves C/E: a hostile client skipping the API still
+  cannot judge a project the API would reject.
+\item
+  The Scratch editor loads third-party libraries (LLK\textquotesingle s,
+  BSD-3/GPL-class Scratch licenses --- the packages\textquotesingle{}
+  \texttt{TRADEMARK} files govern the Scratch name/cat usage: we use
+  them for the educational compatibility the trademark policy explicitly
+  permits, and we do not imply endorsement). Default assets are bundled
+  locally; a creator-uploaded project\textquotesingle s other costumes
+  load from the official asset CDN \textbf{client-side only}.
+\item
+  Judge side is unchanged: scratch programs run inside the same
+  hardened, network-isolated judge-runner as everything else.
+\end{itemize}
+
+Known v1 limitations (deliberate, documented): no variable-creation
+modal (creator pre-declares variables in the starter); no custom blocks
+(procedures), lists, or motion/pen semantics in Scratch problems (the
+opcode allowlist is the contract --- unmapped opcodes are rejected with
+a clear message); \texttt{say\ for\ seconds} ignores its duration.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{10. Troubleshooting}\label{10-troubleshooting}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+Symptom & Cause / fix \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Scratch editor shows "failed to load" & The lazy chunk or a bundled
+asset failed --- check the network tab for
+\texttt{/scratch-assets/*.svg} and \texttt{/scratch-blocks-media/}; a
+blank stage alone is fine (no WebGL). \\
+Stage blank but blocks work & WebGL unavailable; renderer init is
+skipped by design (§2.1 step 2). Judging is unaffected. \\
+400 "blocks with no judged mapping" & The project uses an opcode outside
+§3.2\textquotesingle s table (e.g. motion or join) --- remove it or
+extend the transpiler (next section). \\
+400 "uses blocks this problem does not allow" & The opcode is mapped but
+not in this problem\textquotesingle s \texttt{scratch\_blocks}. \\
+COMPILE\_ERROR "could not be translated" & The judge\textquotesingle s
+re-validation failed on the exact bytes --- same reasons as the 400s
+(defense in depth). \\
+Cat costume missing & Asset md5 not under
+\texttt{public/scratch-assets/} and CDN unreachable; the bundled default
+never needs the CDN. \\
+Blockly "Show generated code" empty & No blocks run at top level ---
+every Blockly program starts from placed blocks. \\
+\end{longtable}
+}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{11. Worked examples}\label{11-worked-examples}
+
+\subsubsection{11.1 Blockly --- "Last digit" (generator
+python3)}\label{111-blockly--last-digit-generator-python3}
+
+Default starter (\texttt{variables\_set\ n\ ←\ wc\_input\_number} →
+\texttt{print(math\_modulo(n,10))}) generates:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{n }\OperatorTok{=} \BuiltInTok{int}\NormalTok{(}\BuiltInTok{input}\NormalTok{())}
+\BuiltInTok{print}\NormalTok{(n }\OperatorTok{\%} \DecValTok{10}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Submitted as \texttt{language:\ python3} --- judged normally (testcase
+\texttt{42} → \texttt{2}).
+
+\subsubsection{11.2 Scratch --- "Echo"}\label{112-scratch--echo}
+
+Problem: \texttt{engine:\ scratch}, allowlist
+\texttt{event\_whenflagclicked,\ sensing\_askandwait,\ sensing\_answer,\ looks\_say};
+testcase input \texttt{hello}, expected output \texttt{hello}. The
+learner\textquotesingle s project (one flag script):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{\{}
+  \DataTypeTok{"targets"}\FunctionTok{:} \OtherTok{[}
+    \FunctionTok{\{} \DataTypeTok{"isStage"}\FunctionTok{:} \KeywordTok{true}\FunctionTok{,} \DataTypeTok{"name"}\FunctionTok{:} \StringTok{"Stage"}\FunctionTok{,} \DataTypeTok{"variables"}\FunctionTok{:} \FunctionTok{\{\},} \DataTypeTok{"blocks"}\FunctionTok{:} \FunctionTok{\{\},}
+      \DataTypeTok{"costumes"}\FunctionTok{:} \OtherTok{[}\FunctionTok{\{} \DataTypeTok{"name"}\FunctionTok{:} \StringTok{"backdrop1"}\FunctionTok{,} \DataTypeTok{"md5ext"}\FunctionTok{:} \StringTok{"cd21514d0531fdffb22204e0ec5ed84a.svg"}\FunctionTok{,} \DataTypeTok{"dataFormat"}\FunctionTok{:} \StringTok{"svg"} \FunctionTok{\}}\OtherTok{]} \FunctionTok{\}}\OtherTok{,}
+    \FunctionTok{\{} \DataTypeTok{"isStage"}\FunctionTok{:} \KeywordTok{false}\FunctionTok{,} \DataTypeTok{"name"}\FunctionTok{:} \StringTok{"Sprite1"}\FunctionTok{,} \DataTypeTok{"variables"}\FunctionTok{:} \FunctionTok{\{\},} \DataTypeTok{"blocks"}\FunctionTok{:} \FunctionTok{\{}
+        \DataTypeTok{"hat"}\FunctionTok{:}  \FunctionTok{\{} \DataTypeTok{"opcode"}\FunctionTok{:} \StringTok{"event\_whenflagclicked"}\FunctionTok{,} \DataTypeTok{"next"}\FunctionTok{:} \StringTok{"ask"}\FunctionTok{,} \DataTypeTok{"topLevel"}\FunctionTok{:} \KeywordTok{true}\FunctionTok{,} \DataTypeTok{"fields"}\FunctionTok{:} \FunctionTok{\{\},} \DataTypeTok{"inputs"}\FunctionTok{:} \FunctionTok{\{\},} \DataTypeTok{"x"}\FunctionTok{:} \DecValTok{60}\FunctionTok{,} \DataTypeTok{"y"}\FunctionTok{:} \DecValTok{60} \FunctionTok{\},}
+        \DataTypeTok{"ask"}\FunctionTok{:}  \FunctionTok{\{} \DataTypeTok{"opcode"}\FunctionTok{:} \StringTok{"sensing\_askandwait"}\FunctionTok{,} \DataTypeTok{"next"}\FunctionTok{:} \StringTok{"say"}\FunctionTok{,} \DataTypeTok{"parent"}\FunctionTok{:} \StringTok{"hat"}\FunctionTok{,}
+                  \DataTypeTok{"inputs"}\FunctionTok{:} \FunctionTok{\{} \DataTypeTok{"QUESTION"}\FunctionTok{:} \OtherTok{[}\DecValTok{1}\OtherTok{,} \OtherTok{[}\DecValTok{10}\OtherTok{,} \StringTok{"line?"}\OtherTok{]} \OtherTok{]} \FunctionTok{\},} \DataTypeTok{"fields"}\FunctionTok{:} \FunctionTok{\{\}} \FunctionTok{\},}
+        \DataTypeTok{"say"}\FunctionTok{:}  \FunctionTok{\{} \DataTypeTok{"opcode"}\FunctionTok{:} \StringTok{"looks\_say"}\FunctionTok{,} \DataTypeTok{"parent"}\FunctionTok{:} \StringTok{"ask"}\FunctionTok{,} \DataTypeTok{"next"}\FunctionTok{:} \KeywordTok{null}\FunctionTok{,}
+                  \DataTypeTok{"inputs"}\FunctionTok{:} \FunctionTok{\{} \DataTypeTok{"MESSAGE"}\FunctionTok{:} \OtherTok{[}\DecValTok{1}\OtherTok{,} \StringTok{"ans"}\OtherTok{]} \FunctionTok{\},} \DataTypeTok{"fields"}\FunctionTok{:} \FunctionTok{\{\}} \FunctionTok{\},}
+        \DataTypeTok{"ans"}\FunctionTok{:}  \FunctionTok{\{} \DataTypeTok{"opcode"}\FunctionTok{:} \StringTok{"sensing\_answer"}\FunctionTok{,} \DataTypeTok{"fields"}\FunctionTok{:} \FunctionTok{\{\}} \FunctionTok{\}}
+      \FunctionTok{\},}
+      \DataTypeTok{"costumes"}\FunctionTok{:} \OtherTok{[}\FunctionTok{\{} \DataTypeTok{"name"}\FunctionTok{:} \StringTok{"cat1"}\FunctionTok{,} \DataTypeTok{"md5ext"}\FunctionTok{:} \StringTok{"bcf454acf82e4504149f7ffe07081dbc.svg"}\FunctionTok{,} \DataTypeTok{"dataFormat"}\FunctionTok{:} \StringTok{"svg"} \FunctionTok{\}}\OtherTok{]} \FunctionTok{\}}
+  \OtherTok{]}
+\FunctionTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Submitted as \texttt{language:\ scratch}; the judge transpiles
+(abridged):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{\_ }\OperatorTok{=}\NormalTok{ \_wc\_fmt(}\StringTok{"line?"}\NormalTok{)}
+\NormalTok{\_answer }\OperatorTok{=} \BuiltInTok{input}\NormalTok{()}
+\BuiltInTok{print}\NormalTok{(\_wc\_fmt(\_answer))}
+\end{Highlighting}
+\end{Shaded}
+
+Input \texttt{hello} → output \texttt{hello} → \textbf{AC}. (Planted-WA
+acceptance: a project that says \texttt{"goodbye"} instead →
+\textbf{WA}.)
+
+\subsubsection{11.3 Scratch --- "Sum of two
+numbers"}\label{113-scratch--sum-of-two-numbers}
+
+Two \texttt{ask} blocks, \texttt{set\ total\ to\ (answer)\ +\ (answer)},
+\texttt{say\ total}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{\_ }\OperatorTok{=}\NormalTok{ \_wc\_fmt(}\StringTok{"a?"}\NormalTok{)}
+\NormalTok{\_answer }\OperatorTok{=} \BuiltInTok{input}\NormalTok{()}
+\NormalTok{total }\OperatorTok{=}\NormalTok{ \_wc\_num(\_answer)}
+\NormalTok{\_ }\OperatorTok{=}\NormalTok{ \_wc\_fmt(}\StringTok{"b?"}\NormalTok{)}
+\NormalTok{\_answer }\OperatorTok{=} \BuiltInTok{input}\NormalTok{()}
+\NormalTok{total }\OperatorTok{=}\NormalTok{ (\_wc\_num(total) }\OperatorTok{+}\NormalTok{ \_wc\_num(\_answer))}
+\BuiltInTok{print}\NormalTok{(\_wc\_fmt(total))}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{3} + \texttt{4} prints \texttt{7} --- and \texttt{say\ (7/2)}
+would print \texttt{3.5}, while \texttt{say\ (7/2*2)} prints \texttt{7},
+matching Scratch\textquotesingle s rendering exactly.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{12. Screenshots (described)}\label{12-screenshots-described}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{The /blocks playground} --- engine switcher (Blockly
+  \textbar{} Scratch) top left; Blockly workspace with the beginner
+  toolbox (categories: Logic, Loops, Math, Text, Input, Lists,
+  Variables, Functions); the generated-Python preview pane below; the
+  "Run on the judge" panel with a stdin box.
+\item
+  \textbf{The playground, Scratch engine} --- split view: scratch-blocks
+  workspace (Scratch-shaped palette: Events, Control, Looks, Sensing,
+  Operators, Variables) on the left; on the right the green-flag/stop
+  toolbar, the white 4:3 stage with the orange Scratch cat, and the
+  console strip that just printed \texttt{Hello!}.
+\item
+  \textbf{A scratch problem page} --- the statement card; the submit
+  card titled "Solve with Scratch" with the same split editor; the
+  effective-limits line showing \texttt{scratch:\ 3000\ ms\ /\ 384\ MB}
+  (python3 multipliers); the verdict panel after judging.
+\item
+  \textbf{Complexity hints} --- a Blockly workspace with two nested
+  repeat blocks; under the editor a ⚠ chip: "Nested loops: \ldots{} n²
+  \ldots{} will time out."
+\item
+  \textbf{Creator form} --- "Block programming (Blockly / Scratch)"
+  checked; the engine dropdown offering both; the Scratch arm showing
+  the starter-project JSON box and the allowed-blocks opcode box; the
+  languages grid with "Scratch (blocks)" ticked showing
+  \texttt{(3000\ ms\ /\ 384\ MB)}.
+\end{enumerate}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{13. Internationalization}\label{13-internationalization}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{UI chrome} (\texttt{Solve\ with\ Scratch}, category names,
+  hints, buttons): the site\textquotesingle s ten-locale catalogs
+  (\texttt{src/locales/*.json}, keys \texttt{sbx\_*},
+  \texttt{blocks\_*}, \texttt{problem\_form\_*}); the parity test pins
+  completeness.
+\item
+  \textbf{Blockly block labels}: official Blockly message packs
+  (\texttt{blockly/msg/ro}, \texttt{blockly/msg/en}) + the two
+  site-block messages (\texttt{WC\_BLOCK\_MESSAGES\_RO/EN} in
+  \texttt{BlockEditor.tsx}).
+\item
+  \textbf{Scratch block labels}: official scratch-l10n
+  \texttt{editor/blocks/ro.json} applied to \texttt{Blockly.Msg} (the
+  scratch-gui mechanism); EN is baked into scratch-blocks. The category
+  headers localize through the site catalog.
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{14. Extending the system}\label{14-extending-the-system}
+
+\textbf{Add a Blockly category/block}: add the block types to
+\texttt{DEFAULT\_TOOLBOX\_XML} (or a problem\textquotesingle s toolbox
+XML) --- the official generators already know the standard blocks. For
+new \emph{site} blocks, follow \texttt{wcBlocks.ts}: JSON definition +
+generator snippets for BOTH Python and JavaScript, register them in
+\texttt{registerBlockTypes}, and test the generated code contract
+headlessly (see \texttt{BlockEditor.test.ts}).
+
+\textbf{Add a Scratch opcode} (e.g. \texttt{operator\_join}): extend
+\texttt{STATEMENT\_OPCODES}/\texttt{REPORTER\_OPCODES} + the emitter
+branch in \texttt{scratch\_transpiler.py}, add the opcode to
+\texttt{OPCODE\_CATEGORIES} in \texttt{ScratchEditor.tsx} (palette), and
+cover the mapping with a test that \textbf{executes} the generated code
+(\texttt{test\_scratch\_transpiler.py} is the pattern). Keep the
+contract: opcodes without an honest mapping are rejected, never
+approximated.
+
+\textbf{Upgrade the Scratch stack}: bump the pinned versions (they are
+pinned to the scratch-gui-5.3-compatible set), re-run
+\texttt{cp\ -r\ node\_modules/scratch-blocks/media\ public/scratch-blocks-media/},
+and re-verify the wiring glue (§2.1) --- scratch-vm\textquotesingle s
+\texttt{blockListener} / \texttt{emitWorkspaceUpdate} / \texttt{toJSON}
+API is the surface we depend on.
+
+\end{document}

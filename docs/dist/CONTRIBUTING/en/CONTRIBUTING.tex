@@ -1,0 +1,311 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+% fallback for those not using the hyperref driver hyperxmp:
+\makeatletter
+\@ifundefined{xmpquote}{\newcommand{\xmpquote}[1]{#1}}{}
+\makeatother
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
+
+\begin{document}
+
+{
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+\section{WebCoder --- Contributing}\label{webcoder--contributing}
+
+\begin{quote}
+One-paragraph summary: WebCoder is a single-branch (\texttt{main})
+monorepo --- Next.js 16 at the root, Django 6 under \texttt{backend/}
+--- where every change lands through a PR that keeps BOTH test batteries
+green (frontend: vitest + tsc + zero-warning lint + build + Playwright;
+backend: pytest at 100 \% line coverage and warning-clean). This guide
+explains the exact gates, the PR conventions, the BACKLOG workflow, and
+how the roadmap "waves" operated.
+\end{quote}
+
+\textbf{Who it\textquotesingle s for:} anyone contributing code,
+content, or docs. Romanian twin:
+\href{../guide-ro/CONTRIBUIE.md}{\texttt{docs/guide-ro/CONTRIBUIE.md}}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{1. Repository rules}\label{1-repository-rules}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{\texttt{main} is the only base branch.} The old split
+  (\texttt{backend} branch) was unified in October 2026; every PR
+  targets \texttt{main}. Never reopen the split.
+\item
+  The repo is a monorepo: frontend at the root (\texttt{src/},
+  \texttt{package.json}), backend under \texttt{backend/}, e2e under
+  \texttt{e2e/}, mobile shell under \texttt{mobile/}.
+\item
+  Default merge is \textbf{squash}
+  (\texttt{gh\ pr\ merge\ -\/-squash\ -\/-delete-branch}); true merge
+  commits are reserved for history-preserving operations.
+\item
+  Work happens in disposable worktrees --- never commit inside a live
+  deployment checkout.
+\end{itemize}
+
+\subsection{2. The gates (must pass before you
+push)}\label{2-the-gates-must-pass-before-you-push}
+
+Frontend --- run from the repo root:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{npm}\NormalTok{ run test                      }\CommentTok{\# vitest}
+\ExtensionTok{npx}\NormalTok{ tsc }\AttributeTok{{-}p}\NormalTok{ tsconfig.json }\AttributeTok{{-}{-}noEmit} \CommentTok{\# typecheck}
+\ExtensionTok{npm}\NormalTok{ run lint                      }\CommentTok{\# 0 errors AND 0 warnings (zero{-}warnings policy)}
+\ExtensionTok{npm}\NormalTok{ run build                     }\CommentTok{\# next build}
+\ExtensionTok{npx}\NormalTok{ playwright test               }\CommentTok{\# e2e, mock{-}api mode (hermetic)}
+\end{Highlighting}
+\end{Shaded}
+
+Backend --- any interpreter with \texttt{backend/deps.txt} installed:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{SECRET\_KEY}\OperatorTok{=}\NormalTok{x }\VariableTok{DB\_PASSWORD}\OperatorTok{=}\NormalTok{x }\ExtensionTok{python} \AttributeTok{{-}m}\NormalTok{ pytest }\AttributeTok{{-}q}    \CommentTok{\# sqlite CI profile, 100 \% line cov, 0 warnings}
+\end{Highlighting}
+\end{Shaded}
+
+Quality rules enforced on top:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Every NEW backend module reaches 100 \% line coverage} --- the
+  repo-wide bar was 100 \% before; keep it.
+\item
+  \textbf{Zero warnings}: the pytest suite runs warning-clean (fix at
+  the source, or add a narrowly-scoped, individually-commented
+  \texttt{filterwarnings} ignore); \texttt{npm\ run\ lint} reports zero
+  problems.
+\item
+  Ruff format + biome format run in CI; unformatted code fails the
+  quality gate.
+\item
+  Migrations must not collide: waves number their migrations
+  independently --- if two branches add the same-numbered migration,
+  renumber the younger one before merge (see PRs \#360, \#375).
+\end{itemize}
+
+\subsection{3. PR conventions}\label{3-pr-conventions}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Branch from \texttt{origin/main}
+  (\texttt{git\ worktree\ add\ \textless{}path\textgreater{}\ -b\ \textless{}branch\textgreater{}\ origin/main}).
+\item
+  Implement \textbf{with tests} --- backend pytest for every new
+  endpoint/command; frontend vitest for components; Playwright coverage
+  for user-visible flows (extend \texttt{e2e/mock-api} fixtures; add
+  real-stack specs when the feature touches the judge or auth).
+\item
+  Verify locally (the exact gates above), push, and open the PR against
+  \texttt{main} with \texttt{gh\ pr\ create}.
+\item
+  Poll checks to green (CI runs \texttt{frontend.yml} on root-source
+  paths, \texttt{django.yml} on \texttt{backend/**}, CodeQL on
+  everything) --- up to 20 × 30 s.
+\item
+  \texttt{gh\ pr\ merge\ -\/-squash\ -\/-delete-branch}, then remove the
+  worktree.
+\item
+  \textbf{Live-stack validation after backend merges} (RUNBOOK §PR
+  conventions):
+  \texttt{git\ -C\ \textless{}live\ worktree\textgreater{}\ pull\ -\/-ff-only\ origin\ main},
+  rebuild \texttt{backend\ celery-worker\ judge-runner},
+  \texttt{manage.py\ migrate}.
+\end{enumerate}
+
+Commit style: \texttt{type(scope):\ summary} --- e.g.
+\texttt{feat(contests):\ …}, \texttt{fix(e2e):\ …},
+\texttt{docs(guides):\ …}. The wave PRs are a good reference
+(\texttt{git\ log\ -\/-oneline}).
+
+\subsection{4. The BACKLOG workflow}\label{4-the-backlog-workflow}
+
+\texttt{docs/BACKLOG.md} is the item-level tracker of record. Rules
+(stated at the top of the file):
+
+\begin{itemize}
+\tightlist
+\item
+  statuses: \texttt{shipped\ (PR\ \#N)} · \texttt{in-flight\ (wave\ X)}
+  · \texttt{planned\ (wave\ E/F/G)} · \texttt{someday};
+\item
+  \textbf{the wave agent that ships an item updates its status in the
+  same PR};
+\item
+  numbering is stable --- never renumber; retire with
+  \texttt{\textasciitilde{}}.
+\end{itemize}
+
+Above it sits \texttt{docs/SPEC-GAPS.md} (the platform backlog with
+B/J/F/A/Q/SP/X ids) and \texttt{docs/ROADMAP-COMPETITIVE-2026-10-22.md}
+(the 78-gap catalog + wave sequencing + the binding round-2
+corrections). New ideas go to the BACKLOG parking lot; new platform gaps
+get a SPEC-GAPS row.
+
+\subsection{5. How the waves worked}\label{5-how-the-waves-worked}
+
+The 2026-11 feature program ran as sequential waves (0 → A → B → C → D →
+E → F → G), each a set of PRs implementing a roadmap slice:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  The wave\textquotesingle s spec was read from ROADMAP §4 + the round-2
+  additions (ops-before-features, moderation-before-UGC, legal gates ---
+  these override the roadmap when they disagree on order).
+\item
+  Items shipped as coherent PR groups (branch → tests → local verify →
+  PR → checks → squash-merge), each PR updating BACKLOG statuses.
+\item
+  Judge/auth-touching items additionally validated on the live compose
+  stack (RUNBOOK Mode A), including real-mode Playwright
+  (\texttt{E2E\_API\_BASE=http://127.0.0.1:8010}).
+\item
+  Content work (the \textasciitilde1 850-problem import, hidden-test
+  generation) ran as content-ops commands committed to the repo
+  (\texttt{catalog\_polish}, \texttt{boost\_hidden\_tests},
+  \texttt{export\_catalog}/\texttt{import\_catalog}) so every data
+  mutation is reviewable and reproducible.
+\end{enumerate}
+
+\subsection{6. Content contributions}\label{6-content-contributions}
+
+\begin{itemize}
+\tightlist
+\item
+  Problems are authored \textbf{bilingually}: English statement
+  mandatory (universal fallback), Romanian strongly preferred; 10
+  further locales optional per problem.
+\item
+  Bac-style "write the subprogram" tasks are rewritten as whole-program
+  I/O tasks when imported (same exercise, our own words --- see
+  \texttt{problems/data/hidden\_test\_specs.py}).
+\item
+  Test suites: never import third-party test data you
+  don\textquotesingle t have rights to; generate hidden suites via the
+  committed spec format (reference solution + inputs + wrong-solution
+  flip check).
+\item
+  The CNT-2 permission ledger (\texttt{ImportSource}) records source,
+  terms and evidence for every imported corpus.
+\end{itemize}
+
+\subsection{7. Documentation
+contributions}\label{7-documentation-contributions}
+
+The docs suite is bilingual (EN under \texttt{docs/guide-en/}, RO under
+\texttt{docs/guide-ro/}) and built into PDF/DOCX/TEX by
+\texttt{docs/build-docs.ps1} (pandoc + tectonic; outputs committed under
+\texttt{docs/dist/}). When you change behavior documented in a guide,
+update both language twins in the same PR and rebuild the artifacts:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{docs}\OperatorTok{/}\NormalTok{build{-}docs}\OperatorTok{.}\FunctionTok{ps1}    \CommentTok{\# regenerates docs/dist from the .md sources}
+\end{Highlighting}
+\end{Shaded}
+
+Diagrams: Mermaid sources live in \texttt{docs/diagrams/*.mmd} with
+rendered PNGs beside them --- edit the \texttt{.mmd}, re-render
+(mermaid-cli), commit both.
+
+\end{document}

@@ -1,0 +1,320 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+% fallback for those not using the hyperref driver hyperxmp:
+\makeatletter
+\@ifundefined{xmpquote}{\newcommand{\xmpquote}[1]{#1}}{}
+\makeatother
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
+
+\begin{document}
+
+{
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+\section{WebCoder --- Contribuții}\label{webcoder--contribuux21bii}
+
+\begin{quote}
+Rezumat într-un paragraf: WebCoder este un monorepo pe o singură ramură
+(\texttt{main}) --- Next.js 16 la rădăcină, Django 6 sub
+\texttt{backend/} --- în care orice modificare ajunge printr-un PR care
+ține VERZI ambele baterii de teste (frontend: vitest + tsc + lint fără
+warninguri + build + Playwright; backend: pytest cu 100 \% acoperire de
+linii și fără warninguri). Ghidul explică porțile exacte, convențiile de
+PR, fluxul BACKLOG și cum au funcționat „valurile" de roadmap.
+\end{quote}
+
+\textbf{Cui se adresează:} oricui contribuie cod, conținut sau
+documentație. Perechea în engleză:
+\href{../guide-en/CONTRIBUTING.md}{\texttt{docs/guide-en/CONTRIBUTING.md}}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{1. Regulile
+repository-ului}\label{1-regulile-repository-ului}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{\texttt{main} este singura ramură de bază.} Vechiul split
+  (ramura \texttt{backend}) a fost unificat în octombrie 2026; fiecare
+  PR țintește \texttt{main}. Nu redeschideți splitul.
+\item
+  Repo-ul e monorepo: frontend la rădăcină (\texttt{src/},
+  \texttt{package.json}), backend sub \texttt{backend/}, e2e sub
+  \texttt{e2e/}, shell-ul mobil sub \texttt{mobile/}.
+\item
+  Merge-ul implicit este \textbf{squash}
+  (\texttt{gh\ pr\ merge\ -\/-squash\ -\/-delete-branch}); commit-urile
+  de merge adevărate sunt rezervate operațiunilor care păstrează
+  istoric.
+\item
+  Lucrul se face în worktree-uri de unică folosință --- niciodată nu se
+  comite într-un checkout de deploy live.
+\end{itemize}
+
+\subsection{2. Porțile de calitate (obligatorii înainte de
+push)}\label{2-porux21bile-de-calitate-obligatorii-uxeenainte-de-push}
+
+Frontend --- din rădăcina repo-ului:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{npm}\NormalTok{ run test                      }\CommentTok{\# vitest}
+\ExtensionTok{npx}\NormalTok{ tsc }\AttributeTok{{-}p}\NormalTok{ tsconfig.json }\AttributeTok{{-}{-}noEmit} \CommentTok{\# typecheck}
+\ExtensionTok{npm}\NormalTok{ run lint                      }\CommentTok{\# 0 erori ȘI 0 warninguri (politica zero{-}warninguri)}
+\ExtensionTok{npm}\NormalTok{ run build                     }\CommentTok{\# next build}
+\ExtensionTok{npx}\NormalTok{ playwright test               }\CommentTok{\# e2e, mod mock{-}api (ermetic)}
+\end{Highlighting}
+\end{Shaded}
+
+Backend --- orice interpretor cu \texttt{backend/deps.txt} instalat:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\VariableTok{SECRET\_KEY}\OperatorTok{=}\NormalTok{x }\VariableTok{DB\_PASSWORD}\OperatorTok{=}\NormalTok{x }\ExtensionTok{python} \AttributeTok{{-}m}\NormalTok{ pytest }\AttributeTok{{-}q}    \CommentTok{\# profil CI sqlite, 100 \% acoperire, 0 warninguri}
+\end{Highlighting}
+\end{Shaded}
+
+Reguli de calitate aplicate peste:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Orice modul backend NOU atinge 100 \% acoperire de linii} ---
+  bara repo-wide a fost 100 \% înainte; mențineți-o.
+\item
+  \textbf{Zero warninguri}: suita pytest rulează curat (rezolvați la
+  sursă sau adăugați un ignore \texttt{filterwarnings} îngust, comentat
+  individual); \texttt{npm\ run\ lint} raportează zero probleme.
+\item
+  Ruff format + biome format rulează în CI; codul neformatat cade la
+  poarta de calitate.
+\item
+  Migrațiile nu trebuie să se colaboreze: valurile numerotează
+  migrațiile independent --- dacă două ramuri adaugă migrații cu același
+  număr, renumerotați-o pe cea mai tânără înainte de merge (vezi
+  PR-urile \#360, \#375).
+\end{itemize}
+
+\subsection{3. Convențiile de PR}\label{3-convenux21biile-de-pr}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Ramifică din \texttt{origin/main}
+  (\texttt{git\ worktree\ add\ \textless{}cale\textgreater{}\ -b\ \textless{}ramura\textgreater{}\ origin/main}).
+\item
+  Implementează \textbf{cu teste} --- pytest backend pentru fiecare
+  endpoint/comandă nouă; vitest pentru componente; acoperire Playwright
+  pentru fluxurile vizibile pentru utilizator (extindeți fixture-urile
+  \texttt{e2e/mock-api}; adăugați specificații real-stack când
+  funcționalitatea atinge evaluatorul sau autentificarea).
+\item
+  Verifică local (porțile exacte de mai sus), push, deschide PR-ul către
+  \texttt{main} cu \texttt{gh\ pr\ create}.
+\item
+  Urmărește check-urile până la verde (CI rulează \texttt{frontend.yml}
+  pe căile din rădăcină, \texttt{django.yml} pe \texttt{backend/**},
+  CodeQL pe tot) --- până la 20 × 30 s.
+\item
+  \texttt{gh\ pr\ merge\ -\/-squash\ -\/-delete-branch}, apoi șterge
+  worktree-ul.
+\item
+  \textbf{Validare pe stack-ul live după merge-uri de backend} (RUNBOOK
+  §convenții PR):
+  \texttt{git\ -C\ \textless{}worktree\ live\textgreater{}\ pull\ -\/-ff-only\ origin\ main},
+  rebuild \texttt{backend\ celery-worker\ judge-runner},
+  \texttt{manage.py\ migrate}.
+\end{enumerate}
+
+Stil de commit: \texttt{tip(scop):\ rezumat} --- ex.
+\texttt{feat(contests):\ …}, \texttt{fix(e2e):\ …},
+\texttt{docs(guides):\ …}. PR-urile valurilor sunt o referință bună
+(\texttt{git\ log\ -\/-oneline}).
+
+\subsection{4. Fluxul BACKLOG}\label{4-fluxul-backlog}
+
+\texttt{docs/BACKLOG.md} este tracker-ul de nivel element, de referință.
+Reguli (stated la începutul fișierului):
+
+\begin{itemize}
+\tightlist
+\item
+  statusuri: \texttt{shipped\ (PR\ \#N)} · \texttt{in-flight\ (wave\ X)}
+  · \texttt{planned\ (wave\ E/F/G)} · \texttt{someday};
+\item
+  \textbf{agentul valului care livrează un element îi actualizează
+  statusul în același PR};
+\item
+  numerotarea e stabilă --- nu renumerotați; retrageți cu
+  \texttt{\textasciitilde{}}.
+\end{itemize}
+
+Deasupra stau \texttt{docs/SPEC-GAPS.md} (backlog-ul de platformă cu
+id-urile B/J/F/A/Q/SP/X) și
+\texttt{docs/ROADMAP-COMPETITIVE-2026-10-22.md} (catalogul de 78 gap-uri
++ secvențierea valurilor + corecțiunile binding din round-2). Ideile noi
+merg în parking lot-ul BACKLOG; gap-urile noi de platformă primesc un
+rând în SPEC-GAPS.
+
+\subsection{5. Cum au funcționat
+valurile}\label{5-cum-au-funcux21bionat-valurile}
+
+Programul de feature-uri 2026-11 a rulat ca valuri secvențiale (0 → A →
+B → C → D → E → F → G), fiecare un set de PR-uri care implementau o
+felie de roadmap:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Specificația valului se citea din ROADMAP §4 + adaosurile round-2
+  (ops-înainte-de-feature-uri, moderare-înainte-de-UGC, porți legale ---
+  acestea înving roadmap-ul când nu cad de accord pe ordine).
+\item
+  Elementele livrau ca grupuri coerente de PR-uri (ramură → teste →
+  verificare locală → PR → check-uri → squash-merge), fiecare PR
+  actualizând statusurile din BACKLOG.
+\item
+  Elementele care atingeau evaluatorul/autentificarea se validau
+  suplimentar pe stack-ul compose live (RUNBOOK Mode A), inclusiv
+  Playwright în mod real
+  (\texttt{E2E\_API\_BASE=http://127.0.0.1:8010}).
+\item
+  Lucrul de conținut (importul de \textasciitilde1 850 de probleme,
+  generarea testelor ascunse) a rulat ca management commands comise în
+  repo (\texttt{catalog\_polish}, \texttt{boost\_hidden\_tests},
+  \texttt{export\_catalog}/\texttt{import\_catalog}) --- astfel încât
+  orice mutație de date e review-abilă și reproductibilă.
+\end{enumerate}
+
+\subsection{6. Contribuții de
+conținut}\label{6-contribuux21bii-de-conux21binut}
+
+\begin{itemize}
+\tightlist
+\item
+  Problemele se author-esc \textbf{bilingv}: enunțul în engleză e
+  obligatoriu (fallback universal), româna e puternic recomandată; încă
+  10 limbi sunt opționale per problemă.
+\item
+  Sarcinile de tip Bac „scrieți subprogramul" se rescriu la import ca
+  sarcini cu program complet I/O (aceeași exercițiu, cuvintele noastre
+  --- vezi \texttt{problems/data/hidden\_test\_specs.py}).
+\item
+  Suite de teste: nu importați date de test third-party fără drepturi;
+  generați suite ascunse prin formatul de specificații comis (soluție de
+  referință + inputuri + verificare de flip pe soluție greșită).
+\item
+  Ledger-ul de permisiuni CNT-2 (\texttt{ImportSource}) înregistrează
+  sursa, termenii și dovada pentru fiecare corpus importat.
+\end{itemize}
+
+\subsection{7. Contribuții de
+documentație}\label{7-contribuux21bii-de-documentaux21bie}
+
+Suita de docs e bilingvă (EN în \texttt{docs/guide-en/}, RO în
+\texttt{docs/guide-ro/}) și se build-uiește în PDF/DOCX/TEX prin
+\texttt{docs/build-docs.ps1} (pandoc + tectonic; outputurile se comit
+sub \texttt{docs/dist/}). Când schimbați un comportament documentat
+într-un ghid, actualizați ambele perechi lingvistice în același PR și
+rebuild-uiți artefactele:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{docs}\OperatorTok{/}\NormalTok{build{-}docs}\OperatorTok{.}\FunctionTok{ps1}    \CommentTok{\# regenerează docs/dist din sursele .md}
+\end{Highlighting}
+\end{Shaded}
+
+Diagrame: sursele Mermaid stau în \texttt{docs/diagrams/*.mmd} cu
+PNG-uri randate lângă ele --- editați \texttt{.mmd}, re-randați
+(mermaid-cli), comiteți ambele.
+
+\end{document}

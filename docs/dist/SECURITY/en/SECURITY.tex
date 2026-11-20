@@ -1,0 +1,300 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{caption}
+\captionsetup[table]{skip=6pt}
+\newcounter{none} % for unnumbered tables
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+% fallback for those not using the hyperref driver hyperxmp:
+\makeatletter
+\@ifundefined{xmpquote}{\newcommand{\xmpquote}[1]{#1}}{}
+\makeatother
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
+
+\begin{document}
+
+{
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+\section{WebCoder --- Security Guide}\label{webcoder--security-guide}
+
+\begin{quote}
+One-paragraph summary: WebCoder\textquotesingle s security posture rests
+on five pillars --- an isolated judge sandbox reached only through a
+filtering Docker socket proxy, httpOnly-cookie authentication with
+rotation and CSRF, layered rate limits on every write path, a
+moderation/reporting system with audit trails, and honest operational
+security (backups, restore drills, published throttles, sandbox
+receipts). This guide documents each control, where it lives in code,
+and how to verify it.
+\end{quote}
+
+\textbf{Who it\textquotesingle s for:} operators, security reviewers,
+teachers/parents asking "how is my student\textquotesingle s code run?".
+Romanian twin:
+\href{../guide-ro/SECURITATE.md}{\texttt{docs/guide-ro/SECURITATE.md}}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{1. The judge sandbox (untrusted
+code)}\label{1-the-judge-sandbox-untrusted-code}
+
+Every judged execution runs inside the \texttt{judge-runner} container
+with:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{-\/-network\ none} --- no network during compilation or
+  execution (verified in CI);
+\item
+  read-only submission mount (writable only through the orchestrated
+  \texttt{/srv/judge} path);
+\item
+  all Linux capabilities dropped, \texttt{no-new-privileges}, uid 1000,
+  memory/CPU/PID caps;
+\item
+  per-test wall+CPU time and max-RSS limits, persisted as receipts on
+  every result row.
+\end{itemize}
+
+The worker reaches the daemon through \textbf{socket-proxy}
+(tecnativa/docker-socket-proxy) granting only containers/exec POST
+(+ping/version): \texttt{docker\ run\ hello-world} from the backend
+answers 403; \texttt{docker\ exec\ webcoder-judge-runner\ id} succeeds.
+Acceptance smoke in RUNBOOK §socket-proxy.
+
+\textbf{Custom libraries} (python3 \texttt{custom\_libraries\_allowed}):
+pip install runs in a one-shot container on an internal network whose
+sole egress is a pre-seeded pypi allowlist proxy; requirement lines must
+match \texttt{name} / \texttt{name==version} (git+/URLs/paths → 400 at
+submit). Default posture fails closed.
+
+\textbf{Sandbox receipts} --- \texttt{/sandbox-receipts} (user-facing):
+every scratch/stress run\textquotesingle s limits and outcomes,
+auditable.
+
+\subsection{2. Authentication \&
+sessions}\label{2-authentication--sessions}
+
+\begin{itemize}
+\tightlist
+\item
+  JWT access (5 min) + refresh (24 h) live in \textbf{httpOnly cookies}
+  (\texttt{wc\_access}, \texttt{wc\_refresh}, SameSite=Lax dev /
+  None+Secure cross-site); rotation blacklists the previous refresh;
+  logout blacklists; nothing token-shaped touches \texttt{localStorage}.
+\item
+  Unsafe methods require the double-submit CSRF header
+  (\texttt{GET\ /api/v1/auth/csrf/} issues the cookie).
+\item
+  Registration cannot self-assign roles (the B1 kill); role changes are
+  admin-only.
+\item
+  2FA (TOTP) for privileged roles --- progressive enforcement via
+  \texttt{TWO\_FACTOR\_ENFORCE}.
+\item
+  Personal API tokens for the read-only public API (revocable; higher
+  throttle tier).
+\item
+  Password reset by single-use, email-aware tokens; OAuth providers
+  scoped minimally (GitHub \texttt{user,user:email} in prod profile).
+\end{itemize}
+
+\subsection{3. Rate limiting (abuse \& DoS
+surface)}\label{3-rate-limiting-abuse--dos-surface}
+
+Redis-backed, shared across processes (\texttt{THROTTLE\_*} envs):
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+Scope & Default \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+anonymous baseline & 60/min \\
+authenticated baseline & 240/min \\
+auth (login/register) & 10/min \\
+submission create & 20/hour \\
+scratch / guest try-it / sample-run & own scoped caps (guest 5/h per
+IP) \\
+public API & 60/min (240/min with token) \\
+translation proposals & 10/h \\
+\end{longtable}
+}
+
+\subsection{4. Content \& community
+safety}\label{4-content--community-safety}
+
+\begin{itemize}
+\tightlist
+\item
+  Report buttons on posts, messages, problems; moderator queue with SLA
+  tracking and audit trail; appeals process.
+\item
+  Messaging: per-message reporting, RO+EN flag-not-block content filter,
+  end-to-end blocks, send caps (30/h, 10 threads/h), minor-contact
+  policy, report-gated transcripts.
+\item
+  Spoiler enforcement server-side inside problem-scoped threads;
+  hide-at-threshold with reveal; trust-weighted voting.
+\item
+  Minors (GDPR Art. 8, Romania 16+): non-public profiles by default,
+  county/school hidden, parental-consent recording, school-mediated
+  enrollment.
+\end{itemize}
+
+\subsection{5. Data protection}\label{5-data-protection}
+
+\begin{itemize}
+\tightlist
+\item
+  GDPR: data export endpoint, soft-delete + scheduled purge, cookie
+  notice, \texttt{/terms} + \texttt{/privacy} pages, DPA template for
+  schools (\texttt{docs/DPA-TEMPLATE.md}).
+\item
+  Per-test outputs: hidden-test actual/expected outputs are stripped for
+  non-privileged viewers; sample data is public by design; retention
+  task blanks stale outputs after 90 days (verdicts/times always kept).
+\item
+  Backups: daily \texttt{pg\_dump\ -Fc} sidecar with 7d/4w/6m retention;
+  off-host copy is an operator decision; restore + verify procedure with
+  row-count acceptance.
+\end{itemize}
+
+\subsection{6. Operational security}\label{6-operational-security}
+
+\begin{itemize}
+\tightlist
+\item
+  Secrets: compose fails loud (\texttt{\$\{SECRET\_KEY?err\}}); prod
+  profile (\texttt{webcoder\_api.settings\_prod}) is deny-all until
+  \texttt{ALLOWED\_HOSTS}/\texttt{CORS\_ALLOWED\_ORIGINS} are set; HSTS,
+  secure cookies, SSL redirect, referrer policy, nosniff on.
+\item
+  Dependency posture: Dependabot + CodeQL + OSV scanner configs in-repo.
+\item
+  Observability: \texttt{/healthz} (liveness) + \texttt{/readyz}
+  (db/cache/broker), JSON logs, admin metrics.
+\item
+  Incident contact: \texttt{/security} documents reporting; the
+  bug-bounty page formalizes scope.
+\end{itemize}
+
+\subsection{7. How to verify the
+claims}\label{7-how-to-verify-the-claims}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# sandbox network isolation}
+\ExtensionTok{docker}\NormalTok{ exec webcoder{-}judge{-}runner python }\AttributeTok{{-}c} \StringTok{"import urllib.request;urllib.request.urlopen(\textquotesingle{}http://p.org\textquotesingle{})"}   \CommentTok{\# must fail}
+
+\CommentTok{\# socket{-}proxy denies container{-}create}
+\ExtensionTok{docker}\NormalTok{ compose exec backend docker }\AttributeTok{{-}H}\NormalTok{ tcp://socket{-}proxy:2375 run }\AttributeTok{{-}{-}rm}\NormalTok{ hello{-}world   }\CommentTok{\# 403}
+
+\CommentTok{\# judged submission still AC (load smoke with a real round{-}trip)}
+\ExtensionTok{python}\NormalTok{ scripts/load\_smoke.py }\AttributeTok{{-}{-}base}\NormalTok{ http://127.0.0.1:8010 }\AttributeTok{{-}{-}judge}
+
+\CommentTok{\# restore drill}
+\ExtensionTok{scripts/restore{-}drill.sh}
+\end{Highlighting}
+\end{Shaded}
+
+Full architecture context:
+\href{ARCHITECTURE.md}{\texttt{ARCHITECTURE.md}}. Operational runbook:
+\texttt{docs/RUNBOOK.md}.
+
+\end{document}

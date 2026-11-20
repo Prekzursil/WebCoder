@@ -368,6 +368,38 @@ class Problem(models.Model):
     source_year = models.PositiveSmallIntegerField(
         _("source year"), null=True, blank=True
     )
+    # Import provenance (RO-6 / CNT-2): the content pipeline added these
+    # columns to the live catalog during the 2026-11 import waves; migration
+    # 0027 brings the repo schema/migrations in line (the live stack fakes
+    # it — the columns already exist there).
+    source_url = models.CharField(
+        _("source URL"),
+        max_length=200,
+        null=True,
+        blank=True,
+        help_text=_(
+            "Canonical URL of the problem's source (pbinfo, infoarena, DMOJ...)."
+        ),
+    )
+    source_name = models.CharField(
+        _("source name"),
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text=_("Human-readable source label shown on the problem page."),
+    )
+    source_authors = models.JSONField(
+        _("source authors"),
+        null=True,
+        blank=True,
+        help_text=_("Author list recorded from the source (licensing attribution)."),
+    )
+    alt_sources = models.JSONField(
+        _("alternate sources"),
+        null=True,
+        blank=True,
+        help_text=_("Other known mirrors/editions of the same problem."),
+    )
     grade_group = models.CharField(
         _("grade group"),
         max_length=16,

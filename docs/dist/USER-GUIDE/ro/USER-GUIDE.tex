@@ -1,0 +1,297 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+% fallback for those not using the hyperref driver hyperxmp:
+\makeatletter
+\@ifundefined{xmpquote}{\newcommand{\xmpquote}[1]{#1}}{}
+\makeatother
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
+
+\begin{document}
+
+{
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+\section{WebCoder --- Ghidul utilizatorului
+(elevi)}\label{webcoder--ghidul-utilizatorului-elevi}
+
+\begin{quote}
+Rezumat într-un paragraf: WebCoder este o platformă bilingvă
+(română/engleză + încă 10 limbi de interfață) de programare competitivă:
+răsfoiești \textasciitilde1 800 de probleme mapate pe programa
+națională, le rezolvi într-un editor real cu verdicte evaluate instant,
+participi la concursuri cu rating, urci scara ratingului, înveți din
+indicii și editoriale și --- cu un profesor --- faci toate astea ca teme
+de clasă. Ghidul parcurge fiecare flux de elev de la cap la coadă.
+\end{quote}
+
+\textbf{Cui se adresează:} elevi, concurenți, autodidacți. Perechea în
+engleză:
+\href{../guide-en/USER-GUIDE.md}{\texttt{docs/guide-en/USER-GUIDE.md}}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{1. Creează un cont}\label{1-creeazux103-un-cont}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Deschide site-ul și apasă \textbf{Înregistrare}.
+\item
+  Alege un utilizator și o parolă (emailul e opțional, exceptând cazul
+  în care profesorul tău cere verificare; funcționează și login cu
+  Google / GitHub / contul școlar Microsoft).
+\item
+  Atât --- ajungi pe pagina principală, cu catalogul, concursurile și
+  hub-ul de învățare la un click distanță.
+\end{enumerate}
+
+Conturi sub 16 ani (GDPR Art. 8): profilurile rămân ne-publice, iar
+câmpurile de județ/școală ascunse până la înregistrarea consimțământului
+parental; conturile de clasă pot fi mediate de școală.
+
+\subsection{2. Găsește o
+problemă}\label{2-gux103seux219te-o-problemux103}
+
+Catalogul \textbf{Probleme} (\texttt{/problems}) e suprafața principală:
+
+\begin{itemize}
+\tightlist
+\item
+  filtre pe dificultate (foarte ușor → greu), tag, capitol de curriculum
+  (arborele claselor 5--12), arhivă-sursă, mod I/O, status rezolvat;
+\item
+  \textbf{paleta Ctrl-K} caută probleme, discuții, articole, concursuri
+  și utilizatori de oriunde;
+\item
+  butonul cu zarul alege o problemă aleatorie care respectă filtrele;
+\item
+  catalogul afișează contoarele de rezolvări și marcajele tale de
+  rezolvat/încercat.
+\end{itemize}
+
+\pandocbounded{\includegraphics[keepaspectratio,alt={Catalog}]{C:/Users/Prekzursil/.zcode/workspace/draft-9cac9da0-09ed-462a-8bd2-a78591461ba4/wt-polish/docs/dist/USER-GUIDE/ro/59810f9277299b0c9296bb4be89dab11b64bfb06.png}}
+
+Vederea curriculum: alege clasa → capitolul → subiectul; fiecare nod își
+listează problemele (navigație în stil pbinfo, bilingv).
+
+\subsection{3. Citește, rezolvă,
+trimite}\label{3-citeux219te-rezolvux103-trimite}
+
+Pagina problemei are enunțul (Markdown + formule LaTeX), limitele,
+exemplele cu butoane de copiere și comentarii localizate, indiciile și
+editorul.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Alege limbajul --- C, C++, Python 3, Java, JavaScript, Go, C\#, Pascal
+  (anumite probleme pot restricționa lista).
+\item
+  Scrie codul în editorul CodeMirror (Tab indentează, Ctrl+Enter
+  trimite; ciorna se salvează automat per problemă și te urmărește pe
+  toate device-urile).
+\item
+  Opțional înainte de trimitere: \textbf{Test custom} (rulare pe inputul
+  tău), \textbf{Rulează exemplele} (compilează o dată, evaluează fiecare
+  exemplu cu indicii de mismatch), \textbf{lint-ul} pre-submit
+  (avertismente bilingve de capcane) și runner-ul de stres pentru
+  authori.
+\item
+  Apasă \textbf{Trimite} și confirmă --- pagina de verdicte face polling
+  la evaluator și arată tabelul per test, indicatorii de timp/memorie
+  față de barele reale și banda „cât de aproape sunt".
+\end{enumerate}
+
+\pandocbounded{\includegraphics[keepaspectratio,alt={Pagina
+problemei}]{C:/Users/Prekzursil/.zcode/workspace/draft-9cac9da0-09ed-462a-8bd2-a78591461ba4/wt-polish/docs/dist/USER-GUIDE/ro/e1f7428dd0b4eabb1ad16241b72600ec8309c5f0.png}}
+\pandocbounded{\includegraphics[keepaspectratio,alt={Verdict}]{C:/Users/Prekzursil/.zcode/workspace/draft-9cac9da0-09ed-462a-8bd2-a78591461ba4/wt-polish/docs/dist/USER-GUIDE/ro/a81e1e860356660d999488ccdece170c87a65f71.png}}
+
+Verdicte: \textbf{AC} (acceptat), \textbf{WA} (răspuns greșit ---
+exemplele arată diff-ul expected-vs-obținut), \textbf{TLE/MLE}
+(timp/memorie, cu limita aplicată), \textbf{RE} (eroare de rulare, cu
+semnalul explicat), \textbf{CE} (eroare de compilare, cu explicații pe
+înțelesul elevilor). Punctajul e parțial per test sau per subtask, după
+problemă.
+
+După un AC: editorialul se deblochează (dacă e restricționat), pool-ul
+de soluții îți permite compararea codului tău cu cele mai rapide/scurte
+soluții acceptate, și poți partaja un „solve card".
+
+\subsection{4. Învață, nu doar
+puncta}\label{4-uxeenvaux21bux103-nu-doar-puncta}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Indicii} --- progresivi, per problemă; digest-ul săptămânal
+  trimite pe email problemele tale încercate-nerezolvate cu primul
+  indiciu.
+\item
+  \textbf{Editoriale} --- se deblochează la AC-ul tău (privirea dinainte
+  marchează rezolvarea „cu editorial").
+\item
+  \textbf{/learning} --- coadă de repetare spațiată peste greșeli, graf
+  de abilități, carduri de teorie, profil de tipare de greșeli, plan de
+  practică săptămânal generat.
+\item
+  \textbf{/drills} --- set zilnic de încălzire (citește-codul,
+  completează-linia, complexități).
+\item
+  \textbf{/visualizers} --- animații pas-cu-pas pentru sortări și
+  căutare binară.
+\item
+  \textbf{/courses} --- lecții structurate (ex. puntea Scratch→Python).
+\item
+  \textbf{/start} --- scara ghidată de primă rezolvare + checklist-ul de
+  onboarding.
+\end{itemize}
+
+\subsection{5. Concursuri și
+ratinguri}\label{5-concursuri-ux219i-ratinguri}
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{/contests} listă concursuri viitoare (cu countdown + abonare
+  la calendarul ICS), în desfășurare și trecute; înregistrare într-un
+  click.
+\item
+  Formate: IOI (suma maximă per problemă), penalizare ICPC, concursuri
+  cu fereastră și ceas personal pentru clase, concursuri pe echipe, cupe
+  școlare și long challenges.
+\item
+  În timpul concursului: scoreboard live (înghețat spre final), coada de
+  clarificări către jurizare, auto-predicție a rangului final.
+\item
+  După: actualizări de rating Glicko cu benzi de culoare și divizii
+  (promovările/coborârile sunt adnotate pe graficul tău), medalii,
+  replay pe minut al oricărui participant și upsolving în arhivă cu
+  feedback complet.
+\item
+  Integritate: declarații de asistență-AI, detecție de multi-cont,
+  scanări de plagiat --- concursurile cu rating presupun muncă
+  neasistată (vezi pagina de reguli RO/EN).
+\end{itemize}
+
+\subsection{6. Comunitate}\label{6-comunitate}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Forum} cu thread-uri de discuții per problemă (cu marcare
+  spoiler în interiorul lor), wiki, bloguri, hub de articole.
+\item
+  \textbf{Mesagerie} --- conversații private 1:1 cu raportare, blocare
+  și protecții de rate.
+\item
+  \textbf{Hub-ul comunității} (\texttt{/amas}): niveluri de reputație,
+  premii, AMA-uri cu medaliați, tabla de cereri de probleme.
+\item
+  Butoanele de raportare sunt peste tot și alimentează coada de moderare
+  (cu SLA).
+\end{itemize}
+
+\subsection{7. Profil și setări}\label{7-profil-ux219i-setux103ri}
+
+\texttt{/profile} arată statisticile, heatmap-ul pe 90 de zile,
+streak-urile (cadrate săptămânal), barele de abilitate per tag,
+graficele de rating cu adnotări, badge-uri, certificate (atestate cu
+UUID public de verificare) și profilul tiparelor tale de greșeli.
+Setări: nume/bio, județ/școală (segmente de clasament), fus orar (orele
+concursurilor în zona ta), frecvența digest-ului de notificări, moduri
+de afișare a11y (prietenos cu dislexia, contrast ridicat), temă
+întunecată/luminoasă.
+
+\subsection{8. Mobil și offline}\label{8-mobil-ux219i-offline}
+
+PWA-ul se instalează pe telefon; pachetele offline de enunț („Salvează
+offline" pe o problemă) păstrează enunțul, limitele, exemplele și
+indiciile fără rețea; ciornele se sincronizează la reconectare.
+
+\subsection{9. Scurtături de
+tastatură}\label{9-scurtux103turi-de-tastaturux103}
+
+\texttt{Ctrl-K} paleta de comenzi · \texttt{?} harta de scurtături ·
+\texttt{Ctrl+Enter} trimite · harta listează restul.
+
+\subsection{10. Când ceva nu merge}\label{10-cuxe2nd-ceva-nu-merge}
+
+\begin{itemize}
+\tightlist
+\item
+  Coada evaluatorului e lentă? \texttt{/status} arată adâncimea live a
+  cozii și sănătatea platformei.
+\item
+  Probleme de cont: resetare parolă pe email; contactează un moderator
+  prin orice raportare.
+\item
+  Bug? Categoria de suport a forumului sau tabla de cereri de probleme e
+  locul potrivit.
+\end{itemize}
+
+\end{document}

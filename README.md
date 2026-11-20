@@ -1,62 +1,79 @@
 # WebCoder
 
-WebCoder is a competitive-programming judge platform: a problem catalog, a
-submission flow, and sandboxed evaluation of submitted code.
+WebCoder is a bilingual (RO/EN + 10 more UI locales) competitive-programming
+platform: a ~1 800-problem catalog mapped on the national curriculum, a real
+code editor with instant sandboxed judging, rated contests with Glicko
+ratings, classrooms and assignments for teachers, forums/messaging/wiki,
+and a full learning layer (hints, editorials, spaced repetition, courses).
 
 ## Repository layout
 
-Since the 2026-09 restructure, `main` holds the JavaScript/TypeScript
-frontend only. The Django backend is preserved on a separate branch and is
-not part of the default checkout.
+`main` is the one and only branch — a monorepo (unified 2026-10-27; the old
+`backend` branch is retired under tag `archive/backend-branch-2026-10-26`):
 
 | Component | Stack | Where |
 |---|---|---|
-| Frontend | Next.js 15 App Router, React 19, MUI 9, i18next / next-intl | repo root, `main` |
-| Backend | Django REST Framework (`/api/v1/`), Celery, PostgreSQL, JWT (dj_rest_auth) + Google/GitHub OAuth | `backend` branch (preserved) |
-| Judge runner | Sandboxed Docker image: non-root, `cap-drop ALL`, `no-new-privileges`, memory caps, `--network none` | `JUDGE_BACKEND=container` toggle, see `docs/DEPLOY.md` |
+| Frontend | Next.js 16 App Router, React 19, MUI 9, i18next / next-intl (12 locales), CodeMirror 6 + Blockly/Scratch | repo root, `src/` |
+| Backend | Django 6 + DRF (`/api/v1/`), Celery + Redis, PostgreSQL 16, httpOnly-cookie JWT (dj-rest-auth) + Google/GitHub/Microsoft OAuth | `backend/` (~25 apps) |
+| Judge runner | Sandboxed Docker: `--network none`, read-only mounts, `cap-drop ALL`, uid 1000; C/C++/Python/Java/JS/Go/C#/Pascal; reached only through a filtering socket-proxy | `backend/Dockerfile.judge`, `JUDGE_BACKEND=container` |
+| Mobile | PWA (offline packs, push) + Expo packages under `mobile/` (store submission owner-deferred) | `mobile/` |
 
-Frontend routes on `main` (under `src/app/`): problems catalog, detail and
-create; submissions list and detail; my-submissions / my-created-problems;
-register, login, complete-registration, profile; admin dashboard and problem
-queue.
-
-The frontend talks to the backend over
-`NEXT_PUBLIC_API_BASE` (default `http://localhost:8000`). The backend's CORS
-allowlist currently covers `http://localhost:3000` only (`docs/API-MAP.md`).
+The frontend talks to the backend over `NEXT_PUBLIC_API_BASE`
+(default `http://localhost:8000`; cookies travel with credentials).
 
 ## Quickstart
-
-Requires Node.js. From the repo root:
 
 ```bash
 npm install     # install dependencies
 npm run dev     # dev server on http://localhost:3000 (next dev --turbopack)
-npm test        # vitest unit/component test suite
-npm run lint    # eslint
+npm test        # vitest unit/component suite
+npm run lint    # eslint — zero warnings policy
 ```
 
-`npm run build` / `npm start` build and serve the production app. All routes
-are server-rendered (dynamic) — static export is not supported.
+For the full stack (postgres + redis + backend + judge + beat + backups):
 
-To run against a local backend, check out the `backend` branch and follow
-`docs/DEPLOY.md` (Path B: docker compose brings up postgres + redis +
-backend + judge-runner). `JUDGE_BACKEND=container` routes judged code through
-the sandboxed Docker image; the default `local` mode runs judged commands on
-the host and is for development only. Read the security gates in
-`docs/DEPLOY.md` before exposing an instance publicly.
+```bash
+cp backend/.env.example .env   # SECRET_KEY, POSTGRES_PASSWORD
+docker compose up --build -d   # Mode A — see docs/RUNBOOK.md
+```
 
-Playwright e2e tests live in `e2e/` (`npx playwright test`).
+`JUDGE_BACKEND=container` routes judged code through the sandboxed runner
+(the compose default); `local` runs judged commands on the host, dev only.
+Read the security gates in `docs/DEPLOY.md` before exposing an instance.
+
+Playwright e2e lives in `e2e/` — hermetic mock mode (`npx playwright test`)
+or against the live stack (`E2E_API_BASE=http://127.0.0.1:8010 npx playwright test`).
+
+## Guides (bilingual, multi-format)
+
+| Guide | English | Română |
+|---|---|---|
+| Architecture | [guide-en/ARCHITECTURE](docs/guide-en/ARCHITECTURE.md) | [guide-ro/ARHITECTURA](docs/guide-ro/ARHITECTURA.md) |
+| Contributing | [guide-en/CONTRIBUTING](docs/guide-en/CONTRIBUTING.md) | [guide-ro/CONTRIBUIE](docs/guide-ro/CONTRIBUIE.md) |
+| User guide | [guide-en/USER-GUIDE](docs/guide-en/USER-GUIDE.md) | [guide-ro/GHID-UTILIZATOR](docs/guide-ro/GHID-UTILIZATOR.md) |
+| Teacher guide | [guide-en/TEACHER-GUIDE](docs/guide-en/TEACHER-GUIDE.md) | [guide-ro/GHID-PROFESOR](docs/guide-ro/GHID-PROFESOR.md) |
+| Admin guide | [guide-en/ADMIN-GUIDE](docs/guide-en/ADMIN-GUIDE.md) | [guide-ro/GHID-ADMIN](docs/guide-ro/GHID-ADMIN.md) |
+| Security | [guide-en/SECURITY](docs/guide-en/SECURITY.md) | [guide-ro/SECURITATE](docs/guide-ro/SECURITATE.md) |
+| Block programming | [guide-en/BLOCK-PROGRAMMING](docs/guide-en/BLOCK-PROGRAMMING.md) | [guide-ro/PROGRAMARE-PE-BLOC](docs/guide-ro/PROGRAMARE-PE-BLOC.md) |
+
+Each guide also ships as `.pdf` / `.docx` / `.tex` under
+[`docs/dist/`](docs/dist/) — regenerate everything with
+`docs/build-docs.ps1` (Windows) or `docs/build-docs.sh` (POSIX).
+Diagrams: [`docs/diagrams/`](docs/diagrams/).
 
 ## Docs
 
 Evidence-anchored documentation lives in `docs/`:
 
-- `docs/API-MAP.md` — DRF endpoint map (auth matrix, serializers, Celery tasks)
-- `docs/INFRA-MAP.md` — infrastructure inventory (CI workflows, venv, pytest config)
-- `docs/DEPLOY.md` — deployment runbook (Vercel + Django host, or docker compose)
-- `docs/PORT-MAP.md` — CRA-to-Next port map from the migration wave
-- `docs/SECURITY-AUDIT-judge.md`, `docs/SECURITY-AUDIT-auth.md`, `docs/SECURITY-judge-recon.md` — security audits
-- `docs/WAVE-DECISIONS.md`, `docs/WAVE-REPORT_2026-09-22.md` — CRA-to-Next 15 migration decisions and report
-- `docs/DELIVERY-DOSSIER_2026-09-22.md`, `docs/API-ENVELOPE-RECEIPT.md`, `docs/BENCH-i18n-gaps.md`, `docs/ci-both-states-proof_2026-09-22.md` — supporting wave artifacts
+- `docs/RUNBOOK.md` — env/ops runbook (live stack, backups, e2e modes, content-ops commands)
+- `docs/ROADMAP.md` — the layered product roadmap (status view)
+- `docs/BACKLOG.md` — the item-level tracker of record
+- `docs/SPEC-GAPS.md` + `docs/ROADMAP-COMPETITIVE-2026-10-22.md` — platform backlog + competitive research basis
+- `docs/TECH-STACK.md` — the living stack inventory
+- `docs/API-MAP.md`, `docs/INFRA-MAP.md`, `docs/PORT-MAP.md` — maps
+- `docs/DEPLOY.md` — deployment paths
+- `docs/SECURITY-AUDIT-*.md`, `docs/SECURITY-judge-recon.md` — security audits
+- `docs/DECISION-OPEN-SOURCE.md`, `docs/DPA-TEMPLATE.md` — decisions & templates
+- `docs/WAVE-DECISIONS.md`, `docs/WAVE-REPORT_2026-09-22.md`, `docs/DELIVERY-DOSSIER_2026-09-22.md`, `docs/API-ENVELOPE-RECEIPT.md`, `docs/BENCH-i18n-gaps.md`, `docs/ci-both-states-proof_2026-09-22.md` — supporting wave artifacts
 
 `SECURITY.md` at the repo root covers vulnerability reporting.

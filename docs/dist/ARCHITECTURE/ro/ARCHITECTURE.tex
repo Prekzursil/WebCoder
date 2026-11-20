@@ -1,0 +1,383 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{caption}
+\captionsetup[table]{skip=6pt}
+\newcounter{none} % for unnumbered tables
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+% fallback for those not using the hyperref driver hyperxmp:
+\makeatletter
+\@ifundefined{xmpquote}{\newcommand{\xmpquote}[1]{#1}}{}
+\makeatother
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
+
+\begin{document}
+
+{
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+\section{WebCoder --- Arhitectura
+sistemului}\label{webcoder--arhitectura-sistemului}
+
+\begin{quote}
+Rezumat într-un paragraf: WebCoder este o platformă bilingvă (RO/EN +
+încă 10 limbi de interfață) de programare competitivă --- un front-end
+Next.js 16 peste un API Django 6 / DRF, un evaluator (judge) pe Celery
+care execută cod neverificat într-un sandbox Docker întărit, printr-un
+socket-proxy de filtrare, și un strat de stare Postgres+Redis. Ghidul
+este pentru inginerii care trebuie să înțeleagă, să ruleze sau să
+extindă sistemul; fiecare secțiune se leagă de cod pe care îl poți
+deschide azi.
+\end{quote}
+
+\textbf{Cui se adresează:} contributori de backend/frontend, operatori
+care deployază stack-ul și oricine evaluează designul platformei.
+Perechea în engleză:
+\href{../guide-en/ARCHITECTURE.md}{\texttt{docs/guide-en/ARCHITECTURE.md}}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{1. Harta componentelor}\label{1-harta-componentelor}
+
+\pandocbounded{\includegraphics[keepaspectratio,alt={Harta
+componentelor}]{C:/Users/Prekzursil/.zcode/workspace/draft-9cac9da0-09ed-462a-8bd2-a78591461ba4/wt-polish/docs/dist/ARCHITECTURE/ro/8501c0f0ae9c3fd3ececf6d75972d736767b0077.png}}
+
+\emph{Sursa:
+\href{../diagrams/component-map.mmd}{\texttt{docs/diagrams/component-map.mmd}}}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+Componentă & Unde & Responsabilitate \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Aplicația Next.js 16 & rădăcina repo-ului \texttt{src/}, App Router &
+pagini SSR/ISR, editoarele CodeMirror/Blockly, UI RO/EN cu i18next +
+câmpuri de problemă pe 12 limbi \\
+Django 6 + DRF & \texttt{backend/} (\textasciitilde25 aplicații) & REST
+\texttt{/api/v1}: probleme, submissions, concursuri, ratinguri, clasă,
+forum, mesagerie, traduceri, API public \\
+PostgreSQL 16 & compose \texttt{postgres} & sistemul de referință (fără
+port publicat pe host) \\
+Redis & compose \texttt{redis} & broker celery, cache de throttle, coada
+judge \\
+celery-worker & compose \texttt{celery-worker} & cozile judge + default;
+\texttt{acks\_late} cu garda anti-blocaj \\
+judge-runner & \texttt{backend/Dockerfile.judge} & toolchain-uri
+sandboxate: gcc/g++, OpenJDK, CPython, Node, fpc, mono, golang \\
+socket-proxy & overlay-ul implicit compose & filtru API docker --- doar
+containers/exec POST; restul 403 \\
+celery-beat & compose \texttt{celery-beat} & recompute noaptea
+clasamentului, purgare notificări, retenție outputuri, digest
+săptămânal, \texttt{contest-tick} pe minut \\
+db-backup & sidecar compose & \texttt{pg\_dump\ -Fc} zilnic, retenție
+7z/4s/6l \\
+\end{longtable}
+}
+
+Contractul frontend--backend: cookie-urile merg cu
+\texttt{credentials:\ \textquotesingle{}include\textquotesingle{}};
+lista catalogului e cache-uită ISR 60 s server-side (dezactivat sub
+\texttt{E2E\_API\_BASE}).
+
+\subsection{2. Pipeline-ul de evaluare}\label{2-pipeline-ul-de-evaluare}
+
+\pandocbounded{\includegraphics[keepaspectratio,alt={Pipeline
+evaluator}]{C:/Users/Prekzursil/.zcode/workspace/draft-9cac9da0-09ed-462a-8bd2-a78591461ba4/wt-polish/docs/dist/ARCHITECTURE/ro/43ae7a19bbb00e46ba5e5a0f957026d485dd035b.png}}
+
+\emph{Sursa:
+\href{../diagrams/judge-pipeline.mmd}{\texttt{docs/diagrams/judge-pipeline.mmd}}}
+
+Invarianți-cheie (toți enforce-ați în cod,
+\texttt{backend/submissions/}):
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Registrul de limbaje}
+  (\texttt{submissions/judge\_utils/languages.py}) e sursa unică de
+  adevăr --- comenzi de compilare/rulare, multiplicatori de timp per
+  limbaj (ex. python ×3), praguri de memorie, pin-uri de toolchain
+  publicate pe \texttt{/api/v1/public/languages/}.
+\item
+  \textbf{Orice rulare judecată} e \texttt{-\/-network\ none} cu mount
+  read-only al submissionului, toate capabilitățile eliminate, uid 1000.
+\item
+  \textbf{Scara verdicturilor} per test: TLE (wall vs CPU), MLE (scara
+  max-RSS incl. exit-137 + ≥0,9×limită), RE (mesaje mapate pe semnal),
+  WA, AC --- trigger-urile de fabricare a verdicturilor au fost șterse
+  în valul judge-fairness.
+\item
+  \textbf{Moduri de comparare}: EXACT / STRIP / LINES\_STRIP / TOKEN /
+  epsilon-zecimal, plus checker-e proprii cu protocolul parțial exit-7
+  \texttt{POINTS\ \textless{}0..1\textgreater{}} (compatibil testlib).
+\item
+  \textbf{Moduri de punctaj}: BINARY, PARTIAL\_PER\_TEST, SUBTASKS
+  (regula DMOJ --- toate testele grupului).
+\item
+  \textbf{Garanarea feedbackului}: testele demo expun input+expected
+  pentru diff; testele ascunse stripă outputurile pentru privitorii
+  neprivilegiați; barele de timp/memorie aplicate se persistă pe fiecare
+  rând de rezultat.
+\item
+  \textbf{Biblioteci custom}: pip install-ul rulează într-un container
+  one-shot pe rețeaua internă \texttt{judge-build} al cărei unic egress
+  e un proxy allowlist PyPI pre-populat --- fail-closed implicit
+  (RUNBOOK §judge-pip-egress).
+\end{enumerate}
+
+\subsection{3. Modelul de date (felia de
+bază)}\label{3-modelul-de-date-felia-de-bazux103}
+
+\pandocbounded{\includegraphics[keepaspectratio,alt={Model de
+date}]{C:/Users/Prekzursil/.zcode/workspace/draft-9cac9da0-09ed-462a-8bd2-a78591461ba4/wt-polish/docs/dist/ARCHITECTURE/ro/22ac648fe9cee6cdb213cb70532bd38ea88a61b6.png}}
+
+\emph{Sursa:
+\href{../diagrams/data-model.mmd}{\texttt{docs/diagrams/data-model.mmd}}}
+
+Note de modelare:
+
+\begin{itemize}
+\tightlist
+\item
+  Câmpurile localizate sunt obiecte JSON cheiate pe limbă, cu
+  \textbf{engleza obligatorie} (regula owner (b) din
+  \texttt{problems/i18n\_fields.py}); româna e limba pieței principale;
+  valul i18n-10 a adăugat încă 10 limbi de interfață pentru
+  enunțuri/titluri.
+\item
+  \texttt{Submission} → \texttt{SubmissionTestResult} poartă verdictul,
+  timpul, memoria per test \textbf{și limitele efectiv aplicate}
+  (chitanțele judge-fairness).
+\item
+  \texttt{Problem.reference\_solution\_code} alimentează hack-urile,
+  scorul de putere al testelor și generatorul de suite ascunse
+  (\texttt{boost\_hidden\_tests}).
+\item
+  Proveniența importurilor (\texttt{source\_url},
+  \texttt{source\_authors}, ledger-ul \texttt{ImportSource})
+  înregistrează de unde a venit conținutul și în ce condiții (CNT-2).
+\end{itemize}
+
+\subsection{4. Autentificarea și fluxul
+cookie-urilor}\label{4-autentificarea-ux219i-fluxul-cookie-urilor}
+
+\pandocbounded{\includegraphics[keepaspectratio,alt={Fluxul
+cookie-urilor}]{C:/Users/Prekzursil/.zcode/workspace/draft-9cac9da0-09ed-462a-8bd2-a78591461ba4/wt-polish/docs/dist/ARCHITECTURE/ro/cc037c783b21e881ab154a672178aa2c479382a7.png}}
+
+\emph{Sursa:
+\href{../diagrams/auth-cookie-flow.mmd}{\texttt{docs/diagrams/auth-cookie-flow.mmd}}}
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{wc\_access} (5 min) + \texttt{wc\_refresh} (24 h) sunt
+  \textbf{cookie-uri httpOnly} --- niciodată în \texttt{localStorage};
+  rotirea blacklistează refresh-ul vechi.
+\item
+  Metodele unsafe cer header-ul CSRF double-submit
+  (\texttt{GET\ /api/v1/auth/csrf/} eliberează cookie-ul).
+\item
+  Clienții non-browser folosesc Bearer + token-uri API personale (API
+  public, 60/min; cu token 240/min).
+\item
+  Roluri: BASIC, CREATOR, TEACHER, VERIFIER, ADMIN; profilurile
+  minorilor sunt ne-publice implicit (LEG-2).
+\end{itemize}
+
+\subsection{5. Ciclul de viață al
+concursurilor}\label{5-ciclul-de-viaux21bux103-al-concursurilor}
+
+\pandocbounded{\includegraphics[keepaspectratio,alt={Ciclul
+concursurilor}]{C:/Users/Prekzursil/.zcode/workspace/draft-9cac9da0-09ed-462a-8bd2-a78591461ba4/wt-polish/docs/dist/ARCHITECTURE/ro/4a43b15d698febc064a1849ebdfbbe41130eb965.png}}
+
+\emph{Sursa:
+\href{../diagrams/contest-lifecycle.mmd}{\texttt{docs/diagrams/contest-lifecycle.mmd}}}
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{contest\_tick} (beat, pe minut) avancează tranzițiile;
+  formatele sunt clase-strategie (IOI sum-of-best implicit; există ICPC
+  penalty și stil AtCoder).
+\item
+  Freeze-ul e un filtru pe scoreboard; ratingurile se comită
+  post-concurs cu Glicko + suprimarea de afișare pentru începători (stil
+  AtCoder).
+\item
+  Upsolvingul/participarea virtuală redeschide problemele sub un ceas
+  personal; hack-urile se deblochează după rezolvarea completă a tablei.
+\end{itemize}
+
+\subsection{6. Mecanici transversale}\label{6-mecanici-transversale}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Paginare}: toate endpoint-urile de listă folosesc paginare
+  standard/cursor.
+\item
+  \textbf{Throttle}: anon 60/min, user 240/min, \texttt{auth} 10/min,
+  \texttt{submit} 20/h, scope-uri separate pentru
+  scratch/guest/sample-run; contoare în redis (partajate între procese).
+\item
+  \textbf{Observabilitate}: \texttt{/healthz}, \texttt{/readyz}
+  (db+cache+broker), snapshot de metrici admin, loguri JSON
+  (\texttt{LOG\_JSON=1}).
+\item
+  \textbf{Reproductibilitate}: \texttt{export\_catalog} /
+  \texttt{import\_catalog} (+ snapshot ca asset de release)
+  reconstruiesc determinist catalogul importat; \texttt{seed\_problems}
+  reconstruiește pachetul de start; \texttt{boost\_hidden\_tests}
+  regenerează suite ascunse din specificații comise în repo.
+\item
+  \textbf{Testare}: pytest (profil CI sqlite, 100 \% acoperire de linii,
+  zero warninguri), vitest, Playwright mock + mod real-stack
+  (\texttt{E2E\_API\_BASE}).
+\end{itemize}
+
+\subsection{7. Structura
+repository-ului}\label{7-structura-repository-ului}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{backend/\textless{}app\textgreater{}/         aplicații Django (problems, submissions, contests, ratings,}
+\NormalTok{                       classroom, forum, messaging, translations, …)}
+\NormalTok{backend/problems/data/ specificații de conținut comise + fixture{-}e pentru catalog}
+\NormalTok{docs/                  suita de documentație (ghiduri EN/RO, dist/)}
+\NormalTok{e2e/                   specificații Playwright (mock{-}api + real{-}stack)}
+\NormalTok{mobile/                shell{-}ul PWA (service worker, pachete offline)}
+\NormalTok{scripts/               scripturi ops (load smoke, autoscale, restore drill)}
+\NormalTok{src/                   aplicația Next.js 16 (App Router)}
+\NormalTok{docker{-}compose*.yml    stack{-}ul Mode{-}A + overlay{-}uri (socket{-}proxy, custom{-}libs)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{8. Lectură
+suplimentară}\label{8-lecturux103-suplimentarux103}
+
+\begin{itemize}
+\tightlist
+\item
+  RUNBOOK (\texttt{docs/RUNBOOK.md}) --- variabile de mediu, stack-ul
+  live, backupuri, modurile e2e
+\item
+  SECURITATE (\texttt{SECURITATE.md}) --- chitanțele sandbox-ului,
+  throttle-urile, raportarea
+\item
+  CONTRIBUIE --- porțile de calitate, convențiile PR, fluxul valurilor
+\item
+  PROGRAMARE PE BLOC --- linia Blockly/Scratch și problemele cu cod
+  parțial
+\end{itemize}
+
+\end{document}

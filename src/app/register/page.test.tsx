@@ -191,18 +191,21 @@ describe('RegisterPage', () => {
     ['an Error with a message', new Error('Username already taken.'), 'Username already taken.'],
     ['an Error with an empty message', new Error(''), 'Registration failed. Please try again.'],
     ['a non-Error rejection', { status: 500 }, 'Registration failed. Please try again.'],
-  ])('surfaces the API failure when the API rejects with %s', async (_label, rejection, expected) => {
-    const { unmount } = renderRegister();
-    registerMock.mockRejectedValueOnce(rejection);
+  ])(
+    'surfaces the API failure when the API rejects with %s',
+    async (_label, rejection, expected) => {
+      const { unmount } = renderRegister();
+      registerMock.mockRejectedValueOnce(rejection);
 
-    fillForm('Grace', 'grace@example.com', 'pw-one', 'pw-one');
-    submitForm();
+      fillForm('Grace', 'grace@example.com', 'pw-one', 'pw-one');
+      submitForm();
 
-    const alert = await screen.findByRole('alert');
-    expect(alert).toHaveTextContent(expected);
-    expect(routerMock.push).not.toHaveBeenCalled();
-    unmount();
-  });
+      const alert = await screen.findByRole('alert');
+      expect(alert).toHaveTextContent(expected);
+      expect(routerMock.push).not.toHaveBeenCalled();
+      unmount();
+    },
+  );
 
   it('builds social-signup URLs from NEXT_PUBLIC_API_BASE when set', async () => {
     vi.stubEnv('NEXT_PUBLIC_API_BASE', 'https://api.webcoder.example');

@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("users", "0012_user_notification_email_user_notification_sms_phone"),
         ("users", "0013_user_supporter_since"),
