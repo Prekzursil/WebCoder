@@ -1,0 +1,36 @@
+sequenceDiagram
+    autonumber
+    actor U as User (browser)
+    participant NX as Next.js UI
+    participant API as Django REST API
+    participant Q as Redis (judge queue)
+    participant W as celery-worker
+    participant SP as socket-proxy
+    participant JR as judge-runner (sandbox)
+    participant DB as PostgreSQL
+
+    U->>NX: write code, Confirm submit
+    NX->>API: POST /api/v1/submissions/submit/<br/>(cookie auth + X-CSRFToken)
+    API->>API: validate language (registry J1),<br/>APPROVED-problem gate,<br/>submit throttle 20/h
+    API->>DB: Submission(PENDING)
+    API->>Q: judge_submission_task.delay(id)
+    API-->>NX: 201 {id} → UI polls detail
+    Q->>W: task (acks_late)
+    W->>DB: stale-in-progress guard,<br/>verdict → COMPILING
+    W->>W: resolve effective limits<br/>(language multiplier × problem override)
+    alt languages needing compilation
+        W->>SP: docker exec judge-runner<br/>javac/gcc/fpc/mcs… (30–60s cap)
+        SP->>JR: compile user_code.*
+        JR-->>W: binary / compile errors
+    end
+    loop every test case (per-test bar honored)
+        W->>SP: docker exec — run binary<br/>--network none, :ro mount, caps dropped
+        JR->>JR: /usr/bin/time -v wrapper →<br/>wall time, CPU, max RSS
+        SP-->>W: exit code + stdout/stderr
+        W->>W: compare vs expected<br/>(EXACT/STRIP/LINES/TOKEN/float)<br/>or custom checker (exit 7 POINTS)
+        W->>W: verdict ladder per test:<br/>TLE (wall/CPU) → MLE (RSS ladder)<br/>→ RE (signal map) → WA → AC
+    end
+    W->>DB: final verdict + score,<br/>SubmissionTestResult rows<br/>(samples expose diff, hidden strip outputs)
+    W->>DB: leaderboard increment,<br/>Notification SUBMISSION_JUDGED (on commit)
+    NX->>API: GET /api/v1/submissions/{id}
+    API-->>U: verdict AC/WA/…, per-test table,<br/>time/memory meters, closeness band

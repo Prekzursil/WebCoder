@@ -1,0 +1,108 @@
+erDiagram
+    User ||--o{ Problem : authors
+    User ||--o{ Submission : submits
+    User ||--o{ ContestParticipation : registers
+    User ||--o{ RatingHistory : rated
+    User ||--o{ Notification : receives
+    User ||--o{ Message : sends
+    User ||--o{ Draft : edits
+    Problem ||--o{ TestCase : "graded by"
+    Problem ||--o| ProblemEditorial : "explained by"
+    Problem ||--o{ Thread : discussed
+    Problem ||--o{ StatementRevision : versioned
+    Problem }o--o{ Tag : tagged
+    Problem }o--o{ CurriculumNode : classified
+    Problem }o--|| ImportSource : "licensed via"
+    Submission ||--o{ SubmissionTestResult : "per-test rows"
+    Contest }o--o{ Problem : "ordered M2M"
+    Contest ||--o{ ContestParticipation : has
+    Contest ||--o{ Clarification : answers
+    Contest ||--o{ ContestAward : grants
+    ClassRoom ||--o{ Assignment : assigns
+    Assignment }o--o{ Problem : problems
+    ClassRoom ||--o{ ClassMembership : rosters
+    Thread ||--o{ Post : contains
+    Post ||--o{ PostVote : voted
+    Post ||--o{ Report : reported
+
+    User {
+        int id PK
+        string username UK
+        string email
+        string role "BASIC|CREATOR|TEACHER|VERIFIER|ADMIN"
+        bool is_staff
+        string county
+        string school
+        date parental_consent_at
+    }
+    Problem {
+        int id PK
+        json title_i18n "12 locales, EN mandatory"
+        json statement_i18n
+        string status "DRAFT|PENDING|APPROVED|PRIVATE"
+        string difficulty "VERY_EASY..HARD"
+        string problem_type "NORMAL|INTERACTIVE|OUTPUT_ONLY"
+        string scoring_mode "BINARY|PARTIAL_PER_TEST|SUBTASKS"
+        string io_mode "STDIO|FILES"
+        int default_time_limit_ms
+        int default_memory_limit_kb
+        json limit_overrides "per-language"
+        text reference_solution_code
+        string source_url
+    }
+    TestCase {
+        int id PK
+        int problem_id FK
+        text input_data
+        text expected_output_data
+        bool is_sample
+        string subtask
+        int points
+        int time_limit_ms "per-test bar"
+        string comment_ro
+        string comment_en
+    }
+    Submission {
+        int id PK
+        int user_id FK
+        int problem_id FK
+        string language "registry id"
+        text code
+        string verdict "PENDING..AC/WA/TLE/MLE/CE/RE/IE"
+        float score
+        datetime submission_time
+        string license "display policy"
+    }
+    SubmissionTestResult {
+        int id PK
+        int submission_id FK
+        int test_case_id FK
+        string verdict
+        float time_seconds
+        int memory_kb
+        int limit_time_ms
+        int limit_memory_kb
+    }
+    Contest {
+        int id PK
+        json title_i18n
+        datetime start_at
+        datetime end_at
+        datetime freeze_at
+        bool is_rated
+        bool is_window
+        string format "IOI|ICPC|ATCODER"
+    }
+    ClassRoom {
+        int id PK
+        int teacher_id FK
+        string join_code
+        string join_password
+    }
+    Thread {
+        int id PK
+        string title
+        int problem_id FK "nullable = global"
+        bool is_pinned
+        bool is_locked
+    }
