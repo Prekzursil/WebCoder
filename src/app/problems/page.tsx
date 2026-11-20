@@ -41,6 +41,7 @@ interface ProblemsListPageProps {
     archive?: string;
     source_year?: string;
     grade_group?: string;
+    q?: string;
   }>;
 }
 
