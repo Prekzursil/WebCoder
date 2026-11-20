@@ -115,7 +115,9 @@ def deliver_multichannel(notification: Notification) -> dict:
 
     tokens = list(recipient.push_tokens.values_list("token", flat=True))
     if tokens:
-        _attempted, summary["push"] = send_expo_push(list(tokens), title, body)
+        # send_expo_push returns (attempted_count, delivered_count); only
+        # the delivery count feeds the fallback chain decision.
+        _, summary["push"] = send_expo_push(list(tokens), title, body)
 
     host = getattr(settings, "EMAIL_HOST", "")
     if summary["push"] == 0:
