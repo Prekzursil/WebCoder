@@ -1434,3 +1434,49 @@ class AuthoringDraft(models.Model):
     def __str__(self):
         target = f"problem={self.problem_id}" if self.problem_id else "new-problem"
         return f"authoring draft user={self.user_id} {target}"
+
+
+class ProblemUnlockState(models.Model):
+    """Per-user-per-problem incremental test-unlock index (wave item C).
+
+    ``passed_count`` is the best number of passed tests any single
+    submission achieved. Positions 1..k are "solved" for that user,
+    position k+1 is "unlocked" (its input/expected become visible to
+    that user for debugging), everything beyond stays locked — never
+    reveal beyond the earned index. Monotone: worse submissions never
+    regress visibility.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="problem_unlock_states",
+        verbose_name=_("user"),
+    )
+    problem = models.ForeignKey(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name="unlock_states",
+        verbose_name=_("problem"),
+    )
+    passed_count = models.PositiveIntegerField(
+        _("passed tests"),
+        default=0,
+        help_text=_("Best count of passed tests in one submission."),
+    )
+    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+
+    class Meta:
+        verbose_name = _("problem unlock state")
+        verbose_name_plural = _("problem unlock states")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "problem"], name="unique_user_problem_unlock_state"
+            )
+        ]
+
+    def __str__(self):
+        return (
+            f"user={self.user_id} unlocked {self.passed_count} tests "
+            f"on problem={self.problem_id}"
+        )

@@ -159,6 +159,7 @@ class ProblemViewSet(viewsets.ModelViewSet):
             "bookmarked",
             "statement_revisions",
             "related",
+            "tests_status",
         ]:
             # Read-shaped actions: the queryset already scopes problem
             # visibility; the editorial action additionally enforces the
@@ -577,6 +578,25 @@ class ProblemViewSet(viewsets.ModelViewSet):
 
         locale = getattr(request, "LANGUAGE_CODE", "en") or "en"
         return Response(hint_state_for(problem, request.user, locale[:2]))
+
+    @action(detail=True, methods=["get"], url_path="tests/status")
+    def tests_status(self, request, pk=None):
+        """Item C — the per-viewer test unlock board.
+
+        Every test with its status (locked / unlocked / solved); the
+        single unlocked boundary test exposes its input + expected for
+        debugging, samples stay public, and nothing beyond the earned
+        index is ever revealed (privileged viewers see everything).
+        """
+        from .unlocks import test_status_for, unlock_state_for
+
+        problem = self.get_object()
+        return Response(
+            {
+                "unlock_state": unlock_state_for(request.user, problem),
+                "tests": test_status_for(request.user, problem),
+            }
+        )
 
     @action(detail=True, methods=["get"], url_path="statistics")
     def statistics(self, request, pk=None):

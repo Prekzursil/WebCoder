@@ -718,6 +718,8 @@ class ProblemDetailSerializer(ProblemSerializer):
     # permanent forfeiture state, both per-viewer.
     hint_state = serializers.SerializerMethodField()
     forfeited = serializers.SerializerMethodField()
+    # Problem-page wave (item C): the per-viewer incremental-unlock index.
+    unlock_state = serializers.SerializerMethodField()
 
     class Meta(ProblemSerializer.Meta):
         fields = ProblemSerializer.Meta.fields + [
@@ -727,7 +729,15 @@ class ProblemDetailSerializer(ProblemSerializer):
             "translations",
             "hint_state",
             "forfeited",
+            "unlock_state",
         ]
+
+    def get_unlock_state(self, obj) -> dict:
+        from .unlocks import unlock_state_for
+
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        return unlock_state_for(user, obj)
 
     def get_hint_state(self, obj) -> dict:
         from .hints import hint_state_for
