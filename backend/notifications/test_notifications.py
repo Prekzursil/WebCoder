@@ -235,9 +235,7 @@ class ApproveRejectEmissionTest(TestCase):
         # Item E: approval requires an editorial — the fixture carries one.
         from problems.models import ProblemEditorial
 
-        ProblemEditorial.objects.create(
-            problem=self.problem, content_en="Walkthrough."
-        )
+        ProblemEditorial.objects.create(problem=self.problem, content_en="Walkthrough.")
 
     def _act(self, verifier):
         self.client.force_authenticate(verifier)

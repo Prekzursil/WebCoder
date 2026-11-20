@@ -225,7 +225,9 @@ class EconomicsSerializerTest(TestCase):
     def test_hint_shape_object_with_image_accepted(self):
         resp = self.client.post(
             "/api/v1/problems/problems/",
-            self._payload(hints_en=[{"content": "look at the parity", "image": "/media/a.png"}]),
+            self._payload(
+                hints_en=[{"content": "look at the parity", "image": "/media/a.png"}]
+            ),
             format="json",
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED, resp.json())
@@ -398,7 +400,9 @@ class UnlockSourceTest(TestCase):
         self.assertTrue(data["forfeited"])
         self.assertTrue(data["editorial_unlocked"])
         self.assertTrue(
-            ProblemForfeit.objects.filter(user=self.solver, problem=self.problem).exists()
+            ProblemForfeit.objects.filter(
+                user=self.solver, problem=self.problem
+            ).exists()
         )
 
     def test_unlock_after_solve_is_free(self):
@@ -416,7 +420,9 @@ class UnlockSourceTest(TestCase):
         data = resp.json()
         self.assertFalse(data["forfeited"])
         self.assertFalse(
-            ProblemForfeit.objects.filter(user=self.solver, problem=self.problem).exists()
+            ProblemForfeit.objects.filter(
+                user=self.solver, problem=self.problem
+            ).exists()
         )
 
     def test_unlock_idempotent(self):
@@ -430,7 +436,9 @@ class UnlockSourceTest(TestCase):
         self.assertEqual(first.json()["forfeited"], True)
         self.assertEqual(second.json()["forfeited"], True)
         self.assertEqual(
-            ProblemForfeit.objects.filter(user=self.solver, problem=self.problem).count(),
+            ProblemForfeit.objects.filter(
+                user=self.solver, problem=self.problem
+            ).count(),
             1,
         )
 
@@ -534,10 +542,18 @@ class ScoreServiceTest(TestCase):
         self.bob = User.objects.create_user(username="bob", password="p")
         self.problem = _problem(status=Problem.ProblemStatus.APPROVED)
         ProblemTestCase.objects.create(
-            problem=self.problem, input_data="i", expected_output_data="o", points=60, order=1
+            problem=self.problem,
+            input_data="i",
+            expected_output_data="o",
+            points=60,
+            order=1,
         )
         ProblemTestCase.objects.create(
-            problem=self.problem, input_data="j", expected_output_data="p", points=40, order=2
+            problem=self.problem,
+            input_data="j",
+            expected_output_data="p",
+            points=40,
+            order=2,
         )
 
     def test_problem_point_value(self):
@@ -615,7 +631,11 @@ class LeaderboardPartialCreditTest(TestCase):
         self.alice = User.objects.create_user(username="alice", password="p")
         self.problem = _problem(status=Problem.ProblemStatus.APPROVED)
         ProblemTestCase.objects.create(
-            problem=self.problem, input_data="i", expected_output_data="o", points=30, order=1
+            problem=self.problem,
+            input_data="i",
+            expected_output_data="o",
+            points=30,
+            order=1,
         )
 
     def test_partial_score_credits_leaderboard(self):
@@ -808,8 +828,12 @@ class CoverageClosureTest(TestCase):
             problem=p, input_data="i", expected_output_data="o", points=10, order=1
         )
         Submission.objects.create(
-            user=user, problem=p, language="python3", code="x",
-            verdict=Submission.VerdictStatus.ACCEPTED, score=10,
+            user=user,
+            problem=p,
+            language="python3",
+            code="x",
+            verdict=Submission.VerdictStatus.ACCEPTED,
+            score=10,
         )
         ProblemForfeit.objects.create(user=user, problem=p)
         entry = update_user_entry(user.id)
@@ -827,11 +851,17 @@ class CoverageClosureTest(TestCase):
             problem=p2, input_data="i", expected_output_data="o", points=10, order=1
         )
         Submission.objects.create(
-            user=user, problem=p1, language="python3", code="x",
+            user=user,
+            problem=p1,
+            language="python3",
+            code="x",
             verdict=Submission.VerdictStatus.ACCEPTED,
         )
         Submission.objects.create(
-            user=user, problem=p2, language="python3", code="x",
+            user=user,
+            problem=p2,
+            language="python3",
+            code="x",
             verdict=Submission.VerdictStatus.ACCEPTED,
         )
         entry = update_user_entry(user.id)

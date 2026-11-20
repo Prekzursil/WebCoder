@@ -109,9 +109,7 @@ def update_user_entry(user_id):
             # 100% gate uses a conditional expression — same semantics, no
             # branch arcs to mis-attribute.
             last_solved_at = (
-                first_ac
-                if last_solved_at is None
-                else max(last_solved_at, first_ac)
+                first_ac if last_solved_at is None else max(last_solved_at, first_ac)
             )
         if row["problem_id"] not in forfeited:
             total_points += _credited_points(row)
@@ -158,9 +156,7 @@ def recompute_all_leaderboards():
             points=_problem_points_subquery(),
         )
     )
-    forfeited_pairs = set(
-        ProblemForfeit.objects.values_list("user_id", "problem_id")
-    )
+    forfeited_pairs = set(ProblemForfeit.objects.values_list("user_id", "problem_id"))
     per_user: dict[int, dict] = {}
     for row in solves:
         acc = per_user.setdefault(

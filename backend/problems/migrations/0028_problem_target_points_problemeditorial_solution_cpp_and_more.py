@@ -7,7 +7,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("problems", "0027_problem_alt_sources_problem_source_authors_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
