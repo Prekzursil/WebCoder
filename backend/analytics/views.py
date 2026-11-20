@@ -215,15 +215,54 @@ def sign_payload(secret: str, body: str) -> str:
     return hmac.new(secret.encode(), body.encode(), hashlib.sha256).hexdigest()
 
 
+def _validated_webhook_url(url: str) -> str | None:
+    """SSRF guard (CodeQL py/full-ssrf): webhook URLs are ADMIN-configured,
+    but validated anyway — https-only, no credentials, no IP-literal /
+    loopback / link-local / private hosts, no unusual ports. Returns the
+    cleaned URL or None when rejected."""
+    from urllib.parse import urlsplit
+
+    try:
+        parts = urlsplit(url.strip())
+    except ValueError:
+        return None
+    if parts.scheme != "https" or parts.hostname in (None, ""):
+        return None
+    if parts.username or parts.password:
+        return None
+    if parts.port is not None and parts.port not in (443,):
+        return None
+    host = parts.hostname.lower()
+    import ipaddress
+
+    try:
+        ip = ipaddress.ip_address(host)
+    except ValueError:
+        ip = None  # a DNS name — acceptable; resolution-level filtering
+        # happens at the egress firewall (RUNBOOK §edge).
+    if ip is not None and (
+        ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved
+    ):
+        return None
+    return parts.geturl()
+
+
 def deliver_to_endpoint(endpoint: WebhookEndpoint, event: str, payload: dict) -> bool:
     """One signed delivery attempt to one endpoint (the ping path)."""
     body = json.dumps(payload)
     delivery = WebhookDelivery.objects.create(
         endpoint=endpoint, event=event, payload=payload
     )
+    url = _validated_webhook_url(endpoint.url)
+    if url is None:
+        delivery.status = "rejected"
+        delivery.response_status = 0
+        delivery.error = "endpoint URL failed SSRF validation (https, public host)"
+        delivery.save(update_fields=["status", "response_status", "error"])
+        return False
     try:
         response = requests.post(
-            endpoint.url,
+            url,
             data=body,
             headers={
                 "Content-Type": "application/json",
@@ -424,8 +463,10 @@ def build_season_report(season: str) -> str:
         f"- Contests started: **{contests.count()}**",
         f"- Problems authored: **{problems.count()}**",
         "",
-        "_Generated from live aggregates; integrity numbers (moderation "
-        "actions, takedowns) are appended by the moderation queue._",
+        (
+            "_Generated from live aggregates; integrity numbers (moderation "
+            "actions, takedowns) are appended by the moderation queue._"
+        ),
     ]
     return "\n".join(lines)
 

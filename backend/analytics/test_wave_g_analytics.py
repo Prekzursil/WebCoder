@@ -16,6 +16,7 @@ from analytics.models import (
     SeasonReport,
     WebhookEndpoint,
 )
+import analytics.views as views
 from analytics.views import (
     build_season_report,
     dispatch_webhooks,
@@ -293,7 +294,6 @@ class WebhooksTest(TestCase):
             events=["submission.judged"],
             secret="s3cret",
         )
-        import analytics.views as views
 
         with mock.patch.object(views, "requests") as fake_requests:
             fake_requests.post.return_value = mock.Mock(status_code=200)
@@ -313,7 +313,6 @@ class WebhooksTest(TestCase):
             events=["contest.finished"],
             secret="s3cret",
         )
-        import analytics.views as views
 
         with mock.patch.object(views, "requests") as fake_requests:
             fake_requests.post.side_effect = OSError("net")
@@ -330,7 +329,6 @@ class WebhooksTest(TestCase):
             events=["submission.judged"],
             secret="s3cret",
         )
-        import analytics.views as views
 
         with mock.patch.object(views, "requests") as fake_requests:
             fake_requests.post.return_value = mock.Mock(status_code=200)
@@ -526,9 +524,7 @@ class PublicApiCompletionTest(TestCase):
         data = APIClient().get("/api/v1/public/users/player/").data
         self.assertEqual(data["username"], "player")
         self.assertIn("rating", data)
-        minor = User.objects.create_user(
-            username="minorpub", password="pw", is_minor=True
-        )
+        User.objects.create_user(username="minorpub", password="pw", is_minor=True)
         data = APIClient().get("/api/v1/public/users/minorpub/").data
         self.assertTrue(data["private"])
 
@@ -660,7 +656,6 @@ class LogFailureTest(TestCase):
     def test_log_failure_swallowed(self):
         from unittest import mock as _mock
 
-        import analytics.views as views
         from analytics.views import log_search
 
         with _mock.patch.object(
@@ -733,7 +728,6 @@ class DeliveryNon2xxTest(TestCase):
             events=["submission.judged"],
             secret="s",
         )
-        import analytics.views as views
 
         with mock.patch.object(views, "requests") as fake:
             fake.post.return_value = mock.Mock(status_code=503)
