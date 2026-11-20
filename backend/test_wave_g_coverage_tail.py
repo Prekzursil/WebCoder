@@ -144,3 +144,23 @@ class TeacherExamPostForbiddenTest(TestCase):
             client.post(EXAM, {"answers": {"1": 0}}, format="json").status_code,
             403,
         )
+
+
+class DeliverRejectedTest(TestCase):
+    """analytics/views.py 258-262: deliver_to_endpoint with a URL that
+    fails SSRF validation records a rejected delivery and returns False."""
+
+    def test_rejected_delivery(self):
+        from analytics.models import WebhookEndpoint
+        from analytics.views import deliver_to_endpoint
+        from users.models import User
+
+        owner = User.objects.create_user(username="wrj", password="pw")
+        endpoint = WebhookEndpoint.objects.create(
+            owner=owner, url="http://insecure.example.com/hook", secret="s"
+        )
+        delivered = deliver_to_endpoint(endpoint, "ping", {"x": 1})
+        self.assertFalse(delivered)
+        delivery = endpoint.deliveries.get()
+        self.assertEqual(delivery.status, "rejected")
+        self.assertIn("SSRF", delivery.error)
