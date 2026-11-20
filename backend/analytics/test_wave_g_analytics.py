@@ -175,7 +175,9 @@ class FunnelTest(TestCase):
 
     def test_funnel_steps_and_rates(self):
         maker = User.objects.create_user(username="f1", password="pw")
-        browser = User.objects.create_user(username="f2", password="pw")
+        # The funnel's second step counts VISITORS, not submitters — the
+        # browser account only logs in (no submission).
+        User.objects.create_user(username="f2", password="pw")
         problem = _approved()
         Submission.objects.create(
             user=maker,
