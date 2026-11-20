@@ -359,6 +359,25 @@ function SubmissionDetailPage() {
         >
           {t('submission_detail_header', 'Submission Detail')} #{submission.id}
           <VerdictPill verdict={submission.verdict} />
+          {submission.ai_assisted && (
+            <span
+              data-testid="ai-assisted-chip"
+              style={{
+                fontSize: '0.7rem',
+                fontWeight: 700,
+                padding: '2px 8px',
+                borderRadius: 999,
+                border: '1px solid var(--violet)',
+                color: 'var(--violet)',
+              }}
+              title={t(
+                'ai_assisted_chip_hint',
+                'Self-declared at submit; banned in rated rounds — /policies/ai',
+              )}
+            >
+              {t('ai_assisted_chip', 'AI-assisted')}
+            </span>
+          )}
           {/* [wave E item 21] the "Am I close?" band for partial scores */}
           <ClosenessBadge closeness={submission.closeness} />
           {isPolling && (

@@ -10,6 +10,7 @@ import { AdminUserType } from '@/types';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import ProtectedRoute from '@/components/common/ProtectedRoute';
 import SiteStats from './SiteStats';
+import IntegrityPanel from './IntegrityPanel';
 import OwnerAnalytics from './OwnerAnalytics';
 
 // Ported from frontend/webcoder_ui/src/pages/admin/AdminDashboardPage.tsx (CRA reference).
@@ -103,6 +104,7 @@ export function AdminDashboardPage() {
           weekly frozen trend. */}
       <section style={{ marginTop: '2rem' }}>
         <h3>{t('owner_analytics_title', 'Owner Analytics')}</h3>
+        <IntegrityPanel />
         <OwnerAnalytics />
       </section>
 

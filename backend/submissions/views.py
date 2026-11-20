@@ -196,9 +196,11 @@ class SubmissionCreateView(generics.CreateAPIView):
         )
 
     def perform_create(self, serializer):
-        # User is passed from the view to serializer.save()
-        # serializer.save() will call the serializer's create method and return the instance
-        return serializer.save(user=self.request.user)
+        # User + submitter IP (item 115's multi-account heuristics feed)
+        # are passed from the view to serializer.save().
+        forwarded = getattr(self.request, "META", {}) or {}
+        ip = forwarded.get("REMOTE_ADDR") or None
+        return serializer.save(user=self.request.user, ip_address=ip)
 
 
 class SubmissionLicenseView(APIView):

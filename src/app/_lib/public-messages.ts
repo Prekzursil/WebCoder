@@ -306,6 +306,27 @@ export const PUBLIC_KEYS: string[] = [
   'certificates_print_button',
   'certificates_not_found_title',
   'certificates_not_found_body',
+  // [wave G item 120] The public security & bug-bounty page.
+  'bounty_header',
+  'bounty_title',
+  'bounty_intro',
+  'bounty_reporting_header',
+  'bounty_reporting_body',
+  'bounty_report_cta',
+  'bounty_scope',
+  'bounty_tiers_header',
+  'bounty_tier_col',
+  'bounty_examples_col',
+  'bounty_scope_in',
+  'bounty_scope_out',
+  'bounty_tier_critical',
+  'bounty_tier_critical_body',
+  'bounty_tier_high',
+  'bounty_tier_high_body',
+  'bounty_tier_medium',
+  'bounty_tier_medium_body',
+  'bounty_tier_low',
+  'bounty_tier_low_body',
 ];
 
 function pick(catalog: Record<string, unknown>): Record<string, string> {

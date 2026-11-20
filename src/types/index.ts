@@ -156,6 +156,8 @@ export interface DetailedSubmissionType extends SubmissionType {
   /** [wave E item 13] the viewer's own previous attempt on the same
    * problem — powers the "diff vs previous" view; null on first submit. */
   previous_submission_id?: number | null;
+  /** [wave G item 116] self-declared AI help at submit. */
+  ai_assisted?: boolean;
   user?: { username: string; id: number };
   test_results?: SubmissionTestResultType[];
 }

@@ -61,10 +61,12 @@ class ChangelogTests(OpsBase):
 
         record_revision(self.problem, edited_by=self.author, note="clarify")
         self.assertEqual(len(problem_changelog(self.problem)), 2)
-        # ...and restore rolls the public statement back to v1.
+        # ...and restore rolls the public statement back to v1. (The `id`
+        # tiebreak keeps the pick deterministic when Windows' coarse clock
+        # stamps the initial and the "clarify" revision identically.)
         first = (
             StatementRevision.objects.filter(problem=self.problem)
-            .order_by("created_at")
+            .order_by("created_at", "id")
             .first()
         )
         ok, message = restore_revision(self.problem, first.id, self.verifier)

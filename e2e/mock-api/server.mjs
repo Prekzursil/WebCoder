@@ -1355,6 +1355,87 @@ const server = createServer((req, res) => {
     return;
   }
 
+  // Wave G section H: integrity endpoints.
+  if (path === '/api/v1/integrity/abuse-queue/') {
+    json(res, 200, {
+      items: [
+        {
+          kind: 'forum_report',
+          id: 12,
+          age_hours: 60.2,
+          sla_due_in_hours: -12.2,
+          sla_breached: true,
+          reason: 'SPAM',
+        },
+        {
+          kind: 'similarity_flag',
+          id: 3,
+          age_hours: 2.1,
+          sla_due_in_hours: 45.9,
+          sla_breached: false,
+          reason: 'PLAGIARISM',
+        },
+      ],
+      open_count: 2,
+      sla_breached_count: 1,
+      sla_hours: 48,
+    });
+    return;
+  }
+  if (path === '/api/v1/integrity/flags/') {
+    json(res, 200, [
+      {
+        id: 3,
+        kind: 'PLAGIARISM',
+        status: 'OPEN',
+        score: 0.96,
+        submission: { id: 51, user: 'bob', problem: 1 },
+        other: { id: 52, user: 'carol' },
+      },
+    ]);
+    return;
+  }
+  const scanMatch = path === '/api/v1/integrity/scan/' && req.method === 'POST';
+  if (scanMatch) {
+    json(res, 200, {
+      problem: req.body?.problem ?? 1,
+      flags_created: { plagiarism: 1, boilerplate: 0 },
+    });
+    return;
+  }
+  const flagReview = path.match(/^\/api\/v1\/integrity\/flags\/(\d+)\/review\/$/);
+  if (flagReview && req.method === 'POST') {
+    json(res, 200, {
+      id: Number(flagReview[1]),
+      status: req.body?.decision === 'confirmed' ? 'CONFIRMED' : 'DISMISSED',
+    });
+    return;
+  }
+  if (path === '/api/v1/integrity/multi-accounts/') {
+    json(res, 200, {
+      clusters: [
+        {
+          user_ids: [4, 5],
+          usernames: ['farm_a', 'farm_b'],
+          shared_ips: ['10.0.0.1', '10.0.0.2'],
+          shared_count: 2,
+        },
+      ],
+    });
+    return;
+  }
+  if (path === '/api/v1/integrity/appeals/') {
+    json(res, 200, [
+      {
+        id: 9,
+        appellant: 'dave',
+        action: 'CONTENT_HIDDEN',
+        text: 'I believe this hide was wrong.',
+      },
+    ]);
+    return;
+  }
+
   // Wave G item 88: the onboarding checklist.
   if (path === '/api/v1/users/me/onboarding/') {
     json(res, 200, {

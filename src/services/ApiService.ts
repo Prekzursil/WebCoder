@@ -238,7 +238,7 @@ const authenticatedFetch = async (url: string, options: RequestInit): Promise<Re
   });
 };
 
-const apiFetch = async <T>(url: string, options: RequestInit = {}): Promise<T> => {
+export const apiFetch = async <T>(url: string, options: RequestInit = {}): Promise<T> => {
   let response = await authenticatedFetch(url, options);
 
   if (response.status === 401) {
