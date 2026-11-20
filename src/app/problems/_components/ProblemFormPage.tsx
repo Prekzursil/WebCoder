@@ -3,7 +3,6 @@
 import React, { useState, FormEvent, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import toast from 'react-hot-toast';
 import {
   ProblemService,
   TestCaseService,
@@ -14,6 +13,8 @@ import type { LanguageRow } from '@/types/api';
 import { useAuth } from '@/context/AuthContext';
 import { ProblemType, TagType, TestCaseType, TestCaseUIManaged } from '@/types';
 import StressPanel from '../[problemId]/edit/StressPanel';
+import StatementStudio, { type StudioLocale } from './StatementStudio';
+import TestManager from './TestManager';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import SubmissionStatusDisplay from '@/components/common/SubmissionStatusDisplay';
 
@@ -47,6 +48,12 @@ export default function ProblemFormPage() {
   const [statementEn, setStatementEn] = useState('');
   const [statementRo, setStatementRo] = useState('');
   const [difficulty, setDifficulty] = useState<string>('EASY');
+  // Problem-page wave (item G): the declared finite point value, bounded
+  // by the difficulty band (the backend validates; pointBounds is the
+  // band hint from the serializer).
+  const [targetPoints, setTargetPoints] = useState<number>(100);
+  const [pointBounds, setPointBounds] = useState<[number, number] | null>(null);
+  const [studioLocale, setStudioLocale] = useState<StudioLocale>('en');
   const [defaultTimeLimitMs, setDefaultTimeLimitMs] = useState<number>(1000);
   const [defaultMemoryLimitKb, setDefaultMemoryLimitKb] = useState<number>(262144);
   // [wave E item 10] the constraint ceiling for the pre-submit overflow
@@ -97,11 +104,6 @@ export default function ProblemFormPage() {
   const [codeTemplateLanguage, setCodeTemplateLanguage] = useState<string>('');
 
   const [testCases, setTestCases] = useState<TestCaseUIManaged[]>([]);
-  const [newTestCaseInput, setNewTestCaseInput] = useState('');
-  const [newTestCaseOutput, setNewTestCaseOutput] = useState('');
-  const [newTestCaseIsSample, setNewTestCaseIsSample] = useState(false);
-  const [newTestCasePoints, setNewTestCasePoints] = useState(10);
-
   const [formError, setFormError] = useState<string | null>(null);
   const [formMessage, setFormMessage] = useState<string | null>(null);
   const [isLoadingData, setIsLoadingData] = useState<boolean>(false);
@@ -130,6 +132,12 @@ export default function ProblemFormPage() {
           setStatementEn(data.statement_i18n?.en || '');
           setStatementRo(data.statement_i18n?.ro || '');
           setDifficulty(data.difficulty || 'EASY');
+          setTargetPoints(
+            typeof data.target_points === 'number' ? data.target_points : 100,
+          );
+          if (Array.isArray(data.point_bounds) && data.point_bounds.length === 2) {
+            setPointBounds([data.point_bounds[0], data.point_bounds[1]]);
+          }
           setDefaultTimeLimitMs(data.default_time_limit_ms || 1000);
           setDefaultMemoryLimitKb(data.default_memory_limit_kb || 262144);
           setConstraintMaxValue(data.constraint_max_value ?? null);
@@ -188,82 +196,6 @@ export default function ProblemFormPage() {
     );
   };
 
-  const handleAddTestCase = async () => {
-    if (!newTestCaseInput.trim() || !newTestCaseOutput.trim()) {
-      toast.error(
-        t('test_case_input_output_required', 'Test case input and output cannot be empty.'),
-      );
-      return;
-    }
-    if (!auth.isAuthenticated) {
-      setFormError(t('error_auth_required', 'Authentication required.'));
-      return;
-    }
-
-    const tcData: Omit<TestCaseType, 'id'> & { problem: number | null } = {
-      problem: problemId ? parseInt(problemId, 10) : null,
-      input_data: newTestCaseInput,
-      expected_output_data: newTestCaseOutput,
-      is_sample: newTestCaseIsSample,
-      points: newTestCasePoints,
-      order: testCases.length + 1,
-    };
-
-    if (problemId) {
-      // Edit mode: persist immediately (CRA parity — the dead
-      // `tcData.problem !== null` operand is dropped; problemId truthy is
-      // the reachable condition).
-      try {
-        const createdTC = await TestCaseService.createTestCase(
-          tcData as unknown as Record<string, unknown>,
-        );
-        setTestCases((prev) => [...prev, { ...createdTC, local_id: String(createdTC.id) }]);
-        setFormMessage(t('test_case_added_successfully', 'Test case added successfully!'));
-      } catch (err) {
-        setFormError(
-          (err as { message?: string }).message ||
-            t('error_adding_test_case', 'Failed to add test case.'),
-        );
-        return;
-      }
-    } else {
-      const newTCLocal: TestCaseUIManaged = {
-        ...tcData,
-        local_id: `new-tc-${Date.now()}-${Math.random()}`,
-      };
-      setTestCases((prev) => [...prev, newTCLocal]);
-    }
-
-    setNewTestCaseInput('');
-    setNewTestCaseOutput('');
-    setNewTestCaseIsSample(false);
-    setNewTestCasePoints(10);
-  };
-
-  const handleRemoveTestCase = async (tcToRemove: TestCaseUIManaged) => {
-    if (!auth.isAuthenticated) {
-      setFormError(t('error_auth_required', 'Authentication required.'));
-      return;
-    }
-    if (tcToRemove.id) {
-      try {
-        await TestCaseService.deleteTestCase(tcToRemove.id);
-        setTestCases((prev) => prev.filter((tc) => tc.id !== tcToRemove.id));
-        setFormMessage(t('test_case_removed_successfully', 'Test case removed successfully!'));
-      } catch (err) {
-        setFormError(
-          (err as { message?: string }).message ||
-            t('error_removing_test_case', 'Failed to remove test case.'),
-        );
-      }
-    } else {
-      // Local-only test case: every TestCaseUIManaged entering state carries
-      // local_id (prefill, edit-mode persist, local add all set it), so the
-      // CRA `else if (tcToRemove.local_id)` guard was a no-op and is dropped.
-      setTestCases((prev) => prev.filter((tc) => tc.local_id !== tcToRemove.local_id));
-    }
-  };
-
   const csvToList = (value: string): string[] =>
     value
       .split(',')
@@ -301,6 +233,7 @@ export default function ProblemFormPage() {
       title_i18n: { en: titleEn, ro: titleRo },
       statement_i18n: { en: statementEn, ro: statementRo },
       difficulty: difficulty,
+      target_points: targetPoints,
       default_time_limit_ms: defaultTimeLimitMs,
       default_memory_limit_kb: defaultMemoryLimitKb,
       constraint_max_value: constraintMaxValue,
@@ -463,30 +396,56 @@ export default function ProblemFormPage() {
               style={inputStyle}
             />
           </div>
+          {/* Problem-page wave (item A): the rich statement studio —
+              locale tabs, live preview, toolbar, structured/markdown
+              modes, autosaved drafts. */}
           <div style={fieldStyle}>
-            <label htmlFor="statement_en" style={labelStyle}>
-              {t('problem_form_statement_en', 'Statement (English)')}:
-            </label>
-            <textarea
-              id="statement_en"
-              value={statementEn}
-              onChange={(e) => setStatementEn(e.target.value)}
-              rows={10}
-              required
-              style={textAreaStyle}
-            />
-          </div>
-          <div style={fieldStyle}>
-            <label htmlFor="statement_ro" style={labelStyle}>
-              {t('problem_form_statement_ro', 'Statement (Romanian)')}:
-            </label>
-            <textarea
-              id="statement_ro"
-              value={statementRo}
-              onChange={(e) => setStatementRo(e.target.value)}
-              rows={10}
-              required
-              style={textAreaStyle}
+            <div role="tablist" aria-label={t('studio_locale_label', 'Statement language')} style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={studioLocale === 'en'}
+                data-testid="studio-locale-en"
+                style={{
+                  padding: '4px 12px',
+                  fontSize: '0.78rem',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  border: '1px solid var(--border)',
+                  background: studioLocale === 'en' ? 'rgba(56,189,248,0.15)' : 'transparent',
+                  color: 'var(--foreground)',
+                }}
+                onClick={() => setStudioLocale('en')}
+              >
+                {t('studio_locale_en', 'English')}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={studioLocale === 'ro'}
+                data-testid="studio-locale-ro"
+                style={{
+                  padding: '4px 12px',
+                  fontSize: '0.78rem',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  border: '1px solid var(--border)',
+                  background: studioLocale === 'ro' ? 'rgba(56,189,248,0.15)' : 'transparent',
+                  color: 'var(--foreground)',
+                }}
+                onClick={() => setStudioLocale('ro')}
+              >
+                {t('studio_locale_ro', 'Romanian')}
+              </button>
+            </div>
+            <StatementStudio
+              problemId={problemId ? parseInt(problemId, 10) : null}
+              locale={studioLocale}
+              statement={studioLocale === 'en' ? statementEn : statementRo}
+              onStatementChange={(next) => {
+                if (studioLocale === 'en') setStatementEn(next);
+                else setStatementRo(next);
+              }}
             />
           </div>
         </div>
@@ -507,7 +466,33 @@ export default function ProblemFormPage() {
               <option value="EASY">{t('difficulty_easy')}</option>
               <option value="MEDIUM">{t('difficulty_medium')}</option>
               <option value="HARD">{t('difficulty_hard')}</option>
+              <option value="VERY_HARD">{t('difficulty_very_hard', 'Very hard')}</option>
             </select>
+          </div>
+          <div style={fieldStyle}>
+            <label htmlFor="target_points" style={labelStyle}>
+              {t('problem_form_target_points', 'Point value')}:
+            </label>
+            <input
+              type="number"
+              id="target_points"
+              data-testid="problem-form-target-points"
+              min={pointBounds ? pointBounds[0] : 1}
+              max={pointBounds ? pointBounds[1] : 1000}
+              value={targetPoints}
+              onChange={(e) => setTargetPoints(parseInt(e.target.value, 10) || 0)}
+              style={inputStyle}
+              required
+            />
+            {pointBounds && (
+              <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                {t('problem_form_points_band', {
+                  defaultValue: 'This difficulty is worth {{min}}–{{max}} points',
+                  min: pointBounds[0],
+                  max: pointBounds[1],
+                })}
+              </p>
+            )}
           </div>
           <div style={fieldStyle}>
             <label htmlFor="time_limit" style={labelStyle}>
@@ -1107,140 +1092,14 @@ export default function ProblemFormPage() {
 
         <div style={sectionStyle}>
           <h3>{t('problem_form_test_cases_header', 'Test Cases')}</h3>
-          {testCases.map((tc: TestCaseUIManaged, index: number) => (
-            <div
-              key={tc.local_id}
-              className="card"
-              style={{
-                marginBottom: '10px',
-                background: tc.is_sample ? 'rgba(56,189,248,0.06)' : 'var(--surface)',
-              }}
-            >
-              <h4>
-                {t('test_case_label', 'Test Case')} {index + 1}{' '}
-                {tc.is_sample && `(${t('sample_label', 'Sample')})`}
-              </h4>
-              <p>
-                <strong>{t('points_label', 'Points')}:</strong> {tc.points}
-              </p>
-              <div>
-                <label style={labelStyle}>{t('test_case_input_label', 'Input')}:</label>
-                <pre
-                  style={{
-                    background: 'var(--surface-2)',
-                    padding: '5px',
-                    whiteSpace: 'pre-wrap',
-                    border: '1px solid var(--border)',
-                    borderRadius: '6px',
-                  }}
-                >
-                  {tc.input_data}
-                </pre>
-              </div>
-              <div>
-                <label style={labelStyle}>{t('test_case_output_label', 'Output')}:</label>
-                <pre
-                  style={{
-                    background: 'var(--surface-2)',
-                    padding: '5px',
-                    whiteSpace: 'pre-wrap',
-                    border: '1px solid var(--border)',
-                    borderRadius: '6px',
-                  }}
-                >
-                  {tc.expected_output_data}
-                </pre>
-              </div>
-              <button
-                type="button"
-                onClick={() => handleRemoveTestCase(tc)}
-                style={{
-                  marginTop: '5px',
-                  padding: '5px 10px',
-                  background: 'rgba(248,113,113,0.15)',
-                  color: 'var(--danger)',
-                  border: '1px solid rgba(248,113,113,0.3)',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                }}
-              >
-                {t('remove_test_case_button', 'Remove')}
-              </button>
-            </div>
-          ))}
-          <div
-            style={{
-              marginTop: '15px',
-              border: '1px dashed var(--border)',
-              padding: '15px',
-              borderRadius: '8px',
-            }}
-          >
-            <h4>{t('add_new_test_case_header', 'Add New Test Case')}</h4>
-            <div style={fieldStyle}>
-              <label htmlFor="new_tc_input" style={labelStyle}>
-                {t('input_data_label', 'Input Data')}:
-              </label>
-              <textarea
-                id="new_tc_input"
-                value={newTestCaseInput}
-                onChange={(e) => setNewTestCaseInput(e.target.value)}
-                rows={3}
-                style={textAreaStyle}
-              />
-            </div>
-            <div style={fieldStyle}>
-              <label htmlFor="new_tc_output" style={labelStyle}>
-                {t('expected_output_label', 'Expected Output Data')}:
-              </label>
-              <textarea
-                id="new_tc_output"
-                value={newTestCaseOutput}
-                onChange={(e) => setNewTestCaseOutput(e.target.value)}
-                rows={3}
-                style={textAreaStyle}
-              />
-            </div>
-            <div style={fieldStyle}>
-              <label htmlFor="new_tc_points" style={labelStyle}>
-                {t('points_label', 'Points')}:
-              </label>
-              <input
-                type="number"
-                id="new_tc_points"
-                value={newTestCasePoints}
-                onChange={(e) => setNewTestCasePoints(parseInt(e.target.value, 10) || 0)}
-                style={inputStyle}
-              />
-            </div>
-            <div style={fieldStyle}>
-              <label htmlFor="new_tc_is_sample" style={labelStyle}>
-                {t('is_sample_label', 'Is Sample?')}:
-              </label>
-              <input
-                type="checkbox"
-                id="new_tc_is_sample"
-                checked={newTestCaseIsSample}
-                onChange={(e) => setNewTestCaseIsSample(e.target.checked)}
-                style={{ marginLeft: '5px' }}
-              />
-            </div>
-            <button
-              type="button"
-              onClick={handleAddTestCase}
-              style={{
-                marginTop: '10px',
-                padding: '8px 15px',
-                background: 'rgba(56,189,248,0.15)',
-                color: 'var(--accent)',
-                border: '1px solid rgba(56,189,248,0.3)',
-                borderRadius: '6px',
-                cursor: 'pointer',
-              }}
-            >
-              {t('add_test_case_button', 'Add Test Case')}
-            </button>
-          </div>
+          {/* Problem-page wave (item B): archive upload, inline editing,
+              example/hidden flags, per-test points with live total. */}
+          <TestManager
+            problemId={problemId ? parseInt(problemId, 10) : null}
+            tests={testCases}
+            setTests={(updater) => setTestCases(updater)}
+            targetPoints={targetPoints}
+          />
           {/* [wave E item 12] the stress helper beside the tests it feeds:
               cross-check a solution vs a brute force on generated inputs. */}
           <StressPanel language={allowedLanguages[0] ?? 'python3'} />

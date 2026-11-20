@@ -478,3 +478,25 @@ button {
     break-inside: avoid;
   }
 }
+
+/* Problem-page wave (item A) — the constraint BOX construct: the
+ * "Constraints" H3 section (authored via the studio toolbar) skins its
+ * following list/table as a highlighted callout box. `+` keeps it tight
+ * to the heading; :has covers the rare bold-intro variant. */
+.statement-md h3.constraints-heading {
+  margin-bottom: 0;
+}
+.statement-md h3.constraints-heading + ul,
+.statement-md h3.constraints-heading + ol,
+.statement-md h3.constraints-heading + table {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  margin: 0 0 1.25rem 0;
+  padding: 10px 16px;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-left: 4px solid rgba(56, 189, 248, 0.65);
+  border-radius: var(--radius-md);
+  background: rgba(56, 189, 248, 0.06);
+  list-style-position: inside;
+}
