@@ -19,7 +19,7 @@ from django.utils import timezone
 
 from submissions.models import Submission
 
-from .models import Problem, StatementRevision, ProblemBounty
+from .models import Problem, StatementRevision, ProblemBounty, HintReveal
 
 
 def problem_changelog(problem, limit: int = 50) -> list[dict]:
@@ -120,7 +120,7 @@ def author_analytics(user) -> dict:
         .distinct()
         .count()
     )
-    by_difficulty = {"EASY": 0, "MEDIUM": 0, "HARD": 0}
+    by_difficulty = {"VERY_EASY": 0, "EASY": 0, "MEDIUM": 0, "HARD": 0, "VERY_HARD": 0}
     for problem in approved:
         if problem.difficulty in by_difficulty:
             by_difficulty[problem.difficulty] += 1
@@ -128,6 +128,22 @@ def author_analytics(user) -> dict:
     bounties_open = ProblemBounty.objects.filter(
         problem__in=ids, status=ProblemBounty.Status.OPEN
     ).count()
+    # Problem-page wave (item D): tiered-hint usage across the author's
+    # problems — reveals per tier + the distinct readers who revealed any.
+    hint_rows = (
+        HintReveal.objects.filter(problem_id__in=ids)
+        .values("tier")
+        .annotate(n=dj_models.Count("id"))
+    )
+    hint_usage = {str(tier): 0 for tier in (1, 2, 3)}
+    for row in hint_rows:
+        hint_usage[str(row["tier"])] = row["n"]
+    hint_readers = (
+        HintReveal.objects.filter(problem_id__in=ids)
+        .values("user_id")
+        .distinct()
+        .count()
+    )
     return {
         "problems_total": problems.count(),
         "problems_approved": approved.count(),
@@ -139,4 +155,6 @@ def author_analytics(user) -> dict:
         "unique_solvers": solved_users,
         "editorial_coverage": editorial_coverage,
         "open_test_bounties": bounties_open,
+        "hint_usage": hint_usage,
+        "hint_readers": hint_readers,
     }
