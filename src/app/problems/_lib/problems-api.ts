@@ -48,15 +48,21 @@ export function getProblemsPage(
     archive?: boolean;
     sourceYear?: number | string;
     gradeGroup?: string;
+    search?: string;
   } = {},
 ): Promise<PaginatedResponse<ProblemType>> {
   // [roadmap RO-6] The archive browse axis filters the SERVER fetch, same
   // as the curriculum axis, so deep links (?archive=1&source_year=2024)
   // are answered by the backend, not the client's loaded-page window.
+  // [2026-11-20 polish sweep] ?q= rides the same server fetch: on an
+  // 1 800-problem catalog the client's loaded-page window cannot answer
+  // searches honestly, so the term goes to the backend's ?search=
+  // (icontains, #320) and the client filter narrows within the hits.
   const params = new URLSearchParams({
     page: String(page),
     page_size: String(CATALOG_PAGE_SIZE),
   });
+  if (filters.search) params.set('search', filters.search);
   if (filters.curriculumNode) params.set('curriculum_node', String(filters.curriculumNode));
   if (filters.archive) params.set('archive', '1');
   if (filters.sourceYear) params.set('source_year', String(filters.sourceYear));

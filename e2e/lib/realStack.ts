@@ -57,12 +57,22 @@ export async function api(
 }
 
 export async function login(username: string, password: string): Promise<LoginResponse> {
-  const { status, body } = await api('/auth/login/', {
-    method: 'POST',
-    body: JSON.stringify({ username, password }),
-  });
-  if (status !== 200) throw new Error(`login ${username} -> ${status}: ${JSON.stringify(body)}`);
-  return body as LoginResponse;
+  // The stack's scoped auth throttle (10/min) is by design; the real-mode
+  // suite performs several logins per spec file, so a cold run can trip it.
+  // Respect Retry-After instead of failing: back off and try again.
+  for (let attempt = 0; ; attempt++) {
+    const { status, body } = await api('/auth/login/', {
+      method: 'POST',
+      body: JSON.stringify({ username, password }),
+    });
+    if (status === 200) return body as LoginResponse;
+    if (status === 429 && attempt < 3) {
+      const retryAfter = Number(body?.retryAfter ?? body?.detail?.retryAfter ?? 30);
+      await new Promise((r) => setTimeout(r, Math.min(retryAfter, 65) * 1000));
+      continue;
+    }
+    throw new Error(`login ${username} -> ${status}: ${JSON.stringify(body)}`);
+  }
 }
 
 /** Titles the fixtures own on the live stack. */

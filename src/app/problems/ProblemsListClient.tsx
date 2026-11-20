@@ -151,8 +151,10 @@ export default function ProblemsListClient({
     try {
       // Status facet filters client-side (the backend list has no ?status=
       // query support), so pages are fetched unfiltered and appended here.
+      // [2026-11-20] the ?q= term rides the server fetch (search lives
+      // server-side now) so appended pages stay within the search hits.
       const response = await ProblemService.getProblems(
-        {},
+        urlSearch ? { search: urlSearch } : {},
         { page: nextPageRef.current, pageSize: 100 },
       );
       setRows((prev) => {

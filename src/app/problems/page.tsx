@@ -54,6 +54,7 @@ export default async function ProblemsListPage({ searchParams }: ProblemsListPag
     archive: archiveParam.archive === '1' || archiveParam.archive === 'true',
     sourceYear: archiveParam.source_year,
     gradeGroup: archiveParam.grade_group,
+    search: archiveParam.q,
   };
 
   let problems: Awaited<ReturnType<typeof getProblemsPage>>['results'] = [];

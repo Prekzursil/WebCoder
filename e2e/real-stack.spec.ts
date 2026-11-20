@@ -59,7 +59,10 @@ test('real login issues JWTs and shows the authenticated navbar', async ({ page,
 });
 
 test('real catalog lists the API-seeded problems with difficulty and status', async ({ page }) => {
-  await page?.goto('/problems');
+  // The live catalog holds 1 800+ problems; the seeds land on their own
+  // page of the default ordering. F3's URL-synced ?q= filter (honored on
+  // load) scopes the view to them without weakening the assertions.
+  await page?.goto('/problems?q=Two%20Sum');
 
   // [F7] the public catalog hides the status column from anonymous
   // visitors (they only ever see APPROVED problems) — same contract as the
@@ -69,14 +72,18 @@ test('real catalog lists the API-seeded problems with difficulty and status', as
   await expect(twoSumRow)?.toContainText('EASY');
   await expect(twoSumRow)?.not.toContainText('APPROVED');
 
+  await page?.goto('/problems?q=Reverse%20String');
   const reverseRow = page?.getByRole('row').filter({ hasText: 'Reverse String' });
   await expect(reverseRow)?.toBeVisible();
   await expect(reverseRow)?.toContainText('MEDIUM');
 
   // Live-stack honesty: the catalog also shows the stack's own problems
-  // (e.g. 'A Plus B' seeded by the RUNBOOK quickstart) — assert one real
-  // row to prove this is not the mock server.
-  await expect(page?.getByRole('row').filter({ hasText: 'A Plus B' }))?.toBeVisible();
+  // (e.g. 'A Plus B' from the live catalog) — assert one real row to
+  // prove this is not the mock server.
+  await page?.goto('/problems?q=A%20Plus%20B');
+  // Two live rows carry this title (the seeded quickstart problem and a
+  // retitled probe row) — either proves the point, so take the first.
+  await expect(page?.getByRole('row').filter({ hasText: 'A Plus B' }).first())?.toBeVisible();
 });
 
 test('API-seeded problem: submit through the UI → Celery judges → verdict AC', async ({ page }) => {
@@ -93,7 +100,7 @@ test('API-seeded problem: submit through the UI → Celery judges → verdict AC
   await expect(page?.getByRole('heading', { level: 1 }))?.toHaveText('Two Sum');
 
   // Fill the submit form: language + code, then confirm in the modal.
-  await page?.locator('select').selectOption('python3');
+  await page?.locator('#language-select').selectOption('python3');
   await page?.fill('#code-editor', 'print("[0,1]")');
   await page
     ?.getByRole('button', { name: /submit/i })

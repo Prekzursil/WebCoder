@@ -69,6 +69,12 @@ test('COM-5 real loop: thread → send → filter flag → notification → repo
   expect(thread.status).toBeLessThan(300); // 201 created or 200 existing
   const threadId = thread.body.id as number;
 
+  // The thread persists across runs — any unread messages a previous
+  // (possibly interrupted) run left behind would break the strict
+  // "1 unread" badge below. Mark the thread read as the recipient first.
+  const testerToken = (await login(E2E_USER, E2E_USER_PASS)).access;
+  await api(`/messages/threads/${threadId}/read/`, { method: 'POST', token: testerToken });
+
   const sent = await api(`/messages/threads/${threadId}/send/`, {
     method: 'POST',
     token: peerToken,
