@@ -43,6 +43,9 @@ export default function ContestDetailPage() {
   const lang = i18n.language === 'ro' ? 'ro' : 'en';
 
   const [contest, setContest] = useState<Contest | null>(null);
+  // Mount-time snapshot keeps the day counter pure during render (react-hooks/purity);
+  // nothing re-renders on a timer, so per-mount == the old per-render value.
+  const [now] = useState(() => Date.now());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -212,7 +215,7 @@ export default function ContestDetailPage() {
   );
   const contestDay = Math.min(
     totalDays,
-    Math.max(1, Math.ceil((Date.now() - new Date(contest.start_at).getTime()) / 86_400_000)),
+    Math.max(1, Math.ceil((now - new Date(contest.start_at).getTime()) / 86_400_000)),
   );
 
   const tabs: { key: Tab; label: string }[] = [

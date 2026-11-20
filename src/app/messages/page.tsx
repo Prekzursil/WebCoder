@@ -8,6 +8,7 @@
 // this page never renders message markdown.
 
 import React, { useCallback, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { MessagingService } from '@/services/ApiService';
@@ -121,6 +122,7 @@ function ThreadsList({ conversations }: { conversations: ApiConversation[] }) {
 }
 
 function StartThreadForm() {
+  const router = useRouter();
   const { t } = useTranslation();
   const [username, setUsername] = useState('');
   const [busy, setBusy] = useState(false);
@@ -135,7 +137,7 @@ function StartThreadForm() {
     try {
       const conversation = await MessagingService.startThread({ username: handle });
       setUsername('');
-      window.location.assign(`/messages/${conversation.id}`);
+      router.push(`/messages/${conversation.id}`);
     } catch (err) {
       const detail = (err as Error)?.message ?? '';
       if (detail === 'self') {

@@ -139,7 +139,11 @@ export default function BlockEditor({
   const [code, setCode] = useState('');
   const [hints, setHints] = useState<string[]>([]);
   const onChangeRef = useRef(onCodeChange);
-  onChangeRef.current = onCodeChange;
+  // Latest-ref pattern: keep the callback fresh WITHOUT reading/writing
+  // the ref during render (react-hooks/refs).
+  useEffect(() => {
+    onChangeRef.current = onCodeChange;
+  }, [onCodeChange]);
 
   const refreshCode = useCallback(() => {
     if (workspaceRef.current && genRef.current) {

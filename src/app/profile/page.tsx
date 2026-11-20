@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, FormEvent, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import IdentityCard from './IdentityCard';
 import TagProfilePanel from './TagProfilePanel';
 import type { TagProfile } from '@/types/api';
@@ -767,6 +768,7 @@ function ProfileOverview({ user }: { user: User }) {
 }
 
 export function UserProfilePage() {
+  const router = useRouter();
   const { t } = useTranslation();
   const auth = useAuth();
   const [profileUser, setProfileUser] = useState<User | null>(null);
@@ -882,7 +884,7 @@ export function UserProfilePage() {
           <AccountControlCard
             onAccountDeleted={async () => {
               await auth.logout();
-              window.location.href = '/';
+              router.push('/');
             }}
           />
 

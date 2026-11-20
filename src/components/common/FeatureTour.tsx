@@ -228,6 +228,7 @@ export default function FeatureTour(): ReactNode {
                   finish();
                   // A plain navigation keeps the tour mountable outside the
                   // app-router context (unit tests render pages directly).
+                  // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- deliberate: see comment above
                   window.location.assign('/start');
                 } else {
                   setIndex((i) => Math.min(i + 1, STEPS.length - 1));
