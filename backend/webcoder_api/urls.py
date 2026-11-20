@@ -46,6 +46,12 @@ urlpatterns = [
     # Wave G section J operator surface (items 135/136/139/143/145):
     # public aggregate status feed + admin error/cost/autoscale views.
     path("api/v1/ops/", include("ops.urls", namespace="ops_api_v1")),
+    # Item 147 (wave G section K): school partnerships program — public
+    # application intake + owner review queue.
+    path(
+        "api/v1/partnerships/",
+        include("partnerships.urls", namespace="partnerships_api_v1"),
+    ),
     path("readyz", observability.readyz, name="readyz"),
     path("api/v1/users/", include("users.urls", namespace="users_api_v1")),
     path("api/v1/problems/", include("problems.urls", namespace="problems_api_v1")),
