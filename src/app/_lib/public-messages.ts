@@ -306,7 +306,6 @@ export const PUBLIC_KEYS: string[] = [
   'certificates_print_button',
   'certificates_not_found_title',
   'certificates_not_found_body',
-<<<<<<< HEAD
   // [wave G item 120] The public security & bug-bounty page.
   'bounty_header',
   'bounty_title',
@@ -347,7 +346,6 @@ export const PUBLIC_KEYS: string[] = [
   'status_judge_count',
   'status_judge_avg',
   'status_error_rate',
-=======
   // [wave G item 150] The public transparency report page.
   'transparency_title',
   'transparency_intro',
@@ -391,7 +389,6 @@ export const PUBLIC_KEYS: string[] = [
   // [wave G item 146] The profile supporter badge.
   'supporter_badge',
   'supporter_badge_hint',
->>>>>>> 7a4e22d8 (feat(sustain): supporter tier, school partnerships, teacher certification, open-source components package, transparency report [wave G items 146-150])
 ];
 
 function pick(catalog: Record<string, unknown>): Record<string, string> {
