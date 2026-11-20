@@ -101,6 +101,20 @@ class User(AbstractUser):
         ),
     )
 
+    # Wave G item 100 — fallback-notice opt-ins. Push (item 95) is the
+    # primary channel; email/SMS are explicit opt-ins used only when
+    # push is unavailable or failed.
+    notification_email = models.BooleanField(
+        _("email fallback for notifications"),
+        default=False,
+    )
+    notification_sms_phone = models.CharField(
+        _("SMS fallback phone (E.164)"),
+        max_length=20,
+        blank=True,
+        default="",
+    )
+
     # GDPR account control (round-2 LEG-1/X5): set when the account is
     # soft-deleted; the purge_deleted_users beat task removes user-authored
     # side content once this timestamp passes (submissions/leaderboard stay,

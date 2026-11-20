@@ -25,6 +25,7 @@ from .views import (
     TOTPVerifyView,
     TOTPDisableView,
     APITokenListView,
+    PushTokenView,
     FollowingListView,
     UsernameFollowView,
 )
@@ -91,6 +92,8 @@ urlpatterns = [
     path("me/totp/verify/", TOTPVerifyView.as_view(), name="totp_verify"),
     path("me/totp/disable/", TOTPDisableView.as_view(), name="totp_disable"),
     path("me/tokens/", APITokenListView.as_view(), name="api_tokens"),
+    # Wave G item 95: Expo push-token registration (mobile).
+    path("me/push-token/", PushTokenView.as_view(), name="push_token"),
     # COM-4: the friends/follow graph.
     path(
         "me/following/",

@@ -68,3 +68,34 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification({self.verb} -> {self.recipient_id})"
+
+
+class PushToken(models.Model):
+    """A registered Expo push token (wave G item 95).
+
+    One row per device: the mobile app registers on opt-in, the
+    multichannel delivery (notifications/channels.py) fans out to every
+    token of the recipient. Tokens are removed when the OS reports them
+    invalid (the Expo response marks them; the sweep is manual for now)
+    or when the user turns notifications off.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="push_tokens",
+        verbose_name=_("user"),
+    )
+    token = models.CharField(_("Expo push token"), max_length=200, unique=True)
+    platform = models.CharField(
+        _("platform"), max_length=16, choices=[("android", "Android"), ("ios", "iOS")]
+    )
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("push token")
+        verbose_name_plural = _("push tokens")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"push {self.platform} user={self.user_id}"

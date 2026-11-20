@@ -228,6 +228,36 @@ export const ClassroomService = {
     apiFetch<{ results: ClassroomAssignment[] }>('/classroom/assignments/my-assignments/'),
   getAssignment: (id: number | string) =>
     apiFetch<ClassroomAssignment>(`/classroom/assignments/${id}/`),
+  /** [wave G item 99] QR join: same endpoint the join form uses. */
+  join: (code: string, password: string) =>
+    apiFetch<{ detail: string; classroom_id?: number }>('/classroom/classes/join/', {
+      method: 'POST',
+      body: JSON.stringify({ code, password }),
+    }),
+};
+
+// =================================
+// Cross-device drafts (wave G item 96 sync target)
+// =================================
+export const DraftService = {
+  save: (problemId: number, language: string, code: string) =>
+    apiFetch(`/submissions/drafts/${problemId}/`, {
+      method: 'PUT',
+      body: JSON.stringify({ language, code }),
+    }),
+};
+
+// =================================
+// Statistics (wave G item 97: the streak feeds the home widget)
+// =================================
+export const UserStatsService = {
+  getStatistics: () =>
+    apiFetch<{
+      current_streak: number;
+      max_streak: number;
+      solved: number;
+      total_active_days: number;
+    }>('/users/me/statistics/'),
 };
 
 // =================================
