@@ -1438,6 +1438,8 @@ const server = createServer((req, res) => {
         text: 'I believe this hide was wrong.',
       },
     ]);
+    return;
+  }
   // Wave G section G: analytics endpoints (admin dashboard).
   if (path === '/api/v1/analytics/funnel/') {
     json(res, 200, {
