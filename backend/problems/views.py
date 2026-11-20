@@ -969,17 +969,12 @@ class TestCaseViewSet(viewsets.ModelViewSet):
                 {"detail": "kind must be 'input' or 'expected'"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        from .unlocks import may_view_test
+
         user = request.user if request.user.is_authenticated else None
-        may_manage = False
-        if user is not None:
-            may_manage = (
-                user.is_superuser
-                or user.is_staff
-                or user.role in (User.Roles.ADMIN, User.Roles.PROBLEM_VERIFIER)
-                or test_case.problem.author_id == user.id
-                or test_case.problem.verifier_id == user.id
-            )
-        if not test_case.is_sample and not may_manage:
+        # Item C: beside the edit-rights gate, a solver may fetch the
+        # single test their earned index unlocked (and public samples).
+        if not may_view_test(user, test_case):
             return Response({"detail": "hidden test"}, status=status.HTTP_403_FORBIDDEN)
         body = (
             test_case.input_data if kind == "input" else test_case.expected_output_data
