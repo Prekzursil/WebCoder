@@ -200,6 +200,32 @@ class TestRoundTrip:
         assert "1 created" in out
         assert Problem.objects.filter(source_url="https://r.example/p/1").exists()
 
+    def test_wc_key_row_matches_by_title(self, author, tmp_path):
+        # Export keys hand-authored rows as wc:<id>; on import the http
+        # branch is skipped and the EN-title fallback finds them.
+        problem = make_problem(author)  # no source_url -> wc: key
+        export(tmp_path)
+        Problem.objects.all().delete()
+        run("import_catalog", "--file", str(tmp_path / "problems.json.gz"))
+        rebuilt = Problem.objects.filter(title_i18n__en="Repo Row").get()
+        assert rebuilt.source_url is None
+
+    def test_ledger_reimport_skips_existing_rows(self, tmp_path):
+        ImportSource.objects.create(
+            name="Again",
+            contact="a@b",
+            terms="ok",
+            evidence_url="https://ev",
+            status="granted",
+            notes="",
+        )
+        export(tmp_path)
+        out = run("import_catalog", "--file", str(tmp_path / "problems.json.gz"))
+        # First import creates; second run hits get_or_create's false arm.
+        out = run("import_catalog", "--file", str(tmp_path / "problems.json.gz"))
+        assert "import source: Again" not in out
+        assert ImportSource.objects.filter(name="Again").count() == 1
+
     def test_ledger_missing_file_is_tolerated(self, tmp_path):
         # --file pointing at a lone problems.json.gz without sources.json.gz
         # beside it must not crash the import.

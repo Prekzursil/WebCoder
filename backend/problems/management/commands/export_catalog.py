@@ -30,7 +30,7 @@ from pathlib import Path
 from django.core.management.base import BaseCommand
 from django.db.models import Q
 
-from problems.models import CurriculumNode, ImportSource, Problem, TestCase
+from problems.models import CurriculumNode, ImportSource, Problem
 
 OUT_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "catalog"
 

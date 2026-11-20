@@ -77,8 +77,12 @@ test.describe('contests surface (mock api)', () => {
 
   test('navbar exposes Contests and Ratings (CON-1/RAT-1 surface)', async ({ page }) => {
     await page.goto('/');
+    // Contests is a core inline link; Ratings lives in the More overflow
+    // menu since the 2026-11-20 navbar fix (the link tail used to render
+    // on top of the right cluster).
     await expect(page.getByRole('link', { name: 'Contests' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Ratings' })).toBeVisible();
+    await page.getByRole('button', { name: 'More' }).click();
+    await expect(page.getByRole('menuitem', { name: 'Ratings' })).toBeVisible();
   });
 });
 
