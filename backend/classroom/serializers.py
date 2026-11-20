@@ -126,6 +126,9 @@ class ClassRoomSerializer(serializers.ModelSerializer):
     """
 
     teacher_username = serializers.CharField(source="teacher.username", read_only=True)
+    # [wave G item 99] the QR card needs to know whether joins need a
+    # password — a boolean echo, never the (hashed) value itself.
+    has_password = serializers.SerializerMethodField()
     member_count = serializers.SerializerMethodField()
     assignment_count = serializers.SerializerMethodField()
     is_owner = serializers.SerializerMethodField()
@@ -137,6 +140,7 @@ class ClassRoomSerializer(serializers.ModelSerializer):
             "name",
             "school",
             "join_code",
+            "has_password",
             "join_password",
             "is_open",
             "created_at",
@@ -146,6 +150,9 @@ class ClassRoomSerializer(serializers.ModelSerializer):
             "is_owner",
         ]
         read_only_fields = ["id", "join_code", "created_at"]
+
+    def get_has_password(self, obj):
+        return bool(obj.join_password)
 
     def get_member_count(self, obj):
         return obj.memberships.count()

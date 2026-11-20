@@ -3070,6 +3070,28 @@ const server = createServer((req, res) => {
     return;
   }
 
+  // Wave G item 99: the teacher's class list (with the join code + the
+  // has_password flag the QR card reads).
+  if (req.method === 'GET' && path === '/api/v1/classroom/classes/') {
+    json(res, 200, {
+      results: [
+        {
+          id: 31,
+          name: 'IX-A',
+          school: 'CNIT',
+          join_code: 'AB12CD',
+          has_password: true,
+          is_open: true,
+          created_at: '2026-09-01T08:00:00Z',
+          teacher_username: 'admin_e2e',
+          member_count: 12,
+          assignment_count: 2,
+        },
+      ],
+    });
+    return;
+  }
+
   if (req.method === 'GET' && path === '/api/v1/classroom/classes/my-classes/') {
     if (!sessionUser(req)) {
       json(res, 401, { detail: 'Authentication credentials were not provided.' });

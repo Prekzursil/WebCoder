@@ -8,11 +8,43 @@ import { useSettings } from '../src/state/SettingsStore';
 import { Button, Card, Screen, SectionLabel, Txt } from '../src/ui/primitives';
 import { palette, space } from '../src/theme/tokens';
 import { API_V1_URL } from '../src/services/config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { PUSH_ENABLED_KEY, enablePush, unregisterPushToken } from '../src/services/PushService';
 
 export default function Settings() {
   const { locale, setLocale, t } = useSettings();
   const { status, signOut } = useAuth();
   const [saving, setSaving] = useState<string | null>(null);
+  const [pushEnabled, setPushEnabled] = useState<boolean | null>(null);
+  const [pushBusy, setPushBusy] = useState(false);
+
+  React.useEffect(() => {
+    AsyncStorage.getItem(PUSH_ENABLED_KEY)
+      .then((value) => setPushEnabled(value === '1'))
+      .catch(() => setPushEnabled(false));
+  }, []);
+
+  const togglePush = async () => {
+    if (pushBusy || pushEnabled === null) return;
+    setPushBusy(true);
+    try {
+      if (pushEnabled) {
+        const { getExpoPushToken } = await import('../src/services/PushService');
+        const token = await getExpoPushToken();
+        if (token) await unregisterPushToken(token);
+        await AsyncStorage.removeItem(PUSH_ENABLED_KEY);
+        setPushEnabled(false);
+      } else {
+        const token = await enablePush();
+        if (token) {
+          await AsyncStorage.setItem(PUSH_ENABLED_KEY, '1');
+          setPushEnabled(true);
+        }
+      }
+    } finally {
+      setPushBusy(false);
+    }
+  };
 
   const pick = async (code: (typeof SUPPORTED_LOCALES)[number]) => {
     setSaving(code);
@@ -25,6 +57,25 @@ export default function Settings() {
       <Card>
         <Txt variant="title">{t('language_picker_label')}</Txt>
         <Txt variant="caption">{API_V1_URL}</Txt>
+      </Card>
+
+      <Card>
+        <Txt variant="title">{t('push_toggle_title', 'Push notifications')}</Txt>
+        <Txt variant="caption">
+          {t('push_toggle_hint', 'Verdicts, replies and contest alerts on this device.')}
+        </Txt>
+        <Button
+          title={
+            pushBusy
+              ? t('push_busy', 'Working…')
+              : pushEnabled
+                ? t('push_disable', 'Turn off push')
+                : t('push_enable', 'Turn on push')
+          }
+          onPress={() => {
+            void togglePush();
+          }}
+        />
       </Card>
 
       {LOCALE_GROUPS.map((group) => (

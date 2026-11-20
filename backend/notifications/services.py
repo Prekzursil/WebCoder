@@ -32,4 +32,11 @@ def notify(recipient, verb, *, actor=None, target=None, data=None):
         recipient.pk,
         getattr(target, "pk", None),
     )
+    # Wave G items 95/100: push → email → SMS fan-out after the row
+    # commits. Best-effort by contract; failures never break the caller.
+    from django.db import transaction
+
+    from .channels import deliver_multichannel
+
+    transaction.on_commit(lambda: deliver_multichannel(notification))
     return notification

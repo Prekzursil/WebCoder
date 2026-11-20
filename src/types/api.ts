@@ -637,6 +637,8 @@ export interface ClassRoom {
   name: string;
   school: string;
   join_code?: string;
+  /** [wave G item 99] joins require the password (echoed as a flag only). */
+  has_password?: boolean;
   is_open: boolean;
   created_at: string;
   teacher_username: string;

@@ -574,6 +574,7 @@ class UserOnboardingView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
+        from classroom.models import ClassMembership
         from contests.models import ContestParticipation
         from submissions.models import Submission
 
@@ -585,8 +586,6 @@ class UserOnboardingView(APIView):
         ).exists()
         first_contest = ContestParticipation.objects.filter(user=user).exists()
         has_bio = bool(user.bio and user.bio.strip())
-        from classroom.models import ClassMembership
-
         joined_class = ClassMembership.objects.filter(student=user).exists()
         steps = [
             {"key": "account", "done": True},
@@ -598,3 +597,41 @@ class UserOnboardingView(APIView):
         ]
         done = sum(1 for step in steps if step["done"])
         return Response({"steps": steps, "done": done, "total": len(steps)})
+
+
+class PushTokenView(APIView):
+    """POST/DELETE /api/v1/users/me/push-token/ — wave G item 95.
+
+    The mobile app registers its Expo push token on opt-in and clears it
+    on opt-out (or OS-reported invalidation). One row per device; the
+    multichannel delivery fans out to all of them.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        from notifications.models import PushToken
+
+        token = (request.data.get("token") or "").strip()
+        platform = (request.data.get("platform") or "").strip().lower()
+        if not token or len(token) > 200:
+            return Response(
+                {"detail": "A push token (max 200 chars) is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if platform not in ("android", "ios"):
+            return Response(
+                {"detail": "platform must be 'android' or 'ios'."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        PushToken.objects.update_or_create(
+            token=token, defaults={"user": request.user, "platform": platform}
+        )
+        return Response({"registered": True}, status=status.HTTP_201_CREATED)
+
+    def delete(self, request):
+        from notifications.models import PushToken
+
+        token = (request.data.get("token") or "").strip()
+        deleted, _ = PushToken.objects.filter(user=request.user, token=token).delete()
+        return Response({"deleted": deleted})

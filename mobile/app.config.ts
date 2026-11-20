@@ -43,6 +43,24 @@ const config: ExpoConfig = {
   },
   plugins: [
     'expo-router',
+    // [wave G item 95] push notifications (Android 13+ POST_NOTIFICATIONS
+    // + the iOS entitlement are handled by the plugin at prebuild).
+    'expo-notifications',
+    // [wave G item 97] the home-screen streak widget (Android 14+ app
+    // widget; the headless reload target lives in
+    // src/services/StreakWidget.ts).
+    [
+      'expo-widget',
+      {
+        widgets: [
+          {
+            name: 'StreakWidget',
+            targetName: 'StreakWidget',
+            configPath: './widgets/streak-widget.json',
+          },
+        ],
+      },
+    ],
     // Bundled-asset tooling for the block editor's Blockly UMD scripts
     // (assets/blockly/*.txt — loaded into the editor WebView at runtime).
     'expo-asset',

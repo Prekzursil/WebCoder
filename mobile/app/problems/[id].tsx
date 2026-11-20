@@ -24,6 +24,7 @@ import {
   translationCredit,
 } from '../../src/utils/statement';
 import { effectiveLimitsForProblem, formatLimitKb, formatLimitMs } from '../../src/utils/limits';
+import { loadStatement, saveStatement } from '../../src/services/OfflineStore';
 import type { LanguageRow, ProblemType, TranslationLanguageEntry } from '../../src/types/api';
 
 export default function ProblemDetail() {
@@ -33,6 +34,9 @@ export default function ProblemDetail() {
   const [registry, setRegistry] = useState<LanguageRow[]>([]);
   const [transLangs, setTransLangs] = useState<TranslationLanguageEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
+  // [wave G item 96] offline statement cache: stale when the API is
+  // unreachable but a copy exists.
+  const [stale, setStale] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -45,6 +49,12 @@ export default function ProblemDetail() {
         ]);
         setProblem(detail);
         setRegistry(langs.results);
+        setStale(false);
+        saveStatement({
+          problemId: Number(id),
+          title: problemTitle(detail, locale).text,
+          statement: problemStatement(detail, locale).text,
+        }).catch(() => undefined);
         if (needsTranslation(detail, locale)) {
           // The i18n wave's contribution entry point: the translatable-
           // language list powers the "translate this problem" affordance.
@@ -54,6 +64,17 @@ export default function ProblemDetail() {
           setTransLangs(translatable.results);
         }
       } catch (err) {
+        // [wave G item 96] offline: fall back to the cached copy.
+        const cached = await loadStatement(Number(id));
+        if (cached) {
+          setProblem({
+            id: Number(id),
+            title_i18n: { en: cached.title },
+            statement_i18n: { en: cached.statement },
+          } as unknown as ProblemType);
+          setStale(true);
+          return;
+        }
         setError(err instanceof Error ? err.message : t('problems_load_error'));
       }
     })();
@@ -74,6 +95,25 @@ export default function ProblemDetail() {
     );
   }
 
+  return (
+    <ProblemBody problem={problem} registry={registry} transLangs={transLangs} stale={stale} />
+  );
+}
+
+/** The rendered detail — shared by the fresh and the offline copies. */
+function ProblemBody({
+  problem,
+  registry,
+  transLangs,
+  stale,
+}: {
+  problem: ProblemType;
+  registry: LanguageRow[];
+  transLangs: TranslationLanguageEntry[];
+  stale: boolean;
+}) {
+  const { t, locale } = useSettings();
+
   const title = problemTitle(problem, locale);
   const statement = problemStatement(problem, locale);
   const credit = translationCredit(problem, statement.resolvedLocale);
@@ -82,6 +122,13 @@ export default function ProblemDetail() {
 
   return (
     <Screen>
+      {stale ? (
+        <Card>
+          <Txt variant="caption" color={palette.warn}>
+            {t('offline_stale_statement', 'Offline copy — reconnect to refresh.')}
+          </Txt>
+        </Card>
+      ) : null}
       <Card>
         <Txt variant="title">
           {problem.id}. {title.text}

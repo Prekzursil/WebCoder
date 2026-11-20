@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { ClassroomService } from '@/services/ApiService';
 import { useAuth } from '@/context/AuthContext';
 import { ClassRoom, ClassroomAssignment, MyClassRow } from '@/types/api';
+import ClassQrCard from './ClassQrCard';
 import { palette, hexAlpha } from '@/theme/tokens';
 import EmptyState from '@/components/common/EmptyState';
 import PageHeader from '@/components/common/PageHeader';
@@ -228,6 +229,9 @@ export default function ClassesPage() {
                       >
                         {t('classes_code', 'Code')}: {cls.join_code}
                       </span>
+                    )}
+                    {cls.join_code && (
+                      <ClassQrCard code={cls.join_code} hasPassword={cls.has_password} />
                     )}
                     <Link
                       href={`/classes/${cls.id}`}
