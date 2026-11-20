@@ -18,3 +18,12 @@ urlpatterns = [
         name="revoke",
     ),
 ]
+
+# Item 148 (wave G section K): teacher certification exam.
+urlpatterns += [
+    path(
+        "teacher-exam/",
+        views.TeacherExamView.as_view(),
+        name="teacher-exam",
+    ),
+]

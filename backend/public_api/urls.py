@@ -19,6 +19,12 @@ urlpatterns = [
     path("tags/", views.PublicTags.as_view(), name="tags"),
     # JDG-9: the judge registry as public toolchain docs.
     path("languages/", views.PublicLanguagesView.as_view(), name="languages"),
+    # Item 150 (wave G section K): the transparency report data layer.
+    path(
+        "transparency/",
+        views.TransparencyReportView.as_view(),
+        name="transparency",
+    ),
     # Wave G item 106: contest standings + public user profiles complete v1.
     path(
         "contests/<int:contest_id>/standings/",

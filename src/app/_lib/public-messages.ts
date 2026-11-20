@@ -306,6 +306,7 @@ export const PUBLIC_KEYS: string[] = [
   'certificates_print_button',
   'certificates_not_found_title',
   'certificates_not_found_body',
+<<<<<<< HEAD
   // [wave G item 120] The public security & bug-bounty page.
   'bounty_header',
   'bounty_title',
@@ -346,6 +347,51 @@ export const PUBLIC_KEYS: string[] = [
   'status_judge_count',
   'status_judge_avg',
   'status_error_rate',
+=======
+  // [wave G item 150] The public transparency report page.
+  'transparency_title',
+  'transparency_intro',
+  'transparency_unavailable',
+  'transparency_activity_header',
+  'transparency_users',
+  'transparency_submissions',
+  'transparency_contests',
+  'transparency_teacher_certs',
+  'transparency_content_header',
+  'transparency_moderation_header',
+  'transparency_moderation_note',
+  'transparency_appeals',
+  // [wave G item 147] The schools partnerships page (the parity sweep
+  // scans every app/** page regardless of 'use client').
+  'schools_title',
+  'schools_intro',
+  'schools_includes_header',
+  'schools_include_classes',
+  'schools_include_export',
+  'schools_include_onboarding',
+  'schools_include_dpa',
+  'schools_apply_header',
+  'schools_f_school',
+  'schools_f_city',
+  'schools_f_contact',
+  'schools_f_email',
+  'schools_f_students',
+  'schools_f_message',
+  'schools_submit',
+  'schools_sending',
+  'schools_applied',
+  // [wave G item 148] The teacher-certification exam page.
+  'tcert_title',
+  'tcert_intro',
+  'tcert_score',
+  'tcert_passed',
+  'tcert_failed',
+  'tcert_retry',
+  'tcert_submit',
+  // [wave G item 146] The profile supporter badge.
+  'supporter_badge',
+  'supporter_badge_hint',
+>>>>>>> 7a4e22d8 (feat(sustain): supporter tier, school partnerships, teacher certification, open-source components package, transparency report [wave G items 146-150])
 ];
 
 function pick(catalog: Record<string, unknown>): Record<string, string> {

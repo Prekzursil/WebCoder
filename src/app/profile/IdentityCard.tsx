@@ -74,6 +74,29 @@ export default function IdentityCard() {
       >
         {t('identity_title', 'Identity (Olympiad geography)')}
       </div>
+      {/* [wave G item 146] supporter badge — cosmetic only, staff-granted
+          (no gameplay privilege; the parity is pinned by backend tests). */}
+      {user?.supporter_since && (
+        <span
+          data-testid="supporter-badge"
+          title={t(
+            'supporter_badge_hint',
+            'Supporter since {{date}} — cosmetic badge only; supporters get no gameplay advantage.',
+            { date: user.supporter_since },
+          )}
+          style={{
+            display: 'inline-block',
+            border: '1px solid var(--border)',
+            borderRadius: '999px',
+            padding: '2px 10px',
+            fontSize: '0.75rem',
+            color: 'var(--muted)',
+            marginBottom: '0.75rem',
+          }}
+        >
+          ★ {t('supporter_badge', 'Supporter')}
+        </span>
+      )}
       <form onSubmit={save} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         <label
           style={{

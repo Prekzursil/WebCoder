@@ -91,6 +91,8 @@ class UserMeUpdateSerializer(serializers.ModelSerializer):
             "bio",
             "timezone",
             "notification_digest",
+            # Item 146 (cosmetic-only supporter tier).
+            "supporter_since",
         ]
 
 
@@ -114,6 +116,8 @@ class UserSerializer(serializers.ModelSerializer):
             "is_minor",
             "timezone",
             "notification_digest",
+            # Item 146 (cosmetic-only supporter tier).
+            "supporter_since",
             "is_staff",
             "is_active",
             "date_joined",

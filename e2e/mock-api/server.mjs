@@ -2028,6 +2028,9 @@ const server = createServer((req, res) => {
       ...user,
       two_factor_enabled: totpState.enabled,
       two_factor_required: !totpState.enabled,
+      // [wave G item 146] the mock admin carries the supporter badge
+      // (cosmetic-only) so the /profile e2e can assert it.
+      supporter_since: user.role === 'ADMIN' ? '2026-01-15' : null,
     });
     return;
   }
@@ -3906,6 +3909,51 @@ const server = createServer((req, res) => {
         { digest: 'mock-d1', path: '/api/v1/problems/', method: 'GET', status_code: 500, count: 2 },
       ],
       events: [],
+  // [wave G item 147] school partnership applications.
+  if (req.method === 'POST' && path === '/api/v1/partnerships/apply/') {
+    json(res, 201, { id: 7, status: 'PENDING' });
+    return;
+  }
+  // [wave G item 150] public transparency data layer.
+  if (req.method === 'GET' && path === '/api/v1/public/transparency/') {
+    json(res, 200, {
+      users: { total: 512 },
+      content: { problems_by_status: { APPROVED: 240, DRAFT: 30 } },
+      activity: {
+        submissions_total: 18432,
+        submission_verdicts: { AC: 9000, WA: 8000 },
+        contests_held: 12,
+        teacher_certificates: 4,
+      },
+      moderation: {
+        actions_by_kind: { CONTENT_HIDDEN: 6 },
+        appeals_by_outcome: { ACCEPTED: 1, REJECTED: 2, PENDING: 1 },
+      },
+    });
+    return;
+  }
+  // [wave G item 148] teacher certification exam.
+  if (req.method === 'GET' && path === '/api/v1/certificates/teacher-exam/') {
+    json(res, 200, {
+      pass_threshold: 0.8,
+      questions: [
+        {
+          id: 1,
+          question: 'What does exam mode do to a student account?',
+          choices: ['Locks the site to the exam teme', 'Nothing', 'Raises limits'],
+        },
+      ],
+    });
+    return;
+  }
+  if (req.method === 'POST' && path === '/api/v1/certificates/teacher-exam/') {
+    json(res, 200, {
+      attempt_id: 3,
+      correct: 1,
+      total: 1,
+      score: 1.0,
+      passed: true,
+      certificate_uuid: 'aaaaaaaa-0000-0000-0000-0000000000ee',
     });
     return;
   }
