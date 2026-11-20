@@ -118,6 +118,9 @@ INSTALLED_APPS = [
     "integrity",
     # Wave G section G: analytics & insights.
     "analytics",
+    # Wave G section J: operator surface (status feed, errors, costs,
+    # autoscale advice).
+    "ops.apps.OpsConfig",
     # COM-5 (competitive roadmap, owner reversal 2026-10-30): private 1:1
     # message threads with the full safety stack.
     "messaging",
@@ -139,6 +142,9 @@ MIDDLEWARE = [
     # EDU-4 exam-mode site lockdown (Wave C): last so auth is resolved; only
     # touches authenticated non-staff users sitting an OPEN is_exam teme.
     "classroom.exam.ExamModeMiddleware",
+    # Item 145: error capture OUTERMOST so it observes everything below
+    # (5xx responses are recorded, never altered).
+    "ops.models.ErrorCaptureMiddleware",
 ]
 
 # Comma-separated env var (e.g. CORS_ALLOWED_ORIGINS=https://app.example.com,http://localhost:3000).
@@ -534,6 +540,11 @@ CELERY_BEAT_SCHEDULE = {
     "contest-tick": {
         "task": "contests.tasks.contest_tick",
         "schedule": crontab(),
+    },
+    # Item 145: error-event retention (keep 30 days of 5xx history).
+    "error-events-purge": {
+        "task": "ops.tasks.purge_old_error_events",
+        "schedule": crontab(hour=4, minute=30),
     },
     # UXP-5b: weekly practice digest ("problems you failed + first
     # hint") — the task self-guards to a no-op without SMTP configured.

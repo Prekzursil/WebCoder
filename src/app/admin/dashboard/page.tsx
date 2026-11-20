@@ -13,6 +13,7 @@ import SiteStats from './SiteStats';
 import IntegrityPanel from './IntegrityPanel';
 import OwnerAnalytics from './OwnerAnalytics';
 import AnalyticsPanels from './AnalyticsPanels';
+import OpsPanel from './OpsPanel';
 
 // Ported from frontend/webcoder_ui/src/pages/admin/AdminDashboardPage.tsx (CRA reference).
 // Route: /admin/dashboard (CRA App.tsx:43) — ADMIN only.
@@ -109,6 +110,10 @@ export function AdminDashboardPage() {
         <AnalyticsPanels />
         <OwnerAnalytics />
       </section>
+
+      {/* [wave G items 136/143/145] Operator surface: error stream, cost
+          projection, worker autoscale recommendation. */}
+      <OpsPanel />
 
       <section style={{ marginTop: '2rem' }}>
         <h3>{t('user_management_title', 'User Management')}</h3>

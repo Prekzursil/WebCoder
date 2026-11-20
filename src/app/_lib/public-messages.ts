@@ -327,6 +327,25 @@ export const PUBLIC_KEYS: string[] = [
   'bounty_tier_medium_body',
   'bounty_tier_low',
   'bounty_tier_low_body',
+  // [wave G items 135/139] The public status page (judge queue
+  // transparency + component health).
+  'status_title',
+  'status_unreachable',
+  'status_overall_ok',
+  'status_overall_degraded',
+  'status_updated',
+  'status_components_header',
+  'status_component_api',
+  'status_component_judge',
+  'status_backlog',
+  'status_lanes_header',
+  'status_lane_contest',
+  'status_lane_practice',
+  'status_lanes_note',
+  'status_judge_header',
+  'status_judge_count',
+  'status_judge_avg',
+  'status_error_rate',
 ];
 
 function pick(catalog: Record<string, unknown>): Record<string, string> {

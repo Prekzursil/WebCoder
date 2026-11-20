@@ -43,6 +43,9 @@ urlpatterns = [
     # Wave G section G: analytics & insights (org dashboards, funnel,
     # search analytics, webhooks, experiments, season reports).
     path("api/v1/analytics/", include("analytics.urls", namespace="analytics_api_v1")),
+    # Wave G section J operator surface (items 135/136/139/143/145):
+    # public aggregate status feed + admin error/cost/autoscale views.
+    path("api/v1/ops/", include("ops.urls", namespace="ops_api_v1")),
     path("readyz", observability.readyz, name="readyz"),
     path("api/v1/users/", include("users.urls", namespace="users_api_v1")),
     path("api/v1/problems/", include("problems.urls", namespace="problems_api_v1")),

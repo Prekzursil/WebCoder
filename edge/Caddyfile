@@ -1,0 +1,38 @@
+# Edge proxy (item 144) — security headers, compression, body caps.
+# {$EDGE_DOMAIN} defaults to :80 for local stacks; a real domain
+# switches Caddy to automatic HTTPS.
+{$EDGE_DOMAIN::80} {
+	# Backend answers inside the compose network; its published host port
+	# stays for direct dev access only. EDGE_UPSTREAM selects the active
+	# blue-green color (backend:8000 | backend-blue:8000 |
+	# backend-green:8000) — see scripts/deploy-blue-green.sh.
+	reverse_proxy {$EDGE_UPSTREAM:backend:8000} {
+		# Flush early so the judge's long polling responses stream.
+		flush_interval -1
+	}
+
+	header {
+		# Baseline hardening (OWASP secure headers, minus CSP — the API
+		# serves JSON only; the Next.js app sets its own CSP).
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+
+	encode gzip zstd
+
+	# Body cap: submissions carry source code, not media.
+	request_body {
+		max_size 2MB
+	}
+
+	# NOTE on edge rate limiting: stock Caddy has no rate-limit module;
+	# per-IP auth/submit throttling stays at the application layer
+	# (Django ScopedRateThrottle, SPEC-GAPS SP4 — scopes 'login' and
+	# 'submit', shared via the Redis cache). Operators wanting an
+	# edge-level kill switch can swap the image to a caddy-ratelimit
+	# build and add zones here; see RUNBOOK §edge.
+}

@@ -1,0 +1,54 @@
+# Item 140 (wave G section J) — blue-green deploy: the GREEN slot.
+#
+# Defines a SEPARATE backend-green service (not an override of backend)
+# so both colors can coexist on their own ports during a flip:
+#   blue  → :8010, green → :8020.
+# scripts/deploy-blue-green.sh brings up the inactive color, waits for
+# its /readyz, migrates, then points the edge proxy at it and stands the
+# old color down. Rollback = re-up the previous color file.
+#
+# The block duplicates the base backend service on purpose: compose has
+# no cross-file YAML anchors, and a second PROJECT (-p) would fork the
+# network + dependencies.
+services:
+  backend-green:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-webcoder_api.settings}
+      SECRET_KEY: ${SECRET_KEY:-django-insecure-compose-dev-only-key}
+      DB_NAME: ${POSTGRES_DB:-webcoder_db}
+      DB_USER: ${POSTGRES_USER:-webcoder_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-webcoder_dev_password}
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      JUDGE_BACKEND: container
+      JUDGE_SANDBOX_VOLUME: webcoder_judge-sandbox
+      CELERY_BROKER_URL: redis://redis:6379/0
+      REDIS_URL: redis://redis:6379/1
+      LOG_JSON: "1"
+      DOCKER_HOST: tcp://socket-proxy:2375
+    volumes:
+      - judge-sandbox:/srv/judge
+    ports:
+      - "8020:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - default
+      - docker-sock
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      judge-runner:
+        condition: service_started
+      socket-proxy:
+        condition: service_started
+    restart: unless-stopped
