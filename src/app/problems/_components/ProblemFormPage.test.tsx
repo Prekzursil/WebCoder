@@ -136,8 +136,9 @@ const TAGS: TagType[] = [
 function fillRequiredCreateFields() {
   fireEvent.change(screen.getByLabelText('Title (English):'), { target: { value: 'My Title' } });
   fireEvent.change(screen.getByLabelText('Title (Romanian):'), { target: { value: 'Titlul Meu' } });
-  fireEvent.change(screen.getByLabelText('Statement (English):'), { target: { value: 'Stmt EN' } });
-  fireEvent.change(screen.getByLabelText('Statement (Romanian):'), {
+  fireEvent.change(screen.getByTestId('studio-markdown-en'), { target: { value: 'Stmt EN' } });
+  fireEvent.click(screen.getByTestId('studio-locale-ro'));
+  fireEvent.change(screen.getByTestId('studio-markdown-ro'), {
     target: { value: 'Enunț RO' },
   });
 }
@@ -277,14 +278,14 @@ describe('ProblemFormPage (create mode)', () => {
     fireEvent.change(screen.getByLabelText('Time Limit (ms):'), { target: { value: '500' } });
     fireEvent.change(screen.getByLabelText('Memory Limit (KB):'), { target: { value: '65536' } });
     fireEvent.change(screen.getByLabelText('Status:'), { target: { value: 'PENDING_APPROVAL' } });
-    fireEvent.click(screen.getByLabelText('Is Sample?:'));
-    fireEvent.change(screen.getByLabelText('Input Data:'), { target: { value: 'samp-in' } });
-    fireEvent.change(screen.getByLabelText('Expected Output Data:'), {
+    fireEvent.click(screen.getByLabelText('Is Sample?'));
+    fireEvent.change(screen.getByLabelText('Input Data'), { target: { value: 'samp-in' } });
+    fireEvent.change(screen.getByLabelText('Expected Output Data'), {
       target: { value: 'samp-out' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Add Test Case' }));
 
-    expect(await screen.findByText('Test Case 1 (Sample)')).toBeInTheDocument();
+    expect(await screen.findByText('Test Case 1')).toBeInTheDocument();
 
     fillRequiredCreateFields();
     submitForm();
@@ -352,13 +353,13 @@ describe('ProblemFormPage (create mode)', () => {
     render(<ProblemFormPage />);
     await screen.findByText('Create New Problem');
 
-    fireEvent.change(screen.getByLabelText('Input Data:'), { target: { value: 'tc-in-1' } });
-    fireEvent.change(screen.getByLabelText('Expected Output Data:'), {
+    fireEvent.change(screen.getByLabelText('Input Data'), { target: { value: 'tc-in-1' } });
+    fireEvent.change(screen.getByLabelText('Expected Output Data'), {
       target: { value: 'tc-out-1' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Add Test Case' }));
-    fireEvent.change(screen.getByLabelText('Input Data:'), { target: { value: 'tc-in-2' } });
-    fireEvent.change(screen.getByLabelText('Expected Output Data:'), {
+    fireEvent.change(screen.getByLabelText('Input Data'), { target: { value: 'tc-in-2' } });
+    fireEvent.change(screen.getByLabelText('Expected Output Data'), {
       target: { value: 'tc-out-2' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Add Test Case' }));
@@ -388,8 +389,8 @@ describe('ProblemFormPage (create mode)', () => {
     render(<ProblemFormPage />);
     await screen.findByText('Create New Problem');
 
-    fireEvent.change(screen.getByLabelText('Input Data:'), { target: { value: 'x' } });
-    fireEvent.change(screen.getByLabelText('Expected Output Data:'), { target: { value: 'y' } });
+    fireEvent.change(screen.getByLabelText('Input Data'), { target: { value: 'x' } });
+    fireEvent.change(screen.getByLabelText('Expected Output Data'), { target: { value: 'y' } });
     fireEvent.click(screen.getByRole('button', { name: 'Add Test Case' }));
     await screen.findByText('Test Case 1');
 
@@ -575,12 +576,14 @@ describe('ProblemFormPage (edit mode)', () => {
     expect((screen.getByLabelText('Title (Romanian):') as HTMLInputElement).value).toBe(
       'Problema Completă',
     );
-    expect((screen.getByLabelText('Statement (English):') as HTMLTextAreaElement).value).toBe(
+    expect((screen.getByTestId('studio-markdown-en') as HTMLTextAreaElement).value).toBe(
       'Statement EN',
     );
-    expect((screen.getByLabelText('Statement (Romanian):') as HTMLTextAreaElement).value).toBe(
+    fireEvent.click(screen.getByTestId('studio-locale-ro'));
+    expect((screen.getByTestId('studio-markdown-ro') as HTMLTextAreaElement).value).toBe(
       'Enunț RO',
     );
+    fireEvent.click(screen.getByTestId('studio-locale-en'));
     expect((screen.getByLabelText('Difficulty:') as HTMLSelectElement).value).toBe('HARD');
     expect((screen.getByLabelText('Time Limit (ms):') as HTMLInputElement).value).toBe('2000');
     expect((screen.getByLabelText('Memory Limit (KB):') as HTMLInputElement).value).toBe('131072');
@@ -595,11 +598,14 @@ describe('ProblemFormPage (edit mode)', () => {
       'print("chk")',
     );
 
-    // Prefetched test cases render with the sample marker on the first one.
-    expect(screen.getByText('Test Case 1 (Sample)')).toBeInTheDocument();
+    // Prefetched test cases render; the first carries the example flag.
+    expect(screen.getByText('Test Case 1')).toBeInTheDocument();
     expect(screen.getByText('Test Case 2')).toBeInTheDocument();
-    expect(screen.getByText('in-a')).toBeInTheDocument();
-    expect(screen.getByText('in-b')).toBeInTheDocument();
+    expect(
+      (screen.getAllByLabelText('Example (public in statement)')[0] as HTMLInputElement).checked,
+    ).toBe(true);
+    expect((screen.getByLabelText('Input 1') as HTMLTextAreaElement).value).toBe('in-a');
+    expect((screen.getByLabelText('Input 2') as HTMLTextAreaElement).value).toBe('in-b');
   });
 
   it('applies field defaults when the detail response is sparse', async () => {
@@ -609,8 +615,7 @@ describe('ProblemFormPage (edit mode)', () => {
     expect(await screen.findByText('Edit Problem')).toBeInTheDocument();
     expect((screen.getByLabelText('Title (English):') as HTMLInputElement).value).toBe('');
     expect((screen.getByLabelText('Title (Romanian):') as HTMLInputElement).value).toBe('');
-    expect((screen.getByLabelText('Statement (English):') as HTMLTextAreaElement).value).toBe('');
-    expect((screen.getByLabelText('Statement (Romanian):') as HTMLTextAreaElement).value).toBe('');
+    expect((screen.getByTestId('studio-markdown-en') as HTMLTextAreaElement).value).toBe('');
     expect((screen.getByLabelText('Difficulty:') as HTMLSelectElement).value).toBe('EASY');
     expect((screen.getByLabelText('Time Limit (ms):') as HTMLInputElement).value).toBe('1000');
     expect((screen.getByLabelText('Memory Limit (KB):') as HTMLInputElement).value).toBe('262144');
@@ -711,8 +716,8 @@ describe('ProblemFormPage (edit mode)', () => {
     render(<ProblemFormPage />);
     await screen.findByText('Edit Problem');
 
-    fireEvent.change(screen.getByLabelText('Input Data:'), { target: { value: 'new-in' } });
-    fireEvent.change(screen.getByLabelText('Expected Output Data:'), {
+    fireEvent.change(screen.getByLabelText('Input Data'), { target: { value: 'new-in' } });
+    fireEvent.change(screen.getByLabelText('Expected Output Data'), {
       target: { value: 'new-out' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Add Test Case' }));
@@ -727,7 +732,7 @@ describe('ProblemFormPage (edit mode)', () => {
       }),
     );
     expect(await screen.findByText('Test case added successfully!')).toBeInTheDocument();
-    expect((screen.getByLabelText('Input Data:') as HTMLTextAreaElement).value).toBe('');
+    expect((screen.getByLabelText('Input Data') as HTMLTextAreaElement).value).toBe('');
   });
 
   it('keeps the typed test case when the immediate persist fails', async () => {
@@ -735,14 +740,14 @@ describe('ProblemFormPage (edit mode)', () => {
     render(<ProblemFormPage />);
     await screen.findByText('Edit Problem');
 
-    fireEvent.change(screen.getByLabelText('Input Data:'), { target: { value: 'kept-in' } });
-    fireEvent.change(screen.getByLabelText('Expected Output Data:'), {
+    fireEvent.change(screen.getByLabelText('Input Data'), { target: { value: 'kept-in' } });
+    fireEvent.change(screen.getByLabelText('Expected Output Data'), {
       target: { value: 'kept-out' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Add Test Case' }));
 
     expect(await screen.findByText('tc persist fail')).toBeInTheDocument();
-    expect((screen.getByLabelText('Input Data:') as HTMLTextAreaElement).value).toBe('kept-in');
+    expect((screen.getByLabelText('Input Data') as HTMLTextAreaElement).value).toBe('kept-in');
     expect(screen.queryByText('Test Case 3')).not.toBeInTheDocument();
   });
 
@@ -751,8 +756,8 @@ describe('ProblemFormPage (edit mode)', () => {
     render(<ProblemFormPage />);
     await screen.findByText('Edit Problem');
 
-    fireEvent.change(screen.getByLabelText('Input Data:'), { target: { value: 'x' } });
-    fireEvent.change(screen.getByLabelText('Expected Output Data:'), { target: { value: 'y' } });
+    fireEvent.change(screen.getByLabelText('Input Data'), { target: { value: 'x' } });
+    fireEvent.change(screen.getByLabelText('Expected Output Data'), { target: { value: 'y' } });
     fireEvent.click(screen.getByRole('button', { name: 'Add Test Case' }));
 
     expect(await screen.findByText('Failed to add test case.')).toBeInTheDocument();
@@ -766,8 +771,9 @@ describe('ProblemFormPage (edit mode)', () => {
 
     await waitFor(() => expect(api.deleteTestCase).toHaveBeenCalledWith(51));
     expect(await screen.findByText('Test case removed successfully!')).toBeInTheDocument();
-    expect(screen.queryByText('in-a')).not.toBeInTheDocument();
-    expect(screen.getByText('in-b')).toBeInTheDocument();
+    // The dropped row is gone; the survivor renumbers to slot 1.
+    expect(screen.queryByText('Test Case 2')).not.toBeInTheDocument();
+    expect((screen.getByLabelText('Input 1') as HTMLTextAreaElement).value).toBe('in-b');
   });
 
   it('shows the error message when delete fails, and the generic fallback when absent', async () => {
@@ -789,7 +795,7 @@ describe('ProblemFormPage (test case input validation and auth)', () => {
     render(<ProblemFormPage />);
     await screen.findByText('Create New Problem');
 
-    fireEvent.change(screen.getByLabelText('Input Data:'), { target: { value: 'only-input' } });
+    fireEvent.change(screen.getByLabelText('Input Data'), { target: { value: 'only-input' } });
     fireEvent.click(screen.getByRole('button', { name: 'Add Test Case' }));
 
     await waitFor(() =>
@@ -804,8 +810,8 @@ describe('ProblemFormPage (test case input validation and auth)', () => {
     render(<ProblemFormPage />);
     await screen.findByText('Create New Problem');
 
-    fireEvent.change(screen.getByLabelText('Input Data:'), { target: { value: 'x' } });
-    fireEvent.change(screen.getByLabelText('Expected Output Data:'), { target: { value: 'y' } });
+    fireEvent.change(screen.getByLabelText('Input Data'), { target: { value: 'x' } });
+    fireEvent.change(screen.getByLabelText('Expected Output Data'), { target: { value: 'y' } });
     fireEvent.click(screen.getByRole('button', { name: 'Add Test Case' }));
 
     expect(await screen.findByText('Authentication required.')).toBeInTheDocument();
@@ -818,8 +824,8 @@ describe('ProblemFormPage (test case input validation and auth)', () => {
     await screen.findByText('Create New Problem');
 
     fireEvent.change(screen.getByLabelText('Points:'), { target: { value: 'abc' } });
-    fireEvent.change(screen.getByLabelText('Input Data:'), { target: { value: 'x' } });
-    fireEvent.change(screen.getByLabelText('Expected Output Data:'), { target: { value: 'y' } });
+    fireEvent.change(screen.getByLabelText('Input Data'), { target: { value: 'x' } });
+    fireEvent.change(screen.getByLabelText('Expected Output Data'), { target: { value: 'y' } });
     fireEvent.click(screen.getByRole('button', { name: 'Add Test Case' }));
     await screen.findByText('Test Case 1');
 
@@ -833,8 +839,8 @@ describe('ProblemFormPage (test case input validation and auth)', () => {
     render(<ProblemFormPage />);
     await screen.findByText('Create New Problem');
 
-    fireEvent.change(screen.getByLabelText('Input Data:'), { target: { value: 'local-in' } });
-    fireEvent.change(screen.getByLabelText('Expected Output Data:'), {
+    fireEvent.change(screen.getByLabelText('Input Data'), { target: { value: 'local-in' } });
+    fireEvent.change(screen.getByLabelText('Expected Output Data'), {
       target: { value: 'local-out' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Add Test Case' }));

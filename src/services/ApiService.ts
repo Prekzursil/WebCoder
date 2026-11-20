@@ -218,7 +218,7 @@ const ensureCsrfToken = (): Promise<string | null> => {
 
 const authenticatedFetch = async (url: string, options: RequestInit): Promise<Response> => {
   const headers = new Headers(options.headers || {});
-  if (options.body) {
+  if (options.body && !(options.body instanceof FormData)) {
     headers.set('Content-Type', 'application/json');
   }
   // Cookie-authenticated unsafe methods require the double-submit CSRF
@@ -1264,6 +1264,59 @@ export const TestCaseService = {
     }),
   deleteTestCase: (id: number | string) =>
     apiFetch<void>(`/problems/testcases/${id}/`, { method: 'DELETE' }),
+};
+
+// Problem-page wave (item A/B): authoring drafts + test-archive ops.
+export const AuthoringService = {
+  getDraft: (slot: string | number) =>
+    apiFetch<{ payload: Record<string, unknown>; updated_at: string }>(
+      `/problems/authoring-drafts/${slot}/`,
+    ),
+  saveDraft: (slot: string | number, payload: Record<string, unknown>) =>
+    apiFetch<{ payload: Record<string, unknown>; updated_at: string }>(
+      `/problems/authoring-drafts/${slot}/`,
+      { method: 'PUT', body: JSON.stringify({ payload }) },
+    ),
+  deleteDraft: (slot: string | number) =>
+    apiFetch<void>(`/problems/authoring-drafts/${slot}/`, { method: 'DELETE' }),
+};
+
+export interface ArchivePreviewPair {
+  name: string;
+  input: string;
+  expected: string;
+  is_sample: boolean;
+}
+
+export interface TestArchivePreview {
+  pairs: ArchivePreviewPair[];
+  skipped: string[];
+  other_files: string[];
+  total_members: number;
+  created?: number;
+  points_each?: number;
+}
+
+export const TestOpsService = {
+  importArchive: (
+    problemId: number | string,
+    file: File,
+    options: { dryRun?: boolean; points?: number } = {},
+  ) => {
+    const body = new FormData();
+    body.append('archive', file);
+    if (options.dryRun) body.append('dry_run', '1');
+    if (options.points !== undefined) body.append('points', String(options.points));
+    return apiFetch<TestArchivePreview>(
+      `/problems/problems/${problemId}/tests/import-archive/`,
+      { method: 'POST', body },
+    );
+  },
+  distributePoints: (problemId: number | string, target?: number) =>
+    apiFetch<{ target: number; tests: number; total: number; points: number[] }>(
+      `/problems/problems/${problemId}/tests/distribute/`,
+      { method: 'POST', body: JSON.stringify(target !== undefined ? { target } : {}) },
+    ),
 };
 
 export const AdminService = {
