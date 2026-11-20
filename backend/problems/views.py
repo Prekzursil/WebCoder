@@ -564,9 +564,7 @@ class ProblemViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         tier = int(tier)
-        HintReveal.objects.get_or_create(
-            user=request.user, problem=problem, tier=tier
-        )
+        HintReveal.objects.get_or_create(user=request.user, problem=problem, tier=tier)
         from .hints import hint_state_for
 
         locale = getattr(request, "LANGUAGE_CODE", "en") or "en"
