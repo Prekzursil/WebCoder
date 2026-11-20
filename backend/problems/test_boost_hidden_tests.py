@@ -182,6 +182,27 @@ class TestCommand:
         assert match_problem(spec).pk == problem.pk
 
 
+class TestSpecHelper:
+    def test_spec_without_wrong_solution_branch(self):
+        # Each batch module's _spec() has an optional wrong_solution arm;
+        # exercise the without-branch once per module (branch gate).
+        from problems.data import hidden_test_specs as b1
+        from problems.data import hidden_test_specs_b2 as b2
+        from problems.data import hidden_test_specs_b3 as b3
+
+        for mod in (b1, b2, b3):
+            before = len(mod.SPECS)
+            mod._spec(
+                match={"title_en": "HelperBranchProbe"},
+                title={"en": "Helper Branch Probe", "ro": "Test de ramură"},
+                statement={"en": "# Probe\n", "ro": "# Probă\n"},
+                solution="import sys\nprint(int(sys.stdin.readline()) * 3)\n",
+                inputs=["1\n", "2\n"],
+            )
+            assert len(mod.SPECS) == before + 1
+            assert "wrong_solution" not in mod.SPECS[-1]
+
+
 class TestCommittedSpecs:
     def test_every_committed_spec_validates(self):
         # The committed payload is the contract: every spec must run, and

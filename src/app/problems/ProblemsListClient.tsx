@@ -153,10 +153,10 @@ export default function ProblemsListClient({
       // query support), so pages are fetched unfiltered and appended here.
       // [2026-11-20] the ?q= term rides the server fetch (search lives
       // server-side now) so appended pages stay within the search hits.
-      const response = await ProblemService.getProblems(
-        urlSearch ? { search: urlSearch } : {},
-        { page: nextPageRef.current, pageSize: 100 },
-      );
+      const response = await ProblemService.getProblems(urlSearch ? { search: urlSearch } : {}, {
+        page: nextPageRef.current,
+        pageSize: 100,
+      });
       setRows((prev) => {
         const seen = new Set(prev.map((p) => p.id));
         return [...prev, ...response.results.filter((p) => !seen.has(p.id))];
