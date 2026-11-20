@@ -219,7 +219,7 @@ class TestRoundTrip:
     def test_wc_key_row_matches_by_title(self, author, tmp_path):
         # Export keys hand-authored rows as wc:<id>; on import the http
         # branch is skipped and the EN-title fallback finds them.
-        problem = make_problem(author)  # no source_url -> wc: key
+        make_problem(author)  # no source_url -> wc: key
         export(tmp_path)
         Problem.objects.all().delete()
         run("import_catalog", "--file", str(tmp_path / "problems.json.gz"))
@@ -236,7 +236,7 @@ class TestRoundTrip:
             notes="",
         )
         export(tmp_path)
-        out = run("import_catalog", "--file", str(tmp_path / "problems.json.gz"))
+        run("import_catalog", "--file", str(tmp_path / "problems.json.gz"))
         # First import creates; second run hits get_or_create's false arm.
         out = run("import_catalog", "--file", str(tmp_path / "problems.json.gz"))
         assert "import source: Again" not in out
