@@ -29,8 +29,11 @@ const eslintConfig = [
       'wt-*/**',
       // Backend pytest coverage HTML (scripts/verify generates backend/htmlcov
       // in the SAME job, right before `npm run lint` runs — generated vendor
-      // JS must never enter the lint surface).
+      // JS must never enter the lint surface). The documented backend gate
+      // also runs from the repo ROOT (RUNBOOK §test batteries), which drops
+      // htmlcov/ at the root — ignore both locations.
       'backend/htmlcov/**',
+      'htmlcov/**',
       // Local agent scratch space (untracked): session temp files are not
       // product sources.
       '.remember/**',
