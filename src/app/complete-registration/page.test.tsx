@@ -182,19 +182,16 @@ describe('CompleteRegistrationPage', () => {
     ],
     ['an Error with an empty message', new Error(''), 'Failed to complete registration.'],
     ['a non-Error rejection', 'oauth provider offline', 'Failed to complete registration.'],
-  ])(
-    'surfaces the API failure when the API rejects with %s',
-    async (_label, rejection, expected) => {
-      const { unmount } = renderCompleteRegistration();
-      registerMock.mockRejectedValueOnce(rejection);
+  ])('surfaces the API failure when the API rejects with %s', async (_label, rejection, expected) => {
+    const { unmount } = renderCompleteRegistration();
+    registerMock.mockRejectedValueOnce(rejection);
 
-      submitForm();
+    submitForm();
 
-      const alert = await screen.findByRole('alert');
-      expect(alert).toHaveTextContent(expected);
-      expect(authMock.login).not.toHaveBeenCalled();
-      expect(routerMock.push).not.toHaveBeenCalledWith('/');
-      unmount();
-    },
-  );
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent(expected);
+    expect(authMock.login).not.toHaveBeenCalled();
+    expect(routerMock.push).not.toHaveBeenCalledWith('/');
+    unmount();
+  });
 });
