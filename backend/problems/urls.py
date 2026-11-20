@@ -217,4 +217,11 @@ urlpatterns = [
         authoring_ops.AttachmentView.as_view(),
         name="statement_attachments",
     ),
+    # Problem-page wave (item A): autosaved authoring drafts — "new" is the
+    # create-page scratchpad, "{problem_id}" the edit-page draft.
+    path(
+        "authoring-drafts/<str:problem_id>/",
+        authoring_ops.AuthoringDraftView.as_view(),
+        name="authoring_draft",
+    ),
 ]

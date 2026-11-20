@@ -39,7 +39,7 @@ from rest_framework.test import APIClient, APIRequestFactory
 
 from problems import admin as problems_admin
 from problems import migrations as problems_migrations
-from problems.models import Problem, Tag
+from problems.models import Problem, ProblemEditorial, Tag
 from problems.models import TestCase as ProblemTestCase
 from problems.serializers import (
     ProblemSerializer,
@@ -732,6 +732,8 @@ class ProblemWorkflowAPITests(DjangoTestCase):
         problem = make_problem(
             author=self.author, status=Problem.ProblemStatus.PENDING_APPROVAL
         )
+        # Item E: approval requires an editorial.
+        ProblemEditorial.objects.create(problem=problem, content_en="Walkthrough.")
         self.client.force_authenticate(self.verifier)
         response = self.client.post(
             reverse(PROBLEM_APPROVE, args=[problem.id]),

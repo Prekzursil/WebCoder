@@ -309,3 +309,64 @@ class AttachmentView(APIView):
             },
             status=status.HTTP_201_CREATED,
         )
+
+
+class AuthoringDraftView(APIView):
+    """Item A — autosaved rich-authoring drafts.
+
+    One draft per (author, problem slot): ``/problems/authoring-drafts/new/``
+    is the create-page scratchpad (problem=None), ``.../{problem_id}/`` the
+    edit-page draft. GET returns the saved payload (404 when none), PUT
+    upserts, DELETE clears. Only the owner ever sees their draft.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def _slot(self, request, problem_id: str):
+        """Resolve (problem-or-None, existing draft); 404 on a bad id."""
+        from .models import AuthoringDraft
+
+        problem = None
+        if problem_id not in ("new", "0"):
+            try:
+                problem = Problem.objects.get(id=int(problem_id))
+            except (ValueError, Problem.DoesNotExist):
+                return None, None
+        draft = AuthoringDraft.objects.filter(
+            user=request.user, problem=problem
+        ).first()
+        return problem, draft
+
+    def get(self, request, problem_id: str):
+        problem, draft = self._slot(request, problem_id)
+        if problem is None and problem_id not in ("new", "0"):
+            return Response({"detail": "problem not found"}, status=404)
+        if draft is None:
+            return Response({"detail": "no draft"}, status=404)
+        return Response({"payload": draft.payload, "updated_at": draft.updated_at})
+
+    def put(self, request, problem_id: str):
+        from .models import AuthoringDraft
+
+        problem, _draft = self._slot(request, problem_id)
+        if problem is None and problem_id not in ("new", "0"):
+            return Response({"detail": "problem not found"}, status=404)
+        payload = request.data.get("payload")
+        if not isinstance(payload, dict):
+            return Response(
+                {"detail": "payload must be a JSON object"}, status=400
+            )
+        draft, _created = AuthoringDraft.objects.update_or_create(
+            user=request.user,
+            problem=problem,
+            defaults={"payload": payload},
+        )
+        return Response({"payload": draft.payload, "updated_at": draft.updated_at})
+
+    def delete(self, request, problem_id: str):
+        problem, draft = self._slot(request, problem_id)
+        if problem is None and problem_id not in ("new", "0"):
+            return Response({"detail": "problem not found"}, status=404)
+        if draft is not None:
+            draft.delete()
+        return Response(status=204)

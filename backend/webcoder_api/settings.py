@@ -656,3 +656,28 @@ JUDGE_PYPI_INDEX_URL = os.environ.get("JUDGE_PYPI_INDEX_URL", "")
 CONTEST_SUBMIT_COOLDOWN_SECONDS = int(
     os.environ.get("CONTEST_SUBMIT_COOLDOWN_SECONDS", "30")
 )
+
+# --- Problem-page experience wave (owner directive 2026-10-31) -------------
+#
+# G) Difficulty-bounded problem points: every problem's finite point value
+# (target_points, the author's declared total the per-test points should sum
+# to) is bounded by its difficulty label. Absolute floor/ceiling clamp the
+# whole system — no difficulty can configure its way past them. Format:
+# {difficulty: (min, max)}; read via problems.economics.difficulty_point_ranges().
+PROBLEM_POINT_FLOOR = 1
+PROBLEM_POINT_CEILING = 1000
+PROBLEM_DIFFICULTY_POINT_RANGES = {
+    "VERY_EASY": (1, 10),
+    "EASY": (10, 50),
+    "MEDIUM": (50, 200),
+    "HARD": (200, 500),
+    "VERY_HARD": (500, 1000),
+}
+
+# B2) Inline testcase editing display threshold (bytes): input/expected
+# fields at or below this size render as editable textareas in the author
+# UI; larger tests render a preview + download link and are managed via
+# archive upload.
+TESTCASE_INLINE_EDIT_THRESHOLD_BYTES = int(
+    os.environ.get("TESTCASE_INLINE_EDIT_THRESHOLD_BYTES", "10240")
+)

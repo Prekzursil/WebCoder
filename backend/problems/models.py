@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.conf import settings
@@ -55,6 +56,10 @@ class Problem(models.Model):
         EASY = "EASY", _("Easy")
         MEDIUM = "MEDIUM", _("Medium")
         HARD = "HARD", _("Hard")
+        # Problem-page wave (item G): the top band — olympiad-decider /
+        # research-grade problems. Point value bounded 500–1000 by the
+        # difficulty-band validation in problems.economics.
+        VERY_HARD = "VERY_HARD", _("Very hard")
         # Could also be integer based if preferred
 
     class ProblemType(models.TextChoices):
@@ -229,6 +234,18 @@ class Problem(models.Model):
         _("full score"),
         default=0,
         help_text=_("Cached total score across tests/subtasks."),
+    )
+    # Problem-page wave (item G): the problem's finite point value — the
+    # author's declared total the per-test points should sum to (the author
+    # UI warns when they diverge, item B4). Bounded by the difficulty band
+    # at the model-validation layer; see problems.economics.
+    target_points = models.PositiveIntegerField(
+        _("target points"),
+        default=100,
+        help_text=_(
+            "The problem's point value; bounded by difficulty "
+            "(EASY 10–50, MEDIUM 50–200, HARD 200–500, VERY_HARD 500–1000)."
+        ),
     )
 
     class IOMode(models.TextChoices):
@@ -519,6 +536,24 @@ class Problem(models.Model):
             )
         return f"Problem {self.id}"
 
+    def clean(self):
+        """Model-validation layer for the point economics (wave item G).
+
+        The declared point value must sit inside the difficulty's band
+        (settings-configurable, absolutely bounded 1–1000). Called by
+        full_clean() (Django admin) and by the API serializer's validate();
+        the approval workflow re-checks as defense in depth.
+        """
+        from .economics import validate_target_points
+
+        super().clean()
+        try:
+            validate_target_points(self.difficulty, self.target_points)
+        except ValidationError as exc:
+            # Re-raise keyed on the field so ErrorDict serialization keeps
+            # the standard {"target_points": [...]} DRF shape.
+            raise ValidationError(dict(exc)) from None
+
     @property
     def variant_root(self):
         """The family root: the problem itself when it has no parent."""
@@ -648,6 +683,16 @@ class ProblemEditorial(models.Model):
     )
     content_ro = models.TextField(_("editorial content (Romanian)"), blank=True)
     content_en = models.TextField(_("editorial content (English)"), blank=True)
+    # Problem-page wave (item E): the mandatory editorial's reference
+    # implementations — at least Python and C++ so the walkthrough covers
+    # both of the platform's first-class languages. Rendered as highlighted
+    # code blocks under the editorial body.
+    solution_python = models.TextField(
+        _("reference solution (Python)"), blank=True, default=""
+    )
+    solution_cpp = models.TextField(
+        _("reference solution (C++)"), blank=True, default=""
+    )
     publish_policy = models.CharField(
         _("publish policy"),
         max_length=10,
@@ -1257,3 +1302,135 @@ class StatementAnnotation(models.Model):
         return (
             f"annotation {self.id} by user={self.user_id} on problem={self.problem_id}"
         )
+
+
+class ProblemForfeit(models.Model):
+    """Permanent per-user-per-problem points forfeiture (wave item F).
+
+    Created at the instant a user confirms the source-code unlock modal
+    ("unlocking the source code before the problem is solved means the
+    problem will NOT award points to this account"). Existence of a row
+    means: that problem NEVER awards points to that user (score
+    aggregation excludes it), while the reference source AND the
+    editorial become visible (the "explicitly unlock early" lane of the
+    editorial gate, item E).
+
+    Rows are never deleted by any user-facing flow — forfeiture is
+    permanent by design; only a staff data-fix would remove one.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="problem_forfeits",
+        verbose_name=_("user"),
+    )
+    problem = models.ForeignKey(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name="forfeits",
+        verbose_name=_("problem"),
+    )
+    created_at = models.DateTimeField(_("forfeited at"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("problem forfeit")
+        verbose_name_plural = _("problem forfeits")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "problem"], name="unique_user_problem_forfeit"
+            )
+        ]
+
+    def __str__(self):
+        return f"user={self.user_id} forfeited problem={self.problem_id}"
+
+
+class HintReveal(models.Model):
+    """One voluntary hint-tier reveal (wave item D).
+
+    Hints are free (no point penalty) and strictly voluntary; each reveal
+    is recorded for analytics (author dashboard usage counts) and for the
+    per-user "revealed up to tier N" state — re-revealing an already-open
+    tier is a no-op that does not duplicate rows.
+    """
+
+    TIER_MAX = 3
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="hint_reveals",
+        verbose_name=_("user"),
+    )
+    problem = models.ForeignKey(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name="hint_reveals",
+        verbose_name=_("problem"),
+    )
+    tier = models.PositiveSmallIntegerField(
+        _("hint tier"),
+        validators=[MinValueValidator(1), MaxValueValidator(TIER_MAX)],
+        help_text=_("1 = gentle nudge, 2 = stronger, 3 = approach outline."),
+    )
+    created_at = models.DateTimeField(_("revealed at"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("hint reveal")
+        verbose_name_plural = _("hint reveals")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "problem", "tier"], name="unique_user_problem_tier"
+            )
+        ]
+        indexes = [models.Index(fields=["problem", "tier"])]
+
+    def __str__(self):
+        return f"hint tier {self.tier} revealed by user={self.user_id} on problem={self.problem_id}"
+
+
+class AuthoringDraft(models.Model):
+    """Autosaved rich-authoring draft (wave item A).
+
+    One draft per (user, problem slot): ``problem=None`` is the
+    create-new-problem scratchpad, ``problem=<id>`` is the edit-page
+    draft for that problem. Payload is the JSON the authoring studio
+    serializes (structured-mode fields, toolbar text, test-staging…);
+    the statement revision HISTORY stays in StatementRevision (UXP-4) —
+    this table only holds the in-flight editing state between sessions.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="authoring_drafts",
+        verbose_name=_("author"),
+    )
+    problem = models.ForeignKey(
+        Problem,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="authoring_drafts",
+        verbose_name=_("problem"),
+        help_text=_("Null = the create-page scratchpad."),
+    )
+    payload = models.JSONField(
+        _("draft payload"), default=dict, help_text=_("Authoring-studio state.")
+    )
+    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+
+    class Meta:
+        verbose_name = _("authoring draft")
+        verbose_name_plural = _("authoring drafts")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "problem"], name="unique_user_problem_authoring_draft"
+            )
+        ]
+        ordering = ["-updated_at"]
+
+    def __str__(self):
+        target = f"problem={self.problem_id}" if self.problem_id else "new-problem"
+        return f"authoring draft user={self.user_id} {target}"

@@ -232,6 +232,12 @@ class ApproveRejectEmissionTest(TestCase):
             username="verifier", password="p", role=User.Roles.PROBLEM_VERIFIER
         )
         self.problem = _mk_problem(author=self.author)
+        # Item E: approval requires an editorial — the fixture carries one.
+        from problems.models import ProblemEditorial
+
+        ProblemEditorial.objects.create(
+            problem=self.problem, content_en="Walkthrough."
+        )
 
     def _act(self, verifier):
         self.client.force_authenticate(verifier)
