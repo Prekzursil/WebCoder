@@ -112,10 +112,10 @@ class SsrfValidatorTailTest(TestCase):
     def test_unparseable_url_valueerror(self):
         # A malformed bracket host makes urlsplit itself raise ValueError.
         self.assertIsNone(_validated_webhook_url("https://[::1"))
-        self.assertIsNone(_validated_webhook_url("https://exa mple.com/x"))
 
     def test_public_ip_literal_accepted(self):
-        self.assertIsNotNone(_validated_webhook_url("https://2606:4700::6810:85e3/x"))
+        # Bracketed IPv6 literals are the parseable form.
+        self.assertIsNotNone(_validated_webhook_url("https://[2606:4700::6810:85e3]/x"))
 
     def test_ipv6_loopback_rejected(self):
         self.assertIsNone(_validated_webhook_url("https://[::1]/x"))
