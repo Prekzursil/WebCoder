@@ -162,5 +162,5 @@ class DeliverRejectedTest(TestCase):
         delivered = deliver_to_endpoint(endpoint, "ping", {"x": 1})
         self.assertFalse(delivered)
         delivery = endpoint.deliveries.get()
-        self.assertEqual(delivery.status, "rejected")
+        self.assertIsNone(delivery.status_code)
         self.assertIn("SSRF", delivery.error)

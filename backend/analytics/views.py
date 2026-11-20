@@ -255,10 +255,10 @@ def deliver_to_endpoint(endpoint: WebhookEndpoint, event: str, payload: dict) ->
     )
     url = _validated_webhook_url(endpoint.url)
     if url is None:
-        delivery.status = "rejected"
-        delivery.response_status = 0
+        # Rejected before transport: status_code stays NULL and the
+        # error text carries the reason (audit trail keeps the attempt).
         delivery.error = "endpoint URL failed SSRF validation (https, public host)"
-        delivery.save(update_fields=["status", "response_status", "error"])
+        delivery.save(update_fields=["error"])
         return False
     try:
         response = requests.post(
