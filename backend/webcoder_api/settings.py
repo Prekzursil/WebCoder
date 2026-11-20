@@ -681,3 +681,15 @@ PROBLEM_DIFFICULTY_POINT_RANGES = {
 TESTCASE_INLINE_EDIT_THRESHOLD_BYTES = int(
     os.environ.get("TESTCASE_INLINE_EDIT_THRESHOLD_BYTES", "10240")
 )
+
+# B1) Test-archive upload guards (zip-bomb defense, per-file cap, member
+# cap). The compression-ratio cap stops decompression bombs before the
+# total-size counter can be blown past; all four are env-tunable.
+TEST_ARCHIVE_MAX_FILE_BYTES = int(
+    os.environ.get("TEST_ARCHIVE_MAX_FILE_BYTES", str(64 * 1024 * 1024))
+)
+TEST_ARCHIVE_MAX_TOTAL_BYTES = int(
+    os.environ.get("TEST_ARCHIVE_MAX_TOTAL_BYTES", str(256 * 1024 * 1024))
+)
+TEST_ARCHIVE_MAX_MEMBERS = int(os.environ.get("TEST_ARCHIVE_MAX_MEMBERS", "10000"))
+TEST_ARCHIVE_MAX_RATIO = int(os.environ.get("TEST_ARCHIVE_MAX_RATIO", "500"))
