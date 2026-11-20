@@ -507,6 +507,24 @@ class ProblemViewSet(viewsets.ModelViewSet):
             row["language"]: row["n"]
             for row in subs.values("language").annotate(n=models.Count("id"))
         }
+        # [wave G item 102] per-problem language stats: tried, distinct AC
+        # users and the acceptance rate per language.
+        language_stats = {}
+        for row in subs.values("language").annotate(
+            n=models.Count("id"),
+            ac_users=models.Count(
+                "user_id",
+                filter=models.Q(verdict=Submission.VerdictStatus.ACCEPTED),
+                distinct=True,
+            ),
+        ):
+            language_stats[row["language"]] = {
+                "tried": row["n"],
+                "solved_users": row["ac_users"],
+                "acceptance_rate": (
+                    round(row["ac_users"] / row["n"], 4) if row["n"] else None
+                ),
+            }
         ratings = problem.ratings.aggregate(
             avg=models.Avg("rating"), count=models.Count("id")
         )
@@ -518,6 +536,7 @@ class ProblemViewSet(viewsets.ModelViewSet):
                 "acceptance_rate": round(solved / tried, 4) if tried else None,
                 "verdict_distribution": verdict_distribution,
                 "language_counts": language_counts,
+                "language_stats": language_stats,
                 "rating_avg": round(ratings["avg"], 2)
                 if ratings["avg"] is not None
                 else None,

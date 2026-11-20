@@ -1054,6 +1054,10 @@ const server = createServer((req, res) => {
       acceptance_rate: 0.5,
       verdict_distribution: { AC: 6, WA: 6 },
       language_counts: { python3: 8, cpp17: 4 },
+      language_stats: {
+        python3: { tried: 8, solved_users: 5, acceptance_rate: 0.625 },
+        cpp17: { tried: 4, solved_users: 3, acceptance_rate: 0.75 },
+      },
       rating_avg: 2.7,
       rating_count: 3,
     });
@@ -1094,6 +1098,7 @@ const server = createServer((req, res) => {
         HARD: { solved: 0, attempted: 0 },
       },
       per_language: { python3: 15, cpp17: 5 },
+      hour_of_day: [0, 0, 0, 0, 0, 0, 1, 2, 3, 2, 1, 0, 0, 4, 5, 3, 1, 0, 0, 1, 2, 3, 1, 0],
       active_dates_90d: [new Date().toISOString().slice(0, 10)],
       current_streak: 1,
       max_streak: 3,
@@ -1433,6 +1438,65 @@ const server = createServer((req, res) => {
         text: 'I believe this hide was wrong.',
       },
     ]);
+    return;
+  }
+  // Wave G section G: analytics endpoints (admin dashboard).
+  if (path === '/api/v1/analytics/funnel/') {
+    json(res, 200, {
+      steps: [
+        { key: 'signup', count: 100, rate: 1.0 },
+        { key: 'first_submission', count: 60, rate: 0.6, step_rate: 0.6 },
+        { key: 'first_ac', count: 45, rate: 0.45, step_rate: 0.75 },
+        { key: 'first_contest', count: 12, rate: 0.12, step_rate: 0.2667 },
+      ],
+      generated_at: '2026-11-19T00:00:00Z',
+    });
+    return;
+  }
+  if (path === '/api/v1/analytics/search/') {
+    json(res, 200, {
+      total_searches: 8,
+      top_queries: [{ query: 'sum', n: 5 }],
+      zero_result_queries: [{ query: 'segment tree', n: 3 }],
+    });
+    return;
+  }
+  if (path === '/api/v1/analytics/org/' && req.method === 'GET') {
+    json(res, 200, {
+      school: 'CNIT',
+      county: '',
+      members: 12,
+      weekly_active_solvers: 7,
+      total_solves: 40,
+      submissions_30d: 120,
+    });
+    return;
+  }
+  if (path === '/api/v1/analytics/season-reports/' && req.method === 'GET') {
+    const parsed = new URL(req.url, 'http://mock.local');
+    const season = parsed.searchParams.get('season');
+    if (season) {
+      json(res, 200, {
+        season,
+        markdown: `# WebCoder ${season} report
+
+- New accounts: **10**`,
+        generated_at: '2026-11-19T00:00:00Z',
+      });
+      return;
+    }
+    json(res, 200, [{ season: '2026Q4', generated_at: '2026-11-19T00:00:00Z' }]);
+    return;
+  }
+  if (path === '/api/v1/analytics/season-reports/' && req.method === 'POST') {
+    json(res, 201, {
+      season: req.body?.season || '2026Q4',
+      markdown: `# WebCoder ${req.body?.season || '2026Q4'} report
+
+- New accounts: **10**`,
+      generated_at: '2026-11-19T00:00:00Z',
+      created: true,
+    });
     return;
   }
 

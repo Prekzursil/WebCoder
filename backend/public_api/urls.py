@@ -19,4 +19,15 @@ urlpatterns = [
     path("tags/", views.PublicTags.as_view(), name="tags"),
     # JDG-9: the judge registry as public toolchain docs.
     path("languages/", views.PublicLanguagesView.as_view(), name="languages"),
+    # Wave G item 106: contest standings + public user profiles complete v1.
+    path(
+        "contests/<int:contest_id>/standings/",
+        views.PublicStandingsView.as_view(),
+        name="contest_standings",
+    ),
+    path(
+        "users/<str:username>/",
+        views.PublicUserProfileView.as_view(),
+        name="user_profile",
+    ),
 ]

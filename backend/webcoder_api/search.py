@@ -88,38 +88,35 @@ class FederatedSearchView(APIView):
             "username"
         )[: LIMITS["users"]]
 
-        return Response(
-            {
-                "query": query,
-                "results": {
-                    "problems": [
-                        {
-                            "id": p.id,
-                            "title": _i18n_text(p.title_i18n, locale) or f"#{p.id}",
-                            "difficulty": p.difficulty,
-                        }
-                        for p in problems
-                    ],
-                    "threads": [
-                        {"id": t.id, "title": t.title, "problem": t.problem_id}
-                        for t in threads
-                    ],
-                    "articles": [
-                        {
-                            "id": a.id,
-                            "title": _i18n_text(a.title_i18n, locale) or f"#{a.id}",
-                        }
-                        for a in articles
-                    ],
-                    "contests": [
-                        {
-                            "id": c.id,
-                            "title": _i18n_text(c.title_i18n, locale) or f"#{c.id}",
-                            "start_at": c.start_at,
-                        }
-                        for c in contests
-                    ],
-                    "users": [{"id": u.id, "username": u.username} for u in users],
-                },
-            }
-        )
+        results = {
+            "problems": [
+                {
+                    "id": p.id,
+                    "title": _i18n_text(p.title_i18n, locale) or f"#{p.id}",
+                    "difficulty": p.difficulty,
+                }
+                for p in problems
+            ],
+            "threads": [
+                {"id": t.id, "title": t.title, "problem": t.problem_id} for t in threads
+            ],
+            "articles": [
+                {"id": a.id, "title": _i18n_text(a.title_i18n, locale) or f"#{a.id}"}
+                for a in articles
+            ],
+            "contests": [
+                {
+                    "id": c.id,
+                    "title": _i18n_text(c.title_i18n, locale) or f"#{c.id}",
+                    "start_at": c.start_at,
+                }
+                for c in contests
+            ],
+            "users": [{"id": u.id, "username": u.username} for u in users],
+        }
+        # [wave G item 110] search analytics: log the invocation with the
+        # real per-kind counts (best-effort — never breaks the search).
+        from analytics.views import log_search
+
+        log_search(query, results, request.user)
+        return Response({"query": query, "results": results})

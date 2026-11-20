@@ -12,7 +12,14 @@ import { ProblemService } from '@/services/ApiService';
 import { useAuth } from '@/context/AuthContext';
 import { palette, hexAlpha } from '@/theme/tokens';
 
+interface LanguageStat {
+  tried: number;
+  solved_users: number;
+  acceptance_rate: number | null;
+}
+
 interface ProblemStats {
+  language_stats?: Record<string, LanguageStat>;
   tried: number;
   solved: number;
   acceptance_rate: number | null;
@@ -85,6 +92,37 @@ export default function ProblemStatsPanel({ problemId }: { problemId: string }):
           </strong>{' '}
           <span style={{ color: 'var(--muted)' }}>{t('stat_acceptance', 'AC rate')}</span>
         </span>
+      )}
+      {stats.language_stats && Object.keys(stats.language_stats).length > 0 && (
+        <div data-testid="language-stats" style={{ marginTop: '0.75rem' }}>
+          <div className="micro-label" style={{ color: 'var(--muted)', marginBottom: '0.35rem' }}>
+            {t('lang_stats_header', 'By language')}
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>{t('lang_stats_language', 'Language')}</th>
+                <th>{t('lang_stats_tried', 'Tried')}</th>
+                <th>{t('lang_stats_ac', 'Distinct AC')}</th>
+                <th>{t('lang_stats_rate', 'AC rate')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(stats.language_stats).map(([lang, row]) => (
+                <tr key={lang}>
+                  <td>{lang}</td>
+                  <td>{row.tried}</td>
+                  <td>{row.solved_users}</td>
+                  <td>
+                    {row.acceptance_rate != null
+                      ? `${Math.round(row.acceptance_rate * 100)}%`
+                      : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
       {stats.rating_count > 0 && stats.rating_avg != null && (
         <span>
