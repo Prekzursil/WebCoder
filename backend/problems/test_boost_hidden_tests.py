@@ -201,6 +201,14 @@ class TestSpecHelper:
             )
             assert len(mod.SPECS) == before + 1
             assert "wrong_solution" not in mod.SPECS[-1]
+            # Same module's statement builder has an optional-constraints
+            # arm every committed spec exercises WITH text — cover the
+            # empty-constraints (None) arm once.
+            en, ro = mod._stmt(
+                "task", "in", "out", "sarcina", "intr", "ies", [("1", "2")]
+            )
+            assert "Constraints" not in en and "task" in en and "### Sample" in en
+            assert "Restric" not in ro and "sarcina" in ro and "Exemplu" in ro
 
 
 class TestCommittedSpecs:
