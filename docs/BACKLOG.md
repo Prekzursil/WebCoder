@@ -106,3 +106,4 @@ Item-level tracker of record. Statuses: `shipped (PR #N)` · `in-flight (wave X)
 ## Idea parking lot (uncommitted — add freely, status someday)
 - Deeper hidden-suite coverage for the ~1 000 imported problems still carrying 1–3 tests (machinery + spec format shipped in the polish sweep; per-problem reference solvers continue as content-ops).
 - F-100 email/SMS fallback notices (rides the mail transport).
+probe 1795185313
