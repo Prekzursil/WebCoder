@@ -16,7 +16,7 @@ from analytics.models import (
     SeasonReport,
     WebhookEndpoint,
 )
-import analytics.views as views
+from analytics import views as analytics_views
 from analytics.views import (
     build_season_report,
     dispatch_webhooks,
@@ -295,7 +295,7 @@ class WebhooksTest(TestCase):
             secret="s3cret",
         )
 
-        with mock.patch.object(views, "requests") as fake_requests:
+        with mock.patch.object(analytics_views, "requests") as fake_requests:
             fake_requests.post.return_value = mock.Mock(status_code=200)
             sent = dispatch_webhooks("submission.judged", {"id": 7})
         self.assertEqual(sent, 1)
@@ -314,7 +314,7 @@ class WebhooksTest(TestCase):
             secret="s3cret",
         )
 
-        with mock.patch.object(views, "requests") as fake_requests:
+        with mock.patch.object(analytics_views, "requests") as fake_requests:
             fake_requests.post.side_effect = OSError("net")
             sent = dispatch_webhooks("contest.finished", {})
         self.assertEqual(sent, 0)
@@ -330,7 +330,7 @@ class WebhooksTest(TestCase):
             secret="s3cret",
         )
 
-        with mock.patch.object(views, "requests") as fake_requests:
+        with mock.patch.object(analytics_views, "requests") as fake_requests:
             fake_requests.post.return_value = mock.Mock(status_code=200)
             response = self.client.post(
                 f"/api/v1/analytics/webhooks/{endpoint.id}/ping/"
@@ -659,7 +659,7 @@ class LogFailureTest(TestCase):
         from analytics.views import log_search
 
         with _mock.patch.object(
-            views.SearchQuery.objects, "create", side_effect=OSError("db")
+            analytics_views.SearchQuery.objects, "create", side_effect=OSError("db")
         ):
             log_search("q", {"problems": [1]}, None)  # must not raise
 
@@ -729,7 +729,7 @@ class DeliveryNon2xxTest(TestCase):
             secret="s",
         )
 
-        with mock.patch.object(views, "requests") as fake:
+        with mock.patch.object(analytics_views, "requests") as fake:
             fake.post.return_value = mock.Mock(status_code=503)
             ok = deliver_to_endpoint(endpoint, "submission.judged", {})
         self.assertFalse(ok)
