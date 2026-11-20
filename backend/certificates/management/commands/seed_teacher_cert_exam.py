@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from certifications.teacher import seed_questions
+from certificates.teacher import seed_questions
 
 
 class Command(BaseCommand):
