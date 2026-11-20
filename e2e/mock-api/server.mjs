@@ -3909,6 +3909,9 @@ const server = createServer((req, res) => {
         { digest: 'mock-d1', path: '/api/v1/problems/', method: 'GET', status_code: 500, count: 2 },
       ],
       events: [],
+    });
+    return;
+  }
   // [wave G item 147] school partnership applications.
   if (req.method === 'POST' && path === '/api/v1/partnerships/apply/') {
     json(res, 201, { id: 7, status: 'PENDING' });
