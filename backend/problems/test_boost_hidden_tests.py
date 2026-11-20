@@ -43,7 +43,10 @@ def make_problem(title, *, author, statement=None):
 CALC_SPEC = {
     "match": {"title_en": "SpecCalc"},
     "title": {"en": "Spec Calc", "ro": "Calcul de probă"},
-    "statement": {"en": "# Spec Calc\n\nnew body", "ro": "# Calcul de probă\n\ncorp nou"},
+    "statement": {
+        "en": "# Spec Calc\n\nnew body",
+        "ro": "# Calcul de probă\n\ncorp nou",
+    },
     "solution": "import sys\nprint(int(sys.stdin.readline()) * 2)\n",
     "inputs": ["3\n", "0\n", "-7\n"],
 }
@@ -84,7 +87,9 @@ class TestSpecValidation:
         def slow(*a, **k):
             raise sp.TimeoutExpired(cmd="x", timeout=0.01)
 
-        monkeypatch.setattr("problems.management.commands.boost_hidden_tests.subprocess.run", slow)
+        monkeypatch.setattr(
+            "problems.management.commands.boost_hidden_tests.subprocess.run", slow
+        )
         with pytest.raises(SpecError, match="timed out"):
             run_solution("print(1)", "")
 
@@ -162,7 +167,11 @@ class TestCommand:
             [dict(CALC_SPEC, replace_tests=True)],
         )
         run("boost_hidden_tests", "--apply")
-        inputs = set(TestCase.objects.filter(problem=problem).values_list("input_data", flat=True))
+        inputs = set(
+            TestCase.objects.filter(problem=problem).values_list(
+                "input_data", flat=True
+            )
+        )
         assert inputs == {"3\n", "0\n", "-7\n"}  # the bad row is gone
 
     def test_match_by_url_suffix(self, admin):

@@ -64,24 +64,32 @@ class TestExport:
         )
         out = run("export_catalog", "--out", str(tmp_path))
         assert "1 problems (1 tests)" in out
-        payload = json.load(gzip.open(tmp_path / "problems.json.gz", "rt", encoding="utf-8"))
+        payload = json.load(
+            gzip.open(tmp_path / "problems.json.gz", "rt", encoding="utf-8")
+        )
         assert payload["problems"][0]["key"] == "https://x.example/p/1"
         assert payload["problems"][0]["tests"][0]["input_data"] == "1\n"
-        sources = json.load(gzip.open(tmp_path / "sources.json.gz", "rt", encoding="utf-8"))
+        sources = json.load(
+            gzip.open(tmp_path / "sources.json.gz", "rt", encoding="utf-8")
+        )
         assert sources["sources"][0]["name"] == "Example"
 
     def test_imported_only_flag(self, author, tmp_path):
         make_problem(author)  # no source_url -> excluded
         make_problem(author, source_url="https://y.example/p/9")
         run("export_catalog", "--out", str(tmp_path), "--imported-only")
-        payload = json.load(gzip.open(tmp_path / "problems.json.gz", "rt", encoding="utf-8"))
+        payload = json.load(
+            gzip.open(tmp_path / "problems.json.gz", "rt", encoding="utf-8")
+        )
         assert [p["key"] for p in payload["problems"]] == ["https://y.example/p/9"]
 
 
 class TestRoundTrip:
     def test_fresh_rebuild_matches_source(self, author, tmp_path):
         problem = make_problem(author, source_url="https://z.example/p/7")
-        problem.tags.add(Tag.objects.create(slug="round-trip", name_i18n={"en": "rt", "ro": "rt"}))
+        problem.tags.add(
+            Tag.objects.create(slug="round-trip", name_i18n={"en": "rt", "ro": "rt"})
+        )
         TestCase.objects.create(
             problem=problem,
             input_data="3\n",
@@ -112,7 +120,9 @@ class TestRoundTrip:
         problem.curriculum_nodes.add(node)
         export(tmp_path)
         # dry-run over an EXISTING row (update branch) writes nothing
-        out = run("import_catalog", "--file", str(tmp_path / "problems.json.gz"), "--dry-run")
+        out = run(
+            "import_catalog", "--file", str(tmp_path / "problems.json.gz"), "--dry-run"
+        )
         assert "0 created, 1 updated" in out
         run("import_catalog", "--file", str(tmp_path / "problems.json.gz"))
         rebuilt = Problem.objects.get(source_url="https://t.example/p/5")
@@ -138,7 +148,9 @@ class TestRoundTrip:
         make_problem(author, source_url="https://u.example/p/4")
         export(tmp_path)
         Problem.objects.all().delete()
-        out = run("import_catalog", "--file", str(tmp_path / "problems.json.gz"), "--dry-run")
+        out = run(
+            "import_catalog", "--file", str(tmp_path / "problems.json.gz"), "--dry-run"
+        )
         assert "1 created, 0 updated" in out
         assert "dry-run" in out
         assert Problem.objects.count() == 0
@@ -163,7 +175,9 @@ class TestRoundTrip:
         from problems.management.commands import import_catalog as mod
 
         # clear any cached download from a previous test run
-        cache = Path(tempfile.gettempdir()) / "webcoder-catalog-catalog-2026-11-20.json.gz"
+        cache = (
+            Path(tempfile.gettempdir()) / "webcoder-catalog-catalog-2026-11-20.json.gz"
+        )
         cache.unlink(missing_ok=True)
         monkeypatch.setenv("CATALOG_RELEASE_BASE", "https://mirror.example/dl")
         captured = {}
@@ -182,7 +196,9 @@ class TestRoundTrip:
         mod._fetch_release("catalog-2026-11-20")
         assert len(captured["urls"]) == 1
 
-    def test_from_release_flag_routes_to_fetched_file(self, author, tmp_path, monkeypatch):
+    def test_from_release_flag_routes_to_fetched_file(
+        self, author, tmp_path, monkeypatch
+    ):
         from problems.management.commands import import_catalog as mod
 
         fetched = tmp_path / "downloaded.json.gz"

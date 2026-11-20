@@ -377,7 +377,9 @@ class Problem(models.Model):
         max_length=200,
         null=True,
         blank=True,
-        help_text=_("Canonical URL of the problem's source (pbinfo, infoarena, DMOJ...)."),
+        help_text=_(
+            "Canonical URL of the problem's source (pbinfo, infoarena, DMOJ...)."
+        ),
     )
     source_name = models.CharField(
         _("source name"),

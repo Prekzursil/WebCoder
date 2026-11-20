@@ -26,7 +26,9 @@ from django.db import connection, transaction
 
 from problems.models import Problem
 
-DATA_FILE = Path(__file__).resolve().parent.parent.parent / "data" / "catalog_polish.json"
+DATA_FILE = (
+    Path(__file__).resolve().parent.parent.parent / "data" / "catalog_polish.json"
+)
 
 
 def detach_catalog_entries(problem_id):
@@ -73,7 +75,13 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         apply = options["apply"]
         payload = load_payload()
-        report = {"deduped": 0, "titled": 0, "patched": 0, "dropped_locales": 0, "ro_filled": 0}
+        report = {
+            "deduped": 0,
+            "titled": 0,
+            "patched": 0,
+            "dropped_locales": 0,
+            "ro_filled": 0,
+        }
 
         for title in payload.get("drop_pending_dupes", []):
             approved = Problem.objects.filter(
@@ -105,7 +113,9 @@ class Command(BaseCommand):
         for fix in payload.get("fixes", []):
             rows = list(find_by_title(fix["match_title_en"]))
             if not rows:
-                self.stdout.write(f"no match for '{fix['match_title_en']}' (already polished?)")
+                self.stdout.write(
+                    f"no match for '{fix['match_title_en']}' (already polished?)"
+                )
                 continue
             for problem in rows:
                 titles = dict(problem.title_i18n or {})
@@ -120,7 +130,9 @@ class Command(BaseCommand):
 
                 statement = dict(problem.statement_i18n or {})
                 changed = False
-                for locale, patches in (fix.get("statement_replacements") or {}).items():
+                for locale, patches in (
+                    fix.get("statement_replacements") or {}
+                ).items():
                     text = statement.get(locale)
                     if text is None:
                         self.stdout.write(
@@ -151,7 +163,9 @@ class Command(BaseCommand):
         for entry in payload.get("missing_ro", []):
             rows = list(find_by_title(entry["match_title_en"]))
             if not rows:
-                self.stdout.write(f"no match for '{entry['match_title_en']}' (already polished?)")
+                self.stdout.write(
+                    f"no match for '{entry['match_title_en']}' (already polished?)"
+                )
                 continue
             for problem in rows:
                 statement = dict(problem.statement_i18n or {})

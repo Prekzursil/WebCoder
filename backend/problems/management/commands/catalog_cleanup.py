@@ -102,10 +102,14 @@ class Command(BaseCommand):
         deleted = skipped = 0
         for problem in rows:
             is_probe = problem.title_i18n.get("en") in PROBE_TITLES
-            allowed_submitters = ["e2e_tester", "admin", "bob"] if is_probe else ["e2e_tester"]
-            stranger_subs = Submission.objects.filter(problem=problem).exclude(
-                user__username__in=allowed_submitters
-            ).exclude(user__username__startswith="replay_")
+            allowed_submitters = (
+                ["e2e_tester", "admin", "bob"] if is_probe else ["e2e_tester"]
+            )
+            stranger_subs = (
+                Submission.objects.filter(problem=problem)
+                .exclude(user__username__in=allowed_submitters)
+                .exclude(user__username__startswith="replay_")
+            )
             if stranger_subs.exists():
                 self.stdout.write(
                     f"KEEP {problem.pk} '{problem.title_i18n.get('en', '')}' "
@@ -122,7 +126,9 @@ class Command(BaseCommand):
                 skipped += 1
                 continue
             action = "deleted" if options["apply"] else "would delete"
-            self.stdout.write(f"{action}: {problem.pk} '{problem.title_i18n.get('en', '')}'")
+            self.stdout.write(
+                f"{action}: {problem.pk} '{problem.title_i18n.get('en', '')}'"
+            )
             if options["apply"]:
                 problem.delete()
                 deleted += 1

@@ -22,7 +22,9 @@ from users.models import User
 pytestmark = pytest.mark.django_db
 
 
-def make_problem(title, *, statement=None, status=Problem.ProblemStatus.APPROVED, author):
+def make_problem(
+    title, *, statement=None, status=Problem.ProblemStatus.APPROVED, author
+):
     return Problem.objects.create(
         title_i18n={"en": title},
         statement_i18n=statement or {"en": f"# {title}\n\nbody"},
@@ -84,7 +86,9 @@ class TestCatalogCleanup:
         assert not Problem.objects.filter(pk=problem.pk).exists()
 
     def test_e2e_submissions_need_flag(self, admin):
-        e2e_user = User.objects.create_user(username="e2e_tester", password="pw-12345678")
+        e2e_user = User.objects.create_user(
+            username="e2e_tester", password="pw-12345678"
+        )
         problem = make_problem("Two Sum", author=admin)
         Submission.objects.create(
             user=e2e_user, problem=problem, language="python3", code="x"
@@ -100,8 +104,12 @@ class TestCatalogCleanup:
         bob = User.objects.create_user(username="bob", password="pw-12345678")
         root = User.objects.create_user(username="admin", password="pw-12345678")
         problem = make_problem("JFW-A multiplier proof (pinned 100ms)", author=admin)
-        Submission.objects.create(user=root, problem=problem, language="python3", code="x")
-        Submission.objects.create(user=bob, problem=problem, language="python3", code="x")
+        Submission.objects.create(
+            user=root, problem=problem, language="python3", code="x"
+        )
+        Submission.objects.create(
+            user=bob, problem=problem, language="python3", code="x"
+        )
         out = run("catalog_cleanup", "--apply", "--allow-submissions")
         assert "1 deleted" in out
         assert not Problem.objects.filter(pk=problem.pk).exists()
@@ -130,7 +138,10 @@ class TestCatalogPolish:
         jp = "整数 $a, b$ が与えられます。 $a + b$ を出力してください。"
         first = make_problem(
             "Simple AplusB",
-            statement={"en": f"# Simple AplusB\n\n{jp}\n", "ro": f"# AplusB simplu\n\n{jp}\n"},
+            statement={
+                "en": f"# Simple AplusB\n\n{jp}\n",
+                "ro": f"# AplusB simplu\n\n{jp}\n",
+            },
             author=admin,
         )
         second = make_problem("Simple AplusB", author=admin)
@@ -167,7 +178,9 @@ class TestCatalogPolish:
         run("catalog_polish", "--apply")
         assert not Problem.objects.filter(pk=dupe.pk).exists()
         with connection.cursor() as cursor:
-            cursor.execute("SELECT imported_problem_id FROM problems_catalogentry WHERE id=1")
+            cursor.execute(
+                "SELECT imported_problem_id FROM problems_catalogentry WHERE id=1"
+            )
             assert cursor.fetchone()[0] is None
 
     def test_pending_dupe_dropped_only_when_approved_twin_exists(self, admin):
@@ -216,7 +229,9 @@ class TestCatalogPolish:
 
     def test_missing_anchor_and_locale_warn_but_pass(self, admin):
         problem = make_problem(
-            "注文の多い順列", statement={"en": "# 注文の多い順列\n\nunrelated text"}, author=admin
+            "注文の多い順列",
+            statement={"en": "# 注文の多い順列\n\nunrelated text"},
+            author=admin,
         )
         # ro statement absent -> the ro patch warns and skips; the en patch
         # anchor for the duplicated condition is missing -> warns; the title
@@ -248,7 +263,9 @@ class TestCatalogPolish:
 
     def test_missing_ro_backfill(self, admin):
         problem = make_problem(
-            "Sumdiv", statement={"en": "# Sumdiv\n\nS = sum of divisors of A^B"}, author=admin
+            "Sumdiv",
+            statement={"en": "# Sumdiv\n\nS = sum of divisors of A^B"},
+            author=admin,
         )
         run("catalog_polish", "--apply")
         problem.refresh_from_db()
@@ -257,7 +274,9 @@ class TestCatalogPolish:
 
     def test_existing_ro_kept(self, admin):
         problem = make_problem(
-            "Road Reparation", statement={"en": "e", "ro": "# Repararea drumurilor\n\nexistent"}, author=admin
+            "Road Reparation",
+            statement={"en": "e", "ro": "# Repararea drumurilor\n\nexistent"},
+            author=admin,
         )
         out = run("catalog_polish", "--apply")
         assert "keep existing RO" in out

@@ -49,7 +49,9 @@ class SpecError(ValueError):
 
 def run_solution(code, stdin_text):
     """Run a python solution on stdin_text, return stdout (str)."""
-    with tempfile.NamedTemporaryFile("w", suffix=".py", delete=False, encoding="utf-8") as fh:
+    with tempfile.NamedTemporaryFile(
+        "w", suffix=".py", delete=False, encoding="utf-8"
+    ) as fh:
         fh.write(code)
         path = fh.name
     try:
@@ -96,7 +98,9 @@ def validate_spec(spec):
         try:
             wrong_out = run_solution(wrong_code, stdin_text)
         except SpecError:
-            return outputs, len(inputs)  # wrong solution crashing = every test catches it
+            return outputs, len(
+                inputs
+            )  # wrong solution crashing = every test catches it
         if wrong_out != expected:
             flips += 1
     if flips == 0:
@@ -125,7 +129,9 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--apply", action="store_true")
         parser.add_argument(
-            "--only", default="", help="Restrict to specs whose match key contains this."
+            "--only",
+            default="",
+            help="Restrict to specs whose match key contains this.",
         )
         parser.add_argument(
             "--no-approve",
@@ -138,7 +144,11 @@ class Command(BaseCommand):
         only = options["only"]
         done = skipped = 0
         for spec in SPECS:
-            key = spec["match"].get("title_en") or spec["match"].get("source_url_suffix") or ""
+            key = (
+                spec["match"].get("title_en")
+                or spec["match"].get("source_url_suffix")
+                or ""
+            )
             if only and only not in key:
                 continue
             try:
@@ -153,7 +163,9 @@ class Command(BaseCommand):
                 skipped += 1
                 continue
             existing_inputs = set(
-                TestCase.objects.filter(problem=problem).values_list("input_data", flat=True)
+                TestCase.objects.filter(problem=problem).values_list(
+                    "input_data", flat=True
+                )
             )
             new_tests = [
                 (stdin_text, expected)
@@ -166,11 +178,15 @@ class Command(BaseCommand):
             )
             if apply:
                 with transaction.atomic():
-                    self._apply_spec(problem, spec, new_tests, approve=not options["no_approve"])
+                    self._apply_spec(
+                        problem, spec, new_tests, approve=not options["no_approve"]
+                    )
             self.stdout.write(("applied: " if apply else "would apply: ") + label)
             done += 1
         suffix = "" if apply else " (dry-run)"
-        self.stdout.write(self.style.SUCCESS(f"{done} specs processed, {skipped} skipped{suffix}"))
+        self.stdout.write(
+            self.style.SUCCESS(f"{done} specs processed, {skipped} skipped{suffix}")
+        )
 
     def _apply_spec(self, problem, spec, new_tests, *, approve):
         problem.title_i18n = {

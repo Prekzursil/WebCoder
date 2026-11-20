@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("problems", "0026_testcase_comment_en_testcase_comment_ro_and_more"),
     ]
