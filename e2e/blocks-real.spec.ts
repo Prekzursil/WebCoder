@@ -9,6 +9,7 @@
 // the dev server, cookies are SameSite=Lax). In mock mode the file skips.
 import { test, expect } from '@playwright/test';
 import {
+  BLOCKLY_SEED_TITLE,
   E2E_ADMIN_PASS,
   E2E_ADMIN_USER,
   E2E_USER,
@@ -23,7 +24,7 @@ import {
 test.skip(!isRealStack, 'real-stack mode only — set E2E_API_BASE');
 
 /** The blockly proof problem this spec owns on the live stack. */
-const BLOCKLY_TITLE = 'E2E Blockly Real Last Digit';
+const BLOCKLY_TITLE = BLOCKLY_SEED_TITLE;
 
 async function seedBlocklyProblem(): Promise<number> {
   const admin = await login(E2E_ADMIN_USER, E2E_ADMIN_PASS);

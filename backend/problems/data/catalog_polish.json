@@ -1,0 +1,388 @@
+{
+  "comment": "Content-polish payload applied by `manage.py catalog_polish` (2026-11-20 polish sweep). Fixes the yukicoder-import rows whose machine translation left Japanese titles/fragments in every locale, plus exact-duplicate rows the translation experiments left behind. Matching is by source_url when present, else by the exact current English title (pre-fix). `statement_replacements` are substring patches per locale; a patch whose old text is absent in that locale is skipped with a warning. `drop_statement_locales` removes broken minor-locale statements so the EN fallback (problems/i18n_fields.py owner rule (d)) serves them.",
+  "dedupe_titles": [
+    "Simple AplusB",
+    "注文の多い順列"
+  ],
+  "fixes": [
+    {
+      "match_title_en": "Simple AplusB",
+      "titles": {
+        "en": "Simple A+B",
+        "ro": "A+B simplu",
+        "bg": "Просто A+B",
+        "ca": "A+B senzill",
+        "de": "Einfaches A+B",
+        "es": "A+B simple",
+        "fr": "A+B simple",
+        "hu": "Egyszerű A+B",
+        "it": "A+B semplice",
+        "pl": "Proste A+B",
+        "pt": "A+B simples",
+        "sr-Latn": "Jednostavno A+B"
+      },
+      "statement_replacements": {
+        "en": [
+          [
+            "整数 $a, b$ が与えられます。 $a + b$ を出力してください。",
+            "You are given two integers $a$ and $b$. Print $a + b$."
+          ]
+        ],
+        "ro": [
+          [
+            "整数 $a, b$ が与えられます。 $a + b$ を出力してください。",
+            "Se dau două numere întregi $a$ și $b$. Afișați $a + b$."
+          ]
+        ],
+        "bg": [
+          [
+            "整数 $a, b$ が与えられます。 $a + b$ を出力してください。",
+            "Дадени са ви две цели числа $a$ и $b$. Изведете $a + b$."
+          ]
+        ],
+        "ca": [
+          [
+            "整数 $a, b$ が与えられます。 $a + b$ を出力してください。",
+            "Se us donen dos enters $a$ i $b$. Escriviu $a + b$."
+          ]
+        ],
+        "de": [
+          [
+            "整数 $a, b$ が与えられます。 $a + b$ を出力してください。",
+            "Du erhältst zwei ganze Zahlen $a$ und $b$. Gib $a + b$ aus."
+          ]
+        ],
+        "es": [
+          [
+            "整数 $a, b$ が与えられます。 $a + b$ を出力してください。",
+            "Se te dan dos enteros $a$ y $b$. Imprime $a + b$."
+          ]
+        ],
+        "fr": [
+          [
+            "整数 $a, b$ が与えられます。 $a + b$ を出力してください。",
+            "On vous donne deux entiers $a$ et $b$. Affichez $a + b$."
+          ]
+        ],
+        "hu": [
+          [
+            "整数 $a, b$ が与えられます。 $a + b$ を出力してください。",
+            "Adott két egész szám, $a$ és $b$. Írd ki az $a + b$ értékét."
+          ]
+        ],
+        "it": [
+          [
+            "整数 $a, b$ が与えられます。 $a + b$ を出力してください。",
+            "Dati due interi $a$ e $b$, stampa $a + b$."
+          ]
+        ],
+        "pl": [
+          [
+            "整数 $a, b$ が与えられます。 $a + b$ を出力してください。",
+            "Dane są dwie liczby całkowite $a$ i $b$. Wypisz $a + b$."
+          ]
+        ],
+        "pt": [
+          [
+            "整数 $a, b$ が与えられます。 $a + b$ を出力してください。",
+            "São dados dois inteiros $a$ e $b$. Imprima $a + b$."
+          ]
+        ],
+        "sr-Latn": [
+          [
+            "整数 $a, b$ が与えられます。 $a + b$ を出力してください。",
+            "Data su dva cela broja $a$ i $b$. Ispišite $a + b$."
+          ]
+        ]
+      }
+    },
+    {
+      "match_title_en": "ロッカーの問題",
+      "titles": {
+        "en": "The Locker Problem",
+        "ro": "Problema dulapurilor",
+        "bg": "Задачата за шкафчетата",
+        "ca": "El problema dels casellers",
+        "de": "Das Schließfachproblem",
+        "es": "El problema de los casilleros",
+        "fr": "Le problème des casiers",
+        "hu": "A szekrényprobléma",
+        "it": "Il problema degli armadietti",
+        "pl": "Problem szafek",
+        "pt": "O problema dos cacifos",
+        "sr-Latn": "Problem ormarića"
+      }
+    },
+    {
+      "match_title_en": "素因数ゲーム リターンズ",
+      "titles": {
+        "en": "Prime Factor Game Returns",
+        "ro": "Jocul factorilor primi — revenire",
+        "bg": "Играта с прости множители — завръщане",
+        "ca": "El joc dels factors primers — el retorn",
+        "de": "Primfaktor-Spiel — Die Rückkehr",
+        "es": "El juego de los factores primos: el regreso",
+        "fr": "Le jeu des facteurs premiers : le retour",
+        "hu": "Prímfaktor-játék — visszatérés",
+        "it": "Il gioco dei fattori primi: il ritorno",
+        "pl": "Gra o czynniki pierwsze: powrót",
+        "pt": "O jogo dos fatores primos: o regresso",
+        "sr-Latn": "Igra prostih delilaca: povratak"
+      }
+    },
+    {
+      "match_title_en": "コイン集め",
+      "titles": {
+        "en": "Collecting Coins",
+        "ro": "Strângerea monedelor",
+        "bg": "Събиране на монети",
+        "ca": "Recollint monedes",
+        "de": "Münzen sammeln",
+        "es": "Recolectando monedas",
+        "fr": "Collecte de pièces",
+        "hu": "Érmegyűjtés",
+        "it": "Raccogliere monete",
+        "pl": "Zbieranie monet",
+        "pt": "Coletando moedas",
+        "sr-Latn": "Sakupljanje novčića"
+      }
+    },
+    {
+      "match_title_en": "注文の多い順列",
+      "titles": {
+        "en": "The Demanding Permutation",
+        "ro": "Permutarea capricioasă",
+        "bg": "Взискателната пермутация",
+        "ca": "La permutació exigent",
+        "de": "Die anspruchsvolle Permutation",
+        "es": "La permutación exigente",
+        "fr": "La permutation exigeante",
+        "hu": "A követelőző permutáció",
+        "it": "La permutazione esigente",
+        "pl": "Kapryśna permutacja",
+        "pt": "A permutação exigente",
+        "sr-Latn": "Zahtevna permutacija"
+      },
+      "statement_replacements": {
+        "en": [
+          [
+            "# 注文の多い順列",
+            "# The Demanding Permutation"
+          ],
+          [
+            "integers at least $1$ and at most $N$, a permutation $p_1, p_2, \\ldots , p_N$ of them such that\nCompute the number of permutations",
+            "You are given $N$ pairs of integers $(t_i, X_i)$. Compute the number of permutations"
+          ],
+          [
+            "such that\nCompute",
+            "that satisfy"
+          ],
+          [
+            "- If $t_i = 0$ then $p_i\\leq X_i$\n\n- If $t_i = 0$ then $p_i\\leq X_i$",
+            "- If $t_i = 0$ then $p_i\\leq X_i$\n- If $t_i = 1$ then $p_i\\geq X_i$"
+          ]
+        ],
+        "ro": [
+          [
+            "# 注文の多い順列",
+            "# Permutarea capricioasă"
+          ],
+          [
+            "numere întregi cel puțin $1$ și cel mult $N$, o permutare $p_1, p_2, \\ldots , p_N$ a acestora astfel încât\nCalculați numărul de permutări",
+            "Se dau $N$ perechi de numere întregi $(t_i, X_i)$. Calculați numărul de permutări"
+          ],
+          [
+            "astfel încât\nCalculați",
+            "care satisfac"
+          ],
+          [
+            "- Dacă $t_i = 0$, atunci $p_i\\leq X_i$\n\n- Dacă $t_i = 0$, atunci $p_i\\leq X_i$",
+            "- Dacă $t_i = 0$, atunci $p_i\\leq X_i$\n- Dacă $t_i = 1$, atunci $p_i\\geq X_i$"
+          ]
+        ]
+      },
+      "drop_statement_locales": [
+        "bg",
+        "ca",
+        "de",
+        "es",
+        "fr",
+        "hu",
+        "it",
+        "pl",
+        "pt",
+        "sr-Latn"
+      ]
+    },
+    {
+      "match_title_en": "質より種類数",
+      "titles": {
+        "en": "Variety over Quality",
+        "ro": "Varietate în locul calității",
+        "bg": "Разнообразие пред качеството",
+        "ca": "Varietat abans que qualitat",
+        "de": "Vielfalt vor Qualität",
+        "es": "Variedad antes que calidad",
+        "fr": "La variété plutôt que la qualité",
+        "hu": "Sokféleség a minőség helyett",
+        "it": "Varietà prima della qualità",
+        "pl": "Różnorodność zamiast jakości",
+        "pt": "Variedade em vez de qualidade",
+        "sr-Latn": "Raznovrsnost umesto kvaliteta"
+      }
+    },
+    {
+      "match_title_en": "足し算するだけのパズルゲーム(1)",
+      "titles": {
+        "en": "A Mere-Addition Puzzle Game (1)",
+        "ro": "Joc-puzzle de simplă adunare (1)",
+        "bg": "Игра-пъзел само със събиране (1)",
+        "ca": "Un joc-puzle de simples sumes (1)",
+        "de": "Ein Nur-Additions-Puzzlespiel (1)",
+        "es": "Un juego-puzzle de solo sumar (1)",
+        "fr": "Un jeu-puzzle de simples additions (1)",
+        "hu": "Pusztán összeadásos kirakó (1)",
+        "it": "Un gioco-rompicapo di sole addizioni (1)",
+        "pl": "Gra-zagadka z samego dodawania (1)",
+        "pt": "Um jogo-puzzle de simples adições (1)",
+        "sr-Latn": "Igra-slagalica samo sa sabiranjem (1)"
+      }
+    },
+    {
+      "match_title_en": "片道きゃっちぼーる",
+      "titles": {
+        "en": "One-Way Catchball",
+        "ro": "Catchball într-un singur sens",
+        "bg": "Кетбол в една посока",
+        "ca": "Catchball en un sol sentit",
+        "de": "Catchball in eine Richtung",
+        "es": "Catchball en un solo sentido",
+        "fr": "Catchball à sens unique",
+        "hu": "Fogódobás egy irányban",
+        "it": "Catchball a senso unico",
+        "pl": "Catchball w jedną stronę",
+        "pt": "Catchball num só sentido",
+        "sr-Latn": "Ketbol u jednom smeru"
+      }
+    },
+    {
+      "match_title_en": "sum = length",
+      "titles": {
+        "en": "sum = length",
+        "ro": "sumă = lungime",
+        "bg": "сума = дължина",
+        "ca": "suma = llargada",
+        "de": "Summe = Länge",
+        "es": "suma = longitud",
+        "fr": "somme = longueur",
+        "hu": "összeg = hossz",
+        "it": "somma = lunghezza",
+        "pl": "suma = długość",
+        "pt": "soma = comprimento",
+        "sr-Latn": "zbir = dužina"
+      },
+      "statement_replacements": {
+        "en": [
+          [
+            "$f(a)=aを入力で与えた時の入力の長さ$ (excluding the trailing newline)",
+            "$f(a)$ as the length of the input string of $a$ written in the format above (excluding the trailing newline)"
+          ]
+        ],
+        "ro": [
+          [
+            "$f(a)=aを入力で与えた時の入力の長さ$ (excluzând newline-ul final)",
+            "$f(a)$ ca lungimea șirului de intrare al lui $a$ scris în formatul de mai sus (excluzând newline-ul final)"
+          ]
+        ]
+      },
+      "drop_statement_locales": [
+        "bg",
+        "ca",
+        "de",
+        "es",
+        "fr",
+        "hu",
+        "it",
+        "pl",
+        "pt",
+        "sr-Latn"
+      ]
+    },
+    {
+      "match_title_en": "あさかつの参加人数",
+      "titles": {
+        "en": "Asakatsu Attendance",
+        "ro": "Participanții la Asakatsu",
+        "bg": "Посещенията на Асакацу",
+        "ca": "L'assistència d'Asakatsu",
+        "de": "Asakatsu-Teilnahme",
+        "es": "Asistencia de Asakatsu",
+        "fr": "Participation à l'Asakatsu",
+        "hu": "Asakatsu-részvétel",
+        "it": "Presenze ad Asakatsu",
+        "pl": "Frekwencja na Asakatsu",
+        "pt": "Presença no Asakatsu",
+        "sr-Latn": "Nazočnost na Asakacu"
+      }
+    },
+    {
+      "match_title_en": "中華風 (Easy)",
+      "titles": {
+        "en": "Chinese-Style Remainders (Easy)",
+        "ro": "Resturi în stil chinezesc (Ușor)",
+        "bg": "Китайски остатъци (лесно)",
+        "ca": "Rests a la xinesa (fàcil)",
+        "de": "Chinesische Reste (leicht)",
+        "es": "Restos al estilo chino (fácil)",
+        "fr": "Restes à la chinoise (facile)",
+        "hu": "Kínai maradékok (könnyű)",
+        "it": "Resti in stile cinese (facile)",
+        "pl": "Reszty chińskie (łatwe)",
+        "pt": "Restos à moda chinesa (fácil)",
+        "sr-Latn": "Kineski ostaci (lako)"
+      }
+    },
+    {
+      "match_title_en": "コインゲーム",
+      "titles": {
+        "en": "Coin Game",
+        "ro": "Jocul cu monede",
+        "bg": "Играта с монети",
+        "ca": "El joc de monedes",
+        "de": "Münzspiel",
+        "es": "El juego de monedas",
+        "fr": "Le jeu de pièces",
+        "hu": "Érmejáték",
+        "it": "Il gioco delle monete",
+        "pl": "Gra w monety",
+        "pt": "O jogo das moedas",
+        "sr-Latn": "Igra novčićima"
+      }
+    }
+  ],
+  "missing_ro": [
+    {
+      "match_title_en": "Sumdiv",
+      "title_ro": "Sumdiv",
+      "statement_ro": "# Sumdiv\n\nSe dau două numere naturale `A` și `B`. Fie `S` suma divizorilor naturali ai lui $A^B$.\n\n## Cerință\n\nDeterminați `S` modulo `1 000 000 007`.\n\n## Date de intrare\n\nPrima linie a fișierului de intrare `sumdiv.in` conține numerele `A` și `B`, separate de cel puțin un spațiu.\n\n## Date de ieșire\n\nPrima linie a fișierului de ieșire `sumdiv.out` va conține `S` modulo `1 000 000 007`.\n\n## Restricții\n\n- $1 \\le A \\le 10^{12}$\n- $0 \\le B \\le 10^{18}$\n\n### Explicație\n\n$2^3 = 8$.\nDivizorii naturali ai lui `8` sunt: `1, 2, 4, 8`. Suma acestora este `15`.\n\n## Exemple\n\n### Exemplul 1\n\n**Intrare** (`sumdiv.in`):\n\n```\n2 3\n```\n\n**Ieșire** (`sumdiv.out`):\n\n```\n15\n```\n\n*Atribuire: adaptată după problema kilonova.ro „Sumdiv” (https://kilonova.ro/problems/127; sursa: ONI 2002 XI-XII: Ziua 2 Problema 1 (Modificata)).*"
+    },
+    {
+      "match_title_en": "SumaPătrate",
+      "title_ro": "SumaPătrate",
+      "statement_ro": "# SumaPătrate\n\nSe dă un număr natural nenul N. Calculați S = 1² + 2² + 3² + … + N² modulo 10.234.573.\n\n## Intrare\n\nProgramul citește N de la tastatură.\n\n## Ieșire\n\nProgramul afișează S modulo 10.234.573.\n\n## Restricții\n\n- 1 ≤ N ≤ 2.000.000.000\n\n## Exemplu\n\nIntrare:\n```\n4\n```\n\nIeșire:\n```\n30\n```\n\n*Atribuire: adaptată după problema pbinfo.ro „SumaPătrate” (https://www.pbinfo.ro/probleme/1212/suma-patrate).*"
+    },
+    {
+      "match_title_en": "Bookworm",
+      "title_ro": "Citețul",
+      "statement_ro": "# 1638. Citețul\n\nPetya a cumpărat o ediție în 100 de volume din „Sfaturile veteranilor concursurilor de programare” și spera că seriei sale de eșecuri îi va veni sfârșit. A montat un raft pe perete și a așezat volumele pe raft în ordine crescătoare, de la stânga la dreapta, strâns unul lângă altul. Petya nu știa însă că în prima filă a unuia dintre volume trăia un vierme matematic, infinit de mic și foarte lacom. Viermele a început să roadă un tunel prin volume, perpendicular pe file. S-a oprit atunci când a ajuns la ultima filă a altui volum. A doua zi, Petya a descoperit paguba și a vrut să afle câți milimetri a rodit viermele.\n\n## Intrare\n\nPrima linie conține 4 numere întregi pozitive, cel mult egale cu 100, separate prin câte un spațiu: grosimea fiecărui volum (fără coperte), grosimea fiecărei coperte, numărul volumului din care a pornit viermele și numărul volumului la care s-a oprit.\n\n## Ieșire\n\nAfișați lungimea drumului parcurs de vierme.\n\n## Exemplu\n\nIntrare:\n```\n10 1 1 2\n```\n\nIeșire:\n```\n2\n```\n\n*Atribuire: adaptată după problema Codeforces 1638 „Bookworm”.*"
+    },
+    {
+      "match_title_en": "Road Reparation",
+      "title_ro": "Repararea drumurilor",
+      "statement_ro": "# Repararea drumurilor\n\nExistă n orașe și m drumuri între ele. Din păcate, starea drumurilor este atât de proastă încât nu pot fi folosite. Sarcina voastră este să reparați o parte dintre drumuri astfel încât între oricare două orașe să existe un drum bun. Pentru fiecare drum cunoașteți costul reparării și trebuie să găsiți o soluție de cost total cât mai mic.\n\n## Intrare\n\nPrima linie de intrare conține două numere întregi n și m: numărul de orașe, respectiv de drumuri. Orașele sunt numerotate 1, 2, …, n. Urmează m linii care descriu drumurile. Fiecare linie conține trei numere întregi a, b și c: există un drum între orașele a și b, al cărui cost de reparare este c. Toate drumurile sunt bidirecționale. Fiecare drum leagă două orașe diferite și există cel mult un drum între două orașe.\n\n## Ieșire\n\nAfișați un număr întreg: costul total minim de reparare. Dacă nu există nicio soluție, afișați „IMPOSSIBLE”.\n\n## Restricții\n\n1 ≤ n ≤ 10^5 · 1 ≤ m ≤ 2 · 10^5 · 1 ≤ a, b ≤ n · 1 ≤ c ≤ 10^9\n\n## Exemplu\n\nIntrare:\n```\n5 6\n1 2 3\n2 3 5\n2 4 2\n3 4 8\n5 1 7\n5 4 4\n```\n\nIeșire:\n```\n14\n```\n\n*Atribuire: adaptată după problema CSES „Road Reparation” (https://cses.fi/problemset/task/1675).*"
+    }
+  ],
+  "drop_pending_dupes": [
+    "Sumdiv"
+  ]
+}

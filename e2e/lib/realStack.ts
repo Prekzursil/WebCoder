@@ -68,14 +68,33 @@ export async function login(username: string, password: string): Promise<LoginRe
 /** Titles the fixtures own on the live stack. */
 const SEED_TITLES = { twoSum: 'Two Sum', reverse: 'Reverse String' } as const;
 
-async function findSeeded(): Promise<{ twoSum?: number; reverse?: number }> {
-  const { status, body } = await api('/problems/problems/?page_size=100');
-  if (status !== 200) return {};
+/** The blockly proof problem blocks-real.spec.ts seeds (same ownership rules). */
+export const BLOCKLY_SEED_TITLE = 'E2E Blockly Real Last Digit';
+
+/**
+ * Find rows by exact title via the server-side ?search= filter (#320) —
+ * NOT by listing page 1 of the catalog. The live catalog has 1_800+
+ * problems, so a page-size scan stopped seeing earlier seeds and every
+ * real-mode run re-created the pair (the "Reverse String ×8" pollution
+ * found by the 2026-11-20 polish sweep). Returns EVERY matching id so
+ * teardown can sweep them all; seeding reuses the first.
+ */
+async function findAllByTitle(title: string, token?: string): Promise<number[]> {
+  const { status, body } = await api(
+    `/problems/problems/?search=${encodeURIComponent(title)}&page_size=100`,
+    token ? { token } : {},
+  );
+  if (status !== 200) return [];
   const rows: { id: number; title_i18n?: { en?: string } }[] = body.results ?? [];
-  return {
-    twoSum: rows.find((r) => r.title_i18n?.en === SEED_TITLES.twoSum)?.id,
-    reverse: rows.find((r) => r.title_i18n?.en === SEED_TITLES.reverse)?.id,
-  };
+  return rows.filter((r) => r.title_i18n?.en === title).map((r) => r.id);
+}
+
+async function findSeeded(): Promise<{ twoSum?: number; reverse?: number }> {
+  const [twoSum, reverse] = await Promise.all([
+    findAllByTitle(SEED_TITLES.twoSum),
+    findAllByTitle(SEED_TITLES.reverse),
+  ]);
+  return { twoSum: twoSum[0], reverse: reverse[0] };
 }
 
 let seedPromise: Promise<{ twoSumId: number; reverseId: number }> | null = null;
@@ -186,11 +205,17 @@ export async function teardownRealStackFixtures(): Promise<void> {
   if (!isRealStack) return;
   try {
     const admin = await login(E2E_ADMIN_USER, E2E_ADMIN_PASS);
-    const found = await findSeeded();
-    for (const id of [found.twoSum, found.reverse]) {
-      if (id !== undefined) {
-        await api(`/problems/problems/${id}/`, { method: 'DELETE', token: admin.access });
-      }
+    // Sweep EVERY row carrying a seed title — runs before the #320 search
+    // fix leaked one pair per real-mode run, so old pollution must go too.
+    const ids = (
+      await Promise.all([
+        findAllByTitle(SEED_TITLES.twoSum, admin.access),
+        findAllByTitle(SEED_TITLES.reverse, admin.access),
+        findAllByTitle(BLOCKLY_SEED_TITLE, admin.access),
+      ])
+    ).flat();
+    for (const id of ids) {
+      await api(`/problems/problems/${id}/`, { method: 'DELETE', token: admin.access });
     }
   } catch {
     // Teardown is best-effort; the next run self-heals partial leftovers.
