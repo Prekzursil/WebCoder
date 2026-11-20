@@ -1,0 +1,287 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+% fallback for those not using the hyperref driver hyperxmp:
+\makeatletter
+\@ifundefined{xmpquote}{\newcommand{\xmpquote}[1]{#1}}{}
+\makeatother
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
+
+\begin{document}
+
+{
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+\section{WebCoder --- User Guide
+(learners)}\label{webcoder--user-guide-learners}
+
+\begin{quote}
+One-paragraph summary: WebCoder is a bilingual (Romanian/English, plus
+10 more interface languages) competitive-programming platform: browse
+\textasciitilde1 800 problems mapped on the national curriculum, solve
+them in a real code editor with instant judged verdicts, join rated
+contests, climb the rating ladder, learn from hints and editorials, and
+--- with a teacher --- do all of it as classroom homework. This guide
+walks every learner flow end to end.
+\end{quote}
+
+\textbf{Who it\textquotesingle s for:} students, contest participants,
+self-learners. Romanian twin:
+\href{../guide-ro/GHID-UTILIZATOR.md}{\texttt{docs/guide-ro/GHID-UTILIZATOR.md}}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{1. Create an account}\label{1-create-an-account}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Open the site and press \textbf{Sign up}.
+\item
+  Choose a username and password (email optional unless your teacher
+  requires verification; Google / GitHub / Microsoft school login also
+  work).
+\item
+  That\textquotesingle s it --- you land on the home page with the
+  catalog, contests and learning hub one click away.
+\end{enumerate}
+
+Under-16 accounts (GDPR Art. 8): profiles stay non-public and
+school/county fields hidden until parental consent is recorded;
+classroom accounts can be school-mediated instead.
+
+\subsection{2. Find a problem}\label{2-find-a-problem}
+
+The \textbf{Problems} catalog (\texttt{/problems}) is the main surface:
+
+\begin{itemize}
+\tightlist
+\item
+  filter by difficulty (very easy → hard), tag, curriculum chapter
+  (grades 5--12 tree), source archive, I/O mode, solved-status;
+\item
+  the \textbf{Ctrl-K palette} searches problems, threads, articles,
+  contests and users from anywhere;
+\item
+  the dice button picks a random problem matching your filters;
+\item
+  the catalog shows solve counters and your solved/attempted marks.
+\end{itemize}
+
+\pandocbounded{\includegraphics[keepaspectratio,alt={Catalog}]{C:/Users/Prekzursil/.zcode/workspace/draft-9cac9da0-09ed-462a-8bd2-a78591461ba4/wt-polish/docs/dist/USER-GUIDE/en/59810f9277299b0c9296bb4be89dab11b64bfb06.png}}
+
+Curriculum view: pick your grade → chapter → topic; every node lists its
+problems (pbinfo-style navigation, bilingual).
+
+\subsection{3. Read, solve, submit}\label{3-read-solve-submit}
+
+A problem page has the statement (Markdown + LaTeX math), limits,
+samples with copy buttons and localized sample comments, hints, and the
+editor.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Pick a language --- C, C++, Python 3, Java, JavaScript, Go, C\#,
+  Pascal (per-problem allowlists may apply).
+\item
+  Write code in the CodeMirror editor (Tab indents, Ctrl+Enter submits;
+  your draft autosaves per problem and follows you across devices).
+\item
+  Optional before submitting: \textbf{Custom test} (run on your own
+  input), \textbf{Run samples} (compile once, judge every sample with
+  mismatch hints), the pre-submit \textbf{lint} (bilingual pitfall
+  warnings), and the \textbf{stress runner} for authors.
+\item
+  Press \textbf{Submit} and confirm --- the verdict page polls the judge
+  and shows the per-test table, time/memory meters against the actual
+  bars, and the "how close am I?" band.
+\end{enumerate}
+
+\pandocbounded{\includegraphics[keepaspectratio,alt={Problem
+page}]{C:/Users/Prekzursil/.zcode/workspace/draft-9cac9da0-09ed-462a-8bd2-a78591461ba4/wt-polish/docs/dist/USER-GUIDE/en/e1f7428dd0b4eabb1ad16241b72600ec8309c5f0.png}}
+\pandocbounded{\includegraphics[keepaspectratio,alt={Verdict}]{C:/Users/Prekzursil/.zcode/workspace/draft-9cac9da0-09ed-462a-8bd2-a78591461ba4/wt-polish/docs/dist/USER-GUIDE/en/a81e1e860356660d999488ccdece170c87a65f71.png}}
+
+Verdicts: \textbf{AC} (accepted), \textbf{WA} (wrong answer --- sample
+tests show an expected-vs-actual diff), \textbf{TLE/MLE} (time/memory,
+with the limit that was applied), \textbf{RE} (runtime error,
+signal-mapped), \textbf{CE} (compile error, with plain-language hints).
+Partial scoring is per test or per subtask, depending on the problem.
+
+After an AC: the editorial unlocks (if gated), the solutions pool lets
+you compare your code with the fastest/shortest accepted solutions, and
+you can share a solve card.
+
+\subsection{4. Learn, don\textquotesingle t just
+score}\label{4-learn-dont-just-score}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Hints} --- progressive, per problem; the weekly digest emails
+  your attempted-but-unsolved problems with their first hint.
+\item
+  \textbf{Editorials} --- unlock on your own AC by default (peeking
+  marks the solve as "with editorial").
+\item
+  \textbf{/learning hub} --- spaced-repeat review queue over your
+  misses, skill graph, theory cards, mistake-pattern profile, a
+  generated weekly practice plan.
+\item
+  \textbf{/drills} --- a daily warm-up set (read-the-code,
+  fill-the-line, complexity drills).
+\item
+  \textbf{/visualizers} --- step-frame animations of sorting and binary
+  search.
+\item
+  \textbf{/courses} --- structured lessons (e.g. the Scratch→Python
+  bridge).
+\item
+  \textbf{/start} --- the guided first-solve ladder + onboarding
+  checklist.
+\end{itemize}
+
+\subsection{5. Contests and ratings}\label{5-contests-and-ratings}
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{/contests} lists upcoming (with countdown + ICS calendar
+  subscription), running, and past contests; register in one click.
+\item
+  Formats include IOI-style (sum of best per problem), ICPC penalty,
+  windowed personal-timer contests for classrooms, team contests, school
+  cups and long challenges.
+\item
+  During a contest: live scoreboard (frozen near the end), clarification
+  queue to the jury, self-prediction of your final rank.
+\item
+  After: Glicko rating updates with color bands and divisions
+  (promotions/demotion events annotated on your rating graph), medals,
+  replay of any participant\textquotesingle s timeline, and upsolving on
+  the archive with full feedback.
+\item
+  Integrity: AI-assistance declarations, multi-account detection,
+  plagiarism scans --- rated contests assume unaided work (see the RO/EN
+  contest rules page).
+\end{itemize}
+
+\subsection{6. Community}\label{6-community}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Forum} with per-problem discussion threads (spoiler-flagged
+  inside problem threads), wiki, blogs, articles hub.
+\item
+  \textbf{Messaging} --- private 1:1 threads with reporting, block and
+  rate protections.
+\item
+  \textbf{Community hub} (\texttt{/amas}): reputation tiers, awards,
+  medalist AMAs, problem-request board.
+\item
+  Report buttons everywhere feed the moderation queue (SLA-tracked).
+\end{itemize}
+
+\subsection{7. Profile \& settings}\label{7-profile--settings}
+
+\texttt{/profile} shows stats, the 90-day heatmap, streaks
+(weekly-target framing), per-tag skill bars, rating graphs with
+annotations, badges, certificates (atestats with public verification
+UUIDs) and your mistake-pattern profile. Settings: display name/bio,
+county/school (segmented leaderboards), timezone (contest times render
+in your zone), notification digest frequency, a11y display modes
+(dyslexia-friendly, high-contrast), dark/light theme.
+
+\subsection{8. Mobile \& offline}\label{8-mobile--offline}
+
+The PWA installs on phones; offline statement packs
+(\texttt{Save\ offline} on a problem) keep the statement, limits,
+samples and hints available without a network; drafts sync when
+you\textquotesingle re back online.
+
+\subsection{9. Keyboard shortcuts}\label{9-keyboard-shortcuts}
+
+\texttt{Ctrl-K} command palette · \texttt{?} keyboard map overlay ·
+\texttt{Ctrl+Enter} submit · the map lists everything else.
+
+\subsection{10. When something breaks}\label{10-when-something-breaks}
+
+\begin{itemize}
+\tightlist
+\item
+  Judge queue slow? \texttt{/status} shows live queue depth and platform
+  health.
+\item
+  Account issues: password reset by email; contact a moderator via any
+  report.
+\item
+  Bug? The forum\textquotesingle s support category or the
+  problem-request board is the place.
+\end{itemize}
+
+\end{document}

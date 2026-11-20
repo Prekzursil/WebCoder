@@ -395,3 +395,25 @@
   font-size: 0.78rem;
   cursor: pointer;
 }
+
+/* [2026-11-20 polish sweep] Desktop overflow: the wave F/G link tail
+   pushed the bar past its width budget and overlapped the right cluster.
+   Core links render inline; the tail opens this dropdown. */
+.moreWrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.moreBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+/* Hard safety: desktop links never bleed into the right cluster again. */
+.desktopNav {
+  flex: 0 1 auto;
+  overflow: visible;
+  white-space: nowrap;
+}

@@ -35,6 +35,8 @@ const Navbar: React.FC = () => {
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -83,14 +85,21 @@ const Navbar: React.FC = () => {
   const isActive = (path: string): boolean =>
     path === '/' ? pathname === '/' : pathname === path || pathname.startsWith(`${path}/`);
 
-  const primaryLinks: NavLinkItem[] = [
+  // [2026-11-20 polish sweep] The wave F/G additions pushed the desktop
+  // bar past its 1280px budget and the links rendered ON TOP of the right
+  // cluster. Core links stay inline; the long tail lives in a "More"
+  // dropdown (desktop) and in the drawer (mobile) — every destination
+  // remains one click away.
+  const coreLinks: NavLinkItem[] = [
     { href: '/', label: t('nav_home', 'Home') },
     { href: '/problems', label: t('nav_problems', 'Problems') },
     { href: '/tracks', label: t('nav_tracks', 'Tracks') },
     { href: '/contests', label: t('nav_contests', 'Contests') },
-    { href: '/ratings', label: t('nav_ratings', 'Ratings') },
     { href: '/leaderboard', label: t('nav_leaderboard', 'Leaderboard') },
     { href: '/forum', label: t('nav_forum', 'Forum') },
+  ];
+  const moreLinks: NavLinkItem[] = [
+    { href: '/ratings', label: t('nav_ratings', 'Ratings') },
     // Wave F items 62/63/64 — blogs, wiki and the WA-help queue.
     { href: '/blogs', label: t('nav_blogs', 'Blogs') },
     { href: '/wiki', label: t('nav_wiki', 'Wiki') },
@@ -98,6 +107,7 @@ const Navbar: React.FC = () => {
     { href: '/amas', label: t('nav_amas', 'Community') },
     { href: '/blocks', label: t('nav_blocks', 'Blocks') },
   ];
+  const primaryLinks: NavLinkItem[] = [...coreLinks, ...moreLinks];
 
   const accountLinks: NavLinkItem[] = [
     { href: '/classes', label: t('nav_classes', 'My classes') },
@@ -178,6 +188,25 @@ const Navbar: React.FC = () => {
     };
   }, [menuOpen]);
 
+  // Same dismissal behavior for the desktop "More" overflow menu.
+  useEffect(() => {
+    if (!moreOpen) return;
+    const onDown = (event: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(event.target as Node)) {
+        setMoreOpen(false);
+      }
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMoreOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [moreOpen]);
+
   // Close the drawer on Escape.
   useEffect(() => {
     if (!drawerOpen) return;
@@ -245,9 +274,9 @@ const Navbar: React.FC = () => {
         {/* Global search [F21] */}
         {renderSearchForm('nav')}
 
-        {/* Desktop primary links */}
+        {/* Desktop primary links (core inline; the tail under "More") */}
         <div className={styles.desktopNav}>
-          {primaryLinks.map(({ href, label }) => (
+          {coreLinks.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
@@ -260,6 +289,33 @@ const Navbar: React.FC = () => {
               {label}
             </Link>
           ))}
+          <div className={styles.moreWrap} ref={moreRef}>
+            <button
+              type="button"
+              className={`nav-link ${styles.moreBtn}`}
+              onClick={() => setMoreOpen((open) => !open)}
+              aria-haspopup="menu"
+              aria-expanded={moreOpen}
+            >
+              {t('nav_more', 'More')}
+            </button>
+            {moreOpen && (
+              <div className={styles.menu} role="menu">
+                {moreLinks.map(({ href, label }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={styles.menuLink}
+                    role="menuitem"
+                    aria-current={isActive(href) ? 'page' : undefined}
+                    onClick={() => setMoreOpen(false)}
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right cluster: bell · avatar menu / login+register · language */}

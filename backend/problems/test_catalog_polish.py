@@ -65,6 +65,14 @@ class TestCatalogCleanup:
         run("catalog_cleanup", "--apply")
         assert Problem.objects.filter(pk=problem.pk).exists()
 
+    def test_probe_prefix_catches_timestamped_rows(self, admin):
+        problem = make_problem("A+B Sum (live verify 1792653177)", author=admin)
+        TestCase.objects.create(
+            problem=problem, input_data="1 2\n", expected_output_data="3\n", points=10
+        )
+        run("catalog_cleanup", "--apply")
+        assert not Problem.objects.filter(pk=problem.pk).exists()
+
     def test_probe_titles_go_even_with_testcases(self, admin):
         # "Proof A ..." is unmistakably a probe artifact: deleted regardless
         # of status/shape (judge-fairness proof rows carried real tests).
@@ -110,8 +118,8 @@ class TestCatalogCleanup:
     def test_fixture_title_list_exact(self):
         # Guards against accidentally widening the deletion match.
         assert "Sum of Two Numbers" not in FIXTURE_TITLES
-        assert len(FIXTURE_TITLES) == 8
-        assert len(PROBE_TITLES) == 5
+        assert len(FIXTURE_TITLES) == 9
+        assert len(PROBE_TITLES) == 6
         assert set(PROBE_TITLES).isdisjoint(PLAUSIBLE_TITLES)
 
 

@@ -355,6 +355,41 @@ full gate needs 50. `--concurrency` caps the parallel submitter pool
 (default: all of them). Clean the `replay_*` users afterwards (admin
 users view or SQL) — they exist only as load probes.
 
+## §content-ops — catalog commands (2026-11-20 polish sweep)
+
+All commands run in the backend container against the live stack:
+
+```bash
+python manage.py catalog_cleanup --apply --allow-submissions   # e2e/ad-hoc fixture leftovers (guarded)
+python manage.py catalog_polish --apply                        # translation/hygiene payload (idempotent)
+python manage.py boost_hidden_tests [--only <key>] [--apply]   # regenerate hidden suites from committed specs
+python manage.py export_catalog                                # deterministic fixture -> problems/data/catalog/
+python manage.py import_catalog --from-release catalog-2026-11-20   # fresh-environment rebuild
+```
+
+- The full catalog snapshot (~110 MB gzipped; 240 MB of test data) ships as
+  the **GitHub release asset** `catalog-2026-11-20/problems.json.gz` — the
+  repo carries the tooling + the small ledger/curriculum files only.
+  `CATALOG_RELEASE_BASE` overrides the download base for mirrors.
+- **problems migration 0027** (import-provenance columns
+  source_url/source_name/source_authors/alt_sources) is FAKE-APPLIED on the
+  live stack — the columns pre-exist from the import pipeline:
+  `python manage.py migrate problems 0027 --fake`. Fresh environments run
+  it for real.
+- After any content command that changes problems, re-run
+  `calibrate_difficulty` when enough submissions exist.
+
+## §docs-suite — regenerating the documentation artifacts
+
+```powershell
+docs/build-docs.ps1     # pandoc (md->docx/tex) + tectonic (tex->pdf) into docs/dist/
+```
+
+POSIX twin: `docs/build-docs.sh`. Sources of truth: `docs/guide-en/*.md` +
+`docs/guide-ro/*.md` (bilingual pairs; diagrams in `docs/diagrams/*.mmd`
+with rendered PNGs — re-render with mermaid-cli after editing a .mmd).
+Artifacts are committed (`docs/dist/`) per the owner directive.
+
 ## §ai-curator — pluggable AI screening of translation proposals (i18n wave)
 
 Community members propose problem translations (`POST /api/v1/translations/proposals/`,

@@ -36,7 +36,11 @@ PROBE_TITLES = (
     "Proof A fair (3x multiplier)",
     "JFW-A multiplier proof (pinned 100ms)",
     "Live Proof",
+    "Sum (C and Node)",
 )
+
+#: Live-verification probes whose titles carry a timestamp suffix.
+PROBE_TITLE_PREFIXES = ("A+B Sum (live verify",)
 
 PLAUSIBLE_TITLES = (
     "Two Sum",
@@ -52,6 +56,10 @@ def fixture_queryset():
     probes = Problem.objects.filter(title_i18n__en__in=PROBE_TITLES).annotate(
         testcase_count=Count("test_cases")
     )
+    for prefix in PROBE_TITLE_PREFIXES:
+        probes = probes | Problem.objects.filter(
+            title_i18n__en__startswith=prefix
+        ).annotate(testcase_count=Count("test_cases"))
     plausible = (
         Problem.objects.filter(title_i18n__en__in=PLAUSIBLE_TITLES)
         .annotate(testcase_count=Count("test_cases"))
