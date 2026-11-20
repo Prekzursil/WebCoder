@@ -401,9 +401,16 @@ class ProblemViewSet(viewsets.ModelViewSet):
 
             try:
                 validate_target_points(problem.difficulty, problem.target_points)
-            except Exception as exc:
+            except Exception:
+                # Fixed message only — interpolating the exception could
+                # leak internals (CodeQL: information exposure).
                 return Response(
-                    {"status": f"problem cannot be approved: {exc}"},
+                    {
+                        "status": (
+                            "problem cannot be approved: the point value is "
+                            "outside the difficulty's band"
+                        )
+                    },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             problem.status = Problem.ProblemStatus.APPROVED

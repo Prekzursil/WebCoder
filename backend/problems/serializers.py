@@ -629,9 +629,19 @@ class ProblemSerializer(serializers.ModelSerializer):
             try:
                 validate_target_points(effective_difficulty, effective_points)
             except Exception as exc:
-                raise serializers.ValidationError(
-                    getattr(exc, "message_dict", None) or str(exc)
-                ) from None
+                # Only the validator's own field-keyed messages surface; a
+                # foreign exception type would leak internals via str(exc)
+                # (CodeQL: information exposure through an exception).
+                message_dict = getattr(exc, "message_dict", None)
+                if not message_dict:
+                    raise serializers.ValidationError(
+                        {
+                            "target_points": (
+                                "point value is outside the difficulty's band"
+                            )
+                        }
+                    ) from None
+                raise serializers.ValidationError(message_dict) from None
         return attrs
 
     def create(self, validated_data):
