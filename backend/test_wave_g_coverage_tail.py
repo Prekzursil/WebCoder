@@ -103,3 +103,44 @@ class PartnershipEmailBranchTest(TestCase):
         )
         self.assertEqual(response.status_code, 400)
         self.assertIn("invalid contact email", str(response.data))
+
+
+class SsrfValidatorTailTest(TestCase):
+    """The remaining validator branches (ValueError parse, public IP
+    literal accepted, link-local IPv6 rejected)."""
+
+    def test_unparseable_url_valueerror(self):
+        # A malformed bracket host makes urlsplit itself raise ValueError.
+        self.assertIsNone(_validated_webhook_url("https://[::1"))
+        self.assertIsNone(_validated_webhook_url("https://exa mple.com/x"))
+
+    def test_public_ip_literal_accepted(self):
+        self.assertIsNotNone(_validated_webhook_url("https://2606:4700::6810:85e3/x"))
+
+    def test_ipv6_loopback_rejected(self):
+        self.assertIsNone(_validated_webhook_url("https://[::1]/x"))
+
+
+class SeedCommandTest(TestCase):
+    """call_command coverage for seed_teacher_cert_exam."""
+
+    def test_command_runs(self):
+        from django.core.management import call_command
+        from io import StringIO
+
+        out = StringIO()
+        call_command("seed_teacher_cert_exam", stdout=out)
+        self.assertIn("teacher exam bank ready", out.getvalue())
+
+
+class TeacherExamPostForbiddenTest(TestCase):
+    """teacher_views.py line 52: the non-teacher POST guard."""
+
+    def test_student_post_403(self):
+        student = User.objects.create_user(username="cstu", password="pw")
+        client = APIClient()
+        client.force_authenticate(student)
+        self.assertEqual(
+            client.post(EXAM, {"answers": {"1": 0}}, format="json").status_code,
+            403,
+        )
