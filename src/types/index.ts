@@ -190,6 +190,8 @@ export interface User {
   timezone?: string;
   /** [wave G item 84] digest frequency: none/daily/weekly. */
   notification_digest?: string;
+  /** [wave G item 146] cosmetic-only supporter badge start (YYYY-MM-DD). */
+  supporter_since?: string | null;
 }
 
 export interface AdminUserType extends User {

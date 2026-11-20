@@ -64,6 +64,7 @@ REST_FRAMEWORK = {
         "message_send": "10000/min",
         "message_thread": "10000/min",
         "translation_propose": "10000/min",
+        "partnership_apply": "10000/min",
         "dj_rest_auth": "10000/min",
         "public_api": "10000/min",
         "public_api_auth": "10000/min",

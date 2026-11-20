@@ -115,6 +115,18 @@ class User(AbstractUser):
         default="",
     )
 
+    # Item 146 (wave G section K) — supporter tier, COSMETIC ONLY: the
+    # badge and profile flair carry zero gameplay privilege (no rating
+    # protection, no bonus points, no separate throttle scope — the
+    # parity is pinned by test_wave_g_sustain.py). Staff-granted; there
+    # is no payment processing pre-traction (see /support).
+    supporter_since = models.DateField(
+        _("supporter since"),
+        null=True,
+        blank=True,
+        help_text=_("Supporter badge start (cosmetic only, staff-granted)."),
+    )
+
     # GDPR account control (round-2 LEG-1/X5): set when the account is
     # soft-deleted; the purge_deleted_users beat task removes user-authored
     # side content once this timestamp passes (submissions/leaderboard stay,

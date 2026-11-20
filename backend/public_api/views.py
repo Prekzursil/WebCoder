@@ -369,3 +369,68 @@ class PublicUserProfileView(APIView):
         inner = UserRatingHistoryView()
         inner.request = request
         return inner.get(request, username)
+
+
+class TransparencyReportView(APIView):
+    """GET /api/v1/public/transparency/ (item 150, wave G section K).
+
+    The ANNUAL transparency report's live data layer: aggregate-only
+    counts (never usernames) across platform health, content, contests,
+    moderation and appeals. The /transparency page renders this; the
+    year-end markdown report (docs/TRANSPARENCY-*.md) snapshots it.
+    """
+
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [PublicAPIThrottle]
+
+    def get(self, request):
+        from certificates.models import Certificate
+        from contests.models import Contest
+        from django.db.models import Count
+        from problems.models import Problem
+        from submissions.models import Submission
+        from users.models import User
+
+        # The integrity app (items 113-119) may not be present on stacks
+        # predating it — moderation telemetry degrades to a note instead
+        # of 500ing the whole report.
+        try:
+            from integrity.models import Appeal, ModerationAction
+
+            moderation_actions = dict(
+                ModerationAction.objects.values_list("action").annotate(n=Count("id"))
+            )
+            appeal_outcomes = dict(
+                Appeal.objects.values_list("status").annotate(n=Count("id"))
+            )
+        except ImportError:  # pragma: no cover - pre-integrity stacks
+            moderation_actions = {}
+            appeal_outcomes = {}
+
+        verdicts = dict(
+            Submission.objects.values_list("verdict").annotate(n=Count("id"))
+        )
+        certificates_by_kind = dict(
+            Certificate.objects.values_list("kind").annotate(n=Count("id"))
+        )
+        return Response(
+            {
+                "users": {"total": User.objects.count()},
+                "content": {
+                    "problems_by_status": {
+                        status: Problem.objects.filter(status=status).count()
+                        for status in Problem.ProblemStatus.values
+                    },
+                },
+                "activity": {
+                    "submissions_total": Submission.objects.count(),
+                    "submission_verdicts": verdicts,
+                    "contests_held": Contest.objects.count(),
+                    "teacher_certificates": certificates_by_kind.get("TEACHER", 0),
+                },
+                "moderation": {
+                    "actions_by_kind": moderation_actions,
+                    "appeals_by_outcome": appeal_outcomes,
+                },
+            }
+        )

@@ -121,6 +121,8 @@ INSTALLED_APPS = [
     # Wave G section J: operator surface (status feed, errors, costs,
     # autoscale advice).
     "ops.apps.OpsConfig",
+    # Item 147 (wave G section K): school partnerships program.
+    "partnerships.apps.PartnershipsConfig",
     # COM-5 (competitive roadmap, owner reversal 2026-10-30): private 1:1
     # message threads with the full safety stack.
     "messaging",
@@ -364,6 +366,11 @@ REST_FRAMEWORK = {
         # Wave G item 89 (guest try-it): anonymous sandbox execution —
         # the tightest judge-adjacent scope on the site, keyed by IP.
         "scratch_guest": os.environ.get("THROTTLE_SCRATCH_GUEST_RATE", "5/hour"),
+        # Item 147 (wave G section K): public school-partnership
+        # applications — anonymous intake, IP-keyed like guest scratch.
+        "partnership_apply": os.environ.get(
+            "THROTTLE_PARTNERSHIP_APPLY_RATE", "5/hour"
+        ),
         # Contest clarifications (CON-4): participants get a bounded question
         # budget so the jury queue cannot be flooded mid-contest.
         "clarification": os.environ.get("THROTTLE_CLARIFICATION_RATE", "10/hour"),

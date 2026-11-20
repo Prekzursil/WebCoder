@@ -39,6 +39,8 @@ class Certificate(models.Model):
         CONTEST_PARTICIPATION = "CONTEST_PARTICIPATION"
         RATING_MILESTONE = "RATING_MILESTONE"
         SOLVE_MILESTONE = "SOLVE_MILESTONE"
+        # Item 148 (wave G section K): teacher-certification exam pass.
+        TEACHER = "TEACHER"
 
     #: Public verification id — printed on the atestat; the verify endpoint
     #: is anonymous so employers/teachers can check it without an account.
@@ -104,7 +106,12 @@ class Certificate(models.Model):
             models.CheckConstraint(
                 condition=models.Q(kind="CONTEST_PARTICIPATION", contest__isnull=False)
                 | models.Q(kind="RATING_MILESTONE", threshold__isnull=False)
-                | models.Q(kind="SOLVE_MILESTONE", threshold__isnull=False),
+                | models.Q(kind="SOLVE_MILESTONE", threshold__isnull=False)
+                # Item 148: the teacher cert's discriminator is the exam
+                # score in `details` — no contest/threshold.
+                | models.Q(
+                    kind="TEACHER", contest__isnull=True, threshold__isnull=True
+                ),
                 name="certificate_kind_has_its_discriminator",
             ),
         ]
@@ -123,3 +130,43 @@ class Certificate(models.Model):
     @property
     def status(self) -> str:
         return "REVOKED" if self.is_revoked else "VALID"
+
+
+class TeacherCertQuestion(models.Model):
+    """Item 148 — one multiple-choice exam question (platform + classroom
+    policy knowledge). The bank is seeded by seed_teacher_cert_exam."""
+
+    question = models.TextField(_("question"), unique=True)
+    choices = models.JSONField(_("choices"), default=list)
+    correct_index = models.PositiveSmallIntegerField(_("correct choice index"))
+    active = models.BooleanField(_("active"), default=True)
+
+    class Meta:
+        verbose_name = _("teacher certification question")
+        verbose_name_plural = _("teacher certification questions")
+        ordering = ["id"]
+
+    def __str__(self):
+        return self.question[:80]
+
+
+class TeacherCertAttempt(models.Model):
+    """One graded exam attempt (audit trail: who tried, when, score)."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="teacher_cert_attempts",
+        verbose_name=_("teacher"),
+    )
+    score = models.FloatField(_("score (fraction)"))
+    passed = models.BooleanField(_("passed"))
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("teacher certification attempt")
+        verbose_name_plural = _("teacher certification attempts")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.user_id}: {self.score:.0%} ({'pass' if self.passed else 'fail'})"
