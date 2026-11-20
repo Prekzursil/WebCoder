@@ -23,7 +23,9 @@ class SupporterParityTest(TestCase):
     test is the contract."""
 
     def test_supporter_flag_is_cosmetic_only(self):
-        plain = User.objects.create_user(username="sup_plain", password="pw")
+        # The non-supporter baseline is created but never read — the
+        # assertion is on the SHARED serializer surface, not per-user.
+        User.objects.create_user(username="sup_plain", password="pw")
         supporter = User.objects.create_user(username="sup_gold", password="pw")
         supporter.supporter_since = date(2026, 1, 1)
         supporter.save()

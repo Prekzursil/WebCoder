@@ -89,4 +89,14 @@ class RevokeCertificateView(APIView):
 
 
 # Item 148 (wave G section K) — teacher certification exam endpoints.
+# Re-exported for urls.py; __all__ documents the intent (CodeQL: the
+# "unused import" is the public wiring surface).
 from .teacher_views import TeacherExamView  # noqa: E402,F401
+
+__all__ = [
+    "CertificateVerifyView",
+    "MyCertificatesView",
+    "UserCertificatesView",
+    "RevokeCertificateView",
+    "TeacherExamView",
+]
