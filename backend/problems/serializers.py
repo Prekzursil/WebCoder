@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model  # Import get_user_model
+from django.core.exceptions import ValidationError
 from rest_framework import serializers
 from .i18n_fields import (
     LocalizedFieldError,
@@ -628,20 +629,11 @@ class ProblemSerializer(serializers.ModelSerializer):
             )
             try:
                 validate_target_points(effective_difficulty, effective_points)
-            except Exception as exc:
-                # Only the validator's own field-keyed messages surface; a
-                # foreign exception type would leak internals via str(exc)
+            except ValidationError as exc:
+                # Only the validator's own field-keyed messages surface —
+                # never str(exc), which could carry interpreter internals
                 # (CodeQL: information exposure through an exception).
-                message_dict = getattr(exc, "message_dict", None)
-                if not message_dict:
-                    raise serializers.ValidationError(
-                        {
-                            "target_points": (
-                                "point value is outside the difficulty's band"
-                            )
-                        }
-                    ) from None
-                raise serializers.ValidationError(message_dict) from None
+                raise serializers.ValidationError(exc.message_dict) from None
         return attrs
 
     def create(self, validated_data):
