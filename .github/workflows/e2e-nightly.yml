@@ -56,11 +56,26 @@ jobs:
 
       - name: Wait for readiness
         run: |
+          # /readyz is 200 only once the backend has migrated and is serving.
+          # A crash-loop (migrate LookupError, redis down) used to burn the
+          # whole wait and then dump logs with no status line. Print the
+          # HTTP code each attempt and, on failure, which component failed.
           for i in $(seq 1 60); do
-            if curl -sf http://127.0.0.1:8000/readyz; then echo "ready"; exit 0; fi
+            code=$(curl -s -o /tmp/readyz.json -w '%{http_code}' http://127.0.0.1:8000/readyz || echo 000)
+            if [ "$code" = "200" ]; then
+              echo "ready on attempt $i"
+              cat /tmp/readyz.json
+              exit 0
+            fi
+            echo "attempt $i status=$code"
             sleep 2
           done
-          docker compose logs backend
+          echo "--- readyz body ---"
+          cat /tmp/readyz.json 2>/dev/null || true
+          echo "--- compose ps ---"
+          docker compose ps
+          echo "--- backend logs ---"
+          docker compose logs --tail 160 backend
           exit 1
 
       - name: Migrate + seed

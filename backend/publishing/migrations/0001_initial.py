@@ -65,7 +65,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(seed_wiki, unseed_wiki),
         migrations.CreateModel(
             name="WaHelpRequest",
             fields=[
