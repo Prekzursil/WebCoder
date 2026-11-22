@@ -748,6 +748,28 @@ class AuthoringDraftAPITest(TestCase):
             {"title": "T", "statement": {"en": "hello", "ro": "salut"}},
         )
 
+    def test_put_replaces_statement_when_shape_changes(self):
+        """A non-dict statement replaces the stored map instead of merging.
+
+        Covers the fall-through in ``_merge_draft_payload`` (the studio can
+        switch a locale map back to a single markdown string).
+        """
+        self.client.put(
+            "/api/v1/problems/authoring-drafts/new/",
+            {"payload": {"title": "T", "statement": {"en": "hello"}}},
+            format="json",
+        )
+        resp = self.client.put(
+            "/api/v1/problems/authoring-drafts/new/",
+            {"payload": {"statement": "plain markdown"}},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK, resp.json())
+        self.assertEqual(
+            resp.json()["payload"],
+            {"title": "T", "statement": "plain markdown"},
+        )
+
 
 class AuthorAnalyticsHintsTest(TestCase):
     def test_hint_usage_aggregates(self):

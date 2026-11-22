@@ -95,9 +95,7 @@ test.describe('wave H authoring studio (mock api)', () => {
 
     // Let the form settle (draft restore + suite load) before uploading.
     await expect(page.getByTestId('test-mgr-total')).toContainText('40 / 50');
-    await page
-      .getByTestId('test-mgr-archive-input')
-      .setInputFiles('e2e/fixtures/wave-h-tests.zip');
+    await page.getByTestId('test-mgr-archive-input').setInputFiles('e2e/fixtures/wave-h-tests.zip');
 
     const preview = page.getByTestId('test-mgr-preview');
     await expect(preview).toBeVisible();
@@ -113,9 +111,7 @@ test.describe('wave H authoring studio (mock api)', () => {
     await expect(page.getByText('Test Case 4')).toBeVisible({ timeout: 8000 });
   });
 
-  test('test manager: example flag, per-test points, live total + distribute', async ({
-    page,
-  }) => {
+  test('test manager: example flag, per-test points, live total + distribute', async ({ page }) => {
     await login(page);
     await page.goto('/problems/5/edit');
 
@@ -144,11 +140,7 @@ test.describe('wave H authoring studio (mock api)', () => {
 
     await page.getByLabel('Input Data').fill('2\n4 6\n');
     await page.getByLabel('Expected Output Data').fill('10\n');
-    await page
-      .getByTestId('test-manager')
-      .getByLabel('Points:')
-      .last()
-      .fill('10');
+    await page.getByTestId('test-manager').getByLabel('Points:').last().fill('10');
     await page.getByTestId('test-manager').getByLabel('Is Sample?').check();
     await page.getByRole('button', { name: 'Add Test Case' }).click();
 

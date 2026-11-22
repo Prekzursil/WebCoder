@@ -1894,9 +1894,7 @@ const server = createServer((req, res) => {
     return;
   }
   // Autosaved authoring drafts (item A).
-  const authoringDraftMatch = path.match(
-    /^\/api\/v1\/problems\/authoring-drafts\/([\w-]+)\/$/,
-  );
+  const authoringDraftMatch = path.match(/^\/api\/v1\/problems\/authoring-drafts\/([\w-]+)\/$/);
   if (authoringDraftMatch && req.method === 'GET') {
     json(res, 404, { detail: 'no draft' });
     return;
@@ -1931,7 +1929,13 @@ const server = createServer((req, res) => {
         },
       ];
       if (dry) {
-        json(res, 200, { pairs, skipped: [], other_files: ['notes.txt'], total_members: 5, created: 0 });
+        json(res, 200, {
+          pairs,
+          skipped: [],
+          other_files: ['notes.txt'],
+          total_members: 5,
+          created: 0,
+        });
       } else {
         for (const pair of pairs) {
           waveTests.push({
@@ -1948,7 +1952,14 @@ const server = createServer((req, res) => {
             expected_editable: true,
           });
         }
-        json(res, 201, { pairs, skipped: [], other_files: ['notes.txt'], total_members: 5, created: pairs.length, points_each: 10 });
+        json(res, 201, {
+          pairs,
+          skipped: [],
+          other_files: ['notes.txt'],
+          total_members: 5,
+          created: pairs.length,
+          points_each: 10,
+        });
       }
     });
     return;
