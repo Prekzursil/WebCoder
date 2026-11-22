@@ -75,7 +75,12 @@ export default function StatementMarkdown({ markdown }: { markdown: string }) {
           // fences highlight by language, inline code stays a chip.
           code: ({ className, children }) => {
             const match = /language-([\w-]+)/.exec(className || '');
-            if (!match) {
+            const text = plainText(children);
+            // Fenced blocks with no info string still carry newlines. They
+            // must stay preformatted — the outer `pre` is unwrapped below
+            // so highlighted fences are not double-wrapped.
+            const block = Boolean(match) || text.includes('\n');
+            if (!block) {
               return (
                 <code
                   style={{
@@ -88,6 +93,24 @@ export default function StatementMarkdown({ markdown }: { markdown: string }) {
                 >
                   {children}
                 </code>
+              );
+            }
+            if (!match) {
+              return (
+                <pre
+                  style={{
+                    whiteSpace: 'pre-wrap',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.82rem',
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '10px 12px',
+                    overflowX: 'auto',
+                  }}
+                >
+                  <code>{text.replace(/\n$/, '')}</code>
+                </pre>
               );
             }
             return (
@@ -110,13 +133,17 @@ export default function StatementMarkdown({ markdown }: { markdown: string }) {
             const text = plainText(children).trim().toLowerCase();
             const isConstraints =
               text === 'constraints' || text === 'restricții' || text === 'restriccii';
-            return <h2 className={isConstraints ? 'constraints-heading' : undefined}>{children}</h2>;
+            return (
+              <h2 className={isConstraints ? 'constraints-heading' : undefined}>{children}</h2>
+            );
           },
           h3: ({ children }) => {
             const text = plainText(children).trim().toLowerCase();
             const isConstraints =
               text === 'constraints' || text === 'restricții' || text === 'restriccii';
-            return <h3 className={isConstraints ? 'constraints-heading' : undefined}>{children}</h3>;
+            return (
+              <h3 className={isConstraints ? 'constraints-heading' : undefined}>{children}</h3>
+            );
           },
           table: ({ children }) => (
             <table

@@ -18,11 +18,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import type { DragEvent, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import {
-  TestCaseService,
-  TestOpsService,
-  type ArchivePreviewPair,
-} from '@/services/ApiService';
+import { TestCaseService, TestOpsService, type ArchivePreviewPair } from '@/services/ApiService';
 import type { TestCaseUIManaged } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 
@@ -64,7 +60,10 @@ export default function TestManager({
   const [dragOver, setDragOver] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [edits, setEdits] = useState<Record<number, { input: string; expected: string }>>({});
+  // The archive that the preview was built from. The file input is empty
+  // after a drop, so Import all must not read it.
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [edits, setEdits] = useState<Record<string, { input: string; expected: string }>>({});
 
   const total = useMemo(() => tests.reduce((sum, tc) => sum + (tc.points || 0), 0), [tests]);
   const mismatch = total !== targetPoints;
@@ -72,8 +71,14 @@ export default function TestManager({
   const refresh = useCallback(async () => {
     if (!problemId) return;
     try {
-      const data = await TestCaseService.listTestCases(problemId);
-      const rows = data.results.map((tc) => ({ ...tc, local_id: `tc-${tc.id}` }));
+      const rows: TestCaseUIManaged[] = [];
+      // Default page size is 20; follow `next` so a long suite is not
+      // replaced by its first page (which also drops those points from the total).
+      for (let page = 1; page <= 50; page += 1) {
+        const data = await TestCaseService.listTestCases(problemId, page);
+        rows.push(...data.results.map((tc) => ({ ...tc, local_id: `tc-${tc.id}` })));
+        if (!data.next) break;
+      }
       setTests(() => rows);
       onChanged?.();
     } catch {
@@ -84,17 +89,34 @@ export default function TestManager({
   const patchTest = useCallback(
     async (id: number, patch: Record<string, unknown>) => {
       // Optimistic: the row flips immediately (controlled checkboxes need
-      // it), the PATCH reconciles in the background and refresh() re-syncs.
+      // it). On failure the previous row comes back and the edit buffer
+      // stays, so Save test is still there to retry.
+      let snapshot: TestCaseUIManaged | undefined;
       setTests((prev) =>
-        prev.map((row) => (row.id === id ? { ...row, ...patch } : row)),
+        prev.map((row) => {
+          if (row.id !== id) return row;
+          snapshot = row;
+          return { ...row, ...patch };
+        }),
       );
       try {
         await TestCaseService.updateTestCase(id, patch);
       } catch (err) {
+        if (snapshot) {
+          const previous = snapshot;
+          setTests((prev) => prev.map((row) => (row.id === id ? previous : row)));
+        }
         const msg = (err as Error).message;
         toast.error(msg);
         setStatus(msg);
         return;
+      }
+      if ('input_data' in patch || 'expected_output_data' in patch) {
+        setEdits((prev) => {
+          const next = { ...prev };
+          delete next[String(id)];
+          return next;
+        });
       }
       await refresh();
     },
@@ -145,7 +167,18 @@ export default function TestManager({
     setNewExpected('');
     setNewSample(false);
     setNewPoints(10);
-  }, [auth.isAuthenticated, newInput, newExpected, newSample, newPoints, problemId, tests.length, refresh, setTests, t]);
+  }, [
+    auth.isAuthenticated,
+    newInput,
+    newExpected,
+    newSample,
+    newPoints,
+    problemId,
+    tests.length,
+    refresh,
+    setTests,
+    t,
+  ]);
 
   const removeTest = useCallback(
     async (tc: TestCaseUIManaged) => {
@@ -167,8 +200,7 @@ export default function TestManager({
           setStatus(okMsg);
         } catch (err) {
           const msg =
-            (err as Error).message ||
-            t('error_removing_test_case', 'Failed to remove test case.');
+            (err as Error).message || t('error_removing_test_case', 'Failed to remove test case.');
           toast.error(msg);
           setStatus(msg);
         }
@@ -187,6 +219,7 @@ export default function TestManager({
       }
       setUploading(true);
       setPreview(null);
+      setPendingFile(file);
       try {
         const result = await TestOpsService.importArchive(problemId, file, { dryRun: true });
         setPreview({
@@ -205,10 +238,11 @@ export default function TestManager({
   );
 
   const confirmImport = useCallback(async () => {
-    if (!problemId || !fileInputRef.current?.files?.[0]) return;
+    const file = pendingFile ?? fileInputRef.current?.files?.[0];
+    if (!problemId || !file) return;
     setUploading(true);
     try {
-      const result = await TestOpsService.importArchive(problemId, fileInputRef.current.files[0], {
+      const result = await TestOpsService.importArchive(problemId, file, {
         points: 10,
       });
       toast.success(
@@ -218,6 +252,7 @@ export default function TestManager({
         }),
       );
       setPreview(null);
+      setPendingFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
       await refresh();
     } catch (err) {
@@ -225,7 +260,7 @@ export default function TestManager({
     } finally {
       setUploading(false);
     }
-  }, [problemId, refresh, t]);
+  }, [problemId, pendingFile, refresh, t]);
 
   const distribute = useCallback(async () => {
     if (!problemId) return;
@@ -285,7 +320,11 @@ export default function TestManager({
 
   return (
     <div data-testid="test-manager" style={{ display: 'grid', gap: '14px' }}>
-      <span data-testid="test-mgr-status" aria-live="polite" style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)' }}>
+      <span
+        data-testid="test-mgr-status"
+        aria-live="polite"
+        style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)' }}
+      >
         {status ?? ''}
       </span>
       {/* Live total vs target + distribute evenly (item B4). */}
@@ -303,10 +342,17 @@ export default function TestManager({
         }}
       >
         <span data-testid="test-mgr-total">
-          {t('test_mgr_total', { defaultValue: 'Total: {{total}} / {{target}} points', total, target: targetPoints })}
+          {t('test_mgr_total', {
+            defaultValue: 'Total: {{total}} / {{target}} points',
+            total,
+            target: targetPoints,
+          })}
         </span>
         {mismatch && (
-          <span data-testid="test-mgr-mismatch" style={{ color: 'var(--warn)', fontSize: '0.8rem' }}>
+          <span
+            data-testid="test-mgr-mismatch"
+            style={{ color: 'var(--warn)', fontSize: '0.8rem' }}
+          >
             {t('test_mgr_mismatch', {
               defaultValue: 'Test points sum to {{total}} but the target is {{target}}',
               total,
@@ -353,7 +399,9 @@ export default function TestManager({
               if (file) void handleFile(file);
             }}
           />
-          {uploading && <p style={{ marginTop: 8 }}>{t('test_mgr_uploading', 'Parsing archive…')}</p>}
+          {uploading && (
+            <p style={{ marginTop: 8 }}>{t('test_mgr_uploading', 'Parsing archive…')}</p>
+          )}
         </div>
         {preview && (
           <div
@@ -372,7 +420,14 @@ export default function TestManager({
                 n: preview.pairs.length,
               })}
             </strong>
-            <ul style={{ fontSize: '0.78rem', color: 'var(--body)', maxHeight: '180px', overflowY: 'auto' }}>
+            <ul
+              style={{
+                fontSize: '0.78rem',
+                color: 'var(--body)',
+                maxHeight: '180px',
+                overflowY: 'auto',
+              }}
+            >
               {preview.pairs.map((pair) => (
                 <li key={pair.name} data-testid="test-mgr-preview-pair">
                   <code>{pair.name}</code>
@@ -405,6 +460,7 @@ export default function TestManager({
                 style={dangerBtnStyle}
                 onClick={() => {
                   setPreview(null);
+                  setPendingFile(null);
                   if (fileInputRef.current) fileInputRef.current.value = '';
                 }}
               >
@@ -420,7 +476,12 @@ export default function TestManager({
         {tests.map((tc, index) => {
           const inputTooBig = (tc.input_data || '').length > editableThreshold;
           const expectedTooBig = (tc.expected_output_data || '').length > editableThreshold;
-          const edit = tc.id ? edits[tc.id] : undefined;
+          const editKey = tc.id != null ? String(tc.id) : '';
+          const edit = editKey ? edits[editKey] : undefined;
+          const writeLocal = (patch: Partial<TestCaseUIManaged>) =>
+            setTests((prev) =>
+              prev.map((row) => (row.local_id === tc.local_id ? { ...row, ...patch } : row)),
+            );
           return (
             <div
               key={tc.local_id ?? tc.id ?? index}
@@ -467,11 +528,20 @@ export default function TestManager({
                     style={{ width: '70px' }}
                     onChange={(e) => {
                       const points = parseInt(e.target.value, 10) || 0;
-                      if (tc.id) void patchTest(tc.id, { points });
-                      else
+                      // Local only. Persisting on each keystroke re-fetched
+                      // the suite and remounted the input, so the caret jumped.
+                      if (tc.id) {
                         setTests((prev) =>
-                          prev.map((row, i) => (i === index ? { ...row, points } : row)),
+                          prev.map((row) => (row.id === tc.id ? { ...row, points } : row)),
                         );
+                      } else {
+                        writeLocal({ points });
+                      }
+                    }}
+                    onBlur={(e) => {
+                      if (!tc.id) return;
+                      const points = parseInt(e.target.value, 10) || 0;
+                      void patchTest(tc.id, { points });
                     }}
                   />
                 </label>
@@ -482,15 +552,30 @@ export default function TestManager({
 
               {/* Side-by-side inline editing under the threshold; preview
                   + download above it (item B2). */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '10px' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)',
+                  gap: '10px',
+                }}
+              >
                 <div>
                   <label style={{ fontSize: '0.78rem', display: 'block', marginBottom: '2px' }}>
                     {t('test_case_input_label', 'Input')}{' '}
-                    <span style={{ color: 'var(--text-tertiary)' }}>({approxSize(tc.input_data || '')})</span>
+                    <span style={{ color: 'var(--text-tertiary)' }}>
+                      ({approxSize(tc.input_data || '')})
+                    </span>
                   </label>
                   {inputTooBig ? (
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
-                      <pre style={{ whiteSpace: 'pre-wrap', maxHeight: '90px', overflow: 'hidden', margin: '0 0 4px' }}>
+                      <pre
+                        style={{
+                          whiteSpace: 'pre-wrap',
+                          maxHeight: '90px',
+                          overflow: 'hidden',
+                          margin: '0 0 4px',
+                        }}
+                      >
                         {(tc.input_data || '').slice(0, 400)}
                       </pre>
                       {tc.id && (
@@ -498,21 +583,28 @@ export default function TestManager({
                           {t('test_mgr_download', 'Download')}
                         </a>
                       )}
-                      <p data-testid="test-mgr-too-large">{t('test_mgr_too_large', 'Over the inline-edit size — use archive upload.')}</p>
+                      <p data-testid="test-mgr-too-large">
+                        {t('test_mgr_too_large', 'Over the inline-edit size — use archive upload.')}
+                      </p>
                     </div>
                   ) : (
                     <textarea
                       aria-label={`${t('test_case_input_label', 'Input')} ${index + 1}`}
-                      value={edit?.input ?? tc.input_data ?? ''}
-                      onChange={(e) =>
+                      value={tc.id ? (edit?.input ?? tc.input_data ?? '') : (tc.input_data ?? '')}
+                      onChange={(e) => {
+                        const input = e.target.value;
+                        if (!tc.id) {
+                          writeLocal({ input_data: input });
+                          return;
+                        }
                         setEdits((prev) => ({
                           ...prev,
-                          [tc.id as number]: {
-                            input: e.target.value,
+                          [editKey]: {
+                            input,
                             expected: edit?.expected ?? tc.expected_output_data ?? '',
                           },
-                        }))
-                      }
+                        }));
+                      }}
                       style={areaStyle}
                     />
                   )}
@@ -520,11 +612,20 @@ export default function TestManager({
                 <div>
                   <label style={{ fontSize: '0.78rem', display: 'block', marginBottom: '2px' }}>
                     {t('test_case_output_label', 'Expected output')}{' '}
-                    <span style={{ color: 'var(--text-tertiary)' }}>({approxSize(tc.expected_output_data || '')})</span>
+                    <span style={{ color: 'var(--text-tertiary)' }}>
+                      ({approxSize(tc.expected_output_data || '')})
+                    </span>
                   </label>
                   {expectedTooBig ? (
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
-                      <pre style={{ whiteSpace: 'pre-wrap', maxHeight: '90px', overflow: 'hidden', margin: '0 0 4px' }}>
+                      <pre
+                        style={{
+                          whiteSpace: 'pre-wrap',
+                          maxHeight: '90px',
+                          overflow: 'hidden',
+                          margin: '0 0 4px',
+                        }}
+                      >
                         {(tc.expected_output_data || '').slice(0, 400)}
                       </pre>
                       {tc.id && (
@@ -536,52 +637,63 @@ export default function TestManager({
                   ) : (
                     <textarea
                       aria-label={`${t('test_case_output_label', 'Expected output')} ${index + 1}`}
-                      value={edit?.expected ?? tc.expected_output_data ?? ''}
-                      onChange={(e) =>
+                      value={
+                        tc.id
+                          ? (edit?.expected ?? tc.expected_output_data ?? '')
+                          : (tc.expected_output_data ?? '')
+                      }
+                      onChange={(e) => {
+                        const expected = e.target.value;
+                        if (!tc.id) {
+                          writeLocal({ expected_output_data: expected });
+                          return;
+                        }
                         setEdits((prev) => ({
                           ...prev,
-                          [tc.id as number]: {
+                          [editKey]: {
                             input: edit?.input ?? tc.input_data ?? '',
-                            expected: e.target.value,
+                            expected,
                           },
-                        }))
-                      }
+                        }));
+                      }}
                       style={areaStyle}
                     />
                   )}
                 </div>
               </div>
 
-              {tc.id && edit && (edit.input !== tc.input_data || edit.expected !== tc.expected_output_data) && (
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    type="button"
-                    style={btnStyle}
-                    data-testid={`test-mgr-save-${index + 1}`}
-                    onClick={() =>
-                      void patchTest(tc.id as number, {
-                        input_data: edit.input,
-                        expected_output_data: edit.expected,
-                      })
-                    }
-                  >
-                    {t('test_mgr_save', 'Save test')}
-                  </button>
-                  <button
-                    type="button"
-                    style={dangerBtnStyle}
-                    onClick={() =>
-                      setEdits((prev) => {
-                        const next = { ...prev };
-                        delete next[tc.id as number];
-                        return next;
-                      })
-                    }
-                  >
-                    {t('cancel_button', 'Cancel')}
-                  </button>
-                </div>
-              )}
+              {tc.id &&
+                edit &&
+                (edit.input !== tc.input_data || edit.expected !== tc.expected_output_data) && (
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      type="button"
+                      style={btnStyle}
+                      data-testid={`test-mgr-save-${index + 1}`}
+                      onClick={() =>
+                        void patchTest(tc.id as number, {
+                          input_data: edit.input,
+                          expected_output_data: edit.expected,
+                        })
+                      }
+                    >
+                      {t('test_mgr_save', 'Save test')}
+                    </button>
+                    <button
+                      type="button"
+                      style={dangerBtnStyle}
+                      onClick={() =>
+                        setEdits((prev) => {
+                          const next = { ...prev };
+                          delete next[editKey];
+                          return next;
+                        })
+                      }
+                    >
+                      {t('cancel_button', 'Cancel')}
+                    </button>
+                  </div>
+                )}
             </div>
           );
         })}
@@ -598,7 +710,13 @@ export default function TestManager({
         }}
       >
         <h4 style={{ margin: 0 }}>{t('add_new_test_case_header', 'Add New Test Case')}</h4>
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '10px' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)',
+            gap: '10px',
+          }}
+        >
           <textarea
             aria-label={t('input_data_label', 'Input Data')}
             value={newInput}
@@ -624,7 +742,11 @@ export default function TestManager({
             />
           </label>
           <label style={{ fontSize: '0.8rem' }}>
-            <input type="checkbox" checked={newSample} onChange={(e) => setNewSample(e.target.checked)} />{' '}
+            <input
+              type="checkbox"
+              checked={newSample}
+              onChange={(e) => setNewSample(e.target.checked)}
+            />{' '}
             {t('is_sample_label', 'Is Sample?')}
           </label>
           <button type="button" style={btnStyle} onClick={() => void addTest()}>

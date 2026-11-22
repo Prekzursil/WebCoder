@@ -18,6 +18,22 @@ import TestManager from './TestManager';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import SubmissionStatusDisplay from '@/components/common/SubmissionStatusDisplay';
 
+/** Mirrors backend `economics.DEFAULT_RANGES`. Midpoint matches
+ * `target_points_for_difficulty` so a fresh EASY problem is in band. */
+const POINT_BANDS: Record<string, [number, number]> = {
+  VERY_EASY: [1, 10],
+  EASY: [10, 50],
+  MEDIUM: [50, 200],
+  HARD: [200, 500],
+  VERY_HARD: [500, 1000],
+};
+
+function pointsForDifficulty(difficulty: string): number {
+  const band = POINT_BANDS[difficulty];
+  if (!band) return 100;
+  return Math.floor((band[0] + band[1]) / 2);
+}
+
 // Ported from frontend/webcoder_ui/src/pages/problems/ProblemFormPage.tsx (CRA reference).
 //
 // Next.js adaptations:
@@ -50,9 +66,9 @@ export default function ProblemFormPage() {
   const [difficulty, setDifficulty] = useState<string>('EASY');
   // Problem-page wave (item G): the declared finite point value, bounded
   // by the difficulty band (the backend validates; pointBounds is the
-  // band hint from the serializer).
-  const [targetPoints, setTargetPoints] = useState<number>(100);
-  const [pointBounds, setPointBounds] = useState<[number, number] | null>(null);
+  // band hint from the serializer, kept in sync when difficulty changes).
+  const [targetPoints, setTargetPoints] = useState<number>(pointsForDifficulty('EASY'));
+  const [pointBounds, setPointBounds] = useState<[number, number] | null>(POINT_BANDS.EASY);
   const [studioLocale, setStudioLocale] = useState<StudioLocale>('en');
   const [defaultTimeLimitMs, setDefaultTimeLimitMs] = useState<number>(1000);
   const [defaultMemoryLimitKb, setDefaultMemoryLimitKb] = useState<number>(262144);
@@ -132,9 +148,7 @@ export default function ProblemFormPage() {
           setStatementEn(data.statement_i18n?.en || '');
           setStatementRo(data.statement_i18n?.ro || '');
           setDifficulty(data.difficulty || 'EASY');
-          setTargetPoints(
-            typeof data.target_points === 'number' ? data.target_points : 100,
-          );
+          setTargetPoints(typeof data.target_points === 'number' ? data.target_points : 100);
           if (Array.isArray(data.point_bounds) && data.point_bounds.length === 2) {
             setPointBounds([data.point_bounds[0], data.point_bounds[1]]);
           }
@@ -400,7 +414,11 @@ export default function ProblemFormPage() {
               locale tabs, live preview, toolbar, structured/markdown
               modes, autosaved drafts. */}
           <div style={fieldStyle}>
-            <div role="tablist" aria-label={t('studio_locale_label', 'Statement language')} style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+            <div
+              role="tablist"
+              aria-label={t('studio_locale_label', 'Statement language')}
+              style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}
+            >
               <button
                 type="button"
                 role="tab"
@@ -439,6 +457,7 @@ export default function ProblemFormPage() {
               </button>
             </div>
             <StatementStudio
+              key={studioLocale}
               problemId={problemId ? parseInt(problemId, 10) : null}
               locale={studioLocale}
               statement={studioLocale === 'en' ? statementEn : statementRo}
@@ -459,7 +478,17 @@ export default function ProblemFormPage() {
             <select
               id="difficulty"
               value={difficulty}
-              onChange={(e) => setDifficulty(e.target.value)}
+              onChange={(e) => {
+                const next = e.target.value;
+                setDifficulty(next);
+                const band = POINT_BANDS[next] ?? null;
+                setPointBounds(band);
+                if (band) {
+                  setTargetPoints((prev) =>
+                    prev < band[0] || prev > band[1] ? pointsForDifficulty(next) : prev,
+                  );
+                }
+              }}
               style={inputStyle}
             >
               <option value="VERY_EASY">{t('difficulty_very_easy')}</option>

@@ -731,6 +731,23 @@ class AuthoringDraftAPITest(TestCase):
         )
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_put_merges_statement_locales(self):
+        self.client.put(
+            "/api/v1/problems/authoring-drafts/new/",
+            {"payload": {"title": "T", "statement": {"en": "hello"}}},
+            format="json",
+        )
+        resp = self.client.put(
+            "/api/v1/problems/authoring-drafts/new/",
+            {"payload": {"statement": {"ro": "salut"}}},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK, resp.json())
+        self.assertEqual(
+            resp.json()["payload"],
+            {"title": "T", "statement": {"en": "hello", "ro": "salut"}},
+        )
+
 
 class AuthorAnalyticsHintsTest(TestCase):
     def test_hint_usage_aggregates(self):

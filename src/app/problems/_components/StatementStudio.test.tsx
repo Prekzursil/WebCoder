@@ -35,6 +35,7 @@ vi.mock('@/context/AuthContext', () => ({
 
 import StatementStudio, {
   buildStructured,
+  captureRemainder,
   parseStructured,
 } from './StatementStudio';
 import TestManager from './TestManager';
@@ -52,6 +53,18 @@ describe('StatementStudio markdown round-trip', () => {
     expect(rebuilt).toContain('## Story');
     expect(rebuilt).toContain('## Constraints');
     expect(parseStructured(rebuilt)).toEqual(fields);
+  });
+
+  it('keeps a heading-less statement as the story and preserves custom sections', () => {
+    expect(parseStructured('Just a tale.').story).toBe('Just a tale.');
+    const md = '## Story\n\nTale.\n\n## Notes\n\nAuthor aside.';
+    expect(captureRemainder(md)).toContain('## Notes');
+    expect(captureRemainder(md)).toContain('Author aside.');
+    const rebuilt = [buildStructured(parseStructured(md)), captureRemainder(md)]
+      .filter(Boolean)
+      .join('\n\n');
+    expect(rebuilt).toContain('Tale.');
+    expect(rebuilt).toContain('Author aside.');
   });
 });
 
@@ -118,6 +131,20 @@ describe('StatementStudio component', () => {
     );
   });
 
+  it('does not rewrite the statement when Markdown is already active', () => {
+    const onChange = vi.fn();
+    render(
+      <StatementStudio
+        problemId={null}
+        locale="en"
+        statement={'Freeform with a custom heading\n\n## Notes\n\nKeep me.'}
+        onStatementChange={onChange}
+      />,
+    );
+    fireEvent.click(screen.getByRole('tab', { name: 'Markdown' }));
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
   it('autosaves the draft (debounced) and restores one on mount', async () => {
     draftApi.getDraft.mockResolvedValue({
       payload: { statement: { en: 'restored text' } },
@@ -181,30 +208,35 @@ describe('TestManager component', () => {
     vi.clearAllMocks();
     testCaseApi.listTestCases.mockResolvedValue({
       results: [
-        { id: 1, input_data: 'i1', expected_output_data: 'o1', is_sample: true, points: 60, order: 1 },
-        { id: 2, input_data: 'i2', expected_output_data: 'o2', is_sample: false, points: 30, order: 2 },
+        {
+          id: 1,
+          input_data: 'i1',
+          expected_output_data: 'o1',
+          is_sample: true,
+          points: 60,
+          order: 1,
+        },
+        {
+          id: 2,
+          input_data: 'i2',
+          expected_output_data: 'o2',
+          is_sample: false,
+          points: 30,
+          order: 2,
+        },
       ],
     });
   });
 
   it('renders the live total with a mismatch warning against the target', () => {
     const setTests = vi.fn();
-    render(
-      <TestManager
-        problemId={1}
-        tests={baseTests}
-        setTests={setTests}
-        targetPoints={100}
-      />,
-    );
+    render(<TestManager problemId={1} tests={baseTests} setTests={setTests} targetPoints={100} />);
     expect(screen.getByTestId('test-mgr-total').textContent).toContain('90 / 100');
     expect(screen.getByTestId('test-mgr-mismatch')).toBeInTheDocument();
   });
 
   it('marks the example flag and hidden state per test', () => {
-    render(
-      <TestManager problemId={1} tests={baseTests} setTests={vi.fn()} targetPoints={90} />,
-    );
+    render(<TestManager problemId={1} tests={baseTests} setTests={vi.fn()} targetPoints={90} />);
     expect(
       (screen.getAllByLabelText('Example (public in statement)')[0] as HTMLInputElement).checked,
     ).toBe(true);
@@ -213,9 +245,7 @@ describe('TestManager component', () => {
 
   it('previews an archive then imports it', async () => {
     testOpsApi.importArchive.mockResolvedValueOnce({
-      pairs: [
-        { name: 'a', input: '1', expected: '2', is_sample: false },
-      ],
+      pairs: [{ name: 'a', input: '1', expected: '2', is_sample: false }],
       skipped: ['orphan.in'],
       other_files: [],
       total_members: 2,
@@ -240,8 +270,37 @@ describe('TestManager component', () => {
     expect(screen.getByTestId('test-mgr-preview-pair')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Import all' }));
+    await waitFor(() => expect(testOpsApi.importArchive).toHaveBeenCalledTimes(2));
+  });
+
+  it('imports the dropped archive, not a previously picked file', async () => {
+    const dropped = new File(['drop'], 'dropped.zip', { type: 'application/zip' });
+    const picked = new File(['pick'], 'picked.zip', { type: 'application/zip' });
+    testOpsApi.importArchive.mockResolvedValue({
+      pairs: [{ name: 'a', input: '1', expected: '2', is_sample: false }],
+      skipped: [],
+      other_files: [],
+      total_members: 1,
+      created: 1,
+    });
+    testCaseApi.listTestCases.mockResolvedValue({ results: [] });
+    render(<TestManager problemId={1} tests={[]} setTests={vi.fn()} targetPoints={100} />);
+
+    fireEvent.change(screen.getByTestId('test-mgr-archive-input'), {
+      target: { files: [picked] },
+    });
+    await screen.findByTestId('test-mgr-preview');
+
+    fireEvent.drop(screen.getByTestId('test-mgr-dropzone'), {
+      dataTransfer: { files: [dropped] },
+    });
     await waitFor(() =>
-      expect(testOpsApi.importArchive).toHaveBeenCalledTimes(2),
+      expect(testOpsApi.importArchive).toHaveBeenCalledWith(1, dropped, { dryRun: true }),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Import all' }));
+    await waitFor(() =>
+      expect(testOpsApi.importArchive).toHaveBeenCalledWith(1, dropped, { points: 10 }),
     );
   });
 
@@ -252,13 +311,9 @@ describe('TestManager component', () => {
       total: 100,
       points: [50, 50],
     });
-    render(
-      <TestManager problemId={1} tests={baseTests} setTests={vi.fn()} targetPoints={100} />,
-    );
+    render(<TestManager problemId={1} tests={baseTests} setTests={vi.fn()} targetPoints={100} />);
     fireEvent.click(screen.getByRole('button', { name: 'Distribute evenly' }));
-    await waitFor(() =>
-      expect(testOpsApi.distributePoints).toHaveBeenCalledWith(1, 100),
-    );
+    await waitFor(() => expect(testOpsApi.distributePoints).toHaveBeenCalledWith(1, 100));
   });
 
   it('renders over-threshold tests as preview + download, under-threshold as editors', () => {
@@ -296,9 +351,7 @@ describe('TestManager component', () => {
   });
 
   it('saves inline edits through the API', async () => {
-    render(
-      <TestManager problemId={1} tests={baseTests} setTests={vi.fn()} targetPoints={90} />,
-    );
+    render(<TestManager problemId={1} tests={baseTests} setTests={vi.fn()} targetPoints={90} />);
     fireEvent.change(screen.getByLabelText('Input 1'), { target: { value: 'edited' } });
     fireEvent.click(await screen.findByTestId('test-mgr-save-1'));
     await waitFor(() =>

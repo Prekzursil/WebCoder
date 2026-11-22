@@ -37,7 +37,11 @@ const SECTIONS = [
 
 export type SectionKey = (typeof SECTIONS)[number]['key'];
 
-/** Split stored markdown into the structured sections (best-effort). */
+/** Split stored markdown into the structured sections (best-effort).
+
+A statement with no recognized H2 is treated as the story, so a
+freeform → structured round-trip does not drop the text.
+*/
 export function parseStructured(markdown: string): Record<SectionKey, string> {
   const out: Record<SectionKey, string> = {
     story: '',
@@ -47,6 +51,7 @@ export function parseStructured(markdown: string): Record<SectionKey, string> {
     examples: '',
   };
   let current: SectionKey | null = null;
+  let sawKnown = false;
   for (const line of (markdown || '').split('\n')) {
     const heading = line.match(/^##\s+(.*)$/);
     if (heading) {
@@ -55,11 +60,45 @@ export function parseStructured(markdown: string): Record<SectionKey, string> {
         (s) => label === s.en.toLowerCase() || label === s.ro.toLowerCase(),
       );
       current = hit ? hit.key : null;
+      if (hit) sawKnown = true;
       continue;
     }
     if (current) out[current] += (out[current] ? '\n' : '') + line;
   }
+  if (!sawKnown) out.story = (markdown || '').replace(/^\n+|\n+$/g, '');
   return out;
+}
+
+/** Text that does not live under a recognized H2 (preamble, custom sections).
+
+Empty when the document has no recognized section — that text is the story.
+*/
+export function captureRemainder(markdown: string): string {
+  const chunks: string[] = [];
+  let buf: string[] = [];
+  let inKnown = false;
+  let sawKnown = false;
+  const flush = () => {
+    if (!inKnown && buf.some((line) => line.trim())) chunks.push(buf.join('\n').trim());
+    buf = [];
+  };
+  for (const line of (markdown || '').split('\n')) {
+    const heading = line.match(/^##\s+(.*)$/);
+    if (heading) {
+      flush();
+      const label = heading[1].trim().toLowerCase();
+      const hit = SECTIONS.find(
+        (s) => label === s.en.toLowerCase() || label === s.ro.toLowerCase(),
+      );
+      inKnown = Boolean(hit);
+      if (hit) sawKnown = true;
+      else buf.push(line);
+      continue;
+    }
+    if (!inKnown) buf.push(line);
+  }
+  flush();
+  return sawKnown ? chunks.join('\n\n').trim() : '';
 }
 
 /** Serialize structured fields back into section-marked markdown. */
@@ -99,6 +138,9 @@ export default function StatementStudio({
   const [restored, setRestored] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const hydratedFromDraft = useRef(false);
+  // Custom sections / preamble that structured fields cannot represent.
+  const remainderRef = useRef('');
+  const seenLocale = useRef(locale);
 
   // Draft slot: "new" while the problem does not exist yet, else its id.
   const slot = problemId ? String(problemId) : 'new';
@@ -124,40 +166,78 @@ export default function StatementStudio({
     }
   }, [slot, locale, statement, onStatementChange]);
 
-  // Debounced autosave of the current statement.
+  // The parent reuses one studio across EN/RO. Without this, structured
+  // fields from the previous locale are written into the new one.
+  useEffect(() => {
+    if (seenLocale.current === locale) return;
+    seenLocale.current = locale;
+    remainderRef.current = captureRemainder(statement);
+    setFields(parseStructured(statement));
+    setMode('freeform');
+  }, [locale, statement]);
+
+  // Debounced autosave. Merge with the stored locale map so saving
+  // Romanian does not erase the English draft (and the reverse).
   useEffect(() => {
     if (!statement.trim()) return;
     const handle = setTimeout(() => {
-      AuthoringService.saveDraft(slot, { statement: { [locale]: statement } })
-        .then((data) => setSavedAt(data?.updated_at ?? new Date().toISOString()))
-        .catch(() => {
-          /* offline — next edit retries */
-        });
+      const persist = (statementMap: Record<string, string>) =>
+        AuthoringService.saveDraft(slot, { statement: statementMap })
+          .then((data) => setSavedAt(data?.updated_at ?? new Date().toISOString()))
+          .catch(() => {
+            /* offline — next edit retries */
+          });
+      AuthoringService.getDraft(slot)
+        .then((data) => {
+          const prev = (data?.payload as { statement?: Record<string, string> } | undefined)
+            ?.statement;
+          const statementMap =
+            prev && typeof prev === 'object' && !Array.isArray(prev) ? { ...prev } : {};
+          statementMap[locale] = statement;
+          return persist(statementMap);
+        })
+        .catch(() => persist({ [locale]: statement }));
     }, 1500);
     return () => clearTimeout(handle);
   }, [statement, slot, locale]);
 
+  const publishFields = useCallback(
+    (nextFields: Record<SectionKey, string>) => {
+      const rebuilt = [buildStructured(nextFields), remainderRef.current]
+        .map((part) => part.trim())
+        .filter(Boolean)
+        .join('\n\n');
+      onStatementChange(rebuilt);
+    },
+    [onStatementChange],
+  );
+
   const applyMode = useCallback(
     (next: 'structured' | 'freeform') => {
+      // Re-clicking the active tab must not rebuild the statement.
+      // Freeform edits are not in `fields`, so serializing them would
+      // erase anything the author just typed.
+      if (next === mode) return;
       if (next === 'structured') {
+        remainderRef.current = captureRemainder(statement);
         setFields(parseStructured(statement));
       } else {
-        onStatementChange(buildStructured(fields));
+        publishFields(fields);
       }
       setMode(next);
     },
-    [statement, fields, onStatementChange],
+    [mode, statement, fields, publishFields],
   );
 
   const setField = useCallback(
     (key: SectionKey, value: string) => {
       setFields((prev) => {
         const next = { ...prev, [key]: value };
-        onStatementChange(buildStructured(next));
+        publishFields(next);
         return next;
       });
     },
-    [onStatementChange],
+    [publishFields],
   );
 
   const insertAtCursor = useCallback(
@@ -235,7 +315,11 @@ export default function StatementStudio({
           justifyContent: 'space-between',
         }}
       >
-        <div role="tablist" aria-label={t('studio_mode_label', 'Editing mode')} style={{ display: 'flex', gap: '6px' }}>
+        <div
+          role="tablist"
+          aria-label={t('studio_mode_label', 'Editing mode')}
+          style={{ display: 'flex', gap: '6px' }}
+        >
           <button
             type="button"
             role="tab"
@@ -255,7 +339,10 @@ export default function StatementStudio({
             {t('studio_mode_freeform', 'Markdown')}
           </button>
         </div>
-        <span data-testid="studio-autosave" style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>
+        <span
+          data-testid="studio-autosave"
+          style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}
+        >
           {restored
             ? t('studio_draft_restored', 'Draft restored')
             : savedAt
@@ -266,13 +353,24 @@ export default function StatementStudio({
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }} data-testid="studio-toolbar">
         {toolbar.map((item) => (
-          <button key={item.kind} type="button" style={btnStyle} onClick={() => insertAtCursor(item.kind)}>
+          <button
+            key={item.kind}
+            type="button"
+            style={btnStyle}
+            onClick={() => insertAtCursor(item.kind)}
+          >
             {item.label}
           </button>
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '12px' }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+          gap: '12px',
+        }}
+      >
         <div>
           {mode === 'structured' ? (
             <div style={{ display: 'grid', gap: '8px' }}>
@@ -280,7 +378,12 @@ export default function StatementStudio({
                 <div key={section.key}>
                   <label
                     htmlFor={`studio-${locale}-${section.key}`}
-                    style={{ display: 'block', fontWeight: 600, fontSize: '0.8rem', marginBottom: '2px' }}
+                    style={{
+                      display: 'block',
+                      fontWeight: 600,
+                      fontSize: '0.8rem',
+                      marginBottom: '2px',
+                    }}
                   >
                     {locale === 'ro' ? section.ro : section.en}
                   </label>
@@ -317,7 +420,10 @@ export default function StatementStudio({
             maxHeight: '560px',
           }}
         >
-          <div className="micro-label" style={{ marginBottom: '8px', color: 'var(--text-tertiary)' }}>
+          <div
+            className="micro-label"
+            style={{ marginBottom: '8px', color: 'var(--text-tertiary)' }}
+          >
             {t('studio_preview_title', 'Live preview')}
           </div>
           {statement.trim() ? (

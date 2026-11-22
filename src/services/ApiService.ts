@@ -1250,8 +1250,10 @@ export const SubmissionService = {
 };
 
 export const TestCaseService = {
-  listTestCases: (problemId: number | string) =>
-    apiFetch<PaginatedResponse<TestCaseType>>(`/problems/testcases/?problem_id=${problemId}`),
+  listTestCases: (problemId: number | string, page = 1) =>
+    apiFetch<PaginatedResponse<TestCaseType>>(
+      `/problems/testcases/?problem_id=${problemId}&page=${page}&page_size=100`,
+    ),
   createTestCase: (testCaseData: Record<string, unknown>) =>
     apiFetch<TestCaseType>('/problems/testcases/', {
       method: 'POST',
@@ -1307,10 +1309,10 @@ export const TestOpsService = {
     body.append('archive', file);
     if (options.dryRun) body.append('dry_run', '1');
     if (options.points !== undefined) body.append('points', String(options.points));
-    return apiFetch<TestArchivePreview>(
-      `/problems/problems/${problemId}/tests/import-archive/`,
-      { method: 'POST', body },
-    );
+    return apiFetch<TestArchivePreview>(`/problems/problems/${problemId}/tests/import-archive/`, {
+      method: 'POST',
+      body,
+    });
   },
   distributePoints: (problemId: number | string, target?: number) =>
     apiFetch<{ target: number; tests: number; total: number; points: number[] }>(
