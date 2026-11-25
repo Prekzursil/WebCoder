@@ -1090,7 +1090,9 @@ export default function ProblemsListClient({
                         }
                       : {
                           fontSize: `${0.72 + weight * 0.22}rem`,
-                          opacity: 0.55 + weight * 0.45,
+                          // Floor high enough to keep WCAG contrast on the
+                          // unselected cloud chips (axe color-contrast).
+                          opacity: 0.8 + weight * 0.2,
                         }
                   }
                   data-testid={`tag-cloud-${tag.slug}`}

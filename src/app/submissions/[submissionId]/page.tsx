@@ -253,9 +253,7 @@ function SubmissionDetailPage() {
   const renderTestResult = (result: SubmissionTestResultType, index = 0) => {
     // [wave item C] the boundary test (passed_count, 0-based) is the one
     // this submission just unlocked for the viewer.
-    const unlockBoundary = testsStatus
-      ? testsStatus.unlock_state.passed_count === index
-      : false;
+    const unlockBoundary = testsStatus ? testsStatus.unlock_state.passed_count === index : false;
     return (
       <div key={result.id} style={card}>
         <div

@@ -49,7 +49,13 @@ export interface ProblemType {
   hint_state?: {
     total: number;
     revealed_count: number;
-    tiers: { tier: number; kind: string; revealed: boolean; content: string | null; image: string | null }[];
+    tiers: {
+      tier: number;
+      kind: string;
+      revealed: boolean;
+      content: string | null;
+      image: string | null;
+    }[];
   };
   /** [problem-page wave F] permanent per-viewer forfeiture state. */
   forfeited?: boolean;
