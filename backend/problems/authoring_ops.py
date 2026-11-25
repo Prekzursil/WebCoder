@@ -371,7 +371,9 @@ class AuthoringDraftView(APIView):
         payload = request.data.get("payload")
         if not isinstance(payload, dict):
             return Response({"detail": "payload must be a JSON object"}, status=400)
-        stored = _merge_draft_payload(draft.payload if draft is not None else None, payload)
+        stored = _merge_draft_payload(
+            draft.payload if draft is not None else None, payload
+        )
         draft, _created = AuthoringDraft.objects.update_or_create(
             user=request.user,
             problem=problem,
