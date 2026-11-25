@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { SolveCardShare } from '@/components/share/ShareWidgets';
-import { SubmissionService } from '@/services/ApiService';
+import { SubmissionService, SolverService, type TestsStatusResponse } from '@/services/ApiService';
 import { useAuth } from '@/context/AuthContext';
 import { DetailedSubmissionType, SubmissionTestResultType } from '@/types';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
@@ -74,6 +74,9 @@ function SubmissionDetailPage() {
   const auth = useAuth();
   const [submission, setSubmission] = useState<DetailedSubmissionType | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  // [wave item C] the per-viewer unlock board folds into the verdict
+  // view: a partial pass shows WHICH test just unlocked for debugging.
+  const [testsStatus, setTestsStatus] = useState<TestsStatusResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPolling, setIsPolling] = useState<boolean>(false);
   // [wave E item 13] diff vs the previous attempt on this problem.
@@ -112,6 +115,24 @@ function SubmissionDetailPage() {
     },
     [t],
   );
+
+  // [wave item C] fetch the unlock board for non-AC verdicts.
+  useEffect(() => {
+    const problemId = submission?.problem;
+    const verdict = submission?.verdict;
+    if (!problemId || verdict === 'AC') return;
+    let cancelled = false;
+    SolverService.getTestsStatus(String(problemId))
+      .then((payload) => {
+        if (!cancelled) setTestsStatus(payload);
+      })
+      .catch(() => {
+        /* board stays hidden on error */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [submission?.problem, submission?.verdict]);
 
   useEffect(() => {
     if (submissionId && auth.isAuthenticated) {
@@ -229,7 +250,12 @@ function SubmissionDetailPage() {
     </div>
   );
 
-  const renderTestResult = (result: SubmissionTestResultType) => {
+  const renderTestResult = (result: SubmissionTestResultType, index = 0) => {
+    // [wave item C] the boundary test (passed_count, 0-based) is the one
+    // this submission just unlocked for the viewer.
+    const unlockBoundary = testsStatus
+      ? testsStatus.unlock_state.passed_count === index
+      : false;
     return (
       <div key={result.id} style={card}>
         <div
@@ -245,6 +271,23 @@ function SubmissionDetailPage() {
           <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--foreground)' }}>
             {t('test_case_label', 'Test Case')} #
             {result.test_case_details?.order ?? result.test_case_details?.id}
+            {unlockBoundary && (
+              <span
+                data-testid={`verdict-unlocked-${index + 1}`}
+                style={{
+                  marginLeft: '8px',
+                  padding: '1px 8px',
+                  borderRadius: '999px',
+                  fontSize: '0.68rem',
+                  fontWeight: 600,
+                  color: 'var(--accent)',
+                  background: hexAlpha(palette.accent, 0.1),
+                  border: `1px solid ${hexAlpha(palette.accent, 0.25)}`,
+                }}
+              >
+                {t('verdict_unlocked_chip', 'Unlocked — debug it on the problem page')}
+              </span>
+            )}
             {result.test_case_details?.is_sample && (
               <span
                 style={{
@@ -568,7 +611,7 @@ function SubmissionDetailPage() {
             />
             {t('test_case_results_header', 'Test Case Results')}
           </h2>
-          {submission.test_results.map(renderTestResult)}
+          {submission.test_results.map((result, index) => renderTestResult(result, index))}
         </>
       )}
 

@@ -5,6 +5,14 @@ import { notFound } from 'next/navigation';
 import { ProblemType, TestCaseType } from '@/types';
 
 vi.mock('@/services/ApiService', () => ({
+  SolverService: {
+    getTestsStatus: vi.fn().mockResolvedValue({
+      unlock_state: { passed_count: 0, unlocked_index: 1, total: 0, solved_all: false },
+      tests: [],
+    }),
+    revealHint: vi.fn(),
+    unlockSource: vi.fn(),
+  },
   // [wave G item 82/88] the palette/onboarding surfaces need these.
   SearchService: { federated: vi.fn().mockResolvedValue({ query: '', results: {} }) },
   OnboardingService: { get: vi.fn().mockResolvedValue({ steps: [], done: 0, total: 0 }) },

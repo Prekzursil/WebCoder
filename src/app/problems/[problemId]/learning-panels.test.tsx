@@ -5,7 +5,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { useAuth } from '@/context/AuthContext';
-import { ProblemService, ScratchService } from '@/services/ApiService';
+import { ProblemService, ScratchService, SolverService } from '@/services/ApiService';
 
 vi.mock('@/context/AuthContext', () => ({
   useAuth: vi.fn(),
@@ -22,6 +22,11 @@ vi.mock('@/services/ApiService', () => ({
   },
   ScratchService: {
     run: vi.fn(),
+  },
+  SolverService: {
+    revealHint: vi.fn(),
+    unlockSource: vi.fn(),
+    getTestsStatus: vi.fn(),
   },
 }));
 
@@ -61,26 +66,58 @@ beforeEach(() => {
   scratchRunMock.mockReset();
 });
 
-describe('HintsPanel [EDT-2]', () => {
-  it('reveals hints one at a time', () => {
-    render(<HintsPanel hints={['Hint A', 'Hint B']} />);
+// [problem-page wave item D] The tiered hints area: reveal buttons per
+// tier, recorded through the API, free note, markdown + image rendering.
+const hintState = (tiers: { tier: number; revealed: boolean; content: string | null; image?: string | null }[]) => ({
+  total: tiers.length,
+  revealed_count: tiers.filter((tier) => tier.revealed).length,
+  tiers: tiers.map((tier) => ({
+    tier: tier.tier,
+    kind: 'NUDGE',
+    revealed: tier.revealed,
+    content: tier.content,
+    image: tier.image ?? null,
+  })),
+});
+
+describe('HintsPanel [EDT-2 / wave item D]', () => {
+  it('reveals a tier through the API and renders its markdown', async () => {
+    const reveal = vi.fn().mockResolvedValue(
+      hintState([
+        { tier: 1, revealed: true, content: 'Hint A' },
+        { tier: 2, revealed: false, content: 'Hint B' },
+      ]),
+    );
+    vi.mocked(SolverService.revealHint).mockImplementation(reveal);
+    render(
+      <HintsPanel
+        problemId="7"
+        hintState={hintState([
+          { tier: 1, revealed: false, content: 'Hint A' },
+          { tier: 2, revealed: false, content: 'Hint B' },
+        ])}
+      />,
+    );
     expect(screen.queryByText('Hint A')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Show hint 1 of 2/i }));
-    expect(screen.getByText('Hint A')).toBeInTheDocument();
+    expect(screen.getByText(/Hints are free/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('hint-reveal-1'));
+    await waitFor(() => expect(reveal).toHaveBeenCalledWith('7', 1));
+    expect(await screen.findByText('Hint A')).toBeInTheDocument();
     expect(screen.queryByText('Hint B')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Show hint 2 of 2/i }));
-    expect(screen.getByText('Hint B')).toBeInTheDocument();
   });
 
-  it('hides everything again after the last reveal', () => {
-    render(<HintsPanel hints={['Only hint']} />);
-    fireEvent.click(screen.getByRole('button', { name: /Show hint 1 of 1/i }));
-    fireEvent.click(screen.getByRole('button', { name: /Hide hints/i }));
-    expect(screen.queryByText('Only hint')).not.toBeInTheDocument();
+  it('renders an image on a revealed graphical tier', () => {
+    render(
+      <HintsPanel
+        problemId="7"
+        hintState={hintState([{ tier: 2, revealed: true, content: 'see diagram', image: '/media/h.png' }])}
+      />,
+    );
+    expect(screen.getByTestId('hint-image-2')).toHaveAttribute('src', '/media/h.png');
   });
 
-  it('renders nothing without hints', () => {
-    const { container } = render(<HintsPanel hints={[]} />);
+  it('renders nothing without tiers', () => {
+    const { container } = render(<HintsPanel problemId="7" hintState={hintState([])} />);
     expect(container).toBeEmptyDOMElement();
   });
 });

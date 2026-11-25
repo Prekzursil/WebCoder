@@ -49,14 +49,15 @@ const difficultyColor: Record<string, string> = {
   easy: palette.success,
   medium: palette.warn,
   hard: palette.danger,
+  very_hard: palette.violet,
 };
 
-const DIFFICULTIES = ['very_easy', 'easy', 'medium', 'hard'];
+const DIFFICULTIES = ['very_easy', 'easy', 'medium', 'hard', 'very_hard'];
 // Real ProblemStatus choices (backend problems/models.py) — 'rejected' never
 // existed. [F7]
 const STATUSES = ['draft', 'pending_approval', 'approved', 'private'];
 
-type SortKey = 'title' | 'difficulty' | 'status';
+type SortKey = 'title' | 'difficulty' | 'points' | 'status' | 'solved';
 type SortDir = 'asc' | 'desc';
 
 const DIFFICULTY_ORDER: Record<string, number> = {
@@ -64,6 +65,7 @@ const DIFFICULTY_ORDER: Record<string, number> = {
   easy: 1,
   medium: 2,
   hard: 3,
+  very_hard: 4,
 };
 
 export default function ProblemsListClient({
@@ -197,7 +199,15 @@ export default function ProblemsListClient({
   );
   const urlYear = searchParams.get('source_year') ?? '';
   const urlGroup = searchParams.get('grade_group') ?? '';
+  // [wave item H] points range + source platform + solve-status facets.
+  const urlPointsMin = searchParams.get('points_min') ?? '';
+  const urlPointsMax = searchParams.get('points_max') ?? '';
+  const urlSource = searchParams.get('source') ?? '';
+  const urlSolveStatus = searchParams.get('solve_status') ?? '';
   const [yearDraft, setYearDraft] = useState(urlYear);
+  const [pointsMin, setPointsMin] = useState(urlPointsMin);
+  const [pointsMax, setPointsMax] = useState(urlPointsMax);
+  const [sourceDraft, setSourceDraft] = useState(urlSource);
 
   const [search, setSearch] = useState(urlSearch);
   const [difficultyFilter, setDifficultyFilter] = useState(urlDifficulty);
@@ -207,8 +217,19 @@ export default function ProblemsListClient({
   const [tagFilter, setTagFilter] = useState<Set<number>>(
     () => new Set(urlTags.split(',').filter(Boolean).map(Number)),
   );
-  const [sortKey, setSortKey] = useState<SortKey | null>(null);
-  const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [sortKey, setSortKey] = useState<SortKey | null>(() => {
+    const raw = (searchParams.get('sort') ?? '').replace('-', '');
+    return (['title', 'difficulty', 'points', 'status', 'solved'] as SortKey[]).includes(
+      raw as SortKey,
+    )
+      ? (raw as SortKey)
+      : null;
+  });
+  const [sortDir, setSortDir] = useState<SortDir>(() =>
+    (searchParams.get('sort') ?? '').startsWith('-') ? 'desc' : 'asc',
+  );
+  // [wave item H] the accumulated filter intent behind syncUrl (see there).
+  const pendingParamsRef = useRef<URLSearchParams | null>(null);
 
   // Keep local state in sync when the URL changes underneath (navbar search,
   // back/forward). [F3]
@@ -231,8 +252,21 @@ export default function ProblemsListClient({
     sourceYear?: string;
     gradeGroup?: string;
     editorial?: boolean;
+    pointsMin?: string;
+    pointsMax?: string;
+    source?: string;
+    solveStatus?: string;
+    sort?: string;
   }) => {
-    const params = new URLSearchParams(searchParams.toString());
+    // Merge into the accumulated intent: rapid successive facet changes
+    // (e.g. typing the points range) race the router commit, so each call
+    // builds on the ref (seeded from the live URL on first use).
+    if (!pendingParamsRef.current) {
+      // Seed once from the mount-time params (jsdom's mocked router never
+      // touches the address bar; the real router keeps prop and URL equal).
+      pendingParamsRef.current = new URLSearchParams(searchParams.toString());
+    }
+    const params = new URLSearchParams(pendingParamsRef.current.toString());
     const setOrDelete = (name: string, value: string | undefined) => {
       if (value) params.set(name, value);
       else params.delete(name);
@@ -262,6 +296,25 @@ export default function ProblemsListClient({
       'grade_group',
       next.gradeGroup !== undefined ? next.gradeGroup : urlGroup || undefined,
     );
+    // Fallbacks read the LIVE params (rapid successive changes must not
+    // clobber a sibling facet that only just hit the URL).
+    setOrDelete(
+      'points_min',
+      next.pointsMin !== undefined ? next.pointsMin : params.get('points_min') ?? '',
+    );
+    setOrDelete(
+      'points_max',
+      next.pointsMax !== undefined ? next.pointsMax : params.get('points_max') ?? '',
+    );
+    setOrDelete(
+      'source',
+      next.source !== undefined ? next.source : params.get('source') ?? '',
+    );
+    setOrDelete(
+      'solve_status',
+      next.solveStatus !== undefined ? next.solveStatus : params.get('solve_status') ?? '',
+    );
+    setOrDelete('sort', next.sort !== undefined ? next.sort : params.get('sort') ?? '');
     // "Has editorial" facet: boolean round-trips as editorial=1 (never the
     // string "false"), exactly like the archive toggle above.
     if (next.editorial !== undefined) {
@@ -269,6 +322,7 @@ export default function ProblemsListClient({
       else params.delete('editorial');
     }
     const qs = params.toString();
+    pendingParamsRef.current = params;
     router.replace(qs ? `/problems?${qs}` : '/problems', { scroll: false });
   };
 
@@ -287,8 +341,25 @@ export default function ProblemsListClient({
     const rowsFiltered = rows.filter((p) => {
       const title = p.title_i18n[locale] || p.title_i18n.en || '';
       const matchesSearch = title.toLowerCase().includes(search.toLowerCase());
-      const matchesDiff = difficultyFilter
-        ? p.difficulty?.toLowerCase() === difficultyFilter
+      const difficultySet = new Set(difficultyFilter.split(',').filter(Boolean));
+      const matchesDiff = difficultySet.size
+        ? difficultySet.has(p.difficulty?.toLowerCase() ?? '')
+        : true;
+      // [wave item H] points range + source platform facets.
+      const points = p.target_points ?? 0;
+      const matchesPoints =
+        (pointsMin ? points >= Number(pointsMin) : true) &&
+        (pointsMax ? points <= Number(pointsMax) : true);
+      const matchesSource = urlSource
+        ? (p.source_contest ?? '').toLowerCase().includes(urlSource.toLowerCase())
+        : true;
+      // [wave item H] per-user solve-status facet (LeetCode pattern).
+      const matchesSolveStatus = urlSolveStatus
+        ? urlSolveStatus === 'solved'
+          ? Boolean(solvedIds?.has(p.id))
+          : urlSolveStatus === 'attempted'
+            ? attemptedIds.has(p.id) && !solvedIds?.has(p.id)
+            : !solvedIds?.has(p.id) && !attemptedIds.has(p.id)
         : true;
       const matchesEditorial = urlEditorial ? Boolean(p.has_editorial) : true;
       const matchesStatus = statusFilter ? p.status?.toLowerCase() === statusFilter : true;
@@ -302,6 +373,9 @@ export default function ProblemsListClient({
       return (
         matchesSearch &&
         matchesDiff &&
+        matchesPoints &&
+        matchesSource &&
+        matchesSolveStatus &&
         matchesEditorial &&
         matchesStatus &&
         matchesTags &&
@@ -321,6 +395,11 @@ export default function ProblemsListClient({
         cmp =
           (DIFFICULTY_ORDER[a.difficulty?.toLowerCase() ?? ''] ?? 3) -
           (DIFFICULTY_ORDER[b.difficulty?.toLowerCase() ?? ''] ?? 3);
+      } else if (sortKey === 'points') {
+        cmp = (a.target_points ?? 0) - (b.target_points ?? 0);
+      } else if (sortKey === 'solved') {
+        cmp =
+          (solvedIds?.has(b.id) ? 1 : 0) - (solvedIds?.has(a.id) ? 1 : 0);
       } else {
         cmp = (a.status ?? '').localeCompare(b.status ?? '');
       }
@@ -331,11 +410,16 @@ export default function ProblemsListClient({
     rows,
     search,
     difficultyFilter,
+    pointsMin,
+    pointsMax,
+    urlSource,
+    urlSolveStatus,
     urlEditorial,
     statusFilter,
     tagFilter,
     hideSolved,
     solvedIds,
+    attemptedIds,
     locale,
     sortKey,
     sortDir,
@@ -461,7 +545,7 @@ export default function ProblemsListClient({
             onClick={async () => {
               try {
                 const pick = await RandomProblemService.pick({
-                  difficulty: difficultyFilter || undefined,
+                  difficulty: difficultyFilter.split(',').filter(Boolean)[0] || undefined,
                 });
                 router.push(`/problems/${pick.id}`);
               } catch {
@@ -489,7 +573,7 @@ export default function ProblemsListClient({
               syncUrl({ difficulty: '' });
             }}
             className="chip"
-            aria-pressed={!difficultyFilter}
+            aria-pressed={!difficultyFilter.split(',').filter(Boolean).length}
             style={
               difficultyFilter
                 ? undefined
@@ -504,12 +588,15 @@ export default function ProblemsListClient({
           </button>
           {DIFFICULTIES.map((d) => {
             const color = difficultyColor[d] ?? palette.muted;
-            const active = difficultyFilter === d;
+            const active = difficultyFilter.split(',').filter(Boolean).includes(d);
             return (
               <button
                 key={d}
                 onClick={() => {
-                  const next = active ? '' : d;
+                  const set = new Set(difficultyFilter.split(',').filter(Boolean));
+                  if (active) set.delete(d);
+                  else set.add(d);
+                  const next = Array.from(set).join(',');
                   setDifficultyFilter(next);
                   syncUrl({ difficulty: next });
                 }}
@@ -529,6 +616,124 @@ export default function ProblemsListClient({
               </button>
             );
           })}
+        </div>
+
+        {/* [wave item H] Points range facet (LeetCode/Codeforces pattern). */}
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+          <span className="micro-label" style={{ color: 'var(--muted)' }}>
+            {t('filters_points_range', 'Points')}:
+          </span>
+          <input
+            type="number"
+            min={1}
+            max={1000}
+            aria-label={t('filters_points_min', 'Minimum points')}
+            data-testid="points-min-input"
+            value={pointsMin}
+            onChange={(e) => {
+              setPointsMin(e.target.value);
+              syncUrl({ pointsMin: e.target.value });
+            }}
+            style={{ width: '80px', background: 'rgba(255,255,255,0.04)' }}
+          />
+          <span style={{ color: 'var(--muted)' }}>–</span>
+          <input
+            type="number"
+            min={1}
+            max={1000}
+            aria-label={t('filters_points_max', 'Maximum points')}
+            data-testid="points-max-input"
+            value={pointsMax}
+            onChange={(e) => {
+              setPointsMax(e.target.value);
+              syncUrl({ pointsMax: e.target.value });
+            }}
+            style={{ width: '80px', background: 'rgba(255,255,255,0.04)' }}
+          />
+        </div>
+
+        {/* [wave item H] Source-platform facet (RO-6 provenance axis). */}
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+          <span className="micro-label" style={{ color: 'var(--muted)' }}>
+            {t('filters_source', 'Source')}:
+          </span>
+          <input
+            type="text"
+            aria-label={t('filters_source', 'Source')}
+            data-testid="source-input"
+            placeholder={t('filters_source_placeholder', 'contest / platform')}
+            value={sourceDraft}
+            onChange={(e) => {
+              setSourceDraft(e.target.value);
+              syncUrl({ source: e.target.value });
+            }}
+            style={{ width: '150px', background: 'rgba(255,255,255,0.04)' }}
+          />
+        </div>
+
+        {/* [wave item H] Per-user solve-status facet (authenticated). */}
+        {auth.isAuthenticated && (
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <span className="micro-label" style={{ color: 'var(--muted)' }}>
+              {t('filters_solve_status_label', 'Solve status')}:
+            </span>
+            {[
+              { key: '', label: t('all_option', 'All') },
+              { key: 'solved', label: t('filters_status_solved', 'Solved') },
+              { key: 'attempted', label: t('filters_status_attempted', 'Attempted') },
+              { key: 'unsolved', label: t('filters_status_unsolved', 'Not tried') },
+            ].map((option) => (
+              <button
+                key={option.key || 'all'}
+                onClick={() => syncUrl({ solveStatus: option.key })}
+                className="chip"
+                aria-pressed={urlSolveStatus === option.key}
+                data-testid={`solve-status-${option.key || 'all'}`}
+                style={
+                  urlSolveStatus === option.key
+                    ? {
+                        borderColor: 'var(--success)',
+                        color: 'var(--success)',
+                        background: hexAlpha(palette.success, 0.1),
+                      }
+                    : undefined
+                }
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* [wave item H] Sort dropdown (persists through filter changes —
+            the Codeforces reset-on-filter pain point). */}
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+          <span className="micro-label" style={{ color: 'var(--muted)' }}>
+            {t('filters_sort', 'Sort')}:
+          </span>
+          <select
+            aria-label={t('filters_sort', 'Sort')}
+            data-testid="sort-select"
+            value={sortDir === 'desc' ? `-${sortKey}` : (sortKey ?? '')}
+            onChange={(e) => {
+              const raw = e.target.value;
+              const desc = raw.startsWith('-');
+              const key = (desc ? raw.slice(1) : raw) as SortKey;
+              setSortKey(key || null);
+              setSortDir(desc ? 'desc' : 'asc');
+              syncUrl({ sort: raw });
+            }}
+            style={{ background: 'rgba(255,255,255,0.04)' }}
+          >
+            <option value="">{t('filters_sort_default', 'Newest')}</option>
+            <option value="title">{t('filters_sort_title', 'Title A→Z')}</option>
+            <option value="-title">{t('filters_sort_title_desc', 'Title Z→A')}</option>
+            <option value="difficulty">{t('filters_sort_difficulty', 'Difficulty ↑')}</option>
+            <option value="-difficulty">{t('filters_sort_difficulty_desc', 'Difficulty ↓')}</option>
+            <option value="points">{t('filters_sort_points', 'Points ↑')}</option>
+            <option value="-points">{t('filters_sort_points_desc', 'Points ↓')}</option>
+            <option value="solved">{t('filters_sort_solved', 'Solved first')}</option>
+          </select>
         </div>
 
         {/* Has-editorial facet (DMOJ): problems carrying a visible editorial. */}
@@ -851,8 +1056,22 @@ export default function ProblemsListClient({
           >
             {t('all_option', 'All')}
           </button>
-          {allTags.slice(0, 12).map((tag) => {
-            const active = tagFilter.has(tag.id);
+          {/* [wave item H] tag CLOUD: size/opacity weighted by the
+              number of catalog rows carrying each tag. */}
+          {(() => {
+            const counts = new Map<number, number>();
+            for (const row of rows) {
+              for (const tag of row.tags ?? []) {
+                counts.set(tag.id, (counts.get(tag.id) ?? 0) + 1);
+              }
+            }
+            const max = Math.max(1, ...counts.values());
+            const ranked = [...allTags].sort(
+              (a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0),
+            );
+            return ranked.slice(0, 24).map((tag) => {
+              const active = tagFilter.has(tag.id);
+              const weight = (counts.get(tag.id) ?? 0) / max;
             return (
               <button
                 key={tag.id}
@@ -871,14 +1090,23 @@ export default function ProblemsListClient({
                         borderColor: 'var(--violet)',
                         color: 'var(--violet)',
                         background: hexAlpha(palette.violet, 0.1),
+                        fontSize: `${0.72 + weight * 0.22}rem`,
                       }
-                    : undefined
+                    : {
+                        fontSize: `${0.72 + weight * 0.22}rem`,
+                        opacity: 0.55 + weight * 0.45,
+                      }
                 }
+                data-testid={`tag-cloud-${tag.slug}`}
+                title={String(counts.get(tag.id) ?? 0)}
+                aria-label={tag.name_i18n[locale] || tag.name_i18n.en || tag.slug}
               >
                 {tag.name_i18n[locale] || tag.name_i18n.en || tag.slug}
+                {counts.get(tag.id) ? ` (${counts.get(tag.id)})` : ''}
               </button>
             );
-          })}
+            });
+          })()}
         </div>
       )}
 

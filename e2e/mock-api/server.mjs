@@ -84,6 +84,19 @@ const MOCK_PROBLEMS = [
     hints_en: ['Built-in slicing reverses in one step.', 's[::-1]'],
     hints_ro: ['Slicing-ul integrat inversează într-un pas.', 's[::-1]'],
     has_editorial: true,
+    // Problem-page wave (items C/D/F): solver-facing state on the detail
+    // payload — tiered hints, unlock board economics, forfeit flag.
+    target_points: 120,
+    point_bounds: [50, 200],
+    hint_state: {
+      total: 2,
+      revealed_count: 0,
+      tiers: [
+        { tier: 1, kind: 'NUDGE', revealed: false, content: null, image: null },
+        { tier: 2, kind: 'STRONGER', revealed: false, content: null, image: null },
+      ],
+    },
+    forfeited: false,
   },
   {
     id: 8,
@@ -1163,17 +1176,12 @@ const server = createServer((req, res) => {
 
   const editorialMatch = path.match(/^\/api\/v1\/problems\/problems\/(\d+)\/editorial\/$/);
   if (req.method === 'GET' && editorialMatch) {
-    // Problem 2 carries an editorial in the mock catalog; the others 404.
-    if (Number(editorialMatch[1]) === 2) {
-      json(res, 200, {
-        content_en: 'Greedy: sort and sweep.',
-        content_ro: 'Greedy: sortează și parcurge.',
-        publish_policy: 'PUBLIC',
-      });
-    } else {
+    // Problem 2's editorial moved to the wave-H gated route further down
+    // (locked until AC / forfeit); every other problem still 404s.
+    if (Number(editorialMatch[1]) !== 2) {
       json(res, 404, { detail: 'No editorial for this problem.' });
+      return;
     }
-    return;
   }
 
   // FE-3: profile statistics, GDPR endpoints, bookmarks.
@@ -1979,6 +1987,98 @@ const server = createServer((req, res) => {
         row.points = points[i];
       });
       json(res, 200, { target, tests: waveTests.length, total: target, points });
+    });
+    return;
+  }
+
+  // ---- Problem-page wave (items C/D/F): solver economy endpoints ------
+  // Stateful per-session reveal/forfeit stores for problem 2.
+  if (typeof globalThis.WAVE_H_HINTS === 'undefined') {
+    globalThis.WAVE_H_HINTS = { revealed: new Set() };
+    globalThis.WAVE_H_FORFEIT = { problem: 0 };
+  }
+  const hintsPath = '/api/v1/problems/problems/2/hints/reveal/';
+  if (req.method === 'POST' && path === hintsPath) {
+    readBody(req, (body) => {
+      const tier = Number(body.tier);
+      const contents = {
+        1: 'Built-in slicing reverses in one step.',
+        2: 's[::-1]',
+        3: 'Loop from the end appending into a buffer.',
+      };
+      if (contents[tier]) globalThis.WAVE_H_HINTS.revealed.add(tier);
+      const tiers = [1, 2, 3]
+        .filter((n) => n <= 2)
+        .map((n) => ({
+          tier: n,
+          kind: n === 1 ? 'NUDGE' : 'STRONGER',
+          revealed: globalThis.WAVE_H_HINTS.revealed.has(n),
+          content: globalThis.WAVE_H_HINTS.revealed.has(n) ? contents[n] : null,
+          image: null,
+        }));
+      json(res, 200, {
+        total: 2,
+        revealed_count: tiers.filter((tierRow) => tierRow.revealed).length,
+        tiers,
+      });
+    });
+    return;
+  }
+  const unlockPath = '/api/v1/problems/problems/2/unlock-source/';
+  if (req.method === 'POST' && path === unlockPath) {
+    globalThis.WAVE_H_FORFEIT.problem = 2;
+    json(res, 200, {
+      reference_solution_code: 'print(s[::-1])',
+      reference_language: 'python3',
+      forfeited: true,
+      forfeited_at: new Date().toISOString(),
+      editorial_unlocked: true,
+    });
+    return;
+  }
+  const statusPath = '/api/v1/problems/problems/2/tests/status/';
+  if (req.method === 'GET' && path === statusPath) {
+    const passed = globalThis.WAVE_H_FORFEIT.problem === 2 ? 0 : 1;
+    json(res, 200, {
+      unlock_state: { passed_count: passed, unlocked_index: passed + 1, total: 3, solved_all: false },
+      tests: [
+        {
+          id: 11, order: 1, position: 1, points: 40, is_sample: true,
+          status: passed >= 1 ? 'solved' : 'unlocked',
+          input_data: 'abcdef', expected_output_data: 'fedcba',
+        },
+        {
+          id: 12, order: 2, position: 2, points: 40, is_sample: false,
+          status: passed === 1 ? 'unlocked' : 'locked',
+          input_data: passed === 1 ? 'xyz' : null,
+          expected_output_data: passed === 1 ? 'zyx' : null,
+        },
+        {
+          id: 13, order: 3, position: 3, points: 40, is_sample: false,
+          status: 'locked', input_data: null, expected_output_data: null,
+        },
+      ],
+    });
+    return;
+  }
+  // The locked editorial 403 keeps its publish-policy payload (EDT-1).
+  const editorialPath = '/api/v1/problems/problems/2/editorial/';
+  if (req.method === 'GET' && path === editorialPath) {
+    if (globalThis.WAVE_H_FORFEIT.problem === 2) {
+      json(res, 200, {
+        content_ro: 'Folosim slicing.',
+        content_en: '## Approach\n\nUse slicing: `s[::-1]` — $O(n)$ time.',
+        publish_policy: 'AFTER_AC',
+        solution_python: 'print(s[::-1])',
+        solution_cpp:
+          '#include <bits/stdc++.h>\nint main() { std::string s; std::cin >> s; std::reverse(s.begin(), s.end()); std::cout << s; }',
+      });
+      return;
+    }
+    json(res, 403, {
+      detail: 'This editorial is locked by its publish policy.',
+      publish_policy: 'AFTER_AC',
+      locked: true,
     });
     return;
   }

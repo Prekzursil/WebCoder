@@ -42,6 +42,14 @@ const apiMocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@/services/ApiService', () => ({
+  SolverService: {
+    getTestsStatus: vi.fn().mockResolvedValue({
+      unlock_state: { passed_count: 0, unlocked_index: 1, total: 0, solved_all: false },
+      tests: [],
+    }),
+    revealHint: vi.fn(),
+    unlockSource: vi.fn(),
+  },
   // [wave G item 82/88] the palette/onboarding surfaces need these.
   SearchService: { federated: vi.fn().mockResolvedValue({ query: '', results: {} }) },
   OnboardingService: { get: vi.fn().mockResolvedValue({ steps: [], done: 0, total: 0 }) },
@@ -247,7 +255,7 @@ describe('ProblemsListClient status facet gating [F7]', () => {
         hasMore={false}
       />,
     );
-    expect(screen.queryByText('Status:')).not.toBeInTheDocument();
+    expect(screen.queryByText('Status:', { selector: 'span.micro-label' })).not.toBeInTheDocument();
     expect(screen.queryByRole('columnheader', { name: /Status/ })).not.toBeInTheDocument();
   });
 
@@ -263,7 +271,7 @@ describe('ProblemsListClient status facet gating [F7]', () => {
         hasMore={false}
       />,
     );
-    expect(screen.getByText('Status:')).toBeInTheDocument();
+    expect(screen.getByText('Status:', { selector: 'span.micro-label' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: /Status/ })).toBeInTheDocument();
     // Real backend choices only.
     for (const choice of ['draft', 'pending_approval', 'approved', 'private']) {
