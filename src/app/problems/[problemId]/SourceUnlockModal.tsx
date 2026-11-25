@@ -103,7 +103,10 @@ export default function SourceUnlockModal({
             {t('forfeit_modal_title', 'Unlock the reference source code?')}
           </strong>
         </div>
-        <p data-testid="forfeit-warning-text" style={{ margin: 0, fontSize: '0.88rem', lineHeight: 1.6 }}>
+        <p
+          data-testid="forfeit-warning-text"
+          style={{ margin: 0, fontSize: '0.88rem', lineHeight: 1.6 }}
+        >
           {t('forfeit_modal_text', {
             defaultValue:
               'Warning: {{warning}}. This is permanent — the problem will never award points to this account again (the editorial and source stay visible).',

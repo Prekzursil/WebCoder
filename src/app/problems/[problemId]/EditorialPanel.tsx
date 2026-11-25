@@ -106,7 +106,12 @@ export default function EditorialPanel({
             type="button"
             className="btn"
             data-testid="editorial-unlock-early"
-            style={{ justifySelf: 'start', padding: '4px 12px', fontSize: '0.75rem', minHeight: '30px' }}
+            style={{
+              justifySelf: 'start',
+              padding: '4px 12px',
+              fontSize: '0.75rem',
+              minHeight: '30px',
+            }}
             onClick={onUnlockEarly}
           >
             {t('editorial_unlock_early', 'Unlock early (forfeits points) →')}
@@ -127,7 +132,9 @@ export default function EditorialPanel({
   const codeBlock = (label: string, language: 'python' | 'cpp', code: string): ReactNode =>
     code ? (
       <div data-testid={`editorial-solution-${language}`} style={{ display: 'grid', gap: '4px' }}>
-        <div className="micro-label" style={{ color: 'var(--muted)' }}>{label}</div>
+        <div className="micro-label" style={{ color: 'var(--muted)' }}>
+          {label}
+        </div>
         <SyntaxHighlighter
           language={language}
           style={vscDarkPlus}
@@ -146,7 +153,11 @@ export default function EditorialPanel({
   return (
     <div data-testid="editorial-open" style={{ display: 'grid', gap: '0.9rem' }}>
       <StatementMarkdown markdown={state.content} />
-      {codeBlock(t('editorial_solution_python', 'Reference solution — Python'), 'python', state.solutionPython)}
+      {codeBlock(
+        t('editorial_solution_python', 'Reference solution — Python'),
+        'python',
+        state.solutionPython,
+      )}
       {codeBlock(t('editorial_solution_cpp', 'Reference solution — C++'), 'cpp', state.solutionCpp)}
     </div>
   );

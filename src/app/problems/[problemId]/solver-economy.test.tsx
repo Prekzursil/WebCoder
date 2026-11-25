@@ -37,10 +37,46 @@ describe('TestUnlockBoard [item C]', () => {
     solverApi.getTestsStatus.mockResolvedValue({
       unlock_state: { passed_count: 2, unlocked_index: 3, total: 4, solved_all: false },
       tests: [
-        { id: 1, order: 1, position: 1, points: 25, is_sample: true, status: 'solved', input_data: 'in1', expected_output_data: 'out1' },
-        { id: 2, order: 2, position: 2, points: 25, is_sample: false, status: 'solved', input_data: 'in2', expected_output_data: 'out2' },
-        { id: 3, order: 3, position: 3, points: 25, is_sample: false, status: 'unlocked', input_data: 'in3', expected_output_data: 'out3' },
-        { id: 4, order: 4, position: 4, points: 25, is_sample: false, status: 'locked', input_data: null, expected_output_data: null },
+        {
+          id: 1,
+          order: 1,
+          position: 1,
+          points: 25,
+          is_sample: true,
+          status: 'solved',
+          input_data: 'in1',
+          expected_output_data: 'out1',
+        },
+        {
+          id: 2,
+          order: 2,
+          position: 2,
+          points: 25,
+          is_sample: false,
+          status: 'solved',
+          input_data: 'in2',
+          expected_output_data: 'out2',
+        },
+        {
+          id: 3,
+          order: 3,
+          position: 3,
+          points: 25,
+          is_sample: false,
+          status: 'unlocked',
+          input_data: 'in3',
+          expected_output_data: 'out3',
+        },
+        {
+          id: 4,
+          order: 4,
+          position: 4,
+          points: 25,
+          is_sample: false,
+          status: 'locked',
+          input_data: null,
+          expected_output_data: null,
+        },
       ],
     });
     render(<TestUnlockBoard problemId="9" />);
@@ -113,21 +149,15 @@ describe('SourceUnlockModal [item F]', () => {
   });
 
   it('states the verbatim warning with the exact buttons', () => {
-    render(
-      <SourceUnlockModal problemId="9" open onClose={() => {}} onUnlocked={() => {}} />,
-    );
-    expect(screen.getByTestId('forfeit-warning-text').textContent).toContain(
-      FORFEIT_WARNING,
-    );
+    render(<SourceUnlockModal problemId="9" open onClose={() => {}} onUnlocked={() => {}} />);
+    expect(screen.getByTestId('forfeit-warning-text').textContent).toContain(FORFEIT_WARNING);
     expect(FORFEIT_WARNING).toBe(
       'unlocking the source code before the problem is solved means the problem will NOT award points to this account',
     );
     expect(screen.getByTestId('forfeit-confirm').textContent).toBe(
       'I understand — unlock source code',
     );
-    expect(screen.getByTestId('forfeit-cancel').textContent).toBe(
-      'Cancel — go back to solving',
-    );
+    expect(screen.getByTestId('forfeit-cancel').textContent).toBe('Cancel — go back to solving');
   });
 
   it('forfeits through the API and surfaces the revealed source', async () => {
@@ -139,9 +169,7 @@ describe('SourceUnlockModal [item F]', () => {
       forfeited_at: 'now',
       editorial_unlocked: true,
     });
-    render(
-      <SourceUnlockModal problemId="9" open onClose={() => {}} onUnlocked={onUnlocked} />,
-    );
+    render(<SourceUnlockModal problemId="9" open onClose={() => {}} onUnlocked={onUnlocked} />);
     fireEvent.click(screen.getByTestId('forfeit-confirm'));
     await waitFor(() => expect(solverApi.unlockSource).toHaveBeenCalledWith('9'));
     expect(onUnlocked).toHaveBeenCalledWith('print(42)', 'python3');
@@ -149,9 +177,7 @@ describe('SourceUnlockModal [item F]', () => {
 
   it('cancel keeps the problem locked', async () => {
     const onClose = vi.fn();
-    render(
-      <SourceUnlockModal problemId="9" open onClose={onClose} onUnlocked={() => {}} />,
-    );
+    render(<SourceUnlockModal problemId="9" open onClose={onClose} onUnlocked={() => {}} />);
     fireEvent.click(screen.getByTestId('forfeit-cancel'));
     expect(onClose).toHaveBeenCalled();
     expect(solverApi.unlockSource).not.toHaveBeenCalled();

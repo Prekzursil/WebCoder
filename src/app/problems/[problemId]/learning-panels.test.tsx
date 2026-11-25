@@ -68,7 +68,9 @@ beforeEach(() => {
 
 // [problem-page wave item D] The tiered hints area: reveal buttons per
 // tier, recorded through the API, free note, markdown + image rendering.
-const hintState = (tiers: { tier: number; revealed: boolean; content: string | null; image?: string | null }[]) => ({
+const hintState = (
+  tiers: { tier: number; revealed: boolean; content: string | null; image?: string | null }[],
+) => ({
   total: tiers.length,
   revealed_count: tiers.filter((tier) => tier.revealed).length,
   tiers: tiers.map((tier) => ({
@@ -110,7 +112,9 @@ describe('HintsPanel [EDT-2 / wave item D]', () => {
     render(
       <HintsPanel
         problemId="7"
-        hintState={hintState([{ tier: 2, revealed: true, content: 'see diagram', image: '/media/h.png' }])}
+        hintState={hintState([
+          { tier: 2, revealed: true, content: 'see diagram', image: '/media/h.png' },
+        ])}
       />,
     );
     expect(screen.getByTestId('hint-image-2')).toHaveAttribute('src', '/media/h.png');

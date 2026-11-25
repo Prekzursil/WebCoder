@@ -14,9 +14,7 @@ async function login(page: import('@playwright/test').Page) {
 }
 
 test.describe('wave H solver surfaces (mock api)', () => {
-  test('hints: tiered reveal via the API, free note, separate from editorial', async ({
-    page,
-  }) => {
+  test('hints: tiered reveal via the API, free note, separate from editorial', async ({ page }) => {
     await login(page);
     await page.goto('/problems/2');
 

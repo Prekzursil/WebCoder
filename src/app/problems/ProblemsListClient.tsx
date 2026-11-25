@@ -300,21 +300,18 @@ export default function ProblemsListClient({
     // clobber a sibling facet that only just hit the URL).
     setOrDelete(
       'points_min',
-      next.pointsMin !== undefined ? next.pointsMin : params.get('points_min') ?? '',
+      next.pointsMin !== undefined ? next.pointsMin : (params.get('points_min') ?? ''),
     );
     setOrDelete(
       'points_max',
-      next.pointsMax !== undefined ? next.pointsMax : params.get('points_max') ?? '',
+      next.pointsMax !== undefined ? next.pointsMax : (params.get('points_max') ?? ''),
     );
-    setOrDelete(
-      'source',
-      next.source !== undefined ? next.source : params.get('source') ?? '',
-    );
+    setOrDelete('source', next.source !== undefined ? next.source : (params.get('source') ?? ''));
     setOrDelete(
       'solve_status',
-      next.solveStatus !== undefined ? next.solveStatus : params.get('solve_status') ?? '',
+      next.solveStatus !== undefined ? next.solveStatus : (params.get('solve_status') ?? ''),
     );
-    setOrDelete('sort', next.sort !== undefined ? next.sort : params.get('sort') ?? '');
+    setOrDelete('sort', next.sort !== undefined ? next.sort : (params.get('sort') ?? ''));
     // "Has editorial" facet: boolean round-trips as editorial=1 (never the
     // string "false"), exactly like the archive toggle above.
     if (next.editorial !== undefined) {
@@ -398,8 +395,7 @@ export default function ProblemsListClient({
       } else if (sortKey === 'points') {
         cmp = (a.target_points ?? 0) - (b.target_points ?? 0);
       } else if (sortKey === 'solved') {
-        cmp =
-          (solvedIds?.has(b.id) ? 1 : 0) - (solvedIds?.has(a.id) ? 1 : 0);
+        cmp = (solvedIds?.has(b.id) ? 1 : 0) - (solvedIds?.has(a.id) ? 1 : 0);
       } else {
         cmp = (a.status ?? '').localeCompare(b.status ?? '');
       }
@@ -1072,39 +1068,39 @@ export default function ProblemsListClient({
             return ranked.slice(0, 24).map((tag) => {
               const active = tagFilter.has(tag.id);
               const weight = (counts.get(tag.id) ?? 0) / max;
-            return (
-              <button
-                key={tag.id}
-                onClick={() => {
-                  const next = new Set(tagFilter);
-                  if (active) next.delete(tag.id);
-                  else next.add(tag.id);
-                  setTagFilter(next);
-                  syncUrl({ tags: Array.from(next).join(',') });
-                }}
-                className="chip"
-                aria-pressed={active}
-                style={
-                  active
-                    ? {
-                        borderColor: 'var(--violet)',
-                        color: 'var(--violet)',
-                        background: hexAlpha(palette.violet, 0.1),
-                        fontSize: `${0.72 + weight * 0.22}rem`,
-                      }
-                    : {
-                        fontSize: `${0.72 + weight * 0.22}rem`,
-                        opacity: 0.55 + weight * 0.45,
-                      }
-                }
-                data-testid={`tag-cloud-${tag.slug}`}
-                title={String(counts.get(tag.id) ?? 0)}
-                aria-label={tag.name_i18n[locale] || tag.name_i18n.en || tag.slug}
-              >
-                {tag.name_i18n[locale] || tag.name_i18n.en || tag.slug}
-                {counts.get(tag.id) ? ` (${counts.get(tag.id)})` : ''}
-              </button>
-            );
+              return (
+                <button
+                  key={tag.id}
+                  onClick={() => {
+                    const next = new Set(tagFilter);
+                    if (active) next.delete(tag.id);
+                    else next.add(tag.id);
+                    setTagFilter(next);
+                    syncUrl({ tags: Array.from(next).join(',') });
+                  }}
+                  className="chip"
+                  aria-pressed={active}
+                  style={
+                    active
+                      ? {
+                          borderColor: 'var(--violet)',
+                          color: 'var(--violet)',
+                          background: hexAlpha(palette.violet, 0.1),
+                          fontSize: `${0.72 + weight * 0.22}rem`,
+                        }
+                      : {
+                          fontSize: `${0.72 + weight * 0.22}rem`,
+                          opacity: 0.55 + weight * 0.45,
+                        }
+                  }
+                  data-testid={`tag-cloud-${tag.slug}`}
+                  title={String(counts.get(tag.id) ?? 0)}
+                  aria-label={tag.name_i18n[locale] || tag.name_i18n.en || tag.slug}
+                >
+                  {tag.name_i18n[locale] || tag.name_i18n.en || tag.slug}
+                  {counts.get(tag.id) ? ` (${counts.get(tag.id)})` : ''}
+                </button>
+              );
             });
           })()}
         </div>

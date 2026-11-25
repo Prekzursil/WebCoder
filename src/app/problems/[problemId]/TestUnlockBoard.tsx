@@ -65,12 +65,14 @@ export default function TestUnlockBoard({ problemId }: { problemId: string }): R
           flexWrap: 'wrap',
         }}
       >
-        <strong style={{ fontSize: '0.9rem' }}>
-          {t('unlock_board_title', 'Test unlocking')}
-        </strong>
-        <span data-testid="unlock-board-progress" style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>
+        <strong style={{ fontSize: '0.9rem' }}>{t('unlock_board_title', 'Test unlocking')}</strong>
+        <span
+          data-testid="unlock-board-progress"
+          style={{ fontSize: '0.78rem', color: 'var(--muted)' }}
+        >
           {t('unlock_board_progress', {
-            defaultValue: '{{passed}} / {{total}} tests passed — test {{next}} unlocked for debugging',
+            defaultValue:
+              '{{passed}} / {{total}} tests passed — test {{next}} unlocked for debugging',
             passed: state.passed_count,
             total: state.total,
             next: Math.min(state.passed_count + 1, state.total),
@@ -130,7 +132,13 @@ export default function TestUnlockBoard({ problemId }: { problemId: string }): R
               )}
             </div>
             {row.status === 'unlocked' && row.input_data !== null && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: '8px' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)',
+                  gap: '8px',
+                }}
+              >
                 <div>
                   <div className="micro-label" style={{ color: 'var(--muted)' }}>
                     {t('test_case_input_label', 'Input')}
@@ -179,8 +187,7 @@ export default function TestUnlockBoard({ problemId }: { problemId: string }): R
       {!state.solved_all && (
         <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--muted)' }}>
           {t('unlock_board_hint', {
-            defaultValue:
-              'Pass {{next}} tests in one submission to unlock test {{after}}.',
+            defaultValue: 'Pass {{next}} tests in one submission to unlock test {{after}}.',
             next: state.passed_count + 1,
             after: state.passed_count + 2,
           })}
