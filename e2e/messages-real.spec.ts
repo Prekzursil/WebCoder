@@ -97,7 +97,14 @@ test('COM-5 real loop: thread → send → filter flag → notification → repo
   await page.fill('#login-username', E2E_USER);
   await page.fill('#login-password', E2E_USER_PASS);
   await page.getByRole('button', { name: 'Login', exact: true }).click();
-  await expect(page.getByText(E2E_USER, { exact: true })).toBeVisible();
+  // Logged in = the navbar's account menu names the user. Aimed at that one
+  // control on purpose: a page-wide getByText(E2E_USER) also matches the
+  // home feed's activity row for the same user (present once an earlier spec
+  // submitted a solution) and fails as a strict-mode violation — an
+  // ambiguous locator, not a login failure (nightly run 45719620181).
+  const accountMenu = page.getByRole('button', { name: 'Account menu' });
+  await expect(accountMenu).toBeVisible();
+  await expect(accountMenu).toHaveText(E2E_USER);
 
   await page.goto('/messages');
   await expect(page.getByTestId(`msg-thread-${threadId}`)).toBeVisible();
