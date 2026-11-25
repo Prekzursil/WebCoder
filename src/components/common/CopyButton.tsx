@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { useTranslation } from "react-i18next";
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 // Copy-to-clipboard button [SPEC-GAPS A7/A18/F20]: used by sample I/O blocks,
 // the source-code viewer, and the problem share link. Uses the global .btn
@@ -34,16 +34,16 @@ export default function CopyButton({
 
   const handleCopy = async () => {
     try {
-      const value = shareLink ? window.location.href : (text ?? "");
+      const value = shareLink ? window.location.href : (text ?? '');
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(value);
       } else {
         // jsdom / older browsers: execCommand fallback.
-        const area = document.createElement("textarea");
+        const area = document.createElement('textarea');
         area.value = value;
         document.body.appendChild(area);
         area.select();
-        document.execCommand("copy");
+        document.execCommand('copy');
         document.body.removeChild(area);
       }
       setCopied(true);
@@ -59,11 +59,11 @@ export default function CopyButton({
       onClick={handleCopy}
       className="btn"
       aria-label={
-        ariaLabel ?? (copied ? t("copied_label", "Copied!") : (label ?? t("copy_button", "Copy")))
+        ariaLabel ?? (copied ? t('copied_label', 'Copied!') : (label ?? t('copy_button', 'Copy')))
       }
-      style={{ padding: "3px 10px", fontSize: "0.7rem", minHeight: "28px", ...style }}
+      style={{ padding: '3px 10px', fontSize: '0.7rem', minHeight: '28px', ...style }}
     >
-      {copied ? (copiedLabel ?? t("copied_label", "Copied!")) : (label ?? t("copy_button", "Copy"))}
+      {copied ? (copiedLabel ?? t('copied_label', 'Copied!')) : (label ?? t('copy_button', 'Copy'))}
     </button>
   );
 }

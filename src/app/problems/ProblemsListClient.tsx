@@ -1,17 +1,18 @@
-"use client";
+'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
-import { ProblemType, TagType } from "@/types";
-import { AuthService, ProblemService } from "@/services/ApiService";
-import { createTranslator, type PublicLocale } from "../_lib/public-messages";
-import type { CurriculumGrade } from "./_lib/problems-api";
-import { palette, hexAlpha } from "@/theme/tokens";
-import EmptyState from "@/components/common/EmptyState";
-import PageHeader from "@/components/common/PageHeader";
-import TableScroll from "@/components/common/TableScroll";
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import SavedSearchesStrip from './SavedSearchesStrip';
+import { useAuth } from '@/context/AuthContext';
+import { ProblemType, TagType } from '@/types';
+import { AuthService, ProblemService, RandomProblemService } from '@/services/ApiService';
+import { createTranslator, type PublicLocale } from '../_lib/public-messages';
+import type { CurriculumGrade } from './_lib/problems-api';
+import { palette, hexAlpha } from '@/theme/tokens';
+import EmptyState from '@/components/common/EmptyState';
+import PageHeader from '@/components/common/PageHeader';
+import TableScroll from '@/components/common/TableScroll';
 
 // Catalog client island [SPEC-GAPS F3/F7/Q3/A1/A11]:
 //  - search / difficulty / status filters live in the URL (?q= &difficulty=
@@ -50,13 +51,13 @@ const difficultyColor: Record<string, string> = {
   hard: palette.danger,
 };
 
-const DIFFICULTIES = ["very_easy", "easy", "medium", "hard"];
+const DIFFICULTIES = ['very_easy', 'easy', 'medium', 'hard'];
 // Real ProblemStatus choices (backend problems/models.py) — 'rejected' never
 // existed. [F7]
-const STATUSES = ["draft", "pending_approval", "approved", "private"];
+const STATUSES = ['draft', 'pending_approval', 'approved', 'private'];
 
-type SortKey = "title" | "difficulty" | "status";
-type SortDir = "asc" | "desc";
+type SortKey = 'title' | 'difficulty' | 'status';
+type SortDir = 'asc' | 'desc';
 
 const DIFFICULTY_ORDER: Record<string, number> = {
   very_easy: 0,
@@ -150,10 +151,12 @@ export default function ProblemsListClient({
     try {
       // Status facet filters client-side (the backend list has no ?status=
       // query support), so pages are fetched unfiltered and appended here.
-      const response = await ProblemService.getProblems(
-        {},
-        { page: nextPageRef.current, pageSize: 100 },
-      );
+      // [2026-11-20] the ?q= term rides the server fetch (search lives
+      // server-side now) so appended pages stay within the search hits.
+      const response = await ProblemService.getProblems(urlSearch ? { search: urlSearch } : {}, {
+        page: nextPageRef.current,
+        pageSize: 100,
+      });
       setRows((prev) => {
         const seen = new Set(prev.map((p) => p.id));
         return [...prev, ...response.results.filter((p) => !seen.has(p.id))];
@@ -163,7 +166,7 @@ export default function ProblemsListClient({
     } catch (err) {
       setMoreAvailable(true); // retry stays possible
       setMoreError(
-        err instanceof Error && err.message ? err.message : "Failed to load more problems.",
+        err instanceof Error && err.message ? err.message : 'Failed to load more problems.',
       );
     } finally {
       setLoadingMore(false);
@@ -172,22 +175,40 @@ export default function ProblemsListClient({
 
   // URL is the source of truth for filters [F3]; local state mirrors it so
   // typing in the search box does not thrash the router per keystroke.
-  const urlSearch = searchParams.get("q") ?? "";
-  const urlDifficulty = searchParams.get("difficulty") ?? "";
-  const urlStatus = searchParams.get("status") ?? "";
-  const urlTags = searchParams.get("tags") ?? "";
+  const urlSearch = searchParams.get('q') ?? '';
+  const urlDifficulty = searchParams.get('difficulty') ?? '';
+  const urlStatus = searchParams.get('status') ?? '';
+  const urlTags = searchParams.get('tags') ?? '';
+  // DMOJ-style "has editorial" facet (client-side over the annotated
+  // catalog rows, same as the difficulty/status chips).
+  const urlEditorial = searchParams.get('editorial') === '1';
   // [EDU-9] chapter drill-down runs through the server (?curriculum=),
   // so the client only needs the current value (not local state).
-  const urlCurriculum = searchParams.get("curriculum") ?? "";
+  const urlCurriculum = searchParams.get('curriculum') ?? '';
+  // [RO-6] The archive browse axis is server-filtered the same way:
+  // ?archive=1 + optional ?source_year= / ?grade_group= refinements.
+  const urlArchive = searchParams.get('archive') === '1';
+  // [wave F item 129] the saved-search payload mirrors the URL filter set.
+  const currentParams = Object.fromEntries(
+    searchParams
+      .entries()
+      .filter(([key]) => key !== 'page')
+      .map(([key, value]) => [key, value]),
+  );
+  const urlYear = searchParams.get('source_year') ?? '';
+  const urlGroup = searchParams.get('grade_group') ?? '';
+  const [yearDraft, setYearDraft] = useState(urlYear);
 
   const [search, setSearch] = useState(urlSearch);
   const [difficultyFilter, setDifficultyFilter] = useState(urlDifficulty);
+  // [wave E item 24] random-die failure message (empty pool for filters).
+  const [randomError, setRandomError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState(urlStatus);
   const [tagFilter, setTagFilter] = useState<Set<number>>(
-    () => new Set(urlTags.split(",").filter(Boolean).map(Number)),
+    () => new Set(urlTags.split(',').filter(Boolean).map(Number)),
   );
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
 
   // Keep local state in sync when the URL changes underneath (navbar search,
   // back/forward). [F3]
@@ -195,8 +216,9 @@ export default function ProblemsListClient({
     setSearch(urlSearch);
     setDifficultyFilter(urlDifficulty);
     setStatusFilter(urlStatus);
-    setTagFilter(new Set(urlTags.split(",").filter(Boolean).map(Number)));
-  }, [urlSearch, urlDifficulty, urlStatus, urlTags]);
+    setTagFilter(new Set(urlTags.split(',').filter(Boolean).map(Number)));
+    setYearDraft(urlYear);
+  }, [urlSearch, urlDifficulty, urlStatus, urlTags, urlYear]);
 
   // Push filter changes into the URL (replace, no scroll jump). [F3]
   const syncUrl = (next: {
@@ -205,25 +227,49 @@ export default function ProblemsListClient({
     status?: string;
     tags?: string;
     curriculum?: string;
+    archive?: boolean;
+    sourceYear?: string;
+    gradeGroup?: string;
+    editorial?: boolean;
   }) => {
     const params = new URLSearchParams(searchParams.toString());
     const setOrDelete = (name: string, value: string | undefined) => {
       if (value) params.set(name, value);
       else params.delete(name);
     };
-    setOrDelete("q", next.q !== undefined ? next.q : urlSearch || undefined);
+    setOrDelete('q', next.q !== undefined ? next.q : urlSearch || undefined);
     setOrDelete(
-      "difficulty",
+      'difficulty',
       next.difficulty !== undefined ? next.difficulty : urlDifficulty || undefined,
     );
-    setOrDelete("status", next.status !== undefined ? next.status : urlStatus || undefined);
-    setOrDelete("tags", next.tags !== undefined ? next.tags : urlTags || undefined);
+    setOrDelete('status', next.status !== undefined ? next.status : urlStatus || undefined);
+    setOrDelete('tags', next.tags !== undefined ? next.tags : urlTags || undefined);
     setOrDelete(
-      "curriculum",
+      'curriculum',
       next.curriculum !== undefined ? next.curriculum : urlCurriculum || undefined,
     );
+    // [RO-6] archive axis: the toggle writes/deletes archive=1 itself so
+    // the boolean round-trips exactly (never the string "false").
+    if (next.archive !== undefined) {
+      if (next.archive) params.set('archive', '1');
+      else params.delete('archive');
+    }
+    setOrDelete(
+      'source_year',
+      next.sourceYear !== undefined ? next.sourceYear : urlYear || undefined,
+    );
+    setOrDelete(
+      'grade_group',
+      next.gradeGroup !== undefined ? next.gradeGroup : urlGroup || undefined,
+    );
+    // "Has editorial" facet: boolean round-trips as editorial=1 (never the
+    // string "false"), exactly like the archive toggle above.
+    if (next.editorial !== undefined) {
+      if (next.editorial) params.set('editorial', '1');
+      else params.delete('editorial');
+    }
     const qs = params.toString();
-    router.replace(qs ? `/problems?${qs}` : "/problems", { scroll: false });
+    router.replace(qs ? `/problems?${qs}` : '/problems', { scroll: false });
   };
 
   // Build the translator client-side: Server Components cannot pass functions
@@ -234,16 +280,17 @@ export default function ProblemsListClient({
   // The status facet only makes sense for roles that can see non-approved
   // problems. [F7]
   const showStatusFacet = Boolean(
-    auth.user && ["ADMIN", "PROBLEM_VERIFIER", "PROBLEM_CREATOR"].includes(auth.user.role),
+    auth.user && ['ADMIN', 'PROBLEM_VERIFIER', 'PROBLEM_CREATOR'].includes(auth.user.role),
   );
 
   const filtered = useMemo(() => {
     const rowsFiltered = rows.filter((p) => {
-      const title = p.title_i18n[locale] || p.title_i18n.en || "";
+      const title = p.title_i18n[locale] || p.title_i18n.en || '';
       const matchesSearch = title.toLowerCase().includes(search.toLowerCase());
       const matchesDiff = difficultyFilter
         ? p.difficulty?.toLowerCase() === difficultyFilter
         : true;
+      const matchesEditorial = urlEditorial ? Boolean(p.has_editorial) : true;
       const matchesStatus = statusFilter ? p.status?.toLowerCase() === statusFilter : true;
       // [F4] multi-tag AND facet
       const matchesTags =
@@ -252,23 +299,30 @@ export default function ProblemsListClient({
           : Array.from(tagFilter).every((tagId) => p.tags?.some((tag) => tag.id === tagId));
       // [F5] optional "hide solved"
       const matchesHideSolved = hideSolved && solvedIds ? !solvedIds.has(p.id) : true;
-      return matchesSearch && matchesDiff && matchesStatus && matchesTags && matchesHideSolved;
+      return (
+        matchesSearch &&
+        matchesDiff &&
+        matchesEditorial &&
+        matchesStatus &&
+        matchesTags &&
+        matchesHideSolved
+      );
     });
 
     if (!sortKey) return rowsFiltered;
-    const dir = sortDir === "asc" ? 1 : -1;
+    const dir = sortDir === 'asc' ? 1 : -1;
     return [...rowsFiltered].sort((a, b) => {
       let cmp = 0;
-      if (sortKey === "title") {
-        const at = (a.title_i18n[locale] || a.title_i18n.en || "").toLowerCase();
-        const bt = (b.title_i18n[locale] || b.title_i18n.en || "").toLowerCase();
+      if (sortKey === 'title') {
+        const at = (a.title_i18n[locale] || a.title_i18n.en || '').toLowerCase();
+        const bt = (b.title_i18n[locale] || b.title_i18n.en || '').toLowerCase();
         cmp = at.localeCompare(bt);
-      } else if (sortKey === "difficulty") {
+      } else if (sortKey === 'difficulty') {
         cmp =
-          (DIFFICULTY_ORDER[a.difficulty?.toLowerCase() ?? ""] ?? 3) -
-          (DIFFICULTY_ORDER[b.difficulty?.toLowerCase() ?? ""] ?? 3);
+          (DIFFICULTY_ORDER[a.difficulty?.toLowerCase() ?? ''] ?? 3) -
+          (DIFFICULTY_ORDER[b.difficulty?.toLowerCase() ?? ''] ?? 3);
       } else {
-        cmp = (a.status ?? "").localeCompare(b.status ?? "");
+        cmp = (a.status ?? '').localeCompare(b.status ?? '');
       }
       if (cmp === 0) cmp = a.id - b.id;
       return cmp * dir;
@@ -277,6 +331,7 @@ export default function ProblemsListClient({
     rows,
     search,
     difficultyFilter,
+    urlEditorial,
     statusFilter,
     tagFilter,
     hideSolved,
@@ -289,24 +344,24 @@ export default function ProblemsListClient({
   const hasActiveFilters = search || difficultyFilter || statusFilter || tagFilter.size > 0;
 
   const clearFilters = () => {
-    setSearch("");
-    setDifficultyFilter("");
-    setStatusFilter("");
+    setSearch('');
+    setDifficultyFilter('');
+    setStatusFilter('');
     setTagFilter(new Set());
-    router.replace("/problems", { scroll: false });
+    router.replace('/problems', { scroll: false });
   };
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
-      setSortDir((dir) => (dir === "asc" ? "desc" : "asc"));
+      setSortDir((dir) => (dir === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortKey(key);
-      setSortDir("asc");
+      setSortDir('asc');
     }
   };
 
-  const sortAria = (key: SortKey): "ascending" | "descending" | "none" =>
-    sortKey === key ? (sortDir === "asc" ? "ascending" : "descending") : "none";
+  const sortAria = (key: SortKey): 'ascending' | 'descending' | 'none' =>
+    sortKey === key ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none';
 
   const sortableTh = (key: SortKey, label: string) => (
     <th aria-sort={sortAria(key)}>
@@ -316,93 +371,122 @@ export default function ProblemsListClient({
         onClick={() => toggleSort(key)}
         // [Q7/Q12] axe label-content-name-mismatch (serious): the accessible
         // name must contain the button's visible text (the column label).
-        aria-label={`${label} — ${sortDir === "asc" ? t("sort_descending", "Sort descending") : t("sort_ascending", "Sort ascending")}`}
+        aria-label={`${label} — ${sortDir === 'asc' ? t('sort_descending', 'Sort descending') : t('sort_ascending', 'Sort ascending')}`}
       >
         {label}
-        <span aria-hidden="true" style={{ fontSize: "0.6rem" }}>
-          {sortKey === key ? (sortDir === "asc" ? "▲" : "▼") : "↕"}
+        <span aria-hidden="true" style={{ fontSize: '0.6rem' }}>
+          {sortKey === key ? (sortDir === 'asc' ? '▲' : '▼') : '↕'}
         </span>
       </button>
     </th>
   );
 
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "2rem 1.5rem" }}>
+    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem 1.5rem' }}>
       {/* Page header */}
       <PageHeader
-        title={t("problem_list_header", "Problems")}
+        title={t('problem_list_header', 'Problems')}
         subtitle={t(
-          "problems_page_description",
-          "Browse the public competitive programming problem catalog.",
+          'problems_page_description',
+          'Browse the public competitive programming problem catalog.',
         )}
       />
+
+      {/* [wave F item 129] saved searches: save/apply the current filter set */}
+      <SavedSearchesStrip currentParams={currentParams} />
 
       {/* [roadmap ONB-1] first-run path: the /start trio */}
       <Link
         href="/start"
         style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "0.5rem",
-          padding: "0.65rem 1rem",
-          marginBottom: "1.25rem",
-          borderRadius: "var(--radius-md)",
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          padding: '0.65rem 1rem',
+          marginBottom: '1.25rem',
+          borderRadius: 'var(--radius-md)',
           background: hexAlpha(palette.accent, 0.06),
           border: `1px solid ${hexAlpha(palette.accent, 0.2)}`,
-          color: "var(--accent)",
-          fontSize: "0.85rem",
+          color: 'var(--accent)',
+          fontSize: '0.85rem',
           fontWeight: 600,
-          textDecoration: "none",
+          textDecoration: 'none',
         }}
       >
-        {t("start_here_banner", "New here? Start with three classic problems →")}
+        {t('start_here_banner', 'New here? Start with three classic problems →')}
       </Link>
 
       {/* Filter bar */}
       <div
         style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          borderRadius: "var(--radius-lg)",
-          padding: "1rem 1.25rem",
-          marginBottom: "1.25rem",
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "0.75rem",
-          alignItems: "center",
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius-lg)',
+          padding: '1rem 1.25rem',
+          marginBottom: '1.25rem',
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '0.75rem',
+          alignItems: 'center',
         }}
       >
         {/* Search */}
-        <div style={{ position: "relative", flex: "1 1 200px", minWidth: "160px" }}>
+        <div style={{ position: 'relative', flex: '1 1 200px', minWidth: '160px' }}>
           <input
             type="search"
-            placeholder={t("problems_search_placeholder", "Search problems…")}
-            aria-label={t("problems_search_placeholder", "Search problems…")}
+            placeholder={t('problems_search_placeholder', 'Search problems…')}
+            aria-label={t('problems_search_placeholder', 'Search problems…')}
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
               syncUrl({ q: e.target.value });
             }}
             style={{
-              width: "100%",
-              paddingLeft: "12px",
-              paddingRight: "10px",
-              paddingTop: "7px",
-              paddingBottom: "7px",
-              background: "rgba(255,255,255,0.04)",
+              width: '100%',
+              paddingLeft: '12px',
+              paddingRight: '10px',
+              paddingTop: '7px',
+              paddingBottom: '7px',
+              background: 'rgba(255,255,255,0.04)',
             }}
           />
         </div>
 
+        {/* [wave E item 24] the random-problem die — respects the active
+            difficulty filter when picking. */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button
+            type="button"
+            className="btn"
+            onClick={async () => {
+              try {
+                const pick = await RandomProblemService.pick({
+                  difficulty: difficultyFilter || undefined,
+                });
+                router.push(`/problems/${pick.id}`);
+              } catch {
+                setRandomError(
+                  t('random_problem_empty', 'No problem matches the current filters.'),
+                );
+              }
+            }}
+            data-testid="random-problem-button"
+          >
+            🎲 {t('random_problem', 'Random problem')}
+          </button>
+          {randomError && (
+            <span style={{ color: 'var(--danger)', fontSize: '0.8rem' }}>{randomError}</span>
+          )}
+        </div>
         {/* Difficulty filter */}
-        <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
-          <span className="micro-label" style={{ color: "var(--muted)" }}>
-            {t("difficulty_label", "Difficulty")}:
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <span className="micro-label" style={{ color: 'var(--muted)' }}>
+            {t('difficulty_label', 'Difficulty')}:
           </span>
           <button
             onClick={() => {
-              setDifficultyFilter("");
-              syncUrl({ difficulty: "" });
+              setDifficultyFilter('');
+              syncUrl({ difficulty: '' });
             }}
             className="chip"
             aria-pressed={!difficultyFilter}
@@ -410,13 +494,13 @@ export default function ProblemsListClient({
               difficultyFilter
                 ? undefined
                 : {
-                    borderColor: "var(--accent)",
-                    color: "var(--accent)",
+                    borderColor: 'var(--accent)',
+                    color: 'var(--accent)',
                     background: hexAlpha(palette.accent, 0.12),
                   }
             }
           >
-            {t("all_option", "All")}
+            {t('all_option', 'All')}
           </button>
           {DIFFICULTIES.map((d) => {
             const color = difficultyColor[d] ?? palette.muted;
@@ -425,7 +509,7 @@ export default function ProblemsListClient({
               <button
                 key={d}
                 onClick={() => {
-                  const next = active ? "" : d;
+                  const next = active ? '' : d;
                   setDifficultyFilter(next);
                   syncUrl({ difficulty: next });
                 }}
@@ -447,16 +531,37 @@ export default function ProblemsListClient({
           })}
         </div>
 
+        {/* Has-editorial facet (DMOJ): problems carrying a visible editorial. */}
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+          <button
+            onClick={() => syncUrl({ editorial: !urlEditorial })}
+            className="chip"
+            aria-pressed={urlEditorial}
+            aria-label={t('filter_editorial', 'Has editorial')}
+            style={
+              urlEditorial
+                ? {
+                    borderColor: 'var(--accent)',
+                    color: 'var(--accent)',
+                    background: hexAlpha(palette.accent, 0.12),
+                  }
+                : undefined
+            }
+          >
+            {t('filter_editorial', 'Has editorial')}
+          </button>
+        </div>
+
         {/* Status filter — only for roles that can see non-approved problems [F7] */}
         {showStatusFacet && (
-          <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
-            <span className="micro-label" style={{ color: "var(--muted)" }}>
-              {t("status_label", "Status")}:
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <span className="micro-label" style={{ color: 'var(--muted)' }}>
+              {t('status_label', 'Status')}:
             </span>
             <button
               onClick={() => {
-                setStatusFilter("");
-                syncUrl({ status: "" });
+                setStatusFilter('');
+                syncUrl({ status: '' });
               }}
               className="chip"
               aria-pressed={!statusFilter}
@@ -464,13 +569,13 @@ export default function ProblemsListClient({
                 statusFilter
                   ? undefined
                   : {
-                      borderColor: "var(--accent)",
-                      color: "var(--accent)",
+                      borderColor: 'var(--accent)',
+                      color: 'var(--accent)',
                       background: hexAlpha(palette.accent, 0.12),
                     }
               }
             >
-              {t("all_option", "All")}
+              {t('all_option', 'All')}
             </button>
             {STATUSES.map((s) => {
               const active = statusFilter === s;
@@ -478,7 +583,7 @@ export default function ProblemsListClient({
                 <button
                   key={s}
                   onClick={() => {
-                    const next = active ? "" : s;
+                    const next = active ? '' : s;
                     setStatusFilter(next);
                     syncUrl({ status: next });
                   }}
@@ -487,9 +592,9 @@ export default function ProblemsListClient({
                   style={
                     active
                       ? {
-                          borderColor: "rgba(148,163,184,0.5)",
-                          color: "var(--muted)",
-                          background: "rgba(148,163,184,0.12)",
+                          borderColor: 'rgba(148,163,184,0.5)',
+                          color: 'var(--muted)',
+                          background: 'rgba(148,163,184,0.12)',
                         }
                       : undefined
                   }
@@ -503,8 +608,8 @@ export default function ProblemsListClient({
 
         {/* Clear filters */}
         {hasActiveFilters && (
-          <button onClick={clearFilters} className="btn btn--danger" style={{ marginLeft: "auto" }}>
-            {t("clear_filters_button", "✕ Clear")}
+          <button onClick={clearFilters} className="btn btn--danger" style={{ marginLeft: 'auto' }}>
+            {t('clear_filters_button', '✕ Clear')}
           </button>
         )}
 
@@ -517,14 +622,14 @@ export default function ProblemsListClient({
             style={
               hideSolved
                 ? {
-                    borderColor: "var(--success)",
-                    color: "var(--success)",
+                    borderColor: 'var(--success)',
+                    color: 'var(--success)',
                     background: hexAlpha(palette.success, 0.1),
                   }
                 : undefined
             }
           >
-            {t("hide_solved_toggle", "Hide solved")}
+            {t('hide_solved_toggle', 'Hide solved')}
           </button>
         )}
       </div>
@@ -535,32 +640,32 @@ export default function ProblemsListClient({
       {curriculum && curriculum.length > 0 && (
         <div
           style={{
-            background: "var(--surface)",
-            border: "1px solid var(--border)",
-            borderRadius: "var(--radius-lg)",
-            padding: "0.85rem 1.25rem",
-            marginBottom: "1.25rem",
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '0.85rem 1.25rem',
+            marginBottom: '1.25rem',
           }}
         >
-          <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap" }}>
-            <span className="micro-label" style={{ color: "var(--muted)" }}>
-              {t("curriculum_label", "Curriculum")}:
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <span className="micro-label" style={{ color: 'var(--muted)' }}>
+              {t('curriculum_label', 'Curriculum')}:
             </span>
             <button
-              onClick={() => syncUrl({ curriculum: "" })}
+              onClick={() => syncUrl({ curriculum: '' })}
               className="chip"
               aria-pressed={!urlCurriculum}
               style={
                 !urlCurriculum
                   ? {
-                      borderColor: "var(--accent)",
-                      color: "var(--accent)",
+                      borderColor: 'var(--accent)',
+                      color: 'var(--accent)',
                       background: hexAlpha(palette.accent, 0.12),
                     }
                   : undefined
               }
             >
-              {t("all_option", "All")}
+              {t('all_option', 'All')}
             </button>
             {curriculum.map((grade) => {
               const childrenActive = grade.children.some((c) => String(c.id) === urlCurriculum);
@@ -569,10 +674,10 @@ export default function ProblemsListClient({
                 <span
                   key={grade.id}
                   style={{
-                    display: "inline-flex",
-                    gap: "6px",
-                    alignItems: "center",
-                    flexWrap: "wrap",
+                    display: 'inline-flex',
+                    gap: '6px',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
                   }}
                 >
                   <button
@@ -582,8 +687,8 @@ export default function ProblemsListClient({
                     style={
                       gradeActive
                         ? {
-                            borderColor: "var(--violet)",
-                            color: "var(--violet)",
+                            borderColor: 'var(--violet)',
+                            color: 'var(--violet)',
                             background: hexAlpha(palette.violet, 0.1),
                           }
                         : undefined
@@ -605,15 +710,15 @@ export default function ProblemsListClient({
                           style={
                             active
                               ? {
-                                  borderColor: "var(--violet)",
-                                  color: "var(--violet)",
+                                  borderColor: 'var(--violet)',
+                                  color: 'var(--violet)',
                                   background: hexAlpha(palette.violet, 0.14),
                                 }
                               : undefined
                           }
                         >
                           {chapter.name_i18n[locale] || chapter.name_i18n.en || chapter.slug}
-                          <span aria-hidden="true" style={{ opacity: 0.6, marginLeft: "4px" }}>
+                          <span aria-hidden="true" style={{ opacity: 0.6, marginLeft: '4px' }}>
                             {chapter.problem_count}
                           </span>
                         </button>
@@ -626,29 +731,125 @@ export default function ProblemsListClient({
         </div>
       )}
 
+      {/* [roadmap RO-6] Archive browse axis: olympiad-provenance filters.
+          Server-filtered like the curriculum axis (?archive=1 + optional
+          year / grade-group refinements answered by the backend). */}
+      <div
+        style={{
+          display: 'flex',
+          gap: '10px',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          marginBottom: '1.25rem',
+        }}
+      >
+        <button
+          onClick={() => syncUrl({ archive: !urlArchive })}
+          className="chip"
+          aria-pressed={urlArchive}
+          data-testid="archive-toggle"
+          style={
+            urlArchive
+              ? {
+                  borderColor: 'var(--violet)',
+                  color: 'var(--violet)',
+                  background: hexAlpha(palette.violet, 0.14),
+                }
+              : undefined
+          }
+        >
+          {t('archive_filter_toggle', 'Olympiad archive')}
+        </button>
+        {(urlArchive || urlYear || urlGroup) && (
+          <>
+            <label
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '0.8rem',
+                color: 'var(--muted)',
+              }}
+            >
+              {t('archive_year_label', 'Edition year')}
+              <input
+                type="number"
+                min={1990}
+                max={2100}
+                value={yearDraft}
+                onChange={(event) => setYearDraft(event.target.value)}
+                onBlur={() => syncUrl({ sourceYear: yearDraft })}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') syncUrl({ sourceYear: yearDraft });
+                }}
+                aria-label={t('archive_year_label', 'Edition year')}
+                data-testid="archive-year"
+                style={{
+                  width: '84px',
+                  padding: '4px 8px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border)',
+                  background: 'var(--background)',
+                  color: 'var(--foreground)',
+                }}
+              />
+            </label>
+            <label
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '0.8rem',
+                color: 'var(--muted)',
+              }}
+            >
+              {t('archive_grade_label', 'Grade group')}
+              <select
+                value={urlGroup}
+                onChange={(event) => syncUrl({ gradeGroup: event.target.value })}
+                aria-label={t('archive_grade_label', 'Grade group')}
+                data-testid="archive-group"
+                style={{
+                  padding: '4px 8px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border)',
+                  background: 'var(--background)',
+                  color: 'var(--foreground)',
+                }}
+              >
+                <option value="">{t('archive_all_groups', 'All groups')}</option>
+                <option value="V-VIII">V-VIII</option>
+                <option value="IX-X">IX-X</option>
+                <option value="XI-XII">XI-XII</option>
+              </select>
+            </label>
+          </>
+        )}
+      </div>
+
       {/* [F4] Tag facet */}
       {allTags.length > 0 && (
         <div
           style={{
-            display: "flex",
-            gap: "6px",
-            alignItems: "center",
-            flexWrap: "wrap",
-            marginBottom: "1.25rem",
+            display: 'flex',
+            gap: '6px',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            marginBottom: '1.25rem',
           }}
         >
-          <span className="micro-label" style={{ color: "var(--muted)" }}>
-            {t("tags_label", "Tags")}:
+          <span className="micro-label" style={{ color: 'var(--muted)' }}>
+            {t('tags_label', 'Tags')}:
           </span>
           <button
             onClick={() => {
               setTagFilter(new Set());
-              syncUrl({ tags: "" });
+              syncUrl({ tags: '' });
             }}
             className="chip"
             aria-pressed={tagFilter.size === 0}
           >
-            {t("all_option", "All")}
+            {t('all_option', 'All')}
           </button>
           {allTags.slice(0, 12).map((tag) => {
             const active = tagFilter.has(tag.id);
@@ -660,15 +861,15 @@ export default function ProblemsListClient({
                   if (active) next.delete(tag.id);
                   else next.add(tag.id);
                   setTagFilter(next);
-                  syncUrl({ tags: Array.from(next).join(",") });
+                  syncUrl({ tags: Array.from(next).join(',') });
                 }}
                 className="chip"
                 aria-pressed={active}
                 style={
                   active
                     ? {
-                        borderColor: "var(--violet)",
-                        color: "var(--violet)",
+                        borderColor: 'var(--violet)',
+                        color: 'var(--violet)',
                         background: hexAlpha(palette.violet, 0.1),
                       }
                     : undefined
@@ -683,14 +884,14 @@ export default function ProblemsListClient({
 
       {/* Results count */}
       {!fetchError && rows.length > 0 && (
-        <div style={{ marginBottom: "0.75rem", fontSize: "0.8rem", color: "var(--text-tertiary)" }}>
+        <div style={{ marginBottom: '0.75rem', fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>
           {hasActiveFilters
-            ? t("showing_problems_info", "Showing {{shown}} of {{total}} problem(s)", {
+            ? t('showing_problems_info', 'Showing {{shown}} of {{total}} problem(s)', {
                 shown: filtered.length,
                 total: rows.length,
               })
-            : `${filtered.length} ${filtered.length === 1 ? "problem" : "problems"}`}
-          {totalCount > rows.length ? ` · ${totalCount.toLocaleString()} in the full catalog` : ""}
+            : `${filtered.length} ${filtered.length === 1 ? 'problem' : 'problems'}`}
+          {totalCount > rows.length ? ` · ${totalCount.toLocaleString()} in the full catalog` : ''}
         </div>
       )}
 
@@ -699,126 +900,147 @@ export default function ProblemsListClient({
         <div
           role="alert"
           style={{
-            padding: "1.25rem 1.5rem",
-            borderRadius: "var(--radius-md)",
+            padding: '1.25rem 1.5rem',
+            borderRadius: 'var(--radius-md)',
             background: hexAlpha(palette.danger, 0.08),
             border: `1px solid ${hexAlpha(palette.danger, 0.2)}`,
-            color: "var(--danger)",
-            fontSize: "0.9rem",
+            color: 'var(--danger)',
+            fontSize: '0.9rem',
           }}
         >
-          {t("problems_load_error", "Could not load problems: ")}
+          {t('problems_load_error', 'Could not load problems: ')}
           {fetchError}
         </div>
       ) : filtered.length === 0 ? (
         hasActiveFilters ? (
           <EmptyState
-            title={t("no_problems_match_filters", "No problems match your filters.")}
+            title={t('no_problems_match_filters', 'No problems match your filters.')}
             action={
               <button onClick={clearFilters} className="btn">
-                {t("clear_filters_button", "✕ Clear")}
+                {t('clear_filters_button', '✕ Clear')}
               </button>
             }
           />
         ) : (
-          <EmptyState title={t("no_problems_available", "No problems available at the moment.")} />
+          <EmptyState title={t('no_problems_available', 'No problems available at the moment.')} />
         )
       ) : (
         <div
           style={{
-            background: "var(--surface)",
-            borderRadius: "var(--radius-lg)",
-            border: "1px solid var(--border)",
+            background: 'var(--surface)',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--border)',
           }}
         >
           <TableScroll>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                <tr style={{ borderBottom: '1px solid var(--border)' }}>
                   {solvedIds && (
                     <th
                       scope="col"
-                      style={{ padding: "12px 20px", width: "44px" }}
-                      aria-label={t("solved_column_th", "Solved")}
+                      style={{ padding: '12px 20px', width: '44px' }}
+                      aria-label={t('solved_column_th', 'Solved')}
                     >
                       <span aria-hidden="true">&#10003;</span>
                     </th>
                   )}
-                  <th scope="col" style={{ padding: "12px 20px", width: "60px" }}>
+                  <th scope="col" style={{ padding: '12px 20px', width: '60px' }}>
                     #
                   </th>
-                  {sortableTh("title", t("problem_title_th", "Title"))}
-                  {sortableTh("difficulty", t("problem_difficulty_th", "Difficulty"))}
-                  {showStatusFacet && sortableTh("status", t("problem_status_th", "Status"))}
+                  {sortableTh('title', t('problem_title_th', 'Title'))}
+                  {sortableTh('difficulty', t('problem_difficulty_th', 'Difficulty'))}
+                  {showStatusFacet && sortableTh('status', t('problem_status_th', 'Status'))}
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((problem) => {
-                  const diff = problem.difficulty?.toLowerCase() ?? "";
+                  const diff = problem.difficulty?.toLowerCase() ?? '';
                   const diffColor = difficultyColor[diff] ?? palette.muted;
                   return (
                     <tr
                       key={problem.id}
-                      style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
+                      style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
                     >
                       {solvedIds && (
-                        <td style={{ padding: "14px 20px" }}>
+                        <td style={{ padding: '14px 20px' }}>
                           <span
                             aria-label={
                               solvedIds.has(problem.id)
-                                ? t("solved_aria", "Solved")
+                                ? t('solved_aria', 'Solved')
                                 : attemptedIds.has(problem.id)
-                                  ? t("attempted_aria", "Attempted")
-                                  : t("not_attempted_aria", "Not attempted")
+                                  ? t('attempted_aria', 'Attempted')
+                                  : t('not_attempted_aria', 'Not attempted')
                             }
                             style={{
                               color: solvedIds.has(problem.id)
                                 ? palette.success
                                 : attemptedIds.has(problem.id)
                                   ? palette.warn
-                                  : "var(--text-tertiary)",
-                              fontSize: "0.9rem",
+                                  : 'var(--text-tertiary)',
+                              fontSize: '0.9rem',
                             }}
                           >
                             {solvedIds.has(problem.id)
-                              ? "✓"
+                              ? '✓'
                               : attemptedIds.has(problem.id)
-                                ? "•"
-                                : ""}
+                                ? '•'
+                                : ''}
                           </span>
                         </td>
                       )}
                       <td
                         style={{
-                          padding: "14px 20px",
-                          color: "var(--text-tertiary)",
-                          fontSize: "0.8rem",
+                          padding: '14px 20px',
+                          color: 'var(--text-tertiary)',
+                          fontSize: '0.8rem',
                         }}
                       >
                         {problem.id}
                       </td>
-                      <td style={{ padding: "14px 20px" }}>
+                      <td style={{ padding: '14px 20px' }}>
                         <Link
                           href={`/problems/${problem.id}`}
                           style={{
-                            color: "var(--foreground)",
+                            color: 'var(--foreground)',
                             fontWeight: 500,
-                            fontSize: "0.9rem",
+                            fontSize: '0.9rem',
                           }}
                         >
                           {problem.title_i18n[locale] ||
                             problem.title_i18n.en ||
                             `Problem #${problem.id}`}
                         </Link>
+                        {/* [RO-6] archive provenance chip — attribution is
+                            public; also the visible hint the axis filters. */}
+                        {(problem.source_contest || problem.source_year) && (
+                          <span
+                            data-testid={`provenance-${problem.id}`}
+                            style={{
+                              marginLeft: '8px',
+                              fontSize: '0.7rem',
+                              color: 'var(--text-tertiary)',
+                              background: hexAlpha(palette.violet, 0.08),
+                              border: `1px solid ${hexAlpha(palette.violet, 0.2)}`,
+                              borderRadius: '999px',
+                              padding: '1px 8px',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {[problem.source_contest, problem.source_year, problem.grade_group]
+                              .filter(Boolean)
+                              .join(' · ')}
+                          </span>
+                        )}
                       </td>
-                      <td style={{ padding: "14px 20px" }}>
+                      <td style={{ padding: '14px 20px' }}>
                         <span
                           style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            padding: "2px 10px",
-                            borderRadius: "999px",
-                            fontSize: "0.75rem",
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            padding: '2px 10px',
+                            borderRadius: '999px',
+                            fontSize: '0.75rem',
                             fontWeight: 600,
                             color: diffColor,
                             background: hexAlpha(diffColor, 0.09),
@@ -829,18 +1051,18 @@ export default function ProblemsListClient({
                         </span>
                       </td>
                       {showStatusFacet && (
-                        <td style={{ padding: "14px 20px" }}>
+                        <td style={{ padding: '14px 20px' }}>
                           <span
                             style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              padding: "2px 10px",
-                              borderRadius: "999px",
-                              fontSize: "0.75rem",
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              padding: '2px 10px',
+                              borderRadius: '999px',
+                              fontSize: '0.75rem',
                               fontWeight: 500,
-                              color: "var(--muted)",
-                              background: "rgba(148,163,184,0.08)",
-                              border: "1px solid rgba(148,163,184,0.15)",
+                              color: 'var(--muted)',
+                              background: 'rgba(148,163,184,0.08)',
+                              border: '1px solid rgba(148,163,184,0.15)',
                             }}
                           >
                             {t(`status_${problem.status?.toLowerCase()}`, problem.status)}
@@ -858,19 +1080,19 @@ export default function ProblemsListClient({
 
       {/* Paged loading (frontend wiring wave) */}
       {!fetchError && rows.length > 0 && (moreAvailable || moreError) && (
-        <div style={{ textAlign: "center", marginTop: "1rem" }}>
+        <div style={{ textAlign: 'center', marginTop: '1rem' }}>
           {moreError && (
             <p
               role="alert"
-              style={{ color: "var(--danger)", fontSize: "0.8rem", marginBottom: "0.5rem" }}
+              style={{ color: 'var(--danger)', fontSize: '0.8rem', marginBottom: '0.5rem' }}
             >
               {moreError}
             </p>
           )}
           <button onClick={loadMore} disabled={loadingMore} className="btn">
             {loadingMore
-              ? t("loading_more", "Loading…")
-              : t("load_more_problems", "Load more problems")}
+              ? t('loading_more', 'Loading…')
+              : t('load_more_problems', 'Load more problems')}
           </button>
         </div>
       )}

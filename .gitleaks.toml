@@ -25,4 +25,10 @@ paths = [
   '''(^|/)\.git/''',
   '''.*\.egg-info/''',
   '''(^|/)tree\.txt$''',
+  # The vendored Scratch editor bundle (mobile/scripts/build-scratch.mjs
+  # output built from the pinned scratch-* npm packages): a 10MB
+  # single-line minified IIFE whose embedded base64 media data matches the
+  # sourcegraph-access-token regex BY CHANCE — third-party minified code,
+  # not a credential (verified via the JSON report on this exact diff).
+  '''(^|/)mobile/assets/scratch/editor\.txt$''',
 ]

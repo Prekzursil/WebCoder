@@ -1,22 +1,23 @@
-"use client";
+'use client';
 
 // [SPEC-GAPS A6 / roadmap UXP-1] The real code editor: CodeMirror 6 with
 // per-language highlighting, a dark theme built on the token palette's
 // accent family, Mod-Enter submit, and a graceful textarea fallback while
 // the dynamic import loads (and anywhere JS editors cannot mount).
 
-import dynamic from "next/dynamic";
-import { useMemo } from "react";
-import type { ReactNode } from "react";
-import { Prec } from "@codemirror/state";
-import { keymap } from "@codemirror/view";
-import { dracula } from "@uiw/codemirror-theme-dracula";
-import { python } from "@codemirror/lang-python";
-import { cpp } from "@codemirror/lang-cpp";
-import { java } from "@codemirror/lang-java";
-import { javascript } from "@codemirror/lang-javascript";
+import dynamic from 'next/dynamic';
+import { useMemo } from 'react';
+import type { ReactNode } from 'react';
+import { Prec } from '@codemirror/state';
+import { keymap } from '@codemirror/view';
+import { dracula } from '@uiw/codemirror-theme-dracula';
+import { useThemeMode } from '@/context/ThemeModeContext';
+import { python } from '@codemirror/lang-python';
+import { cpp } from '@codemirror/lang-cpp';
+import { java } from '@codemirror/lang-java';
+import { javascript } from '@codemirror/lang-javascript';
 
-const ReactCodeMirror = dynamic(() => import("@uiw/react-codemirror"), {
+const ReactCodeMirror = dynamic(() => import('@uiw/react-codemirror'), {
   ssr: false,
   loading: () => null,
 });
@@ -45,8 +46,11 @@ export default function CodeEditor({
   language,
   onModEnter,
   ariaLabel,
-  height = "380px",
+  height = '380px',
 }: CodeEditorProps): ReactNode {
+  // [Wave G item 79] the editor follows the site theme — dracula on dark,
+  // the built-in light theme when the visitor flipped to light.
+  const { mode } = useThemeMode();
   const extensions = useMemo(() => {
     const exts = [];
     const langFactory = language ? LANGUAGE_EXTENSIONS[language] : undefined;
@@ -56,7 +60,7 @@ export default function CodeEditor({
         Prec.highest(
           keymap.of([
             {
-              key: "Mod-Enter",
+              key: 'Mod-Enter',
               run: () => {
                 onModEnter();
                 return true;
@@ -74,7 +78,7 @@ export default function CodeEditor({
       <ReactCodeMirror
         value={value}
         onChange={onChange}
-        theme={dracula}
+        theme={mode === 'light' ? 'light' : dracula}
         height={height}
         extensions={extensions}
         basicSetup={{
@@ -85,7 +89,7 @@ export default function CodeEditor({
           indentOnInput: true,
           tabSize: 4,
         }}
-        style={{ fontSize: "13px", fontFamily: "var(--font-mono)" }}
+        style={{ fontSize: '13px', fontFamily: 'var(--font-mono)' }}
       />
     </div>
   );

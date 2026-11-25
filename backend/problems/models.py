@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.conf import settings
@@ -55,6 +56,10 @@ class Problem(models.Model):
         EASY = "EASY", _("Easy")
         MEDIUM = "MEDIUM", _("Medium")
         HARD = "HARD", _("Hard")
+        # Problem-page wave (item G): the top band — olympiad-decider /
+        # research-grade problems. Point value bounded 500–1000 by the
+        # difficulty-band validation in problems.economics.
+        VERY_HARD = "VERY_HARD", _("Very hard")
         # Could also be integer based if preferred
 
     class ProblemType(models.TextChoices):
@@ -177,6 +182,19 @@ class Problem(models.Model):
     default_memory_limit_kb = models.IntegerField(
         _("default memory limit (KB)"), default=262144
     )  # 256 MB
+    # Wave E item 10 (constraint-aware overflow warnings): the author
+    # declares the biggest value the computation can reach; the pre-submit
+    # linter reads it to warn C/C++ users about int overflow BEFORE the
+    # judge burns a submission on it. Null = no reading (no warning).
+    constraint_max_value = models.BigIntegerField(
+        _("maximum value in constraints"),
+        null=True,
+        blank=True,
+        help_text=_(
+            "Largest value variables/sums can reach per the statement "
+            "(drives the int-overflow pre-submit warning)."
+        ),
+    )
 
     # Per-language limit overrides (competitive roadmap J5): maps a language
     # id to {"time_ms": ..., "memory_kb": ...}; an explicit author override
@@ -216,6 +234,18 @@ class Problem(models.Model):
         _("full score"),
         default=0,
         help_text=_("Cached total score across tests/subtasks."),
+    )
+    # Problem-page wave (item G): the problem's finite point value — the
+    # author's declared total the per-test points should sum to (the author
+    # UI warns when they diverge, item B4). Bounded by the difficulty band
+    # at the model-validation layer; see problems.economics.
+    target_points = models.PositiveIntegerField(
+        _("target points"),
+        default=100,
+        help_text=_(
+            "The problem's point value; bounded by difficulty "
+            "(EASY 10–50, MEDIUM 50–200, HARD 200–500, VERY_HARD 500–1000)."
+        ),
     )
 
     class IOMode(models.TextChoices):
@@ -355,6 +385,38 @@ class Problem(models.Model):
     source_year = models.PositiveSmallIntegerField(
         _("source year"), null=True, blank=True
     )
+    # Import provenance (RO-6 / CNT-2): the content pipeline added these
+    # columns to the live catalog during the 2026-11 import waves; migration
+    # 0027 brings the repo schema/migrations in line (the live stack fakes
+    # it — the columns already exist there).
+    source_url = models.CharField(
+        _("source URL"),
+        max_length=200,
+        null=True,
+        blank=True,
+        help_text=_(
+            "Canonical URL of the problem's source (pbinfo, infoarena, DMOJ...)."
+        ),
+    )
+    source_name = models.CharField(
+        _("source name"),
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text=_("Human-readable source label shown on the problem page."),
+    )
+    source_authors = models.JSONField(
+        _("source authors"),
+        null=True,
+        blank=True,
+        help_text=_("Author list recorded from the source (licensing attribution)."),
+    )
+    alt_sources = models.JSONField(
+        _("alternate sources"),
+        null=True,
+        blank=True,
+        help_text=_("Other known mirrors/editions of the same problem."),
+    )
     grade_group = models.CharField(
         _("grade group"),
         max_length=16,
@@ -423,6 +485,41 @@ class Problem(models.Model):
         null=True,
         help_text=_("Language of the custom checker (e.g., 'cpp17', 'python3')."),
     )
+    # Reference ("model") solution — the author's correct program used to
+    # derive expected outputs for arbitrary inputs (contest hacks, backlog
+    # item 48; also the expected-output generator's engine). Author/verifier/
+    # admin only; NEVER serialized to non-privileged callers.
+    reference_solution_code = models.TextField(
+        _("reference solution code"),
+        blank=True,
+        help_text=_("The author's correct solution (hacks + expected outputs)."),
+    )
+    reference_language = models.CharField(
+        _("reference solution language"),
+        max_length=50,
+        blank=True,
+        help_text=_("Registry language of the reference solution."),
+    )
+    # Scheduled content drops (item 131): an APPROVED problem stays hidden
+    # from the public catalog until this instant passes (null = immediate).
+    publish_at = models.DateTimeField(
+        _("publish at"),
+        null=True,
+        blank=True,
+        help_text=_("Scheduled visibility — the catalog hides the problem until then."),
+    )
+    # Variant families (item 126): children point at the family ROOT; the
+    # root itself points at nothing. variant_note records the per-variant
+    # parameter tweak ("bounds doubled", "queries offline", …).
+    variant_parent = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="variant_children",
+        verbose_name=_("variant parent (family root)"),
+    )
+    variant_note = models.CharField(_("variant note"), max_length=200, blank=True)
     verifier_feedback = models.TextField(
         _("verifier feedback"),
         blank=True,
@@ -438,6 +535,34 @@ class Problem(models.Model):
                 "en", self.title_i18n.get("ro", f"Problem {self.id}")
             )
         return f"Problem {self.id}"
+
+    def clean(self):
+        """Model-validation layer for the point economics (wave item G).
+
+        The declared point value must sit inside the difficulty's band
+        (settings-configurable, absolutely bounded 1–1000). Called by
+        full_clean() (Django admin) and by the API serializer's validate();
+        the approval workflow re-checks as defense in depth.
+        """
+        from .economics import validate_target_points
+
+        super().clean()
+        try:
+            validate_target_points(self.difficulty, self.target_points)
+        except ValidationError as exc:
+            # Re-raise keyed on the field so ErrorDict serialization keeps
+            # the standard {"target_points": [...]} DRF shape.
+            raise ValidationError(dict(exc)) from None
+
+    @property
+    def variant_root(self):
+        """The family root: the problem itself when it has no parent."""
+        current = self
+        seen = set()
+        while current.variant_parent_id is not None and current.id not in seen:
+            seen.add(current.id)
+            current = current.variant_parent
+        return current
 
     class Meta:
         verbose_name = _("problem")
@@ -495,6 +620,28 @@ class TestCase(models.Model):
         default=False,
         help_text=_("Runs as part of the contest pretest subset."),
     )
+    # Wave E item 6 (per-test time bars): an optional per-test time-limit
+    # ceiling that OVERRIDES the problem/language effective limit for this
+    # test only. Null = use the effective limit (the historical behavior).
+    # Classic use: give the big-stress test a taller bar than the samples.
+    time_limit_ms = models.PositiveIntegerField(
+        _("time limit override (ms)"),
+        null=True,
+        blank=True,
+        help_text=_(
+            "Optional per-test time bar; empty uses the problem's effective limit."
+        ),
+    )
+
+    # Wave G item 86 — localized sample comments: the author's per-test
+    # explanation shown beside the sample (I/O conventions, edge note),
+    # rendered in the viewer's locale with the other one as fallback.
+    comment_ro = models.CharField(
+        _("sample comment (RO)"), max_length=280, blank=True, default=""
+    )
+    comment_en = models.CharField(
+        _("sample comment (EN)"), max_length=280, blank=True, default=""
+    )
 
     # For large data, consider FileField:
     # input_file = models.FileField(upload_to='test_cases/inputs/', null=True, blank=True)
@@ -536,6 +683,16 @@ class ProblemEditorial(models.Model):
     )
     content_ro = models.TextField(_("editorial content (Romanian)"), blank=True)
     content_en = models.TextField(_("editorial content (English)"), blank=True)
+    # Problem-page wave (item E): the mandatory editorial's reference
+    # implementations — at least Python and C++ so the walkthrough covers
+    # both of the platform's first-class languages. Rendered as highlighted
+    # code blocks under the editorial body.
+    solution_python = models.TextField(
+        _("reference solution (Python)"), blank=True, default=""
+    )
+    solution_cpp = models.TextField(
+        _("reference solution (C++)"), blank=True, default=""
+    )
     publish_policy = models.CharField(
         _("publish policy"),
         max_length=10,
@@ -884,3 +1041,442 @@ class ImportSource(models.Model):
     @property
     def allows_publication(self) -> bool:
         return self.status == self.Status.GRANTED
+
+
+class ProblemList(models.Model):
+    """Curated study track (SPEC-GAPS X12 · competitive matrix row 8).
+
+    An ordered, curator-owned playlist of APPROVED problems — the
+    LeetCode-Explore / HackerRank-practice-domain / infoarena-educational-
+    track affordance. Public tracks appear on the ``/tracks`` hub and carry
+    per-viewer progress (solved of total); unlisted tracks stay reachable
+    by slug for class use. X12 feeds onboarding: ``/start`` can later pick
+    from tracks as well as the curriculum tree.
+    """
+
+    title_i18n = models.JSONField(
+        _("title (i18n)"),
+        help_text=_("Track title per locale, e.g. {'en': 'Binary search', 'ro': …}"),
+    )
+    description_i18n = models.JSONField(
+        _("description (i18n)"),
+        default=dict,
+        blank=True,
+        help_text=_("Short per-locale description of what the track teaches."),
+    )
+    slug = models.SlugField(
+        _("slug"),
+        max_length=140,
+        unique=True,
+        help_text=_("Stable URL identifier, auto-generated from the title."),
+    )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET(get_sentinel_user),
+        null=True,
+        blank=True,
+        related_name="curated_lists",
+        verbose_name=_("owner"),
+    )
+    is_public = models.BooleanField(
+        _("public"),
+        default=True,
+        help_text=_("Public tracks list on the hub; unlisted tracks need the slug."),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("study track")
+        verbose_name_plural = _("study tracks")
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["is_public"])]
+
+    def __str__(self):
+        if isinstance(self.title_i18n, dict):
+            return self.title_i18n.get("en", "Track %s" % self.pk)
+        return "Track %s" % self.pk
+
+
+class ProblemListItem(models.Model):
+    """Ordered membership row: problem #position inside a study track."""
+
+    list = models.ForeignKey(
+        ProblemList,
+        on_delete=models.CASCADE,
+        related_name="items",
+        verbose_name=_("study track"),
+    )
+    problem = models.ForeignKey(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name="list_items",
+        verbose_name=_("problem"),
+    )
+    position = models.PositiveIntegerField(
+        _("position"), default=0, help_text=_("1-based order inside the track.")
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("study track item")
+        verbose_name_plural = _("study track items")
+        ordering = ["position", "id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["list", "problem"], name="unique_problem_per_track"
+            )
+        ]
+
+    def __str__(self):
+        return "track %d · #%d problem %d" % (
+            self.list_id,
+            self.position,
+            self.problem_id,
+        )
+
+
+class SavedSearch(models.Model):
+    """Item 129 — a user's saved catalog query (the filter preset chip).
+
+    ``params`` stores the exact querystring fields the catalog understands
+    (difficulty, tag_ids, curriculum, source, solved, search, sort…);
+    applying a search is the catalog receiving those params back.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="saved_searches",
+        verbose_name=_("user"),
+    )
+    name = models.CharField(_("name"), max_length=80)
+    params = models.JSONField(
+        _("params"),
+        default=dict,
+        help_text=_("Catalog filter params (querystring shape)."),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("saved search")
+        verbose_name_plural = _("saved searches")
+        ordering = ["user", "-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "name"], name="unique_saved_search_name"
+            )
+        ]
+
+    def __str__(self):
+        return f"search '{self.name}' for user {self.user_id}"
+
+
+class ProblemBounty(models.Model):
+    """Item 133 — a community bounty for missing/weak tests on a problem.
+
+    The requester pledges contribution points (their honor, not money);
+    a contributor claims the bounty by submitting strengthened tests, and
+    the verifier who approves the tests marks the bounty FULFILLED,
+    crediting the contributor in the reason. Pledges are capped so one
+    user cannot lock an unbounded balance.
+    """
+
+    class Status(models.TextChoices):
+        OPEN = "OPEN", _("Open")
+        FULFILLED = "FULFILLED", _("Fulfilled")
+        CANCELLED = "CANCELLED", _("Cancelled")
+
+    MAX_POINTS = 500
+
+    problem = models.ForeignKey(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name="test_bounties",
+        verbose_name=_("problem"),
+    )
+    requester = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="posted_bounties",
+        verbose_name=_("requester"),
+    )
+    points = models.PositiveIntegerField(_("pledged points"))
+    description = models.TextField(_("description"), max_length=2000)
+    status = models.CharField(
+        _("status"), max_length=10, choices=Status.choices, default=Status.OPEN
+    )
+    claimed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="claimed_bounties",
+        verbose_name=_("claimed by"),
+    )
+    resolution_note = models.CharField(_("resolution note"), max_length=200, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("testcase bounty")
+        verbose_name_plural = _("testcase bounties")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"bounty #{self.id} ({self.points}p) on problem {self.problem_id}"
+
+
+class StatementAttachment(models.Model):
+    """Item 128 — a file attached to a problem statement (figure, PDF,
+    dataset sketch). Stored on the media storage; the statement embeds it
+    by URL. Author/verifier-visible in the authoring flow."""
+
+    class Kind(models.TextChoices):
+        INLINE = "inline", _("Inline (rendered in the statement)")
+        DOWNLOAD = "download", _("Download")
+
+    problem = models.ForeignKey(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name="attachments",
+        verbose_name=_("problem"),
+    )
+    name = models.CharField(_("name"), max_length=120)
+    kind = models.CharField(
+        _("kind"), max_length=10, choices=Kind.choices, default=Kind.INLINE
+    )
+    file = models.FileField(_("file"), max_length=300)
+    size_bytes = models.PositiveIntegerField(_("size (bytes)"), default=0)
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="uploaded_attachments",
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("statement attachment")
+        verbose_name_plural = _("statement attachments")
+        ordering = ["problem", "id"]
+
+    def __str__(self):
+        return f"attachment {self.name} (problem {self.problem_id})"
+
+
+class StatementAnnotation(models.Model):
+    """Private per-user statement annotation (wave G item 78).
+
+    The anchor is a short quote the reader selected in the statement; the
+    note is their own markdown. Only the author ever sees their
+    annotations — this is a study aid, not UGC.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="statement_annotations",
+        verbose_name=_("user"),
+    )
+    problem = models.ForeignKey(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name="annotations",
+        verbose_name=_("problem"),
+    )
+    quote = models.CharField(
+        _("quoted text"), max_length=500, help_text=_("The anchored statement excerpt.")
+    )
+    note = models.TextField(_("note"))
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+
+    class Meta:
+        verbose_name = _("statement annotation")
+        verbose_name_plural = _("statement annotations")
+        ordering = ["-updated_at"]
+        indexes = [models.Index(fields=["user", "problem", "-updated_at"])]
+
+    def __str__(self):
+        return (
+            f"annotation {self.id} by user={self.user_id} on problem={self.problem_id}"
+        )
+
+
+class ProblemForfeit(models.Model):
+    """Permanent per-user-per-problem points forfeiture (wave item F).
+
+    Created at the instant a user confirms the source-code unlock modal
+    ("unlocking the source code before the problem is solved means the
+    problem will NOT award points to this account"). Existence of a row
+    means: that problem NEVER awards points to that user (score
+    aggregation excludes it), while the reference source AND the
+    editorial become visible (the "explicitly unlock early" lane of the
+    editorial gate, item E).
+
+    Rows are never deleted by any user-facing flow — forfeiture is
+    permanent by design; only a staff data-fix would remove one.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="problem_forfeits",
+        verbose_name=_("user"),
+    )
+    problem = models.ForeignKey(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name="forfeits",
+        verbose_name=_("problem"),
+    )
+    created_at = models.DateTimeField(_("forfeited at"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("problem forfeit")
+        verbose_name_plural = _("problem forfeits")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "problem"], name="unique_user_problem_forfeit"
+            )
+        ]
+
+    def __str__(self):
+        return f"user={self.user_id} forfeited problem={self.problem_id}"
+
+
+class HintReveal(models.Model):
+    """One voluntary hint-tier reveal (wave item D).
+
+    Hints are free (no point penalty) and strictly voluntary; each reveal
+    is recorded for analytics (author dashboard usage counts) and for the
+    per-user "revealed up to tier N" state — re-revealing an already-open
+    tier is a no-op that does not duplicate rows.
+    """
+
+    TIER_MAX = 3
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="hint_reveals",
+        verbose_name=_("user"),
+    )
+    problem = models.ForeignKey(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name="hint_reveals",
+        verbose_name=_("problem"),
+    )
+    tier = models.PositiveSmallIntegerField(
+        _("hint tier"),
+        validators=[MinValueValidator(1), MaxValueValidator(TIER_MAX)],
+        help_text=_("1 = gentle nudge, 2 = stronger, 3 = approach outline."),
+    )
+    created_at = models.DateTimeField(_("revealed at"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("hint reveal")
+        verbose_name_plural = _("hint reveals")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "problem", "tier"], name="unique_user_problem_tier"
+            )
+        ]
+        indexes = [models.Index(fields=["problem", "tier"])]
+
+    def __str__(self):
+        return f"hint tier {self.tier} revealed by user={self.user_id} on problem={self.problem_id}"
+
+
+class AuthoringDraft(models.Model):
+    """Autosaved rich-authoring draft (wave item A).
+
+    One draft per (user, problem slot): ``problem=None`` is the
+    create-new-problem scratchpad, ``problem=<id>`` is the edit-page
+    draft for that problem. Payload is the JSON the authoring studio
+    serializes (structured-mode fields, toolbar text, test-staging…);
+    the statement revision HISTORY stays in StatementRevision (UXP-4) —
+    this table only holds the in-flight editing state between sessions.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="authoring_drafts",
+        verbose_name=_("author"),
+    )
+    problem = models.ForeignKey(
+        Problem,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="authoring_drafts",
+        verbose_name=_("problem"),
+        help_text=_("Null = the create-page scratchpad."),
+    )
+    payload = models.JSONField(
+        _("draft payload"), default=dict, help_text=_("Authoring-studio state.")
+    )
+    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+
+    class Meta:
+        verbose_name = _("authoring draft")
+        verbose_name_plural = _("authoring drafts")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "problem"], name="unique_user_problem_authoring_draft"
+            )
+        ]
+        ordering = ["-updated_at"]
+
+    def __str__(self):
+        target = f"problem={self.problem_id}" if self.problem_id else "new-problem"
+        return f"authoring draft user={self.user_id} {target}"
+
+
+class ProblemUnlockState(models.Model):
+    """Per-user-per-problem incremental test-unlock index (wave item C).
+
+    ``passed_count`` is the best number of passed tests any single
+    submission achieved. Positions 1..k are "solved" for that user,
+    position k+1 is "unlocked" (its input/expected become visible to
+    that user for debugging), everything beyond stays locked — never
+    reveal beyond the earned index. Monotone: worse submissions never
+    regress visibility.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="problem_unlock_states",
+        verbose_name=_("user"),
+    )
+    problem = models.ForeignKey(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name="unlock_states",
+        verbose_name=_("problem"),
+    )
+    passed_count = models.PositiveIntegerField(
+        _("passed tests"),
+        default=0,
+        help_text=_("Best count of passed tests in one submission."),
+    )
+    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+
+    class Meta:
+        verbose_name = _("problem unlock state")
+        verbose_name_plural = _("problem unlock states")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "problem"], name="unique_user_problem_unlock_state"
+            )
+        ]
+
+    def __str__(self):
+        return (
+            f"user={self.user_id} unlocked {self.passed_count} tests "
+            f"on problem={self.problem_id}"
+        )

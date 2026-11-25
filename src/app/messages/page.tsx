@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 // COM-5 (owner reversal 2026-10-30): private 1:1 message threads — the
 // inbox surface. Threads list with unread badges + last-message excerpt,
@@ -7,22 +7,29 @@
 // (metadata-only) view. Bodies render as TEXT ONLY in the thread page;
 // this page never renders message markdown.
 
-import React, { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
-import { useTranslation } from "react-i18next";
-import { MessagingService } from "@/services/ApiService";
-import { ApiBlock, ApiConversation, ApiMessageReport } from "@/types/api";
-import { useAuth } from "@/context/AuthContext";
-import { palette } from "@/theme/tokens";
-import EmptyState from "@/components/common/EmptyState";
-import PageHeader from "@/components/common/PageHeader";
-import ProtectedRoute from "@/components/common/ProtectedRoute";
+import React, { useCallback, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
+import { MessagingService } from '@/services/ApiService';
+import {
+  ApiAdminConversation,
+  ApiBlock,
+  ApiConversation,
+  ApiFlaggedMessage,
+  ApiMessageReport,
+} from '@/types/api';
+import { useAuth } from '@/context/AuthContext';
+import { palette } from '@/theme/tokens';
+import EmptyState from '@/components/common/EmptyState';
+import PageHeader from '@/components/common/PageHeader';
+import ProtectedRoute from '@/components/common/ProtectedRoute';
 
 /** Moderators of the message-report queue: the verifier/admin cohort
  * (the backend's IsModerator also honors Django staff, but the auth
  * session exposes only the role to the client). */
 function isModerator(role?: string): boolean {
-  return role === "ADMIN" || role === "PROBLEM_VERIFIER";
+  return role === 'ADMIN' || role === 'PROBLEM_VERIFIER';
 }
 
 function ThreadsList({ conversations }: { conversations: ApiConversation[] }) {
@@ -30,27 +37,27 @@ function ThreadsList({ conversations }: { conversations: ApiConversation[] }) {
   if (conversations.length === 0) {
     return (
       <EmptyState
-        title={t("msgs_empty_title", "No conversations yet")}
+        title={t('msgs_empty_title', 'No conversations yet')}
         description={t(
-          "msgs_empty_body",
-          "Start one with a classmate or teacher from the box above.",
+          'msgs_empty_body',
+          'Start one with a classmate or teacher from the box above.',
         )}
       />
     );
   }
   return (
-    <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
       {conversations.map((conversation) => (
         <li key={conversation.id} style={{ borderBottom: `1px solid ${palette.border}` }}>
           <Link
             href={`/messages/${conversation.id}`}
             data-testid={`msg-thread-${conversation.id}`}
             style={{
-              display: "flex",
-              alignItems: "center",
+              display: 'flex',
+              alignItems: 'center',
               gap: 12,
-              padding: "14px 8px",
-              textDecoration: "none",
+              padding: '14px 8px',
+              textDecoration: 'none',
               color: palette.foreground,
             }}
           >
@@ -59,10 +66,10 @@ function ThreadsList({ conversations }: { conversations: ApiConversation[] }) {
               style={{
                 width: 38,
                 height: 38,
-                borderRadius: "50%",
+                borderRadius: '50%',
                 background: palette.surface2,
-                display: "grid",
-                placeItems: "center",
+                display: 'grid',
+                placeItems: 'center',
                 fontWeight: 700,
                 color: palette.accent,
                 flexShrink: 0,
@@ -71,27 +78,27 @@ function ThreadsList({ conversations }: { conversations: ApiConversation[] }) {
               {conversation.other_user.username.slice(0, 2).toUpperCase()}
             </span>
             <span style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ display: "block", fontWeight: 600 }}>
+              <span style={{ display: 'block', fontWeight: 600 }}>
                 {conversation.other_user.username}
               </span>
               <span
                 style={{
-                  display: "block",
+                  display: 'block',
                   color: palette.muted,
                   fontSize: 13,
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
                 }}
               >
                 {conversation.last_message
                   ? conversation.last_message.excerpt
-                  : t("msgs_no_messages", "No messages yet")}
+                  : t('msgs_no_messages', 'No messages yet')}
               </span>
             </span>
             {conversation.unread_count > 0 && (
               <span
-                aria-label={t("msgs_unread_aria", "{{count}} unread", {
+                aria-label={t('msgs_unread_aria', '{{count}} unread', {
                   count: conversation.unread_count,
                 })}
                 style={{
@@ -100,7 +107,7 @@ function ThreadsList({ conversations }: { conversations: ApiConversation[] }) {
                   borderRadius: 999,
                   fontSize: 12,
                   fontWeight: 700,
-                  padding: "2px 9px",
+                  padding: '2px 9px',
                   flexShrink: 0,
                 }}
               >
@@ -115,38 +122,39 @@ function ThreadsList({ conversations }: { conversations: ApiConversation[] }) {
 }
 
 function StartThreadForm() {
+  const router = useRouter();
   const { t } = useTranslation();
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-    const handle = username.trim().replace(/^@/, "");
+    const handle = username.trim().replace(/^@/, '');
     if (!handle || busy) return;
     setBusy(true);
     setError(null);
     try {
       const conversation = await MessagingService.startThread({ username: handle });
-      setUsername("");
-      window.location.assign(`/messages/${conversation.id}`);
+      setUsername('');
+      router.push(`/messages/${conversation.id}`);
     } catch (err) {
-      const detail = (err as Error)?.message ?? "";
-      if (detail === "self") {
-        setError(t("msgs_err_self", "You cannot message yourself."));
-      } else if (detail === "blocked") {
-        setError(t("msgs_err_blocked", "This user cannot receive your messages."));
-      } else if (detail === "minor_policy") {
+      const detail = (err as Error)?.message ?? '';
+      if (detail === 'self') {
+        setError(t('msgs_err_self', 'You cannot message yourself.'));
+      } else if (detail === 'blocked') {
+        setError(t('msgs_err_blocked', 'This user cannot receive your messages.'));
+      } else if (detail === 'minor_policy') {
         setError(
           t(
-            "msgs_err_minor",
-            "This account only accepts messages from followed users or classmates.",
+            'msgs_err_minor',
+            'This account only accepts messages from followed users or classmates.',
           ),
         );
-      } else if (detail === "No such user.") {
-        setError(t("msgs_err_unknown", "No user with that username."));
+      } else if (detail === 'No such user.') {
+        setError(t('msgs_err_unknown', 'No user with that username.'));
       } else {
-        setError(t("msgs_err_generic", "Could not start the conversation."));
+        setError(t('msgs_err_generic', 'Could not start the conversation.'));
       }
     } finally {
       setBusy(false);
@@ -154,17 +162,17 @@ function StartThreadForm() {
   };
 
   return (
-    <form onSubmit={submit} style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+    <form onSubmit={submit} style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
       <input
         id="msg-new-username"
-        aria-label={t("msgs_new_label", "Start a conversation with username")}
+        aria-label={t('msgs_new_label', 'Start a conversation with username')}
         value={username}
         onChange={(event) => setUsername(event.target.value)}
-        placeholder={t("msgs_new_placeholder", "username")}
+        placeholder={t('msgs_new_placeholder', 'username')}
         autoComplete="off"
         style={{
           flex: 1,
-          padding: "9px 12px",
+          padding: '9px 12px',
           borderRadius: 8,
           border: `1px solid ${palette.borderStrong}`,
           background: palette.surface,
@@ -176,16 +184,16 @@ function StartThreadForm() {
         disabled={busy || !username.trim()}
         data-testid="msg-start"
         style={{
-          padding: "9px 16px",
+          padding: '9px 16px',
           borderRadius: 8,
-          border: "none",
+          border: 'none',
           background: busy || !username.trim() ? palette.surface2 : palette.accent,
           color: palette.bg,
           fontWeight: 700,
-          cursor: busy ? "wait" : "pointer",
+          cursor: busy ? 'wait' : 'pointer',
         }}
       >
-        {t("msgs_new_button", "Message")}
+        {t('msgs_new_button', 'Message')}
       </button>
       {error && (
         <p role="alert" style={{ margin: 0, color: palette.danger }}>
@@ -223,51 +231,51 @@ function BlockList() {
         onClick={() => setOpen((value) => !value)}
         data-testid="msg-blocks-toggle"
         style={{
-          background: "none",
-          border: "none",
+          background: 'none',
+          border: 'none',
           color: palette.muted,
-          cursor: "pointer",
+          cursor: 'pointer',
           padding: 0,
           fontWeight: 600,
         }}
       >
-        {t("msgs_blocklist_title", "Blocked users")} ({blocks.length})
+        {t('msgs_blocklist_title', 'Blocked users')} ({blocks.length})
       </button>
       {open && (
         <div style={{ marginTop: 10 }}>
           {blocks.length === 0 ? (
             <p style={{ color: palette.muted }}>
-              {t("msgs_blocklist_empty", "You have not blocked anyone.")}
+              {t('msgs_blocklist_empty', 'You have not blocked anyone.')}
             </p>
           ) : (
             <ul
-              style={{ listStyle: "none", padding: 0, display: "flex", flexWrap: "wrap", gap: 8 }}
+              style={{ listStyle: 'none', padding: 0, display: 'flex', flexWrap: 'wrap', gap: 8 }}
             >
               {blocks.map((block) => (
                 <li
                   key={block.id}
                   style={{
-                    display: "flex",
-                    alignItems: "center",
+                    display: 'flex',
+                    alignItems: 'center',
                     gap: 8,
                     background: palette.surface,
                     border: `1px solid ${palette.border}`,
                     borderRadius: 999,
-                    padding: "4px 6px 4px 12px",
+                    padding: '4px 6px 4px 12px',
                   }}
                 >
                   <span>{block.blocked.username}</span>
                   <button
                     type="button"
                     onClick={() => void unblock(block.blocked.id)}
-                    aria-label={t("msgs_unblock_aria", "Unblock {{name}}", {
+                    aria-label={t('msgs_unblock_aria', 'Unblock {{name}}', {
                       name: block.blocked.username,
                     })}
                     style={{
-                      background: "none",
-                      border: "none",
+                      background: 'none',
+                      border: 'none',
                       color: palette.accent,
-                      cursor: "pointer",
+                      cursor: 'pointer',
                       fontWeight: 600,
                     }}
                   >
@@ -289,7 +297,7 @@ function ModerationQueue() {
   const [busyId, setBusyId] = useState<number | null>(null);
 
   const load = useCallback(async () => {
-    const response = await MessagingService.getReports("OPEN");
+    const response = await MessagingService.getReports('OPEN');
     setReports(response.results);
   }, []);
 
@@ -297,7 +305,7 @@ function ModerationQueue() {
     void load();
   }, [load]);
 
-  const resolve = async (reportId: number, action: "resolved" | "dismissed") => {
+  const resolve = async (reportId: number, action: 'resolved' | 'dismissed') => {
     setBusyId(reportId);
     try {
       await MessagingService.resolveReport(reportId, action);
@@ -309,11 +317,11 @@ function ModerationQueue() {
 
   return (
     <section style={{ marginTop: 36 }} data-testid="msg-mod-queue">
-      <h2 style={{ fontSize: 18 }}>{t("msgs_mod_title", "Message reports")}</h2>
+      <h2 style={{ fontSize: 18 }}>{t('msgs_mod_title', 'Message reports')}</h2>
       {reports.length === 0 ? (
-        <p style={{ color: palette.muted }}>{t("msgs_mod_empty", "No open message reports.")}</p>
+        <p style={{ color: palette.muted }}>{t('msgs_mod_empty', 'No open message reports.')}</p>
       ) : (
-        <ul style={{ listStyle: "none", padding: 0 }}>
+        <ul style={{ listStyle: 'none', padding: 0 }}>
           {reports.map((report) => (
             <li
               key={report.id}
@@ -326,49 +334,223 @@ function ModerationQueue() {
                 marginBottom: 10,
               }}
             >
-              <p style={{ margin: "0 0 6px", fontWeight: 600 }}>
+              <p style={{ margin: '0 0 6px', fontWeight: 600 }}>
                 {report.message.sender.username} → {report.message.body.slice(0, 140)}
               </p>
-              <p style={{ margin: "0 0 10px", color: palette.muted, fontSize: 13 }}>
-                {t("msgs_mod_reason", "Reason")}: {report.reason}
-                {report.details ? ` — ${report.details}` : ""} · {t("msgs_mod_by", "by")}{" "}
+              <p style={{ margin: '0 0 10px', color: palette.muted, fontSize: 13 }}>
+                {t('msgs_mod_reason', 'Reason')}: {report.reason}
+                {report.details ? ` — ${report.details}` : ''} · {t('msgs_mod_by', 'by')}{' '}
                 {report.reporter.username}
               </p>
-              <div style={{ display: "flex", gap: 8 }}>
+              <div style={{ display: 'flex', gap: 8 }}>
                 <button
                   type="button"
                   disabled={busyId === report.id}
                   data-testid={`msg-resolve-${report.id}`}
-                  onClick={() => void resolve(report.id, "resolved")}
+                  onClick={() => void resolve(report.id, 'resolved')}
                   style={{
-                    padding: "6px 12px",
+                    padding: '6px 12px',
                     borderRadius: 8,
-                    border: "none",
+                    border: 'none',
                     background: palette.success,
                     color: palette.bg,
                     fontWeight: 700,
-                    cursor: "pointer",
+                    cursor: 'pointer',
                   }}
                 >
-                  {t("msgs_mod_resolve", "Resolve")}
+                  {t('msgs_mod_resolve', 'Resolve')}
                 </button>
                 <button
                   type="button"
                   disabled={busyId === report.id}
                   data-testid={`msg-dismiss-${report.id}`}
-                  onClick={() => void resolve(report.id, "dismissed")}
+                  onClick={() => void resolve(report.id, 'dismissed')}
                   style={{
-                    padding: "6px 12px",
+                    padding: '6px 12px',
                     borderRadius: 8,
                     border: `1px solid ${palette.borderStrong}`,
-                    background: "none",
+                    background: 'none',
                     color: palette.muted,
-                    cursor: "pointer",
+                    cursor: 'pointer',
                   }}
                 >
-                  {t("msgs_mod_dismiss", "Dismiss")}
+                  {t('msgs_mod_dismiss', 'Dismiss')}
                 </button>
               </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+/** COM-5 flag-not-block review loop: the auto-flagged message queue.
+ * Content-filter hits are DELIVERED but queued here — a human decides;
+ * the queue never acts alone (filters.py policy). */
+function FlaggedList() {
+  const { t } = useTranslation();
+  const [flagged, setFlagged] = useState<ApiFlaggedMessage[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    MessagingService.getFlagged()
+      .then((response) => {
+        if (!cancelled) setFlagged(response.results);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return (
+    <section style={{ marginTop: 28 }} data-testid="msg-flagged-queue">
+      <h2 style={{ fontSize: 18 }}>{t('msgs_flagged_title', 'Flagged by content filter')}</h2>
+      <p style={{ color: palette.muted, fontSize: 13, margin: '0 0 10px' }}>
+        {t(
+          'msgs_flagged_hint',
+          'Delivered but auto-flagged (RO+EN heuristics) — review, then act via a report if needed.',
+        )}
+      </p>
+      {flagged.length === 0 ? (
+        <p style={{ color: palette.muted }}>{t('msgs_flagged_empty', 'No flagged messages.')}</p>
+      ) : (
+        <ul style={{ listStyle: 'none', padding: 0 }}>
+          {flagged.map((row) => (
+            <li
+              key={row.id}
+              data-testid={`msg-flagged-${row.id}`}
+              style={{
+                background: palette.surface,
+                border: `1px solid ${palette.border}`,
+                borderRadius: 10,
+                padding: 14,
+                marginBottom: 10,
+              }}
+            >
+              <p style={{ margin: '0 0 6px', fontWeight: 600 }}>
+                {row.sender.username}
+                <span style={{ color: palette.muted, fontWeight: 400 }}>
+                  {' '}
+                  · #{row.conversation}
+                </span>
+              </p>
+              {/* body renders as a TEXT NODE — the XSS-safe contract */}
+              <p style={{ margin: '0 0 6px' }}>{row.body.slice(0, 200)}</p>
+              <p style={{ margin: 0, color: palette.muted, fontSize: 13 }}>
+                {row.flag_categories.join(', ')}
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+/** COM-5 admin audit view: thread METADATA only by default; full
+ * transcripts stay sealed behind an explicit report — the backend 403s
+ * curiosity and the UI surfaces that gate verbatim. */
+function AdminAudit() {
+  const { t } = useTranslation();
+  const [threads, setThreads] = useState<ApiAdminConversation[]>([]);
+  const [transcriptFor, setTranscriptFor] = useState<number | null>(null);
+  const [transcript, setTranscript] = useState<Array<{
+    id: number;
+    sender: { username: string };
+    body: string;
+  }> | null>(null);
+  const [gate, setGate] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    MessagingService.getAdminThreads()
+      .then((response) => {
+        if (!cancelled) setThreads(response.results);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const viewTranscript = async (threadId: number) => {
+    setGate(null);
+    setTranscript(null);
+    setTranscriptFor(threadId);
+    try {
+      const response = await MessagingService.getTranscript(threadId);
+      setTranscript(response.messages);
+    } catch {
+      // The backend seals un-reported threads: transcript_requires_report.
+      setGate(t('msgs_audit_gate', 'Transcript sealed — no report filed on this thread.'));
+    }
+  };
+
+  return (
+    <section style={{ marginTop: 28 }} data-testid="msg-admin-audit">
+      <h2 style={{ fontSize: 18 }}>{t('msgs_audit_title', 'Thread audit (metadata only)')}</h2>
+      {threads.length === 0 ? (
+        <p style={{ color: palette.muted }}>{t('msgs_audit_empty', 'No threads.')}</p>
+      ) : (
+        <ul style={{ listStyle: 'none', padding: 0 }}>
+          {threads.map((thread) => (
+            <li
+              key={thread.id}
+              data-testid={`msg-audit-${thread.id}`}
+              style={{
+                background: palette.surface,
+                border: `1px solid ${palette.border}`,
+                borderRadius: 10,
+                padding: 14,
+                marginBottom: 10,
+              }}
+            >
+              <p style={{ margin: '0 0 6px', fontWeight: 600 }}>
+                {thread.participants.map((participant) => participant.username).join(' ↔ ')}
+              </p>
+              <p style={{ margin: '0 0 8px', color: palette.muted, fontSize: 13 }}>
+                {t('msgs_audit_count', '{{count}} messages', { count: thread.message_count })} ·{' '}
+                {thread.has_report
+                  ? t('msgs_audit_reported', 'has report')
+                  : t('msgs_audit_clean', 'no report')}
+              </p>
+              <button
+                type="button"
+                onClick={() => void viewTranscript(thread.id)}
+                data-testid={`msg-audit-transcript-${thread.id}`}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 8,
+                  border: `1px solid ${palette.borderStrong}`,
+                  background: 'none',
+                  color: palette.accent,
+                  cursor: 'pointer',
+                }}
+              >
+                {t('msgs_audit_transcript', 'View transcript')}
+              </button>
+              {transcriptFor === thread.id && (
+                <div style={{ marginTop: 10 }} data-testid={`msg-audit-panel-${thread.id}`}>
+                  {gate && (
+                    <p role="alert" style={{ color: palette.danger, margin: '0 0 6px' }}>
+                      {gate}
+                    </p>
+                  )}
+                  {transcript && (
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                      {transcript.map((message) => (
+                        <li key={message.id} style={{ fontSize: 13, marginBottom: 6 }}>
+                          <strong>{message.sender.username}:</strong>{' '}
+                          {/* body renders as a TEXT NODE — the XSS-safe contract */}
+                          <span>{message.body}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
             </li>
           ))}
         </ul>
@@ -391,7 +573,7 @@ export default function MessagesPage() {
         if (!cancelled) setConversations(response.results);
       })
       .catch(() => {
-        if (!cancelled) setError(t("msgs_load_error", "Could not load your conversations."));
+        if (!cancelled) setError(t('msgs_load_error', 'Could not load your conversations.'));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -405,14 +587,14 @@ export default function MessagesPage() {
 
   return (
     <ProtectedRoute>
-      <main style={{ maxWidth: 760, margin: "0 auto", padding: "24px 16px 64px" }}>
+      <main style={{ maxWidth: 760, margin: '0 auto', padding: '24px 16px 64px' }}>
         <PageHeader
-          title={t("msgs_title", "Messages")}
-          subtitle={t("msgs_subtitle", "Private 1:1 conversations")}
+          title={t('msgs_title', 'Messages')}
+          subtitle={t('msgs_subtitle', 'Private 1:1 conversations')}
         />
         <StartThreadForm />
         {loading ? (
-          <p role="status">{t("msgs_loading", "Loading…")}</p>
+          <p role="status">{t('msgs_loading', 'Loading…')}</p>
         ) : error ? (
           <p role="alert" style={{ color: palette.danger }}>
             {error}
@@ -422,6 +604,8 @@ export default function MessagesPage() {
         )}
         <BlockList />
         {moderator && <ModerationQueue />}
+        {moderator && <FlaggedList />}
+        {auth.user?.role === 'ADMIN' && <AdminAudit />}
       </main>
     </ProtectedRoute>
   );

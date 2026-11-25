@@ -58,6 +58,9 @@ def test_page_number_pagination_keeps_explicit_ordering():
     try:
         StandardPageNumberPagination().paginate_queryset(sentinel, _drf_request())
     except Exception:
+        # The stub intentionally drives Django's paginator into its
+        # AttributeError; that abort is the condition under test, not a
+        # failure to swallow — the assertion below is the real check.
         pass
     assert not getattr(sentinel, "called_with", None), (
         "explicitly ordered querysets must not be re-ordered"

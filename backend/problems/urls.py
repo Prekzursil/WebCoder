@@ -1,15 +1,21 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from .tracks import TrackViewSet
 from .views import (
     CurriculumViewSet,
     TagViewSet,
     ProblemViewSet,
     TestCaseViewSet,
 )
+from .study_aids import AnnotationsView, StatementPackView
 from .tooling import (
     AssignmentSolutionsExportView,
+    GenerateOutputsView,
+    ImportPackageView,
+    OfflineBundleView,
     SampleTestsDownloadView,
     StressTestView,
+    ValidatorRunView,
 )
 from .community import (
     ArticleViewSet,
@@ -18,6 +24,13 @@ from .community import (
     ProblemCommunityEditorialsView,
     RelatedArticlesView,
 )
+from .presubmit import PreSubmitLintView, PreSubmitSamplesView
+from . import content_ops_views
+from .strength import TestStrengthView
+from . import authoring_ops
+from . import statement_quality_views
+from .random_problem import RandomProblemView
+from .test_archive_views import DistributePointsView, ImportArchiveView
 
 app_name = "problems"
 
@@ -28,6 +41,8 @@ router.register(r"problems", ProblemViewSet, basename="problem")
 router.register(r"testcases", TestCaseViewSet, basename="testcase")
 router.register(r"articles", ArticleViewSet, basename="article")
 router.register(r"curriculum", CurriculumViewSet, basename="curriculum")
+# X12 study tracks (competitive matrix row 8): curated ordered playlists.
+router.register(r"tracks", TrackViewSet, basename="track")
 
 # The API URLs are now determined automatically by the router.
 urlpatterns = [
@@ -54,6 +69,19 @@ urlpatterns = [
     ),
     # Wave C (JDG-11/13, UXP-3/4): authoring & integrity tooling.
     path("tools/stress/", StressTestView.as_view(), name="tools-stress"),
+    # JDG-11 remainder: validator runner, expected-output generation and
+    # the Kattis/Polygon package importer (archive lane, CNT-2-gated).
+    path("tools/validate/", ValidatorRunView.as_view(), name="tools-validate"),
+    path(
+        "tools/generate-outputs/",
+        GenerateOutputsView.as_view(),
+        name="tools-generate-outputs",
+    ),
+    path(
+        "tools/import-package/",
+        ImportPackageView.as_view(),
+        name="tools-import-package",
+    ),
     path(
         "tools/assignment-solutions/<int:assignment_id>/",
         AssignmentSolutionsExportView.as_view(),
@@ -64,5 +92,149 @@ urlpatterns = [
         SampleTestsDownloadView.as_view(),
         name="problem-samples",
     ),
+    # RO-6: the offline study bundle (statement + samples as one PDF).
+    path(
+        "<int:problem_id>/offline-bundle/",
+        OfflineBundleView.as_view(),
+        name="problem-offline-bundle",
+    ),
+    # Wave G items 78/92: private statement annotations + the offline
+    # statement pack.
+    path(
+        "<int:problem_id>/annotations/",
+        AnnotationsView.as_view(),
+        name="problem-annotations",
+    ),
+    path(
+        "<int:problem_id>/statement-pack/",
+        StatementPackView.as_view(),
+        name="problem-statement-pack",
+    ),
+    # Wave E items 8/9/10: pre-submit assistance — the static lint (with
+    # the constraint-aware overflow reading) and the sample dress-rehearsal
+    # run that costs no submission.
+    # Wave E item 16: per-test catch-rate scoring for the authoring and
+    # verification surfaces (author/verifier/admin only).
+    path(
+        "<int:problem_id>/test-strength/",
+        TestStrengthView.as_view(),
+        name="problem-test-strength",
+    ),
+    path(
+        "<int:problem_id>/lint/",
+        PreSubmitLintView.as_view(),
+        name="problem-presubmit-lint",
+    ),
+    path(
+        "<int:problem_id>/run-samples/",
+        PreSubmitSamplesView.as_view(),
+        name="problem-presubmit-samples",
+    ),
+    # Wave E item 24: the random-problem die. Mounted BEFORE the router so
+    # the "random" path can never collide with the /{pk}/ detail route.
+    path("random/", RandomProblemView.as_view(), name="problem-random"),
     path("", include(router.urls)),
+    # Wave F items 125/129/131/132/133 — versioning, saved searches, drops,
+    # analytics, bounties.
+    path(
+        "author-analytics/",
+        content_ops_views.AuthorAnalyticsView.as_view(),
+        name="author_analytics",
+    ),
+    path(
+        "drops/",
+        content_ops_views.DropsView.as_view(),
+        name="content_drops",
+    ),
+    path(
+        "searches/",
+        content_ops_views.SavedSearchView.as_view(),
+        name="saved_searches",
+    ),
+    path(
+        "problems/<int:problem_id>/changelog/",
+        content_ops_views.ChangelogView.as_view(),
+        name="problem_changelog",
+    ),
+    path(
+        "problems/<int:problem_id>/revisions/<int:revision_id>/restore/",
+        content_ops_views.RestoreRevisionView.as_view(),
+        name="revision_restore",
+    ),
+    path(
+        "problems/<int:problem_id>/bounties/",
+        content_ops_views.BountyListView.as_view(),
+        name="problem_bounties",
+    ),
+    path(
+        "bounties/<int:bounty_id>/claim/",
+        content_ops_views.BountyClaimView.as_view(),
+        name="bounty_claim",
+    ),
+    path(
+        "bounties/<int:bounty_id>/resolve/",
+        content_ops_views.BountyResolveView.as_view(),
+        name="bounty_resolve",
+    ),
+    # Wave F items 121/123/124/134 — statement quality + wizard scaffold.
+    path(
+        "wizard/steps/",
+        statement_quality_views.WizardStepsView.as_view(),
+        name="wizard_steps",
+    ),
+    path(
+        "problems/<int:problem_id>/statement-lint/",
+        statement_quality_views.StatementLintView.as_view(),
+        name="statement_lint",
+    ),
+    path(
+        "problems/<int:problem_id>/readability/",
+        statement_quality_views.ReadabilityView.as_view(),
+        name="statement_readability",
+    ),
+    path(
+        "problems/<int:problem_id>/translation-status/",
+        statement_quality_views.TranslationStatusView.as_view(),
+        name="translation_status",
+    ),
+    # Wave F items 122/126/128 — generator DSL, variants, attachments.
+    path(
+        "problems/<int:problem_id>/generate-tests/",
+        authoring_ops.GenerateTestsView.as_view(),
+        name="generate_tests",
+    ),
+    path(
+        "problems/<int:problem_id>/variants/",
+        authoring_ops.VariantSpawnView.as_view(),
+        name="variant_spawn",
+    ),
+    path(
+        "problems/<int:problem_id>/variants/list/",
+        authoring_ops.VariantListView.as_view(),
+        name="variant_list",
+    ),
+    path(
+        "problems/<int:problem_id>/attachments/",
+        authoring_ops.AttachmentView.as_view(),
+        name="statement_attachments",
+    ),
+    # Problem-page wave (item A): autosaved authoring drafts — "new" is the
+    # create-page scratchpad, "{problem_id}" the edit-page draft.
+    path(
+        "authoring-drafts/<str:problem_id>/",
+        authoring_ops.AuthoringDraftView.as_view(),
+        name="authoring_draft",
+    ),
+    # Problem-page wave (item B): archive upload (preview + bulk create)
+    # and even point distribution across the suite.
+    path(
+        "problems/<int:problem_id>/tests/import-archive/",
+        ImportArchiveView.as_view(),
+        name="import_test_archive",
+    ),
+    path(
+        "problems/<int:problem_id>/tests/distribute/",
+        DistributePointsView.as_view(),
+        name="distribute_test_points",
+    ),
 ]

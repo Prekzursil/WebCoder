@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model  # Import get_user_model
+from django.core.exceptions import ValidationError
 from rest_framework import serializers
 from .i18n_fields import (
     LocalizedFieldError,
@@ -6,6 +7,7 @@ from .i18n_fields import (
     normalize_localized_dict,
 )
 from .models import (
+    ImportSource,
     CurriculumNode,
     ProblemEditorial,
     Tag,
@@ -22,6 +24,14 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class TestCaseSerializer(serializers.ModelSerializer):
+    # Problem-page wave (item B2): sizes + inline-editability so the author
+    # UI can decide textarea vs preview+download without shipping the full
+    # payload for huge tests.
+    input_size = serializers.SerializerMethodField()
+    expected_size = serializers.SerializerMethodField()
+    input_editable = serializers.SerializerMethodField()
+    expected_editable = serializers.SerializerMethodField()
+
     class Meta:
         model = TestCase
         fields = [
@@ -33,7 +43,38 @@ class TestCaseSerializer(serializers.ModelSerializer):
             "points",
             "subtask",
             "order",
+            # Wave E item 6: optional per-test time bar (null = the
+            # problem/language effective limit applies).
+            "time_limit_ms",
+            # Wave G item 86: localized sample comments.
+            "comment_ro",
+            "comment_en",
+            # Problem-page wave (item B2): display-threshold metadata.
+            "input_size",
+            "expected_size",
+            "input_editable",
+            "expected_editable",
         ]
+
+    def get_input_size(self, obj) -> int:
+        return len(obj.input_data or "")
+
+    def get_expected_size(self, obj) -> int:
+        return len(obj.expected_output_data or "")
+
+    def _editable(self, data: str) -> bool:
+        from django.conf import settings
+
+        threshold = int(
+            getattr(settings, "TESTCASE_INLINE_EDIT_THRESHOLD_BYTES", 10240)
+        )
+        return len(data or "") <= threshold
+
+    def get_input_editable(self, obj) -> bool:
+        return self._editable(obj.input_data)
+
+    def get_expected_editable(self, obj) -> bool:
+        return self._editable(obj.expected_output_data)
 
     def to_representation(self, instance):
         """
@@ -41,7 +82,8 @@ class TestCaseSerializer(serializers.ModelSerializer):
         from non-authorized users.
         """
         ret = super().to_representation(instance)
-        user = self.context["request"].user
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
 
         is_authorized = False
         if user and user.is_authenticated:
@@ -69,6 +111,11 @@ class ProblemSerializer(serializers.ModelSerializer):
         source="tags",  # Link this field to the 'tags' model field for writing
         required=False,
     )
+    # DMOJ-style "has editorial" catalog facet: read from the viewset's
+    # Exists() annotation when present (safe default False for bare
+    # instances serialized outside the catalog queryset).
+    has_editorial = serializers.SerializerMethodField()
+
     author = UserSerializer(read_only=True)  # Display author details
     author_id = serializers.PrimaryKeyRelatedField(
         queryset=get_user_model().objects.all(),  # Use get_user_model()
@@ -85,11 +132,31 @@ class ProblemSerializer(serializers.ModelSerializer):
     # from the registry multipliers/floors + this problem's overrides. A
     # read-only projection — authors edit limit_overrides, not this.
     effective_limits = serializers.SerializerMethodField()
+    # Archive provenance (competitive roadmap RO-6/CNT-2): where the
+    # problem came from. ``import_source`` points at the permission-ledger
+    # row covering the import; approve-time gating enforces that a problem
+    # wired to a ledger row only publishes while that row is GRANTED.
+    import_source = serializers.PrimaryKeyRelatedField(
+        queryset=ImportSource.objects.all(),
+        required=False,
+        allow_null=True,
+    )
+    import_source_name = serializers.SerializerMethodField()
+
+    def get_import_source_name(self, obj) -> str | None:
+        # Dotted sources raise on null FKs; the method form renders the
+        # ledger row's name or None without traversal gymnastics.
+        return obj.import_source.name if obj.import_source_id else None
+
     # Statement-language availability (i18n wave, owner rule (c)/(d)):
     # which languages the problem carries — clients render "available in
     # your language" badges and the EN-fallback affordance from this list
     # instead of re-deriving it from the i18n dicts.
     available_languages = serializers.SerializerMethodField()
+
+    # Problem-page wave (item G): the difficulty's point band, for the
+    # authoring UI's inline range hint.
+    point_bounds = serializers.SerializerMethodField()
 
     def get_available_languages(self, obj) -> list:
         return available_languages(obj)
@@ -139,8 +206,15 @@ class ProblemSerializer(serializers.ModelSerializer):
             "status",
             "difficulty",
             "difficulty_source",
+            # Problem-page wave (item G): the declared finite point value,
+            # bounded by the difficulty band (validated in validate()).
+            "target_points",
+            "point_bounds",
             "default_time_limit_ms",
             "default_memory_limit_kb",
+            # Wave E item 10: the constraint ceiling driving the pre-submit
+            # int-overflow warning.
+            "constraint_max_value",
             # Language-fair limits (J5): the shipped per-language multiplier
             # resolution, surfaced so the problem page can SHOW the effective
             # limit for every allowed language (owner requirement).
@@ -159,6 +233,11 @@ class ProblemSerializer(serializers.ModelSerializer):
             "float_comparison_epsilon",
             "checker_code",
             "checker_language",  # Added checker fields
+            # Reference solution (hack/expected-output engine) — writable by
+            # the author side only, and stripped from representations for
+            # every non-privileged viewer in to_representation below.
+            "reference_solution_code",
+            "reference_language",
             "problem_type",
             "interactor_code",
             "interactor_language",  # JDG-2 interactive fields
@@ -168,11 +247,57 @@ class ProblemSerializer(serializers.ModelSerializer):
             "last_modified_date",
             "submission_count",
             "solved_count",
+            "has_editorial",
+            # Archive provenance (RO-6 browse axis + CNT-2 ledger link).
+            "source_contest",
+            "source_year",
+            "grade_group",
+            "import_source",
+            "import_source_name",
             "tags",
             "tag_ids",
             # 'test_cases' # Add if you want to nest test cases in problem detail view
         ]
         read_only_fields = ["author", "verifier", "creation_date", "last_modified_date"]
+
+    def get_has_editorial(self, obj) -> bool:
+        return bool(getattr(obj, "has_editorial", False))
+
+    def get_point_bounds(self, obj) -> list[int] | None:
+        """The difficulty's (min, max) point band — the authoring UI's hint."""
+        from .economics import point_bounds
+
+        band = point_bounds(obj.difficulty)
+        return list(band) if band else None
+
+    def _viewer_may_see_reference(self, obj) -> bool:
+        """The reference solution is the answer key: author, verifier and
+        staff always; a solver who forfeited the problem's points via the
+        source-code unlock (item F) bought permanent visibility; everyone
+        else never (the hack pipeline reads it server-side through the
+        model)."""
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        if user is None or not getattr(user, "is_authenticated", False):
+            return False
+        if (
+            user.is_superuser
+            or user.is_staff
+            or getattr(user, "role", "") == "ADMIN"
+            or obj.author_id == user.id
+            or obj.verifier_id == user.id
+        ):
+            return True
+        from .models import ProblemForfeit
+
+        return ProblemForfeit.objects.filter(user=user, problem=obj).exists()
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if not self._viewer_may_see_reference(instance):
+            data.pop("reference_solution_code", None)
+            data.pop("reference_language", None)
+        return data
 
     def validate_allowed_languages(self, value):
         """Every declared allowed language must be a judge-registry id.
@@ -208,6 +333,19 @@ class ProblemSerializer(serializers.ModelSerializer):
             )
         return value
 
+    def validate_reference_language(self, value):
+        """A declared reference language must be a judge-registry id (blank
+        = no reference solution)."""
+        if not value:
+            return value
+        from submissions.judge_utils.languages import get_language
+
+        if get_language(str(value)) is None:
+            raise serializers.ValidationError(
+                f"Unknown reference_language '{value}' — use a judge registry id."
+            )
+        return value
+
     def _validate_localized(self, value, field_name):
         """EN-mandatory validation (i18n wave, owner rule (b)).
 
@@ -235,6 +373,54 @@ class ProblemSerializer(serializers.ModelSerializer):
 
     def validate_statement_i18n(self, value):
         return self._validate_localized(value, "statement_i18n")
+
+    def _validate_hints(self, value, field_name):
+        """Item D — the tiered hint ladder's stored shape.
+
+        A JSON list of at most 3 entries (1 gentle nudge, 2 stronger,
+        3 approach outline). Each entry is either a plain string (legacy
+        EDT-2 ladder) or an object {"content": str, "image": url?} for
+        graphical hints. (The field is non-nullable, so a value is always
+        present once DRF's own checks pass.)
+        """
+        if not isinstance(value, list):
+            raise serializers.ValidationError(
+                f"{field_name} must be a JSON list of hint entries."
+            )
+        if len(value) > 3:
+            raise serializers.ValidationError(
+                f"{field_name} supports at most 3 tiers (nudge / stronger / approach)."
+            )
+        for entry in value:
+            if isinstance(entry, str):
+                if not entry.strip():
+                    raise serializers.ValidationError(
+                        f"{field_name}: hint entries cannot be empty."
+                    )
+                continue
+            if isinstance(entry, dict):
+                content = entry.get("content")
+                image = entry.get("image", "")
+                if not isinstance(content, str) or not content.strip():
+                    raise serializers.ValidationError(
+                        f"{field_name}: object entries need non-empty 'content'."
+                    )
+                if image is not None and not isinstance(image, str):
+                    raise serializers.ValidationError(
+                        f"{field_name}: 'image' must be a URL string."
+                    )
+                continue
+            raise serializers.ValidationError(
+                f"{field_name}: each entry is a string or "
+                '{"content": str, "image": url}.'
+            )
+        return value
+
+    def validate_hints_ro(self, value):
+        return self._validate_hints(value, "hints_ro")
+
+    def validate_hints_en(self, value):
+        return self._validate_hints(value, "hints_en")
 
     def validate_io_input_filename(self, value):
         """FILES-mode filenames must be plain basenames (RO-4)."""
@@ -435,6 +621,53 @@ class ProblemSerializer(serializers.ModelSerializer):
                     "OUTPUT_ONLY problems are not executed — an interactor "
                     "cannot apply. Remove interactor_code."
                 )
+        # Reference solution (Wave F): both halves together or neither — a
+        # lone language would make hack judging fail confusingly.
+        ref_code = attrs.get(
+            "reference_solution_code",
+            getattr(self.instance, "reference_solution_code", "") or "",
+        )
+        ref_language = attrs.get(
+            "reference_language",
+            getattr(self.instance, "reference_language", "") or "",
+        )
+        if bool(ref_code) != bool(ref_language):
+            raise serializers.ValidationError(
+                "reference_solution_code and reference_language must be set "
+                "together (or both left empty)."
+            )
+        # Problem-page wave (item G): the model-validation-layer point
+        # bounds, re-checked on every API write that touches the
+        # economics. On CREATE a missing point value defaults to the
+        # difficulty band's midpoint (an in-band starting point); on
+        # UPDATE the check fires when the payload touches either the
+        # point value or the difficulty — a legacy out-of-band row can
+        # still be PATCHed for unrelated fields (hints, statement), but
+        # the approval workflow re-checks and blocks it there.
+        from .economics import target_points_for_difficulty, validate_target_points
+
+        effective_difficulty = attrs.get(
+            "difficulty", getattr(self.instance, "difficulty", None)
+        )
+        touches_economics = (
+            "target_points" in attrs or "difficulty" in attrs or self.instance is None
+        )
+        if self.instance is None and "target_points" not in attrs:
+            attrs["target_points"] = target_points_for_difficulty(
+                effective_difficulty or "MEDIUM"
+            )
+        if touches_economics and effective_difficulty is not None:
+            effective_points = attrs.get(
+                "target_points",
+                getattr(self.instance, "target_points", None),
+            )
+            try:
+                validate_target_points(effective_difficulty, effective_points)
+            except ValidationError as exc:
+                # Only the validator's own field-keyed messages surface —
+                # never str(exc), which could carry interpreter internals
+                # (CodeQL: information exposure through an exception).
+                raise serializers.ValidationError(exc.message_dict) from None
         return attrs
 
     def create(self, validated_data):
@@ -457,6 +690,10 @@ class ProblemEditorialSerializer(serializers.ModelSerializer):
             "problem",
             "content_ro",
             "content_en",
+            # Problem-page wave (item E): the mandatory editorial's reference
+            # implementations — at least Python and C++.
+            "solution_python",
+            "solution_cpp",
             "publish_policy",
             "author",
             "created_at",
@@ -477,6 +714,12 @@ class ProblemDetailSerializer(ProblemSerializer):
     # "translated by @user" credits on the problem page, sourced from
     # APPROVED proposals. Detail-only — the list serializer stays N+1-free.
     translations = serializers.SerializerMethodField()
+    # Problem-page wave (item D/F): the tiered-hint reveal state and the
+    # permanent forfeiture state, both per-viewer.
+    hint_state = serializers.SerializerMethodField()
+    forfeited = serializers.SerializerMethodField()
+    # Problem-page wave (item C): the per-viewer incremental-unlock index.
+    unlock_state = serializers.SerializerMethodField()
 
     class Meta(ProblemSerializer.Meta):
         fields = ProblemSerializer.Meta.fields + [
@@ -484,7 +727,34 @@ class ProblemDetailSerializer(ProblemSerializer):
             "has_editorial",
             "editorial_locked",
             "translations",
+            "hint_state",
+            "forfeited",
+            "unlock_state",
         ]
+
+    def get_unlock_state(self, obj) -> dict:
+        from .unlocks import unlock_state_for
+
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        return unlock_state_for(user, obj)
+
+    def get_hint_state(self, obj) -> dict:
+        from .hints import hint_state_for
+
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        locale = (getattr(request, "LANGUAGE_CODE", "en") or "en")[:2]
+        return hint_state_for(obj, user, locale)
+
+    def get_forfeited(self, obj) -> bool:
+        from .models import ProblemForfeit
+
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        if user is None or not getattr(user, "is_authenticated", False):
+            return False
+        return ProblemForfeit.objects.filter(user=user, problem=obj).exists()
 
     def get_translations(self, obj) -> list:
         from translations.models import TranslationProposal
@@ -512,7 +782,7 @@ class ProblemDetailSerializer(ProblemSerializer):
         return self._editorial(obj) is not None
 
     def get_editorial_locked(self, obj):
-        from .views import editorial_visible_to
+        from .editorial_visibility import editorial_visible_to
 
         editorial = self._editorial(obj)
         if editorial is None:

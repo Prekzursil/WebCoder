@@ -135,7 +135,6 @@ def run_code_in_sandbox(
     final_time_ms = -1
     final_mem_kb = -1
     final_output = ""
-    final_error = "Judge execution did not complete as expected."
 
     spec = get_language(language)
     if spec is None:
@@ -360,14 +359,12 @@ def run_code_in_sandbox(
         # file is resolved to RUNTIME_ERROR below the verdict chain, with a
         # message naming the file, instead of a silent empty-output WA.
         missing_output_file = False
-        missing_output_name: str | None = None
         if io_files and returncode == 0:
             output_path = submission_dir / io_files[1]
             if output_path.exists():
                 final_output = output_path.read_text(encoding="utf-8")
             else:
                 missing_output_file = True
-                missing_output_name = io_files[1]
                 final_output = ""
 
         if returncode == 124:
@@ -428,10 +425,12 @@ def run_code_in_sandbox(
         # required output file is a RUNTIME_ERROR with a message naming the
         # file (overriding the AC the exit code alone would imply).
         if missing_output_file:
+            # missing_output_file is only set inside `if io_files` above.
+            assert io_files is not None
             final_verdict = Submission.VerdictStatus.RUNTIME_ERROR
             final_error = (
                 parsed_stderr + f"\nProgram exited normally but did not create the "
-                f"required output file '{missing_output_name}'."
+                f"required output file '{io_files[1]}'."
             )
 
     except subprocess.TimeoutExpired:

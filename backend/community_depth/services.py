@@ -213,6 +213,8 @@ def recent_feed(limit: int = 25):
         {
             "id": row.id,
             "user": row.user.username,
+            # Item 65: the id powers the ?following=1 filter.
+            "user_id": row.user_id,
             "problem": {"id": row.problem_id, "title_i18n": row.problem.title_i18n},
             "language": row.language,
             "verdict": row.verdict,

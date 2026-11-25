@@ -28,6 +28,7 @@ EXPANDED_IDS = frozenset(
     {
         "python3",
         "cpp17",
+        "cpp20",
         "c11",
         "java11",
         "nodejs20",
@@ -45,7 +46,7 @@ EXPANDED_IDS = frozenset(
 
 
 class RegistryContentTests(unittest.TestCase):
-    def test_all_fourteen_languages_registered(self):
+    def test_all_fifteen_languages_registered(self):
         # RO-5 (pascal) + the language-fairness wave's eight additions.
         self.assertEqual(set(LANGUAGES), EXPANDED_IDS)
 
@@ -87,8 +88,7 @@ class RegistryContentTests(unittest.TestCase):
             self.assertEqual(spec.source_filename, src)
             self.assertEqual(spec.compile_artifact, artifact)
             argv = spec.compile_argv()
-            assert argv is not None  # compiled language: compile_argv is non-None
-            assert argv is not None  # compiled language: compile_argv is non-None
+            self.assertIsNotNone(argv)
             self.assertIn(compiler, argv)
             self.assertIn(src, argv)
             if artifact_in_argv:
@@ -98,14 +98,12 @@ class RegistryContentTests(unittest.TestCase):
         # SPEC drift fix: the judge-runner toolchain is OpenJDK 21; the
         # java11 id must compile with --release 11 (source AND bytecode).
         argv = LANGUAGES["java11"].compile_argv()
-        assert argv is not None  # compiled language: compile_argv is non-None
         self.assertIn("--release", argv)
         self.assertEqual(argv[argv.index("--release") + 1], "11")
         self.assertEqual(LANGUAGES["java11"].java_release, "11")
 
     def test_c11_std_flag(self):
         argv = LANGUAGES["c11"].compile_argv()
-        assert argv is not None  # compiled language: compile_argv is non-None
         self.assertIn("-std=c11", argv)
         self.assertIn("-lm", argv)
 
@@ -121,7 +119,6 @@ class RegistryContentTests(unittest.TestCase):
         argv = cpp.compile_argv(
             source_name="checker.cpp", artifact_name="checker_program"
         )
-        assert argv is not None  # compiled language: compile_argv is non-None
         self.assertIn("checker.cpp", argv)
         self.assertIn("checker_program", argv)
         self.assertNotIn("user_code.cpp", argv)
@@ -255,6 +252,9 @@ class LanguageFairLimitTests(unittest.TestCase):
         table = {
             "c11": (1.0, 1.0, 0),
             "cpp17": (1.0, 1.0, 0),
+            # Matrix row 20 (modern toolchains): C++20 rides C++17's
+            # unadjusted compiled-language multipliers.
+            "cpp20": (1.0, 1.0, 0),
             "pascal": (1.0, 1.0, 0),
             "go": (1.0, 1.0, 262144),
             "rust": (1.0, 1.0, 0),
@@ -311,30 +311,37 @@ class ExpansionShapeTests(unittest.TestCase):
 
     def test_go_compiles_through_sh_with_writable_caches(self):
         argv = LANGUAGES["go"].compile_argv()
-        assert argv is not None  # compiled language: compile_argv is non-None
         self.assertEqual(argv[:2], ("sh", "-c"))
         self.assertIn("GOCACHE=/tmp/gocache", argv[2])
         self.assertIn("go build", argv[2])
 
     def test_rust_compiles_with_rustc_o(self):
         argv = LANGUAGES["rust"].compile_argv()
-        assert argv is not None  # compiled language: compile_argv is non-None
         self.assertEqual(argv[0], "rustc")
         self.assertIn("-O", argv)
 
     def test_csharp_uses_mcs_and_mono(self):
-        csharp_argv = LANGUAGES["csharp"].compile_argv()
-        assert csharp_argv is not None
-        self.assertEqual(csharp_argv[0], "mcs")
+        self.assertEqual(LANGUAGES["csharp"].compile_argv()[0], "mcs")
         self.assertEqual(LANGUAGES["csharp"].run_command, ("mono", "user_program.exe"))
 
     def test_kotlin_compiles_to_jar_and_runs_with_kotlin_runner(self):
         argv = LANGUAGES["kotlin"].compile_argv()
-        assert argv is not None  # compiled language: compile_argv is non-None
         self.assertEqual(argv[:2], ("sh", "-c"))
         self.assertIn("kotlinc user_code.kt -d user_program.jar", argv[2])
+        # The `kotlin` script runner cannot load its jansi native library
+        # under the judge-runner's noexec /tmp (live-stack 2026-11-15:
+        # UnsatisfiedLinkError -> NoClassDefFoundError kotlin/io/ConsoleKt),
+        # so the jar runs via plain java with the toolchain stdlib on the
+        # classpath. `User_codeKt` is the facade class kotlinc generates
+        # for user_code.kt.
         self.assertEqual(
-            LANGUAGES["kotlin"].run_command, ("kotlin", "user_program.jar")
+            LANGUAGES["kotlin"].run_command,
+            (
+                "java",
+                "-cp",
+                "user_program.jar:/opt/kotlinc/lib/kotlin-stdlib.jar",
+                "User_codeKt",
+            ),
         )
 
     def test_interpreted_additions_have_no_compile_step(self):
@@ -344,9 +351,7 @@ class ExpansionShapeTests(unittest.TestCase):
             self.assertIsNone(spec.compile_artifact, lang)
 
     def test_haskell_compiles_with_ghc(self):
-        haskell_argv = LANGUAGES["haskell"].compile_argv()
-        assert haskell_argv is not None
-        self.assertEqual(haskell_argv[0], "ghc")
+        self.assertEqual(LANGUAGES["haskell"].compile_argv()[0], "ghc")
 
     def test_slow_toolchains_get_raised_compile_budgets(self):
         self.assertEqual(LANGUAGES["go"].compile_timeout_s, 60)

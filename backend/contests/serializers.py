@@ -9,8 +9,10 @@ from .models import (
     CLARIFICATION_CANNED_ANSWERS,
     Clarification,
     Contest,
+    ContestCommentary,
     ContestParticipation,
     ContestProblem,
+    Hack,
 )
 
 
@@ -80,12 +82,17 @@ class ContestSerializer(serializers.ModelSerializer):
             "start_at",
             "end_at",
             "freeze_at",
+            "hide_scoreboard_until_end",
             "is_window",
             "per_user_duration_minutes",
             "pretest_mode",
             "editorial_delay_minutes",
             "rated_rating_min",
             "rated_rating_max",
+            "is_long_contest",
+            "is_team_contest",
+            "is_school_cup",
+            "school_name",
             "problem_ids",
             "created_by",
             "created_by_username",
@@ -143,6 +150,20 @@ class ContestSerializer(serializers.ModelSerializer):
         if lo is not None and hi is not None and lo > hi:
             raise serializers.ValidationError(
                 {"rated_rating_min": "Division minimum exceeds its maximum."}
+            )
+        # Wave F: school cups name their school; team contests never carry
+        # individual ratings (the rating engine is per-user).
+        if attrs.get("is_school_cup", getattr(self.instance, "is_school_cup", False)):
+            school = attrs.get("school_name", getattr(self.instance, "school_name", ""))
+            if not school:
+                raise serializers.ValidationError(
+                    {"school_name": "School cups must name their school."}
+                )
+        if attrs.get(
+            "is_team_contest", getattr(self.instance, "is_team_contest", False)
+        ) and attrs.get("is_rated", getattr(self.instance, "is_rated", False)):
+            raise serializers.ValidationError(
+                {"is_rated": "Team contests cannot be rated (ratings are per-user)."}
             )
         # CON-9: non-admin creators (CREATOR/TEACHER) run PRIVATE, unrated
         # mashups from the APPROVED pool — the community-contest guardrail.
@@ -243,11 +264,88 @@ class ContestDetailSerializer(ContestSerializer):
 
 
 class RegistrationSerializer(serializers.Serializer):
-    """POST /contests/{id}/register/ body: PRIVATE contests need the code."""
+    """POST /contests/{id}/register/ body: PRIVATE contests need the code;
+    team contests need the team name (created when new, joined when existing)."""
 
     access_code = serializers.CharField(
         required=False, allow_blank=True, trim_whitespace=True
     )
+    team_name = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        trim_whitespace=True,
+        max_length=80,
+    )
+
+
+class HackSerializer(serializers.ModelSerializer):
+    """List/detail shape for open hacks (item 48).
+
+    The target's SOURCE is deliberately excluded from the feed rows —
+    hackable code is served only through the authenticated ``targets``
+    listing (lock-gated), never in the public hack log.
+    """
+
+    hacker_username = serializers.CharField(source="hacker.username", read_only=True)
+    target_username = serializers.CharField(
+        source="target.user.username", read_only=True
+    )
+    problem_label = serializers.CharField(
+        source="contest_problem.label", read_only=True
+    )
+    target_id = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Hack
+        fields = [
+            "id",
+            "contest",
+            "problem_label",
+            "hacker",
+            "hacker_username",
+            "target_id",
+            "target_username",
+            "input_data",
+            "verdict",
+            "feedback",
+            "judged_at",
+            "created_at",
+        ]
+        read_only_fields = fields
+
+
+class HackCreateSerializer(serializers.Serializer):
+    """POST /contests/{id}/hacks/ — a counter-test against one submission."""
+
+    target_submission_id = serializers.IntegerField()
+    input_data = serializers.CharField(
+        max_length=200_000, trim_whitespace=False, allow_blank=False
+    )
+
+
+class CommentarySerializer(serializers.ModelSerializer):
+    """Contest commentary lines (item 56) — organizer broadcast feed."""
+
+    author_username = serializers.CharField(source="author.username", read_only=True)
+
+    class Meta:
+        model = ContestCommentary
+        fields = [
+            "id",
+            "author",
+            "author_username",
+            "minute_offset",
+            "text",
+            "created_at",
+        ]
+        read_only_fields = ["id", "author", "author_username", "created_at"]
+
+
+class CommentaryCreateSerializer(serializers.Serializer):
+    """POST /contests/{id}/commentary/ — organizer-only."""
+
+    text = serializers.CharField(max_length=1000, trim_whitespace=False)
+    minute_offset = serializers.IntegerField(required=False, min_value=0, default=0)
 
 
 class ClarificationSerializer(serializers.ModelSerializer):

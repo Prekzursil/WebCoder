@@ -8,7 +8,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from problems.admin import ProblemAdmin, TagAdmin
-from problems.models import Problem, Tag, TestCase as ProblemTestCase
+from problems.models import Problem, ProblemEditorial, Tag, TestCase as ProblemTestCase
 from problems.serializers import ProblemSerializer
 from problems.serializers import TestCaseSerializer as TCSerializer
 from users.models import User
@@ -277,6 +277,8 @@ class ProblemViewSetTest(TestCase):
 
     def test_approve_problem_pending(self):
         p = self._make(Problem.ProblemStatus.PENDING_APPROVAL)
+        # Item E: approval requires an editorial.
+        ProblemEditorial.objects.create(problem=p, content_en="Walkthrough.")
         self.client.force_authenticate(self.verifier)
         resp = self.client.post(
             f"/api/v1/problems/problems/{p.id}/approve/",
@@ -335,6 +337,80 @@ class ProblemViewSetTest(TestCase):
         serializer = mock.Mock()
         view.perform_create(serializer)
         serializer.save.assert_called_once_with()
+
+
+class ProblemCatalogSearchTest(TestCase):
+    """Server-side ?search= on the problems list (mobile/API lane).
+
+    Regression guard for the quirk the mobile smoke flagged: the backend
+    had NO search parameter, so ?search=<term> silently returned the
+    UNFILTERED catalog with a 200. The filter runs before pagination and
+    composes with the status-visibility rules.
+    """
+
+    def setUp(self):
+        self.client = APIClient()
+        self.approved = Problem.objects.create(
+            title_i18n={"en": "Sum of last digits", "ro": "Suma ultimelor cifre"},
+            statement_i18n={"en": "S"},
+            status=Problem.ProblemStatus.APPROVED,
+        )
+        self.other = Problem.objects.create(
+            title_i18n={"en": "Binary search", "ro": "Cautare binara"},
+            statement_i18n={"en": "S"},
+            status=Problem.ProblemStatus.APPROVED,
+        )
+
+    def test_search_matches_title_case_insensitively(self):
+        resp = self.client.get("/api/v1/problems/problems/", {"search": "LAST DIGIT"})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual([p["id"] for p in resp.json()["results"]], [self.approved.id])
+
+    def test_search_matches_any_locale_title(self):
+        # The Romanian title alone carries "cifre" - matching walks every
+        # locale VALUE in title_i18n, not the raw JSON text.
+        resp = self.client.get("/api/v1/problems/problems/", {"search": "cifre"})
+        self.assertEqual([p["id"] for p in resp.json()["results"]], [self.approved.id])
+
+    def test_search_multi_word_requires_every_word(self):
+        # AND semantics: both words must appear in the titles - "last
+        # digits" matches only the first problem.
+        resp = self.client.get("/api/v1/problems/problems/", {"search": "last digits"})
+        self.assertEqual([p["id"] for p in resp.json()["results"]], [self.approved.id])
+        # A word from each of two problems matches neither.
+        resp = self.client.get(
+            "/api/v1/problems/problems/", {"search": "binary digits"}
+        )
+        self.assertEqual(resp.json()["results"], [])
+
+    def test_search_without_match_returns_empty_not_the_catalog(self):
+        # The original quirk: an unmatched term returned the full catalog.
+        resp = self.client.get("/api/v1/problems/problems/", {"search": "zzznope"})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.json()["results"], [])
+        self.assertEqual(resp.json()["count"], 0)
+
+    def test_blank_search_is_ignored(self):
+        resp = self.client.get("/api/v1/problems/problems/", {"search": "   "})
+        self.assertEqual(resp.json()["count"], 2)
+
+    def test_search_composes_with_visibility_rules(self):
+        draft = Problem.objects.create(
+            title_i18n={"en": "Secret last digit"},
+            statement_i18n={"en": "S"},
+            status=Problem.ProblemStatus.DRAFT,
+        )
+        resp = self.client.get("/api/v1/problems/problems/", {"search": "last digit"})
+        # Anonymous: APPROVED only - the matching DRAFT stays hidden.
+        self.assertEqual([p["id"] for p in resp.json()["results"]], [self.approved.id])
+        # Staff sees the draft too.
+        staff = User.objects.create_user(username="s", password="p", is_staff=True)
+        self.client.force_authenticate(staff)
+        resp = self.client.get("/api/v1/problems/problems/", {"search": "last digit"})
+        self.assertEqual(
+            sorted(p["id"] for p in resp.json()["results"]),
+            sorted([draft.id, self.approved.id]),
+        )
 
 
 class ProblemViewSetPermissionsTest(TestCase):

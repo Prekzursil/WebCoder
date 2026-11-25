@@ -3,9 +3,14 @@ from django.contrib import admin
 from .models import (
     Contest,
     ContestAward,
+    ContestCommentary,
     ContestParticipation,
+    ContestPrediction,
     ContestProblem,
     ContestScore,
+    ContestTeam,
+    ContestTeamMember,
+    Hack,
 )
 
 
@@ -51,3 +56,32 @@ class ContestScoreAdmin(admin.ModelAdmin):
 class ContestAwardAdmin(admin.ModelAdmin):
     list_display = ("contest", "user", "medal", "rank")
     list_filter = ("contest", "medal")
+
+
+@admin.register(Hack)
+class HackAdmin(admin.ModelAdmin):
+    list_display = ("contest", "hacker", "target", "verdict", "created_at")
+    list_filter = ("contest", "verdict")
+
+
+@admin.register(ContestCommentary)
+class ContestCommentaryAdmin(admin.ModelAdmin):
+    list_display = ("contest", "author", "minute_offset", "created_at")
+    list_filter = ("contest",)
+
+
+@admin.register(ContestTeam)
+class ContestTeamAdmin(admin.ModelAdmin):
+    list_display = ("contest", "name", "captain")
+    list_filter = ("contest",)
+
+
+@admin.register(ContestTeamMember)
+class ContestTeamMemberAdmin(admin.ModelAdmin):
+    list_display = ("team", "user", "joined_at")
+
+
+@admin.register(ContestPrediction)
+class ContestPredictionAdmin(admin.ModelAdmin):
+    list_display = ("contest", "user", "predicted_rank")
+    list_filter = ("contest",)

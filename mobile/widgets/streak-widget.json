@@ -1,0 +1,7 @@
+{
+  "name": "StreakWidget",
+  "displayName": "WebCoder streak",
+  "description": "Your practice streak, at a glance.",
+  "backgroundColor": "#0f172a",
+  "textColor": "#f1f5f9"
+}

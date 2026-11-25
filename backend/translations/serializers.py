@@ -50,10 +50,14 @@ class TranslationProposalSerializer(serializers.ModelSerializer):
         titles = (
             obj.problem.title_i18n if isinstance(obj.problem.title_i18n, dict) else {}
         )
-        return titles.get("en") or titles.get("ro") or f"Problem {obj.problem_id}"
+        # str(): the or-chain is a str at runtime; the explicit wrap keeps the
+        # declared return type honest for callers under strict type checkers.
+        return str(titles.get("en") or titles.get("ro") or f"Problem {obj.problem_id}")
 
     def get_language_name(self, obj) -> str:
-        return LANGUAGE_NAMES.get(obj.language, {}).get("english") or obj.language
+        # str(): values are plain strs at runtime; the wrap satisfies strict
+        # return-type checking over the loosely-typed registry dict.
+        return str(LANGUAGE_NAMES.get(obj.language, {}).get("english", obj.language))
 
 
 class TranslationProposalCreateSerializer(serializers.Serializer):

@@ -23,7 +23,6 @@ class SubmissionAdmin(admin.ModelAdmin):
     )
 
     # For ForeignKey fields, provide links to their admin pages
-    @admin.display(description="User")
     def user_link(self, obj):
         from django.urls import reverse
         from django.utils.html import format_html
@@ -36,10 +35,13 @@ class SubmissionAdmin(admin.ModelAdmin):
                 )  # Assumes app_label is 'users'
                 return format_html('<a href="{}">{}</a>', link, obj.user.username)
         except ObjectDoesNotExist:
+            # A dangling FK (user deleted, submission kept) renders as N/A —
+            # the admin list must not 500 on one row's missing relation.
             pass
         return "N/A"
 
-    @admin.display(description="Problem")
+    user_link.short_description = "User"  # pyright: ignore[reportFunctionMemberAccess] - Django admin runtime-only idiom.
+
     def problem_link(self, obj):
         from django.urls import reverse
         from django.utils.html import format_html
@@ -58,8 +60,11 @@ class SubmissionAdmin(admin.ModelAdmin):
                 )
                 return format_html('<a href="{}">{}</a>', link, problem_title)
         except ObjectDoesNotExist:
+            # Dangling problem FK renders as N/A — same reasoning as user_link.
             pass
         return "N/A"
+
+    problem_link.short_description = "Problem"  # pyright: ignore[reportFunctionMemberAccess] - Django admin runtime-only idiom.
 
     fieldsets = (
         (None, {"fields": ("user", "problem", "language", "submission_time")}),

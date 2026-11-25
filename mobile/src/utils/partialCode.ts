@@ -9,8 +9,8 @@ export interface TemplateSegment {
   text: string;
 }
 
-export const EDIT_START = "WC_EDIT_START";
-export const EDIT_END = "WC_EDIT_END";
+export const EDIT_START = 'WC_EDIT_START';
+export const EDIT_END = 'WC_EDIT_END';
 
 const SENTINEL_RE = /^\s*(?:\/\/|#|--|;)?\s*(WC_EDIT_START|WC_EDIT_END)\s*$/;
 
@@ -20,24 +20,24 @@ export function parseTemplate(template: string | null | undefined): TemplateSegm
   const segments: TemplateSegment[] = [];
   let lockedBuf: string[] = [];
   let editableBuf: string[] | null = null;
-  for (const line of template.split("\n")) {
+  for (const line of template.split('\n')) {
     const match = line.match(SENTINEL_RE);
     if (match) {
       if (match[1] === EDIT_START) {
         if (lockedBuf.length) {
-          segments.push({ locked: true, text: lockedBuf.join("\n") });
+          segments.push({ locked: true, text: lockedBuf.join('\n') });
           lockedBuf = [];
         }
         editableBuf = [];
       } else if (editableBuf !== null) {
-        segments.push({ locked: false, text: editableBuf.join("\n") });
+        segments.push({ locked: false, text: editableBuf.join('\n') });
         editableBuf = null;
       }
       continue;
     }
     (editableBuf ?? lockedBuf).push(line);
   }
-  if (lockedBuf.length) segments.push({ locked: true, text: lockedBuf.join("\n") });
+  if (lockedBuf.length) segments.push({ locked: true, text: lockedBuf.join('\n') });
   return segments;
 }
 
@@ -57,11 +57,11 @@ export function composeSubmission(segments: TemplateSegment[], slots: string[]):
     if (segment.locked) {
       parts.push(segment.text);
     } else {
-      parts.push(slots[slotIndex] ?? "");
+      parts.push(slots[slotIndex] ?? '');
       slotIndex += 1;
     }
   }
-  return parts.join("\n");
+  return parts.join('\n');
 }
 
 /** True when the problem requires the locked-region editor. */

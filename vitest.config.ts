@@ -1,22 +1,31 @@
-import { fileURLToPath } from "node:url";
-import { defineConfig } from "vitest/config";
-import react from "@vitejs/plugin-react";
+import { fileURLToPath } from 'node:url';
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
   test: {
-    environment: "jsdom",
-    setupFiles: ["./src/vitest.setup.ts"],
+    environment: 'jsdom',
+    setupFiles: ['./src/vitest.setup.ts'],
     // e2e/ holds Playwright specs (*.spec.ts) — vitest's default include
     // (**/*.{test,spec}.* would try to run them under jsdom. Keep the rest
-    // of the default excludes while opting e2e/ out.
+    // of the default excludes while opting e2e/ out — EXCEPT the item-138
+    // load-test stats unit tests (e2e/loadtest/*.test.ts): pure math, no
+    // browser dependency.
     // wt-*/ holds linked git worktrees (parallel agent waves). They are full
     // repo copies with their own configs; swept by the default include they
     // run against THIS tree's @/ alias (root src/), which mismatches their
     // branch's code and fails spuriously.
     // mobile/ is the Expo app: its jest suites run under jest-expo (RN
     // transform pipeline), not vitest's rolldown.
-    exclude: ["**/node_modules/**", "**/dist/**", "e2e/**", "wt-*/**", "mobile/**"],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      'e2e/**/*.spec.ts',
+      'e2e/mock-api/**',
+      'wt-*/**',
+      'mobile/**',
+    ],
     // Cap parallel workers: on many-core hosts with little free RAM (~1.5-3GB,
     // measured 2026-10-21) one jsdom worker per core thrashes the machine and
     // tests time out at 5s despite passing individually. Two workers keep
@@ -31,7 +40,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
 });

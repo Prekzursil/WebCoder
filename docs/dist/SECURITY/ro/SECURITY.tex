@@ -1,0 +1,309 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{caption}
+\captionsetup[table]{skip=6pt}
+\newcounter{none} % for unnumbered tables
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+% fallback for those not using the hyperref driver hyperxmp:
+\makeatletter
+\@ifundefined{xmpquote}{\newcommand{\xmpquote}[1]{#1}}{}
+\makeatother
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
+
+\begin{document}
+
+{
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+\section{WebCoder --- Ghidul de
+securitate}\label{webcoder--ghidul-de-securitate}
+
+\begin{quote}
+Rezumat într-un paragraf: Postura de securitate a WebCoder stă pe cinci
+piloni --- un sandbox de evaluare izolat, atins doar printr-un proxy
+Docker de filtrare, autentificare pe cookie-uri httpOnly cu rotire și
+CSRF, limite de rate stratificate pe fiecare cale de scriere, un sistem
+de moderare/raportare cu audit trail și securitate operațională onestă
+(backupuri, exerciții de restore, throttle-uri publicate, chitanțe de
+sandbox). Ghidul documentează fiecare control, unde locuiește în cod și
+cum îl verifici.
+\end{quote}
+
+\textbf{Cui se adresează:} operatori, reviewer-i de securitate,
+profesori/părinți care întreabă „cum rulează codul elevului meu?".
+Perechea în engleză:
+\href{../guide-en/SECURITY.md}{\texttt{docs/guide-en/SECURITY.md}}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{1. Sandbox-ul evaluatorului (cod
+neverificat)}\label{1-sandbox-ul-evaluatorului-cod-neverificat}
+
+Orice execuție judecată rulează în containerul \texttt{judge-runner} cu:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{-\/-network\ none} --- fără rețea în timpul compilării sau
+  execuției (verificat în CI);
+\item
+  mount read-only al submissionului (scriibil doar prin calea
+  orchestrată \texttt{/srv/judge});
+\item
+  toate capabilitățile Linux eliminate, \texttt{no-new-privileges}, uid
+  1000, limite de memorie/CPU/PID;
+\item
+  limite de timp wall+CPU și max-RSS per test, persistate ca chitanțe pe
+  fiecare rând de rezultat.
+\end{itemize}
+
+Worker-ul ajunge la daemon prin \textbf{socket-proxy}
+(tecnativa/docker-socket-proxy) care acordă doar containers/exec POST
+(+ping/version): \texttt{docker\ run\ hello-world} din backend răspunde
+403; \texttt{docker\ exec\ webcoder-judge-runner\ id} reușește. Smoke-ul
+de acceptare e în RUNBOOK §socket-proxy.
+
+\textbf{Biblioteci custom} (python3
+\texttt{custom\_libraries\_allowed}): pip install-ul rulează într-un
+container one-shot pe o rețea internă al cărei unic egress e un proxy
+allowlist PyPI pre-populat; liniile de cerință trebuie să se potrivească
+cu \texttt{nume} / \texttt{nume==versiune} (git+/URL-uri/căi → 400 la
+submit). Postura implicită e fail-closed.
+
+\textbf{Chitanțele de sandbox} --- \texttt{/sandbox-receipts} (orientat
+spre utilizator): limitele și rezultatele fiecărei rulări
+scratch/stress, auditabile.
+
+\subsection{2. Autentificarea și
+sesiunile}\label{2-autentificarea-ux219i-sesiunile}
+
+\begin{itemize}
+\tightlist
+\item
+  JWT access (5 min) + refresh (24 h) stau în \textbf{cookie-uri
+  httpOnly} (\texttt{wc\_access}, \texttt{wc\_refresh}, SameSite=Lax în
+  dev / None+Secure cross-site); rotirea blacklistează refresh-ul
+  anterior; logout-ul blacklistează; nimic de forma token nu atinge
+  \texttt{localStorage}.
+\item
+  Metodele unsafe cer header-ul CSRF double-submit
+  (\texttt{GET\ /api/v1/auth/csrf/} eliberează cookie-ul).
+\item
+  Înregistrarea nu poate auto-atribui roluri (kill-ul B1); schimbările
+  de rol sunt doar de admin.
+\item
+  2FA (TOTP) pentru rolurile privilegiată --- enforce-ment progresiv
+  prin \texttt{TWO\_FACTOR\_ENFORCE}.
+\item
+  Token-uri API personale pentru API-ul public read-only (revocabile;
+  tier de throttle mai ridicat).
+\item
+  Resetarea parolei prin token-uri single-use, conștiente de email;
+  providerii OAuth cu scope minim (GitHub \texttt{user,user:email} în
+  profilul de produs).
+\end{itemize}
+
+\subsection{3. Limitarea ratei ( suprafața de abuz și
+DoS)}\label{3-limitarea-ratei--suprafaux21ba-de-abuz-ux219i-dos}
+
+Pe redis, partajată între procese (env-urile \texttt{THROTTLE\_*}):
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+Scope & Implicit \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+baza anonimă & 60/min \\
+baza autentificată & 240/min \\
+auth (login/înregistrare) & 10/min \\
+creare submission & 20/oră \\
+scratch / guest try-it / sample-run & capuri proprii (guest 5/h per
+IP) \\
+API public & 60/min (240/min cu token) \\
+propuneri de traducere & 10/h \\
+\end{longtable}
+}
+
+\subsection{4. Siguranța conținutului și a
+comunității}\label{4-siguranux21ba-conux21binutului-ux219i-a-comunitux103ux21bii}
+
+\begin{itemize}
+\tightlist
+\item
+  Butoane de raportare pe postări, mesaje, probleme; coadă de moderare
+  cu tracking de SLA și audit trail; proces de apeluri.
+\item
+  Mesageria: raportare per mesaj, filtru de conținut RO+EN de tip
+  marcare-nu-blocare, blocări end-to-end, capace de trimitere (30/h, 10
+  thread-uri/h), politica de contact cu minorii, transcripturi vizibile
+  doar la raportare.
+\item
+  Enforce-ment spoiler server-side în thread-urile de problemă;
+  ascundere-la-prag cu comutator; vot ponderat cu încredere.
+\item
+  Minorii (GDPR Art. 8, România 16+): profiluri ne-publice implicit,
+  județ/școală ascunse, înregistrarea consimțământului parental,
+  înscriere mediată de școală.
+\end{itemize}
+
+\subsection{5. Protecția datelor}\label{5-protecux21bia-datelor}
+
+\begin{itemize}
+\tightlist
+\item
+  GDPR: endpoint de export de date, soft-delete + purgare programată,
+  notificare de cookie-uri, paginile \texttt{/terms} +
+  \texttt{/privacy}, șablon DPA pentru școli
+  (\texttt{docs/DPA-TEMPLATE.md}).
+\item
+  Outputurile per test: outputurile actual/expected ale testelor ascunse
+  se strip-ează pentru privitorii neprivilegiați; datele demo sunt
+  publice prin design; task-ul de retenție golește outputurile vechi
+  după 90 de zile (verdictele/timpurile se păstrează mereu).
+\item
+  Backupuri: sidecar \texttt{pg\_dump\ -Fc} zilnic cu retenție 7z/4s/6l;
+  copia în afara hostului e decizie de operator; procedura de restore +
+  verificare cu accepțiune pe contoarele de rânduri.
+\end{itemize}
+
+\subsection{6. Securitate
+operațională}\label{6-securitate-operaux21bionalux103}
+
+\begin{itemize}
+\tightlist
+\item
+  Secrete: compose-ul e fail-loud (\texttt{\$\{SECRET\_KEY?err\}});
+  profilul de produs (\texttt{webcoder\_api.settings\_prod}) e deny-all
+  până se setează
+  \texttt{ALLOWED\_HOSTS}/\texttt{CORS\_ALLOWED\_ORIGINS}; HSTS,
+  cookie-uri secure, SSL redirect, referrer policy, nosniff.
+\item
+  Postura de dependențe: Dependabot + CodeQL + configurare OSV scanner
+  în repo.
+\item
+  Observabilitate: \texttt{/healthz} (liveness) + \texttt{/readyz}
+  (db/cache/broker), loguri JSON, metrici de admin.
+\item
+  Contact de incident: \texttt{/security} documentează raportarea;
+  pagina de bug-bounty formalizează scope-ul.
+\end{itemize}
+
+\subsection{7. Cum verifici
+afirmațiile}\label{7-cum-verifici-afirmaux21biile}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# izolarea de rețea a sandbox{-}ului}
+\ExtensionTok{docker}\NormalTok{ exec webcoder{-}judge{-}runner python }\AttributeTok{{-}c} \StringTok{"import urllib.request;urllib.request.urlopen(\textquotesingle{}http://p.org\textquotesingle{})"}   \CommentTok{\# trebuie să eșueze}
+
+\CommentTok{\# socket{-}proxy refuză container{-}create}
+\ExtensionTok{docker}\NormalTok{ compose exec backend docker }\AttributeTok{{-}H}\NormalTok{ tcp://socket{-}proxy:2375 run }\AttributeTok{{-}{-}rm}\NormalTok{ hello{-}world   }\CommentTok{\# 403}
+
+\CommentTok{\# un submission judecat rămâne AC (load smoke cu round{-}trip real)}
+\ExtensionTok{python}\NormalTok{ scripts/load\_smoke.py }\AttributeTok{{-}{-}base}\NormalTok{ http://127.0.0.1:8010 }\AttributeTok{{-}{-}judge}
+
+\CommentTok{\# exercițiul de restore}
+\ExtensionTok{scripts/restore{-}drill.sh}
+\end{Highlighting}
+\end{Shaded}
+
+Context arhitectural complet:
+\href{ARHITECTURA.md}{\texttt{ARHITECTURA.md}}. Runbook operațional:
+\texttt{docs/RUNBOOK.md}.
+
+\end{document}

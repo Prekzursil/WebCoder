@@ -1,0 +1,307 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{caption}
+\captionsetup[table]{skip=6pt}
+\newcounter{none} % for unnumbered tables
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+% fallback for those not using the hyperref driver hyperxmp:
+\makeatletter
+\@ifundefined{xmpquote}{\newcommand{\xmpquote}[1]{#1}}{}
+\makeatother
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
+
+\begin{document}
+
+{
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+\section{WebCoder --- Administrator
+Guide}\label{webcoder--administrator-guide}
+
+\begin{quote}
+One-paragraph summary: Administrators run the content engine (curation
+queues, approvals, rejudging, imports) and the safety engine
+(moderation, reports with SLAs, appeals, integrity scans) plus platform
+operations (status, backups, throttles, the optional AI curator). This
+guide covers every admin surface and the management commands behind
+them.
+\end{quote}
+
+\textbf{Who it\textquotesingle s for:} platform ADMINs and VERIFIERs.
+Romanian twin:
+\href{../guide-ro/GHID-ADMIN.md}{\texttt{docs/guide-ro/GHID-ADMIN.md}}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{1. The admin dashboard}\label{1-the-admin-dashboard}
+
+\texttt{/admin/dashboard} --- counts, plus the operational tabs:
+submissions browser (verdict filter, \textbf{Rejudge} button),
+stuck-submission monitor (PENDING/COMPILING/RUNNING older than N
+minutes), user management (role changes --- the only place roles move),
+and metrics snapshot (\texttt{/api/v1/admin/metrics/}: queue depth,
+verdict distribution, 24 h judge-duration stats).
+
+\subsection{2. Content curation}\label{2-content-curation}
+
+\subsubsection{Approval queue}\label{approval-queue}
+
+\texttt{/admin/problem-queue} lists \texttt{status=PENDING} problems
+with the full context an evaluation needs:
+
+\begin{itemize}
+\tightlist
+\item
+  statement render + lint report + readability score + translation-gaps
+  panel;
+\item
+  \textbf{Tests row} --- every test\textquotesingle s input/expected
+  pair, sample flag, points, subtask, per-test bar, catch rate;
+\item
+  \textbf{testcase strength} (\texttt{/problems/\{id\}/test-strength/})
+  --- per-test catch rate over known-wrong solutions, suite strength
+  (samples excluded), uncalibrated flag;
+\item
+  approve/reject with feedback (notifies the author; rejections keep the
+  problem editable).
+\end{itemize}
+
+\subsubsection{Rejudge \& integrity}\label{rejudge--integrity}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Rejudge} (admin platform-wide; VERIFIERs on their own
+  problems): resets to PENDING and re-dispatches through the real judge
+  lane; per-test outcomes from the first execution are persisted so
+  quick score swaps are possible.
+\item
+  \textbf{Plagiarism/boilerplate scans} --- advisory badges for human
+  review, never auto-punish; diff view side-by-side; multi-account IP
+  heuristics feed the same queue.
+\item
+  \textbf{AI-solution labeling} --- post-contest AI-declaration review +
+  solve-pattern anomalies (see the integrity wave\textquotesingle s
+  queue).
+\end{itemize}
+
+\subsubsection{Imports \& catalog ops}\label{imports--catalog-ops}
+
+Management commands (run in the backend container):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{python}\NormalTok{ manage.py seed\_problems            }\CommentTok{\# starter pack + curriculum + tags}
+\ExtensionTok{python}\NormalTok{ manage.py boost\_hidden\_tests       }\CommentTok{\# regenerate hidden suites from committed specs}
+\ExtensionTok{python}\NormalTok{ manage.py catalog\_polish           }\CommentTok{\# translation/hygiene payload (idempotent)}
+\ExtensionTok{python}\NormalTok{ manage.py catalog\_cleanup }\PreprocessorTok{[{-}{-}}\SpecialStringTok{apply}\PreprocessorTok{]}  \CommentTok{\# e2e/ad{-}hoc fixture leftovers}
+\ExtensionTok{python}\NormalTok{ manage.py export\_catalog           }\CommentTok{\# deterministic fixture snapshot}
+\ExtensionTok{python}\NormalTok{ manage.py import\_catalog           }\CommentTok{\# rebuild (or {-}{-}from{-}release \textless{}tag\textgreater{})}
+\ExtensionTok{python}\NormalTok{ manage.py calibrate\_difficulty     }\CommentTok{\# difficulty from AC rates (CNT{-}3)}
+\end{Highlighting}
+\end{Shaded}
+
+Import provenance: the CNT-2 \texttt{ImportSource} ledger (source,
+contact, terms, evidence URL) must have a row before a corpus import is
+legitimate.
+
+\subsection{3. Moderation}\label{3-moderation}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Report queue}: every report button (posts, messages, problems,
+  submissions) lands here with SLA tracking; actions: resolve/dismiss
+  with note.
+\item
+  \textbf{Appeals}: moderation decisions are appealable; the audit trail
+  records handler, action and note.
+\item
+  \textbf{Abuse contact + bounty page}: \texttt{/security} documents the
+  reporting flow; the bug-bounty page formalizes it.
+\item
+  \textbf{Content filter} (messaging): RO+EN flag-not-block filter ---
+  flagged messages queue for review rather than being silently dropped.
+\item
+  Hide-at-threshold + trust-weighted voting run automatically (small
+  negatives render 0; auto-hide with reveal toggle).
+\end{itemize}
+
+\subsection{4. The AI curator (optional, OFF by
+default)}\label{4-the-ai-curator-optional-off-by-default}
+
+Screens community translation proposals
+(\texttt{/api/v1/translations/proposals/}). Configure via env
+(\texttt{AI\_CURATOR\_URL} = any OpenAI-compatible endpoint;
+\texttt{AI\_CURATOR\_MODEL}; \texttt{AI\_CURATOR\_TIMEOUT\_S} ≤ 30;
+\texttt{AI\_CURATOR\_AUTO\_APPROVE=false} default). Policy:
+high-confidence passes queue for human confirmation; low confidence
+flags; timeouts/errors mark \texttt{ai\_verdict=error} and fall through
+to the human queue --- fail-open, humans confirm every approval unless
+auto-approve is explicitly on. Any OpenAI-compatible server works
+(OpenAI, Azure, vLLM, Ollama\ldots). See RUNBOOK §ai-curator.
+
+\subsection{5. Platform operations}\label{5-platform-operations}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Status page} (\texttt{/status}): live queue depth, judge
+  health; the ops wave added queue transparency, autoscale scripts
+  (\texttt{scripts/judge-autoscale.sh}) and the load-test harness
+  (\texttt{scripts/load\_smoke.py\ -\/-judge},
+  \texttt{e2e/loadtest/replay.mjs}).
+\item
+  \textbf{Backups run by default} (db-backup sidecar; RUNBOOK §Backups):
+  trigger manually, list artifacts, restore + verify via
+  \texttt{/api/v1/users/admin/stats/} row counts; quarterly restore
+  drill script (\texttt{scripts/restore-drill.sh}).
+\item
+  \textbf{Throttles} are env-tunable (\texttt{THROTTLE\_*});
+  redis-backed.
+\item
+  \textbf{Blue-green deploy} scripts + the contest capacity gate
+  (\texttt{manage.py\ contest\_replay\ -\/-contest\ \textless{}id\textgreater{}\ -\/-users\ 50})
+  precede any first rated contest.
+\item
+  \textbf{Email}: console backend by default; set \texttt{EMAIL\_HOST} +
+  SPF/DKIM/DMARC before real sends (RUNBOOK §email).
+\end{itemize}
+
+\subsection{6. User administration}\label{6-user-administration}
+
+\begin{itemize}
+\tightlist
+\item
+  Roles: BASIC / CREATOR / TEACHER / VERIFIER / ADMIN --- change only
+  via the admin user view (registration can never self-assign roles).
+\item
+  2FA: progressive enforcement for privileged roles
+  (\texttt{TWO\_FACTOR\_ENFORCE} flips from warn to require).
+\item
+  GDPR: data export (\texttt{POST\ /users/me/export/}), soft-delete +
+  purge; minors\textquotesingle{} profiles non-public; parental consent
+  dates.
+\item
+  Certificates: \texttt{manage.py\ issue\_certificates} (idempotent
+  derivation; \texttt{-\/-notify} optional); revocation ledger for
+  integrity cases.
+\end{itemize}
+
+\subsection{7. Incident recipes}\label{7-incident-recipes}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+Symptom & First moves \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Submissions stuck PENDING & stuck monitor → worker logs
+(\texttt{docker\ compose\ logs\ celery-worker}) → rejudge after fix \\
+Verdict suspected wrong & rejudge the submission; compare per-test rows;
+check \texttt{problems/\{id\}/test-strength/} \\
+Catalog pollution after e2e runs &
+\texttt{catalog\_cleanup\ -\/-apply\ -\/-allow-submissions}
+(probe-account guarded) \\
+Beat not scheduling & \texttt{docker\ compose\ logs\ celery-beat} ---
+flags changed to \texttt{-\/-schedule} (celery 5.x) \\
+Backend wedged & \texttt{/healthz} vs \texttt{/readyz} tells liveness
+from dependency; restart unless-stopped self-heals \\
+\end{longtable}
+}
+
+\end{document}

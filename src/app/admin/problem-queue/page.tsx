@@ -1,15 +1,16 @@
-"use client";
+'use client';
 
-import TwoFactorBanner from "@/components/common/TwoFactorBanner";
-import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import { useTranslation } from "react-i18next";
-import { ProblemService, collectAllPages } from "@/services/ApiService";
-import { useAuth } from "@/context/AuthContext";
-import { ProblemType } from "@/types";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
-import ProtectedRoute from "@/components/common/ProtectedRoute";
-import TableScroll from "@/components/common/TableScroll";
+import TwoFactorBanner from '@/components/common/TwoFactorBanner';
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
+import { ProblemService, collectAllPages } from '@/services/ApiService';
+import { useAuth } from '@/context/AuthContext';
+import { ProblemType } from '@/types';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
+import ProtectedRoute from '@/components/common/ProtectedRoute';
+import TableScroll from '@/components/common/TableScroll';
+import TestsPreviewPanel from './TestsPreviewPanel';
 
 // Ported from frontend/webcoder_ui/src/pages/admin/ProblemVerificationQueuePage.tsx
 // (CRA reference). Route: /admin/problem-queue (CRA App.tsx:42) —
@@ -42,6 +43,8 @@ export function ProblemVerificationQueuePage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [feedbackMap, setFeedbackMap] = useState<{ [problemId: number]: string }>({});
+  // [wave E items 16/17] the expanded tests-preview row per problem.
+  const [previewId, setPreviewId] = useState<number | null>(null);
 
   const fetchPendingProblems = async () => {
     if (auth.isAuthenticated) {
@@ -52,20 +55,20 @@ export function ProblemVerificationQueuePage() {
         const response = await collectAllPages((page) =>
           ProblemService.getProblems({}, { page, pageSize: 100 }),
         );
-        setPendingProblems(response.filter((p) => p.status === "PENDING_APPROVAL"));
+        setPendingProblems(response.filter((p) => p.status === 'PENDING_APPROVAL'));
         setError(null);
       } catch (err) {
         setError(
           errorMessage(
             err,
-            t("error_loading_pending_problems", "Failed to load pending problems."),
+            t('error_loading_pending_problems', 'Failed to load pending problems.'),
           ),
         );
       } finally {
         setLoading(false);
       }
     } else if (!auth.isAuthenticated) {
-      setError(t("error_auth_required", "Authentication required."));
+      setError(t('error_auth_required', 'Authentication required.'));
       setLoading(false);
     }
   };
@@ -77,7 +80,7 @@ export function ProblemVerificationQueuePage() {
 
   const handleApproveProblem = async (problemId: number) => {
     if (!auth.isAuthenticated) {
-      setActionError(t("error_auth_required_action", "Authentication required for this action."));
+      setActionError(t('error_auth_required_action', 'Authentication required for this action.'));
       return;
     }
     setActionError(null);
@@ -86,32 +89,32 @@ export function ProblemVerificationQueuePage() {
       await ProblemService.approveProblem(problemId, {
         feedback: feedbackMap[problemId] || undefined,
       });
-      setActionMessage(t("problem_approved_successfully", "Problem approved successfully!"));
+      setActionMessage(t('problem_approved_successfully', 'Problem approved successfully!'));
       fetchPendingProblems();
-      setFeedbackMap((prev) => ({ ...prev, [problemId]: "" }));
+      setFeedbackMap((prev) => ({ ...prev, [problemId]: '' }));
     } catch (err) {
-      setActionError(errorMessage(err, t("error_approving_problem", "Failed to approve problem.")));
+      setActionError(errorMessage(err, t('error_approving_problem', 'Failed to approve problem.')));
     }
   };
 
   const handleRejectProblem = async (problemId: number) => {
     if (!auth.isAuthenticated) {
-      setActionError(t("error_auth_required_action", "Authentication required for this action."));
+      setActionError(t('error_auth_required_action', 'Authentication required for this action.'));
       return;
     }
     if (!feedbackMap[problemId]?.trim()) {
-      setActionError(t("feedback_required_for_rejection", "Feedback is required for rejection."));
+      setActionError(t('feedback_required_for_rejection', 'Feedback is required for rejection.'));
       return;
     }
     setActionError(null);
     setActionMessage(null);
     try {
       await ProblemService.rejectProblem(problemId, { feedback: feedbackMap[problemId] });
-      setActionMessage(t("problem_rejected_successfully", "Problem rejected successfully!"));
+      setActionMessage(t('problem_rejected_successfully', 'Problem rejected successfully!'));
       fetchPendingProblems();
-      setFeedbackMap((prev) => ({ ...prev, [problemId]: "" }));
+      setFeedbackMap((prev) => ({ ...prev, [problemId]: '' }));
     } catch (err) {
-      setActionError(errorMessage(err, t("error_rejecting_problem", "Failed to reject problem.")));
+      setActionError(errorMessage(err, t('error_rejecting_problem', 'Failed to reject problem.')));
     }
   };
 
@@ -120,84 +123,110 @@ export function ProblemVerificationQueuePage() {
   };
 
   if (loading) return <LoadingSpinner />;
-  if (error) return <p style={{ color: "var(--danger)" }}>{error}</p>;
-  if (!auth.user || !["ADMIN", "PROBLEM_VERIFIER"].includes(auth.user.role)) {
-    return <p>{t("unauthorized_access", "You are not authorized to view this page.")}</p>;
+  if (error) return <p style={{ color: 'var(--danger)' }}>{error}</p>;
+  if (!auth.user || !['ADMIN', 'PROBLEM_VERIFIER'].includes(auth.user.role)) {
+    return <p>{t('unauthorized_access', 'You are not authorized to view this page.')}</p>;
   }
 
   return (
     <div className="page-container">
       <TwoFactorBanner />
-      <h2>{t("problem_verification_queue_header", "Problem Verification Queue")}</h2>
+      <h2>{t('problem_verification_queue_header', 'Problem Verification Queue')}</h2>
       {actionMessage && (
-        <p style={{ color: "var(--success)", marginBottom: "1rem" }}>{actionMessage}</p>
+        <p style={{ color: 'var(--success)', marginBottom: '1rem' }}>{actionMessage}</p>
       )}
-      {actionError && <p style={{ color: "var(--danger)", marginBottom: "1rem" }}>{actionError}</p>}
+      {actionError && <p style={{ color: 'var(--danger)', marginBottom: '1rem' }}>{actionError}</p>}
       {pendingProblems.length === 0 ? (
-        <p>{t("no_problems_pending_approval", "No problems are currently pending approval.")}</p>
+        <p>{t('no_problems_pending_approval', 'No problems are currently pending approval.')}</p>
       ) : (
         <div className="card" style={{ padding: 0 }}>
           <TableScroll>
             <table>
               <thead>
                 <tr>
-                  <th>{t("problem_id_th", "ID")}</th>
-                  <th>{t("problem_title_th", "Title")}</th>
-                  <th>{t("problem_author_th", "Author")}</th>
-                  <th>{t("problem_difficulty_th", "Difficulty")}</th>
-                  <th>{t("verifier_feedback_th", "Feedback (for rejection)")}</th>
-                  <th>{t("actions_th", "Actions")}</th>
+                  <th>{t('problem_id_th', 'ID')}</th>
+                  <th>{t('problem_title_th', 'Title')}</th>
+                  <th>{t('problem_author_th', 'Author')}</th>
+                  <th>{t('problem_difficulty_th', 'Difficulty')}</th>
+                  <th>{t('verifier_feedback_th', 'Feedback (for rejection)')}</th>
+                  <th>{t('actions_th', 'Actions')}</th>
                 </tr>
               </thead>
               <tbody>
                 {pendingProblems.map((problem) => (
-                  <tr key={problem.id}>
-                    <td>{problem.id}</td>
-                    <td>
-                      <Link href={`/problems/${problem.id}/edit`}>
-                        {problem.title_i18n[i18n.language] || problem.title_i18n.en}
-                      </Link>
-                    </td>
-                    <td>{problem.author?.username || t("unknown_author", "Unknown")}</td>
-                    <td>{problem.difficulty}</td>
-                    <td>
-                      <textarea
-                        value={feedbackMap[problem.id] || ""}
-                        onChange={(e) => handleFeedbackChange(problem.id, e.target.value)}
-                        rows={2}
-                        style={{ width: "90%" }}
-                        placeholder={t("feedback_placeholder_rejection", "Required for rejection")}
-                      />
-                    </td>
-                    <td style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                      <button
-                        onClick={() => handleApproveProblem(problem.id)}
-                        style={{
-                          background: "rgba(74,222,128,0.15)",
-                          color: "var(--success)",
-                          border: "1px solid rgba(74,222,128,0.3)",
-                          borderRadius: "6px",
-                          padding: "4px 12px",
-                          cursor: "pointer",
-                        }}
-                      >
-                        {t("approve_button", "Approve")}
-                      </button>
-                      <button
-                        onClick={() => handleRejectProblem(problem.id)}
-                        style={{
-                          background: "rgba(248,113,113,0.15)",
-                          color: "var(--danger)",
-                          border: "1px solid rgba(248,113,113,0.3)",
-                          borderRadius: "6px",
-                          padding: "4px 12px",
-                          cursor: "pointer",
-                        }}
-                      >
-                        {t("reject_button", "Reject")}
-                      </button>
-                    </td>
-                  </tr>
+                  <React.Fragment key={problem.id}>
+                    <tr>
+                      <td>{problem.id}</td>
+                      <td>
+                        <Link href={`/problems/${problem.id}/edit`}>
+                          {problem.title_i18n[i18n.language] || problem.title_i18n.en}
+                        </Link>
+                      </td>
+                      <td>{problem.author?.username || t('unknown_author', 'Unknown')}</td>
+                      <td>{problem.difficulty}</td>
+                      <td>
+                        <textarea
+                          value={feedbackMap[problem.id] || ''}
+                          onChange={(e) => handleFeedbackChange(problem.id, e.target.value)}
+                          rows={2}
+                          style={{ width: '90%' }}
+                          placeholder={t(
+                            'feedback_placeholder_rejection',
+                            'Required for rejection',
+                          )}
+                        />
+                      </td>
+                      <td style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <button
+                          onClick={() => handleApproveProblem(problem.id)}
+                          style={{
+                            background: 'rgba(74,222,128,0.15)',
+                            color: 'var(--success)',
+                            border: '1px solid rgba(74,222,128,0.3)',
+                            borderRadius: '6px',
+                            padding: '4px 12px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {t('approve_button', 'Approve')}
+                        </button>
+                        <button
+                          onClick={() => setPreviewId(previewId === problem.id ? null : problem.id)}
+                          data-testid={`preview-toggle-${problem.id}`}
+                          style={{
+                            background: 'rgba(129,140,248,0.15)',
+                            color: 'var(--accent)',
+                            border: '1px solid rgba(129,140,248,0.3)',
+                            borderRadius: '6px',
+                            padding: '4px 12px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {t('verify_preview_tests', 'Tests')}
+                        </button>
+                        <button
+                          onClick={() => handleRejectProblem(problem.id)}
+                          style={{
+                            background: 'rgba(248,113,113,0.15)',
+                            color: 'var(--danger)',
+                            border: '1px solid rgba(248,113,113,0.3)',
+                            borderRadius: '6px',
+                            padding: '4px 12px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {t('reject_button', 'Reject')}
+                        </button>
+                      </td>
+                    </tr>
+                    {previewId === problem.id && (
+                      <tr>
+                        <td colSpan={6} style={{ padding: 0, background: 'var(--surface)' }}>
+                          <TestsPreviewPanel problemId={problem.id} />
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>
@@ -211,7 +240,7 @@ export function ProblemVerificationQueuePage() {
 // Route composition from CRA App.tsx:42 — ADMIN + PROBLEM_VERIFIER.
 export default function ProblemVerificationQueuePageRoute() {
   return (
-    <ProtectedRoute roles={["ADMIN", "PROBLEM_VERIFIER"]}>
+    <ProtectedRoute roles={['ADMIN', 'PROBLEM_VERIFIER']}>
       <ProblemVerificationQueuePage />
     </ProtectedRoute>
   );

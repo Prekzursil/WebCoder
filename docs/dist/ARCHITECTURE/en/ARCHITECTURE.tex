@@ -1,0 +1,376 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{caption}
+\captionsetup[table]{skip=6pt}
+\newcounter{none} % for unnumbered tables
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+% fallback for those not using the hyperref driver hyperxmp:
+\makeatletter
+\@ifundefined{xmpquote}{\newcommand{\xmpquote}[1]{#1}}{}
+\makeatother
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
+
+\begin{document}
+
+{
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+\section{WebCoder --- System
+Architecture}\label{webcoder--system-architecture}
+
+\begin{quote}
+One-paragraph summary: WebCoder is a bilingual (RO/EN + 10 more UI
+locales) competitive-programming platform --- a Next.js 16 front end
+over a Django 6 / DRF API, a Celery-driven judge that executes untrusted
+code inside a hardened Docker sandbox through a filtering socket proxy,
+and a Postgres+Redis state layer. This guide is for engineers who need
+to understand, run, or extend the system; each section maps to code you
+can open today.
+\end{quote}
+
+\textbf{Who it\textquotesingle s for:} backend/frontend contributors,
+operators deploying the stack, and anyone evaluating the
+platform\textquotesingle s design. The Romanian twin of this guide is
+\href{../guide-ro/ARHITECTURA.md}{\texttt{docs/guide-ro/ARHITECTURA.md}}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{1. Component map}\label{1-component-map}
+
+\pandocbounded{\includegraphics[keepaspectratio,alt={Component
+map}]{C:/Users/Prekzursil/.zcode/workspace/draft-9cac9da0-09ed-462a-8bd2-a78591461ba4/wt-polish/docs/dist/ARCHITECTURE/en/8501c0f0ae9c3fd3ececf6d75972d736767b0077.png}}
+
+\emph{Source:
+\href{../diagrams/component-map.mmd}{\texttt{docs/diagrams/component-map.mmd}}}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+Component & Where & Responsibility \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Next.js 16 app & repo root \texttt{src/}, App Router & SSR/ISR pages,
+CodeMirror/Blockly editors, RO/EN UI with i18next + 12-locale problem
+fields \\
+Django 6 + DRF & \texttt{backend/} (\textasciitilde25 apps) &
+\texttt{/api/v1} REST: problems, submissions, contests, ratings,
+classroom, forum, messaging, translations, public API \\
+PostgreSQL 16 & compose \texttt{postgres} & system of record (no host
+port published) \\
+Redis & compose \texttt{redis} & celery broker, throttle cache, judge
+queue \\
+celery-worker & compose \texttt{celery-worker} & judge + default queues;
+\texttt{acks\_late} with stale-in-progress guard \\
+judge-runner & \texttt{backend/Dockerfile.judge} & sandboxed toolchains:
+gcc/g++, OpenJDK, CPython, Node, fpc, mono, golang \\
+socket-proxy & compose overlay default & docker API filter ---
+containers/exec POST only; everything else 403 \\
+celery-beat & compose \texttt{celery-beat} & nightly leaderboard
+recompute, notification purge, output retention, weekly digest,
+per-minute \texttt{contest-tick} \\
+db-backup & compose sidecar & daily \texttt{pg\_dump\ -Fc}, 7d/4w/6m
+retention \\
+\end{longtable}
+}
+
+Frontend--backend contract: cookies travel with
+\texttt{credentials:\ \textquotesingle{}include\textquotesingle{}}; the
+catalog list is ISR-cached 60 s server-side (disabled under
+\texttt{E2E\_API\_BASE}).
+
+\subsection{2. The judge pipeline}\label{2-the-judge-pipeline}
+
+\pandocbounded{\includegraphics[keepaspectratio,alt={Judge
+pipeline}]{C:/Users/Prekzursil/.zcode/workspace/draft-9cac9da0-09ed-462a-8bd2-a78591461ba4/wt-polish/docs/dist/ARCHITECTURE/en/43ae7a19bbb00e46ba5e5a0f957026d485dd035b.png}}
+
+\emph{Source:
+\href{../diagrams/judge-pipeline.mmd}{\texttt{docs/diagrams/judge-pipeline.mmd}}}
+
+Key invariants (all enforced in code, \texttt{backend/submissions/}):
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Language registry}
+  (\texttt{submissions/judge\_utils/languages.py}) is the single source
+  of truth --- compile/run commands, per-language time multipliers (e.g.
+  python ×3), memory floors, toolchain pins mirrored on
+  \texttt{/api/v1/public/languages/}.
+\item
+  \textbf{Every judged run} is \texttt{-\/-network\ none} with a
+  read-only submission mount, all capabilities dropped, uid 1000
+  (\texttt{backend/judge\_utils/}, \texttt{Dockerfile.judge}).
+\item
+  \textbf{Verdict ladder} per test: TLE (wall vs CPU), MLE (max-RSS
+  ladder incl. exit-137 + ≥0.9×limit), RE (signal-mapped messages), WA,
+  AC --- fabrication triggers were deleted in the judge-fairness wave.
+\item
+  \textbf{Comparison modes}: EXACT / STRIP / LINES\_STRIP / TOKEN /
+  float-epsilon (\texttt{problems/models.Problem.ComparisonMode}), plus
+  custom checkers speaking the exit-7
+  \texttt{POINTS\ \textless{}0..1\textgreater{}} partial protocol
+  (testlib-compatible).
+\item
+  \textbf{Scoring modes}: BINARY, PARTIAL\_PER\_TEST, SUBTASKS (DMOJ
+  all-members rule).
+\item
+  \textbf{Feedback gating}: sample tests expose input+expected for
+  diffing; hidden tests strip outputs for non-privileged viewers;
+  per-test time/memory bars are persisted on every result row.
+\item
+  \textbf{Custom libraries}: pip install happens in a one-shot container
+  on an internal \texttt{judge-build} network whose only egress is a
+  pre-seeded pypi allowlist proxy --- fail-closed by default (RUNBOOK
+  §judge-pip-egress).
+\end{enumerate}
+
+\subsection{3. Data model (core slice)}\label{3-data-model-core-slice}
+
+\pandocbounded{\includegraphics[keepaspectratio,alt={Data
+model}]{C:/Users/Prekzursil/.zcode/workspace/draft-9cac9da0-09ed-462a-8bd2-a78591461ba4/wt-polish/docs/dist/ARCHITECTURE/en/22ac648fe9cee6cdb213cb70532bd38ea88a61b6.png}}
+
+\emph{Source:
+\href{../diagrams/data-model.mmd}{\texttt{docs/diagrams/data-model.mmd}}}
+
+Modeling notes:
+
+\begin{itemize}
+\tightlist
+\item
+  Localized fields are JSON objects keyed by locale with \textbf{English
+  mandatory} (\texttt{problems/i18n\_fields.py} owner rule (b)); RO is
+  the home-market language; the i18n-10 wave added 10 more UI locales
+  for statements/titles.
+\item
+  \texttt{Submission} → \texttt{SubmissionTestResult} carries per-test
+  verdict, time, memory, \textbf{and the applied limits} (judge-fairness
+  receipts).
+\item
+  \texttt{Problem.reference\_solution\_code} powers hack counter-tests,
+  testcase-strength scoring and the hidden-suite generator
+  (\texttt{boost\_hidden\_tests}).
+\item
+  Import provenance (\texttt{source\_url}, \texttt{source\_authors},
+  \texttt{ImportSource} ledger) records where content came from and
+  under what terms (CNT-2).
+\end{itemize}
+
+\subsection{4. Auth \& cookie flow}\label{4-auth--cookie-flow}
+
+\pandocbounded{\includegraphics[keepaspectratio,alt={Auth cookie
+flow}]{C:/Users/Prekzursil/.zcode/workspace/draft-9cac9da0-09ed-462a-8bd2-a78591461ba4/wt-polish/docs/dist/ARCHITECTURE/en/cc037c783b21e881ab154a672178aa2c479382a7.png}}
+
+\emph{Source:
+\href{../diagrams/auth-cookie-flow.mmd}{\texttt{docs/diagrams/auth-cookie-flow.mmd}}}
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{wc\_access} (5 min) + \texttt{wc\_refresh} (24 h) are
+  \textbf{httpOnly cookies} --- never in \texttt{localStorage}; rotation
+  blacklists the old refresh (\texttt{backend/users/}, dj-rest-auth).
+\item
+  Unsafe methods require the double-submit \texttt{X-CSRFToken} (cookie
+  via \texttt{GET\ /api/v1/auth/csrf/}).
+\item
+  Non-browser clients use Bearer tokens and personal API tokens (public
+  API, 60/min; tokened 240/min).
+\item
+  Roles: BASIC, CREATOR, TEACHER, VERIFIER, ADMIN
+  (\texttt{users/models.Roles}); minors\textquotesingle{} profiles
+  default non-public (LEG-2).
+\end{itemize}
+
+\subsection{5. Contest lifecycle}\label{5-contest-lifecycle}
+
+\pandocbounded{\includegraphics[keepaspectratio,alt={Contest
+lifecycle}]{C:/Users/Prekzursil/.zcode/workspace/draft-9cac9da0-09ed-462a-8bd2-a78591461ba4/wt-polish/docs/dist/ARCHITECTURE/en/4a43b15d698febc064a1849ebdfbbe41130eb965.png}}
+
+\emph{Source:
+\href{../diagrams/contest-lifecycle.mmd}{\texttt{docs/diagrams/contest-lifecycle.mmd}}}
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{contest\_tick} (beat, every minute) drives state transitions;
+  formats are strategy classes (IOI sum-of-best is the default; ICPC
+  penalty and AtCoder-style exist).
+\item
+  Freeze is a query filter on the scoreboard; ratings commit
+  post-contest via Glicko with AtCoder-style display suppression for
+  newcomers.
+\item
+  Upsolving/virtual participation re-opens problems under a personal
+  clock; hacks unlock after a full board solve.
+\end{itemize}
+
+\subsection{6. Cross-cutting mechanics}\label{6-cross-cutting-mechanics}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Pagination}: every list endpoint uses standard/cursor
+  pagination (\texttt{webcoder\_api/pagination.py}).
+\item
+  \textbf{Throttles}: anon 60/min, user 240/min, scoped \texttt{auth}
+  10/min, \texttt{submit} 20/h, scratch/guest/sample-run scopes;
+  counters in redis (shared across processes).
+\item
+  \textbf{Observability}: \texttt{/healthz}, \texttt{/readyz}
+  (db+cache+broker), admin metrics snapshot, JSON logs
+  (\texttt{LOG\_JSON=1}).
+\item
+  \textbf{Reproducibility}: \texttt{export\_catalog} /
+  \texttt{import\_catalog} (+ release-asset snapshot) rebuild the
+  imported catalog deterministically; \texttt{seed\_problems} rebuilds
+  the starter pack; \texttt{boost\_hidden\_tests} regenerates hidden
+  suites from committed specs.
+\item
+  \textbf{Testing}: pytest (sqlite CI profile, 100 \% line coverage,
+  zero warnings), vitest, Playwright mock-mode + real-stack mode
+  (\texttt{E2E\_API\_BASE}).
+\end{itemize}
+
+\subsection{7. Repository layout}\label{7-repository-layout}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{backend/\textless{}app\textgreater{}/         Django apps (problems, submissions, contests, ratings,}
+\NormalTok{                       classroom, forum, messaging, translations, …)}
+\NormalTok{backend/problems/data/ committed content specs + catalog tooling fixtures}
+\NormalTok{docs/                  this documentation suite (EN/RO guides, dist/)}
+\NormalTok{e2e/                   Playwright specs (mock{-}api + real{-}stack) \& fixtures}
+\NormalTok{mobile/                PWA shell (service worker, offline packs)}
+\NormalTok{scripts/               ops scripts (load smoke, autoscale, restore drill)}
+\NormalTok{src/                   Next.js 16 app (App Router)}
+\NormalTok{docker{-}compose*.yml    Mode{-}A stack + overlays (socket{-}proxy, custom{-}libs)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{8. Further reading}\label{8-further-reading}
+
+\begin{itemize}
+\tightlist
+\item
+  RUNBOOK (\texttt{docs/RUNBOOK.md}) --- env vars, live stack, backups,
+  e2e modes
+\item
+  SECURITY (\texttt{docs/SECURITY.md} / guide) --- sandbox receipts,
+  throttles, reporting
+\item
+  CONTRIBUTING --- gates, PR conventions, the wave workflow
+\item
+  BLOCK-PROGRAMMING --- the Blockly lane and partial-code problems
+\end{itemize}
+
+\end{document}

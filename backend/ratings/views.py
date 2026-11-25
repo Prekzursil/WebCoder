@@ -20,6 +20,12 @@ from contests.views import _fetch_contest, can_manage_contest
 
 from .glicko import RATING_BANDS, rating_band
 from .models import RatingHistory, UserRating
+from .divisions import (
+    division_thresholds,
+    graph_annotations,
+    percentiles,
+    user_division,
+)
 from .services import user_public_summary
 
 User = get_user_model()
@@ -91,6 +97,17 @@ class UserRatingHistoryView(APIView):
         user = User.objects.filter(username=username).first()
         if user is None:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        # Wave G item 90 (LEG-2 completion): a minor's public profile is
+        # private by default — only the handle and a private marker go
+        # out to anyone but the account itself or an admin. The rating
+        # history, bio and annotations stay off the public internet.
+        viewer = getattr(request, "user", None)
+        if user.is_minor and not (
+            viewer
+            and viewer.is_authenticated
+            and (viewer.id == user.id or viewer.role == "ADMIN" or viewer.is_superuser)
+        ):
+            return Response({"username": user.username, "private": True})
         summary = user_public_summary(user)
         history = (
             RatingHistory.objects.filter(user=user)
@@ -100,6 +117,10 @@ class UserRatingHistoryView(APIView):
         return Response(
             {
                 "username": user.username,
+                # Matrix row 59: the self-authored bio on the public
+                # profile (blank when unset; minors' privacy fields are a
+                # separate LEG-2 concern — bio is deliberately published).
+                "bio": user.bio,
                 "rating": summary,
                 "history": [
                     {
@@ -114,6 +135,10 @@ class UserRatingHistoryView(APIView):
                     }
                     for h in history
                 ],
+                # Item 51 — per-point annotations (career highs, medals,
+                # division crossings) + the current division chip.
+                "annotations": graph_annotations(user),
+                "division": user_division(user)["division"],
             }
         )
 
@@ -167,3 +192,56 @@ def contest_rating_rollback(request, contest_id):
         return Response({"detail": "Organizer only."}, status=status.HTTP_403_FORBIDDEN)
     message = rollback_contest_ratings(contest)
     return Response({"detail": message})
+
+
+class UserCalibrationView(APIView):
+    """GET /api/v1/ratings/users/{username}/calibration/ — the item-55
+    self-prediction profile: every prediction paired with the actual rank,
+    mean absolute error and the optimism/pessimism bias."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, username):
+        user = User.objects.filter(username=username).first()
+        if user is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        from contests.teams import calibration
+
+        return Response(calibration(user))
+
+
+class DivisionsView(APIView):
+    """GET /api/v1/ratings/divisions/ — item 53: the promotion cutoff table
+    with the current population per division."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        return Response({"divisions": division_thresholds()})
+
+
+class UserDivisionsView(APIView):
+    """GET /api/v1/ratings/users/{username}/divisions/ — the user's current
+    division and every promotion/demotion they earned."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, username):
+        user = User.objects.filter(username=username).first()
+        if user is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(user_division(user))
+
+
+class UserPercentilesView(APIView):
+    """GET /api/v1/ratings/users/{username}/percentiles/ — item 52: the
+    display-rating percentile overall and inside the user's school/county
+    cohorts (empty cohorts stay null)."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, username):
+        user = User.objects.filter(username=username).first()
+        if user is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(percentiles(user))

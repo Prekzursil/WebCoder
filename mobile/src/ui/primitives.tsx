@@ -1,7 +1,7 @@
 // Themed UI primitives — the design tokens applied to RN components so
 // every screen shares the web app's visual language (dark slate surfaces,
 // #38bdf8 accent, uppercase micro labels).
-import React from "react";
+import React from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -14,9 +14,9 @@ import {
   type TextInputProps,
   type ViewStyle,
   type TextStyle,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { font, palette, radius, space } from "../theme/tokens";
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { font, palette, radius, space } from '../theme/tokens';
 
 export function Screen({
   children,
@@ -26,11 +26,16 @@ export function Screen({
   scroll?: boolean;
 }) {
   return (
-    <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
+    <SafeAreaView style={styles.screen} edges={['top', 'left', 'right']}>
       {scroll ? (
         <ScrollView contentContainerStyle={styles.content}>{children}</ScrollView>
       ) : (
-        <View style={styles.content}>{children}</View>
+        // Non-scroll screens host full-height work surfaces (the code
+        // editor, the block editor): content must FILL the screen so the
+        // screens' flex:1 children get real height — a plain wrapper
+        // collapses them to their intrinsic size (found on a release
+        // emulator smoke: the editor Field rendered one line tall).
+        <View style={[styles.content, styles.contentFill]}>{children}</View>
       )}
     </SafeAreaView>
   );
@@ -46,33 +51,33 @@ export function Card({
   return <View style={[styles.card, style]}>{children}</View>;
 }
 
-type TxtVariant = "title" | "section" | "body" | "caption" | "micro" | "mono";
+type TxtVariant = 'title' | 'section' | 'body' | 'caption' | 'micro' | 'mono';
 
 const TXT_STYLES: Record<TxtVariant, TextStyle> = {
-  title: { fontSize: font.title, fontWeight: "800", color: palette.foreground },
+  title: { fontSize: font.title, fontWeight: '800', color: palette.foreground },
   section: {
     fontSize: font.sectionTitle,
-    fontWeight: "800",
+    fontWeight: '800',
     color: palette.foreground,
   },
   body: { fontSize: font.body, color: palette.body },
   caption: { fontSize: font.caption, color: palette.muted },
   micro: {
     fontSize: font.micro,
-    fontWeight: "600",
+    fontWeight: '600',
     color: palette.textTertiary,
-    textTransform: "uppercase",
+    textTransform: 'uppercase',
     letterSpacing: 0.7,
   },
   mono: {
     fontSize: font.caption,
-    fontFamily: "monospace",
+    fontFamily: 'monospace',
     color: palette.body,
   },
 };
 
 export function Txt({
-  variant = "body",
+  variant = 'body',
   children,
   style,
   color,
@@ -88,20 +93,20 @@ export function Txt({
 export function Button({
   title,
   onPress,
-  variant = "primary",
+  variant = 'primary',
   disabled,
 }: {
   title: string;
   onPress: () => void;
-  variant?: "primary" | "ghost" | "danger";
+  variant?: 'primary' | 'ghost' | 'danger';
   disabled?: boolean;
 }) {
   const palette_ =
-    variant === "primary"
+    variant === 'primary'
       ? { bg: palette.accent, fg: palette.onAccent }
-      : variant === "danger"
-        ? { bg: "transparent", fg: palette.danger }
-        : { bg: "transparent", fg: palette.accent };
+      : variant === 'danger'
+        ? { bg: 'transparent', fg: palette.danger }
+        : { bg: 'transparent', fg: palette.accent };
   return (
     <Pressable
       onPress={onPress}
@@ -109,10 +114,10 @@ export function Button({
       style={({ pressed }) => [
         styles.button,
         { backgroundColor: palette_.bg, opacity: disabled ? 0.5 : pressed ? 0.85 : 1 },
-        variant !== "primary" && { borderWidth: 1, borderColor: palette_.fg },
+        variant !== 'primary' && { borderWidth: 1, borderColor: palette_.fg },
       ]}
     >
-      <Text style={{ color: palette_.fg, fontWeight: "700", fontSize: font.body }}>{title}</Text>
+      <Text style={{ color: palette_.fg, fontWeight: '700', fontSize: font.body }}>{title}</Text>
     </Pressable>
   );
 }
@@ -129,12 +134,12 @@ export function Field(props: TextInputProps) {
 
 export function Pill({ label, color }: { label: string; color?: string }) {
   return (
-    <View style={[styles.pill, { borderColor: (color ?? palette.violet) + "66" }]}>
+    <View style={[styles.pill, { borderColor: (color ?? palette.violet) + '66' }]}>
       <Text
         style={{
           color: color ?? palette.violet,
           fontSize: font.micro,
-          fontWeight: "700",
+          fontWeight: '700',
         }}
       >
         {label}
@@ -150,7 +155,7 @@ export function Spinner() {
 export function ErrorBox({ message }: { message: string | null }) {
   if (!message) return null;
   return (
-    <Card style={{ borderColor: palette.danger + "55" }}>
+    <Card style={{ borderColor: palette.danger + '55' }}>
       <Txt variant="body" color={palette.danger}>
         {message}
       </Txt>
@@ -178,6 +183,7 @@ export function KeyValue({ label, value }: { label: string; value: string }) {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: palette.bg },
   content: { padding: space[4], gap: space[3], paddingBottom: space[12] },
+  contentFill: { flex: 1 },
   card: {
     backgroundColor: palette.surface,
     borderRadius: radius.lg,
@@ -189,7 +195,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     paddingVertical: space[3],
     paddingHorizontal: space[4],
-    alignItems: "center",
+    alignItems: 'center',
   },
   field: {
     backgroundColor: palette.surface,
@@ -205,6 +211,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: space[3],
     paddingVertical: 2,
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
   },
 });

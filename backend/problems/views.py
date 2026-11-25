@@ -1,4 +1,5 @@
 from django.db import models, transaction
+from django.http import HttpResponse
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -11,6 +12,7 @@ from .models import (
     Problem,
     TestCase,
 )
+from .editorial_visibility import editorial_visible_to
 from .serializers import (
     CurriculumNodeSerializer,
     TagSerializer,
@@ -28,38 +30,6 @@ from users.permissions import (
     PrivilegedRoleRequires2FA,
     ProblemObjectPermissions,
 )
-
-
-def editorial_visible_to(editorial, user):
-    """Publish-policy gate for editorials (competitive roadmap EDT-1).
-
-    - PUBLIC: anyone (who can see the problem — the viewset queryset already
-      scopes that).
-    - AFTER_AC: the requester has an AC submission on the problem, or is the
-      problem's author / a verifier / an admin (staff need it to review).
-    - MANUAL: author / verifier / admin only.
-    Anonymous users never pass AFTER_AC or MANUAL.
-    """
-    if user is None or not getattr(user, "is_authenticated", False):
-        return editorial.publish_policy == ProblemEditorial.PublishPolicy.PUBLIC
-
-    is_staff = user.is_staff or user.role in [
-        User.Roles.ADMIN,
-        User.Roles.PROBLEM_VERIFIER,
-    ]
-    if is_staff or editorial.problem.author_id == user.id:
-        return True
-    if editorial.publish_policy == ProblemEditorial.PublishPolicy.PUBLIC:
-        return True
-    if editorial.publish_policy == ProblemEditorial.PublishPolicy.AFTER_AC:
-        from submissions.models import Submission
-
-        return Submission.objects.filter(
-            user=user,
-            problem_id=editorial.problem_id,
-            verdict=Submission.VerdictStatus.ACCEPTED,
-        ).exists()
-    return False
 
 
 def user_can_manage_editorial(user, problem):
@@ -188,12 +158,18 @@ class ProblemViewSet(viewsets.ModelViewSet):
             "starters",
             "bookmarked",
             "statement_revisions",
+            "related",
+            "tests_status",
         ]:
             # Read-shaped actions: the queryset already scopes problem
             # visibility; the editorial action additionally enforces the
             # publish-policy gate inside.
             self.permission_classes = [permissions.AllowAny]
         elif self.action == "rate":
+            self.permission_classes = [permissions.IsAuthenticated]
+        elif self.action in ("unlock_source", "reveal_hint"):
+            # Item F/D: per-user economy actions — any authenticated user;
+            # the queryset scopes problem visibility.
             self.permission_classes = [permissions.IsAuthenticated]
         else:
             self.permission_classes = [
@@ -255,12 +231,81 @@ class ProblemViewSet(viewsets.ModelViewSet):
         else:
             # Anonymous users only see APPROVED problems
             qs = Problem.objects.filter(status=Problem.ProblemStatus.APPROVED)
+        # Scheduled content drops (item 131): future-dated APPROVED
+        # problems stay hidden from non-staff/non-authors (and non-owners)
+        # until the drop moment passes.
+        from django.utils import timezone as _tz
+
+        now = _tz.now()
+        if user.is_authenticated and (
+            user.is_staff
+            or getattr(user, "role", "")
+            in (User.Roles.ADMIN, User.Roles.PROBLEM_VERIFIER)
+        ):
+            pass  # staff/verifiers see scheduled problems (the calendar view)
+        else:
+            drop_gate = models.Q(publish_at__isnull=True) | models.Q(
+                publish_at__lte=now
+            )
+            if user.is_authenticated:
+                qs = (qs.filter(drop_gate) | qs.filter(author=user)).distinct()
+            else:
+                qs = qs.filter(drop_gate)
         # Curriculum browse axis (competitive roadmap EDU-9): filter by the
         # chapter/grade node the catalog is drilling into. Exact node match
         # v1 — the tree itself provides the drill-down ids.
         node_id = self.request.query_params.get("curriculum_node")
         if node_id:
             qs = qs.filter(curriculum_nodes__id=node_id)
+        # Archive browse axis (competitive roadmap RO-6): the olympiad
+        # archive's provenance fields are a first-class catalog filter —
+        # browse by edition year, grade group, or "archive problems only".
+        source_year = self.request.query_params.get("source_year")
+        if source_year:
+            qs = qs.filter(source_year=source_year)
+        grade_group = self.request.query_params.get("grade_group")
+        if grade_group:
+            qs = qs.filter(grade_group=grade_group)
+        if self.request.query_params.get("archive") in ("1", "true", "yes"):
+            qs = qs.exclude(source_contest="", source_year__isnull=True, grade_group="")
+        # DMOJ's "has editorial" catalog facet: problems that carry an
+        # editorial row which is (or will become) visible — MANUAL rows are
+        # staff-only by policy and therefore do not count as "has editorial".
+        if self.request.query_params.get("has_editorial") in ("1", "true", "yes"):
+            qs = qs.filter(
+                editorial__publish_policy__in=[
+                    ProblemEditorial.PublishPolicy.PUBLIC,
+                    ProblemEditorial.PublishPolicy.AFTER_AC,
+                ]
+            ).distinct()
+        # Server-side catalog text search (?search=). The web list filters
+        # client-side over fetched pages (?q= is a web-only URL param), but
+        # the mobile app and any API consumer paginate server-side and need
+        # the filter applied before pagination. Semantics: the term is
+        # split on whitespace and EVERY word must appear (case-insensitive)
+        # in a title in ANY locale. Matching walks title_i18n's VALUES (not
+        # the serialized JSON text — locale keys like "en" would collide
+        # with real search terms) and filters by id before pagination. An
+        # empty/blank term is ignored — it must never silently widen the
+        # catalog (the quirk this closes: a ?search= the backend did not
+        # implement returned the unfiltered catalog with a 200).
+        search_term = (self.request.query_params.get("search") or "").strip()
+        if search_term:
+            words = search_term.lower().split()
+            matched_ids = [
+                row_id
+                for row_id, titles in qs.values_list("id", "title_i18n")
+                if all(
+                    word
+                    in " \n".join(
+                        str(value)
+                        for value in (titles or {}).values()
+                        if isinstance(value, str)
+                    ).lower()
+                    for word in words
+                )
+            ]
+            qs = qs.filter(id__in=matched_ids)
         # Catalog stats add-on (SPEC-GAPS D-B8): "X tried / Y solved" per
         # problem card. distinct=True keeps counts exact under the author
         # branch's .distinct().
@@ -271,6 +316,17 @@ class ProblemViewSet(viewsets.ModelViewSet):
                 filter=models.Q(submissions__verdict="AC"),
                 distinct=True,
             ),
+            # DMOJ "has editorial" facet: an editorial row exists whose
+            # publish policy is (or will become) reader-visible.
+            has_editorial=models.Exists(
+                ProblemEditorial.objects.filter(
+                    problem=models.OuterRef("pk"),
+                    publish_policy__in=[
+                        ProblemEditorial.PublishPolicy.PUBLIC,
+                        ProblemEditorial.PublishPolicy.AFTER_AC,
+                    ],
+                )
+            ),
         )
 
     @action(detail=True, methods=["post"], url_path="submit-for-approval")
@@ -278,6 +334,19 @@ class ProblemViewSet(viewsets.ModelViewSet):
         problem = (
             self.get_object()
         )  # ProblemObjectPermissions will check if user is author
+        # CNT-2/RO-6 rights gate: an imported problem (ledger row attached)
+        # may not even enter the approval queue unless the covering row is
+        # GRANTED — the pipeline is rights-checked by construction.
+        if problem.import_source_id and not problem.import_source.allows_publication:
+            return Response(
+                {
+                    "status": (
+                        f"import source '{problem.import_source.name}' is "
+                        f"{problem.import_source.status}; publication blocked"
+                    )
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
         if problem.status == Problem.ProblemStatus.DRAFT:
             problem.status = Problem.ProblemStatus.PENDING_APPROVAL
             problem.verifier = None  # Clear verifier when resubmitting
@@ -296,7 +365,56 @@ class ProblemViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"], url_path="approve")
     def approve_problem(self, request, pk=None):  # Renamed from 'approve'
         problem = self.get_object()  # IsProblemVerifier permission applied
+        # CNT-2/RO-6: the GRANTED check re-runs at approve time — a ledger
+        # row may have expired between submission and review.
+        if problem.import_source_id and not problem.import_source.allows_publication:
+            return Response(
+                {
+                    "status": (
+                        f"import source '{problem.import_source.name}' is "
+                        f"{problem.import_source.status}; cannot approve"
+                    )
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
         if problem.status == Problem.ProblemStatus.PENDING_APPROVAL:
+            # Item E: an editorial is MANDATORY before APPROVED — the full
+            # solution walkthrough must exist before the problem reaches
+            # the public catalog.
+            editorial = getattr(problem, "editorial", None)
+            editorial_ok = editorial is not None and bool(
+                (editorial.content_ro or "").strip()
+                or (editorial.content_en or "").strip()
+            )
+            if not editorial_ok:
+                return Response(
+                    {
+                        "status": (
+                            "problem cannot be approved without an editorial "
+                            "(write the full solution walkthrough first)"
+                        )
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            # Item G defense-in-depth: the declared point value must sit in
+            # the difficulty band at approve time even if a caller bypassed
+            # the serializer validation.
+            from .economics import validate_target_points
+
+            try:
+                validate_target_points(problem.difficulty, problem.target_points)
+            except Exception:
+                # Fixed message only — interpolating the exception could
+                # leak internals (CodeQL: information exposure).
+                return Response(
+                    {
+                        "status": (
+                            "problem cannot be approved: the point value is "
+                            "outside the difficulty's band"
+                        )
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             problem.status = Problem.ProblemStatus.APPROVED
             problem.verifier = request.user
             problem.verifier_feedback = request.data.get(
@@ -405,6 +523,81 @@ class ProblemViewSet(viewsets.ModelViewSet):
             ProblemEditorialSerializer(editorial, context={"request": request}).data
         )
 
+    @action(detail=True, methods=["post"], url_path="unlock-source")
+    def unlock_source(self, request, pk=None):
+        """Item F — the source-code unlock economy.
+
+        The caller confirms the verbatim warning ("unlocking the source
+        code before the problem is solved means the problem will NOT
+        award points to this account") in the UI modal; this endpoint
+        records the PERMANENT per-user-per-problem forfeiture and returns
+        the reference source. Already-solved users get the source without
+        a forfeit (their AC makes it free); already-forfeited users just
+        re-fetch.
+        """
+        from .models import ProblemForfeit
+        from .score_service import has_solved
+
+        problem = self.get_object()
+        solved = has_solved(request.user.id, problem.id)
+        forfeit = ProblemForfeit.objects.filter(
+            user=request.user, problem=problem
+        ).first()
+        if not solved and forfeit is None:
+            forfeit = ProblemForfeit.objects.create(user=request.user, problem=problem)
+        return Response(
+            {
+                "reference_solution_code": problem.reference_solution_code,
+                "reference_language": problem.reference_language,
+                "forfeited": forfeit is not None,
+                "forfeited_at": forfeit.created_at if forfeit else None,
+                "editorial_unlocked": solved or forfeit is not None,
+            }
+        )
+
+    @action(detail=True, methods=["post"], url_path="hints/reveal")
+    def reveal_hint(self, request, pk=None):
+        """Item D — voluntarily reveal one hint tier (free, recorded).
+
+        Body: {"tier": 1|2|3}. Revealing is idempotent per (user, problem,
+        tier); the response carries the tier's content in the requester's
+        locale (fallback chain like the statement) plus the fresh state.
+        """
+        from .models import HintReveal
+
+        problem = self.get_object()
+        tier = request.data.get("tier")
+        if tier not in (1, 2, 3, "1", "2", "3"):
+            return Response(
+                {"detail": "tier must be 1, 2 or 3."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        tier = int(tier)
+        HintReveal.objects.get_or_create(user=request.user, problem=problem, tier=tier)
+        from .hints import hint_state_for
+
+        locale = getattr(request, "LANGUAGE_CODE", "en") or "en"
+        return Response(hint_state_for(problem, request.user, locale[:2]))
+
+    @action(detail=True, methods=["get"], url_path="tests/status")
+    def tests_status(self, request, pk=None):
+        """Item C — the per-viewer test unlock board.
+
+        Every test with its status (locked / unlocked / solved); the
+        single unlocked boundary test exposes its input + expected for
+        debugging, samples stay public, and nothing beyond the earned
+        index is ever revealed (privileged viewers see everything).
+        """
+        from .unlocks import test_status_for, unlock_state_for
+
+        problem = self.get_object()
+        return Response(
+            {
+                "unlock_state": unlock_state_for(request.user, problem),
+                "tests": test_status_for(request.user, problem),
+            }
+        )
+
     @action(detail=True, methods=["get"], url_path="statistics")
     def statistics(self, request, pk=None):
         """Per-problem statistics (competitive roadmap UXP-7 / X9 core).
@@ -432,6 +625,24 @@ class ProblemViewSet(viewsets.ModelViewSet):
             row["language"]: row["n"]
             for row in subs.values("language").annotate(n=models.Count("id"))
         }
+        # [wave G item 102] per-problem language stats: tried, distinct AC
+        # users and the acceptance rate per language.
+        language_stats = {}
+        for row in subs.values("language").annotate(
+            n=models.Count("id"),
+            ac_users=models.Count(
+                "user_id",
+                filter=models.Q(verdict=Submission.VerdictStatus.ACCEPTED),
+                distinct=True,
+            ),
+        ):
+            language_stats[row["language"]] = {
+                "tried": row["n"],
+                "solved_users": row["ac_users"],
+                "acceptance_rate": (
+                    round(row["ac_users"] / row["n"], 4) if row["n"] else None
+                ),
+            }
         ratings = problem.ratings.aggregate(
             avg=models.Avg("rating"), count=models.Count("id")
         )
@@ -443,6 +654,7 @@ class ProblemViewSet(viewsets.ModelViewSet):
                 "acceptance_rate": round(solved / tried, 4) if tried else None,
                 "verdict_distribution": verdict_distribution,
                 "language_counts": language_counts,
+                "language_stats": language_stats,
                 "rating_avg": round(ratings["avg"], 2)
                 if ratings["avg"] is not None
                 else None,
@@ -475,6 +687,99 @@ class ProblemViewSet(viewsets.ModelViewSet):
                 else None,
                 "rating_count": aggregate["count"],
                 "your_rating": rating_value,
+            }
+        )
+
+    #: Difficulty proximity key for the related-problems ranking (row 6).
+    _DIFFICULTY_ORDER = {
+        Problem.DifficultyLevel.VERY_EASY: 0,
+        Problem.DifficultyLevel.EASY: 1,
+        Problem.DifficultyLevel.MEDIUM: 2,
+        Problem.DifficultyLevel.HARD: 3,
+    }
+
+    @action(detail=True, methods=["get"], url_path="related")
+    def related(self, request, pk=None):
+        """Similar problems (competitive matrix row 6, the LeetCode
+        "Similar Questions" / Codewars related-by-tag affordance).
+
+        Candidates are APPROVED problems sharing >= 1 tag with the source,
+        ranked by shared-tag count, then difficulty proximity, then id —
+        the viewer's already-solved problems drop out unless
+        ?include_solved=1 asks for them back. Tag-less sources fall back
+        to same-difficulty problems by solve count (a weaker but honest
+        "more like this").
+        """
+        from submissions.models import Submission
+
+        problem = self.get_object()
+        include_solved = request.query_params.get("include_solved") in (
+            "1",
+            "true",
+            "yes",
+        )
+        solved_ids = set()
+        if request.user.is_authenticated and not include_solved:
+            solved_ids = set(
+                Submission.objects.filter(
+                    user=request.user, verdict=Submission.VerdictStatus.ACCEPTED
+                ).values_list("problem_id", flat=True)
+            )
+        tag_ids = list(problem.tags.values_list("id", flat=True))
+        base = Problem.objects.filter(status=Problem.ProblemStatus.APPROVED).exclude(
+            pk=problem.pk
+        )
+        if tag_ids:
+            candidates = list(
+                base.filter(tags__in=tag_ids)
+                .annotate(
+                    shared_tags=models.Count(
+                        "tags",
+                        filter=models.Q(tags__in=tag_ids),
+                        distinct=True,
+                    )
+                )
+                .distinct()[:200]
+            )
+        else:
+            candidates = list(
+                base.filter(difficulty=problem.difficulty)
+                .annotate(
+                    shared_tags=models.Value(0),
+                    solve_count=models.Count(
+                        "submissions",
+                        filter=models.Q(submissions__verdict="AC"),
+                        distinct=True,
+                    ),
+                )
+                .distinct()[:200]
+            )
+        source_rank = self._DIFFICULTY_ORDER.get(problem.difficulty, 2)
+        if tag_ids:
+
+            def rank(row):
+                return (
+                    -row.shared_tags,
+                    abs(self._DIFFICULTY_ORDER.get(row.difficulty, 2) - source_rank),
+                    row.pk,
+                )
+
+            candidates.sort(key=rank)
+        else:
+            candidates.sort(key=lambda row: (-row.solve_count, row.pk))
+        rows = [row for row in candidates if row.pk not in solved_ids][:8]
+        return Response(
+            {
+                "count": len(rows),
+                "results": [
+                    {
+                        "id": row.pk,
+                        "title_i18n": row.title_i18n,
+                        "difficulty": row.difficulty,
+                        "shared_tags": row.shared_tags,
+                    }
+                    for row in rows
+                ],
             }
         )
 
@@ -591,6 +896,13 @@ class TestCaseViewSet(viewsets.ModelViewSet):
     # The perform_create and perform_update/destroy methods will handle this.
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_permissions(self):
+        # Item B2: sample-test downloads are public (samples are already in
+        # the public statement; the view enforces the hidden-test gate).
+        if self.action == "download":
+            return [permissions.AllowAny()]
+        return super().get_permissions()
+
     def get_queryset(self):
         # Filter test cases based on the problem_id if provided in query_params
         # Or, if nested, this might be handled by the router
@@ -639,6 +951,40 @@ class TestCaseViewSet(viewsets.ModelViewSet):
             )
         _guard_contest_pin(problem, self.request.user)
         instance.delete()
+
+    @action(detail=True, methods=["get"], url_path="download")
+    def download(self, request, pk=None):
+        """Item B2 — raw download of one test field (?kind=input|expected).
+
+        For tests above the inline-edit display threshold the author UI
+        renders a preview + this link (large tests are managed via
+        archive upload). Sample tests are public; hidden tests require
+        the problem's edit rights — the same gate as reading them in the
+        serializer.
+        """
+        test_case = self.get_object()
+        kind = request.query_params.get("kind", "input")
+        if kind not in ("input", "expected"):
+            return Response(
+                {"detail": "kind must be 'input' or 'expected'"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        from .unlocks import may_view_test
+
+        user = request.user if request.user.is_authenticated else None
+        # Item C: beside the edit-rights gate, a solver may fetch the
+        # single test their earned index unlocked (and public samples).
+        if not may_view_test(user, test_case):
+            return Response({"detail": "hidden test"}, status=status.HTTP_403_FORBIDDEN)
+        body = (
+            test_case.input_data if kind == "input" else test_case.expected_output_data
+        )
+        resp = HttpResponse(body, content_type="text/plain; charset=utf-8")
+        suffix = "in" if kind == "input" else "out"
+        resp["Content-Disposition"] = (
+            f'attachment; filename="test-{test_case.id}.{suffix}"'
+        )
+        return resp
 
 
 # models import moved to the top

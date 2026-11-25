@@ -1,13 +1,20 @@
 """Leaderboard aggregation (SPEC-GAPS D-B8).
 
 Recompute of every user's LeaderboardEntry from submissions — single SQL
-pass for the full recompute, no N+1. Scoring rule (Codeforces-lite):
+pass for the full recompute, no N+1. Scoring rule (problem-page experience
+wave, items C/F/G — the owner's partial-credit economics):
 
 - a solve = ``Submission.verdict == AC`` on a Problem with
   ``status == APPROVED``;
-- points credited once per (user, problem): the sum of that problem's
-  TestCase.points (default 10 each);
-- partial ``Submission.score`` is ignored for the leaderboard;
+- per (user, problem) the credited points are the BEST submission score
+  (a submission passing k of n tests earns the passed tests' points —
+  item C). A NULL score on an AC (legacy rows and direct-ORM fixtures)
+  falls back to the problem's full point value so historical standings
+  are preserved;
+- problems the user forfeited (source-code unlock before solving — item F)
+  contribute ZERO points forever (``ProblemForfeit``);
+- solved_count counts every AC'd problem (forfeited or not — it is the
+  solve tally, not a points tally);
 - submission totals (for the success-rate column) count all submissions
   by the user to APPROVED problems.
 """
@@ -16,6 +23,7 @@ from celery import shared_task
 from django.db import transaction
 from django.db.models import (
     Count,
+    Max,
     Min,
     OuterRef,
     Q,
@@ -23,7 +31,7 @@ from django.db.models import (
     Sum,
 )
 
-from problems.models import Problem, TestCase
+from problems.models import Problem, ProblemForfeit, TestCase
 from submissions.models import Submission
 
 from .models import LeaderboardEntry
@@ -52,6 +60,20 @@ def _user_totals(user_id=None):
     }
 
 
+def _credited_points(row):
+    """Points credited for one (user, problem) aggregation row.
+
+    ``row`` carries ``best`` (max submission score), ``ac`` (AC count) and
+    ``points`` (the problem's full test-point total). Best partial score
+    wins; a scoreless AC credits the full value (legacy compatibility); a
+    scoreless non-AC credits nothing.
+    """
+    best = int(row["best"] or 0)
+    if row["ac"]:
+        return max(best, int(row["points"] or 0))
+    return best
+
+
 def update_user_entry(user_id):
     """Recompute one user's row (idempotent; safe to call repeatedly).
 
@@ -60,28 +82,37 @@ def update_user_entry(user_id):
     full recompute.
     """
     solves = (
-        Submission.objects.filter(_AC, _APPROVED, user_id=user_id)
+        Submission.objects.filter(_APPROVED, user_id=user_id)
         .values("problem_id")
         .annotate(
-            first_ac=Min("submission_time"),
+            first_ac=Min("submission_time", filter=_AC),
+            best=Max("score"),
+            ac=Count("id", filter=_AC),
             points=_problem_points_subquery(),
+        )
+    )
+    forfeited = set(
+        ProblemForfeit.objects.filter(user_id=user_id).values_list(
+            "problem_id", flat=True
         )
     )
     solved_count = 0
     total_points = 0
     last_solved_at = None
     for row in solves:
-        solved_count += 1
-        total_points += int(row["points"] or 0)
-        first_ac = row["first_ac"]
-        # Branch-free max-update: the previous ``if A or B:`` form made the
-        # loop-back arc shift between CPython 3.12 micro releases (99.96%
-        # on the 3.12.15 CI interpreter vs 100% on 3.12.10), so the strict
-        # 100% gate uses a conditional expression — same semantics, no
-        # branch arcs to mis-attribute.
-        last_solved_at = (
-            first_ac if last_solved_at is None else max(last_solved_at, first_ac)
-        )
+        if row["first_ac"] is not None:
+            solved_count += 1
+            first_ac = row["first_ac"]
+            # Branch-free max-update: the previous ``if A or B:`` form made the
+            # loop-back arc shift between CPython 3.12 micro releases (99.96%
+            # on the 3.12.15 CI interpreter vs 100% on 3.12.10), so the strict
+            # 100% gate uses a conditional expression — same semantics, no
+            # branch arcs to mis-attribute.
+            last_solved_at = (
+                first_ac if last_solved_at is None else max(last_solved_at, first_ac)
+            )
+        if row["problem_id"] not in forfeited:
+            total_points += _credited_points(row)
 
     totals = _user_totals(user_id).get(user_id, (0, 0))
 
@@ -95,40 +126,52 @@ def update_user_entry(user_id):
             "last_solved_at": last_solved_at,
         },
     )
+    # Wave D atestats (SOLVE_MILESTONE): this row IS the derivation the
+    # certificates stand on — re-derive idempotently, but only once the
+    # first threshold (10) is reachable so beginners' ACs stay query-free.
+    if solved_count >= 10:
+        from certificates.services import recompute_solve_milestones
+
+        recompute_solve_milestones(user_id)
     return entry
 
 
 def recompute_all_leaderboards():
     """Full pass: upsert every active user, delete stale entries.
 
-    One SQL query over the per-(user, problem) solves — deduped by the
-    GROUP BY, so the per-user reduction in Python credits each problem
+    One SQL query over the per-(user, problem) submissions — deduped by
+    the GROUP BY, so the per-user reduction in Python credits each problem
     exactly once. (The D-B8 design sketched chained annotate(Sum/Max) over
     the grouped solves; Django raises ``Cannot compute Max('first_ac'):
     'first_ac' is an aggregate`` for aggregate-over-aggregate, so the
     reduction happens in Python over the same single query — still no N+1.)
     """
     solves = (
-        Submission.objects.filter(_AC, _APPROVED)
+        Submission.objects.filter(_APPROVED)
         .values("user_id", "problem_id")
         .annotate(
-            first_ac=Min("submission_time"),
+            first_ac=Min("submission_time", filter=_AC),
+            best=Max("score"),
+            ac=Count("id", filter=_AC),
             points=_problem_points_subquery(),
         )
     )
+    forfeited_pairs = set(ProblemForfeit.objects.values_list("user_id", "problem_id"))
     per_user: dict[int, dict] = {}
     for row in solves:
         acc = per_user.setdefault(
             row["user_id"],
             {"solved_count": 0, "total_points": 0, "last_solved_at": None},
         )
-        acc["solved_count"] += 1
-        acc["total_points"] += int(row["points"] or 0)
-        first_ac = row["first_ac"]
-        # Same branch-free max-update as update_user_entry (see the note
-        # there): keeps the 100% gate stable across CPython micro releases.
-        prev = acc["last_solved_at"]
-        acc["last_solved_at"] = first_ac if prev is None else max(prev, first_ac)
+        if row["first_ac"] is not None:
+            acc["solved_count"] += 1
+            first_ac = row["first_ac"]
+            # Same branch-free max-update as update_user_entry (see the note
+            # there): keeps the 100% gate stable across CPython micro releases.
+            prev = acc["last_solved_at"]
+            acc["last_solved_at"] = first_ac if prev is None else max(prev, first_ac)
+        if (row["user_id"], row["problem_id"]) not in forfeited_pairs:
+            acc["total_points"] += _credited_points(row)
 
     totals = _user_totals()
 
@@ -144,6 +187,14 @@ def recompute_all_leaderboards():
                 },
             )
         LeaderboardEntry.objects.exclude(user_id__in=per_user.keys()).delete()
+    # Wave D atestats: re-derive solve milestones from the freshly-written
+    # rows (idempotent — full recompute runs after imports/data surgery,
+    # exactly when the backfill is wanted).
+    from certificates.services import recompute_solve_milestones
+
+    for user_id, acc in per_user.items():
+        if acc["solved_count"] >= 10:
+            recompute_solve_milestones(user_id)
     return len(per_user)
 
 

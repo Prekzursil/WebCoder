@@ -157,8 +157,15 @@ class RunCodeInSandboxTest(TestCase):
         self.assertEqual(argv[sh_index + 1], "-c")
         self.assertIn("PYTHONPATH=libs", argv[sh_index + 2])
         self.assertIn("user_code.py", argv[sh_index + 2])
-        pip_fragments = [a for a in argv if "pip" in str(a)]
-        self.assertEqual(pip_fragments, [])
+        # Match pip INVOCATIONS, not the substring "pip": a random tempdir
+        # name can legitimately contain it (this exact flake fired in CI with
+        # the mount "/tmp/tmpipol3vlb:/app:ro" — tm-PIP-ol3vlb). An
+        # invocation is the bare executable token or a mention inside the
+        # sh -c command string.
+        pip_tokens = [a for a in argv if str(a) == "pip" or str(a).endswith("/pip")]
+        self.assertEqual(pip_tokens, [])
+        self.assertNotIn("pip install", argv[sh_index + 2])
+        self.assertNotIn("python -m pip", argv[sh_index + 2])
         # Standard communication window (no pip tail).
         self.assertEqual(seen["kwargs"]["timeout"], 4.0)
         # The requirements file is written by the install phase
@@ -527,7 +534,6 @@ class SandboxTimeoutSignalTest(TestCase):
             tempfile.TemporaryDirectory() as tmp,
             mock.patch.object(ex.subprocess, "run", fake_run),
         ):
-            assert spec is not None
             ex.run_code_in_sandbox(
                 executable_path_str=str(spec.run_command[0]),
                 language="python3",

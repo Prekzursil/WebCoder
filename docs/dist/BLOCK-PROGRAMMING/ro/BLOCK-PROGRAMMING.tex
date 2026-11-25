@@ -1,0 +1,225 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{longtable,booktabs,array}
+\usepackage{caption}
+\captionsetup[table]{skip=6pt}
+\newcounter{none} % for unnumbered tables
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+% fallback for those not using the hyperref driver hyperxmp:
+\makeatletter
+\@ifundefined{xmpquote}{\newcommand{\xmpquote}[1]{#1}}{}
+\makeatother
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
+
+\begin{document}
+
+{
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+\section{Programarea pe blocuri în WebCoder --- Blockly ȘI
+Scratch}\label{programarea-pe-blocuri-uxeen-webcoder--blockly-ux219i-scratch}
+
+\begin{quote}
+Directivă owner (2026-10-30): platforma livrează \textbf{ambele} motoare
+de blocuri --- Blockly \emph{și} Scratch --- nu unul sau altul. Blockly
+e puntea structurată spre codul tipizat; Scratch e stratul de
+familiaritate (pisica Scratch, scena, say/answer) pentru cei mai mici
+învățăcei. Acest document este ghidul complet al amândurora:
+arhitectură, integrarea cu evaluatorul, authoring, învățare, predare,
+testare, securitate, troubleshooting și exemple lucrate. E scris astfel
+încât un contributor nou să poată extinde sistemul fără să citească mai
+întâi codul. Acesta este rezumatul executiv al ghidului; ghidul tehnic
+complet, în engleză, este
+\href{../guide-en/BLOCK-PROGRAMMING.md}{\texttt{docs/guide-en/BLOCK-PROGRAMMING.md}}.
+\end{quote}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{1. Ce s-a livrat, pe scurt}\label{1-ce-s-a-livrat-pe-scurt}
+
+O problemă poate fi o \textbf{problemă cu blocuri}. Creatorul alege un
+\emph{motor} de blocuri per problemă:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Blockly}
+  (\texttt{block\_config.engine:\ \textquotesingle{}blockly\textquotesingle{}},
+  implicit) --- editor Blockly cu un toolbox curat de WebCoder
+  (input/control/logic/math/text/lists/variables), care
+  \textbf{generează cod} (implicit Python) trimis evaluatorului exact ca
+  o submissions obișnuită --- verdict real, AC/WA, tot pipeline-ul;
+\item
+  \textbf{Scratch}
+  (\texttt{block\_config.engine:\ \textquotesingle{}scratch\textquotesingle{}})
+  --- proiect Scratch (SB3) încărcat de elev; un \textbf{transpiler} îl
+  transformă în Python înainte de evaluare (transpile doar pentru
+  evaluare --- proiectul rămâne sursa de adevăr).
+\end{itemize}
+
+Ambele motoare folosesc aceeași structură \texttt{block\_config} pe
+problemă, același editor parțial cu regiuni blocate (PartialCodeEditor)
+și aceleași limite ale evaluatorului.
+
+\subsection{2. De ce ambele}\label{2-de-ce-ambele}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Blockly} pregătește structura tipizată: variabile, condiții,
+  bucle --- pasul natural spre Python/C++.
+\item
+  \textbf{Scratch} aduce familiaritatea: elevii de gimnaziu știu deja
+  scena și pisica; teama dispare.
+\item
+  Profesorul alege per problemă; curriculumul Scratch→Python
+  (cursul-punte din \texttt{/courses}) folosește ambele.
+\end{itemize}
+
+\subsection{3. Fluxul elevului}\label{3-fluxul-elevului}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Deschide o problemă cu blocuri → editorul de blocuri înlocuiește
+  editorul de text (picker-ul de limbaj dispare).
+\item
+  Construiește programul prin tragere de blocuri; toolbox-ul e curat per
+  problemă (creatorul poate restriciona categoriile).
+\item
+  \textbf{Trimite} --- codul generat (Blockly) sau transpilat (Scratch)
+  merge prin pipeline-ul normal de evaluare; UI-ul face polling până la
+  verdictul final (specificația real-stack e2e acoperă integral acest
+  flux).
+\item
+  Vederea verdictului arată același tabel per test ca la problemele
+  obișnuite.
+\end{enumerate}
+
+\subsection{4. Fluxul
+profesorului/creatorului}\label{4-fluxul-profesoruluicreatorului}
+
+\begin{itemize}
+\tightlist
+\item
+  La authoring, tabul de blocuri din wizard setează motorul, generatorul
+  (limbajul-țintă pentru Blockly) și toolbox-ul;
+\item
+  problemele cu cod parțial (regiuni blocate + regiuni de completat)
+  funcționează în ambele motoare --- "completează bucla lipsă";
+\item
+  suita de teste se definește identic (input/expected per test).
+\end{itemize}
+
+\subsection{5. Detalii tehnice
+(rezumat)}\label{5-detalii-tehnice-rezumat}
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{Problem.block\_config} (JSON): \texttt{engine},
+  \texttt{generator}, \texttt{toolbox} (lista de categorii), opțional
+  \texttt{starter} (programul de start) și \texttt{locked\_regions}
+  pentru cod parțial;
+\item
+  generarea Blockly: blocuri → cod sursă pe client, trimis ca
+  \texttt{code} obișnuit (limbajul = generatorul);
+\item
+  transpilarea Scratch: \texttt{problems/scratch\_transpiler.py}
+  (server-side, deterministic);
+\item
+  securitate: nimic din config nu execută cod pe server; tot ce rulează
+  trece prin sandbox-ul normal al evaluatorului.
+\end{itemize}
+
+Verificați ghidul EN pentru arhitectura completă, exemplele lucrate,
+matricea de testare și troubleshooting-ul (571 de linii de detail).
+
+\subsection{6. Testare}\label{6-testare}
+
+\begin{itemize}
+\tightlist
+\item
+  unit: vitest pe generatoare și pe transpiler;
+\item
+  e2e mock: payload-ul submission-ului generat din blocuri;
+\item
+  e2e real-stack (\texttt{E2E\_API\_BASE}): round-trip complet cu
+  verdicte evaluate prin polling --- problema demo „E2E Blockly Real
+  Last Digit".
+\end{itemize}
+
+\subsection{7. Probleme frecvente}\label{7-probleme-frecvente}
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+Simptom & Cauză probabilă \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Editorul de blocuri nu apare & problema nu are \texttt{block\_config};
+verifică tabul de blocuri din wizard \\
+Codul generat nu compilează & generatorul nu corespunde limbajului
+problemei (setează \texttt{generator}) \\
+Proiectul Scratch e respins & SB3 invalid sau blocuri netranspilabile;
+vezi lista de susținere din ghidul EN \\
+\end{longtable}
+}
+
+\end{document}

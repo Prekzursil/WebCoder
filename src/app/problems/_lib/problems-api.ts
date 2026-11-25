@@ -13,16 +13,16 @@
 // MAX_CATALOG_PAGES) for the callers that legitimately want the whole
 // catalog (sitemap, problem-detail prev/next pager).
 
-import { ProblemType } from "@/types";
-import { PaginatedResponse } from "@/types/api";
-import { apiUrl } from "@/lib/api-config";
+import { ProblemType } from '@/types';
+import { PaginatedResponse } from '@/types/api';
+import { apiUrl } from '@/lib/api-config';
 
 async function fetchJson<T>(path: string): Promise<T> {
   // Real-backend e2e mode [Q13]: the suite seeds/unseeds problems around
   // each run and cannot tolerate the 60s ISR window — disable the cache
   // there (E2E_API_BASE is set on the dev server by playwright.config).
   const cacheOpts = process.env.E2E_API_BASE
-    ? ({ cache: "no-store" } as RequestInit)
+    ? ({ cache: 'no-store' } as RequestInit)
     : ({ next: { revalidate: 60 } } as RequestInit);
   const response = await fetch(apiUrl(path), cacheOpts);
   if (!response.ok) {
@@ -43,12 +43,31 @@ const CATALOG_PAGE_SIZE = 100;
  */
 export function getProblemsPage(
   page = 1,
-  filters: { curriculumNode?: number | string } = {},
+  filters: {
+    curriculumNode?: number | string;
+    archive?: boolean;
+    sourceYear?: number | string;
+    gradeGroup?: string;
+    search?: string;
+  } = {},
 ): Promise<PaginatedResponse<ProblemType>> {
-  const nodeQs = filters.curriculumNode ? `&curriculum_node=${filters.curriculumNode}` : "";
-  return fetchJson<PaginatedResponse<ProblemType>>(
-    `/problems/problems/?page=${page}&page_size=${CATALOG_PAGE_SIZE}${nodeQs}`,
-  );
+  // [roadmap RO-6] The archive browse axis filters the SERVER fetch, same
+  // as the curriculum axis, so deep links (?archive=1&source_year=2024)
+  // are answered by the backend, not the client's loaded-page window.
+  // [2026-11-20 polish sweep] ?q= rides the same server fetch: on an
+  // 1 800-problem catalog the client's loaded-page window cannot answer
+  // searches honestly, so the term goes to the backend's ?search=
+  // (icontains, #320) and the client filter narrows within the hits.
+  const params = new URLSearchParams({
+    page: String(page),
+    page_size: String(CATALOG_PAGE_SIZE),
+  });
+  if (filters.search) params.set('search', filters.search);
+  if (filters.curriculumNode) params.set('curriculum_node', String(filters.curriculumNode));
+  if (filters.archive) params.set('archive', '1');
+  if (filters.sourceYear) params.set('source_year', String(filters.sourceYear));
+  if (filters.gradeGroup) params.set('grade_group', filters.gradeGroup);
+  return fetchJson<PaginatedResponse<ProblemType>>(`/problems/problems/?${params.toString()}`);
 }
 
 export interface CurriculumChapter {
@@ -72,12 +91,12 @@ export interface CurriculumGrade {
 
 /** [roadmap EDU-9] Curriculum tree (grades -> chapters + APPROVED counts). */
 export function getCurriculum(): Promise<PaginatedResponse<CurriculumGrade>> {
-  return fetchJson<PaginatedResponse<CurriculumGrade>>("/problems/curriculum/");
+  return fetchJson<PaginatedResponse<CurriculumGrade>>('/problems/curriculum/');
 }
 
 /** [roadmap ONB-1] First-run trio: one easy problem per paradigm. */
 export function getStarterProblems(): Promise<ProblemType[]> {
-  return fetchJson<ProblemType[]>("/problems/problems/starters/");
+  return fetchJson<ProblemType[]>('/problems/problems/starters/');
 }
 
 /**

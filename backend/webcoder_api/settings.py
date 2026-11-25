@@ -101,12 +101,28 @@ INSTALLED_APPS = [
     "scratch",
     "contests",
     "ratings",
+    # Wave D certifications/attestations: leaderboard-derived atestats.
+    "certificates",
     # Classroom (competitive roadmap Wave B: EDU-1/2/3).
     "classroom",
     "community_depth",
+    "publishing",
+    "recognition",
     "public_api",
+    # Wave E learning engine (spaced-repeat queue, skill graph, theory
+    # cards, practice plan, mistake profile).
+    "learning",
     # Community problem translations (i18n & translation platform wave).
     "translations",
+    # Wave G section H: integrity & safety.
+    "integrity",
+    # Wave G section G: analytics & insights.
+    "analytics",
+    # Wave G section J: operator surface (status feed, errors, costs,
+    # autoscale advice).
+    "ops.apps.OpsConfig",
+    # Item 147 (wave G section K): school partnerships program.
+    "partnerships.apps.PartnershipsConfig",
     # COM-5 (competitive roadmap, owner reversal 2026-10-30): private 1:1
     # message threads with the full safety stack.
     "messaging",
@@ -128,6 +144,9 @@ MIDDLEWARE = [
     # EDU-4 exam-mode site lockdown (Wave C): last so auth is resolved; only
     # touches authenticated non-staff users sitting an OPEN is_exam teme.
     "classroom.exam.ExamModeMiddleware",
+    # Item 145: error capture OUTERMOST so it observes everything below
+    # (5xx responses are recorded, never altered).
+    "ops.models.ErrorCaptureMiddleware",
 ]
 
 # Comma-separated env var (e.g. CORS_ALLOWED_ORIGINS=https://app.example.com,http://localhost:3000).
@@ -341,6 +360,17 @@ REST_FRAMEWORK = {
         "scratch": os.environ.get("THROTTLE_SCRATCH_RATE", "20/hour"),
         # JDG-11 stress runner: same judge-adjacent ceiling as scratch.
         "stress": os.environ.get("THROTTLE_STRESS_RATE", "20/hour"),
+        # Wave E items 8/9: pre-submit assistance (lint + sample runs) —
+        # sample runs execute code, so they share the scratch ceiling.
+        "sample_run": os.environ.get("THROTTLE_SAMPLE_RUN_RATE", "20/hour"),
+        # Wave G item 89 (guest try-it): anonymous sandbox execution —
+        # the tightest judge-adjacent scope on the site, keyed by IP.
+        "scratch_guest": os.environ.get("THROTTLE_SCRATCH_GUEST_RATE", "5/hour"),
+        # Item 147 (wave G section K): public school-partnership
+        # applications — anonymous intake, IP-keyed like guest scratch.
+        "partnership_apply": os.environ.get(
+            "THROTTLE_PARTNERSHIP_APPLY_RATE", "5/hour"
+        ),
         # Contest clarifications (CON-4): participants get a bounded question
         # budget so the jury queue cannot be flooded mid-contest.
         "clarification": os.environ.get("THROTTLE_CLARIFICATION_RATE", "10/hour"),
@@ -518,11 +548,22 @@ CELERY_BEAT_SCHEDULE = {
         "task": "contests.tasks.contest_tick",
         "schedule": crontab(),
     },
+    # Item 145: error-event retention (keep 30 days of 5xx history).
+    "error-events-purge": {
+        "task": "ops.tasks.purge_old_error_events",
+        "schedule": crontab(hour=4, minute=30),
+    },
     # UXP-5b: weekly practice digest ("problems you failed + first
     # hint") — the task self-guards to a no-op without SMTP configured.
     "weekly-digest": {
         "task": "notifications.tasks.weekly_digest_task",
         "schedule": crontab(hour=7, minute=30, day_of_week=1),
+    },
+    # Item 67 (Wave F): monthly contributor-of-the-month award — the task
+    # self-guards outside the first week of a month and to a single row.
+    "award-monthly-contributors": {
+        "task": "recognition.tasks.award_monthly_contributors",
+        "schedule": crontab(hour=2, minute=30),
     },
     # ANA-1 (Wave D): freeze the week's owner-analytics derivations every
     # Monday morning — the weekly dashboard's trend strip.
@@ -615,3 +656,40 @@ JUDGE_PYPI_INDEX_URL = os.environ.get("JUDGE_PYPI_INDEX_URL", "")
 CONTEST_SUBMIT_COOLDOWN_SECONDS = int(
     os.environ.get("CONTEST_SUBMIT_COOLDOWN_SECONDS", "30")
 )
+
+# --- Problem-page experience wave (owner directive 2026-10-31) -------------
+#
+# G) Difficulty-bounded problem points: every problem's finite point value
+# (target_points, the author's declared total the per-test points should sum
+# to) is bounded by its difficulty label. Absolute floor/ceiling clamp the
+# whole system — no difficulty can configure its way past them. Format:
+# {difficulty: (min, max)}; read via problems.economics.difficulty_point_ranges().
+PROBLEM_POINT_FLOOR = 1
+PROBLEM_POINT_CEILING = 1000
+PROBLEM_DIFFICULTY_POINT_RANGES = {
+    "VERY_EASY": (1, 10),
+    "EASY": (10, 50),
+    "MEDIUM": (50, 200),
+    "HARD": (200, 500),
+    "VERY_HARD": (500, 1000),
+}
+
+# B2) Inline testcase editing display threshold (bytes): input/expected
+# fields at or below this size render as editable textareas in the author
+# UI; larger tests render a preview + download link and are managed via
+# archive upload.
+TESTCASE_INLINE_EDIT_THRESHOLD_BYTES = int(
+    os.environ.get("TESTCASE_INLINE_EDIT_THRESHOLD_BYTES", "10240")
+)
+
+# B1) Test-archive upload guards (zip-bomb defense, per-file cap, member
+# cap). The compression-ratio cap stops decompression bombs before the
+# total-size counter can be blown past; all four are env-tunable.
+TEST_ARCHIVE_MAX_FILE_BYTES = int(
+    os.environ.get("TEST_ARCHIVE_MAX_FILE_BYTES", str(64 * 1024 * 1024))
+)
+TEST_ARCHIVE_MAX_TOTAL_BYTES = int(
+    os.environ.get("TEST_ARCHIVE_MAX_TOTAL_BYTES", str(256 * 1024 * 1024))
+)
+TEST_ARCHIVE_MAX_MEMBERS = int(os.environ.get("TEST_ARCHIVE_MAX_MEMBERS", "10000"))
+TEST_ARCHIVE_MAX_RATIO = int(os.environ.get("TEST_ARCHIVE_MAX_RATIO", "500"))

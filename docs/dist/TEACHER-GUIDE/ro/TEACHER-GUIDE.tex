@@ -1,0 +1,250 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+% fallback for those not using the hyperref driver hyperxmp:
+\makeatletter
+\@ifundefined{xmpquote}{\newcommand{\xmpquote}[1]{#1}}{}
+\makeatother
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
+
+\begin{document}
+
+{
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+\section{WebCoder --- Ghidul
+profesorului}\label{webcoder--ghidul-profesorului}
+
+\begin{quote}
+Rezumat într-un paragraf: WebCoder oferă profesorilor bucla de clasă în
+stil pbinfo --- clase cu auto-înscriere a elevilor, teme cu ferestre de
+publicare și expirare flexibilă, mod examen cu lockdown, seturi de grile
+din banca Bac, grile de progres per elev, hărți de greșeli, tabele de
+efort, fișe de evaluare și exporturi CSV/PDF --- peste un evaluator
+bilingv real. Ghidul parcurge întregul flux de clasă.
+\end{quote}
+
+\textbf{Cui se adresează:} profesori, coordonatori de cercuri, antrenori
+de olimpiadă județeană. Perechea în engleză:
+\href{../guide-en/TEACHER-GUIDE.md}{\texttt{docs/guide-en/TEACHER-GUIDE.md}}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{1. Obține rolul de
+TEACHER}\label{1-obux21bine-rolul-de-teacher}
+
+Cere unui administrator să-ți upgrade contul la \textbf{TEACHER}
+(verificare pe email de școală / programul de parteneriate;
+\texttt{docs/RUNBOOK.md} §Wave C). Rolul deblochează \texttt{/teach},
+crearea de clase, authoring-ul de teme și suprafețele de analytics.
+
+\subsection{2. Creează o clasă}\label{2-creeazux103-o-clasux103}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \texttt{/teach} → \textbf{Clasă nouă} → numește-o (ex. „IX-A
+  Informatică").
+\item
+  Primești un \textbf{cod de înscriere + parolă de înscriere}. Elevii se
+  înscriu singuri din profil (modelul anti-abuz pbinfo --- tu nu creezi
+  niciodată conturi de elevi):
+
+  \begin{itemize}
+  \tightlist
+  \item
+    distribuie codul, elevii îl introduc pe \texttt{/classroom};
+  \item
+    sau distribuie \textbf{codul QR} (înscriere prietenoasă pe mobil);
+  \item
+    există și import în masă pe listă de utilizatori (cei inexistenți
+    sunt raportați).
+  \end{itemize}
+\item
+  Lista membrilor leagă profilurile publice și vederile de submissions
+  scope-uite pe clasă.
+\end{enumerate}
+
+\subsection{3. Temele}\label{3-temele}
+
+Creează o temă pe o clasă:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{probleme} alese individual, din capitole de curriculum sau din
+  orice track într-un click („transformă acest track în temă");
+\item
+  \textbf{fereastra de disponibilitate} (\texttt{disponibilă\ de\ la} →
+  \texttt{termen\ limită}, opțional \texttt{până\ la\ întârziere});
+\item
+  opțional \textbf{mod examen}: cât un elev e într-o temă de examen,
+  restul site-ului (forum, alte probleme, indicii) e blocat pentru el,
+  cu politica de conduită/AI publicată;
+\item
+  \textbf{seturi de grile} din banca Bacalaureat (filtra pe
+  disciplină/clasa/an Bac, opțiune de amestecare).
+\end{itemize}
+
+Expirarea flexibilă (semanticile pbinfo): după deadline elevii pot
+trimite în continuare --- acele submissions pur și simplu nu se numără
+pentru temă. Evaluatorul nu pedepsește învățarea; upsolving-ul devine
+repetiție.
+
+\subsection{4. Urmărește clasa}\label{4-urmux103reux219te-clasa}
+
+Tab-urile paginii clasei:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Grila} --- matrice elevi × probleme cu scorul maxim /
+  verdictul / încercările, agregate peste submissions-urile din
+  fereastră; sertar per elev cu istoricul complet în clasă.
+\item
+  \textbf{Insight} --- heatmap-ul de greșeli al clasei (ce probleme
+  blochează pe cine), rate de nereușită per problemă.
+\item
+  \textbf{Tabela de efort} --- clasament pe încercări + zile active +
+  rezolvări (tabla „grind").
+\item
+  \textbf{Fișa de evaluare} --- PDF per elev: scorurile per problemă din
+  fiecare temă, totaluri, marcaje de întârziere. Printabilă pentru
+  catalogul electronic.
+\item
+  \textbf{PDF de examen} --- temele se exportă ca broșură printabilă cu
+  enunțuri + puncte.
+\end{itemize}
+
+\subsection{5. Exporturi și note}\label{5-exporturi-ux219i-note}
+
+\begin{itemize}
+\tightlist
+\item
+  catalog CSV (scorul maxim per problemă per elev + totaluri) pentru
+  orice catalog extern;
+\item
+  fișe de evaluare PDF per clasă;
+\item
+  „descarcă toate soluțiile" per temă (cerința \#1 a profesorilor pe
+  orice evaluator) pentru review offline de plagiat (plus badge-urile
+  consultative de similaritate ale platformei).
+\end{itemize}
+
+\subsection{6. Arborele de curriculum}\label{6-arborele-de-curriculum}
+
+Axa de curriculum din \texttt{/problems} mapează programa națională
+(clasele 5--12 → capitole → subiecte) cu contoare de probleme per nod.
+Construirea temelor = alegerea capitolelor: filtrezi catalogul pe
+capitolul tău, selectezi, atribui. Arborele e dată versionată (o nouă
+ediție de programă adaugă o versiune de taxonomie, nu o migrație).
+
+\subsection{7. Organizează un concurs de
+clasă}\label{7-organizeazux103-un-concurs-de-clasux103}
+
+Concursurile cu fereastră se potrivesc orarului școlar: o fereastră de
+câteva zile, fiecare elev primește o sesiune cronometrată (countdown
+personal). Creează-l din \texttt{/contests} (TEACHER/CREATOR pot crea
+concursuri private), atașează problemele clasei, distribuie înscrierea.
+Cu sau fără rating --- fără rating e implicitul pentru runde de
+antrenament. Pagina de replay arată timeline-ul oricărui elev minut cu
+minut pentru analiza post-mortem.
+
+\subsection{8. Creează-ți propriile
+probleme}\label{8-creeazux103-ux21bi-propriile-probleme}
+
+Conturile CREATOR/TEAVOR pot author-a:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{wizard-ul vizual} în 7 pași (baze → limite → exemple → teste →
+  soluție de referință → traducere → review), cu linter-ul de enunț și
+  scorul de lizibilitate;
+\item
+  teste ascunse prin DSL-ul de generatoare sau prin tabla de bounties
+  (contribuția comunității se recompensează);
+\item
+  import de pachete Polygon/Kattis (poartă de ledger-ul de permisiuni).
+\end{itemize}
+
+Orice problemă trece prin DRAFT → PENDING → APPROVED cu feedback de la
+verificator; authoring-ul ÎNSEAMNĂ dezvoltare profesională (pagina
+programului de contributori documentează specificațiile și șabloanele de
+feedback).
+
+\subsection{9. Certificări și
+parteneriate}\label{9-certificux103ri-ux219i-parteneriate}
+
+\begin{itemize}
+\tightlist
+\item
+  Certificarea profesorilor (pagina programului explică cerințele și
+  examenul);
+\item
+  parteneriate cu școli (șablon DPA în \texttt{docs/DPA-TEMPLATE.md});
+\item
+  prelucrarea datelor: datele de clasă urmează secțiunea GDPR din
+  paginile legale; consimțământul minorilor e mediat de școală (conturi
+  create de profesor sub baza legală a școlii) sau parental.
+\end{itemize}
+
+\subsection{10. Întrebări
+frecvente}\label{10-uxeentrebux103ri-frecvente}
+
+\textbf{Un elev a uitat parola} --- resetare self-service pe email; fără
+email, contul mediat de școală e modelul robust. \textbf{Pot vedea codul
+elevilor?} Da --- vederi de submissions scope-uite pe clasă, per elev
+(grila le leagă). \textbf{Ratingurile de concurs afectează notele?} Nu
+--- ratingurile și scorurile temelor sunt sisteme separate; exporti ce
+ai nevoie.
+
+\end{document}

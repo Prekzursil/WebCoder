@@ -1,16 +1,18 @@
-"use client";
+'use client';
 
-import React, { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
-import { useTranslation } from "react-i18next";
-import { ContestService } from "@/services/ApiService";
-import { Contest } from "@/types/api";
-import { API_BASE_URL } from "@/lib/api-config";
-import { palette, hexAlpha } from "@/theme/tokens";
-import EmptyState from "@/components/common/EmptyState";
-import PageHeader from "@/components/common/PageHeader";
+import React, { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
+import { ContestService } from '@/services/ApiService';
+import { Contest } from '@/types/api';
+import { API_BASE_URL } from '@/lib/api-config';
+import { palette, hexAlpha } from '@/theme/tokens';
+import { displayTimezone, formatInTimezone } from '@/lib/datetime';
+import EmptyState from '@/components/common/EmptyState';
+import PageHeader from '@/components/common/PageHeader';
 
-type StateFilter = "" | "UPCOMING" | "RUNNING" | "FINISHED";
+type StateFilter = '' | 'UPCOMING' | 'RUNNING' | 'FINISHED';
+type KindFilter = '' | 'long';
 
 /** CON-10: the contest calendar feed. Build-time constant (NEXT_PUBLIC_API_BASE
  * is inlined at compile time) — not a user-influenced URL. */
@@ -30,14 +32,14 @@ function useCountdown(target: string | null): string | null {
   const h = Math.floor(diff / 3_600_000);
   const m = Math.floor((diff % 3_600_000) / 60_000);
   const s = Math.floor((diff % 60_000) / 1000);
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-function LocalizedTitle({ title }: { title: Contest["title_i18n"] }) {
+function LocalizedTitle({ title }: { title: Contest['title_i18n'] }) {
   // Matches the site convention: prefer current document language.
   const { i18n } = useTranslation();
-  const lang = i18n.language === "ro" ? "ro" : "en";
-  return <>{title[lang] ?? title.en ?? title.ro ?? ""}</>;
+  const lang = i18n.language === 'ro' ? 'ro' : 'en';
+  return <>{title[lang] ?? title.en ?? title.ro ?? ''}</>;
 }
 
 export default function ContestsPage() {
@@ -47,30 +49,34 @@ export default function ContestsPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [nextPage, setNextPage] = useState<number | null>(1);
-  const [stateFilter, setStateFilter] = useState<StateFilter>("");
+  const [stateFilter, setStateFilter] = useState<StateFilter>('');
+  const [kindFilter, setKindFilter] = useState<KindFilter>('');
 
   const nextStart =
     contests
-      .filter((c) => c.state === "UPCOMING")
+      .filter((c) => c.state === 'UPCOMING')
       .map((c) => c.start_at)
       .sort()[0] ?? null;
   const countdown = useCountdown(nextStart);
 
   const load = useCallback(
-    async (page: number, state: StateFilter) => {
+    async (page: number, state: StateFilter, kind: KindFilter) => {
       const append = page > 1;
       if (append) setLoadingMore(true);
       else setLoading(true);
       setError(null);
       try {
-        const response = await ContestService.getContests(state ? { state } : {}, { page });
+        const response = await ContestService.getContests(
+          { ...(state ? { state } : {}), ...(kind ? { kind } : {}) },
+          { page },
+        );
         setContests((prev) => (append ? [...prev, ...response.results] : response.results));
         setNextPage(response.next ? page + 1 : null);
       } catch (err) {
         setError(
           err instanceof Error && err.message
             ? err.message
-            : t("contests_load_error", "Failed to load contests."),
+            : t('contests_load_error', 'Failed to load contests.'),
         );
       } finally {
         if (append) setLoadingMore(false);
@@ -81,72 +87,89 @@ export default function ContestsPage() {
   );
 
   useEffect(() => {
-    load(1, stateFilter);
-  }, [load, stateFilter]);
+    load(1, stateFilter, kindFilter);
+  }, [load, stateFilter, kindFilter]);
 
-  const stateBadge = (state: Contest["state"]) =>
-    state === "RUNNING"
-      ? { label: t("contest_state_running", "Running"), color: palette.success }
-      : state === "UPCOMING"
-        ? { label: t("contest_state_upcoming", "Upcoming"), color: palette.accent }
-        : { label: t("contest_state_finished", "Finished"), color: palette.muted };
+  const stateBadge = (state: Contest['state']) =>
+    state === 'RUNNING'
+      ? { label: t('contest_state_running', 'Running'), color: palette.success }
+      : state === 'UPCOMING'
+        ? { label: t('contest_state_upcoming', 'Upcoming'), color: palette.accent }
+        : { label: t('contest_state_finished', 'Finished'), color: palette.muted };
 
-  const fmt = (iso: string) =>
-    new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+  // [wave G item 87] contest times render in the visitor's display zone.
+  // The IdentityCard save mirrors the account timezone into localStorage,
+  // so the guest path and the account path share one display source (and
+  // this page stays mountable without the auth provider in unit tests).
+  const tz = displayTimezone();
+  const fmt = (iso: string) => formatInTimezone(iso, tz);
 
   return (
-    <main style={{ maxWidth: 1100, margin: "0 auto", padding: "24px 16px" }}>
+    <main style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 16px' }}>
       <PageHeader
-        title={t("contests_title", "Contests")}
+        title={t('contests_title', 'Contests')}
         subtitle={t(
-          "contests_subtitle",
-          "Timed contests with live standings, ratings and freeze drama.",
+          'contests_subtitle',
+          'Timed contests with live standings, ratings and freeze drama.',
         )}
       />
       <div
         style={{
-          display: "flex",
+          display: 'flex',
           gap: 8,
-          flexWrap: "wrap",
-          alignItems: "center",
+          flexWrap: 'wrap',
+          alignItems: 'center',
           marginBottom: 16,
         }}
       >
-        {(["", "UPCOMING", "RUNNING", "FINISHED"] as StateFilter[]).map((value) => (
+        {(['', 'UPCOMING', 'RUNNING', 'FINISHED'] as StateFilter[]).map((value) => (
           <button
-            key={value || "all"}
+            key={value || 'all'}
             type="button"
             onClick={() => setStateFilter(value)}
             aria-pressed={stateFilter === value}
             style={{
-              padding: "6px 14px",
+              padding: '6px 14px',
               borderRadius: 999,
               border: `1px solid ${stateFilter === value ? palette.accent : palette.border}`,
-              background: stateFilter === value ? hexAlpha(palette.accent, 0.15) : "transparent",
+              background: stateFilter === value ? hexAlpha(palette.accent, 0.15) : 'transparent',
               color: stateFilter === value ? palette.accent : palette.foreground,
-              cursor: "pointer",
+              cursor: 'pointer',
               fontWeight: 600,
             }}
           >
-            {value === ""
-              ? t("contests_filter_all", "All")
-              : value === "UPCOMING"
-                ? t("contest_state_upcoming", "Upcoming")
-                : value === "RUNNING"
-                  ? t("contest_state_running", "Running")
-                  : t("contest_state_finished", "Finished")}
+            {value === ''
+              ? t('contests_filter_all', 'All')
+              : value === 'UPCOMING'
+                ? t('contest_state_upcoming', 'Upcoming')
+                : value === 'RUNNING'
+                  ? t('contest_state_running', 'Running')
+                  : t('contest_state_finished', 'Finished')}
           </button>
         ))}
+        <button
+          type="button"
+          onClick={() => setKindFilter(kindFilter === 'long' ? '' : 'long')}
+          aria-pressed={kindFilter === 'long'}
+          data-testid="contests-kind-long"
+          style={{
+            padding: '6px 14px',
+            borderRadius: 999,
+            border: `1px solid ${kindFilter === 'long' ? palette.accent : palette.border}`,
+            background: kindFilter === 'long' ? hexAlpha(palette.accent, 0.15) : 'transparent',
+            color: kindFilter === 'long' ? palette.accent : palette.foreground,
+            cursor: 'pointer',
+            fontWeight: 600,
+          }}
+        >
+          🐢 {t('contests_filter_long', 'Long challenges')}
+        </button>
         <a
-          // Constant module-scope URL (owner triage: alerts #134/#135,
-          // false positive, 2026-10-27).
-          // codeql[js/xss]
-          // codeql[js/client-side-unvalidated-url-redirection]
           href={CALENDAR_ICS_URL}
-          style={{ marginLeft: "auto", color: palette.accent, fontWeight: 600 }}
+          style={{ marginLeft: 'auto', color: palette.accent, fontWeight: 600 }}
           data-testid="contests-ics-link"
         >
-          {t("contests_ics", "📅 Calendar (.ics)")}
+          {t('contests_ics', '📅 Calendar (.ics)')}
         </a>
       </div>
 
@@ -155,29 +178,29 @@ export default function ContestsPage() {
           data-testid="next-contest-countdown"
           style={{ color: palette.accent, fontWeight: 700, marginBottom: 12 }}
         >
-          {t("contests_starts_in", "Next contest starts in")} {countdown}
+          {t('contests_starts_in', 'Next contest starts in')} {countdown}
         </p>
       )}
 
       {loading ? (
-        <p aria-busy="true">{t("contests_loading", "Loading contests…")}</p>
+        <p aria-busy="true">{t('contests_loading', 'Loading contests…')}</p>
       ) : error ? (
         <div role="alert" style={{ color: palette.danger, marginBottom: 12 }}>
-          {error}{" "}
-          <button type="button" onClick={() => load(1, stateFilter)}>
-            {t("retry", "Retry")}
+          {error}{' '}
+          <button type="button" onClick={() => load(1, stateFilter, kindFilter)}>
+            {t('retry', 'Retry')}
           </button>
         </div>
       ) : contests.length === 0 ? (
         <EmptyState
-          title={t("contests_empty", "No contests yet")}
+          title={t('contests_empty', 'No contests yet')}
           description={t(
-            "contests_empty_message",
-            "When a contest is scheduled it will appear here with a countdown.",
+            'contests_empty_message',
+            'When a contest is scheduled it will appear here with a countdown.',
           )}
         />
       ) : (
-        <ul style={{ listStyle: "none", padding: 0, display: "grid", gap: 12 }}>
+        <ul style={{ listStyle: 'none', padding: 0, display: 'grid', gap: 12 }}>
           {contests.map((contest) => {
             const badge = stateBadge(contest.state);
             return (
@@ -186,11 +209,11 @@ export default function ContestsPage() {
                 style={{
                   border: `1px solid ${palette.border}`,
                   borderRadius: 12,
-                  padding: "14px 16px",
-                  display: "flex",
+                  padding: '14px 16px',
+                  display: 'flex',
                   gap: 12,
-                  alignItems: "baseline",
-                  flexWrap: "wrap",
+                  alignItems: 'baseline',
+                  flexWrap: 'wrap',
                 }}
               >
                 <Link
@@ -207,24 +230,32 @@ export default function ContestsPage() {
                 </span>
                 {contest.is_rated && (
                   <span style={{ color: palette.warn, fontWeight: 700, fontSize: 13 }}>
-                    ★ {t("contest_rated", "Rated")}
+                    ★ {t('contest_rated', 'Rated')}
                   </span>
                 )}
                 {contest.is_window && (
                   <span style={{ color: palette.violet, fontSize: 13 }}>
-                    ⏱ {t("contest_windowed", "Windowed")}
+                    ⏱ {t('contest_windowed', 'Windowed')}
+                  </span>
+                )}
+                {contest.is_long_contest && (
+                  <span
+                    data-testid={`contest-long-${contest.id}`}
+                    style={{ color: palette.success, fontSize: 13 }}
+                  >
+                    🐢 {t('contest_long', 'Long challenge')}
                   </span>
                 )}
                 <span style={{ color: palette.muted, fontSize: 13 }}>
-                  {t("contest_problems_count", "{{count}} problems", {
+                  {t('contest_problems_count', '{{count}} problems', {
                     count: contest.problem_count,
                   })}
-                  {" · "}
-                  {t("contest_participants_count", "{{count}} participants", {
+                  {' · '}
+                  {t('contest_participants_count', '{{count}} participants', {
                     count: contest.participant_count,
                   })}
                 </span>
-                <span style={{ marginLeft: "auto", color: palette.muted, fontSize: 13 }}>
+                <span style={{ marginLeft: 'auto', color: palette.muted, fontSize: 13 }}>
                   {fmt(contest.start_at)} → {fmt(contest.end_at)}
                 </span>
               </li>
@@ -237,10 +268,10 @@ export default function ContestsPage() {
         <button
           type="button"
           disabled={loadingMore}
-          onClick={() => load(nextPage, stateFilter)}
-          style={{ marginTop: 16, padding: "8px 18px" }}
+          onClick={() => load(nextPage, stateFilter, kindFilter)}
+          style={{ marginTop: 16, padding: '8px 18px' }}
         >
-          {loadingMore ? t("loading_more", "Loading…") : t("load_more", "Load more")}
+          {loadingMore ? t('loading_more', 'Loading…') : t('load_more', 'Load more')}
         </button>
       )}
     </main>

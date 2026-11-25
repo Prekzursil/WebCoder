@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React from "react";
-import { useTranslation } from "react-i18next";
-import { palette } from "@/theme/tokens";
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { palette } from '@/theme/tokens';
 
 /**
  * EDT-5 — the editorial etiquette banner (DMOJ precedent): editorials are
@@ -18,14 +18,14 @@ export default function EditorialEtiquetteBanner() {
       role="note"
       style={{
         color: palette.muted,
-        fontStyle: "italic",
+        fontStyle: 'italic',
         borderLeft: `3px solid ${palette.borderStrong}`,
-        paddingLeft: "0.75rem",
+        paddingLeft: '0.75rem',
       }}
     >
       {t(
-        "editorial_etiquette",
-        "Use this editorial only when stuck: submitting a solution you did not derive yourself is against the rules.",
+        'editorial_etiquette',
+        'Use this editorial only when stuck: submitting a solution you did not derive yourself is against the rules.',
       )}
     </p>
   );

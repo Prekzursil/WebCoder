@@ -560,3 +560,78 @@ class ActivationHistoryView(APIView):
             weeks = 12
         weeks = max(1, min(weeks, 52))
         return Response({"weeks": weeks, "history": weekly_history(weeks)})
+
+
+class UserOnboardingView(APIView):
+    """GET /api/v1/users/me/onboarding/ — wave G item 88.
+
+    The first-hour checklist, computed from data the platform already
+    stores (no new write path): account, first submission, first AC,
+    first contest registration, a profile bio, joining a class. The /start
+    page renders it as the beginner's progress card.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        from classroom.models import ClassMembership
+        from contests.models import ContestParticipation
+        from submissions.models import Submission
+
+        user = request.user
+        submissions = Submission.objects.filter(user=user)
+        first_submission = submissions.exists()
+        first_ac = submissions.filter(
+            verdict=Submission.VerdictStatus.ACCEPTED
+        ).exists()
+        first_contest = ContestParticipation.objects.filter(user=user).exists()
+        has_bio = bool(user.bio and user.bio.strip())
+        joined_class = ClassMembership.objects.filter(student=user).exists()
+        steps = [
+            {"key": "account", "done": True},
+            {"key": "first_submission", "done": first_submission},
+            {"key": "first_ac", "done": first_ac},
+            {"key": "first_contest", "done": first_contest},
+            {"key": "profile_bio", "done": has_bio},
+            {"key": "joined_class", "done": joined_class},
+        ]
+        done = sum(1 for step in steps if step["done"])
+        return Response({"steps": steps, "done": done, "total": len(steps)})
+
+
+class PushTokenView(APIView):
+    """POST/DELETE /api/v1/users/me/push-token/ — wave G item 95.
+
+    The mobile app registers its Expo push token on opt-in and clears it
+    on opt-out (or OS-reported invalidation). One row per device; the
+    multichannel delivery fans out to all of them.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        from notifications.models import PushToken
+
+        token = (request.data.get("token") or "").strip()
+        platform = (request.data.get("platform") or "").strip().lower()
+        if not token or len(token) > 200:
+            return Response(
+                {"detail": "A push token (max 200 chars) is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if platform not in ("android", "ios"):
+            return Response(
+                {"detail": "platform must be 'android' or 'ios'."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        PushToken.objects.update_or_create(
+            token=token, defaults={"user": request.user, "platform": platform}
+        )
+        return Response({"registered": True}, status=status.HTTP_201_CREATED)
+
+    def delete(self, request):
+        from notifications.models import PushToken
+
+        token = (request.data.get("token") or "").strip()
+        deleted, _ = PushToken.objects.filter(user=request.user, token=token).delete()
+        return Response({"deleted": deleted})

@@ -700,7 +700,7 @@ class ScoringMaterializationTests(ContestBase):
 
     def test_judge_task_hook_fires_on_contest_verdict(self):
         """The terminal-verdict save schedules the materialization task."""
-        from submissions.tasks import judge_task
+        from submissions.tasks import judge_submission_task
 
         contest = self.mk_contest()
         self.register(contest, self.alice)
@@ -722,7 +722,7 @@ class ScoringMaterializationTests(ContestBase):
             run_mock.return_value = ("AC", 10, 1000, "2", "")
             cmp_mock.return_value = (True, "")
             with self.captureOnCommitCallbacks(execute=True):
-                judge_task(submission.id)
+                judge_submission_task(submission.id)
         score_mock.delay.assert_called_once_with(submission.id)
 
 
@@ -911,6 +911,7 @@ class StandingsEndpointTests(ContestBase):
         self.seed_scores(contest)
         # Post-freeze improvement for alice (100 → live only).
         part = ContestParticipation.objects.get(contest=contest, user=self.alice)
+        ContestProblem.objects.get(contest=contest)
         ContestScore.objects.filter(participation=part).update(best_score=100)
         response = self.client.get(f"/api/v1/contests/{contest.id}/standings/")
         self.assertEqual(response.status_code, 200)
@@ -1163,7 +1164,7 @@ class CoverageEdgeTests(ContestBase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["created_by_username"], "organizer")
         self.assertTrue(response.data["pretest_mode"])
-        self.assertTrue(response.data["my_participation"] is None)
+        self.assertIs(response.data["my_participation"], None)
 
     def test_sponsor_attribution_rails_round_trip(self):
         # OPS-7 groundwork: display-only sponsor fields serialize for any

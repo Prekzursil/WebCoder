@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 // Client island of the problem detail page — ported from
 // frontend/webcoder_ui/src/pages/problems/ProblemDetailPage.tsx:18-172
@@ -21,29 +21,30 @@
 // and the editor is styled to the card language with the mono font token.
 // (The full CodeMirror 6 editor remains A6 for a follow-up.)
 
-import React, { useState, FormEvent, useEffect } from "react";
-import Link from "next/link";
-import { useTranslation } from "react-i18next";
-import { SubmissionService } from "@/services/ApiService";
-import { useAuth } from "@/context/AuthContext";
-import ConfirmationModal from "@/components/common/ConfirmationModal";
-import SubmissionStatusDisplay from "@/components/common/SubmissionStatusDisplay";
-import CodeEditor from "./CodeEditor";
-import { palette, hexAlpha } from "@/theme/tokens";
+import React, { useState, FormEvent, useEffect } from 'react';
+import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
+import { DraftService, SubmissionService } from '@/services/ApiService';
+import { useAuth } from '@/context/AuthContext';
+import ConfirmationModal from '@/components/common/ConfirmationModal';
+import SubmissionStatusDisplay from '@/components/common/SubmissionStatusDisplay';
+import CodeEditor from './CodeEditor';
+import PreSubmitPanel from './PreSubmitPanel';
+import { palette, hexAlpha } from '@/theme/tokens';
 
 // [wave D] Blockly requires the DOM — client-side only.
-import dynamic from "next/dynamic";
-const BlockEditor = dynamic(() => import("@/components/blocks/BlockEditor"), {
+import dynamic from 'next/dynamic';
+const BlockEditor = dynamic(() => import('@/components/blocks/BlockEditor'), {
   ssr: false,
 });
 // [wave D engine 2] The Scratch stack (scratch-vm/blocks/render) is
 // browser-only and heavy — load it lazily, exactly like Blockly.
-const ScratchEditor = dynamic(() => import("@/components/blocks/ScratchEditor"), {
+const ScratchEditor = dynamic(() => import('@/components/blocks/ScratchEditor'), {
   ssr: false,
   loading: () => null,
 });
 // [wave E] CodeMirror is client-side too.
-const PartialCodeEditor = dynamic(() => import("@/components/code/PartialCodeEditor"), {
+const PartialCodeEditor = dynamic(() => import('@/components/code/PartialCodeEditor'), {
   ssr: false,
   loading: () => null,
 });
@@ -52,8 +53,8 @@ export interface ProblemBlockConfig {
   /** Wave D engine 2: 'scratch' renders the Scratch editor and submits
    * the project JSON as language 'scratch' (the judge transpiles it to
    * Python — see docs/BLOCK-PROGRAMMING.md). */
-  engine?: "blockly" | "scratch";
-  generator?: "python3" | "nodejs20";
+  engine?: 'blockly' | 'scratch';
+  generator?: 'python3' | 'nodejs20';
   toolbox?: string;
   starter?: string;
   /** Scratch engine: the starter sb3 project JSON. */
@@ -86,12 +87,12 @@ interface SubmitSolutionFormProps {
 const STARTER_TEMPLATES: Record<string, string> = {
   python3: 'def main():\n    pass\n\n\nif __name__ == "__main__":\n    main()\n',
   cpp17:
-    "#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios_base::sync_with_stdio(false);\n    cin.tie(nullptr);\n    return 0;\n}\n",
+    '#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    ios_base::sync_with_stdio(false);\n    cin.tie(nullptr);\n    return 0;\n}\n',
   java11:
-    "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        sc.close();\n    }\n}\n",
+    'import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        sc.close();\n    }\n}\n',
 };
 
-const TERMINAL_VERDICTS = new Set(["AC", "WA", "TLE", "MLE", "OLE", "CE", "RE", "IE"]);
+const TERMINAL_VERDICTS = new Set(['AC', 'WA', 'TLE', 'MLE', 'OLE', 'CE', 'RE', 'IE']);
 
 export default function SubmitSolutionForm({
   problemId,
@@ -103,16 +104,64 @@ export default function SubmitSolutionForm({
 }: SubmitSolutionFormProps) {
   const { t } = useTranslation();
   const auth = useAuth();
-  const [code, setCode] = useState<string>("");
+  const [code, setCode] = useState<string>('');
   const [selectedLanguage, setSelectedLanguage] = useState<string>(
-    blockConfig?.engine === "scratch"
-      ? "scratch"
-      : blockConfig?.generator || (allowedLanguages.length > 0 ? allowedLanguages[0] : "python3"),
+    blockConfig?.engine === 'scratch'
+      ? 'scratch'
+      : blockConfig?.generator || (allowedLanguages.length > 0 ? allowedLanguages[0] : 'python3'),
   );
   const [submissionStatus, setSubmissionStatus] = useState<string | null>(null);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  // [wave E item 23] drag-drop / file-picker source loading. Extensions
+  // map to registry languages; unknown types still load as text.
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [dragOver, setDragOver] = useState(false);
+  // [wave G item 116] AI-assistance self-declaration (rated contests ban
+  // AI outright — see /policies/ai; this label is the practice-side honesty
+  // signal, shown on the submission wherever it renders).
+  const [aiAssisted, setAiAssisted] = useState(false);
+
+  const EXTENSION_LANGUAGES: Record<string, string> = {
+    py: 'python3',
+    cpp: 'cpp17',
+    cc: 'cpp17',
+    cxx: 'cpp20',
+    c: 'c11',
+    js: 'nodejs20',
+    mjs: 'nodejs20',
+    java: 'java11',
+    pas: 'pascal',
+    go: 'go',
+    rs: 'rust',
+    cs: 'csharp',
+    rb: 'ruby',
+    kt: 'kotlin',
+    lua: 'lua',
+    php: 'php',
+    hs: 'haskell',
+    sb3: 'scratch',
+  };
+
+  const loadFile = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = String(reader.result ?? '');
+      setCode(text);
+      // Auto-pick the language from the extension — but never override a
+      // partial-code problem (its language is the template's, fixed) and
+      // never switch to scratch via drag-drop (project JSON loads through
+      // its own editor).
+      const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
+      const lang = EXTENSION_LANGUAGES[ext];
+      if (lang && lang !== 'scratch' && !codeTemplate) {
+        setSelectedLanguage(lang);
+      }
+    };
+    reader.readAsText(file);
+  };
+
   // [F14] live verdict tracking after a successful submit
   const [lastSubmissionId, setLastSubmissionId] = useState<number | null>(null);
   const [polledVerdict, setPolledVerdict] = useState<string | null>(null);
@@ -121,6 +170,43 @@ export default function SubmitSolutionForm({
     setSubmissionStatus(null);
     setSubmissionError(null);
   }, [code, selectedLanguage]);
+
+  // [wave G item 76] Cross-device drafts: restore the saved draft on
+  // mount (before any typing), then autosave debounced. Block problems
+  // (Blockly/Scratch/partial-code) keep their own editors out of this —
+  // a text draft would fight the project JSON.
+  const draftLoadedRef = React.useRef(false);
+  useEffect(() => {
+    // Auth hydrates asynchronously — wait for it to resolve before the
+    // one-shot restore (a guest never loads a draft; an account loads
+    // exactly once, after hydration).
+    if (draftLoadedRef.current || !auth.isAuthenticated || blockConfig || codeTemplate) {
+      return;
+    }
+    draftLoadedRef.current = true;
+    DraftService.get(problemId)
+      .then((draft) => {
+        if (draft && draft.code) {
+          setCode(draft.code);
+          if (draft.language) setSelectedLanguage(draft.language);
+        }
+      })
+      .catch(() => {
+        /* 204/no draft or offline — the starter template stands */
+      });
+  }, [auth.isAuthenticated, problemId, blockConfig, codeTemplate]);
+
+  useEffect(() => {
+    if (!auth.isAuthenticated || blockConfig || codeTemplate) return;
+    if (!code.trim()) return; // never persist an empty draft over a real one
+    const handle = setTimeout(() => {
+      DraftService.save(problemId, selectedLanguage, code).catch(() => {
+        /* autosave is best-effort */
+      });
+    }, 1500);
+    return () => clearTimeout(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code, selectedLanguage, problemId]);
 
   // [F14] Poll the fresh submission until the judge resolves a verdict.
   useEffect(() => {
@@ -149,19 +235,19 @@ export default function SubmitSolutionForm({
   const handleActualSubmit = async () => {
     if (!auth.isAuthenticated || !problemId) {
       setSubmissionError(
-        t("error_not_logged_in_or_no_problem", "Authentication required to submit."),
+        t('error_not_logged_in_or_no_problem', 'Authentication required to submit.'),
       );
       setIsModalOpen(false);
       return;
     }
     if (!selectedLanguage) {
-      setSubmissionError(t("error_select_language", "Please select a language."));
+      setSubmissionError(t('error_select_language', 'Please select a language.'));
       setIsModalOpen(false);
       return;
     }
     setIsSubmitting(true);
     setIsModalOpen(false);
-    setSubmissionStatus(t("submitting_status", "Submitting..."));
+    setSubmissionStatus(t('submitting_status', 'Submitting...'));
     setSubmissionError(null);
     try {
       const response = await SubmissionService.createSubmission({
@@ -169,20 +255,26 @@ export default function SubmitSolutionForm({
         language: selectedLanguage,
         code,
         ...(contestId ? { contest: contestId } : {}),
+        ai_assisted: aiAssisted,
       });
       setSubmissionStatus(
         t(
-          "submission_successful_pending",
-          "Solution submitted successfully! It is pending evaluation. (Submission ID: {{id}})",
+          'submission_successful_pending',
+          'Solution submitted successfully! It is pending evaluation. (Submission ID: {{id}})',
           { id: response.id },
         ),
       );
       setLastSubmissionId(response.id); // [F14]
       setPolledVerdict(null);
-      setCode("");
+      setCode('');
+      // [wave G item 76] the draft served its purpose — clear it so the
+      // next visit starts fresh instead of resurrecting submitted code.
+      DraftService.clear(problemId).catch(() => {
+        /* best-effort cleanup */
+      });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "";
-      setSubmissionError(message || t("submission_failed_error", "Submission failed."));
+      const message = err instanceof Error ? err.message : '';
+      setSubmissionError(message || t('submission_failed_error', 'Submission failed.'));
       setSubmissionStatus(null);
     } finally {
       setIsSubmitting(false);
@@ -192,7 +284,7 @@ export default function SubmitSolutionForm({
   const handleSubmitClick = (e?: FormEvent) => {
     e?.preventDefault();
     if (!code.trim()) {
-      setSubmissionError(t("error_code_empty", "Code cannot be empty."));
+      setSubmissionError(t('error_code_empty', 'Code cannot be empty.'));
       return;
     }
     setIsModalOpen(true);
@@ -204,8 +296,8 @@ export default function SubmitSolutionForm({
   };
 
   const verdictColor = (verdict: string): string => {
-    if (verdict === "AC") return palette.success;
-    if (verdict === "PENDING" || verdict === "COMPILING" || verdict === "RUNNING")
+    if (verdict === 'AC') return palette.success;
+    if (verdict === 'PENDING' || verdict === 'COMPILING' || verdict === 'RUNNING')
       return palette.muted;
     return palette.danger;
   };
@@ -213,9 +305,9 @@ export default function SubmitSolutionForm({
   if (!(auth.isAuthenticated && problemId)) {
     return (
       <p>
-        {t("please_login_to_submit_1", "Please ")}
-        <Link href="/login">{t("please_login_to_submit_2", "login")}</Link>
-        {t("please_login_to_submit_3", " to submit a solution.")}
+        {t('please_login_to_submit_1', 'Please ')}
+        <Link href="/login">{t('please_login_to_submit_2', 'login')}</Link>
+        {t('please_login_to_submit_3', ' to submit a solution.')}
       </p>
     );
   }
@@ -223,13 +315,13 @@ export default function SubmitSolutionForm({
   return (
     <>
       <form onSubmit={handleSubmitClick}>
-        {blockConfig?.engine === "scratch" ? (
-          <div style={{ marginBottom: "0.75rem" }}>
-            <span className="micro-label">{t("sbx_solve_title", "Solve with Scratch")}</span>
-            <p style={{ margin: "4px 0 10px", color: "var(--text-tertiary)", fontSize: "0.8rem" }}>
+        {blockConfig?.engine === 'scratch' ? (
+          <div style={{ marginBottom: '0.75rem' }}>
+            <span className="micro-label">{t('sbx_solve_title', 'Solve with Scratch')}</span>
+            <p style={{ margin: '4px 0 10px', color: 'var(--text-tertiary)', fontSize: '0.8rem' }}>
               {t(
-                "sbx_submit_hint",
-                "Your Scratch project is translated to Python and judged like any other submission.",
+                'sbx_submit_hint',
+                'Your Scratch project is translated to Python and judged like any other submission.',
               )}
             </p>
             <ScratchEditor
@@ -240,15 +332,15 @@ export default function SubmitSolutionForm({
             />
           </div>
         ) : blockConfig ? (
-          <div style={{ marginBottom: "0.75rem" }}>
+          <div style={{ marginBottom: '0.75rem' }}>
             <span className="micro-label">
-              {t("blocks_solve_with_blocks", "Solve with blocks")}
+              {t('blocks_solve_with_blocks', 'Solve with blocks')}
             </span>
-            <p style={{ margin: "4px 0 10px", color: "var(--text-tertiary)", fontSize: "0.8rem" }}>
+            <p style={{ margin: '4px 0 10px', color: 'var(--text-tertiary)', fontSize: '0.8rem' }}>
               {t(
-                "blocks_submit_hint",
-                "Your blocks generate {{language}} code and are judged like any other submission.",
-                { language: blockConfig.generator === "nodejs20" ? "JavaScript" : "Python" },
+                'blocks_submit_hint',
+                'Your blocks generate {{language}} code and are judged like any other submission.',
+                { language: blockConfig.generator === 'nodejs20' ? 'JavaScript' : 'Python' },
               )}
             </p>
             <BlockEditor
@@ -261,17 +353,17 @@ export default function SubmitSolutionForm({
           </div>
         ) : (
           <>
-            <div style={{ marginBottom: "0.75rem" }}>
-              <label htmlFor="language-select">{t("language_label", "Language")}:</label>
+            <div style={{ marginBottom: '0.75rem' }}>
+              <label htmlFor="language-select">{t('language_label', 'Language')}:</label>
               <select
                 id="language-select"
                 value={selectedLanguage}
                 onChange={(e) => setSelectedLanguage(e.target.value)}
-                style={{ margin: "6px 0", padding: "8px 10px", width: "100%" }}
+                style={{ margin: '6px 0', padding: '8px 10px', width: '100%' }}
                 disabled={allowedLanguages.length === 0}
               >
                 <option value="" disabled>
-                  {t("select_language_placeholder", "Select Language...")}
+                  {t('select_language_placeholder', 'Select Language...')}
                 </option>
                 {allowedLanguages.map((lang) => (
                   <option key={lang} value={lang}>
@@ -283,36 +375,76 @@ export default function SubmitSolutionForm({
             <div>
               <div
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: "0.5rem",
-                  flexWrap: "wrap",
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '0.5rem',
+                  flexWrap: 'wrap',
                 }}
               >
-                <label htmlFor="code-editor">{t("code_editor_label", "Code")}:</label>
+                <label htmlFor="code-editor">{t('code_editor_label', 'Code')}:</label>
                 {STARTER_TEMPLATES[selectedLanguage] && (
                   <button
                     type="button"
                     onClick={insertTemplate}
                     className="btn"
-                    style={{ padding: "3px 10px", fontSize: "0.7rem", minHeight: "28px" }}
+                    style={{ padding: '3px 10px', fontSize: '0.7rem', minHeight: '28px' }}
                   >
-                    {t("insert_template_button", "Insert {{language}} template", {
+                    {t('insert_template_button', 'Insert {{language}} template', {
                       language: selectedLanguage,
                     })}
                   </button>
                 )}
               </div>
+              {/* [wave E item 23] drop a source file onto the editor to
+                  load it (extension picks the language); or use the
+                  picker button. */}
+              <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => fileInputRef.current?.click()}
+                  data-testid="load-file-button"
+                >
+                  {t('load_source_file', 'Load file')}
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  hidden
+                  accept=".py,.cpp,.cc,.cxx,.c,.js,.mjs,.java,.pas,.go,.rs,.cs,.rb,.kt,.lua,.php,.hs,.sb3"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) loadFile(file);
+                    e.target.value = '';
+                  }}
+                />
+                {dragOver && (
+                  <span style={{ color: 'var(--accent)', fontSize: '0.8rem', alignSelf: 'center' }}>
+                    {t('drop_to_load', 'Drop to load the file')}
+                  </span>
+                )}
+              </div>
               <div
                 id="code-editor"
                 data-testid="submit-code-editor"
+                onDragOver={(e: React.DragEvent) => {
+                  e.preventDefault();
+                  setDragOver(true);
+                }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={(e: React.DragEvent) => {
+                  e.preventDefault();
+                  setDragOver(false);
+                  const file = e.dataTransfer.files?.[0];
+                  if (file) loadFile(file);
+                }}
                 style={{
-                  marginTop: "6px",
-                  border: "1px solid var(--border)",
-                  borderRadius: "var(--radius-md)",
-                  overflow: "hidden",
-                  background: "rgba(255,255,255,0.02)",
+                  marginTop: '6px',
+                  border: dragOver ? '2px dashed var(--accent)' : '1px solid var(--border)',
+                  borderRadius: 'var(--radius-md)',
+                  overflow: 'hidden',
+                  background: 'rgba(255,255,255,0.02)',
                 }}
               >
                 {codeTemplate ? (
@@ -321,7 +453,7 @@ export default function SubmitSolutionForm({
                     language={selectedLanguage}
                     value={code}
                     onChange={(value: string) => setCode(value)}
-                    ariaLabel={t("code_editor_label", "Code")}
+                    ariaLabel={t('code_editor_label', 'Code')}
                     height="420px"
                   />
                 ) : (
@@ -330,7 +462,7 @@ export default function SubmitSolutionForm({
                     onChange={(value) => setCode(value)}
                     language={selectedLanguage}
                     onModEnter={handleSubmitClick}
-                    ariaLabel={t("code_editor_label", "Code")}
+                    ariaLabel={t('code_editor_label', 'Code')}
                     height="360px"
                   />
                 )}
@@ -343,47 +475,69 @@ export default function SubmitSolutionForm({
         {lastSubmissionId != null && (
           <div
             style={{
-              marginTop: "12px",
-              padding: "12px 14px",
-              borderRadius: "var(--radius-md)",
+              marginTop: '12px',
+              padding: '12px 14px',
+              borderRadius: 'var(--radius-md)',
               border: `1px solid ${hexAlpha(palette.accent, 0.25)}`,
               background: hexAlpha(palette.accent, 0.06),
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: "0.75rem",
-              flexWrap: "wrap",
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '0.75rem',
+              flexWrap: 'wrap',
             }}
           >
             <div>
-              <div style={{ fontSize: "0.8rem", color: "var(--muted)" }}>
-                {t("verdict_label", "Verdict")}:{" "}
+              <div style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>
+                {t('verdict_label', 'Verdict')}:{' '}
                 <span
                   style={{
                     fontWeight: 700,
-                    fontFamily: "var(--font-mono)",
-                    color: polledVerdict ? verdictColor(polledVerdict) : "var(--muted)",
+                    fontFamily: 'var(--font-mono)',
+                    color: polledVerdict ? verdictColor(polledVerdict) : 'var(--muted)',
                   }}
                 >
-                  {polledVerdict ?? t("polling_status", "Polling for updates...")}
+                  {polledVerdict ?? t('polling_status', 'Polling for updates...')}
                 </span>
               </div>
             </div>
             <Link href={`/submissions/${lastSubmissionId}`} className="btn btn--primary">
-              {t("view_submission_button", "View status")}
+              {t('view_submission_button', 'View status')}
             </Link>
           </div>
         )}
         <button
           type="submit"
           className="btn btn--primary"
-          style={{ marginTop: "12px", padding: "10px 18px", width: "100%" }}
+          style={{ marginTop: '12px', padding: '10px 18px', width: '100%' }}
           disabled={isSubmitting || !selectedLanguage || !code.trim()}
         >
           {isSubmitting
-            ? t("submitting_button_text", "Submitting...")
-            : t("submit_button", "Submit")}
+            ? t('submitting_button_text', 'Submitting...')
+            : t('submit_button', 'Submit')}
         </button>
+        {/* [wave E items 8/9/10] pre-submit assistance — lint + sample
+            dress rehearsal; costs no submission. */}
+        <PreSubmitPanel problemId={problemId} language={selectedLanguage} code={code} />
+        {/* [wave G item 116] AI-assistance self-declaration. */}
+        <label
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '0.8rem',
+            color: 'var(--muted)',
+            marginTop: '0.5rem',
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={aiAssisted}
+            onChange={(e) => setAiAssisted(e.target.checked)}
+            data-testid="ai-assisted-toggle"
+          />
+          {t('ai_assisted_label', 'Generative AI helped me with this solution')}
+        </label>
       </form>
       {/* Rendered OUTSIDE the form, as in the CRA page: the modal's buttons
           carry no explicit type, so nesting them in the form would make them
@@ -392,9 +546,9 @@ export default function SubmitSolutionForm({
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConfirm={handleActualSubmit}
-        title={t("confirm_submission_title", "Confirm Submission")}
+        title={t('confirm_submission_title', 'Confirm Submission')}
         message={t(
-          "confirm_submission_message",
+          'confirm_submission_message',
           'Submit solution in {{language}} to "{{problem}}"?',
           {
             language: selectedLanguage,

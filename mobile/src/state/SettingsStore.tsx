@@ -2,13 +2,13 @@
 // device locale) plus the `t()` React binding. RTL locales flip
 // I18nManager so the whole layout mirrors (owner rule: every shipped
 // language selectable; ar/fa are right-to-left).
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { I18nManager } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getLocales } from "expo-localization";
-import { localeDirection, normalizeUiLocale, translate, type Locale } from "../i18n";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { I18nManager } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getLocales } from 'expo-localization';
+import { localeDirection, normalizeUiLocale, translate, type Locale } from '../i18n';
 
-const LOCALE_KEY = "wc_ui_locale";
+const LOCALE_KEY = 'wc_ui_locale';
 
 export interface SettingsState {
   locale: Locale;
@@ -47,7 +47,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.setItem(LOCALE_KEY, next);
     // RTL flip needs a reload to fully apply; set the flag so the next
     // launch renders mirrored (I18nManager semantics).
-    const rtl = localeDirection(next) === "rtl";
+    const rtl = localeDirection(next) === 'rtl';
     if (I18nManager.isRTL !== rtl) {
       I18nManager.allowRTL(rtl);
       I18nManager.forceRTL(rtl);
@@ -59,12 +59,12 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       locale,
       setLocale,
       t: (key: string, varsOrFallback?: Record<string, string | number> | string) =>
-        typeof varsOrFallback === "string"
+        typeof varsOrFallback === 'string'
           ? translate(locale, key) === key
             ? varsOrFallback
             : translate(locale, key)
           : translate(locale, key, varsOrFallback),
-      isRTL: localeDirection(locale) === "rtl",
+      isRTL: localeDirection(locale) === 'rtl',
     }),
     [locale, setLocale],
   );
@@ -74,6 +74,6 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
 export function useSettings(): SettingsState {
   const context = useContext(SettingsContext);
-  if (!context) throw new Error("useSettings must be used inside <SettingsProvider>");
+  if (!context) throw new Error('useSettings must be used inside <SettingsProvider>');
   return context;
 }

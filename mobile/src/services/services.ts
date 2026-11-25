@@ -2,7 +2,7 @@
 // (same paths, same envelopes, same snake_case bodies). Only the surfaces
 // the mobile app ships are ported; the paths match
 // src/services/ApiService.ts on the web exactly.
-import { apiFetch } from "./ApiClient";
+import { apiFetch } from './ApiClient';
 import type {
   ApiNotification,
   ClassroomAssignment,
@@ -26,7 +26,7 @@ import type {
   MyClassRow,
   StandingsResponse,
   TranslationProposalRow,
-} from "../types/api";
+} from '../types/api';
 
 // =================================
 // Problems
@@ -43,18 +43,18 @@ export const ProblemService = {
     page: { page?: number; pageSize?: number } = {},
   ) => {
     const params = new URLSearchParams();
-    if (filters.search) params.set("search", filters.search);
-    if (filters.difficulty) params.set("difficulty", filters.difficulty);
-    if (filters.status !== undefined) params.set("status", filters.status);
-    if (filters.tag) params.set("tag", filters.tag);
-    if (page.page !== undefined) params.set("page", String(page.page));
-    if (page.pageSize !== undefined) params.set("page_size", String(page.pageSize));
+    if (filters.search) params.set('search', filters.search);
+    if (filters.difficulty) params.set('difficulty', filters.difficulty);
+    if (filters.status !== undefined) params.set('status', filters.status);
+    if (filters.tag) params.set('tag', filters.tag);
+    if (page.page !== undefined) params.set('page', String(page.page));
+    if (page.pageSize !== undefined) params.set('page_size', String(page.pageSize));
     const qs = params.toString();
-    return apiFetch<GetProblemsResponse>(`/problems/problems/${qs ? `?${qs}` : ""}`);
+    return apiFetch<GetProblemsResponse>(`/problems/problems/${qs ? `?${qs}` : ''}`);
   },
   getProblemDetail: (id: number | string) =>
     apiFetch<GetProblemDetailResponse>(`/problems/problems/${id}/`),
-  getBookmarkedIds: () => apiFetch<{ starred_ids: number[] }>("/problems/problems/bookmarked/"),
+  getBookmarkedIds: () => apiFetch<{ starred_ids: number[] }>('/problems/problems/bookmarked/'),
 };
 
 // =================================
@@ -63,8 +63,8 @@ export const ProblemService = {
 
 export const SubmissionService = {
   createSubmission: (submissionData: { problem: number; language: string; code: string }) =>
-    apiFetch<CreateSubmissionResponse>("/submissions/submit/", {
-      method: "POST",
+    apiFetch<CreateSubmissionResponse>('/submissions/submit/', {
+      method: 'POST',
       body: JSON.stringify(submissionData),
     }),
   getSubmissions: (
@@ -72,13 +72,13 @@ export const SubmissionService = {
     page: { cursor?: string | null; pageSize?: number } = {},
   ) => {
     const params = new URLSearchParams();
-    if (filters.problemId !== undefined) params.set("problemId", String(filters.problemId));
-    if (filters.userId !== undefined) params.set("userId", String(filters.userId));
-    if (filters.language !== undefined) params.set("language", filters.language);
-    if (page.cursor) params.set("cursor", page.cursor);
-    if (page.pageSize !== undefined) params.set("page_size", String(page.pageSize));
+    if (filters.problemId !== undefined) params.set('problemId', String(filters.problemId));
+    if (filters.userId !== undefined) params.set('userId', String(filters.userId));
+    if (filters.language !== undefined) params.set('language', filters.language);
+    if (page.cursor) params.set('cursor', page.cursor);
+    if (page.pageSize !== undefined) params.set('page_size', String(page.pageSize));
     const qs = params.toString();
-    return apiFetch<GetSubmissionsResponse>(`/submissions/submissions/${qs ? `?${qs}` : ""}`);
+    return apiFetch<GetSubmissionsResponse>(`/submissions/submissions/${qs ? `?${qs}` : ''}`);
   },
   getSubmissionDetail: (id: number | string) =>
     apiFetch<GetSubmissionDetailResponse>(`/submissions/submissions/${id}/`),
@@ -91,10 +91,10 @@ export const SubmissionService = {
 export const LeaderboardService = {
   getLeaderboard: (page: { page?: number; pageSize?: number } = {}) => {
     const params = new URLSearchParams();
-    if (page.page !== undefined) params.set("page", String(page.page));
-    if (page.pageSize !== undefined) params.set("page_size", String(page.pageSize));
+    if (page.page !== undefined) params.set('page', String(page.page));
+    if (page.pageSize !== undefined) params.set('page_size', String(page.pageSize));
     const qs = params.toString();
-    return apiFetch<GetLeaderboardResponse>(`/leaderboard/${qs ? `?${qs}` : ""}`);
+    return apiFetch<GetLeaderboardResponse>(`/leaderboard/${qs ? `?${qs}` : ''}`);
   },
 };
 
@@ -105,7 +105,7 @@ export const LeaderboardService = {
 export const PublicService = {
   /** JDG-9: the public judge registry (14 languages, rate-limited per IP). */
   getLanguages: () =>
-    apiFetch<{ notice: string; count: number; results: LanguageRow[] }>("/public/languages/"),
+    apiFetch<{ notice: string; count: number; results: LanguageRow[] }>('/public/languages/'),
 };
 
 // =================================
@@ -123,18 +123,18 @@ export const ForumService = {
     } = {},
   ) => {
     const search = new URLSearchParams();
-    if (params.page !== undefined) search.set("page", String(params.page));
-    if (params.pageSize !== undefined) search.set("page_size", String(params.pageSize));
-    if (params.problemId !== undefined) search.set("problem_id", String(params.problemId));
-    if (params.lang) search.set("lang", params.lang);
-    if (params.topic) search.set("topic", params.topic);
+    if (params.page !== undefined) search.set('page', String(params.page));
+    if (params.pageSize !== undefined) search.set('page_size', String(params.pageSize));
+    if (params.problemId !== undefined) search.set('problem_id', String(params.problemId));
+    if (params.lang) search.set('lang', params.lang);
+    if (params.topic) search.set('topic', params.topic);
     const qs = search.toString();
-    return apiFetch<GetForumThreadsResponse>(`/forum/threads/${qs ? `?${qs}` : ""}`);
+    return apiFetch<GetForumThreadsResponse>(`/forum/threads/${qs ? `?${qs}` : ''}`);
   },
   getThread: (threadId: number | string) => apiFetch<ForumThread>(`/forum/threads/${threadId}/`),
   createThread: (data: { title: string; content: string; problem?: number | null }) =>
-    apiFetch<ForumThread>("/forum/threads/", {
-      method: "POST",
+    apiFetch<ForumThread>('/forum/threads/', {
+      method: 'POST',
       body: JSON.stringify(data),
     }),
   getPosts: (
@@ -142,11 +142,11 @@ export const ForumService = {
     page: { cursor?: string | null; pageSize?: number } = {},
   ) => {
     const params = new URLSearchParams();
-    if (page.cursor) params.set("cursor", page.cursor);
-    if (page.pageSize !== undefined) params.set("page_size", String(page.pageSize));
+    if (page.cursor) params.set('cursor', page.cursor);
+    if (page.pageSize !== undefined) params.set('page_size', String(page.pageSize));
     const qs = params.toString();
     return apiFetch<GetForumPostsResponse>(
-      `/forum/threads/${threadId}/posts/${qs ? `?${qs}` : ""}`,
+      `/forum/threads/${threadId}/posts/${qs ? `?${qs}` : ''}`,
     );
   },
   createPost: (
@@ -154,7 +154,7 @@ export const ForumService = {
     data: { content: string; parent?: number | null; isSpoiler?: boolean },
   ) =>
     apiFetch<ForumPost>(`/forum/threads/${threadId}/posts/`, {
-      method: "POST",
+      method: 'POST',
       // The API speaks snake_case for the spoiler flag (COM-1).
       body: JSON.stringify({
         content: data.content,
@@ -173,21 +173,21 @@ export const NotificationService = {
     params: { cursor?: string | null; unreadOnly?: boolean; pageSize?: number } = {},
   ) => {
     const search = new URLSearchParams();
-    if (params.cursor) search.set("cursor", params.cursor);
-    if (params.unreadOnly) search.set("unread", "true");
-    if (params.pageSize !== undefined) search.set("page_size", String(params.pageSize));
+    if (params.cursor) search.set('cursor', params.cursor);
+    if (params.unreadOnly) search.set('unread', 'true');
+    if (params.pageSize !== undefined) search.set('page_size', String(params.pageSize));
     const qs = search.toString();
-    return apiFetch<GetNotificationsResponse>(`/notifications/${qs ? `?${qs}` : ""}`);
+    return apiFetch<GetNotificationsResponse>(`/notifications/${qs ? `?${qs}` : ''}`);
   },
   markRead: (id: number | string) =>
     apiFetch<ApiNotification>(`/notifications/${id}/mark-read/`, {
-      method: "POST",
+      method: 'POST',
     }),
   markAllRead: () =>
-    apiFetch<{ marked: number }>("/notifications/mark-all-read/", {
-      method: "POST",
+    apiFetch<{ marked: number }>('/notifications/mark-all-read/', {
+      method: 'POST',
     }),
-  getUnreadCount: () => apiFetch<{ count: number }>("/notifications/unread-count/"),
+  getUnreadCount: () => apiFetch<{ count: number }>('/notifications/unread-count/'),
 };
 
 // =================================
@@ -196,20 +196,20 @@ export const NotificationService = {
 
 export const ContestService = {
   getContests: (
-    filters: { state?: "UPCOMING" | "RUNNING" | "FINISHED" } = {},
+    filters: { state?: 'UPCOMING' | 'RUNNING' | 'FINISHED' } = {},
     page: { page?: number; pageSize?: number } = {},
   ) => {
     const params = new URLSearchParams();
-    if (filters.state) params.set("state", filters.state);
-    if (page.page !== undefined) params.set("page", String(page.page));
-    if (page.pageSize !== undefined) params.set("page_size", String(page.pageSize));
+    if (filters.state) params.set('state', filters.state);
+    if (page.page !== undefined) params.set('page', String(page.page));
+    if (page.pageSize !== undefined) params.set('page_size', String(page.pageSize));
     const qs = params.toString();
-    return apiFetch<GetContestsResponse>(`/contests/contests/${qs ? `?${qs}` : ""}`);
+    return apiFetch<GetContestsResponse>(`/contests/contests/${qs ? `?${qs}` : ''}`);
   },
   getContest: (id: number | string) => apiFetch<Contest>(`/contests/contests/${id}/`),
   register: (id: number | string, accessCode?: string) =>
     apiFetch<{ contest: number; user: number }>(`/contests/contests/${id}/register/`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify(accessCode ? { access_code: accessCode } : {}),
     }),
   getProblems: (id: number | string) =>
@@ -223,9 +223,41 @@ export const ContestService = {
 // =================================
 
 export const ClassroomService = {
-  getMyClasses: () => apiFetch<{ results: MyClassRow[] }>("/classroom/classes/my-classes/"),
+  getMyClasses: () => apiFetch<{ results: MyClassRow[] }>('/classroom/classes/my-classes/'),
   getMyAssignments: () =>
-    apiFetch<{ results: ClassroomAssignment[] }>("/classroom/assignments/my-assignments/"),
+    apiFetch<{ results: ClassroomAssignment[] }>('/classroom/assignments/my-assignments/'),
+  getAssignment: (id: number | string) =>
+    apiFetch<ClassroomAssignment>(`/classroom/assignments/${id}/`),
+  /** [wave G item 99] QR join: same endpoint the join form uses. */
+  join: (code: string, password: string) =>
+    apiFetch<{ detail: string; classroom_id?: number }>('/classroom/classes/join/', {
+      method: 'POST',
+      body: JSON.stringify({ code, password }),
+    }),
+};
+
+// =================================
+// Cross-device drafts (wave G item 96 sync target)
+// =================================
+export const DraftService = {
+  save: (problemId: number, language: string, code: string) =>
+    apiFetch(`/submissions/drafts/${problemId}/`, {
+      method: 'PUT',
+      body: JSON.stringify({ language, code }),
+    }),
+};
+
+// =================================
+// Statistics (wave G item 97: the streak feeds the home widget)
+// =================================
+export const UserStatsService = {
+  getStatistics: () =>
+    apiFetch<{
+      current_streak: number;
+      max_streak: number;
+      solved: number;
+      total_active_days: number;
+    }>('/users/me/statistics/'),
 };
 
 // =================================
@@ -233,14 +265,14 @@ export const ClassroomService = {
 // =================================
 
 export const TranslationsService = {
-  getLanguages: () => apiFetch<GetTranslationLanguagesResponse>("/translations/languages/"),
+  getLanguages: () => apiFetch<GetTranslationLanguagesResponse>('/translations/languages/'),
   getMine: (params: { page?: number; pageSize?: number } = {}) => {
     const search = new URLSearchParams();
-    if (params.page !== undefined) search.set("page", String(params.page));
-    if (params.pageSize !== undefined) search.set("page_size", String(params.pageSize));
+    if (params.page !== undefined) search.set('page', String(params.page));
+    if (params.pageSize !== undefined) search.set('page_size', String(params.pageSize));
     const qs = search.toString();
     return apiFetch<{ count: number; results: TranslationProposalRow[] }>(
-      `/translations/proposals/mine/${qs ? `?${qs}` : ""}`,
+      `/translations/proposals/mine/${qs ? `?${qs}` : ''}`,
     );
   },
   propose: (data: {
@@ -249,8 +281,8 @@ export const TranslationsService = {
     title: string;
     statement: string;
   }) =>
-    apiFetch<TranslationProposalRow>("/translations/proposals/", {
-      method: "POST",
+    apiFetch<TranslationProposalRow>('/translations/proposals/', {
+      method: 'POST',
       body: JSON.stringify({
         problem: data.problemId,
         language: data.language,
@@ -261,5 +293,5 @@ export const TranslationsService = {
 };
 
 // Re-export the pagination collectors for consumers that need full lists.
-export { collectAllPages, collectAllCursorPages } from "./ApiClient";
+export { collectAllPages, collectAllCursorPages } from './ApiClient';
 export type { CursorPaginatedResponse };

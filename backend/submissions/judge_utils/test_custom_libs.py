@@ -110,7 +110,6 @@ class InstallCustomLibsTest(TestCase):
             (self.dir / "requirements_custom.txt").read_text(), "numpy==1.26.4\n"
         )
         # Fail-closed network by default + hardening + pip --target libs.
-        assert argv is not None  # success path: pip ran
         self.assertIn("--network", argv)
         self.assertEqual(argv[argv.index("--network") + 1], "none")
         for flag in (
@@ -137,7 +136,6 @@ class InstallCustomLibsTest(TestCase):
         )
         (success, _), argv = self._install(["numpy"], return_value=ok)
         self.assertTrue(success)
-        assert argv is not None  # success path: pip ran
         self.assertEqual(argv[argv.index("--network") + 1], "judge-build")
         self.assertIn("-i", argv)
         self.assertEqual(argv[argv.index("-i") + 1], "http://pypi-proxy:8080/simple/")
@@ -238,7 +236,6 @@ class SubmitTimeAllowlistGateTest(TestCase):
 
 class GenericInstallFailureTest(TestCase):
     def setUp(self):
-        import pathlib
         import tempfile
 
         self.dir = pathlib.Path(tempfile.mkdtemp())

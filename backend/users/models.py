@@ -37,7 +37,9 @@ class User(AbstractUser):
     # Add any additional fields specific to WebCoder users here in the future
     # For example:
     # profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
-    # bio = models.TextField(max_length=500, blank=True)
+    # Matrix row 59 remainder: the free-text bio on rich public profiles
+    # (CW/AC/LC all carry one). Self-authored, capped, never required.
+    bio = models.TextField(_("bio"), max_length=500, blank=True)
     # country = models.CharField(max_length=100, blank=True)
 
     # RO-3 (competitive roadmap): optional Olympiad-geography identity —
@@ -56,6 +58,73 @@ class User(AbstractUser):
             "Minors' profiles default non-public: county/school hidden, "
             "no leaderboard segments."
         ),
+    )
+
+    # Wave G item 87 — display timezone: an IANA name ('Europe/Bucharest')
+    # used ONLY for presentation (contest times, assignment deadlines,
+    # history timestamps rendered in the visitor's wall clock). The judge
+    # and every scoring window stay server-UTC; nothing interprets this
+    # as an offset for correctness-relevant math.
+    timezone = models.CharField(
+        _("display timezone"),
+        max_length=64,
+        blank=True,
+        default="",
+        help_text=_("IANA timezone name for displaying times (UTC when empty)."),
+    )
+
+    # Wave G item 84 — notification digest frequency. The beat-scheduled
+    # notification_digest_task emails one summary per period and marks the
+    # digested notifications read.
+    notification_digest = models.CharField(
+        _("notification digest"),
+        max_length=8,
+        choices=[
+            ("none", _("No digest")),
+            ("daily", _("Daily")),
+            ("weekly", _("Weekly")),
+        ],
+        default="none",
+    )
+
+    # Wave G item 90 (LEG-2) — the parental-consent record for minor
+    # accounts (GDPR Art. 8 / Legea 190/2018: RO kept the
+    # information-society consent age at 16). Set by an admin when the
+    # signed consent (or the school-mediated enrollment attestation)
+    # arrives; null = consent not yet recorded.
+    parental_consent_at = models.DateTimeField(
+        _("parental consent recorded at"),
+        null=True,
+        blank=True,
+        help_text=_(
+            "When parental consent (or school-mediated enrollment) was recorded."
+        ),
+    )
+
+    # Wave G item 100 — fallback-notice opt-ins. Push (item 95) is the
+    # primary channel; email/SMS are explicit opt-ins used only when
+    # push is unavailable or failed.
+    notification_email = models.BooleanField(
+        _("email fallback for notifications"),
+        default=False,
+    )
+    notification_sms_phone = models.CharField(
+        _("SMS fallback phone (E.164)"),
+        max_length=20,
+        blank=True,
+        default="",
+    )
+
+    # Item 146 (wave G section K) — supporter tier, COSMETIC ONLY: the
+    # badge and profile flair carry zero gameplay privilege (no rating
+    # protection, no bonus points, no separate throttle scope — the
+    # parity is pinned by test_wave_g_sustain.py). Staff-granted; there
+    # is no payment processing pre-traction (see /support).
+    supporter_since = models.DateField(
+        _("supporter since"),
+        null=True,
+        blank=True,
+        help_text=_("Supporter badge start (cosmetic only, staff-granted)."),
     )
 
     # GDPR account control (round-2 LEG-1/X5): set when the account is
@@ -178,3 +247,32 @@ class Follow(models.Model):
 
     def __str__(self):
         return f"{self.follower_id} -> {self.target_id}"
+
+
+class SetterProfile(models.Model):
+    """Item 70 — the author-editable side of the setter CV: a short blurb
+    and up to five links (personal site, GitHub, editorial portfolio…)."""
+
+    MAX_LINKS = 5
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="setter_profile",
+        verbose_name=_("user"),
+    )
+    blurb = models.TextField(_("blurb"), max_length=600, blank=True)
+    links = models.JSONField(
+        _("links"),
+        default=list,
+        blank=True,
+        help_text=_("Up to 5 external links (strings)."),
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("setter profile")
+        verbose_name_plural = _("setter profiles")
+
+    def __str__(self):
+        return f"setter-cv: {self.user_id}"

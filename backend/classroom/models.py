@@ -206,6 +206,9 @@ class Assignment(models.Model):
 
     def state(self, now=None) -> str:
         now = now or timezone.now()
+        # str(): TextChoices members are declared as (value, label) tuples in
+        # source, so without django's metaclass (absent in the bare lean-gate
+        # env) pyright infers a tuple; str() yields the identical runtime value.
         if now < self.available_from:
             return str(self.State.SCHEDULED)
         if now <= self.effective_due_at:

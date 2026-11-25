@@ -36,14 +36,14 @@ class TestSeedProblemsCommand:
             len(p["tests"]) for p in seed_data.PROBLEMS
         )
         assert Tag.objects.filter(slug__in=["loops", "arrays", "sorting"]).count() == 3
-        # EDU-10: the tree now spans gimnaziu (g5-g8) + liceu v1 (g9-g10).
-        assert CurriculumNode.objects.filter(kind="GRADE").count() == 6
-        assert CurriculumNode.objects.filter(kind="CHAPTER").count() == 16
+        # Wave E item 26: the tree now spans grades 5-12 (gimnaziu + full liceu).
+        assert CurriculumNode.objects.filter(kind="GRADE").count() == 8
+        assert CurriculumNode.objects.filter(kind="CHAPTER").count() == 22
         assert list(
             CurriculumNode.objects.filter(kind="GRADE")
             .order_by("order")
             .values_list("slug", flat=True)
-        ) == ["g5", "g6", "g7", "g8", "g9", "g10"]
+        ) == ["g5", "g6", "g7", "g8", "g9", "g10", "g11", "g12"]
         assert ProblemEditorial.objects.count() == len(seed_data.EDITORIALS)
         # first test of each problem is the visible sample
         for problem in Problem.objects.filter(
@@ -52,6 +52,50 @@ class TestSeedProblemsCommand:
             first = problem.test_cases.get(order=0)
             assert first.is_sample is True
         assert "created=" in result
+
+    def test_seed_learning_skips_unknown_tags(self):
+        from unittest import mock
+
+        from learning.models import SkillEdge, TheoryCard
+        from problems.management.commands.seed_problems import Command
+
+        run_seed()
+        before_edges = SkillEdge.objects.count()
+        before_cards = TheoryCard.objects.count()
+        command = Command()
+        with (
+            mock.patch.object(Command, "_seed_curriculum", return_value={}),
+            mock.patch(
+                "problems.seed_data.SKILL_EDGES", [("nope", "loops"), ("loops", "nope")]
+            ),
+            mock.patch(
+                "problems.seed_data.THEORY_CARDS", [{"tag": "nope", "front_en": "f"}]
+            ),
+        ):
+            cards, edges = command._seed_learning(dry_run=False)
+        assert (cards, edges) == (0, 0)
+        assert SkillEdge.objects.count() == before_edges
+        assert TheoryCard.objects.count() == before_cards
+
+    def test_seed_drills_skips_unknown_tag(self):
+        from unittest import mock
+
+        from learning.models import Drill
+        from problems.management.commands.seed_problems import Command
+
+        run_seed()
+        before = Drill.objects.count()
+        command = Command()
+        with (
+            mock.patch.object(Command, "_seed_curriculum", return_value={}),
+            mock.patch(
+                "learning.drills.SEED_DRILLS",
+                [{"kind": "READ_CODE", "tag": "nope", "payload": {"code": "x"}}],
+            ),
+        ):
+            created = command._seed_drills(dry_run=False)
+        assert created == 0
+        assert Drill.objects.count() == before
 
     def test_seed_is_idempotent(self):
         run_seed()
@@ -175,7 +219,7 @@ class TestCurriculumAPI:
         )
         slugs = [node["slug"] for node in results]
         # EDU-10: gimnaziu (g5-g8) now leads the liceu v1 tree (g9-g10).
-        assert slugs == ["g5", "g6", "g7", "g8", "g9", "g10"]
+        assert slugs == ["g5", "g6", "g7", "g8", "g9", "g10", "g11", "g12"]
         g9 = next(node for node in results if node["slug"] == "g9")
         assert g9["kind"] == "GRADE"
         chapter_slugs = [child["slug"] for child in g9["children"]]

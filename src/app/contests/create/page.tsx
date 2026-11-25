@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { useTranslation } from "react-i18next";
-import { ContestService } from "@/services/ApiService";
-import { useAuth } from "@/context/AuthContext";
-import { palette } from "@/theme/tokens";
-import PageHeader from "@/components/common/PageHeader";
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
+import { ContestService } from '@/services/ApiService';
+import { useAuth } from '@/context/AuthContext';
+import { palette } from '@/theme/tokens';
+import PageHeader from '@/components/common/PageHeader';
 
 /**
  * CON-9 — community contest creation (mashups). CREATOR/TEACHER roles may
@@ -19,46 +19,48 @@ export default function CreateContestPage() {
   const auth = useAuth();
   const router = useRouter();
 
-  const [titleEn, setTitleEn] = useState("");
-  const [titleRo, setTitleRo] = useState("");
-  const [startAt, setStartAt] = useState("");
-  const [endAt, setEndAt] = useState("");
-  const [accessCode, setAccessCode] = useState("");
-  const [problemIds, setProblemIds] = useState("");
+  const [titleEn, setTitleEn] = useState('');
+  const [titleRo, setTitleRo] = useState('');
+  const [startAt, setStartAt] = useState('');
+  const [endAt, setEndAt] = useState('');
+  const [accessCode, setAccessCode] = useState('');
+  const [hideBoard, setHideBoard] = useState(false);
+  const [problemIds, setProblemIds] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   // Backend serializes the short enum values (CREATOR/TEACHER/ADMIN); the
   // legacy long spelling PROBLEM_CREATOR is accepted defensively.
-  const role = auth.user?.role ?? "";
+  const role = auth.user?.role ?? '';
   const allowed =
-    auth.isAuthenticated && ["CREATOR", "TEACHER", "ADMIN", "PROBLEM_CREATOR"].includes(role);
+    auth.isAuthenticated && ['CREATOR', 'TEACHER', 'ADMIN', 'PROBLEM_CREATOR'].includes(role);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError(null);
     const ids = problemIds
-      .split(",")
+      .split(',')
       .map((token) => Number.parseInt(token.trim(), 10))
       .filter((value) => Number.isInteger(value) && value > 0);
     setBusy(true);
     try {
       const contest = await ContestService.createContest({
         title_i18n: { en: titleEn, ro: titleRo || titleEn },
-        visibility: "PRIVATE",
+        visibility: 'PRIVATE',
         access_code: accessCode,
         is_rated: false,
-        format: "IOI",
+        format: 'IOI',
         start_at: new Date(startAt).toISOString(),
         end_at: new Date(endAt).toISOString(),
         problem_ids: ids,
+        hide_scoreboard_until_end: hideBoard,
       });
       router.push(`/contests/${contest.id}`);
     } catch (err) {
       setError(
         err instanceof Error && err.message
           ? err.message
-          : t("contest_create_error", "Could not create the contest."),
+          : t('contest_create_error', 'Could not create the contest.'),
       );
     } finally {
       setBusy(false);
@@ -67,45 +69,45 @@ export default function CreateContestPage() {
 
   if (!allowed) {
     return (
-      <main style={{ maxWidth: 760, margin: "0 auto", padding: "24px 16px" }}>
+      <main style={{ maxWidth: 760, margin: '0 auto', padding: '24px 16px' }}>
         <PageHeader
-          title={t("contest_create_title", "New community contest")}
+          title={t('contest_create_title', 'New community contest')}
           subtitle={t(
-            "contest_create_not_allowed",
-            "Community contests are created by teachers and verified creators.",
+            'contest_create_not_allowed',
+            'Community contests are created by teachers and verified creators.',
           )}
         />
         <Link href="/contests" style={{ color: palette.accent }}>
-          ← {t("contests_back", "Back to contests")}
+          ← {t('contests_back', 'Back to contests')}
         </Link>
       </main>
     );
   }
 
   const fieldStyle = {
-    display: "block",
-    width: "100%",
+    display: 'block',
+    width: '100%',
     maxWidth: 420,
     padding: 8,
     marginBottom: 12,
     borderRadius: 8,
     border: `1px solid ${palette.border}`,
-    background: "transparent",
+    background: 'transparent',
     color: palette.foreground,
   } as const;
 
   return (
-    <main style={{ maxWidth: 760, margin: "0 auto", padding: "24px 16px" }}>
+    <main style={{ maxWidth: 760, margin: '0 auto', padding: '24px 16px' }}>
       <PageHeader
-        title={t("contest_create_title", "New community contest")}
+        title={t('contest_create_title', 'New community contest')}
         subtitle={t(
-          "contest_create_subtitle",
-          "Private, unrated mashups assembled from the approved problem pool.",
+          'contest_create_subtitle',
+          'Private, unrated mashups assembled from the approved problem pool.',
         )}
       />
-      <form onSubmit={submit} style={{ display: "grid" }}>
+      <form onSubmit={submit} style={{ display: 'grid' }}>
         <label htmlFor="cc-title-en">
-          {t("contest_create_title_en", "Title (English)")}
+          {t('contest_create_title_en', 'Title (English)')}
           <input
             id="cc-title-en"
             style={fieldStyle}
@@ -116,7 +118,7 @@ export default function CreateContestPage() {
           />
         </label>
         <label htmlFor="cc-title-ro">
-          {t("contest_create_title_ro", "Title (Romanian)")}
+          {t('contest_create_title_ro', 'Title (Romanian)')}
           <input
             id="cc-title-ro"
             style={fieldStyle}
@@ -125,7 +127,7 @@ export default function CreateContestPage() {
           />
         </label>
         <label htmlFor="cc-start">
-          {t("contest_create_start", "Starts at")}
+          {t('contest_create_start', 'Starts at')}
           <input
             id="cc-start"
             type="datetime-local"
@@ -136,7 +138,7 @@ export default function CreateContestPage() {
           />
         </label>
         <label htmlFor="cc-end">
-          {t("contest_create_end", "Ends at")}
+          {t('contest_create_end', 'Ends at')}
           <input
             id="cc-end"
             type="datetime-local"
@@ -147,7 +149,7 @@ export default function CreateContestPage() {
           />
         </label>
         <label htmlFor="cc-code">
-          {t("contest_create_code", "Access code")}
+          {t('contest_create_code', 'Access code')}
           <input
             id="cc-code"
             style={fieldStyle}
@@ -157,8 +159,20 @@ export default function CreateContestPage() {
             minLength={4}
           />
         </label>
+        <label
+          htmlFor="cc-hide-board"
+          style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.9rem' }}
+        >
+          <input
+            id="cc-hide-board"
+            type="checkbox"
+            checked={hideBoard}
+            onChange={(e) => setHideBoard(e.target.checked)}
+          />
+          {t('contests_hide_scoreboard_label', 'Hide the scoreboard until the contest ends')}
+        </label>
         <label htmlFor="cc-problems">
-          {t("contest_create_problems", "Problem IDs (comma-separated, in board order)")}
+          {t('contest_create_problems', 'Problem IDs (comma-separated, in board order)')}
           <input
             id="cc-problems"
             style={fieldStyle}
@@ -176,9 +190,9 @@ export default function CreateContestPage() {
         <button
           type="submit"
           disabled={busy}
-          style={{ padding: "10px 18px", justifySelf: "start" }}
+          style={{ padding: '10px 18px', justifySelf: 'start' }}
         >
-          {t("contest_create_submit", "Create contest")}
+          {t('contest_create_submit', 'Create contest')}
         </button>
       </form>
     </main>

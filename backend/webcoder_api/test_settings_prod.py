@@ -6,13 +6,10 @@ pattern as webcoder_api/test_webcoder_api.py::_exec_settings) so every
 branch is exercised without reloading Django's configured settings.
 """
 
-import importlib
 import os
 import pathlib
 
 import pytest
-
-import webcoder_api.settings_prod as _prod_module
 
 
 def _exec_module(relpath, module_name):
@@ -20,13 +17,12 @@ def _exec_module(relpath, module_name):
     import webcoder_api.settings as project_settings
 
     src = pathlib.Path(project_settings.__file__).parent / relpath
-    import importlib.util
-
-    spec = importlib.util.spec_from_file_location(module_name, src)
-    assert spec is not None and spec.loader is not None
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return vars(module)
+    code = compile(src.read_text(encoding="utf-8"), str(src), "exec")
+    namespace = {"__file__": str(src), "__name__": module_name}
+    # opengrep:ignore - test-only exec of THIS REPO'S settings source
+    # (compiled above from webcoder_api/), asserting import-time behavior.
+    exec(code, namespace)  # noqa: S102  # nosemgrep
+    return namespace
 
 
 def _exec_settings():
@@ -80,6 +76,10 @@ def test_base_empty_env_vars_yield_empty_lists(monkeypatch):
 # ---------------------------------------------------------------------------
 # Production profile: settings_prod.py
 # ---------------------------------------------------------------------------
+
+import importlib
+
+import webcoder_api.settings_prod as _prod_module
 
 
 @pytest.fixture(autouse=True)

@@ -245,6 +245,10 @@ class TestBeatSchedule:
             "owner-weekly-metrics",  # ANA-1 (Wave D): Monday snapshot
             "weekly-digest",  # UXP-5b: weekly practice digest (no-ops
             # without EMAIL_HOST — see RUNBOOK §email)
+            "award-monthly-contributors",  # Wave F item 67: monthly
+            # contributor-of-the-month (self-guarded, idempotent)
+            "error-events-purge",  # Wave G item 145: 30-day error-event
+            # retention (the D-B10 purge pattern)
         }
         assert (
             CELERY_BEAT_SCHEDULE["leaderboard-nightly-recompute"]["task"]
@@ -316,7 +320,9 @@ class TestPruneOldTestOutputs:
         assert old_result.verdict == Submission.VerdictStatus.ACCEPTED
 
     def test_idempotent_second_run(self):
-        _sub, result = self._make(days_old=200, output="x")
+        # The fixture pair's return values are deliberately discarded here:
+        # this run only exercises pruning over rows the helper created.
+        self._make(days_old=200, output="x")
         assert prune_old_test_outputs() == 1
         # Already blank → excluded by the .exclude() filter, returns 0.
         assert prune_old_test_outputs() == 0

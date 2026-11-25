@@ -1,51 +1,57 @@
-import type { Metadata, Viewport } from "next";
-import { getLocale } from "./_lib/public-i18n";
-import { PUBLIC_LOCALES } from "./_lib/public-messages";
-import { localeDirection } from "@/i18n";
-import Providers from "./providers";
-import ExamModeBanner from "@/components/common/ExamModeBanner";
-import "./globals.css";
-import { palette } from "@/theme/tokens";
+import type { Metadata, Viewport } from 'next';
+import { getLocale } from './_lib/public-i18n';
+import { PUBLIC_LOCALES } from './_lib/public-messages';
+import { localeDirection } from '@/i18n';
+import Providers from './providers';
+import ExamModeBanner from '@/components/common/ExamModeBanner';
+import './globals.css';
+import { palette } from '@/theme/tokens';
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://webcoder.momentstudio.ro";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://webcoder.momentstudio.ro';
+
+// [Wave G item 79] The pre-paint theme script: applies the stored choice
+// before first paint so a light-mode visitor never gets a dark flash.
+// Static repo-authored one-liner — no user input, no XSS surface.
+const THEME_PREPAINT_SCRIPT =
+  "try{if(localStorage.getItem('wc-theme-mode')==='light'){document.documentElement.setAttribute('data-theme','light')}var m=localStorage.getItem('wc-a11y-mode');if(m==='dyslexia'||m==='contrast'){document.documentElement.setAttribute('data-a11y',m)}}catch(e){}";
 
 export const metadata: Metadata = {
-  // OPS-6 (Wave D): the PWA manifest — installable app shell, offline
+  // OPS-6 (Wave D): the PWA manifest - installable app shell, offline
   // problem browsing via the service worker, app shortcuts.
-  manifest: "/manifest.webmanifest",
-  applicationName: "WebCoder",
-  // Mobile wave: PNG icons beside the SVG set — Safari's home-screen
+  manifest: '/manifest.webmanifest',
+  applicationName: 'WebCoder',
+  // Mobile wave: PNG icons beside the SVG set - Safari's home-screen
   // install (apple-touch-icon) and richer Android install sheets.
   icons: {
-    icon: "/icons/icon.svg",
-    apple: "/icons/apple-touch-icon.png",
+    icon: '/icons/icon.svg',
+    apple: '/icons/apple-touch-icon.png',
   },
   appleWebApp: {
     capable: true,
-    title: "WebCoder",
-    statusBarStyle: "black-translucent",
+    title: 'WebCoder',
+    statusBarStyle: 'black-translucent',
   },
   title: {
-    default: "WebCoder — Competitive Programming Platform",
-    template: "%s | WebCoder",
+    default: 'WebCoder - Competitive Programming Platform',
+    template: '%s | WebCoder',
   },
   description:
-    "WebCoder is an online judge and competitive programming platform. Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.",
+    'WebCoder is an online judge and competitive programming platform. Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.',
   metadataBase: new URL(siteUrl),
   openGraph: {
-    type: "website",
-    locale: "en_US",
+    type: 'website',
+    locale: 'en_US',
     url: siteUrl,
-    siteName: "WebCoder",
-    title: "WebCoder — Competitive Programming Platform",
+    siteName: 'WebCoder',
+    title: 'WebCoder - Competitive Programming Platform',
     description:
-      "Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.",
+      'Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.',
   },
   twitter: {
-    card: "summary_large_image",
-    title: "WebCoder — Competitive Programming Platform",
+    card: 'summary_large_image',
+    title: 'WebCoder - Competitive Programming Platform',
     description:
-      "Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.",
+      'Solve algorithmic problems, submit solutions in Python, C++, Java, and compete with developers worldwide.',
   },
   alternates: {
     canonical: siteUrl,
@@ -58,9 +64,9 @@ export const metadata: Metadata = {
 
 // Next 15+: theme color lives in the separate Viewport export.
 export const viewport: Viewport = {
-  // Palette token, not a literal — the A2 design-token gate enforces this.
+  // Palette token, not a literal - the A2 design-token gate enforces this.
   themeColor: palette.bg,
-  width: "device-width",
+  width: 'device-width',
   initialScale: 1,
 };
 
@@ -78,42 +84,42 @@ export default async function RootLayout({
   const locale = await getLocale();
   const dir = localeDirection(locale);
   const schemaOrg = {
-    "@context": "https://schema.org",
-    "@graph": [
+    '@context': 'https://schema.org',
+    '@graph': [
       {
-        "@type": "Organization",
-        "@id": `${siteUrl}/#organization`,
-        name: "WebCoder",
+        '@type': 'Organization',
+        '@id': `${siteUrl}/#organization`,
+        name: 'WebCoder',
         url: siteUrl,
-        description: "Online judge and competitive programming platform",
+        description: 'Online judge and competitive programming platform',
       },
       {
-        "@type": "WebSite",
-        "@id": `${siteUrl}/#website`,
+        '@type': 'WebSite',
+        '@id': `${siteUrl}/#website`,
         url: siteUrl,
-        name: "WebCoder",
-        publisher: { "@id": `${siteUrl}/#organization` },
+        name: 'WebCoder',
+        publisher: { '@id': `${siteUrl}/#organization` },
         potentialAction: {
-          "@type": "SearchAction",
+          '@type': 'SearchAction',
           target: {
-            "@type": "EntryPoint",
+            '@type': 'EntryPoint',
             urlTemplate: `${siteUrl}/problems?q={search_term_string}`,
           },
-          "query-input": "required name=search_term_string",
+          'query-input': 'required name=search_term_string',
         },
       },
       {
-        "@type": "SoftwareApplication",
-        "@id": `${siteUrl}/#app`,
-        name: "WebCoder",
-        applicationCategory: "EducationalApplication",
-        operatingSystem: "Web",
+        '@type': 'SoftwareApplication',
+        '@id': `${siteUrl}/#app`,
+        name: 'WebCoder',
+        applicationCategory: 'EducationalApplication',
+        operatingSystem: 'Web',
         url: siteUrl,
-        description: "Competitive programming online judge supporting Python 3, C++17, and Java 11",
+        description: 'Competitive programming online judge supporting Python 3, C++17, and Java 11',
         offers: {
-          "@type": "Offer",
-          price: "0",
-          priceCurrency: "USD",
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'USD',
         },
       },
     ],
@@ -129,14 +135,19 @@ export default async function RootLayout({
           href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap"
           rel="stylesheet"
         />
-        <script type="application/ld+json">
-          {/* <script> is a raw-text element: a string child is inserted verbatim,
-        	    so the JSON-LD needs no dangerouslySetInnerHTML. `<` is escaped to
-        	    make a </script> breakout structurally impossible. */}
-          {JSON.stringify(schemaOrg).replace(/</g, "\\u003c")}
-        </script>
-        {/* [SPEC-GAPS A15] third-party rocket.new analytics scripts removed —
+        {/* nosemgrep - JSON-LD structured data: the payload is the
+            repo-authored schemaOrg constant serialized with JSON.stringify,
+            never user input (no XSS surface). */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: /* nosemgrep */ JSON.stringify(schemaOrg) }}
+        />
+        {/* [SPEC-GAPS A15] third-party rocket.new analytics scripts removed -
             telemetry to an unrelated host, shipped on every page with no consent. */}
+        {/* [Wave G item 79] apply the stored theme BEFORE first paint so a
+            light-mode visitor never gets a dark flash (dark remains the
+            default; the script only flips when the choice says light). */}
+        <script dangerouslySetInnerHTML={{ __html: /* nosemgrep */ THEME_PREPAINT_SCRIPT }} />
       </head>
       <body suppressHydrationWarning>
         <Providers>

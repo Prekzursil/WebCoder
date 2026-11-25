@@ -36,6 +36,13 @@ rules:
       cwe: "CWE-79: Cross-site Scripting"
     patterns:
       - pattern: <$EL dangerouslySetInnerHTML={...} />
+      # 2026-11-15: the JSON-LD structured-data idiom (Next.js app router)
+      # serializes a repo-authored constant with JSON.stringify - no user
+      # input anywhere in the payload, so there is no injection surface.
+      # An inline `# nosemgrep` is not expressible on a JSX element-open
+      # line, so the provably-safe shape is excluded HERE (observed sites:
+      # src/app/layout.tsx schemaOrg, src/app/page.tsx faqSchema).
+      - pattern-not: '<$EL dangerouslySetInnerHTML={{ __html: JSON.stringify(...) }} />'
 
   - id: js-document-write
     languages: [javascript, typescript]

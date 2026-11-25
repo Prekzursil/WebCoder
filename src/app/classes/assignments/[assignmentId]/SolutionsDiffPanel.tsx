@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import React, { useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { ClassroomService } from "@/services/ApiService";
-import type { AssignmentSolutionRow } from "@/types/api";
-import { palette } from "@/theme/tokens";
+import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { ClassroomService } from '@/services/ApiService';
+import type { AssignmentSolutionRow } from '@/types/api';
+import { palette } from '@/theme/tokens';
 
 /**
  * JDG-13 v1 — the teacher's side-by-side solutions view for one temă.
@@ -28,7 +28,7 @@ export default function SolutionsDiffPanel({ assignmentId }: { assignmentId: num
         if (!cancelled) setRows(data.results);
       })
       .catch(() => {
-        if (!cancelled) setDenied(t("diff_denied", "Only the teacher can compare solutions."));
+        if (!cancelled) setDenied(t('diff_denied', 'Only the teacher can compare solutions.'));
       });
     return () => {
       cancelled = true;
@@ -48,7 +48,7 @@ export default function SolutionsDiffPanel({ assignmentId }: { assignmentId: num
 
   if (denied) {
     return (
-      <section aria-label={t("diff_title", "Compare solutions")} data-testid="solutions-diff">
+      <section aria-label={t('diff_title', 'Compare solutions')} data-testid="solutions-diff">
         <p style={{ color: palette.muted }}>🔒 {denied}</p>
       </section>
     );
@@ -60,28 +60,28 @@ export default function SolutionsDiffPanel({ assignmentId }: { assignmentId: num
   const right = candidates.find((row) => row.id === rightId) ?? null;
 
   return (
-    <section aria-label={t("diff_title", "Compare solutions")} data-testid="solutions-diff">
-      <h3>{t("diff_title", "Compare solutions")}</h3>
-      <p style={{ color: palette.muted, fontSize: "0.8rem" }}>
+    <section aria-label={t('diff_title', 'Compare solutions')} data-testid="solutions-diff">
+      <h3>{t('diff_title', 'Compare solutions')}</h3>
+      <p style={{ color: palette.muted, fontSize: '0.8rem' }}>
         {t(
-          "diff_note",
-          "Advisory only: similarity is a human judgement here, and confirmed cheating goes through the DQ flow — nothing is automatic.",
+          'diff_note',
+          'Advisory only: similarity is a human judgement here, and confirmed cheating goes through the DQ flow — nothing is automatic.',
         )}
       </p>
-      <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", margin: "0.75rem 0" }}>
-        <label style={{ fontSize: "0.8rem", color: palette.muted }}>
-          {t("diff_problem", "Problem")}
+      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', margin: '0.75rem 0' }}>
+        <label style={{ fontSize: '0.8rem', color: palette.muted }}>
+          {t('diff_problem', 'Problem')}
           <select
-            value={problemFilter ?? ""}
+            value={problemFilter ?? ''}
             onChange={(e) => {
               setProblemFilter(e.target.value ? Number(e.target.value) : null);
               setLeftId(null);
               setRightId(null);
             }}
-            style={{ marginLeft: "0.5rem" }}
+            style={{ marginLeft: '0.5rem' }}
             data-testid="diff-problem"
           >
-            <option value="">{t("diff_all_problems", "All")}</option>
+            <option value="">{t('diff_all_problems', 'All')}</option>
             {problems.map(([pid, n]) => (
               <option key={pid} value={pid}>
                 #{pid} ({n})
@@ -89,17 +89,17 @@ export default function SolutionsDiffPanel({ assignmentId }: { assignmentId: num
             ))}
           </select>
         </label>
-        {(["left", "right"] as const).map((side) => (
-          <label key={side} style={{ fontSize: "0.8rem", color: palette.muted }}>
-            {side === "left" ? t("diff_left", "Student A") : t("diff_right", "Student B")}
+        {(['left', 'right'] as const).map((side) => (
+          <label key={side} style={{ fontSize: '0.8rem', color: palette.muted }}>
+            {side === 'left' ? t('diff_left', 'Student A') : t('diff_right', 'Student B')}
             <select
-              value={side === "left" ? (leftId ?? "") : (rightId ?? "")}
+              value={side === 'left' ? (leftId ?? '') : (rightId ?? '')}
               onChange={(e) =>
-                (side === "left" ? setLeftId : setRightId)(
+                (side === 'left' ? setLeftId : setRightId)(
                   e.target.value ? Number(e.target.value) : null,
                 )
               }
-              style={{ marginLeft: "0.5rem" }}
+              style={{ marginLeft: '0.5rem' }}
               data-testid={`diff-${side}`}
             >
               <option value="">—</option>
@@ -115,10 +115,10 @@ export default function SolutionsDiffPanel({ assignmentId }: { assignmentId: num
       {left && right && (
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "0.75rem",
-            marginTop: "0.75rem",
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '0.75rem',
+            marginTop: '0.75rem',
           }}
           data-testid="diff-columns"
         >
@@ -127,32 +127,32 @@ export default function SolutionsDiffPanel({ assignmentId }: { assignmentId: num
               key={row.id}
               style={{
                 border: `1px solid ${palette.border}`,
-                borderRadius: "8px",
-                overflow: "hidden",
+                borderRadius: '8px',
+                overflow: 'hidden',
               }}
             >
               <div
                 style={{
-                  padding: "0.4rem 0.75rem",
+                  padding: '0.4rem 0.75rem',
                   borderBottom: `1px solid ${palette.border}`,
-                  fontSize: "0.8rem",
+                  fontSize: '0.8rem',
                   color: palette.muted,
-                  background: "rgba(255,255,255,0.03)",
+                  background: 'rgba(255,255,255,0.03)',
                 }}
               >
-                {idx === 0 ? "A" : "B"} · {row.username} · {row.language} ·{" "}
+                {idx === 0 ? 'A' : 'B'} · {row.username} · {row.language} ·{' '}
                 {new Date(row.submission_time).toLocaleString()}
               </div>
               <pre
                 style={{
                   margin: 0,
-                  padding: "0.75rem",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "0.78rem",
+                  padding: '0.75rem',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.78rem',
                   lineHeight: 1.6,
-                  overflowX: "auto",
-                  maxHeight: "480px",
-                  whiteSpace: "pre",
+                  overflowX: 'auto',
+                  maxHeight: '480px',
+                  whiteSpace: 'pre',
                 }}
               >
                 {row.code}

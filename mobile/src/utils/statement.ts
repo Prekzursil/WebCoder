@@ -3,11 +3,11 @@
 // rule (d)), and surface the translation-contribution affordance when the
 // chosen language has no statement.
 
-import type { Locale } from "../i18n";
+import type { Locale } from '../i18n';
+import type { TranslationAttribution } from '../types/api';
 
 /** Locale argument: a registry Locale or any resolved i18n key. */
 export type LocaleArg = Locale | string;
-import type { TranslationAttribution } from "../types/api";
 
 export interface LocalizedTextSource {
   title_i18n?: Record<string, string>;
@@ -32,26 +32,26 @@ export function resolveLocalized(
   source: Record<string, string> | undefined,
   locale: LocaleArg,
 ): ResolvedText {
-  if (!source) return { text: "", resolvedLocale: "", native: false };
+  if (!source) return { text: '', resolvedLocale: '', native: false };
   const direct = source[locale];
-  if (direct !== undefined && direct !== "") {
+  if (direct !== undefined && direct !== '') {
     return { text: direct, resolvedLocale: locale, native: true };
   }
-  const prefix = locale.split("-")[0];
+  const prefix = locale.split('-')[0];
   const prefixKey = Object.keys(source).find(
-    (key) => key === prefix || key.split("-")[0] === prefix,
+    (key) => key === prefix || key.split('-')[0] === prefix,
   );
-  if (prefixKey !== undefined && source[prefixKey] !== "") {
+  if (prefixKey !== undefined && source[prefixKey] !== '') {
     return { text: source[prefixKey], resolvedLocale: prefixKey, native: true };
   }
-  if (source.en !== undefined && source.en !== "") {
-    return { text: source.en, resolvedLocale: "en", native: false };
+  if (source.en !== undefined && source.en !== '') {
+    return { text: source.en, resolvedLocale: 'en', native: false };
   }
   const anyKey = Object.keys(source)[0];
   if (anyKey !== undefined) {
     return { text: source[anyKey], resolvedLocale: anyKey, native: false };
   }
-  return { text: "", resolvedLocale: "", native: false };
+  return { text: '', resolvedLocale: '', native: false };
 }
 
 export function problemTitle(problem: LocalizedTextSource, locale: LocaleArg): ResolvedText {
@@ -74,8 +74,8 @@ export function translationCredit(problem: LocalizedTextSource, locale: LocaleAr
  * (the i18n wave's translation-contribution surface).
  */
 export function needsTranslation(problem: LocalizedTextSource, locale: LocaleArg): boolean {
-  const prefix = locale.split("-")[0];
+  const prefix = locale.split('-')[0];
   return !Object.keys(problem.statement_i18n ?? {}).some(
-    (key) => key === locale || key.split("-")[0] === prefix,
+    (key) => key === locale || key.split('-')[0] === prefix,
   );
 }

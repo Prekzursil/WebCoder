@@ -11,7 +11,7 @@ import {
   TagType,
   TestCaseType,
   User,
-} from ".";
+} from '.';
 
 // =================================
 // Pagination envelopes (SPEC-GAPS B4)
@@ -44,7 +44,7 @@ export interface CursorPaginatedResponse<T> {
 export function cursorParamFromUrl(url: string | null | undefined): string | null {
   if (!url) return null;
   try {
-    return new URL(url).searchParams.get("cursor");
+    return new URL(url).searchParams.get('cursor');
   } catch {
     return null;
   }
@@ -193,6 +193,8 @@ export interface AssignmentSolutionsResponse {
 export interface LanguageRow {
   id: string;
   name: string;
+  /** [wave E item 18] the pinned toolchain string (registry single source). */
+  toolchain?: string;
   compile_command: string[];
   run_command: string[];
   /** Language-fair limits (J5): the judge's exact multipliers. */
@@ -251,12 +253,12 @@ export interface ForumReport {
 // =================================
 
 export type NotificationVerb =
-  | "SUBMISSION_JUDGED"
-  | "THREAD_REPLY"
-  | "PROBLEM_APPROVED"
-  | "PROBLEM_REJECTED"
-  | "MESSAGE_RECEIVED"
-  | "SYSTEM";
+  | 'SUBMISSION_JUDGED'
+  | 'THREAD_REPLY'
+  | 'PROBLEM_APPROVED'
+  | 'PROBLEM_REJECTED'
+  | 'MESSAGE_RECEIVED'
+  | 'SYSTEM';
 
 /** Notification as returned by the list/mark-read endpoints. */
 export interface ApiNotification {
@@ -326,9 +328,9 @@ export interface ApiMessageReport {
   id: number;
   message: ApiPrivateMessage & { is_flagged?: boolean };
   reporter: MessagingUser;
-  reason: "SPAM" | "ABUSE" | "GROOMING" | "OTHER";
+  reason: 'SPAM' | 'ABUSE' | 'GROOMING' | 'OTHER';
   details: string;
-  status: "OPEN" | "RESOLVED" | "DISMISSED";
+  status: 'OPEN' | 'RESOLVED' | 'DISMISSED';
   resolution_note: string;
   resolved_by: MessagingUser | null;
   created_at: string;
@@ -369,9 +371,9 @@ export interface Contest {
   id: number;
   title_i18n: LocalizedText;
   description_i18n: LocalizedText;
-  visibility: "PUBLIC" | "PRIVATE";
+  visibility: 'PUBLIC' | 'PRIVATE';
   is_rated: boolean;
-  format: "IOI" | "ICPC" | "ATCODER";
+  format: 'IOI' | 'ICPC' | 'ATCODER';
   start_at: string;
   end_at: string;
   freeze_at: string | null;
@@ -380,12 +382,18 @@ export interface Contest {
   pretest_mode: boolean;
   rated_rating_min: number | null;
   rated_rating_max: number | null;
+  /** Item 54 — the multi-day Long-Challenge axis. */
+  is_long_contest?: boolean;
+  /** Items 49/50 — ICPC-style teams and school-scoped cups. */
+  is_team_contest?: boolean;
+  is_school_cup?: boolean;
+  school_name?: string;
   created_by: number;
   created_by_username: string;
   // OPS-7 (Wave D, groundwork): display-only sponsor attribution.
   sponsor_name?: string;
   sponsor_logo_url?: string;
-  state: "UPCOMING" | "RUNNING" | "FINISHED";
+  state: 'UPCOMING' | 'RUNNING' | 'FINISHED';
   problem_count: number;
   participant_count: number;
   contest_problems?: ContestProblemRow[];
@@ -433,12 +441,15 @@ export interface StandingsRow {
 export interface StandingsResponse extends PaginatedResponse<StandingsRow> {
   format: string;
   frozen: boolean;
-  section?: "official" | "virtual";
+  /** DMOJ/campion hidden boards: true while a hide_scoreboard_until_end
+   * contest runs and the viewer is not an organizer (empty results). */
+  hidden?: boolean;
+  section?: 'official' | 'virtual';
 }
 
 export interface ContestAwardRow {
   rank: number;
-  medal: "GOLD" | "SILVER" | "BRONZE";
+  medal: 'GOLD' | 'SILVER' | 'BRONZE';
   user: { id: number; username: string };
 }
 
@@ -459,6 +470,102 @@ export interface Clarification {
   is_broadcast: boolean;
   is_hidden: boolean;
   created_at: string;
+}
+
+// ---- Wave F contest depth (items 48/54/56/57/58) ----
+
+/** Item 56 — organizer commentary lines pinned to minute offsets. */
+export interface ContestCommentaryRow {
+  id: number;
+  author: number;
+  author_username: string;
+  minute_offset: number;
+  text: string;
+  created_at: string;
+}
+
+export interface ContestCommentaryResponse {
+  count: number;
+  results: ContestCommentaryRow[];
+}
+
+/** Item 48 — a submitted counter-test against another participant. */
+export interface HackRow {
+  id: number;
+  contest: number;
+  problem_label: string;
+  hacker: number;
+  hacker_username: string;
+  target_id: number;
+  target_username: string;
+  input_data: string;
+  verdict: 'PENDING' | 'SUCCESSFUL' | 'UNSUCCESSFUL' | 'INVALID';
+  feedback: string;
+  judged_at: string | null;
+  created_at: string;
+}
+
+export interface HacksResponse {
+  count: number;
+  results: HackRow[];
+  window_open: boolean;
+}
+
+/** A hackable solution (lock-gated, code included — reading is the game). */
+export interface HackTargetRow {
+  id: number;
+  user: { username: string };
+  problem_id: number;
+  problem_label: string;
+  language: string;
+  verdict: string;
+  score: number;
+  code: string;
+  submission_time: string;
+}
+
+export interface HackTargetsResponse {
+  count: number;
+  results: HackTargetRow[];
+}
+
+/** Item 57 — one user's contest timeline. */
+export interface ReplayEvent {
+  minute_offset: number;
+  problem_label: string;
+  problem_id: number;
+  verdict: string;
+  score: number;
+  problem_best: number;
+  problem_max: number;
+  total: number;
+  submission_id: number;
+}
+
+export interface ContestReplay {
+  contest: number;
+  username: string;
+  is_virtual: boolean;
+  events: ReplayEvent[];
+  final_rank: number | null;
+  rating_change: { delta: number; rating: number } | null;
+}
+
+/** Item 58 — the frozen-board suspense view. */
+export interface DramaRow {
+  rank: number;
+  user: { id: number; username: string };
+  score: number;
+  solved: number;
+  hidden_submissions: number;
+}
+
+export interface ContestDrama {
+  is_frozen: boolean;
+  freeze_at: string | null;
+  reveal_at: string;
+  seconds_until_reveal: number;
+  results: DramaRow[];
 }
 
 export interface RatingBand {
@@ -496,6 +603,31 @@ export interface MyRating {
   band: RatingBand;
 }
 
+/** One point on the per-user rating chart (RAT-1 profile graph). */
+export interface RatingHistoryEntry {
+  contest: number;
+  contest_title: Record<string, string> | null;
+  end_at: string;
+  rank: number;
+  rating: number;
+  display_rating: number;
+  delta: number;
+  rating_before: number;
+}
+
+/** GET /ratings/ratings/users/{username}/ — public rating profile block. */
+export interface UserRatingHistory {
+  username: string;
+  /** Matrix row 59: the self-authored bio (empty string when unset). */
+  bio?: string;
+  rating: MyRating;
+  history: RatingHistoryEntry[];
+  /** Wave F item 51 — per-history-index graph annotations. */
+  annotations?: Record<string, RatingGraphAnnotation>;
+  /** Wave F item 53 — the current division chip. */
+  division?: string | null;
+}
+
 // =================================
 // Classroom (backend classroom app, Wave B EDU-1/2/3/5/6)
 // =================================
@@ -505,6 +637,8 @@ export interface ClassRoom {
   name: string;
   school: string;
   join_code?: string;
+  /** [wave G item 99] joins require the password (echoed as a flag only). */
+  has_password?: boolean;
   is_open: boolean;
   created_at: string;
   teacher_username: string;
@@ -536,11 +670,11 @@ export interface ClassroomAssignment {
   due_at: string;
   late_until: string | null;
   is_exam: boolean;
-  kind: "PROBLEMS" | "QUIZ" | "FILES";
+  kind: 'PROBLEMS' | 'QUIZ' | 'FILES';
   quiz_shuffle: boolean;
   file_extensions: string;
   max_file_mb: number;
-  state: "SCHEDULED" | "OPEN" | "CLOSED";
+  state: 'SCHEDULED' | 'OPEN' | 'CLOSED';
   solved_count?: number;
   assignment_problems?: {
     id: number;
@@ -598,7 +732,7 @@ export interface QuizSheetItem {
 
 export interface QuizSheet {
   assignment: number;
-  kind: "QUIZ";
+  kind: 'QUIZ';
   shuffle: boolean;
   state: string;
   items: QuizSheetItem[];
@@ -637,13 +771,47 @@ export interface CommunityEditorialRow {
   author_username: string;
   title: string;
   body: string;
-  lang: "ro" | "en";
-  status: "DRAFT" | "PENDING" | "APPROVED" | "REJECTED";
+  lang: 'ro' | 'en';
+  status: 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED';
   verifier_feedback: string;
   is_hidden: boolean;
   license: string;
   created_at: string;
   updated_at: string;
+}
+
+/** Matrix row 6 — related/similar problems (shared-tag ranking). */
+export interface RelatedProblemRow {
+  id: number;
+  title_i18n: LocalizedText;
+  difficulty: string;
+  shared_tags: number;
+}
+
+/** X12 — curated study tracks (competitive matrix row 8). */
+export interface TrackRow {
+  slug: string;
+  title_i18n: LocalizedText;
+  description_i18n: LocalizedText;
+  owner_username: string;
+  is_public: boolean;
+  is_owner: boolean;
+  item_count: number;
+  solved_count: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TrackItemRow {
+  problem_id: number;
+  title_i18n: LocalizedText;
+  difficulty: string;
+  position: number;
+  is_solved: boolean;
+}
+
+export interface TrackDetail extends TrackRow {
+  items: TrackItemRow[];
 }
 
 export interface ArticleRow {
@@ -654,7 +822,7 @@ export interface ArticleRow {
   tags: { slug: string }[];
   author: number;
   author_username: string;
-  status: "DRAFT" | "PENDING" | "APPROVED" | "REJECTED";
+  status: 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED';
   verifier_feedback: string;
   is_hidden: boolean;
   license: string;
@@ -684,9 +852,13 @@ export interface SolutionRow {
   user: string;
   language: string;
   code: string;
+  /** [wave E item 11] source length (the "shortest" showcase axis). */
+  code_length?: number;
   execution_time_ms: number | null;
   memory_used_kb: number | null;
   submission_time: string;
+  /** [wave F item 61] the author-chosen sharing license. */
+  license?: string;
 }
 
 export interface SolutionsResponse {
@@ -734,12 +906,12 @@ export interface TranslationProposalRow {
   language_name: string;
   title: string;
   statement: string;
-  status: "PENDING" | "APPROVED" | "REJECTED";
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
   contributor_username: string;
   reviewer_username: string | null;
   review_note: string;
   reviewed_at: string | null;
-  ai_verdict: "" | "approve" | "flag" | "error";
+  ai_verdict: '' | 'approve' | 'flag' | 'error';
   ai_confidence: number | null;
   ai_notes: string;
   created_at: string;
@@ -753,4 +925,361 @@ export interface TranslationAttribution {
   language: string;
   contributor_username: string;
   reviewed_at: string | null;
+}
+
+/** [Wave D certifications] One atestat row — see backend
+ *  certificates/models.py. `details` is the frozen achievement snapshot
+ *  (rank / rating_after / solved / contest titles by kind). */
+export interface CertificateType {
+  uuid: string;
+  serial: string;
+  kind: 'CONTEST_PARTICIPATION' | 'RATING_MILESTONE' | 'SOLVE_MILESTONE';
+  status: 'VALID' | 'REVOKED';
+  holder: string;
+  details: {
+    rank?: number;
+    rating_after?: number;
+    solved?: number;
+    threshold?: number;
+    rating?: number;
+    contest_id?: number;
+    contest_title_en?: string;
+    contest_title_ro?: string;
+    contest_end?: string;
+  };
+  issued_at: string;
+  revoked_at: string | null;
+  revoked_reason: string;
+}
+
+export type GetMyCertificatesResponse = PaginatedResponse<CertificateType>;
+
+// ---- Wave F teams / school cups / calibration (items 49/50/55) ----
+
+export interface ContestTeamRow {
+  id: number;
+  name: string;
+  captain: string;
+  members: string[];
+  member_count: number;
+  max_members: number;
+}
+
+export interface ContestTeamsResponse {
+  count: number;
+  results: ContestTeamRow[];
+}
+
+export interface TeamStandingsRow {
+  rank: number;
+  team: string;
+  team_id: number;
+  members: string[];
+  score: number;
+  solved: number;
+  problems: StandingsProblemCell[];
+}
+
+export interface TeamStandingsResponse {
+  count: number;
+  results: TeamStandingsRow[];
+  format: string;
+  frozen: boolean;
+  section: 'teams';
+  team_size: number;
+}
+
+export interface ContestPredictionState {
+  prediction: number | null;
+  open: boolean;
+}
+
+export interface CalibrationRow {
+  contest: number;
+  title: string;
+  predicted_rank: number;
+  actual_rank: number | null;
+  error: number | null;
+  state: string;
+}
+
+export interface CalibrationProfile {
+  count: number;
+  mean_abs_error: number | null;
+  bias: number | null;
+  results: CalibrationRow[];
+}
+
+// ---- Wave F ratings depth (items 51/52/53) ----
+
+export interface RatingGraphAnnotation {
+  peak?: number;
+  medal?: 'GOLD' | 'SILVER' | 'BRONZE';
+  division_change?: 'promoted' | 'demoted';
+  division?: string;
+}
+
+export interface DivisionTableRow {
+  name: string;
+  min_rating: number;
+  players: number;
+}
+
+export interface UserDivisionProfile {
+  division: string | null;
+  rated: boolean;
+  display_rating?: number;
+  changes: {
+    contest: number;
+    title: string;
+    from: string;
+    to: string;
+    kind: 'promoted' | 'demoted';
+    rating: number;
+  }[];
+}
+
+export interface PercentileCohort {
+  name?: string;
+  percentile: number;
+  total: number;
+}
+
+export interface UserPercentiles {
+  rated: boolean;
+  display_rating?: number;
+  overall?: PercentileCohort;
+  school?: PercentileCohort | null;
+  county?: PercentileCohort | null;
+}
+
+// ---- Wave F publishing: blogs, wiki, WA-help, licenses (items 61-64) ----
+
+export type SolutionLicense = 'PLATFORM_DISPLAY' | 'MIT' | 'CC0' | 'CC_BY_SA';
+
+export interface BlogPostRow {
+  id: number;
+  author: number;
+  author_username: string;
+  title: string;
+  slug: string;
+  body: string;
+  lang: string;
+  status: 'DRAFT' | 'PUBLISHED';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WikiListRow {
+  slug: string;
+  title_ro: string;
+  title_en: string;
+  updated_at: string;
+}
+
+export interface WikiPageRow {
+  slug: string;
+  title_ro: string;
+  title_en: string;
+  body_ro: string;
+  body_en: string;
+  updated_by_username: string | null;
+  updated_at: string;
+}
+
+export interface WikiRevisionRow {
+  id: number;
+  editor: string | null;
+  note: string;
+  created_at: string;
+}
+
+export interface WaHelpAnswerRow {
+  id: number;
+  author: string;
+  body: string;
+  is_accepted: boolean;
+  created_at: string;
+}
+
+export interface WaHelpRow {
+  id: number;
+  submission: number;
+  asker: number;
+  asker_username: string;
+  problem_title: Record<string, string> | null;
+  question: string;
+  status: 'OPEN' | 'ANSWERED';
+  answers: WaHelpAnswerRow[];
+  created_at: string;
+}
+
+// ---- Wave F recognition: reputation, awards, AMAs, requests (66-69) ----
+
+export interface ReputationProfile {
+  honor: number;
+  breakdown: Record<string, number>;
+  tier: string;
+  next_tier: { name: string; honor_needed: number } | null;
+  privileges: string[];
+  tiers: { name: string; min_honor: number }[];
+}
+
+export interface AwardRow {
+  id: number;
+  username: string;
+  kind: string;
+  reason: string;
+  period: string;
+  created_at: string;
+}
+
+export interface AmaListRow {
+  id: number;
+  host: string;
+  title: string;
+  status: 'SCHEDULED' | 'LIVE' | 'CLOSED';
+  starts_at: string;
+}
+
+export interface AmaQuestionRow {
+  id: number;
+  author: string;
+  question: string;
+  answer: string;
+  answered_at: string | null;
+  upvotes: number;
+}
+
+export interface AmaDetailRow extends AmaListRow {
+  description: string;
+  ends_at: string;
+  questions: AmaQuestionRow[];
+}
+
+export interface ProblemRequestRow {
+  id: number;
+  requester: number;
+  requester_username: string;
+  title: string;
+  description: string;
+  status: 'OPEN' | 'PLANNED' | 'FULFILLED' | 'DECLINED';
+  fulfilled_problem: number | null;
+  fulfilled_problem_title: Record<string, string> | null;
+  vote_count: number;
+  created_at: string;
+}
+
+// ---- Wave F profile widgets (items 70-72) ----
+
+export interface SetterCV {
+  username: string;
+  blurb: string;
+  links: string[];
+  problems_approved: number;
+  problems_by_difficulty: Record<string, number>;
+  community_editorials: number;
+  articles: number;
+  contests_contributed: number;
+  member_since: string;
+}
+
+export interface SolveCardData {
+  username: string;
+  problem_id: number;
+  problem_title: string;
+  difficulty: string;
+  ordinal: number;
+  solved_at: string | null;
+}
+
+export interface EmbedProblem {
+  problem_id: number;
+  title: string;
+  difficulty: string;
+  time_limit_ms: number;
+  memory_limit_kb: number;
+  samples: { input_data: string; expected_output_data: string }[];
+  solved_by: number;
+  solve_url: string;
+}
+
+// ---- Wave F content ops (items 125/129/131/132) ----
+
+export interface ChangelogRow {
+  id: number;
+  kind: string;
+  edited_by: string | null;
+  note: string;
+  created_at: string;
+}
+
+export interface SavedSearchRow {
+  id: number;
+  name: string;
+  params: Record<string, string | string[]>;
+}
+
+export interface DropRow {
+  problem_id: number;
+  title: string;
+  publish_at: string;
+}
+
+export interface AuthorAnalytics {
+  problems_total: number;
+  problems_approved: number;
+  by_difficulty: Record<string, number>;
+  submissions_total: number;
+  acceptance_rate: number | null;
+  unique_solvers: number;
+  editorial_coverage: number;
+  open_test_bounties: number;
+}
+
+// ---- Wave F statement quality (items 121/123/124/134) ----
+
+export interface WizardStep {
+  key: string;
+  title_en: string;
+  description_en: string;
+  fields: string[];
+  complete: boolean;
+}
+
+export interface StatementLintWarning {
+  code: string;
+  locale: string;
+  message: string;
+}
+
+export interface ReadabilityReport {
+  locales: Record<
+    string,
+    { score: number | null; band: string | null; words: number; sentences: number }
+  >;
+  consistent: boolean | null;
+}
+
+export interface TranslationStatus {
+  fields: string[];
+  locales: Record<string, Record<string, boolean>>;
+  complete: boolean;
+}
+
+// ---- Wave F authoring ops (items 122/126/128) ----
+
+export interface VariantRow {
+  id: number;
+  title: string;
+  note: string;
+  status: string;
+}
+
+export interface AttachmentRow {
+  id: number;
+  name: string;
+  kind: string;
+  size_bytes: number;
+  url: string;
 }

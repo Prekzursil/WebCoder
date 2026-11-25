@@ -17,10 +17,14 @@ import {
   AdminStatsResponse,
   ApiNotification,
   AssignmentGrid,
+  CertificateType,
   Clarification,
   ClassMembershipRow,
   ClassRoom,
   ArticleRow,
+  RelatedProblemRow,
+  TrackDetail,
+  TrackRow,
   ClassroomAssignment,
   CommunityEditorialRow,
   FeedResponse,
@@ -59,8 +63,45 @@ import {
   RatingChangeRow,
   RatingLadderRow,
   RegisterResponse,
+  UserRatingHistory,
   ContestAwardsResponse,
   StandingsResponse,
+  ContestCommentaryResponse,
+  ContestCommentaryRow,
+  ContestDrama,
+  ContestPredictionState,
+  ContestReplay,
+  ContestTeamsResponse,
+  BlogPostRow,
+  CalibrationProfile,
+  DivisionTableRow,
+  AmaDetailRow,
+  AmaListRow,
+  AttachmentRow,
+  VariantRow,
+  ReadabilityReport,
+  StatementLintWarning,
+  TranslationStatus,
+  WizardStep,
+  AuthorAnalytics,
+  ChangelogRow,
+  DropRow,
+  SavedSearchRow,
+  AwardRow,
+  EmbedProblem,
+  SetterCV,
+  ProblemRequestRow,
+  ReputationProfile,
+  WaHelpRow,
+  WikiListRow,
+  WikiPageRow,
+  WikiRevisionRow,
+  UserDivisionProfile,
+  UserPercentiles,
+  TeamStandingsResponse,
+  HackRow,
+  HackTargetsResponse,
+  HacksResponse,
   UpdateProblemResponse,
   cursorParamFromUrl,
   AssignmentSolutionsResponse,
@@ -81,20 +122,20 @@ import {
   GetTranslationLanguagesResponse,
   GetTranslationProposalsResponse,
   TranslationProposalRow,
-} from "@/types/api";
-import { TestCaseType, User } from "@/types";
-import { API_V1_URL } from "@/lib/api-config";
+} from '@/types/api';
+import { TestCaseType, User } from '@/types';
+import { API_V1_URL } from '@/lib/api-config';
 
 const API_BASE_URL = API_V1_URL;
 
 // dj-rest-auth cookie-aware refresh endpoint: an EMPTY-body POST; the
 // server reads the wc_refresh httpOnly cookie, rotates it, and re-sets the
 // wc_access cookie.
-const REFRESH_ENDPOINT = "/auth/token/refresh/";
-const CSRF_ENDPOINT = "/auth/csrf/";
-const LOGOUT_ENDPOINT = "/auth/logout/";
+const REFRESH_ENDPOINT = '/auth/token/refresh/';
+const CSRF_ENDPOINT = '/auth/csrf/';
+const LOGOUT_ENDPOINT = '/auth/logout/';
 
-const UNSAFE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+const UNSAFE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
 type UnauthorizedHandler = () => void;
 
@@ -116,13 +157,10 @@ const refreshAccessToken = (): Promise<boolean> => {
   if (!refreshInFlight) {
     const attempt = (async () => {
       try {
-        // URL is two module constants; no user input
-        // (owner triage: alert #122, false positive, 2026-10-27).
-        // codeql[js/request-forgery]
         const response = await fetch(`${API_BASE_URL}${REFRESH_ENDPOINT}`, {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
         });
         return response.ok;
       } catch {
@@ -145,12 +183,12 @@ const refreshAccessToken = (): Promise<boolean> => {
 // ---------- CSRF double-submit header (cookie-auth unsafe methods) ------
 
 function readCsrfCookie(): string | null {
-  if (typeof document === "undefined") return null;
+  if (typeof document === 'undefined') return null;
   const match = document.cookie
-    .split(";")
+    .split(';')
     .map((part) => part.trim())
-    .find((part) => part.startsWith("csrftoken="));
-  return match ? decodeURIComponent(match.slice("csrftoken=".length)) : null;
+    .find((part) => part.startsWith('csrftoken='));
+  return match ? decodeURIComponent(match.slice('csrftoken='.length)) : null;
 }
 
 let csrfSeedInFlight: Promise<string | null> | null = null;
@@ -164,10 +202,7 @@ const ensureCsrfToken = (): Promise<string | null> => {
         // GET /auth/csrf/ makes Django set the csrftoken cookie; any
         // failure (e.g. a mock backend without the endpoint) just means
         // "no header available" — the request proceeds without it.
-        // URL is two module constants; no user input
-        // (owner triage: alert #121, false positive, 2026-10-27).
-        // codeql[js/request-forgery]
-        await fetch(`${API_BASE_URL}${CSRF_ENDPOINT}`, { credentials: "include" });
+        await fetch(`${API_BASE_URL}${CSRF_ENDPOINT}`, { credentials: 'include' });
       } catch {
         /* best-effort */
       }
@@ -183,31 +218,27 @@ const ensureCsrfToken = (): Promise<string | null> => {
 
 const authenticatedFetch = async (url: string, options: RequestInit): Promise<Response> => {
   const headers = new Headers(options.headers || {});
-  if (options.body) {
-    headers.set("Content-Type", "application/json");
+  if (options.body && !(options.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
   }
   // Cookie-authenticated unsafe methods require the double-submit CSRF
   // header (backend JWT_AUTH_COOKIE_USE_CSRF).
-  const method = (options.method || "GET").toUpperCase();
+  const method = (options.method || 'GET').toUpperCase();
   if (UNSAFE_METHODS.has(method)) {
     const csrfToken = await ensureCsrfToken();
-    if (csrfToken && !headers.has("X-CSRFToken")) {
-      headers.set("X-CSRFToken", csrfToken);
+    if (csrfToken && !headers.has('X-CSRFToken')) {
+      headers.set('X-CSRFToken', csrfToken);
     }
   }
 
-  // url originates solely from this module's own typed service methods
-  // over the fixed API_BASE_URL (owner triage: alert #120, false
-  // positive, 2026-10-27).
-  // codeql[js/request-forgery]
   return fetch(`${API_BASE_URL}${url}`, {
     ...options,
-    credentials: "include",
+    credentials: 'include',
     headers,
   });
 };
 
-const apiFetch = async <T>(url: string, options: RequestInit = {}): Promise<T> => {
+export const apiFetch = async <T>(url: string, options: RequestInit = {}): Promise<T> => {
   let response = await authenticatedFetch(url, options);
 
   if (response.status === 401) {
@@ -240,17 +271,17 @@ const apiFetch = async <T>(url: string, options: RequestInit = {}): Promise<T> =
  * first field-error value. Empty string when nothing recognizable.
  */
 function extractErrorMessage(errorData: unknown): string {
-  if (typeof errorData !== "object" || errorData === null) return "";
+  if (typeof errorData !== 'object' || errorData === null) return '';
   const data = errorData as Record<string, unknown>;
-  if (typeof data.detail === "string") return data.detail;
+  if (typeof data.detail === 'string') return data.detail;
   const nonField = data.non_field_errors;
   if (Array.isArray(nonField) && nonField.length > 0) return String(nonField[0]);
   for (const value of Object.values(data)) {
-    if (Array.isArray(value) && value.length > 0 && typeof value[0] === "string") {
+    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string') {
       return value[0];
     }
   }
-  return "";
+  return '';
 }
 
 // =================================
@@ -300,27 +331,65 @@ export async function collectAllCursorPages<T>(
   return out;
 }
 
+export interface FederatedHits {
+  problems: { id: number; title: string; difficulty?: string }[];
+  threads: { id: number; title: string; problem?: number | null }[];
+  articles: { id: number; title: string }[];
+  contests: { id: number; title: string; start_at?: string }[];
+  users: { id: number; username: string }[];
+}
+
+export const SearchService = {
+  // Wave G item 82 — one query across every public surface.
+  federated: (q: string, lang = 'en') =>
+    apiFetch<{ query: string; results: FederatedHits }>(
+      `/search/?q=${encodeURIComponent(q)}&lang=${lang}`,
+    ),
+};
+
+export const OnboardingService = {
+  // Wave G item 88 — the computed first-hour checklist.
+  get: () =>
+    apiFetch<{
+      steps: { key: string; done: boolean }[];
+      done: number;
+      total: number;
+    }>('/users/me/onboarding/'),
+};
+
 export const AuthService = {
   register: (userData: Record<string, unknown>) =>
-    apiFetch<RegisterResponse>("/users/register/", {
-      method: "POST",
+    apiFetch<RegisterResponse>('/users/register/', {
+      method: 'POST',
       body: JSON.stringify(userData),
     }),
   login: (credentials: Record<string, unknown>) =>
-    apiFetch<LoginResponse>("/auth/login/", { method: "POST", body: JSON.stringify(credentials) }),
-  getMe: () => apiFetch<User>("/users/me/"),
+    apiFetch<LoginResponse>('/auth/login/', { method: 'POST', body: JSON.stringify(credentials) }),
+  getMe: () => apiFetch<User>('/users/me/'),
   /** RO-3/LEG-2: the self-service identity slice (county/school/is_minor). */
-  updateMe: (data: { county?: string; school?: string; isMinor?: boolean }) =>
-    apiFetch<User>("/users/me/", {
-      method: "PATCH",
+  updateMe: (data: {
+    county?: string;
+    school?: string;
+    isMinor?: boolean;
+    bio?: string;
+    timezone?: string;
+    notificationDigest?: string;
+  }) =>
+    apiFetch<User>('/users/me/', {
+      method: 'PATCH',
       body: JSON.stringify({
         county: data.county,
         school: data.school,
+        ...(data.bio !== undefined ? { bio: data.bio } : {}),
         ...(data.isMinor !== undefined ? { is_minor: data.isMinor } : {}),
+        ...(data.timezone !== undefined ? { timezone: data.timezone } : {}),
+        ...(data.notificationDigest !== undefined
+          ? { notification_digest: data.notificationDigest }
+          : {}),
       }),
     }),
   // [F5] Solved/attempted problem-id sets for the catalog indicator column.
-  getSolvedIds: () => apiFetch<{ solved: number[]; attempted: number[] }>("/users/me/solved-ids/"),
+  getSolvedIds: () => apiFetch<{ solved: number[]; attempted: number[] }>('/users/me/solved-ids/'),
   // [B5/RAT-4/5/6] Practice statistics + derivations for the profile page.
   getMyStatistics: () =>
     apiFetch<{
@@ -338,31 +407,31 @@ export const AuthService = {
       badges: string[];
       /** RAT-7: per-tag skill profile + practice-next strip. */
       tag_profile: TagProfile;
-    }>("/users/me/statistics/"),
+    }>('/users/me/statistics/'),
   // [LEG-1/X5] GDPR account control.
-  exportAccount: () => apiFetch<{ detail?: string }>("/users/me/export/", { method: "POST" }),
+  exportAccount: () => apiFetch<{ detail?: string }>('/users/me/export/', { method: 'POST' }),
   deleteAccount: () =>
-    apiFetch<{ detail: string }>("/users/me/delete/", {
-      method: "POST",
-      body: JSON.stringify({ confirm: "DELETE" }),
+    apiFetch<{ detail: string }>('/users/me/delete/', {
+      method: 'POST',
+      body: JSON.stringify({ confirm: 'DELETE' }),
     }),
   getUser: (userId: number | string) => apiFetch<User>(`/users/${userId}/`),
   changePassword: (passwordData: Record<string, unknown>) =>
-    apiFetch<{ detail?: string }>("/users/password/change/", {
-      method: "POST",
+    apiFetch<{ detail?: string }>('/users/password/change/', {
+      method: 'POST',
       body: JSON.stringify(passwordData),
     }),
   // [ONB-1] Password reset (dj-rest-auth default include): request mails a
   // single-use link; confirm consumes uid+token from that link. The
   // request answers 200 even for unknown emails (no account enumeration).
   requestPasswordReset: (email: string) =>
-    apiFetch<{ detail: string }>("/auth/password/reset/", {
-      method: "POST",
+    apiFetch<{ detail: string }>('/auth/password/reset/', {
+      method: 'POST',
       body: JSON.stringify({ email }),
     }),
   confirmPasswordReset: (uid: string, token: string, newPassword1: string, newPassword2: string) =>
-    apiFetch<{ detail: string }>("/auth/password/reset/confirm/", {
-      method: "POST",
+    apiFetch<{ detail: string }>('/auth/password/reset/confirm/', {
+      method: 'POST',
       body: JSON.stringify({
         uid,
         token,
@@ -372,31 +441,37 @@ export const AuthService = {
     }),
   // [SP1] Cookie-mode logout: dj-rest-auth blacklists the rotated refresh
   // cookie and clears wc_access/wc_refresh. Fire-and-forget safe.
-  logout: () => apiFetch<{ detail?: string }>(LOGOUT_ENDPOINT, { method: "POST" }),
+  logout: () => apiFetch<{ detail?: string }>(LOGOUT_ENDPOINT, { method: 'POST' }),
   // [OPS-2 Wave D] TOTP two-factor enrollment lifecycle.
   totpBegin: () =>
-    apiFetch<{ secret: string; otpauth_uri: string }>("/users/me/totp/begin/", { method: "POST" }),
+    apiFetch<{ secret: string; otpauth_uri: string }>('/users/me/totp/begin/', { method: 'POST' }),
   totpVerify: (code: string) =>
-    apiFetch<{ detail: string }>("/users/me/totp/verify/", {
-      method: "POST",
+    apiFetch<{ detail: string }>('/users/me/totp/verify/', {
+      method: 'POST',
       body: JSON.stringify({ code }),
     }),
   totpDisable: (code: string, currentPassword: string) =>
-    apiFetch<{ detail: string }>("/users/me/totp/disable/", {
-      method: "POST",
+    apiFetch<{ detail: string }>('/users/me/totp/disable/', {
+      method: 'POST',
       body: JSON.stringify({ code, current_password: currentPassword }),
     }),
   // [OPS-2 Wave D] Personal API tokens (public-API companion credential).
   getApiTokens: () =>
     apiFetch<{ count: number; results: { key_hint: string; created: string }[] }>(
-      "/users/me/tokens/",
+      '/users/me/tokens/',
     ),
   createApiToken: () =>
-    apiFetch<{ detail: string; key: string; created: string }>("/users/me/tokens/", {
-      method: "POST",
+    apiFetch<{ detail: string; key: string; created: string }>('/users/me/tokens/', {
+      method: 'POST',
       body: JSON.stringify({}),
     }),
-  revokeApiToken: () => apiFetch<{ detail: string }>("/users/me/tokens/", { method: "DELETE" }),
+  revokeApiToken: () => apiFetch<{ detail: string }>('/users/me/tokens/', { method: 'DELETE' }),
+};
+
+// [Wave D certifications] The holder's atestats (paginated; newest first).
+export const CertificateService = {
+  getMyCertificates: (page = 1) =>
+    apiFetch<PaginatedResponse<CertificateType>>(`/certificates/mine/?page=${page}`),
 };
 
 export const ToolingService = {
@@ -411,24 +486,390 @@ export const ToolingService = {
     ),
 };
 
+/** Wave E items 8/9 — pre-submit assistance. */
+export interface PreSubmitWarning {
+  rule: string;
+  line: number;
+  severity: 'hint' | 'warning';
+  message_en: string;
+  message_ro: string;
+}
+
+export interface SampleRunResult {
+  test_id: number;
+  order: number;
+  verdict: string;
+  time_ms: number | null;
+  output: string;
+  expected: string | null;
+  mismatch_hint: string | null;
+}
+
+/** Wave E item 16 — testcase strength scoring (verifier surface). */
+export interface TestStrengthRow {
+  test_id: number;
+  order: number;
+  is_sample: boolean;
+  subtask: string;
+  points: number;
+  time_limit_ms: number | null;
+  wrong_solutions: number;
+  caught: number;
+  catch_rate: number | null;
+}
+
+export const VerificationService = {
+  getTestStrength: (problemId: number | string) =>
+    apiFetch<{
+      problem_id: number;
+      calibrated: boolean;
+      wrong_solutions: number;
+      suite_strength: number | null;
+      tests: TestStrengthRow[];
+    }>(`/problems/${problemId}/test-strength/`),
+  rejudgeSubmission: (submissionId: number | string) =>
+    apiFetch<{ detail: string; id: number }>(`/submissions/submissions/${submissionId}/rejudge/`, {
+      method: 'POST',
+    }),
+};
+
+/** Wave E items 29/30/33/34/35 — the learning engine. */
+export interface ReviewCard {
+  problem_id: number;
+  title_i18n: Record<string, string>;
+  difficulty: string;
+  attempts: number;
+  misses: number;
+  stage: number;
+  interval_days: number;
+  due_at: string;
+  due: boolean;
+}
+
+export interface PracticePlanDay {
+  date: string;
+  kind: 'review' | 'weak_tag' | 'new' | null;
+  problem_id: number | null;
+  title_i18n: Record<string, string> | null;
+  focus_tag: string | null;
+}
+
+export interface MistakePattern {
+  pattern: string;
+  evidence: string;
+  hint_en: string;
+  hint_ro: string;
+}
+
+export interface SkillNode {
+  slug: string;
+  name_i18n: Record<string, string>;
+  prerequisites: string[];
+  unlocked: boolean;
+  solved: number;
+  attempted: number;
+  points: number;
+}
+
+export const LearningService = {
+  reviewQueue: () =>
+    apiFetch<{ count: number; due: number; results: ReviewCard[] }>('/learning/review-queue/'),
+  practicePlan: () =>
+    apiFetch<{ days: PracticePlanDay[]; due_reviews: number }>('/learning/practice-plan/'),
+  mistakeProfile: () =>
+    apiFetch<{
+      total_submissions: number;
+      summary: string;
+      verdict_counts: Record<string, number>;
+      patterns: MistakePattern[];
+    }>('/learning/mistake-profile/'),
+  skills: () =>
+    apiFetch<{
+      count: number;
+      edges: { from: string; to: string }[];
+      nodes: SkillNode[];
+      suggestion: { problem_id: number; title_i18n: Record<string, string> }[];
+    }>('/learning/skills/'),
+  courses: () =>
+    apiFetch<{
+      count: number;
+      results: {
+        slug: string;
+        title_i18n: Record<string, string>;
+        description_i18n: Record<string, string>;
+        lesson_count: number;
+        problem_count: number;
+        solved_count: number;
+      }[];
+    }>('/learning/courses/'),
+  course: (slug: string) =>
+    apiFetch<{
+      slug: string;
+      title_i18n: Record<string, string>;
+      description_i18n: Record<string, string>;
+      lessons: {
+        id: number;
+        order: number;
+        title_i18n: Record<string, string>;
+        theory: {
+          front_en: string;
+          back_en: string;
+          front_ro: string;
+          back_ro: string;
+        } | null;
+        drills: { id: number; kind: string }[];
+        problems: {
+          id: number;
+          title_i18n: Record<string, string>;
+          difficulty: string;
+          is_solved: boolean;
+        }[];
+        solved_count: number;
+      }[];
+    }>(`/learning/courses/${slug}/`),
+  theory: (tag?: string) =>
+    apiFetch<{
+      count: number;
+      results: {
+        id: number;
+        tag: string;
+        front_ro: string;
+        front_en: string;
+        back_ro: string;
+        back_en: string;
+      }[];
+    }>(`/learning/theory/${tag ? `?tag=${tag}` : ''}`),
+};
+
+/** Wave E items 36/37/38/40 — the drill deck. */
+export interface DrillRow {
+  id: number;
+  kind: 'READ_CODE' | 'COMPLEXITY' | 'MICRO';
+  tag: string;
+  code: string;
+  question_ro: string;
+  question_en: string;
+  options_ro: string[] | null;
+  options_en: string[] | null;
+}
+
+export const DrillService = {
+  list: (kind?: string) =>
+    apiFetch<{ count: number; results: DrillRow[] }>(
+      `/learning/drills/${kind ? `?kind=${kind}` : ''}`,
+    ),
+  daily: () => apiFetch<{ count: number; results: DrillRow[] }>('/learning/drills/daily/'),
+  answer: (drillId: number, answer: string | number) =>
+    apiFetch<{
+      correct: boolean;
+      error: string | null;
+      explanation_ro: string;
+      explanation_en: string;
+      accepted: string[] | null;
+    }>(`/learning/drills/${drillId}/answer/`, {
+      method: 'POST',
+      body: JSON.stringify({ answer }),
+    }),
+};
+
+/** Wave E item 24 — the random-problem die. */
+export const RandomProblemService = {
+  pick: (params: { difficulty?: string; tag?: string } = {}) => {
+    const search = new URLSearchParams();
+    if (params.difficulty) search.set('difficulty', params.difficulty);
+    if (params.tag) search.set('tag', params.tag);
+    const qs = search.toString();
+    return apiFetch<{ id: number; title_i18n: Record<string, string> }>(
+      `/problems/random/${qs ? `?${qs}` : ''}`,
+    );
+  },
+};
+
+/** Wave E item 20 — the caller's sandbox receipts (scratch + stress runs). */
+export interface ScratchReceiptRow {
+  kind: 'scratch' | 'stress';
+  id: number;
+  language: string;
+  status: string;
+  time_ms: number | null;
+  memory_kb: number | null;
+  created_at: string;
+}
+
+export const ReceiptsService = {
+  mine: (page = 1) => apiFetch<PaginatedResponse<ScratchReceiptRow>>(`/scratch/mine/?page=${page}`),
+};
+
+/** Wave E item 12 — the JDG-11 stress runner, surfaced for authors. */
+export interface StressRunResponse {
+  id: number;
+  iterations: number;
+  found: boolean;
+  mismatch: {
+    phase: string;
+    input?: string;
+    verdict?: string;
+    solution_output?: string;
+    reference_output?: string;
+  } | null;
+}
+
+export const StressService = {
+  run: (payload: {
+    generator_language: string;
+    generator_code: string;
+    solution_language: string;
+    solution_code: string;
+    reference_language: string;
+    reference_code: string;
+    iterations: number;
+  }) =>
+    apiFetch<StressRunResponse>('/problems/tools/stress/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+};
+
+export const PreSubmitService = {
+  lint: (problemId: number | string, language: string, code: string) =>
+    apiFetch<{ count: number; warnings: PreSubmitWarning[] }>(`/problems/${problemId}/lint/`, {
+      method: 'POST',
+      body: JSON.stringify({ language, code }),
+    }),
+  runSamples: (problemId: number | string, language: string, code: string) =>
+    apiFetch<{ compile_error: string | null; samples: SampleRunResult[] }>(
+      `/problems/${problemId}/run-samples/`,
+      { method: 'POST', body: JSON.stringify({ language, code }) },
+    ),
+};
+
 export const CommunityService = {
-  getFeed: (page = 1) => apiFetch<FeedResponse>(`/community/feed/?page=${page}`),
-  getSolutions: (problemId: number | string) =>
-    apiFetch<SolutionsResponse>(`/community/problems/${problemId}/solutions/`),
+  // ---- Wave F items 70-72: setter CV, solve cards, embeds ----
+  getSetterCV: (username: string) =>
+    apiFetch<SetterCV>(`/users/username/${encodeURIComponent(username)}/setter-cv/`),
+  saveSetterCV: (username: string, data: { blurb?: string; links?: string[] }) =>
+    apiFetch<SetterCV>(`/users/username/${encodeURIComponent(username)}/setter-cv/`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  getEmbedProblem: (problemId: number | string) =>
+    apiFetch<EmbedProblem>(`/users/embed/problems/${problemId}/`),
+  getFeed: (page = 1, following = false) =>
+    apiFetch<FeedResponse>(`/community/feed/?page=${page}${following ? '&following=1' : ''}`),
+  getSolutions: (problemId: number | string, params: { sort?: string; language?: string } = {}) => {
+    const search = new URLSearchParams();
+    if (params.sort) search.set('sort', params.sort);
+    if (params.language) search.set('language', params.language);
+    const qs = search.toString();
+    return apiFetch<SolutionsResponse>(
+      `/community/problems/${problemId}/solutions/${qs ? `?${qs}` : ''}`,
+    );
+  },
   getHonor: (username: string) => apiFetch<HonorResponse>(`/community/honor/${username}/`),
-  getMyHonor: () => apiFetch<HonorResponse>("/community/honor/me/"),
+  getMyHonor: () => apiFetch<HonorResponse>('/community/honor/me/'),
   getWeeklyBoard: () =>
     apiFetch<{ count: number; window_days: number; results: WeeklyBoardRow[] }>(
-      "/community/leaderboard/weekly/",
+      '/community/leaderboard/weekly/',
     ),
 
+  // ---- Wave F items 61-65 ----
+  setSubmissionLicense: (submissionId: number, license: string) =>
+    apiFetch<{ id: number; license: string }>(`/submissions/submissions/${submissionId}/license/`, {
+      method: 'POST',
+      body: JSON.stringify({ license }),
+    }),
+  getBlogs: (params: { author?: string; mine?: boolean; page?: number } = {}) => {
+    const qs = new URLSearchParams();
+    if (params.author) qs.set('author', params.author);
+    if (params.mine) qs.set('mine', '1');
+    if (params.page) qs.set('page', String(params.page));
+    const query = qs.toString();
+    return apiFetch<PaginatedResponse<BlogPostRow>>(`/community/blogs/${query ? `?${query}` : ''}`);
+  },
+  createBlogPost: (data: { title: string; body: string; lang: string; status: string }) =>
+    apiFetch<BlogPostRow>('/community/blogs/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  deleteBlogPost: (slug: string) =>
+    apiFetch<{ detail?: string }>(`/community/blogs/${slug}/`, { method: 'DELETE' }),
+  getWikiList: () => apiFetch<{ count: number; results: WikiListRow[] }>('/community/wiki/'),
+  getWikiPage: (slug: string) => apiFetch<WikiPageRow>(`/community/wiki/${slug}/`),
+  saveWikiPage: (
+    slug: string,
+    data: {
+      title_ro: string;
+      title_en?: string;
+      body_ro: string;
+      body_en?: string;
+      note?: string;
+    },
+  ) =>
+    apiFetch<WikiPageRow>(`/community/wiki/${slug}/`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  getWikiHistory: (slug: string) =>
+    apiFetch<{ count: number; results: WikiRevisionRow[] }>(`/community/wiki/${slug}/history/`),
+  getWaHelpQueue: () => apiFetch<{ count: number; results: WaHelpRow[] }>('/community/wa-help/'),
+  // ---- Wave F items 66-69: reputation, awards, AMAs, requests ----
+  getMyReputation: () => apiFetch<ReputationProfile>('/community/reputation/me/'),
+  getReputationTiers: () =>
+    apiFetch<{ tiers: { name: string; min_honor: number }[] }>('/community/reputation/tiers/'),
+  getAwards: (username?: string) => {
+    const qs = username ? `?username=${encodeURIComponent(username)}` : '';
+    return apiFetch<PaginatedResponse<AwardRow>>(`/community/awards/${qs}`);
+  },
+  getAmas: () => apiFetch<{ count: number; results: AmaListRow[] }>('/community/amas/'),
+  getAma: (id: number) => apiFetch<AmaDetailRow>(`/community/amas/${id}/`),
+  askAmaQuestion: (sessionId: number, question: string) =>
+    apiFetch<{ id: number }>(`/community/amas/${sessionId}/questions/`, {
+      method: 'POST',
+      body: JSON.stringify({ question }),
+    }),
+  answerAmaQuestion: (questionId: number, answer: string) =>
+    apiFetch<{ id: number; answer: string }>(`/community/amas/questions/${questionId}/answer/`, {
+      method: 'POST',
+      body: JSON.stringify({ answer }),
+    }),
+  upvoteAmaQuestion: (questionId: number) =>
+    apiFetch<{ upvotes: number; voted: boolean }>(
+      `/community/amas/questions/${questionId}/upvote/`,
+      { method: 'POST' },
+    ),
+  getProblemRequests: () =>
+    apiFetch<PaginatedResponse<ProblemRequestRow>>('/community/problem-requests/'),
+  createProblemRequest: (data: { title: string; description: string }) =>
+    apiFetch<ProblemRequestRow>('/community/problem-requests/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  voteProblemRequest: (requestId: number) =>
+    apiFetch<{ votes: number; voted: boolean }>(`/community/problem-requests/${requestId}/vote/`, {
+      method: 'POST',
+    }),
+
+  createWaHelpRequest: (submissionId: number, question: string) =>
+    apiFetch<WaHelpRow>('/community/wa-help/', {
+      method: 'POST',
+      body: JSON.stringify({ submission_id: submissionId, question }),
+    }),
+  answerWaHelp: (requestId: number, body: string) =>
+    apiFetch<{ id: number }>(`/community/wa-help/${requestId}/answers/`, {
+      method: 'POST',
+      body: JSON.stringify({ body }),
+    }),
+  acceptWaHelp: (requestId: number, answerId: number) =>
+    apiFetch<{ detail: string }>(`/community/wa-help/${requestId}/accept/${answerId}/`, {
+      method: 'POST',
+    }),
   getCommunityEditorials: (
     problemId: number | string,
     params: { lang?: string; page?: number } = {},
   ) => {
     const search = new URLSearchParams();
-    if (params.lang) search.set("lang", params.lang);
-    search.set("page", String(params.page ?? 1));
+    if (params.lang) search.set('lang', params.lang);
+    search.set('page', String(params.page ?? 1));
     return apiFetch<PaginatedResponse<CommunityEditorialRow>>(
       `/problems/${problemId}/community-editorials/?${search.toString()}`,
     );
@@ -438,62 +879,190 @@ export const CommunityService = {
     data: { title: string; body: string; lang: string; submit?: boolean },
   ) =>
     apiFetch<CommunityEditorialRow>(`/problems/${problemId}/community-editorials/`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify(data),
     }),
   getRelatedArticles: (problemId: number | string) =>
     apiFetch<{ count: number; results: ArticleRow[] }>(`/problems/${problemId}/related-articles/`),
   getArticles: (params: { tag?: string; page?: number } = {}) => {
     const search = new URLSearchParams();
-    if (params.tag) search.set("tag", params.tag);
-    search.set("page", String(params.page ?? 1));
+    if (params.tag) search.set('tag', params.tag);
+    search.set('page', String(params.page ?? 1));
     return apiFetch<PaginatedResponse<ArticleRow>>(`/problems/articles/?${search.toString()}`);
   },
   getArticle: (id: number | string) => apiFetch<ArticleRow>(`/problems/articles/${id}/`),
 };
 
+/** Matrix row 6 — related problems (shared tags, solved-filtered). */
+export const RelatedProblemService = {
+  list: (problemId: number | string) =>
+    apiFetch<{ count: number; results: RelatedProblemRow[] }>(
+      `/problems/problems/${problemId}/related/`,
+    ),
+};
+
+/** X12 — curated study tracks (competitive matrix row 8). */
+export const TrackService = {
+  assignToClass: (classroomId: number | string, trackSlug: string) =>
+    apiFetch<ClassroomAssignment>(`/classroom/assignments/from-track/`, {
+      method: 'POST',
+      body: JSON.stringify({ classroom: classroomId, track_slug: trackSlug }),
+    }),
+  list: (page = 1) => apiFetch<PaginatedResponse<TrackRow>>(`/problems/tracks/?page=${page}`),
+  get: (slug: string) => apiFetch<TrackDetail>(`/problems/tracks/${slug}/`),
+  create: (data: {
+    title_en: string;
+    title_ro?: string;
+    description_en?: string;
+    description_ro?: string;
+    is_public?: boolean;
+  }) =>
+    apiFetch<TrackRow>('/problems/tracks/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  update: (
+    slug: string,
+    data: {
+      title_en?: string;
+      title_ro?: string;
+      description_en?: string;
+      description_ro?: string;
+      is_public?: boolean;
+    },
+  ) =>
+    apiFetch<TrackRow>(`/problems/tracks/${slug}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+  remove: (slug: string) => apiFetch<void>(`/problems/tracks/${slug}/`, { method: 'DELETE' }),
+  addProblem: (slug: string, problemId: number | string) =>
+    apiFetch<TrackDetail>(`/problems/tracks/${slug}/add-problem/`, {
+      method: 'POST',
+      body: JSON.stringify({ problem_id: Number(problemId) }),
+    }),
+  removeProblem: (slug: string, problemId: number) =>
+    apiFetch<TrackDetail>(`/problems/tracks/${slug}/remove-problem/`, {
+      method: 'POST',
+      body: JSON.stringify({ problem_id: problemId }),
+    }),
+  moveProblem: (slug: string, problemId: number, direction: 'up' | 'down') =>
+    apiFetch<TrackDetail>(`/problems/tracks/${slug}/move-problem/`, {
+      method: 'POST',
+      body: JSON.stringify({ problem_id: problemId, direction }),
+    }),
+};
+
 export const ProblemService = {
+  // Wave F items 122/126/128 — generator DSL, variants, attachments.
+  generateTests: (problemId: number, dsl: string, count = 5, seed = 0) =>
+    apiFetch<{ created: number; first: string }>(
+      `/problems/problems/${problemId}/generate-tests/`,
+      { method: 'POST', body: JSON.stringify({ dsl, count, seed }) },
+    ),
+  spawnVariant: (problemId: number, note?: string) =>
+    apiFetch<{ variant_id: number; root_id: number; title: string }>(
+      `/problems/problems/${problemId}/variants/`,
+      { method: 'POST', body: JSON.stringify(note ? { note } : {}) },
+    ),
+  listVariants: (problemId: number) =>
+    apiFetch<{ root: number; count: number; variants: VariantRow[] }>(
+      `/problems/problems/${problemId}/variants/list/`,
+    ),
+  uploadAttachment: (problemId: number, name: string, contentBase64 = 'eA==') =>
+    apiFetch<{ id: number; name: string }>(`/problems/problems/${problemId}/attachments/`, {
+      method: 'POST',
+      body: JSON.stringify({ name, content_base64: contentBase64, kind: 'inline' }),
+    }),
+  listAttachments: (problemId: number) =>
+    apiFetch<{ count: number; results: AttachmentRow[] }>(
+      `/problems/problems/${problemId}/attachments/`,
+    ),
+  // Wave F items 121/123/124/134 — wizard + statement quality.
+  getWizardSteps: (problemId?: number) =>
+    apiFetch<{ count: number; steps: WizardStep[] }>(
+      `/problems/wizard/steps/${problemId ? `?problem_id=${problemId}` : ''}`,
+    ),
+  statementLint: (problemId: number) =>
+    apiFetch<{ count: number; warnings: StatementLintWarning[] }>(
+      `/problems/problems/${problemId}/statement-lint/`,
+      { method: 'POST' },
+    ),
+  getReadability: (problemId: number) =>
+    apiFetch<ReadabilityReport>(`/problems/problems/${problemId}/readability/`),
+  getTranslationStatus: (problemId: number) =>
+    apiFetch<TranslationStatus>(`/problems/problems/${problemId}/translation-status/`),
+  // Wave F items 125/129/131/132 — content ops.
+  getAuthorAnalytics: (username?: string) =>
+    apiFetch<AuthorAnalytics>(
+      `/problems/author-analytics/${username ? `?username=${encodeURIComponent(username)}` : ''}`,
+    ),
+  getDrops: () => apiFetch<{ count: number; results: DropRow[] }>('/problems/drops/'),
+  listSavedSearches: () =>
+    apiFetch<{ count: number; results: SavedSearchRow[] }>('/problems/searches/'),
+  saveSavedSearch: (name: string, params: Record<string, unknown>) =>
+    apiFetch<SavedSearchRow>('/problems/searches/', {
+      method: 'POST',
+      body: JSON.stringify({ name, params }),
+    }),
+  deleteSavedSearch: (id: number) =>
+    apiFetch<{ detail?: string }>(`/problems/searches/?id=${id}`, { method: 'DELETE' }),
+  getChangelog: (problemId: number) =>
+    apiFetch<{ count: number; results: ChangelogRow[] }>(
+      `/problems/problems/${problemId}/changelog/`,
+    ),
+  restoreRevision: (problemId: number, revisionId: number) =>
+    apiFetch<{ detail: string }>(
+      `/problems/problems/${problemId}/revisions/${revisionId}/restore/`,
+      { method: 'POST' },
+    ),
   getProblems: (
-    filters: { status?: string; authorId?: number | string; curriculumNode?: number | string } = {},
+    filters: {
+      status?: string;
+      authorId?: number | string;
+      curriculumNode?: number | string;
+      search?: string;
+    } = {},
     page: { page?: number; pageSize?: number } = {},
   ) => {
     const params = new URLSearchParams();
-    if (filters.status !== undefined) params.set("status", filters.status);
-    if (filters.authorId !== undefined) params.set("authorId", String(filters.authorId));
+    if (filters.status !== undefined) params.set('status', filters.status);
+    if (filters.search !== undefined) params.set('search', filters.search);
+    if (filters.authorId !== undefined) params.set('authorId', String(filters.authorId));
     if (filters.curriculumNode !== undefined)
-      params.set("curriculum_node", String(filters.curriculumNode));
-    if (page.page !== undefined) params.set("page", String(page.page));
-    if (page.pageSize !== undefined) params.set("page_size", String(page.pageSize));
+      params.set('curriculum_node', String(filters.curriculumNode));
+    if (page.page !== undefined) params.set('page', String(page.page));
+    if (page.pageSize !== undefined) params.set('page_size', String(page.pageSize));
     const qs = params.toString();
-    return apiFetch<GetProblemsResponse>(`/problems/problems/${qs ? `?${qs}` : ""}`);
+    return apiFetch<GetProblemsResponse>(`/problems/problems/${qs ? `?${qs}` : ''}`);
   },
   getProblemDetail: (id: number | string) =>
     apiFetch<GetProblemDetailResponse>(`/problems/problems/${id}/`),
   createProblem: (problemData: Record<string, unknown>) =>
-    apiFetch<GetProblemDetailResponse>("/problems/problems/", {
-      method: "POST",
+    apiFetch<GetProblemDetailResponse>('/problems/problems/', {
+      method: 'POST',
       body: JSON.stringify(problemData),
     }),
   updateProblem: (id: number | string, problemData: Record<string, unknown>) =>
     apiFetch<UpdateProblemResponse>(`/problems/problems/${id}/`, {
-      method: "PATCH",
+      method: 'PATCH',
       body: JSON.stringify(problemData),
     }),
   deleteProblem: (id: number | string) =>
-    apiFetch<void>(`/problems/problems/${id}/`, { method: "DELETE" }),
+    apiFetch<void>(`/problems/problems/${id}/`, { method: 'DELETE' }),
 
   submitForApproval: (id: number | string) =>
     apiFetch<GetProblemDetailResponse>(`/problems/problems/${id}/submit-for-approval/`, {
-      method: "POST",
+      method: 'POST',
     }),
   approveProblem: (id: number | string, feedbackData: { feedback?: string }) =>
     apiFetch<GetProblemDetailResponse>(`/problems/problems/${id}/approve/`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify(feedbackData),
     }),
   rejectProblem: (id: number | string, feedbackData: { feedback: string }) =>
     apiFetch<GetProblemDetailResponse>(`/problems/problems/${id}/reject/`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify(feedbackData),
     }),
 
@@ -501,16 +1070,16 @@ export const ProblemService = {
   setBookmark: (id: number | string, starred: boolean) =>
     apiFetch<{ problem: number; starred: boolean; star_count: number }>(
       `/problems/problems/${id}/bookmark/`,
-      { method: starred ? "POST" : "DELETE" },
+      { method: starred ? 'POST' : 'DELETE' },
     ),
-  getBookmarkedIds: () => apiFetch<{ starred_ids: number[] }>("/problems/problems/bookmarked/"),
+  getBookmarkedIds: () => apiFetch<{ starred_ids: number[] }>('/problems/problems/bookmarked/'),
 
   getTags: (page: { page?: number; pageSize?: number } = {}) => {
     const params = new URLSearchParams();
-    if (page.page !== undefined) params.set("page", String(page.page));
-    if (page.pageSize !== undefined) params.set("page_size", String(page.pageSize));
+    if (page.page !== undefined) params.set('page', String(page.page));
+    if (page.pageSize !== undefined) params.set('page_size', String(page.pageSize));
     const qs = params.toString();
-    return apiFetch<GetTagsResponse>(`/problems/tags/${qs ? `?${qs}` : ""}`);
+    return apiFetch<GetTagsResponse>(`/problems/tags/${qs ? `?${qs}` : ''}`);
   },
 
   // [roadmap EDT-1] Editorial with its lock state intact: 403 + locked
@@ -518,7 +1087,7 @@ export const ProblemService = {
   // this bypasses apiFetch's message-only error and throws typed markers.
   getEditorial: async (id: number | string) => {
     const response = await authenticatedFetch(`/problems/problems/${id}/editorial/`, {
-      method: "GET",
+      method: 'GET',
     });
     if (response.status === 403) {
       const body = (await response.json().catch(() => ({}))) as {
@@ -526,7 +1095,7 @@ export const ProblemService = {
         locked?: boolean;
         publish_policy?: string;
       };
-      const err = new Error(body.detail ?? "editorial locked") as Error & {
+      const err = new Error(body.detail ?? 'editorial locked') as Error & {
         responseLocked: boolean;
         policy?: string;
       };
@@ -535,7 +1104,7 @@ export const ProblemService = {
       throw err;
     }
     if (response.status === 404) {
-      const err = new Error("no editorial") as Error & { notFound: boolean };
+      const err = new Error('no editorial') as Error & { notFound: boolean };
       err.notFound = true;
       throw err;
     }
@@ -564,12 +1133,12 @@ export const ProblemService = {
   rate: (id: number | string, rating: 1 | 2 | 3) =>
     apiFetch<{ rating_avg: number | null; rating_count: number; your_rating: number }>(
       `/problems/problems/${id}/rate/`,
-      { method: "POST", body: JSON.stringify({ rating }) },
+      { method: 'POST', body: JSON.stringify({ rating }) },
     ),
 
   // [roadmap ONB-1] First-run trio: one easy APPROVED problem per paradigm
   // (curriculum chapter), in tree order — the /start page's data source.
-  getStarterProblems: () => apiFetch<GetProblemDetailResponse[]>("/problems/problems/starters/"),
+  getStarterProblems: () => apiFetch<GetProblemDetailResponse[]>('/problems/problems/starters/'),
 
   // [roadmap EDU-9] Curriculum tree (grades with nested chapters + APPROVED
   // problem counts) for the catalog's second browse axis.
@@ -591,7 +1160,7 @@ export const ProblemService = {
           problem_count: number;
         }[];
       }>
-    >("/problems/curriculum/"),
+    >('/problems/curriculum/'),
 };
 
 // [roadmap JDG-6/X7] Custom invocation — run code on user input without a
@@ -605,13 +1174,62 @@ export const ScratchService = {
       error: string;
       time_ms?: number;
       memory_kb?: number;
-    }>("/scratch/", { method: "POST", body: JSON.stringify(payload) }),
+    }>('/scratch/', { method: 'POST', body: JSON.stringify(payload) }),
+  // Wave G item 89 — anonymous guest try-it (IP-throttled, tighter caps).
+  runGuest: (payload: { language: string; code: string; input?: string }) =>
+    apiFetch<{
+      status: string;
+      output: string;
+      error: string;
+      time_ms?: number;
+      memory_kb?: number;
+    }>('/scratch/guest/', { method: 'POST', body: JSON.stringify(payload) }),
+};
+
+export const DraftService = {
+  // Wave G item 76 — cross-device code drafts (one per problem).
+  get: (problemId: number | string) =>
+    apiFetch<{ language: string; code: string; updated_at: string } | undefined>(
+      `/submissions/drafts/${problemId}/`,
+    ),
+  save: (problemId: number | string, language: string, code: string) =>
+    apiFetch<{ language: string; code: string; updated_at: string }>(
+      `/submissions/drafts/${problemId}/`,
+      { method: 'PUT', body: JSON.stringify({ language, code }) },
+    ),
+  clear: (problemId: number | string) =>
+    apiFetch<{ deleted: number }>(`/submissions/drafts/${problemId}/`, {
+      method: 'DELETE',
+    }),
+};
+
+export const StudyAidService = {
+  // Wave G item 78 — the caller's private statement annotations.
+  listAnnotations: (problemId: number | string) =>
+    apiFetch<{ id: number; quote: string; note: string; updated_at: string }[]>(
+      `/problems/${problemId}/annotations/`,
+    ),
+  addAnnotation: (problemId: number | string, quote: string, note: string) =>
+    apiFetch<{ id: number; quote: string; note: string; updated_at: string }>(
+      `/problems/${problemId}/annotations/`,
+      { method: 'POST', body: JSON.stringify({ quote, note }) },
+    ),
+  deleteAnnotation: (problemId: number | string, annotationId: number) =>
+    apiFetch<{ deleted: string }>(
+      `/problems/${problemId}/annotations/?annotation_id=${annotationId}`,
+      { method: 'DELETE' },
+    ),
+  // Wave G item 92 — the self-contained offline statement pack.
+  getStatementPack: (problemId: number | string, lang: string) =>
+    apiFetch<{ problem_id: number; lang: string; html: string }>(
+      `/problems/${problemId}/statement-pack/?lang=${lang}`,
+    ),
 };
 
 export const SubmissionService = {
   createSubmission: (submissionData: Record<string, unknown>) =>
-    apiFetch<CreateSubmissionResponse>("/submissions/submit/", {
-      method: "POST",
+    apiFetch<CreateSubmissionResponse>('/submissions/submit/', {
+      method: 'POST',
       body: JSON.stringify(submissionData),
     }),
   getSubmissions: (
@@ -619,44 +1237,101 @@ export const SubmissionService = {
     page: { cursor?: string | null; pageSize?: number } = {},
   ) => {
     const params = new URLSearchParams();
-    if (filters.problemId !== undefined) params.set("problemId", String(filters.problemId));
-    if (filters.userId !== undefined) params.set("userId", String(filters.userId));
-    if (filters.language !== undefined) params.set("language", filters.language);
-    if (page.cursor) params.set("cursor", page.cursor);
-    if (page.pageSize !== undefined) params.set("page_size", String(page.pageSize));
+    if (filters.problemId !== undefined) params.set('problemId', String(filters.problemId));
+    if (filters.userId !== undefined) params.set('userId', String(filters.userId));
+    if (filters.language !== undefined) params.set('language', filters.language);
+    if (page.cursor) params.set('cursor', page.cursor);
+    if (page.pageSize !== undefined) params.set('page_size', String(page.pageSize));
     const qs = params.toString();
-    return apiFetch<GetSubmissionsResponse>(`/submissions/submissions/${qs ? `?${qs}` : ""}`);
+    return apiFetch<GetSubmissionsResponse>(`/submissions/submissions/${qs ? `?${qs}` : ''}`);
   },
   getSubmissionDetail: (id: number | string) =>
     apiFetch<GetSubmissionDetailResponse>(`/submissions/submissions/${id}/`),
 };
 
 export const TestCaseService = {
+  listTestCases: (problemId: number | string, page = 1) =>
+    apiFetch<PaginatedResponse<TestCaseType>>(
+      `/problems/testcases/?problem_id=${problemId}&page=${page}&page_size=100`,
+    ),
   createTestCase: (testCaseData: Record<string, unknown>) =>
-    apiFetch<TestCaseType>("/problems/testcases/", {
-      method: "POST",
+    apiFetch<TestCaseType>('/problems/testcases/', {
+      method: 'POST',
       body: JSON.stringify(testCaseData),
     }),
   updateTestCase: (id: number | string, testCaseData: Record<string, unknown>) =>
     apiFetch<TestCaseType>(`/problems/testcases/${id}/`, {
-      method: "PATCH",
+      method: 'PATCH',
       body: JSON.stringify(testCaseData),
     }),
   deleteTestCase: (id: number | string) =>
-    apiFetch<void>(`/problems/testcases/${id}/`, { method: "DELETE" }),
+    apiFetch<void>(`/problems/testcases/${id}/`, { method: 'DELETE' }),
+};
+
+// Problem-page wave (item A/B): authoring drafts + test-archive ops.
+export const AuthoringService = {
+  getDraft: (slot: string | number) =>
+    apiFetch<{ payload: Record<string, unknown>; updated_at: string }>(
+      `/problems/authoring-drafts/${slot}/`,
+    ),
+  saveDraft: (slot: string | number, payload: Record<string, unknown>) =>
+    apiFetch<{ payload: Record<string, unknown>; updated_at: string }>(
+      `/problems/authoring-drafts/${slot}/`,
+      { method: 'PUT', body: JSON.stringify({ payload }) },
+    ),
+  deleteDraft: (slot: string | number) =>
+    apiFetch<void>(`/problems/authoring-drafts/${slot}/`, { method: 'DELETE' }),
+};
+
+export interface ArchivePreviewPair {
+  name: string;
+  input: string;
+  expected: string;
+  is_sample: boolean;
+}
+
+export interface TestArchivePreview {
+  pairs: ArchivePreviewPair[];
+  skipped: string[];
+  other_files: string[];
+  total_members: number;
+  created?: number;
+  points_each?: number;
+}
+
+export const TestOpsService = {
+  importArchive: (
+    problemId: number | string,
+    file: File,
+    options: { dryRun?: boolean; points?: number } = {},
+  ) => {
+    const body = new FormData();
+    body.append('archive', file);
+    if (options.dryRun) body.append('dry_run', '1');
+    if (options.points !== undefined) body.append('points', String(options.points));
+    return apiFetch<TestArchivePreview>(`/problems/problems/${problemId}/tests/import-archive/`, {
+      method: 'POST',
+      body,
+    });
+  },
+  distributePoints: (problemId: number | string, target?: number) =>
+    apiFetch<{ target: number; tests: number; total: number; points: number[] }>(
+      `/problems/problems/${problemId}/tests/distribute/`,
+      { method: 'POST', body: JSON.stringify(target !== undefined ? { target } : {}) },
+    ),
 };
 
 export const AdminService = {
   getUsers: (page: { page?: number; pageSize?: number } = {}) => {
     const params = new URLSearchParams();
-    if (page.page !== undefined) params.set("page", String(page.page));
-    if (page.pageSize !== undefined) params.set("page_size", String(page.pageSize));
+    if (page.page !== undefined) params.set('page', String(page.page));
+    if (page.pageSize !== undefined) params.set('page_size', String(page.pageSize));
     const qs = params.toString();
-    return apiFetch<GetAdminUsersResponse>(`/users/admin/manage/${qs ? `?${qs}` : ""}`);
+    return apiFetch<GetAdminUsersResponse>(`/users/admin/manage/${qs ? `?${qs}` : ''}`);
   },
   updateUser: (userId: number | string, userData: { role?: string; is_active?: boolean }) =>
     apiFetch<{ detail?: string }>(`/users/admin/manage/${userId}/`, {
-      method: "PATCH",
+      method: 'PATCH',
       body: JSON.stringify(userData),
     }),
   // [ANA-1 Wave D] Owner product analytics: live activation snapshot +
@@ -674,7 +1349,7 @@ export const AdminService = {
       d7_rate: number | null;
       submissions_per_day_30d: Record<string, number>;
       total_submissions: number;
-    }>("/users/admin/activation/"),
+    }>('/users/admin/activation/'),
   getActivationHistory: (weeks = 12) =>
     apiFetch<{
       weeks: number;
@@ -689,7 +1364,7 @@ export const AdminService = {
         total_submissions: number;
       }[];
     }>(`/users/admin/activation/history/?weeks=${weeks}`),
-  getStats: () => apiFetch<AdminStatsResponse>("/users/admin/stats/"),
+  getStats: () => apiFetch<AdminStatsResponse>('/users/admin/stats/'),
 };
 
 // =================================
@@ -709,17 +1384,17 @@ export const LeaderboardService = {
     } = {},
   ) => {
     const params = new URLSearchParams();
-    if (page.page !== undefined) params.set("page", String(page.page));
-    if (page.pageSize !== undefined) params.set("page_size", String(page.pageSize));
+    if (page.page !== undefined) params.set('page', String(page.page));
+    if (page.pageSize !== undefined) params.set('page_size', String(page.pageSize));
     // COM-4: friends-only board (viewer + followed); ignored when anon.
-    if (page.friends) params.set("friends", "1");
-    if (page.county) params.set("county", page.county);
-    if (page.school) params.set("school", page.school);
+    if (page.friends) params.set('friends', '1');
+    if (page.county) params.set('county', page.county);
+    if (page.school) params.set('school', page.school);
     const qs = params.toString();
-    return apiFetch<GetLeaderboardResponse>(`/leaderboard/${qs ? `?${qs}` : ""}`);
+    return apiFetch<GetLeaderboardResponse>(`/leaderboard/${qs ? `?${qs}` : ''}`);
   },
   /** The caller's own rank + stats (authenticated). */
-  getMyEntry: () => apiFetch<MyLeaderboardEntry>("/leaderboard/me/"),
+  getMyEntry: () => apiFetch<MyLeaderboardEntry>('/leaderboard/me/'),
 };
 
 // =================================
@@ -729,23 +1404,23 @@ export const LeaderboardService = {
 export const PublicService = {
   /** JDG-9: the public judge registry (toolchain docs). */
   getLanguages: () =>
-    apiFetch<{ notice: string; count: number; results: LanguageRow[] }>("/public/languages/"),
+    apiFetch<{ notice: string; count: number; results: LanguageRow[] }>('/public/languages/'),
 };
 
 export const FollowService = {
   /** Toggle the viewer's follow edge; returns the new state + count. */
   toggle: (userId: number) =>
     apiFetch<{ following: boolean; followers: number }>(`/users/${userId}/follow/`, {
-      method: "POST",
+      method: 'POST',
     }),
   /** By-handle lane: public surfaces render usernames, not ids. */
   toggleByUsername: (username: string) =>
     apiFetch<{ following: boolean; followers: number }>(
       `/users/username/${encodeURIComponent(username)}/follow/`,
-      { method: "POST" },
+      { method: 'POST' },
     ),
   /** The viewer's follow list (id + username rows). */
-  getFollowing: () => apiFetch<FollowingResponse>("/users/me/following/"),
+  getFollowing: () => apiFetch<FollowingResponse>('/users/me/following/'),
 };
 
 // =================================
@@ -768,30 +1443,30 @@ export const ForumService = {
     } = {},
   ) => {
     const search = new URLSearchParams();
-    if (params.page !== undefined) search.set("page", String(params.page));
-    if (params.pageSize !== undefined) search.set("page_size", String(params.pageSize));
-    if (params.problemId !== undefined) search.set("problem_id", String(params.problemId));
-    if (params.lang) search.set("lang", params.lang);
-    if (params.topic) search.set("topic", params.topic);
-    if (params.announcements) search.set("announcements", "1");
+    if (params.page !== undefined) search.set('page', String(params.page));
+    if (params.pageSize !== undefined) search.set('page_size', String(params.pageSize));
+    if (params.problemId !== undefined) search.set('problem_id', String(params.problemId));
+    if (params.lang) search.set('lang', params.lang);
+    if (params.topic) search.set('topic', params.topic);
+    if (params.announcements) search.set('announcements', '1');
     const qs = search.toString();
-    return apiFetch<GetForumThreadsResponse>(`/forum/threads/${qs ? `?${qs}` : ""}`);
+    return apiFetch<GetForumThreadsResponse>(`/forum/threads/${qs ? `?${qs}` : ''}`);
   },
   getThread: (threadId: number | string) => apiFetch<ForumThread>(`/forum/threads/${threadId}/`),
   /** Creates the thread + its first post atomically ({title, content, problem?}). */
   createThread: (data: { title: string; content: string; problem?: number | null }) =>
-    apiFetch<ForumThread>("/forum/threads/", { method: "POST", body: JSON.stringify(data) }),
+    apiFetch<ForumThread>('/forum/threads/', { method: 'POST', body: JSON.stringify(data) }),
   /** Posts inside a thread, oldest-first cursor pagination. */
   getPosts: (
     threadId: number | string,
     page: { cursor?: string | null; pageSize?: number } = {},
   ) => {
     const params = new URLSearchParams();
-    if (page.cursor) params.set("cursor", page.cursor);
-    if (page.pageSize !== undefined) params.set("page_size", String(page.pageSize));
+    if (page.cursor) params.set('cursor', page.cursor);
+    if (page.pageSize !== undefined) params.set('page_size', String(page.pageSize));
     const qs = params.toString();
     return apiFetch<GetForumPostsResponse>(
-      `/forum/threads/${threadId}/posts/${qs ? `?${qs}` : ""}`,
+      `/forum/threads/${threadId}/posts/${qs ? `?${qs}` : ''}`,
     );
   },
   /** Reply to a thread ({content, parent?} — parent must be in the same thread). */
@@ -800,23 +1475,23 @@ export const ForumService = {
     data: { content: string; parent?: number | null; isSpoiler?: boolean },
   ) =>
     apiFetch<ForumPost>(`/forum/threads/${threadId}/posts/`, {
-      method: "POST",
+      method: 'POST',
       // COM-1: the API speaks snake_case for the spoiler flag.
       body: JSON.stringify({ ...data, is_spoiler: data.isSpoiler ?? false }),
     }),
   getPost: (postId: number | string) => apiFetch<ForumPost>(`/forum/posts/${postId}/`),
   updatePost: (postId: number | string, data: { content: string }) =>
-    apiFetch<ForumPost>(`/forum/posts/${postId}/`, { method: "PATCH", body: JSON.stringify(data) }),
+    apiFetch<ForumPost>(`/forum/posts/${postId}/`, { method: 'PATCH', body: JSON.stringify(data) }),
   /** Vote: 1 = up, -1 = down, 0 = remove the vote. Returns the new net score. */
   votePost: (postId: number | string, value: 1 | -1 | 0) =>
     apiFetch<{ upvotes: number }>(`/forum/posts/${postId}/vote/`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify({ value }),
     }),
   /** Report a post (duplicate reporter+post → 409). */
   reportPost: (postId: number | string, data: { reason: string; details?: string }) =>
     apiFetch<ForumReport>(`/forum/reports/`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify({ post: postId, ...data }),
     }),
 };
@@ -829,16 +1504,16 @@ export const MessagingService = {
   /** The viewer's threads (block-hidden ones excluded by the backend). */
   getThreads: (page: { cursor?: string | null } = {}) => {
     const params = new URLSearchParams();
-    if (page.cursor) params.set("cursor", page.cursor);
+    if (page.cursor) params.set('cursor', page.cursor);
     const qs = params.toString();
-    return apiFetch<GetConversationsResponse>(`/messages/threads/${qs ? `?${qs}` : ""}`);
+    return apiFetch<GetConversationsResponse>(`/messages/threads/${qs ? `?${qs}` : ''}`);
   },
   /** Start (or fetch) a 1:1 thread; blocks/minor policy answer 403 with {detail: code}. */
   startThread: (data: { userId?: number; username?: string }) =>
-    apiFetch<ApiConversation>("/messages/threads/", {
-      method: "POST",
+    apiFetch<ApiConversation>('/messages/threads/', {
+      method: 'POST',
       body: JSON.stringify(
-        data.userId !== undefined ? { user_id: data.userId } : { username: data.username ?? "" },
+        data.userId !== undefined ? { user_id: data.userId } : { username: data.username ?? '' },
       ),
     }),
   getThread: (threadId: number | string) =>
@@ -849,57 +1524,57 @@ export const MessagingService = {
     page: { cursor?: string | null; pageSize?: number } = {},
   ) => {
     const params = new URLSearchParams();
-    if (page.cursor) params.set("cursor", page.cursor);
-    if (page.pageSize !== undefined) params.set("page_size", String(page.pageSize));
+    if (page.cursor) params.set('cursor', page.cursor);
+    if (page.pageSize !== undefined) params.set('page_size', String(page.pageSize));
     const qs = params.toString();
     return apiFetch<GetPrivateMessagesResponse>(
-      `/messages/threads/${threadId}/messages/${qs ? `?${qs}` : ""}`,
+      `/messages/threads/${threadId}/messages/${qs ? `?${qs}` : ''}`,
     );
   },
   /** Send a plain-text message (30/hour budget server-side). */
   sendMessage: (threadId: number | string, body: string) =>
     apiFetch<ApiPrivateMessage>(`/messages/threads/${threadId}/send/`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify({ body }),
     }),
   /** Mark the other party's messages read (idempotent). */
   markRead: (threadId: number | string) =>
     apiFetch<{ marked_read: number }>(`/messages/threads/${threadId}/read/`, {
-      method: "POST",
+      method: 'POST',
     }),
   /** Report a message into the moderation queue (duplicate → 409). */
   reportMessage: (
     messageId: number | string,
-    data: { reason: "SPAM" | "ABUSE" | "GROOMING" | "OTHER"; details?: string },
+    data: { reason: 'SPAM' | 'ABUSE' | 'GROOMING' | 'OTHER'; details?: string },
   ) =>
     apiFetch<ApiMessageReport>(`/messages/messages/${messageId}/report/`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify(data),
     }),
   // -- Blocks (mute list) --
-  getBlocks: () => apiFetch<GetBlocksResponse>("/messages/blocks/"),
+  getBlocks: () => apiFetch<GetBlocksResponse>('/messages/blocks/'),
   blockUser: (data: { userId?: number; username?: string }) =>
-    apiFetch<ApiBlock>("/messages/blocks/", {
-      method: "POST",
+    apiFetch<ApiBlock>('/messages/blocks/', {
+      method: 'POST',
       body: JSON.stringify(
-        data.userId !== undefined ? { user_id: data.userId } : { username: data.username ?? "" },
+        data.userId !== undefined ? { user_id: data.userId } : { username: data.username ?? '' },
       ),
     }),
   unblockUser: (userId: number) =>
-    apiFetch<void>(`/messages/blocks/${userId}/`, { method: "DELETE" }),
+    apiFetch<void>(`/messages/blocks/${userId}/`, { method: 'DELETE' }),
   // -- Moderation queue (VERIFIER/ADMIN) --
   getReports: (status?: string) =>
     apiFetch<GetMessageReportsResponse>(
-      `/messages/moderation/reports/${status ? `?status=${status}` : ""}`,
+      `/messages/moderation/reports/${status ? `?status=${status}` : ''}`,
     ),
-  resolveReport: (reportId: number | string, action: "resolved" | "dismissed", note = "") =>
+  resolveReport: (reportId: number | string, action: 'resolved' | 'dismissed', note = '') =>
     apiFetch<ApiMessageReport>(`/messages/moderation/reports/${reportId}/resolve/`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify({ action, note }),
     }),
-  getFlagged: () => apiFetch<PaginatedResponse<ApiFlaggedMessage>>("/messages/moderation/flagged/"),
+  getFlagged: () => apiFetch<PaginatedResponse<ApiFlaggedMessage>>('/messages/moderation/flagged/'),
   // -- Admin audit (metadata only; transcripts behind an explicit report) --
-  getAdminThreads: () => apiFetch<GetAdminConversationsResponse>("/messages/admin/threads/"),
+  getAdminThreads: () => apiFetch<GetAdminConversationsResponse>('/messages/admin/threads/'),
   getTranscript: (threadId: number | string) =>
     apiFetch<{
       conversation: ApiAdminConversation;
@@ -917,18 +1592,18 @@ export const NotificationService = {
     params: { cursor?: string | null; unreadOnly?: boolean; pageSize?: number } = {},
   ) => {
     const search = new URLSearchParams();
-    if (params.cursor) search.set("cursor", params.cursor);
-    if (params.unreadOnly) search.set("unread", "true");
-    if (params.pageSize !== undefined) search.set("page_size", String(params.pageSize));
+    if (params.cursor) search.set('cursor', params.cursor);
+    if (params.unreadOnly) search.set('unread', 'true');
+    if (params.pageSize !== undefined) search.set('page_size', String(params.pageSize));
     const qs = search.toString();
-    return apiFetch<GetNotificationsResponse>(`/notifications/${qs ? `?${qs}` : ""}`);
+    return apiFetch<GetNotificationsResponse>(`/notifications/${qs ? `?${qs}` : ''}`);
   },
   getNotification: (id: number | string) => apiFetch<ApiNotification>(`/notifications/${id}/`),
   markRead: (id: number | string) =>
-    apiFetch<ApiNotification>(`/notifications/${id}/mark-read/`, { method: "POST" }),
+    apiFetch<ApiNotification>(`/notifications/${id}/mark-read/`, { method: 'POST' }),
   markAllRead: () =>
-    apiFetch<{ marked: number }>("/notifications/mark-all-read/", { method: "POST" }),
-  getUnreadCount: () => apiFetch<{ count: number }>("/notifications/unread-count/"),
+    apiFetch<{ marked: number }>('/notifications/mark-all-read/', { method: 'POST' }),
+  getUnreadCount: () => apiFetch<{ count: number }>('/notifications/unread-count/'),
 };
 
 // =================================
@@ -937,61 +1612,63 @@ export const NotificationService = {
 
 export const ContestService = {
   getContests: (
-    filters: { state?: "UPCOMING" | "RUNNING" | "FINISHED" } = {},
+    filters: { state?: 'UPCOMING' | 'RUNNING' | 'FINISHED'; kind?: 'long' } = {},
     page: { page?: number; pageSize?: number } = {},
   ) => {
     const params = new URLSearchParams();
-    if (filters.state) params.set("state", filters.state);
-    if (page.page !== undefined) params.set("page", String(page.page));
-    if (page.pageSize !== undefined) params.set("page_size", String(page.pageSize));
+    if (filters.state) params.set('state', filters.state);
+    if (filters.kind) params.set('kind', filters.kind);
+    if (page.page !== undefined) params.set('page', String(page.page));
+    if (page.pageSize !== undefined) params.set('page_size', String(page.pageSize));
     const qs = params.toString();
-    return apiFetch<GetContestsResponse>(`/contests/contests/${qs ? `?${qs}` : ""}`);
+    return apiFetch<GetContestsResponse>(`/contests/${qs ? `?${qs}` : ''}`);
   },
-  getContest: (id: number | string) => apiFetch<Contest>(`/contests/contests/${id}/`),
-  register: (id: number | string, accessCode?: string) =>
-    apiFetch<{ contest: number; user: number }>(`/contests/contests/${id}/register/`, {
-      method: "POST",
-      body: JSON.stringify(accessCode ? { access_code: accessCode } : {}),
+  getContest: (id: number | string) => apiFetch<Contest>(`/contests/${id}/`),
+  register: (id: number | string, accessCode?: string, teamName?: string) =>
+    apiFetch<{ contest: number; user: number; team: string | null }>(`/contests/${id}/register/`, {
+      method: 'POST',
+      body: JSON.stringify({
+        ...(accessCode ? { access_code: accessCode } : {}),
+        ...(teamName ? { team_name: teamName } : {}),
+      }),
     }),
   startPersonalClock: (id: number | string) =>
-    apiFetch<{ virtual_start: string; effective_end: string }>(`/contests/contests/${id}/start/`, {
-      method: "POST",
+    apiFetch<{ virtual_start: string; effective_end: string }>(`/contests/${id}/start/`, {
+      method: 'POST',
     }),
-  getProblems: (id: number | string) =>
-    apiFetch<ContestProblemRow[]>(`/contests/contests/${id}/problems/`),
+  getProblems: (id: number | string) => apiFetch<ContestProblemRow[]>(`/contests/${id}/problems/`),
   getStandings: (
     id: number | string,
     page = 1,
-    section?: "official" | "virtual",
+    section?: 'official' | 'virtual',
     friends = false,
   ) => {
     const params = new URLSearchParams({ page: String(page) });
-    if (section) params.set("section", section);
+    if (section) params.set('section', section);
     // COM-4: friends-only standings (viewer + followed).
-    if (friends) params.set("friends", "1");
-    return apiFetch<StandingsResponse>(`/contests/contests/${id}/standings/?${params.toString()}`);
+    if (friends) params.set('friends', '1');
+    return apiFetch<StandingsResponse>(`/contests/${id}/standings/?${params.toString()}`);
   },
   startVirtual: (id: number | string) =>
     apiFetch<{ virtual_start: string; effective_end: string; is_virtual: boolean }>(
-      `/contests/contests/${id}/virtual-start/`,
-      { method: "POST" },
+      `/contests/${id}/virtual-start/`,
+      { method: 'POST' },
     ),
-  getAwards: (id: number | string) =>
-    apiFetch<ContestAwardsResponse>(`/contests/contests/${id}/awards/`),
+  getAwards: (id: number | string) => apiFetch<ContestAwardsResponse>(`/contests/${id}/awards/`),
   createContest: (data: Record<string, unknown>) =>
-    apiFetch<Contest>("/contests/contests/", {
-      method: "POST",
+    apiFetch<Contest>('/contests/', {
+      method: 'POST',
       body: JSON.stringify(data),
     }),
   unfreeze: (id: number | string) =>
-    apiFetch<{ detail: string }>(`/contests/contests/${id}/unfreeze/`, { method: "POST" }),
+    apiFetch<{ detail: string }>(`/contests/${id}/unfreeze/`, { method: 'POST' }),
   getClarifications: (id: number | string) =>
     apiFetch<{ results: Clarification[]; canned_answers?: string[] }>(
-      `/contests/contests/${id}/clarifications/`,
+      `/contests/${id}/clarifications/`,
     ),
   askClarification: (id: number | string, question: string, problemId?: number | null) =>
-    apiFetch<Clarification>(`/contests/contests/${id}/clarifications/`, {
-      method: "POST",
+    apiFetch<Clarification>(`/contests/${id}/clarifications/`, {
+      method: 'POST',
       body: JSON.stringify({ question, problem: problemId ?? null }),
     }),
   answerClarification: (
@@ -1000,8 +1677,8 @@ export const ContestService = {
     answer: string,
     broadcast: boolean,
   ) =>
-    apiFetch<Clarification>(`/contests/contests/${id}/clarifications/${clarificationId}/answer/`, {
-      method: "POST",
+    apiFetch<Clarification>(`/contests/${id}/clarifications/${clarificationId}/answer/`, {
+      method: 'POST',
       body: JSON.stringify({ answer, is_broadcast: broadcast }),
     }),
   getRatingChanges: (id: number | string) =>
@@ -1010,7 +1687,42 @@ export const ContestService = {
       is_rated: boolean;
       discarded: boolean;
       changes: RatingChangeRow[];
-    }>(`/contests/contests/${id}/rating-changes/`),
+    }>(`/contests/${id}/rating-changes/`),
+  // ---- Wave F contest depth (items 48/56/57/58) ----
+  getCommentary: (id: number | string) =>
+    apiFetch<ContestCommentaryResponse>(`/contests/${id}/commentary/`),
+  postCommentary: (id: number | string, text: string, minuteOffset = 0) =>
+    apiFetch<ContestCommentaryRow>(`/contests/${id}/commentary/`, {
+      method: 'POST',
+      body: JSON.stringify({ text, minute_offset: minuteOffset }),
+    }),
+  lockProblem: (id: number | string, contestProblemId: number) =>
+    apiFetch<{ detail: string }>(`/contests/${id}/lock/${contestProblemId}/`, {
+      method: 'POST',
+    }),
+  getHackTargets: (id: number | string) =>
+    apiFetch<HackTargetsResponse>(`/contests/${id}/hacks/targets/`),
+  submitHack: (id: number | string, targetSubmissionId: number, inputData: string) =>
+    apiFetch<HackRow>(`/contests/${id}/hacks/`, {
+      method: 'POST',
+      body: JSON.stringify({ target_submission_id: targetSubmissionId, input_data: inputData }),
+    }),
+  getHacks: (id: number | string, mine = false) =>
+    apiFetch<HacksResponse>(`/contests/${id}/hacks/${mine ? '?mine=1' : ''}`),
+  getReplay: (id: number | string, username: string) =>
+    apiFetch<ContestReplay>(`/contests/${id}/replay/${encodeURIComponent(username)}/`),
+  getDrama: (id: number | string) => apiFetch<ContestDrama>(`/contests/${id}/drama/`),
+  // ---- Wave F items 49/50/55 ----
+  getTeams: (id: number | string) => apiFetch<ContestTeamsResponse>(`/contests/${id}/teams/`),
+  getTeamStandings: (id: number | string) =>
+    apiFetch<TeamStandingsResponse>(`/contests/${id}/standings/?section=teams`),
+  getPrediction: (id: number | string) =>
+    apiFetch<ContestPredictionState>(`/contests/${id}/predict/`),
+  predict: (id: number | string, predictedRank: number) =>
+    apiFetch<{ contest: number; predicted_rank: number }>(`/contests/${id}/predict/`, {
+      method: 'POST',
+      body: JSON.stringify({ predicted_rank: predictedRank }),
+    }),
 };
 
 // =================================
@@ -1020,8 +1732,19 @@ export const ContestService = {
 export const RatingService = {
   getLadder: (page = 1) =>
     apiFetch<PaginatedResponse<RatingLadderRow>>(`/ratings/ratings/?page=${page}`),
-  getColors: () => apiFetch<{ bands: RatingBand[] }>("/ratings/ratings/colors/"),
-  getMyRating: () => apiFetch<MyRating>("/ratings/ratings/me/"),
+  getColors: () => apiFetch<{ bands: RatingBand[] }>('/ratings/ratings/colors/'),
+  getMyRating: () => apiFetch<MyRating>('/ratings/ratings/me/'),
+  getRatingHistory: (username: string) =>
+    apiFetch<UserRatingHistory>(`/ratings/ratings/users/${encodeURIComponent(username)}/`),
+  // Wave F item 55 — the self-prediction calibration profile.
+  getCalibration: (username: string) =>
+    apiFetch<CalibrationProfile>(`/ratings/users/${encodeURIComponent(username)}/calibration/`),
+  // Wave F items 51/52/53 — divisions + percentiles.
+  getDivisions: () => apiFetch<{ divisions: DivisionTableRow[] }>('/ratings/divisions/'),
+  getUserDivisions: (username: string) =>
+    apiFetch<UserDivisionProfile>(`/ratings/users/${encodeURIComponent(username)}/divisions/`),
+  getPercentiles: (username: string) =>
+    apiFetch<UserPercentiles>(`/ratings/users/${encodeURIComponent(username)}/percentiles/`),
 };
 
 // =================================
@@ -1032,45 +1755,92 @@ export const ClassroomService = {
   getClasses: (page = 1) =>
     apiFetch<PaginatedResponse<ClassRoom>>(`/classroom/classes/?page=${page}`),
   createClass: (data: { name: string; school?: string; join_password?: string }) =>
-    apiFetch<ClassRoom>("/classroom/classes/", {
-      method: "POST",
+    apiFetch<ClassRoom>('/classroom/classes/', {
+      method: 'POST',
       body: JSON.stringify(data),
     }),
   getClass: (id: number | string) => apiFetch<ClassRoom>(`/classroom/classes/${id}/`),
   updateClass: (id: number | string, data: Record<string, unknown>) =>
     apiFetch<ClassRoom>(`/classroom/classes/${id}/`, {
-      method: "PATCH",
+      method: 'PATCH',
       body: JSON.stringify(data),
     }),
   deleteClass: (id: number | string) =>
-    apiFetch<void>(`/classroom/classes/${id}/`, { method: "DELETE" }),
+    apiFetch<void>(`/classroom/classes/${id}/`, { method: 'DELETE' }),
   getMembers: (id: number | string) =>
     apiFetch<ClassMembershipRow[]>(`/classroom/classes/${id}/members/`),
   joinClass: (code: string, password?: string) =>
-    apiFetch<{ detail: string; classroom_id: number }>("/classroom/classes/join/", {
-      method: "POST",
-      body: JSON.stringify({ code, password: password ?? "" }),
+    apiFetch<{ detail: string; classroom_id: number }>('/classroom/classes/join/', {
+      method: 'POST',
+      body: JSON.stringify({ code, password: password ?? '' }),
     }),
-  getMyClasses: () => apiFetch<{ results: MyClassRow[] }>("/classroom/classes/my-classes/"),
+  getMyClasses: () => apiFetch<{ results: MyClassRow[] }>('/classroom/classes/my-classes/'),
+  /** [wave E items 22/41/42/43/44] classroom analytics + batch + PDFs. */
+  bulkAddMembers: (classroomId: number | string, usernames: string[]) =>
+    apiFetch<{ added: number; already_members: number; missing: string[] }>(
+      `/classroom/classes/${classroomId}/members/bulk/`,
+      { method: 'POST', body: JSON.stringify({ usernames }) },
+    ),
+  bulkAddProblems: (assignmentId: number | string, problemIds: (number | string)[]) =>
+    apiFetch<{ added: number; skipped: number }>(
+      `/classroom/assignments/${assignmentId}/problems/bulk/`,
+      { method: 'POST', body: JSON.stringify({ problem_ids: problemIds }) },
+    ),
+  effortBoard: (classroomId: number | string) =>
+    apiFetch<{
+      count: number;
+      results: {
+        rank: number;
+        user_id: number;
+        username: string;
+        attempts: number;
+        active_days: number;
+        problems_solved: number;
+      }[];
+    }>(`/classroom/classes/${classroomId}/effort/`),
+  failureHeatmap: (classroomId: number | string) =>
+    apiFetch<{
+      count: number;
+      assignments: {
+        assignment_id: number;
+        title_i18n: Record<string, string>;
+        problems: { problem_id: number; label: string; points: number }[];
+        students: {
+          user_id: number;
+          username: string;
+          cells: {
+            problem_id: number;
+            intensity: number | null;
+            attempts: number;
+            verdict: string | null;
+          }[];
+        }[];
+        failure_rates: { problem_id: number; label: string; failure_rate: number }[];
+      }[];
+    }>(`/classroom/classes/${classroomId}/heatmap/`),
+  examPdfUrl: (assignmentId: number | string) =>
+    `${API_BASE_URL}/classroom/assignments/${assignmentId}/exam-pdf/`,
+  reportCardPdfUrl: (classroomId: number | string, studentId: number | string) =>
+    `${API_BASE_URL}/classroom/classes/${classroomId}/report-card/${studentId}/`,
   getAssignments: (classroomId?: number | string, page = 1) => {
     const params = new URLSearchParams({ page: String(page) });
-    if (classroomId !== undefined) params.set("classroomId", String(classroomId));
+    if (classroomId !== undefined) params.set('classroomId', String(classroomId));
     return apiFetch<PaginatedResponse<ClassroomAssignment>>(
       `/classroom/assignments/?${params.toString()}`,
     );
   },
   createAssignment: (data: Record<string, unknown>) =>
-    apiFetch<ClassroomAssignment>("/classroom/assignments/", {
-      method: "POST",
+    apiFetch<ClassroomAssignment>('/classroom/assignments/', {
+      method: 'POST',
       body: JSON.stringify(data),
     }),
   updateAssignment: (id: number | string, data: Record<string, unknown>) =>
     apiFetch<ClassroomAssignment>(`/classroom/assignments/${id}/`, {
-      method: "PATCH",
+      method: 'PATCH',
       body: JSON.stringify(data),
     }),
   deleteAssignment: (id: number | string) =>
-    apiFetch<void>(`/classroom/assignments/${id}/`, { method: "DELETE" }),
+    apiFetch<void>(`/classroom/assignments/${id}/`, { method: 'DELETE' }),
   getAssignment: (id: number | string) =>
     apiFetch<ClassroomAssignment>(`/classroom/assignments/${id}/`),
   getMcqItems: (params: { discipline?: string; grade?: string; bacYear?: string } = {}) => {
@@ -1082,7 +1852,7 @@ export const ClassroomService = {
   getQuizSheet: (id: number | string) => apiFetch<QuizSheet>(`/classroom/assignments/${id}/quiz/`),
   submitQuiz: (id: number | string, answers: Record<string, number>) =>
     apiFetch<QuizSubmitResult>(`/classroom/assignments/${id}/quiz/submit/`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify({ answers }),
     }),
   getDeliverables: (id: number | string) =>
@@ -1091,13 +1861,13 @@ export const ClassroomService = {
     ),
   uploadDeliverable: (id: number | string, file: File) => {
     const form = new FormData();
-    form.append("file", file);
+    form.append('file', file);
     return apiFetch<{ id: number; original_filename: string }>(
       `/classroom/assignments/${id}/deliverables/`,
-      { method: "POST", body: form },
+      { method: 'POST', body: form },
     );
   },
-  getExamMode: () => apiFetch<ExamModeStatus>("/classroom/exam-mode/"),
+  getExamMode: () => apiFetch<ExamModeStatus>('/classroom/exam-mode/'),
   getGrid: (id: number | string) => apiFetch<AssignmentGrid>(`/classroom/assignments/${id}/grid/`),
   /** JDG-13 v1: structured solutions of a temă (the diff-view data). */
   getAssignmentSolutionsJson: (assignmentId: number | string) =>
@@ -1105,7 +1875,7 @@ export const ClassroomService = {
       `/problems/tools/assignment-solutions/${assignmentId}/?format=json`,
     ),
   getMyAssignments: () =>
-    apiFetch<{ results: ClassroomAssignment[] }>("/classroom/assignments/my-assignments/"),
+    apiFetch<{ results: ClassroomAssignment[] }>('/classroom/assignments/my-assignments/'),
   /** EDU-6: CSV gradebook download (browser navigates; auth cookie rides). */
   exportCsvUrl: (id: number | string) => `${API_V1_URL}/classroom/assignments/${id}/export/`,
 };
@@ -1116,7 +1886,7 @@ export const ClassroomService = {
 
 export const TranslationsService = {
   /** The translatable-language catalog (propose-form picker; public). */
-  getLanguages: () => apiFetch<GetTranslationLanguagesResponse>("/translations/languages/"),
+  getLanguages: () => apiFetch<GetTranslationLanguagesResponse>('/translations/languages/'),
   /** The curation queue (VERIFIER/ADMIN); filters optional. */
   getProposals: (
     params: {
@@ -1128,24 +1898,24 @@ export const TranslationsService = {
     } = {},
   ) => {
     const search = new URLSearchParams();
-    if (params.page !== undefined) search.set("page", String(params.page));
-    if (params.pageSize !== undefined) search.set("page_size", String(params.pageSize));
-    if (params.status) search.set("status", params.status);
-    if (params.language) search.set("language", params.language);
-    if (params.problem !== undefined) search.set("problem", String(params.problem));
+    if (params.page !== undefined) search.set('page', String(params.page));
+    if (params.pageSize !== undefined) search.set('page_size', String(params.pageSize));
+    if (params.status) search.set('status', params.status);
+    if (params.language) search.set('language', params.language);
+    if (params.problem !== undefined) search.set('problem', String(params.problem));
     const qs = search.toString();
     return apiFetch<GetTranslationProposalsResponse>(
-      `/translations/proposals/${qs ? `?${qs}` : ""}`,
+      `/translations/proposals/${qs ? `?${qs}` : ''}`,
     );
   },
   /** The viewer's own proposals with their decisions. */
   getMine: (params: { page?: number; pageSize?: number } = {}) => {
     const search = new URLSearchParams();
-    if (params.page !== undefined) search.set("page", String(params.page));
-    if (params.pageSize !== undefined) search.set("page_size", String(params.pageSize));
+    if (params.page !== undefined) search.set('page', String(params.page));
+    if (params.pageSize !== undefined) search.set('page_size', String(params.pageSize));
     const qs = search.toString();
     return apiFetch<GetTranslationProposalsResponse>(
-      `/translations/proposals/mine/${qs ? `?${qs}` : ""}`,
+      `/translations/proposals/mine/${qs ? `?${qs}` : ''}`,
     );
   },
   /** Propose a translation (authenticated + rate-limited; 409 on a pending dup). */
@@ -1155,8 +1925,8 @@ export const TranslationsService = {
     title: string;
     statement: string;
   }) =>
-    apiFetch<TranslationProposalRow>("/translations/proposals/", {
-      method: "POST",
+    apiFetch<TranslationProposalRow>('/translations/proposals/', {
+      method: 'POST',
       body: JSON.stringify({
         problem: data.problemId,
         language: data.language,
@@ -1167,12 +1937,12 @@ export const TranslationsService = {
   /** Approve → promotes atomically into the problem (verifiers only). */
   approve: (id: number | string) =>
     apiFetch<TranslationProposalRow>(`/translations/proposals/${id}/approve/`, {
-      method: "POST",
+      method: 'POST',
     }),
   /** Reject with an optional note shown to the contributor (verifiers only). */
-  reject: (id: number | string, note = "") =>
+  reject: (id: number | string, note = '') =>
     apiFetch<TranslationProposalRow>(`/translations/proposals/${id}/reject/`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify({ note }),
     }),
 };

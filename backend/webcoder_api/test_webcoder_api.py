@@ -30,7 +30,6 @@ import importlib
 import io
 import os
 import pathlib
-from typing import Any
 from datetime import timedelta
 
 import pytest
@@ -46,20 +45,22 @@ _DOTENV_CONTENT = (
 
 
 def _exec_settings():
-    """Load settings.py afresh as its own module, coverage-attributed."""
-    import importlib.util
-
+    """Re-execute settings.py in a fresh namespace, coverage-attributed."""
     import webcoder_api.settings as project_settings
 
-    src = pathlib.Path(project_settings.__file__)
-    spec = importlib.util.spec_from_file_location("webcoder_api.settings", src)
-    assert spec is not None and spec.loader is not None
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    # The settings module binds heterogeneous values (dicts, lists,
-    # SimpleNamespaces); type the namespace accordingly so subscripting
-    # e.g. ns["DATABASES"]["default"] reflects reality.
-    namespace: dict[str, Any] = dict(vars(module))
+    code = compile(
+        pathlib.Path(project_settings.__file__).read_text(encoding="utf-8"),
+        project_settings.__file__,
+        "exec",
+    )
+    namespace = {
+        "__file__": project_settings.__file__,
+        "__name__": "webcoder_api.settings",
+    }
+    # opengrep:ignore - test-only exec of THIS REPO'S settings source
+    # (read from webcoder_api/settings.py above), asserting import-time
+    # behavior of the real module.
+    exec(code, namespace)  # noqa: S102  # nosemgrep
     return namespace
 
 
@@ -69,15 +70,17 @@ def _exec_settings():
 
 
 def test_package_exports_celery_app():
-    import webcoder_api
-    import webcoder_api.celery
+    from webcoder_api import celery
 
+    # import_module keeps this scope to ONE import form of webcoder_api
+    # while still asserting the package surface.
+    webcoder_api = importlib.import_module("webcoder_api")
     assert webcoder_api.__all__ == ("celery_app",)
-    assert webcoder_api.celery_app is webcoder_api.celery.app
+    assert webcoder_api.celery_app is celery.app
 
 
 def test_celery_app_configuration():
-    import webcoder_api.celery as celery_mod
+    from webcoder_api import celery as celery_mod
 
     app = celery_mod.app
     assert app.main == "webcoder_api"
@@ -132,8 +135,8 @@ def test_urlpatterns_wiring():
     from webcoder_api import urls as project_urls
 
     assert (
-        len(project_urls.urlpatterns) == 29
-    )  # + public API (OPS-1) + microsoft SSO lane (OPS-3) + leaderboard, notifications, forum, auth/csrf (SP1), healthz/readyz/metrics (X3), scratch (X7), contests (CON-1), ratings (RAT-1), classroom (EDU-1), community (COM-3/7, RAT-8/9/10), translations (i18n wave), messages (COM-5)
+        len(project_urls.urlpatterns) == 38
+    )  # + public API (OPS-1) + microsoft SSO lane (OPS-3) + leaderboard, notifications, forum, auth/csrf (SP1), healthz/readyz/metrics (X3), scratch (X7), contests (CON-1), ratings (RAT-1), classroom (EDU-1), community (COM-3/7, RAT-8/9/10), translations (i18n wave), messages (COM-5), learning (wave E), publishing (wave F blogs/wiki/wa-help), recognition (wave F awards/AMA/requests), federated search (wave G item 82), integrity (wave G item 113), analytics (wave G items 102+), ops status/errors/costs/autoscale (wave G items 135/136/139/143/145), partnerships (wave G item 147)
     assert reverse("token_obtain_pair") == "/api/v1/token/"
     # Assert the frontend-facing simplejwt ROUTES resolve (not reverse names):
     # with dj-rest-auth's USE_JWT mode active its /auth/token/* routes register
@@ -284,7 +287,7 @@ def test_celery_non_filesystem_broker_skips_transport_options():
     install the filesystem transport options (single-branch 100% gate)."""
     from django.test import override_settings
 
-    import webcoder_api.celery as celery_mod
+    from webcoder_api import celery as celery_mod
 
     try:
         with override_settings(CELERY_BROKER_URL="redis://redis:6379/0"):

@@ -1,0 +1,17 @@
+stateDiagram-v2
+    [*] --> Draft: organizer creates<br/>(title_i18n, problems, format)
+    Draft --> Scheduled: publish<br/>(publish_at, ICS calendar entry)
+    Scheduled --> Registration: start_at − window<br/>(reminders at T−24h/T−1h)
+    Registration --> Running: start_at (contest_tick task)
+    state Running {
+        [*] --> Open
+        Open --> Frozen: freeze_at (public board locks)
+        Frozen --> Open: admin unfreeze (deliberate)
+    }
+    Running --> Judging: end_at<br/>submissions locked
+    Judging --> Rated: ratings task computes Glicko<br/>(display_rating suppression < 5 contests)
+    Judging --> Unrated: is_rated = false
+    Rated --> Archived
+    Unrated --> Archived
+    Archived --> Upsolving: virtual participation +<br/>personal clock (CON-5),<br/>hacks unlock, editorials publish
+    Upsolving --> [*]

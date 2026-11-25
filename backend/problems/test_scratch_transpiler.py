@@ -118,13 +118,13 @@ def _run(source: str, stdin_text: str = "") -> str:
     try:
         with contextlib.redirect_stdout(out):
             try:
-                # The transpiler harness MUST execute its own compiler's
-                # generated output in-process (stdin/stdout redirected);
-                # the source is this repo's transpiler, never user input.
-                exec(  # nosemgrep: python-exec-use -- our-transpiler test harness; noqa: S102
-                    source, {"__name__": "__main__"}
-                )
+                # nosemgrep - test-only exec of the transpiler's GENERATED
+                # Python for this fixture (asserting its runtime behavior),
+                # never input.
+                exec(source, {"__name__": "__main__"})  # noqa: S102  # nosemgrep
             except SystemExit:
+                # Scratch programs may call stop; the exit aborts only the
+                # transpiled run, which is exactly the boundary under test.
                 pass
     finally:
         sys.stdin = old_stdin
@@ -691,7 +691,6 @@ class TestControl:
         assert out == "2\n"
 
     def test_while_until_until_mode(self):
-        # (a dead _compare literal was removed here; until-loop fixture follows)  # always false → until runs once?
         # repeat-until with always-false condition would loop forever; use
         # "until 5 < 2" (never true) is unsafe. Instead: until NOT(true)=false
         # → use a comparison that is TRUE so the until body never runs.

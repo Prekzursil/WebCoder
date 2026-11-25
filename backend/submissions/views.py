@@ -1,4 +1,5 @@
 from rest_framework import viewsets, permissions, status, generics
+from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
@@ -10,7 +11,29 @@ from .serializers import (
     SubmissionCreateSerializer,
 )
 from .tasks import judge_task
-from users.permissions import IsAdminUser, IsOwnerOrAdminForSubmission
+from users.permissions import IsOwnerOrAdminForSubmission
+
+
+class CanRejudgeSubmission(permissions.BasePermission):
+    """Wave E item 15 (verifier rejudge): who may re-run a submission.
+
+    ADMIN/staff (JDG-12 as shipped), VERIFIER (the platform-wide review
+    duty — a wrong judge outcome is exactly what verifiers exist to
+    catch) and the problem's author (their tests, their correctness
+    question). The submitter and BASIC strangers get nothing (the
+    historical discipline: rejudge is a review action, not a re-roll).
+    """
+
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_authenticated)
+
+    def has_object_permission(self, request, view, obj):
+        user = request.user
+        if user.is_superuser or user.is_staff:
+            return True
+        if getattr(user, "role", "") in ("ADMIN", "VERIFIER"):
+            return True
+        return obj.problem.author_id == user.pk
 
 
 class SubmissionCursorPagination(NewestFirstCursorPagination):
@@ -83,17 +106,31 @@ class SubmissionViewSet(viewsets.ReadOnlyModelViewSet):
     @action(
         detail=True,
         methods=["post"],
-        permission_classes=[permissions.IsAuthenticated, IsAdminUser],
+        permission_classes=[permissions.IsAuthenticated, CanRejudgeSubmission],
     )
     def rejudge(self, request, pk=None):
-        """JDG-12: reset a submission to PENDING and re-dispatch judging.
+        """JDG-12 + wave E item 15: reset a submission to PENDING and
+        re-dispatch judging. ADMIN (as shipped), VERIFIER (platform-wide
+        review duty), the problem's author and the submitter themselves
+        may trigger a re-run.
 
         Per-test rows are deleted (replaced by the fresh run); the verdict
         cycles back through PENDING ("WJ" in UI terms) until the judge
         commits. Contest-bound submissions re-dispatch on the judge-contest
         lane. Idempotent: a submission already in flight is rejected.
+
+        The action deliberately widens WHO can reach the row (verifier/
+        author lanes) without changing the list/detail visibility for
+        anyone — a stranger still cannot discover the submission.
         """
-        submission = self.get_object()
+        submission = (
+            Submission.objects.select_related("problem")
+            .filter(pk=self.kwargs.get("pk"))
+            .first()
+        )
+        if submission is None:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        self.check_object_permissions(self.request, submission)
         if submission.verdict in (
             Submission.VerdictStatus.PENDING,
             Submission.VerdictStatus.COMPILING,
@@ -159,6 +196,39 @@ class SubmissionCreateView(generics.CreateAPIView):
         )
 
     def perform_create(self, serializer):
-        # User is passed from the view to serializer.save()
-        # serializer.save() will call the serializer's create method and return the instance
-        return serializer.save(user=self.request.user)
+        # User + submitter IP (item 115's multi-account heuristics feed)
+        # are passed from the view to serializer.save().
+        forwarded = getattr(self.request, "META", {}) or {}
+        ip = forwarded.get("REMOTE_ADDR") or None
+        return serializer.save(user=self.request.user, ip_address=ip)
+
+
+class SubmissionLicenseView(APIView):
+    """POST /submissions/{id}/license/ — the author relicenses their own
+    ACCEPTED source (item 61: solution sharing with explicit licenses)."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, submission_id):
+        submission = Submission.objects.filter(pk=submission_id).first()
+        if submission is None:
+            return Response({"detail": "Not found."}, status=404)
+        if submission.user_id != request.user.id:
+            return Response(
+                {"detail": "Only the author may relicense this source."},
+                status=403,
+            )
+        if submission.verdict != Submission.VerdictStatus.ACCEPTED:
+            return Response(
+                {"detail": "Only accepted sources can be shared under a license."},
+                status=400,
+            )
+        choice = (request.data.get("license") or "").strip()
+        if choice not in Submission.License.values:
+            return Response(
+                {"license": "Choose one of: " + ", ".join(Submission.License.values)},
+                status=400,
+            )
+        submission.license = choice
+        submission.save(update_fields=["license"])
+        return Response({"id": submission.id, "license": submission.license})

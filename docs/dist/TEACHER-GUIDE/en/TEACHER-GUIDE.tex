@@ -1,0 +1,245 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+% fallback for those not using the hyperref driver hyperxmp:
+\makeatletter
+\@ifundefined{xmpquote}{\newcommand{\xmpquote}[1]{#1}}{}
+\makeatother
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{}
+
+\begin{document}
+
+{
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+\section{WebCoder --- Teacher Guide}\label{webcoder--teacher-guide}
+
+\begin{quote}
+One-paragraph summary: WebCoder gives teachers the pbinfo-style
+classroom loop --- classes with student self-join, assignments (teme)
+with publish windows and soft expiry, exam-mode lockdown, MCQ sets from
+the Bac bank, per-student progress grids, heatmaps, effort boards,
+report cards and CSV/PDF exports --- on top of a real bilingual judge.
+This guide walks the whole classroom workflow.
+\end{quote}
+
+\textbf{Who it\textquotesingle s for:} teachers, club coordinators,
+county olympiad trainers. Romanian twin:
+\href{../guide-ro/GHID-PROFESOR.md}{\texttt{docs/guide-ro/GHID-PROFESOR.md}}.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{1. Get the TEACHER role}\label{1-get-the-teacher-role}
+
+Ask an administrator to upgrade your account to \textbf{TEACHER}
+(verification via school email / the school-partnership program;
+\texttt{docs/RUNBOOK.md} §Wave C). The role unlocks \texttt{/teach},
+class creation, assignment authoring and the analytics surfaces.
+
+\subsection{2. Create a class}\label{2-create-a-class}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \texttt{/teach} → \textbf{New class} → name it (e.g. "IX-A
+  Informatică").
+\item
+  You get a \textbf{join code + join password}. Students join themselves
+  from their profile (pbinfo\textquotesingle s anti-abuse model --- you
+  never create student accounts):
+
+  \begin{itemize}
+  \tightlist
+  \item
+    share the code, students enter it on \texttt{/classroom} join;
+  \item
+    or share the \textbf{QR code} (mobile-friendly join);
+  \item
+    batch import by username list is also available (missing usernames
+    reported).
+  \end{itemize}
+\item
+  Members list links to public profiles and class-scoped submission
+  views.
+\end{enumerate}
+
+\subsection{3. Assignments (teme)}\label{3-assignments-teme}
+
+Create an assignment on a class:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{problems} picked individually, from curriculum chapters, or
+  from any track in one click ("turn this track into a tema");
+\item
+  \textbf{availability window} (\texttt{available\ from} →
+  \texttt{due\ at}, optional \texttt{late\ until});
+\item
+  optional \textbf{exam mode}: while a student is inside an exam temă,
+  the rest of the site (forum, other problems, hints) is locked down for
+  them, with a published conduct/AI policy;
+\item
+  \textbf{MCQ sets} pulled from the Bacalaureat grile bank
+  (discipline/class/Bac-year filters, shuffle option).
+\end{itemize}
+
+Soft expiry (the pbinfo semantic): after the deadline students can still
+submit --- those submissions simply don\textquotesingle t count for the
+temă. The judge never punishes learning; upsolving doubles as revision.
+
+\subsection{4. Track the class}\label{4-track-the-class}
+
+The class page\textquotesingle s tabs:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Grid} --- students × problems matrix of best score / verdict /
+  attempts, aggregated over submissions inside the window; per-student
+  drawer with their full history in the class.
+\item
+  \textbf{Insights} --- class failure heatmap (which problems block
+  whom), per-problem failure rates.
+\item
+  \textbf{Effort board} --- attempts + active days + solves ranking (the
+  grind board).
+\item
+  \textbf{Report card} --- per-student PDF: every temă\textquotesingle s
+  per-problem scores, totals, late flags. Printable for the catalog
+  electronic.
+\item
+  \textbf{Exam PDF} --- assignments export as a printable
+  statements+points booklet.
+\end{itemize}
+
+\subsection{5. Exports \& grades}\label{5-exports--grades}
+
+\begin{itemize}
+\tightlist
+\item
+  CSV gradebook (per-student max score per problem + totals) for any
+  external catalog;
+\item
+  per-class report-card PDFs;
+\item
+  "download all solutions" per temă (the \#1 teacher request on every
+  judge) for offline plagiarism review (plus the
+  platform\textquotesingle s own advisory similarity flags).
+\end{itemize}
+
+\subsection{6. Curriculum tree}\label{6-curriculum-tree}
+
+\texttt{/problems} curriculum axis maps the national programme (grades
+5--12 → chapters → topics) with per-node problem counts. Teme-building
+is chapter-picking: filter the catalog by your chapter, select, assign.
+The tree is versioned data (a new programme edition adds a taxonomy
+version, not a migration).
+
+\subsection{7. Run a class contest}\label{7-run-a-class-contest}
+
+Windowed contests fit a school schedule: one multi-day window, each
+student gets one timed sitting (personal countdown). Create it from
+\texttt{/contests} (TEACHER/CREATOR can create private contests), attach
+the class\textquotesingle s problems, share the registration. Rated or
+unrated --- unrated is the default for practice rounds. The replay page
+shows any student\textquotesingle s minute-by-minute timeline for
+post-mortem teaching.
+
+\subsection{8. Authoring your own
+problems}\label{8-authoring-your-own-problems}
+
+CREATOR/TEACHER accounts can author:
+
+\begin{itemize}
+\tightlist
+\item
+  the 7-step \textbf{visual wizard} (basics → limits → samples → tests →
+  reference solution → translation → review) with the statement linter
+  and readability score;
+\item
+  hidden tests via the generator DSL or the testcase bounty board
+  (community pledges);
+\item
+  Polygon/Kattis package import (permission-ledger gated).
+\end{itemize}
+
+Every problem goes through DRAFT → PENDING → APPROVED with verifier
+feedback; authoring IS professional development (the contributor program
+page documents the specs and feedback templates).
+
+\subsection{9. Certifications \&
+partnerships}\label{9-certifications--partnerships}
+
+\begin{itemize}
+\tightlist
+\item
+  Teacher certification (the program page explains requirements and the
+  exam);
+\item
+  school partnerships (DPA template in \texttt{docs/DPA-TEMPLATE.md});
+\item
+  data-processing: classroom data follows the GDPR section of the legal
+  pages; minors\textquotesingle{} consent is school-mediated
+  (teacher-created accounts under the school\textquotesingle s lawful
+  basis) or parental.
+\end{itemize}
+
+\subsection{10. FAQ}\label{10-faq}
+
+\textbf{A student forgot their password} --- self-service reset by
+email; without email, a school-mediated account is the robust pattern.
+\textbf{Can I see students\textquotesingle{} code?} Yes --- class-scoped
+submission views per student (the gradebook links them). \textbf{Do
+contest ratings affect class grades?} No --- ratings and teme scores are
+separate systems; export what you need.
+
+\end{document}

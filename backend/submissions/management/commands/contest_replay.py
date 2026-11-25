@@ -31,7 +31,7 @@ from django.db import close_old_connections
 
 from contests.models import Contest, ContestParticipation, ContestProblem
 from submissions.models import Submission
-from submissions.tasks import judge_task
+from submissions.tasks import judge_submission_task
 from users.models import User
 
 #: The round-2 OPR-4 numeric gate.
@@ -40,9 +40,9 @@ GATE_MIN_USERS = 50  # the full gate; the command allows fewer for rehearsal
 
 SOLUTION = "print(int(input()) + int(input()))\n"
 TERMINAL = {
-    value
-    for value in Submission.VerdictStatus.values
-    if value not in ("PENDING", "COMPILING", "RUNNING")
+    verdict.value
+    for verdict in Submission.VerdictStatus  # pyright: ignore[reportGeneralTypeIssues] - enum iteration comes from django's TextChoices metaclass at runtime; not statically iterable without django installed.
+    if verdict.value not in ("PENDING", "COMPILING", "RUNNING")
 }
 
 
@@ -113,7 +113,7 @@ class Command(BaseCommand):
                     code=SOLUTION,
                     contest=contest,
                 )
-                judge_task.delay(submission.id)
+                judge_submission_task.delay(submission.id)  # pyright: ignore[reportFunctionMemberAccess] - celery runtime attr, absent in the bare lean-gate env.
                 verdict = None
                 while time.monotonic() - start < options["timeout"]:
                     time.sleep(options["poll_interval"])

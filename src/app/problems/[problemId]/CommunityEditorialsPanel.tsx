@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import React, { useCallback, useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { CommunityService } from "@/services/ApiService";
-import { AuthContext } from "@/context/AuthContext";
-import { CommunityEditorialRow } from "@/types/api";
-import EditorialEtiquetteBanner from "./EditorialEtiquetteBanner";
-import { palette } from "@/theme/tokens";
+import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { CommunityService } from '@/services/ApiService';
+import { AuthContext } from '@/context/AuthContext';
+import { CommunityEditorialRow } from '@/types/api';
+import EditorialEtiquetteBanner from './EditorialEtiquetteBanner';
+import { palette } from '@/theme/tokens';
 
 /**
  * EDT-3/EDT-4 — the community editorials panel on the problem page:
@@ -21,11 +21,11 @@ export default function CommunityEditorialsPanel({ problemId }: { problemId: num
   const auth = React.useContext(AuthContext);
 
   const [rows, setRows] = useState<CommunityEditorialRow[] | null>(null);
-  const [filter, setFilter] = useState<"" | "ro" | "en">("");
+  const [filter, setFilter] = useState<'' | 'ro' | 'en'>('');
   const [writing, setWriting] = useState(false);
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-  const [writeLang, setWriteLang] = useState<"ro" | "en">("en");
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+  const [writeLang, setWriteLang] = useState<'ro' | 'en'>('en');
   const [error, setError] = useState<string | null>(null);
   const [openId, setOpenId] = useState<number | null>(null);
 
@@ -47,7 +47,7 @@ export default function CommunityEditorialsPanel({ problemId }: { problemId: num
   const role = auth?.user?.role;
   const canWrite =
     role !== undefined &&
-    ["CREATOR", "TEACHER", "ADMIN", "VERIFIER", "PROBLEM_CREATOR"].includes(role);
+    ['CREATOR', 'TEACHER', 'ADMIN', 'VERIFIER', 'PROBLEM_CREATOR'].includes(role);
 
   const submit = async () => {
     if (!title.trim() || !body.trim()) return;
@@ -59,8 +59,8 @@ export default function CommunityEditorialsPanel({ problemId }: { problemId: num
         lang: writeLang,
       });
       setWriting(false);
-      setTitle("");
-      setBody("");
+      setTitle('');
+      setBody('');
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -69,29 +69,29 @@ export default function CommunityEditorialsPanel({ problemId }: { problemId: num
 
   return (
     <section
-      aria-label={t("community_editorials", "Community editorials")}
+      aria-label={t('community_editorials', 'Community editorials')}
       data-testid="community-editorials"
     >
-      <h3 style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-        {t("community_editorials", "Community editorials")}
-        {(["", "en", "ro"] as const).map((code) => (
+      <h3 style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+        {t('community_editorials', 'Community editorials')}
+        {(['', 'en', 'ro'] as const).map((code) => (
           <button
-            key={code || "all"}
+            key={code || 'all'}
             type="button"
             onClick={() => setFilter(code)}
             aria-pressed={filter === code}
-            data-testid={`ce-filter-${code || "all"}`}
+            data-testid={`ce-filter-${code || 'all'}`}
             style={{
-              fontSize: "0.75rem",
-              padding: "2px 10px",
+              fontSize: '0.75rem',
+              padding: '2px 10px',
               borderRadius: 8,
               border: `1px solid ${filter === code ? palette.accent : palette.border}`,
-              background: "transparent",
+              background: 'transparent',
               color: filter === code ? palette.accent : palette.muted,
-              cursor: "pointer",
+              cursor: 'pointer',
             }}
           >
-            {code ? code.toUpperCase() : t("filter_all", "All")}
+            {code ? code.toUpperCase() : t('filter_all', 'All')}
           </button>
         ))}
       </h3>
@@ -99,43 +99,43 @@ export default function CommunityEditorialsPanel({ problemId }: { problemId: num
 
       {(rows ?? []).length === 0 ? (
         <p style={{ color: palette.muted }}>
-          {t("community_editorials_empty", "No community editorials yet.")}
+          {t('community_editorials_empty', 'No community editorials yet.')}
         </p>
       ) : (
-        <ul style={{ listStyle: "none", padding: 0 }}>
+        <ul style={{ listStyle: 'none', padding: 0 }}>
           {(rows ?? []).map((row) => (
             <li
               key={row.id}
               style={{
                 borderTop: `1px solid ${palette.border}`,
-                padding: "10px 0",
+                padding: '10px 0',
               }}
             >
               <button
                 type="button"
                 onClick={() => setOpenId(openId === row.id ? null : row.id)}
                 style={{
-                  background: "transparent",
-                  border: "none",
+                  background: 'transparent',
+                  border: 'none',
                   color: palette.foreground,
-                  cursor: "pointer",
+                  cursor: 'pointer',
                   fontWeight: 600,
                   padding: 0,
                 }}
                 data-testid={`ce-row-${row.id}`}
               >
                 {row.title}
-              </button>{" "}
-              <span style={{ color: palette.muted, fontSize: "0.85rem" }}>
-                {row.author_username} · {row.lang.toUpperCase()} ·{" "}
-                {row.status !== "APPROVED" ? row.status : "CC BY-SA 4.0"}
+              </button>{' '}
+              <span style={{ color: palette.muted, fontSize: '0.85rem' }}>
+                {row.author_username} · {row.lang.toUpperCase()} ·{' '}
+                {row.status !== 'APPROVED' ? row.status : 'CC BY-SA 4.0'}
               </span>
               {openId === row.id && (
                 <p
                   data-testid={`ce-body-${row.id}`}
                   style={{
-                    whiteSpace: "pre-wrap",
-                    background: "rgba(127,127,127,0.08)",
+                    whiteSpace: 'pre-wrap',
+                    background: 'rgba(127,127,127,0.08)',
                     padding: 10,
                     borderRadius: 8,
                   }}
@@ -150,28 +150,28 @@ export default function CommunityEditorialsPanel({ problemId }: { problemId: num
 
       {canWrite && !writing && (
         <button type="button" onClick={() => setWriting(true)} data-testid="ce-write-button">
-          + {t("community_editorial_write", "Write an editorial")}
+          + {t('community_editorial_write', 'Write an editorial')}
         </button>
       )}
       {writing && (
-        <div style={{ display: "grid", gap: 8, marginTop: 10, maxWidth: 520 }}>
+        <div style={{ display: 'grid', gap: 8, marginTop: 10, maxWidth: 520 }}>
           <input
-            aria-label={t("community_editorial_title", "Title")}
+            aria-label={t('community_editorial_title', 'Title')}
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             style={{ padding: 8, borderRadius: 8, border: `1px solid ${palette.border}` }}
           />
           <select
-            aria-label={t("community_editorial_lang", "Language")}
+            aria-label={t('community_editorial_lang', 'Language')}
             value={writeLang}
-            onChange={(event) => setWriteLang(event.target.value as "ro" | "en")}
+            onChange={(event) => setWriteLang(event.target.value as 'ro' | 'en')}
             style={{ padding: 8, borderRadius: 8, border: `1px solid ${palette.border}` }}
           >
             <option value="en">English</option>
             <option value="ro">Română</option>
           </select>
           <textarea
-            aria-label={t("community_editorial_body", "Body (markdown)")}
+            aria-label={t('community_editorial_body', 'Body (markdown)')}
             rows={6}
             value={body}
             onChange={(event) => setBody(event.target.value)}
@@ -182,26 +182,26 @@ export default function CommunityEditorialsPanel({ problemId }: { problemId: num
               {error}
             </p>
           )}
-          <p style={{ color: palette.muted, fontSize: "0.8rem" }}>
+          <p style={{ color: palette.muted, fontSize: '0.8rem' }}>
             {t(
-              "community_editorial_license_note",
-              "Submitting licenses your text CC BY-SA 4.0 (see Terms). It enters review before publishing.",
+              'community_editorial_license_note',
+              'Submitting licenses your text CC BY-SA 4.0 (see Terms). It enters review before publishing.',
             )}
           </p>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8 }}>
             <button type="button" onClick={submit} data-testid="ce-submit">
-              {t("community_editorial_submit", "Submit for review")}
+              {t('community_editorial_submit', 'Submit for review')}
             </button>
             <button type="button" onClick={() => setWriting(false)}>
-              {t("cancel", "Cancel")}
+              {t('cancel', 'Cancel')}
             </button>
           </div>
         </div>
       )}
-      <p style={{ color: palette.muted, fontSize: "0.8rem" }}>
+      <p style={{ color: palette.muted, fontSize: '0.8rem' }}>
         {t(
-          "community_editorials_license_note",
-          "Community editorial text is licensed CC BY-SA 4.0 by its authors.",
+          'community_editorials_license_note',
+          'Community editorial text is licensed CC BY-SA 4.0 by its authors.',
         )}
       </p>
     </section>

@@ -1,0 +1,59 @@
+# Mobile CI ( Expo / React Native ) — closes the "no CI workflow runs the
+# mobile jest suite" gap from the mobile-wave report: the gate (jest at
+# 100% lines+statements+functions incl. the web-catalog parity test, eslint
+# zero problems, tsc clean) was local-only until now.
+#
+# Also runs the locales-parity test on every web catalog change: the jest
+# suite's parity.test.ts compares mobile/src/i18n/locales byte-for-byte
+# with src/locales — the drift that PR #313 introduced (catalogs edited
+# without re-running mobile/scripts/copy-locales.mjs) can no longer land.
+name: mobile
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "mobile/**"
+      - "src/locales/**"
+      - ".github/workflows/mobile.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "mobile/**"
+      - "src/locales/**"
+      - ".github/workflows/mobile.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mobile-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mobile:
+    name: mobile (jest + eslint + tsc)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (zero problems)
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test with coverage (100% lines/statements/functions + web-catalog parity)
+        run: npm run test:coverage

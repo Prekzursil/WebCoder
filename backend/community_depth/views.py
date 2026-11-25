@@ -41,6 +41,18 @@ class FeedView(APIView):
         page = max(1, page)
         per_page = 25
         rows = services.recent_feed(limit=per_page * page)
+        # Item 65 — the following filter: only the people the caller
+        # follows (ignored for anonymous callers — the full feed stays).
+        following = request.query_params.get("following", "") in ("1", "true")
+        if following and request.user.is_authenticated:
+            from users.models import Follow
+
+            followed = set(
+                Follow.objects.filter(follower=request.user).values_list(
+                    "target_id", flat=True
+                )
+            )
+            rows = [row for row in rows if row.get("user_id") in followed]
         window = rows[(page - 1) * per_page : page * per_page]
         return Response(
             {
@@ -65,30 +77,52 @@ class SolutionsView(APIView):
         ok, reason = services.can_browse_solutions(request.user, problem)
         if not ok:
             return Response({"detail": reason}, status=status.HTTP_403_FORBIDDEN)
-        rows = (
+        qs = (
             Submission.objects.filter(
                 problem=problem, verdict=Submission.VerdictStatus.ACCEPTED
             )
             .exclude(user__is_minor=True)  # LEG-2: no minors' code in the pool
             .select_related("user")
-            # Matrix row 60 (best-solutions ranking): fastest-first — the
-            # DMOJ/infoarena "best solutions" board, a code-style lesson
-            # in itself. Ties break on the older submission.
-            .order_by("execution_time_ms", "submission_time")[:50]
         )
+        # Wave E item 11 (accepted-solutions showcase): the browsing pool
+        # gains the showcase axis — sort by speed (the DMOJ/infoarena
+        # "best solutions" board), by code length (shortest readable) or
+        # by recency — plus a language filter.
+        language = request.query_params.get("language")
+        if language:
+            qs = qs.filter(language=language)
+        sort = request.query_params.get("sort", "fastest")
+        if sort == "shortest":
+            from django.db.models.functions import Length
+
+            qs = qs.annotate(code_len=Length("code")).order_by(
+                "code_len", "submission_time"
+            )
+        elif sort == "newest":
+            qs = qs.order_by("-submission_time")
+        else:
+            # Matrix row 60 (best-solutions ranking): fastest-first; ties
+            # break on the older submission.
+            qs = qs.order_by("execution_time_ms", "submission_time")
+        rows = qs[:50]
         return Response(
             {
                 "count": len(rows),
                 "license": SOLUTIONS_LICENSE_NOTE,
+                "sort": sort,
+                "language": language or "",
                 "results": [
                     {
                         "id": row.id,
                         "user": row.user.username,
                         "language": row.language,
                         "code": row.code,
+                        "code_length": len(row.code),
                         "execution_time_ms": row.execution_time_ms,
                         "memory_used_kb": row.memory_used_kb,
                         "submission_time": row.submission_time,
+                        # Item 61 — the author-chosen sharing license.
+                        "license": row.license,
                     }
                     for row in rows
                 ],

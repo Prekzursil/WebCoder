@@ -1,18 +1,19 @@
-"use client";
+'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useTranslation } from "react-i18next";
-import { useAuth } from "@/context/AuthContext";
-import LanguageSwitcher from "@/components/common/LanguageSwitcher";
-import { NotificationService } from "@/services/ApiService";
-import MenuIcon from "@mui/icons-material/Menu";
-import CloseIcon from "@mui/icons-material/Close";
-import SearchIcon from "@mui/icons-material/Search";
-import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
-import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
-import styles from "./navbar.module.css";
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/context/AuthContext';
+import LanguageSwitcher from '@/components/common/LanguageSwitcher';
+import ThemeToggle from '@/components/common/ThemeToggle';
+import { NotificationService } from '@/services/ApiService';
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
+import SearchIcon from '@mui/icons-material/Search';
+import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
+import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
+import styles from './navbar.module.css';
 
 // Navbar IA rework [SPEC-GAPS A1/A8/F21]:
 //  - desktop: brand · global search · Home/Problems/Leaderboard/Forum · bell ·
@@ -30,11 +31,13 @@ interface NavLinkItem {
 const Navbar: React.FC = () => {
   const { t } = useTranslation();
   const auth = useAuth();
-  const pathname = usePathname() ?? "/";
+  const pathname = usePathname() ?? '/';
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -68,50 +71,80 @@ const Navbar: React.FC = () => {
     setMenuOpen(false);
     setDrawerOpen(false);
     auth.logout();
-    router.push("/login");
+    router.push('/login');
   };
 
   const canCreateProblems =
     auth.isAuthenticated &&
     auth.user &&
-    ["ADMIN", "PROBLEM_VERIFIER", "PROBLEM_CREATOR"].includes(auth.user.role);
+    ['ADMIN', 'PROBLEM_VERIFIER', 'PROBLEM_CREATOR'].includes(auth.user.role);
   const canVerifyProblems =
-    auth.isAuthenticated && auth.user && ["ADMIN", "PROBLEM_VERIFIER"].includes(auth.user.role);
-  const isAdmin = auth.isAuthenticated && auth.user && auth.user.role === "ADMIN";
+    auth.isAuthenticated && auth.user && ['ADMIN', 'PROBLEM_VERIFIER'].includes(auth.user.role);
+  const isAdmin = auth.isAuthenticated && auth.user && auth.user.role === 'ADMIN';
 
   const isActive = (path: string): boolean =>
-    path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(`${path}/`);
+    path === '/' ? pathname === '/' : pathname === path || pathname.startsWith(`${path}/`);
 
-  const primaryLinks: NavLinkItem[] = [
-    { href: "/", label: t("nav_home", "Home") },
-    { href: "/problems", label: t("nav_problems", "Problems") },
-    { href: "/contests", label: t("nav_contests", "Contests") },
-    { href: "/ratings", label: t("nav_ratings", "Ratings") },
-    { href: "/leaderboard", label: t("nav_leaderboard", "Leaderboard") },
-    { href: "/forum", label: t("nav_forum", "Forum") },
-    { href: "/blocks", label: t("nav_blocks", "Blocks") },
+  // [2026-11-20 polish sweep] The wave F/G additions pushed the desktop
+  // bar past its 1280px budget and the links rendered ON TOP of the right
+  // cluster. Core links stay inline; the long tail lives in a "More"
+  // dropdown (desktop) and in the drawer (mobile) — every destination
+  // remains one click away.
+  const coreLinks: NavLinkItem[] = [
+    { href: '/', label: t('nav_home', 'Home') },
+    { href: '/problems', label: t('nav_problems', 'Problems') },
+    { href: '/tracks', label: t('nav_tracks', 'Tracks') },
+    { href: '/contests', label: t('nav_contests', 'Contests') },
+    { href: '/leaderboard', label: t('nav_leaderboard', 'Leaderboard') },
+    { href: '/forum', label: t('nav_forum', 'Forum') },
   ];
+  const moreLinks: NavLinkItem[] = [
+    { href: '/ratings', label: t('nav_ratings', 'Ratings') },
+    // Wave F items 62/63/64 — blogs, wiki and the WA-help queue.
+    { href: '/blogs', label: t('nav_blogs', 'Blogs') },
+    { href: '/wiki', label: t('nav_wiki', 'Wiki') },
+    { href: '/wa-help', label: t('nav_wa_help', 'WA help') },
+    { href: '/amas', label: t('nav_amas', 'Community') },
+    { href: '/blocks', label: t('nav_blocks', 'Blocks') },
+  ];
+  const primaryLinks: NavLinkItem[] = [...coreLinks, ...moreLinks];
 
   const accountLinks: NavLinkItem[] = [
-    { href: "/classes", label: t("nav_classes", "My classes") },
+    { href: '/classes', label: t('nav_classes', 'My classes') },
     // COM-5 (owner reversal 2026-10-30): private 1:1 message threads.
-    { href: "/messages", label: t("nav_messages", "Messages") },
-    { href: "/profile", label: t("nav_profile", "Profile") },
-    { href: "/my-submissions", label: t("nav_my_submissions", "My Submissions") },
-    { href: "/submission-history", label: t("nav_submission_history", "History") },
+    { href: '/messages', label: t('nav_messages', 'Messages') },
+    { href: '/profile', label: t('nav_profile', 'Profile') },
+    { href: '/my-submissions', label: t('nav_my_submissions', 'My Submissions') },
+    { href: '/sandbox-receipts', label: t('nav_receipts', 'Sandbox receipts') },
+    { href: '/learning', label: t('nav_learning', 'Learning') },
+    { href: '/drills', label: t('nav_drills', 'Drills') },
+    { href: '/courses', label: t('nav_courses', 'Courses') },
+    { href: '/visualizers', label: t('nav_visualizers', 'Visualizers') },
+    // Wave D atestats (certifications): the holder's certificates.
+    { href: '/certificates', label: t('nav_certificates', 'Certificates') },
+    { href: '/submission-history', label: t('nav_submission_history', 'History') },
   ];
   const roleLinks: NavLinkItem[] = [
     ...(canCreateProblems
       ? [
-          { href: "/problems/create", label: t("nav_create_problem", "Create Problem") },
-          { href: "/my-created-problems", label: t("nav_my_created_problems", "My Problems") },
+          { href: '/problems/create', label: t('nav_create_problem', 'Create Problem') },
+          {
+            href: '/author/wizard',
+            label: t('nav_author_wizard', 'Authoring wizard'),
+          },
+          { href: '/author/tools', label: t('nav_author_tools', 'Author tools') },
+          {
+            href: '/author/analytics',
+            label: t('nav_author_analytics', 'Author analytics'),
+          },
+          { href: '/my-created-problems', label: t('nav_my_created_problems', 'My Problems') },
         ]
       : []),
     ...(canVerifyProblems
-      ? [{ href: "/admin/problem-queue", label: t("nav_problem_queue", "Verification Queue") }]
+      ? [{ href: '/admin/problem-queue', label: t('nav_problem_queue', 'Verification Queue') }]
       : []),
     ...(isAdmin
-      ? [{ href: "/admin/dashboard", label: t("nav_admin_dashboard", "Admin Dashboard") }]
+      ? [{ href: '/admin/dashboard', label: t('nav_admin_dashboard', 'Admin Dashboard') }]
       : []),
   ];
 
@@ -119,21 +152,21 @@ const Navbar: React.FC = () => {
     event.preventDefault();
     const q = searchTerm.trim();
     setDrawerOpen(false);
-    router.push(q ? `/problems?q=${encodeURIComponent(q)}` : "/problems");
+    router.push(q ? `/problems?q=${encodeURIComponent(q)}` : '/problems');
   };
 
   // Global '/' shortcut focuses the search box [F21].
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "/" || event.ctrlKey || event.metaKey || event.altKey) return;
+      if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey) return;
       const target = event.target as HTMLElement | null;
       if (target && /^(input|textarea|select)$/i.test(target.tagName)) return;
       if (!searchRef.current) return;
       event.preventDefault();
       searchRef.current.focus();
     };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
   // Close the user dropdown on outside click / Escape.
@@ -145,39 +178,64 @@ const Navbar: React.FC = () => {
       }
     };
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMenuOpen(false);
+      if (event.key === 'Escape') setMenuOpen(false);
     };
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("keydown", onKey);
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
     return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("keydown", onKey);
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
     };
   }, [menuOpen]);
+
+  // Same dismissal behavior for the desktop "More" overflow menu.
+  useEffect(() => {
+    if (!moreOpen) return;
+    const onDown = (event: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(event.target as Node)) {
+        setMoreOpen(false);
+      }
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMoreOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [moreOpen]);
 
   // Close the drawer on Escape.
   useEffect(() => {
     if (!drawerOpen) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setDrawerOpen(false);
+      if (event.key === 'Escape') setDrawerOpen(false);
     };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
   }, [drawerOpen]);
 
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
   const renderSearchForm = (idPrefix: string) => (
-    <form className={styles.searchForm} onSubmit={submitSearch} role="search" key={idPrefix}>
+    <form
+      className={styles.searchForm}
+      onSubmit={submitSearch}
+      role="search"
+      key={idPrefix}
+      data-tour="search"
+    >
       <span className={styles.searchIcon} aria-hidden="true">
         <SearchIcon fontSize="small" />
       </span>
       <input
-        ref={idPrefix === "nav" ? searchRef : undefined}
+        ref={idPrefix === 'nav' ? searchRef : undefined}
         type="search"
         className={styles.searchInput}
-        placeholder={t("nav_search_placeholder", "Search problems…")}
-        aria-label={t("nav_search_label", "Search problems")}
+        placeholder={t('nav_search_placeholder', 'Search problems…')}
+        aria-label={t('nav_search_label', 'Search problems')}
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
@@ -201,44 +259,76 @@ const Navbar: React.FC = () => {
         <button
           className={styles.hamburger}
           onClick={() => setDrawerOpen(true)}
-          aria-label={t("nav_open_menu", "Open navigation menu")}
+          aria-label={t('nav_open_menu', 'Open navigation menu')}
           aria-expanded={drawerOpen}
         >
           <MenuIcon />
         </button>
 
-        {/* Brand */}
-        <Link href="/" className={styles.brand}>
+        {/* Brand — [wave G item 94] feature-tour anchor */}
+        <Link href="/" className={styles.brand} data-tour="brand">
           <span className={styles.brandMark}>W</span>
-          {t("app_title", "WebCoder")}
+          {t('app_title', 'WebCoder')}
         </Link>
 
         {/* Global search [F21] */}
-        {renderSearchForm("nav")}
+        {renderSearchForm('nav')}
 
-        {/* Desktop primary links */}
+        {/* Desktop primary links (core inline; the tail under "More") */}
         <div className={styles.desktopNav}>
-          {primaryLinks.map(({ href, label }) => (
+          {coreLinks.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
-              className={`nav-link ${isActive(href) ? "nav-link--active" : ""}`}
-              aria-current={isActive(href) ? "page" : undefined}
+              className={`nav-link ${isActive(href) ? 'nav-link--active' : ''}`}
+              aria-current={isActive(href) ? 'page' : undefined}
+              data-tour={
+                href === '/problems' ? 'problems' : href === '/contests' ? 'contests' : undefined
+              }
             >
               {label}
             </Link>
           ))}
+          <div className={styles.moreWrap} ref={moreRef}>
+            <button
+              type="button"
+              className={`nav-link ${styles.moreBtn}`}
+              onClick={() => setMoreOpen((open) => !open)}
+              aria-haspopup="menu"
+              aria-expanded={moreOpen}
+            >
+              {t('nav_more', 'More')}
+            </button>
+            {moreOpen && (
+              <div className={styles.menu} role="menu">
+                {moreLinks.map(({ href, label }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={styles.menuLink}
+                    role="menuitem"
+                    aria-current={isActive(href) ? 'page' : undefined}
+                    onClick={() => setMoreOpen(false)}
+                  >
+                    {label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right cluster: bell · avatar menu / login+register · language */}
         <div className={styles.rightCluster}>
+          {/* Wave G item 79: dark/light toggle, always visible */}
+          <ThemeToggle className={styles.iconBtn} />
           {auth.isAuthenticated ? (
             <>
               <Link
                 href="/notifications"
-                title={t("nav_notifications", "Notifications")}
-                aria-label={t("nav_notifications", "Notifications")}
-                className={`${styles.iconBtn} ${isActive("/notifications") ? styles.iconBtnActive : ""}`}
+                title={t('nav_notifications', 'Notifications')}
+                aria-label={t('nav_notifications', 'Notifications')}
+                className={`${styles.iconBtn} ${isActive('/notifications') ? styles.iconBtnActive : ''}`}
               >
                 <NotificationsOutlinedIcon fontSize="small" />
                 {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
@@ -250,11 +340,11 @@ const Navbar: React.FC = () => {
                   onClick={() => setMenuOpen((open) => !open)}
                   aria-haspopup="menu"
                   aria-expanded={menuOpen}
-                  aria-label={t("nav_account_menu", "Account menu")}
+                  aria-label={t('nav_account_menu', 'Account menu')}
                 >
                   <AccountCircleOutlinedIcon fontSize="small" />
                   <span className={styles.userBtnName}>
-                    {auth.user?.username || t("nav_user_fallback", "User")}
+                    {auth.user?.username || t('nav_user_fallback', 'User')}
                   </span>
                 </button>
 
@@ -262,14 +352,14 @@ const Navbar: React.FC = () => {
                   <div className={styles.menu} role="menu">
                     <div className={styles.menuHeader}>
                       <div className={styles.menuHeaderName}>
-                        {auth.user?.username || t("nav_user_fallback", "User")}
+                        {auth.user?.username || t('nav_user_fallback', 'User')}
                       </div>
                       {auth.user?.role && (
                         <div className={styles.menuHeaderRole}>{auth.user.role}</div>
                       )}
                     </div>
                     <div className={styles.menuLabel} aria-hidden="true">
-                      {t("nav_menu_account", "Account")}
+                      {t('nav_menu_account', 'Account')}
                     </div>
                     {accountLinks.map(({ href, label }) => (
                       <Link
@@ -284,7 +374,7 @@ const Navbar: React.FC = () => {
                     ))}
                     {roleLinks.length > 0 && (
                       <div className={styles.menuLabel} aria-hidden="true">
-                        {t("nav_menu_contributor", "Contributor")}
+                        {t('nav_menu_contributor', 'Contributor')}
                       </div>
                     )}
                     {roleLinks.map(({ href, label }) => (
@@ -304,7 +394,7 @@ const Navbar: React.FC = () => {
                       role="menuitem"
                       onClick={handleLogout}
                     >
-                      {t("nav_logout", "Logout")}
+                      {t('nav_logout', 'Logout')}
                     </button>
                   </div>
                 )}
@@ -313,10 +403,10 @@ const Navbar: React.FC = () => {
           ) : (
             <>
               <Link href="/login" className="btn">
-                {t("nav_login", "Login")}
+                {t('nav_login', 'Login')}
               </Link>
               <Link href="/register" className="btn btn--primary">
-                {t("nav_register", "Register")}
+                {t('nav_register', 'Register')}
               </Link>
             </>
           )}
@@ -333,26 +423,26 @@ const Navbar: React.FC = () => {
             className={styles.drawer}
             role="dialog"
             aria-modal="true"
-            aria-label={t("nav_menu_label", "Navigation")}
+            aria-label={t('nav_menu_label', 'Navigation')}
           >
             <div className={styles.drawerHead}>
-              <span className={styles.drawerTitle}>{t("app_title", "WebCoder")}</span>
+              <span className={styles.drawerTitle}>{t('app_title', 'WebCoder')}</span>
               <button
                 className={styles.iconBtn}
                 onClick={closeDrawer}
-                aria-label={t("nav_close_menu", "Close navigation menu")}
+                aria-label={t('nav_close_menu', 'Close navigation menu')}
               >
                 <CloseIcon fontSize="small" />
               </button>
             </div>
 
-            {renderSearchForm("drawer")}
+            {renderSearchForm('drawer')}
 
             {primaryLinks.map(({ href, label }) => (
               <Link
                 key={href}
                 href={href}
-                className={`${styles.drawerLink} ${isActive(href) ? styles.drawerLinkActive : ""}`}
+                className={`${styles.drawerLink} ${isActive(href) ? styles.drawerLinkActive : ''}`}
                 onClick={closeDrawer}
               >
                 {label}
@@ -366,7 +456,7 @@ const Navbar: React.FC = () => {
                   <Link
                     key={href}
                     href={href}
-                    className={`${styles.drawerLink} ${isActive(href) ? styles.drawerLinkActive : ""}`}
+                    className={`${styles.drawerLink} ${isActive(href) ? styles.drawerLinkActive : ''}`}
                     onClick={closeDrawer}
                   >
                     {label}
@@ -374,14 +464,14 @@ const Navbar: React.FC = () => {
                 ))}
                 {roleLinks.length > 0 && (
                   <div className={styles.drawerSectionLabel} aria-hidden="true">
-                    {t("nav_menu_contributor", "Contributor")}
+                    {t('nav_menu_contributor', 'Contributor')}
                   </div>
                 )}
                 {roleLinks.map(({ href, label }) => (
                   <Link
                     key={href}
                     href={href}
-                    className={`${styles.drawerLink} ${isActive(href) ? styles.drawerLinkActive : ""}`}
+                    className={`${styles.drawerLink} ${isActive(href) ? styles.drawerLinkActive : ''}`}
                     onClick={closeDrawer}
                   >
                     {label}
@@ -392,7 +482,7 @@ const Navbar: React.FC = () => {
                   className={`${styles.drawerLink} ${styles.menuLinkDanger}`}
                   onClick={handleLogout}
                 >
-                  {t("nav_logout", "Logout")}
+                  {t('nav_logout', 'Logout')}
                 </button>
               </>
             )}

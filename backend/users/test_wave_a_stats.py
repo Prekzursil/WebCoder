@@ -306,14 +306,14 @@ class TestCoverageCompletions:
         assert "streak_7" in payload["badges"]
 
     def test_purge_task_runs(self):
-        from users.tasks import purge_deleted_users
+        from users.tasks import purge_deleted_users_task
 
         user, _ = TestAccountControl()._user_with_content()
         soft_delete_account(user)
         User.objects.filter(id=user.id).update(
             scheduled_purge_at=timezone.now() - timedelta(days=1)
         )
-        result = purge_deleted_users.run()
+        result = purge_deleted_users_task.run()
         assert "purged 1" in result
 
 
@@ -379,3 +379,19 @@ class TestCoverageClosure:
         snapshot = activation_snapshot()
         assert snapshot["d1_active"] == 1
         assert snapshot["d7_active"] == 2
+
+
+from django.test import TestCase as _DjangoTestCase  # noqa: E402
+
+
+class HourNullSkipTest(_DjangoTestCase):
+    """The None/out-of-range hour guard in the time-of-day bins."""
+
+    def test_none_and_out_of_range_hours_skipped(self):
+        from users.statistics import _safe_bin
+
+        self.assertEqual(_safe_bin(None, [0] * 24), ([0] * 24, False))
+        self.assertEqual(_safe_bin(24, [0] * 24), ([0] * 24, False))
+        bins, hit = _safe_bin(5, [0] * 24)
+        self.assertTrue(hit)
+        self.assertEqual(bins[5], 1)

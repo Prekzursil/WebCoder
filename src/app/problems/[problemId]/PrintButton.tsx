@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React from "react";
-import { useTranslation } from "react-i18next";
+import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 /**
  * UXP-3 — the statement print route: the print stylesheet (globals.css
@@ -15,9 +15,9 @@ export default function PrintButton() {
       type="button"
       onClick={() => window.print()}
       data-testid="print-statement"
-      style={{ fontSize: "0.8rem" }}
+      style={{ fontSize: '0.8rem' }}
     >
-      🖨 {t("print_statement", "Print / PDF")}
+      🖨 {t('print_statement', 'Print / PDF')}
     </button>
   );
 }

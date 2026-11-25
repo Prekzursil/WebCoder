@@ -1,0 +1,18 @@
+# Ruff config for the ROOT-scoped lean gate (`ruff check .` / `ruff format .`).
+# The backend's own pre-commit historically ran ruff only over backend/ with a
+# narrower ruleset; this root config makes the repo-wide gate deterministic.
+target-version = "py312"
+line-length = 88
+
+[lint.per-file-ignores]
+# Django settings compose deliberately: base settings are star-imported and
+# overridden, and env-dependent imports follow os.environ setup.
+"backend/webcoder_api/*settings*.py" = ["E402", "F403", "F405", "F821"]
+# URL modules set sys.path/import helpers before Django imports by design.
+"backend/users/api/oauth/*/urls.py" = ["E402"]
+# Package __init__ files re-export names on purpose.
+"**/__init__.py" = ["F401"]
+# Tests keep fixture locals for clarity of the arrange/act/assert shape.
+"backend/**/test_*.py" = ["F841"]
+# unittest-bootstrapped suites set up sys.path/DJANGO_SETTINGS before imports.
+"backend/submissions/tests.py" = ["E402"]

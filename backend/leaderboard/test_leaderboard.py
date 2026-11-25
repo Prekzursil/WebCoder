@@ -105,12 +105,15 @@ class AggregationTest(TestCase):
         update_user_entry(self.alice.pk)
         update_user_entry(self.alice.pk)
         self.assertEqual(LeaderboardEntry.objects.filter(user=self.alice).count(), 1)
-        # bob was never recomputed -> no row yet; the full pass also omits
-        # him (no solves), but the per-user recompute (what /me/ uses)
-        # backfills totals for the success-rate column.
+        # bob was never recomputed -> no row yet. The full pass now DOES
+        # materialize him (item C partial-credit economics: any submitter
+        # is rankable — his scoreless WA credits 0 points but keeps the
+        # success-rate inputs), so both assertions below hold.
         self.assertFalse(LeaderboardEntry.objects.filter(user=self.bob).exists())
         recompute_all_leaderboards()
-        self.assertFalse(LeaderboardEntry.objects.filter(user=self.bob).exists())
+        bob_row = LeaderboardEntry.objects.get(user=self.bob)
+        self.assertEqual(bob_row.total_points, 0)
+        self.assertEqual(bob_row.solved_count, 0)
         bob = update_user_entry(self.bob.pk)
         self.assertEqual(bob.solved_count, 0)
         self.assertEqual(bob.total_submissions, 1)
@@ -221,7 +224,7 @@ class JudgeTaskHookTest(TestCase):
         )
 
     def _judge(self, run_result):
-        from submissions.tasks import judge_task
+        from submissions.tasks import judge_submission_task
 
         with (
             mock.patch(
@@ -233,7 +236,7 @@ class JudgeTaskHookTest(TestCase):
                 return_value=run_result,
             ),
         ):
-            return judge_task.run(self.sub.id)
+            return judge_submission_task.run(self.sub.id)
 
     def test_ac_dispatches_update_on_commit(self):
         # output must match the seeded test case's expected_output ("o")

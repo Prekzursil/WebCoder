@@ -16,34 +16,49 @@
 // The client-side loading spinner and red error paragraph map to the App
 // Router loading.tsx / error.tsx boundaries in this directory.
 
-import type { Metadata } from "next";
-import { Suspense } from "react";
-import { createTranslator, getLocale } from "../_lib/public-i18n";
-import { getCurriculum, getProblemsPage } from "./_lib/problems-api";
-import type { CurriculumGrade } from "./_lib/problems-api";
-import ProblemsListClient from "./ProblemsListClient";
-import ProblemsTableSkeleton from "./ProblemsTableSkeleton";
+import type { Metadata } from 'next';
+import { Suspense } from 'react';
+import { createTranslator, getLocale } from '../_lib/public-i18n';
+import { getCurriculum, getProblemsPage } from './_lib/problems-api';
+import type { CurriculumGrade } from './_lib/problems-api';
+import ProblemsListClient from './ProblemsListClient';
+import ProblemsTableSkeleton from './ProblemsTableSkeleton';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = createTranslator(await getLocale());
   return {
-    title: t("problem_list_header", "Problems"),
+    title: t('problem_list_header', 'Problems'),
     description: t(
-      "problems_page_description",
-      "Browse the public competitive programming problem catalog on WebCoder.",
+      'problems_page_description',
+      'Browse the public competitive programming problem catalog on WebCoder.',
     ),
   };
 }
 
 interface ProblemsListPageProps {
-  searchParams: Promise<{ curriculum?: string }>;
+  searchParams: Promise<{
+    curriculum?: string;
+    archive?: string;
+    source_year?: string;
+    grade_group?: string;
+    q?: string;
+  }>;
 }
 
 export default async function ProblemsListPage({ searchParams }: ProblemsListPageProps) {
   const locale = await getLocale();
   const { curriculum: curriculumParam } = await searchParams;
+  // [roadmap RO-6] The archive browse axis: ?archive=1 (+ optional year /
+  // grade-group refinements) filters the server fetch like ?curriculum=.
+  const archiveParam = await searchParams;
+  const archiveFilters = {
+    archive: archiveParam.archive === '1' || archiveParam.archive === 'true',
+    sourceYear: archiveParam.source_year,
+    gradeGroup: archiveParam.grade_group,
+    search: archiveParam.q,
+  };
 
-  let problems: Awaited<ReturnType<typeof getProblemsPage>>["results"] = [];
+  let problems: Awaited<ReturnType<typeof getProblemsPage>>['results'] = [];
   let total = 0;
   let hasMore = false;
   let fetchError: string | null = null;
@@ -61,7 +76,7 @@ export default async function ProblemsListPage({ searchParams }: ProblemsListPag
 
   try {
     const [firstPage] = await Promise.all([
-      getProblemsPage(1, { curriculumNode: curriculumParam }),
+      getProblemsPage(1, { curriculumNode: curriculumParam, ...archiveFilters }),
       curriculumFetch,
     ]);
     problems = firstPage.results;
@@ -69,7 +84,7 @@ export default async function ProblemsListPage({ searchParams }: ProblemsListPag
     hasMore = Boolean(firstPage.next);
   } catch (err) {
     await curriculumFetch.catch(() => undefined);
-    fetchError = err instanceof Error ? err.message : "Failed to load problems.";
+    fetchError = err instanceof Error ? err.message : 'Failed to load problems.';
   }
 
   return (

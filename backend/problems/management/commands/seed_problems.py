@@ -21,8 +21,11 @@ from problems.models import (
     ProblemEditorial,
     Tag,
     TestCase,
+    ProblemList,
+    ProblemListItem,
 )
 from problems import seed_data
+
 from users.models import User
 
 SEED_AUTHOR_USERNAME = "seed_author"
@@ -104,12 +107,82 @@ class Command(BaseCommand):
                     )
             created_problems += 1
 
+        created_tracks = self._seed_tracks(dry_run)
+        created_cards, created_edges = self._seed_learning(dry_run)
+        created_drills = self._seed_drills(dry_run)
+        from learning.courses import seed_courses
+
+        created_course = created_lesson = 0
+        if not dry_run:
+            created_course, created_lesson = seed_courses()
+
         self.stdout.write(
             self.style.SUCCESS(
-                f"seed_problems: created={created_problems} skipped(existing)={skipped}"
+                f"seed_problems: created={created_problems} skipped(existing)={skipped} "
+                f"tracks_created={created_tracks} cards={created_cards} edges={created_edges} "
+                f"drills={created_drills} course={created_course}/{created_lesson}L"
                 f"{' (dry run)' if dry_run else ''}"
             )
         )
+
+    def _seed_learning(self, dry_run):
+        """Wave E items 30/33: skill-graph edges + the theory deck."""
+        from learning.models import SkillEdge, TheoryCard
+        from problems.models import Tag as TagModel
+
+        created_cards = created_edges = 0
+        tags = {t.slug: t for t in TagModel.objects.all()}
+        if dry_run:
+            return len(seed_data.THEORY_CARDS), len(seed_data.SKILL_EDGES)
+        for from_slug, to_slug in seed_data.SKILL_EDGES:
+            if from_slug not in tags or to_slug not in tags:
+                continue
+            _, was_created = SkillEdge.objects.get_or_create(
+                from_tag=tags[from_slug], to_tag=tags[to_slug]
+            )
+            created_edges += 1 if was_created else 0
+        for order, card in enumerate(seed_data.THEORY_CARDS, start=1):
+            tag = tags.get(card["tag"])
+            if tag is None:
+                continue
+            _, was_created = TheoryCard.objects.get_or_create(
+                tag=tag,
+                front_en=card["front_en"],
+                defaults={
+                    "front_ro": card["front_ro"],
+                    "back_en": card["back_en"],
+                    "back_ro": card["back_ro"],
+                    "order": order,
+                    "created_by": get_or_create_seed_author(),
+                },
+            )
+            created_cards += 1 if was_created else 0
+        return created_cards, created_edges
+
+    def _seed_drills(self, dry_run):
+        """Wave E items 36/37/38: the seeded drill deck (idempotent by
+        kind+code)."""
+        from learning.models import Drill
+        from problems.models import Tag as TagModel
+
+        from learning.drills import SEED_DRILLS
+
+        if dry_run:
+            return len(SEED_DRILLS)
+        tags = {t.slug: t for t in TagModel.objects.all()}
+        created = 0
+
+        for order, spec in enumerate(SEED_DRILLS, start=1):
+            tag = tags.get(spec["tag"])
+            if tag is None:
+                continue
+            _, was_created = Drill.objects.get_or_create(
+                kind=spec["kind"],
+                payload=spec["payload"],
+                defaults={"tag": tag, "order": order},
+            )
+            created += 1 if was_created else 0
+        return created
 
     def _seed_tags(self, dry_run):
         tags_by_slug = {}
@@ -149,3 +222,44 @@ class Command(BaseCommand):
             },
         )
         return node
+
+    def _seed_tracks(self, dry_run):
+        """Wave E items 27/28/31 — the curated study tracks (first-solve
+        ladder, OJI ladders, admission prep), idempotent by slug; members
+        resolve by the seeded problem slugs (missing slugs are skipped so
+        a trimmed pack still seeds)."""
+        created = 0
+        for track in seed_data.STUDY_TRACKS:
+            if dry_run:
+                created += 1
+                continue
+            list_obj, was_created = ProblemList.objects.get_or_create(
+                slug=track["slug"],
+                defaults={
+                    "title_i18n": {"en": track["en"], "ro": track["ro"]},
+                    "description_i18n": {
+                        "en": track["desc_en"],
+                        "ro": track["desc_ro"],
+                    },
+                    "owner": get_or_create_seed_author(),
+                    "is_public": True,
+                },
+            )
+            if not was_created:
+                continue
+            created += 1
+            position = 1
+            for slug in track["problems"]:
+                entry = next((p for p in seed_data.PROBLEMS if p["slug"] == slug), None)
+                if entry is None:
+                    continue
+                problem = Problem.objects.filter(
+                    title_i18n__en=entry["title_en"]
+                ).first()
+                if problem is None:
+                    continue
+                ProblemListItem.objects.create(
+                    list=list_obj, problem=problem, position=position
+                )
+                position += 1
+        return created

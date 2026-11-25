@@ -12,14 +12,8 @@
       "!**/dist/**",
       "!**/build/**",
       "!**/out/**",
-      "!**/.next/**",
       "!**/.venv/**",
-      "!**/vendor/**",
-      "!**/playwright-report/**",
-      "!**/test-results/**",
-      "!**/wt-*/**",
-      "!**/backend/htmlcov/**",
-      "!next-env.d.ts"
+      "!**/vendor/**"
     ]
   },
   "formatter": {
@@ -30,7 +24,7 @@
     "lineEnding": "lf"
   },
   "javascript": {
-    "formatter": { "quoteStyle": "double", "trailingCommas": "all", "semicolons": "always" }
+    "formatter": { "quoteStyle": "single", "trailingCommas": "all", "semicolons": "always" }
   },
   "linter": { "enabled": false },
   "assist": { "enabled": false }

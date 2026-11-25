@@ -1,133 +1,143 @@
-"use client";
+'use client';
 
-import { ReactNode, useEffect } from "react";
-import { Toaster } from "react-hot-toast";
-import { useTranslation } from "react-i18next";
-import { AuthProvider } from "@/context/AuthContext";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
-import ServiceWorkerRegistrar from "@/components/common/ServiceWorkerRegistrar";
-import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
-import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
-import { palette, fontFamily, typeRamp, radius } from "@/theme/tokens";
+import { ReactNode, useEffect, useMemo } from 'react';
+import { Toaster } from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
+import { AuthProvider } from '@/context/AuthContext';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
+import ServiceWorkerRegistrar from '@/components/common/ServiceWorkerRegistrar';
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
+import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
+import { palette, lightPalette, fontFamily, typeRamp, radius, hexAlpha } from '@/theme/tokens';
+import { ThemeModeProvider, useThemeMode } from '@/context/ThemeModeContext';
+import CommandPalette from '@/components/common/CommandPalette';
+import ShortcutHelp from '@/components/common/ShortcutHelp';
 
-import "@/i18n";
-import { localeDirection, normalizeUiLocale } from "@/i18n";
+import '@/i18n';
+import { localeDirection, normalizeUiLocale } from '@/i18n';
 
-// Theme built entirely from src/theme/tokens.ts — no literal colors here.
-// [SPEC-GAPS A2/A12]
-const darkTheme = createTheme({
-  palette: {
-    mode: "dark",
-    background: {
-      default: palette.bg,
-      paper: palette.surface,
-    },
-    text: {
-      primary: palette.foreground,
-      secondary: palette.muted,
-    },
-    primary: {
-      main: palette.accent,
-    },
-    error: {
-      main: palette.danger,
-    },
-    success: {
-      main: palette.success,
-    },
-    warning: {
-      main: palette.warn,
-    },
-    divider: palette.border,
-  },
-  typography: {
-    fontFamily: fontFamily.sans,
-    pageTitle: typeRamp.pageTitle,
-    sectionLabel: typeRamp.sectionLabel,
-    microLabel: typeRamp.microLabel,
-    // mono is delivered via the --font-mono token (globals.css `code, pre`)
-  },
-  shape: {
-    borderRadius: radius.lg,
-  },
-  components: {
-    MuiTextField: {
-      defaultProps: {
-        variant: "outlined",
+// Themes built entirely from src/theme/tokens.ts — no literal colors here.
+// [SPEC-GAPS A2/A12] Item 79: the MUI palette follows the site theme mode
+// (dark default, light counterpart from lightPalette).
+function buildTheme(mode: 'dark' | 'light') {
+  const p = mode === 'light' ? lightPalette : palette;
+  return createTheme({
+    palette: {
+      mode,
+      background: {
+        default: p.bg,
+        paper: p.surface,
       },
+      text: {
+        primary: p.foreground,
+        secondary: p.muted,
+      },
+      primary: {
+        main: p.accent,
+      },
+      error: {
+        main: p.danger,
+      },
+      success: {
+        main: p.success,
+      },
+      warning: {
+        main: p.warn,
+      },
+      divider: p.border,
     },
-    MuiOutlinedInput: {
-      styleOverrides: {
-        root: {
-          "& .MuiOutlinedInput-notchedOutline": {
-            borderColor: palette.border,
-          },
-          "&:hover .MuiOutlinedInput-notchedOutline": {
-            borderColor: palette.borderStrong,
-          },
-          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-            borderColor: palette.accent,
-          },
+    typography: {
+      fontFamily: fontFamily.sans,
+      pageTitle: typeRamp.pageTitle,
+      sectionLabel: typeRamp.sectionLabel,
+      microLabel: typeRamp.microLabel,
+      // mono is delivered via the --font-mono token (globals.css `code, pre`)
+    },
+    shape: {
+      borderRadius: radius.lg,
+    },
+    components: {
+      MuiTextField: {
+        defaultProps: {
+          variant: 'outlined',
         },
       },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          backgroundImage: "none",
-          border: `1px solid ${palette.border}`,
-        },
-      },
-    },
-    MuiButton: {
-      // MUI v6+ dropped the composite `containedPrimary` / `outlinedPrimary`
-      // styleOverrides keys; `variants` is the supported equivalent. Colours and
-      // hover states below are unchanged from the original overrides.
-      variants: [
-        {
-          props: { variant: "contained", color: "primary" },
-          style: {
-            background: palette.accent,
-            color: palette.onAccent,
-            fontWeight: 600,
-            "&:hover": {
-              background: palette.accentHover,
+      MuiOutlinedInput: {
+        styleOverrides: {
+          root: {
+            '& .MuiOutlinedInput-notchedOutline': {
+              borderColor: p.border,
+            },
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: p.borderStrong,
+            },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderColor: p.accent,
             },
           },
         },
-        {
-          props: { variant: "outlined", color: "primary" },
-          style: {
-            borderColor: "rgba(56,189,248,0.4)",
-            color: palette.accent,
-            "&:hover": {
-              borderColor: palette.accent,
-              background: "rgba(56,189,248,0.08)",
-            },
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            backgroundImage: 'none',
+            border: `1px solid ${p.border}`,
           },
         },
-      ],
-    },
-    MuiDivider: {
-      styleOverrides: {
-        root: {
-          borderColor: palette.border,
+      },
+      MuiButton: {
+        // MUI v6+ dropped the composite `containedPrimary` / `outlinedPrimary`
+        // styleOverrides keys; `variants` is the supported equivalent. Colours and
+        // hover states below are unchanged from the original overrides.
+        variants: [
+          {
+            props: { variant: 'contained', color: 'primary' },
+            style: {
+              background: p.accent,
+              color: p.onAccent,
+              fontWeight: 600,
+              '&:hover': {
+                background: p.accentHover,
+              },
+            },
+          },
+          {
+            props: { variant: 'outlined', color: 'primary' },
+            style: {
+              borderColor: hexAlpha(p.accent, 0.4),
+              color: p.accent,
+              '&:hover': {
+                borderColor: p.accent,
+                background: hexAlpha(p.accent, 0.08),
+              },
+            },
+          },
+        ],
+      },
+      MuiDivider: {
+        styleOverrides: {
+          root: {
+            borderColor: p.border,
+          },
+        },
+      },
+      MuiAlert: {
+        styleOverrides: {
+          root: {
+            borderRadius: radius.md,
+          },
         },
       },
     },
-    MuiAlert: {
-      styleOverrides: {
-        root: {
-          borderRadius: radius.md,
-        },
-      },
-    },
-  },
-});
+  });
+}
 
 export default function Providers({ children }: { children: ReactNode }) {
   const { t, i18n } = useTranslation();
+  const { mode } = useThemeMode();
+  const muiTheme = useMemo(() => buildTheme(mode), [mode]);
+  const surfacePalette = mode === 'light' ? lightPalette : palette;
 
   useEffect(() => {
     // [Q5/Q12] i18n initializes pinned to 'en' (SSR/hydration safety), which
@@ -136,8 +146,8 @@ export default function Providers({ children }: { children: ReactNode }) {
     // reload while server pages honored the cookie. Re-apply the cached
     // choice (cookie — the same source getLocale reads server-side) AFTER
     // hydration; a post-mount changeLanguage re-renders like any state flip.
-    const match = document.cookie.split("; ").find((row) => row.startsWith("i18nextLng="));
-    const cached = match?.split("=")[1];
+    const match = document.cookie.split('; ').find((row) => row.startsWith('i18nextLng='));
+    const cached = match?.split('=')[1];
     const locale = cached ? normalizeUiLocale(cached) : null;
     if (cached && locale) {
       // [Q5 + RTL] keep <html lang>/<html dir> in sync on re-application
@@ -152,30 +162,36 @@ export default function Providers({ children }: { children: ReactNode }) {
   }, [i18n]);
 
   return (
-    <AppRouterCacheProvider options={{ key: "mui" }}>
-      <ThemeProvider theme={darkTheme}>
-        <CssBaseline />
-        <AuthProvider>
-          {/* Keyboard skip link + one main landmark for every route. [Q11] */}
-          <a href="#main-content" className="skip-link">
-            {t("skip_to_content", "Skip to content")}
-          </a>
-          <Navbar />
-          <main id="main-content">{children}</main>
-          <Footer />
-          <Toaster
-            toastOptions={{
-              style: {
-                background: palette.surface,
-                color: palette.foreground,
-                border: `1px solid ${palette.border}`,
-              },
-            }}
-          />
-          {/* OPS-6: PWA service-worker registration (production only) */}
-          <ServiceWorkerRegistrar />
-        </AuthProvider>
-      </ThemeProvider>
+    <AppRouterCacheProvider options={{ key: 'mui' }}>
+      <ThemeModeProvider>
+        <ThemeProvider theme={muiTheme}>
+          <CssBaseline />
+          <AuthProvider>
+            {/* Keyboard skip link + one main landmark for every route. [Q11] */}
+            <a href="#main-content" className="skip-link">
+              {t('skip_to_content', 'Skip to content')}
+            </a>
+            <Navbar />
+            <main id="main-content">{children}</main>
+            <Footer />
+            <Toaster
+              toastOptions={{
+                style: {
+                  background: surfacePalette.surface,
+                  color: surfacePalette.foreground,
+                  border: `1px solid ${surfacePalette.border}`,
+                },
+              }}
+            />
+            {/* OPS-6: PWA service-worker registration (production only) */}
+            <ServiceWorkerRegistrar />
+            {/* Wave G item 80: the Ctrl-K command palette (global). */}
+            <CommandPalette />
+            {/* Wave G item 81: the "?" keyboard map overlay (global). */}
+            <ShortcutHelp />
+          </AuthProvider>
+        </ThemeProvider>
+      </ThemeModeProvider>
     </AppRouterCacheProvider>
   );
 }

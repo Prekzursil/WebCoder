@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 // [judge-fairness wave E] Partial-code editor: renders the ENTIRE template
 // file in CodeMirror 6 with LOCKED regions greyed and non-editable — the
@@ -10,16 +10,16 @@
 // Enforcement is SERVER-side (submit 400 + judge-time re-check): the
 // editor's read-only ranges are UX, not the security boundary.
 
-import React, { useMemo, useState } from "react";
-import dynamic from "next/dynamic";
-import { EditorView, Decoration, type DecorationSet } from "@codemirror/view";
-import { EditorState, StateEffect, StateField, type Extension } from "@codemirror/state";
-import { python } from "@codemirror/lang-python";
-import { cpp } from "@codemirror/lang-cpp";
-import { java } from "@codemirror/lang-java";
-import { javascript } from "@codemirror/lang-javascript";
+import React, { useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
+import { EditorView, Decoration, type DecorationSet } from '@codemirror/view';
+import { EditorState, StateEffect, StateField, type Extension } from '@codemirror/state';
+import { python } from '@codemirror/lang-python';
+import { cpp } from '@codemirror/lang-cpp';
+import { java } from '@codemirror/lang-java';
+import { javascript } from '@codemirror/lang-javascript';
 
-const CodeMirror = dynamic(() => import("@uiw/react-codemirror"), {
+const CodeMirror = dynamic(() => import('@uiw/react-codemirror'), {
   ssr: false,
   loading: () => null,
 });
@@ -38,8 +38,8 @@ export interface TemplateSegment {
   text: string;
 }
 
-export const EDIT_START = "WC_EDIT_START";
-export const EDIT_END = "WC_EDIT_END";
+export const EDIT_START = 'WC_EDIT_START';
+export const EDIT_END = 'WC_EDIT_END';
 
 const SENTINEL_RE = /^\s*(?:\/\/|#|--|;)?\s*(WC_EDIT_START|WC_EDIT_END)\s*$/;
 
@@ -49,18 +49,18 @@ export function parseTemplate(template: string | null | undefined): TemplateSegm
   const segments: TemplateSegment[] = [];
   let lockedBuf: string[] = [];
   let editableBuf: string[] | null = null;
-  for (const line of template.split("\n")) {
+  for (const line of template.split('\n')) {
     const match = line.match(SENTINEL_RE);
     if (match) {
       if (match[1] === EDIT_START) {
         if (lockedBuf.length) {
-          segments.push({ locked: true, text: lockedBuf.join("\n") });
+          segments.push({ locked: true, text: lockedBuf.join('\n') });
           lockedBuf = [];
         }
         editableBuf = [];
       } else {
         if (editableBuf !== null) {
-          segments.push({ locked: false, text: editableBuf.join("\n") });
+          segments.push({ locked: false, text: editableBuf.join('\n') });
           editableBuf = null;
         }
       }
@@ -68,7 +68,7 @@ export function parseTemplate(template: string | null | undefined): TemplateSegm
     }
     (editableBuf ?? lockedBuf).push(line);
   }
-  if (lockedBuf.length) segments.push({ locked: true, text: lockedBuf.join("\n") });
+  if (lockedBuf.length) segments.push({ locked: true, text: lockedBuf.join('\n') });
   return segments;
 }
 
@@ -79,7 +79,7 @@ export function parseTemplate(template: string | null | undefined): TemplateSegm
  * sentinel (plus head and tail of the file). */
 export function lockedRangesInTemplate(template: string): Array<[number, number]> {
   const ranges: Array<[number, number]> = [];
-  const lines = template.split("\n");
+  const lines = template.split('\n');
   let pos = 0;
   let lockStart: number | null = 0; // file head is locked
   for (const line of lines) {
@@ -127,7 +127,7 @@ const changeGuard = EditorState.changeFilter.of((tr) => {
   return allowed;
 });
 
-const lockedMark = Decoration.mark({ class: "cm-wc-locked" });
+const lockedMark = Decoration.mark({ class: 'cm-wc-locked' });
 
 const lockedDecorations = EditorView.decorations.compute([lockedField], (state) => {
   const locked = state.field(lockedField) as Array<[number, number]>;
@@ -144,10 +144,10 @@ export function lockedRegionExtensions(ranges: Array<[number, number]>): Extensi
     changeGuard,
     lockedDecorations,
     EditorView.theme({
-      ".cm-wc-locked": {
-        opacity: "0.55",
-        cursor: "not-allowed",
-        backgroundColor: "rgba(148, 163, 184, 0.08)",
+      '.cm-wc-locked': {
+        opacity: '0.55',
+        cursor: 'not-allowed',
+        backgroundColor: 'rgba(148, 163, 184, 0.08)',
       },
     }),
   ];
@@ -174,7 +174,7 @@ export default function PartialCodeEditor({
   value,
   onChange,
   ariaLabel,
-  height = "420px",
+  height = '420px',
 }: PartialCodeEditorProps) {
   const extensions = useMemo(
     () => lockedRegionExtensions(lockedRangesInTemplate(template)),
@@ -189,7 +189,7 @@ export default function PartialCodeEditor({
   const [initialDoc] = useState(value || template);
 
   return (
-    <div data-testid="partial-code-editor" style={{ position: "relative" }}>
+    <div data-testid="partial-code-editor" style={{ position: 'relative' }}>
       <CodeMirror
         value={initialDoc}
         height={height}

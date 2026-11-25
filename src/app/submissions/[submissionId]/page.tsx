@@ -1,17 +1,20 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useTranslation } from "react-i18next";
-import { SubmissionService } from "@/services/ApiService";
-import { useAuth } from "@/context/AuthContext";
-import { DetailedSubmissionType, SubmissionTestResultType } from "@/types";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
-import CopyButton from "@/components/common/CopyButton";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { vscDarkPlus } from "react-syntax-highlighter/dist/cjs/styles/prism";
-import { palette, hexAlpha } from "@/theme/tokens";
+import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
+import { SolveCardShare } from '@/components/share/ShareWidgets';
+import { SubmissionService } from '@/services/ApiService';
+import { useAuth } from '@/context/AuthContext';
+import { DetailedSubmissionType, SubmissionTestResultType } from '@/types';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
+import CopyButton from '@/components/common/CopyButton';
+import TestProfile, { ClosenessBadge } from './TestProfile';
+import LineDiff from '@/components/common/LineDiff';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
+import { palette, hexAlpha } from '@/theme/tokens';
 
 // Ported from frontend/webcoder_ui/src/pages/submissions/SubmissionDetailPage.tsx
 // (CRA reference). Route mirrors react-router's /submissions/:submissionId
@@ -48,19 +51,19 @@ function VerdictPill({ verdict }: { verdict: string | undefined }) {
   return (
     <span
       style={{
-        display: "inline-flex",
-        alignItems: "center",
-        padding: "3px 12px",
-        borderRadius: "999px",
-        fontSize: "0.78rem",
+        display: 'inline-flex',
+        alignItems: 'center',
+        padding: '3px 12px',
+        borderRadius: '999px',
+        fontSize: '0.78rem',
         fontWeight: 700,
-        fontFamily: "var(--font-mono)",
+        fontFamily: 'var(--font-mono)',
         color,
         background: hexAlpha(color, 0.1),
         border: `1px solid ${hexAlpha(color, 0.25)}`,
       }}
     >
-      {verdict ?? "—"}
+      {verdict ?? '—'}
     </span>
   );
 }
@@ -73,14 +76,17 @@ function SubmissionDetailPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isPolling, setIsPolling] = useState<boolean>(false);
+  // [wave E item 13] diff vs the previous attempt on this problem.
+  const [showDiff, setShowDiff] = useState<boolean>(false);
+  const [previousCode, setPreviousCode] = useState<string | null>(null);
 
   const languageMap: { [key: string]: string } = {
-    python3: "python",
-    cpp17: "cpp",
-    java11: "java",
+    python3: 'python',
+    cpp17: 'cpp',
+    java11: 'java',
   };
   const getSyntaxHighlighterLanguage = (langIdentifier: string): string =>
-    languageMap[langIdentifier.toLowerCase()] || "plaintext";
+    languageMap[langIdentifier.toLowerCase()] || 'plaintext';
 
   const fetchDetails = useCallback(
     async (currentSubmissionId: string) => {
@@ -89,7 +95,7 @@ function SubmissionDetailPage() {
         setSubmission(data);
         if (
           data &&
-          (data.verdict === "PENDING" || data.verdict === "COMPILING" || data.verdict === "RUNNING")
+          (data.verdict === 'PENDING' || data.verdict === 'COMPILING' || data.verdict === 'RUNNING')
         ) {
           setIsPolling(true);
         } else {
@@ -99,7 +105,7 @@ function SubmissionDetailPage() {
         setError(
           err instanceof Error && err.message
             ? err.message
-            : t("error_loading_submission_detail", "Failed to load submission details."),
+            : t('error_loading_submission_detail', 'Failed to load submission details.'),
         );
         setIsPolling(false);
       }
@@ -114,7 +120,7 @@ function SubmissionDetailPage() {
       fetchDetails(submissionId).finally(() => setLoading(false));
     } else if (!auth.isAuthenticated) {
       setError(
-        t("error_auth_required_submission", "Authentication required to view submission details."),
+        t('error_auth_required_submission', 'Authentication required to view submission details.'),
       );
       setLoading(false);
     }
@@ -134,21 +140,31 @@ function SubmissionDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPolling, submissionId, auth.isAuthenticated, t]);
 
+  // Fetch the previous attempt's source lazily, once, when the viewer
+  // asks for the diff (the pointer rides the detail payload).
+  useEffect(() => {
+    if (!showDiff || previousCode !== null || !submission?.previous_submission_id) return;
+    SubmissionService.getSubmissionDetail(String(submission.previous_submission_id))
+      .then((prev) => setPreviousCode(prev.code))
+      .catch(() => setPreviousCode(''));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showDiff, submission?.previous_submission_id]);
+
   const microLabel: React.CSSProperties = {
-    fontSize: "0.65rem",
+    fontSize: '0.65rem',
     fontWeight: 600,
-    textTransform: "uppercase",
-    letterSpacing: "0.05em",
-    color: "var(--text-tertiary)",
-    marginBottom: "2px",
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    color: 'var(--text-tertiary)',
+    marginBottom: '2px',
   };
 
   const card: React.CSSProperties = {
-    background: "var(--surface)",
-    border: "1px solid var(--border)",
-    borderRadius: "var(--radius-lg)",
-    padding: "1.5rem",
-    marginBottom: "1.25rem",
+    background: 'var(--surface)',
+    border: '1px solid var(--border)',
+    borderRadius: 'var(--radius-lg)',
+    padding: '1.5rem',
+    marginBottom: '1.25rem',
   };
 
   if (loading && !submission) return <LoadingSpinner />;
@@ -159,20 +175,20 @@ function SubmissionDetailPage() {
           role="alert"
           style={{
             ...card,
-            color: "var(--danger)",
+            color: 'var(--danger)',
             background: hexAlpha(palette.danger, 0.08),
             borderColor: hexAlpha(palette.danger, 0.2),
-            display: "flex",
-            flexDirection: "column",
-            gap: "1rem",
-            alignItems: "flex-start",
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+            alignItems: 'flex-start',
           }}
         >
-          <div style={{ fontSize: "0.9rem" }}>{error}</div>
-          <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+          <div style={{ fontSize: '0.9rem' }}>{error}</div>
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
             {/* [F20] dead-end fix: a way back + a retry */}
             <Link href="/my-submissions" className="btn">
-              {t("back_to_my_submissions", "Back to My Submissions")}
+              {t('back_to_my_submissions', 'Back to My Submissions')}
             </Link>
             {submissionId && auth.isAuthenticated && (
               <button
@@ -184,7 +200,7 @@ function SubmissionDetailPage() {
                   fetchDetails(submissionId).finally(() => setLoading(false));
                 }}
               >
-                {t("try_again_button", "Try Again")}
+                {t('try_again_button', 'Try Again')}
               </button>
             )}
           </div>
@@ -195,7 +211,7 @@ function SubmissionDetailPage() {
   if (!submission)
     return (
       <div className="page-container">
-        <p>{t("submission_not_found", "Submission not found.")}</p>
+        <p>{t('submission_not_found', 'Submission not found.')}</p>
       </div>
     );
 
@@ -207,7 +223,7 @@ function SubmissionDetailPage() {
   const metaCell = (label: string, children: React.ReactNode) => (
     <div style={{ minWidth: 0 }}>
       <div style={microLabel}>{label}</div>
-      <div style={{ fontSize: "0.85rem", color: "var(--foreground)", fontWeight: 500 }}>
+      <div style={{ fontSize: '0.85rem', color: 'var(--foreground)', fontWeight: 500 }}>
         {children}
       </div>
     </div>
@@ -218,93 +234,98 @@ function SubmissionDetailPage() {
       <div key={result.id} style={card}>
         <div
           style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "0.75rem",
-            flexWrap: "wrap",
-            marginBottom: "0.75rem",
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '0.75rem',
+            flexWrap: 'wrap',
+            marginBottom: '0.75rem',
           }}
         >
-          <div style={{ fontSize: "0.9rem", fontWeight: 700, color: "var(--foreground)" }}>
-            {t("test_case_label", "Test Case")} #
+          <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--foreground)' }}>
+            {t('test_case_label', 'Test Case')} #
             {result.test_case_details?.order ?? result.test_case_details?.id}
             {result.test_case_details?.is_sample && (
               <span
                 style={{
-                  marginLeft: "8px",
-                  padding: "1px 8px",
-                  borderRadius: "999px",
-                  fontSize: "0.68rem",
+                  marginLeft: '8px',
+                  padding: '1px 8px',
+                  borderRadius: '999px',
+                  fontSize: '0.68rem',
                   fontWeight: 600,
-                  color: "var(--violet)",
+                  color: 'var(--violet)',
                   background: hexAlpha(palette.violet, 0.1),
                   border: `1px solid ${hexAlpha(palette.violet, 0.2)}`,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
                 }}
               >
-                {t("sample_label", "Sample")}
+                {t('sample_label', 'Sample')}
               </span>
             )}
           </div>
           <VerdictPill verdict={result.verdict} />
         </div>
 
-        <div style={{ display: "flex", gap: "1.5rem", flexWrap: "wrap" }}>
-          {metaCell(t("points_label", "Points"), <>{result.test_case_details?.points ?? "—"}</>)}
+        <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+          {metaCell(t('points_label', 'Points'), <>{result.test_case_details?.points ?? '—'}</>)}
           {result.execution_time_ms !== null &&
             result.execution_time_ms !== undefined &&
-            metaCell(t("time_label", "Time"), <>{result.execution_time_ms} ms</>)}
+            metaCell(t('time_label', 'Time'), <>{result.execution_time_ms} ms</>)}
           {result.memory_used_kb !== null &&
             result.memory_used_kb !== undefined &&
-            metaCell(t("memory_label", "Memory"), <>{result.memory_used_kb} KB</>)}
+            metaCell(t('memory_label', 'Memory'), <>{result.memory_used_kb} KB</>)}
         </div>
 
-        {result.actual_output && (result.verdict === "WA" || result.verdict === "RE") && (
-          <div style={{ marginTop: "0.75rem" }}>
-            <div style={microLabel}>{t("actual_output_label", "Actual Output (truncated)")}</div>
+        {/* [wave E items 6/7/19/25] used-vs-bar meters and, for exposed
+            tests, the expected-vs-actual line diff with the first
+            mismatch highlighted. */}
+        <TestProfile result={result} />
+
+        {result.actual_output && (result.verdict === 'WA' || result.verdict === 'RE') && (
+          <div style={{ marginTop: '0.75rem' }}>
+            <div style={microLabel}>{t('actual_output_label', 'Actual Output (truncated)')}</div>
             <pre
               style={{
-                background: "var(--surface-2)",
-                padding: "10px",
-                marginTop: "4px",
-                maxHeight: "100px",
-                overflowY: "auto",
-                whiteSpace: "pre-wrap",
-                wordWrap: "break-word",
-                borderRadius: "var(--radius-sm)",
-                fontFamily: "var(--font-mono)",
-                fontSize: "0.8rem",
-                color: "var(--foreground)",
+                background: 'var(--surface-2)',
+                padding: '10px',
+                marginTop: '4px',
+                maxHeight: '100px',
+                overflowY: 'auto',
+                whiteSpace: 'pre-wrap',
+                wordWrap: 'break-word',
+                borderRadius: 'var(--radius-sm)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.8rem',
+                color: 'var(--foreground)',
               }}
             >
               {result.actual_output.substring(0, 200)}
-              {result.actual_output.length > 200 ? "..." : ""}
+              {result.actual_output.length > 200 ? '...' : ''}
             </pre>
           </div>
         )}
         {result.error_output &&
-          (result.verdict === "RE" || result.verdict === "CE" || result.verdict === "IE") && (
-            <div style={{ marginTop: "0.75rem" }}>
-              <div style={microLabel}>{t("error_output_label", "Error Output (truncated)")}</div>
+          (result.verdict === 'RE' || result.verdict === 'CE' || result.verdict === 'IE') && (
+            <div style={{ marginTop: '0.75rem' }}>
+              <div style={microLabel}>{t('error_output_label', 'Error Output (truncated)')}</div>
               <pre
                 style={{
-                  background: "var(--surface-2)",
-                  padding: "10px",
-                  marginTop: "4px",
-                  maxHeight: "100px",
-                  overflowY: "auto",
-                  whiteSpace: "pre-wrap",
-                  wordWrap: "break-word",
-                  borderRadius: "var(--radius-sm)",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "0.8rem",
-                  color: "var(--danger)",
+                  background: 'var(--surface-2)',
+                  padding: '10px',
+                  marginTop: '4px',
+                  maxHeight: '100px',
+                  overflowY: 'auto',
+                  whiteSpace: 'pre-wrap',
+                  wordWrap: 'break-word',
+                  borderRadius: 'var(--radius-sm)',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.8rem',
+                  color: 'var(--danger)',
                 }}
               >
                 {result.error_output.substring(0, 200)}
-                {result.error_output.length > 200 ? "..." : ""}
+                {result.error_output.length > 200 ? '...' : ''}
               </pre>
             </div>
           )}
@@ -316,42 +337,63 @@ function SubmissionDetailPage() {
     <div className="page-container">
       <div
         style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: "1rem",
-          flexWrap: "wrap",
-          marginBottom: "1.5rem",
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '1rem',
+          flexWrap: 'wrap',
+          marginBottom: '1.5rem',
         }}
       >
         <h1
           style={{
-            fontSize: "1.75rem",
+            fontSize: '1.75rem',
             fontWeight: 800,
-            letterSpacing: "-0.03em",
-            color: "var(--foreground)",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.75rem",
-            flexWrap: "wrap",
+            letterSpacing: '-0.03em',
+            color: 'var(--foreground)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            flexWrap: 'wrap',
           }}
         >
-          {t("submission_detail_header", "Submission Detail")} #{submission.id}
+          {t('submission_detail_header', 'Submission Detail')} #{submission.id}
           <VerdictPill verdict={submission.verdict} />
+          {submission.ai_assisted && (
+            <span
+              data-testid="ai-assisted-chip"
+              style={{
+                fontSize: '0.7rem',
+                fontWeight: 700,
+                padding: '2px 8px',
+                borderRadius: 999,
+                border: '1px solid var(--violet)',
+                color: 'var(--violet)',
+              }}
+              title={t(
+                'ai_assisted_chip_hint',
+                'Self-declared at submit; banned in rated rounds — /policies/ai',
+              )}
+            >
+              {t('ai_assisted_chip', 'AI-assisted')}
+            </span>
+          )}
+          {/* [wave E item 21] the "Am I close?" band for partial scores */}
+          <ClosenessBadge closeness={submission.closeness} />
           {isPolling && (
-            <span style={{ fontSize: "0.8rem", color: "var(--muted)", fontWeight: 400 }}>
-              ({t("polling_status", "Polling for updates...")})
+            <span style={{ fontSize: '0.8rem', color: 'var(--muted)', fontWeight: 400 }}>
+              ({t('polling_status', 'Polling for updates...')})
             </span>
           )}
         </h1>
         {/* [F20] dead-end fix: a way back */}
         <Link href="/my-submissions" className="btn">
-          {t("back_to_my_submissions", "Back to My Submissions")}
+          {t('back_to_my_submissions', 'Back to My Submissions')}
         </Link>
       </div>
 
       {error && (
-        <p style={{ color: "var(--accent)", fontStyle: "italic", marginBottom: "1rem" }}>
+        <p style={{ color: 'var(--accent)', fontStyle: 'italic', marginBottom: '1rem' }}>
           Note: {error}
         </p>
       )}
@@ -359,27 +401,27 @@ function SubmissionDetailPage() {
       <div style={card}>
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-            gap: "1rem",
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: '1rem',
           }}
         >
           {metaCell(
-            t("problem_label", "Problem"),
-            <Link href={`/problems/${submission.problem.id}`} style={{ color: "var(--accent)" }}>
+            t('problem_label', 'Problem'),
+            <Link href={`/problems/${submission.problem.id}`} style={{ color: 'var(--accent)' }}>
               {problemTitle}
             </Link>,
           )}
-          {submission.user && metaCell(t("user_label", "User"), <>{submission.user.username}</>)}
+          {submission.user && metaCell(t('user_label', 'User'), <>{submission.user.username}</>)}
           {metaCell(
-            t("language_label", "Language"),
-            <span style={{ fontFamily: "var(--font-mono)" }}>{submission.language}</span>,
+            t('language_label', 'Language'),
+            <span style={{ fontFamily: 'var(--font-mono)' }}>{submission.language}</span>,
           )}
           {metaCell(
-            t("verdict_label", "Verdict"),
+            t('verdict_label', 'Verdict'),
             <span
               style={{
-                fontFamily: "var(--font-mono)",
+                fontFamily: 'var(--font-mono)',
                 fontWeight: 700,
                 color: verdictColor(submission.verdict),
               }}
@@ -387,71 +429,81 @@ function SubmissionDetailPage() {
               {submission.verdict}
             </span>,
           )}
-          {metaCell(t("score_label", "Score"), <>{submission.score ?? "—"}</>)}
+          {metaCell(t('score_label', 'Score'), <>{submission.score ?? '—'}</>)}
           {metaCell(
-            t("submission_time_label", "Submission Time"),
+            t('submission_time_label', 'Submission Time'),
             <>{new Date(submission.submission_time).toLocaleString(i18n.language)}</>,
           )}
           {submission.execution_time_ms !== null &&
             metaCell(
-              t("execution_time_label", "Execution Time (Overall)"),
+              t('execution_time_label', 'Execution Time (Overall)'),
               <>{submission.execution_time_ms} ms</>,
             )}
           {/* Matrix row 61: faster than X% of AC runs (same problem+language). */}
           {submission.runtime_percentile !== null &&
             submission.runtime_percentile !== undefined &&
             metaCell(
-              t("runtime_percentile_label", "Runtime percentile"),
+              t('runtime_percentile_label', 'Runtime percentile'),
               <>
-                {t("runtime_beats", "faster than {{pct}}% of accepted solutions", {
+                {t('runtime_beats', 'faster than {{pct}}% of accepted solutions', {
                   pct: Math.round(submission.runtime_percentile * 100),
                 })}
               </>,
             )}
           {submission.memory_used_kb !== null &&
             metaCell(
-              t("memory_used_label", "Memory Used (Overall)"),
+              t('memory_used_label', 'Memory Used (Overall)'),
               <>{submission.memory_used_kb} KB</>,
             )}
         </div>
       </div>
 
+      {/* Wave F item 71 — the shareable solve card (own AC submissions). */}
+      {submission.verdict === 'AC' && (
+        <SolveCardShare
+          username={submission.user?.username ?? ''}
+          problemId={
+            typeof submission.problem === 'number' ? submission.problem : submission.problem.id
+          }
+        />
+      )}
+
       <h2
         className="micro-label"
         style={{
-          fontSize: "0.8rem",
+          fontSize: '0.8rem',
           fontWeight: 700,
-          color: "var(--muted)",
-          letterSpacing: "0.07em",
-          marginBottom: "0.75rem",
-          display: "flex",
-          alignItems: "center",
-          gap: "8px",
+          color: 'var(--muted)',
+          letterSpacing: '0.07em',
+          marginBottom: '0.75rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
         }}
       >
         <span
           style={{
-            width: "3px",
-            height: "14px",
-            background: "var(--accent)",
-            borderRadius: "2px",
-            display: "inline-block",
+            width: '3px',
+            height: '14px',
+            background: 'var(--accent)',
+            borderRadius: '2px',
+            display: 'inline-block',
           }}
           aria-hidden="true"
         />
-        {t("submitted_code_header", "Submitted Code")}
+        {t('submitted_code_header', 'Submitted Code')}
       </h2>
       <div
         style={{
-          fontSize: "0.9em",
-          maxWidth: "100%",
-          overflowX: "auto",
-          marginBottom: "1.5rem",
-          position: "relative",
+          fontSize: '0.9em',
+          maxWidth: '100%',
+          overflowX: 'auto',
+          marginBottom: '1.5rem',
+          position: 'relative',
         }}
       >
-        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "4px" }}>
-          <CopyButton text={submission.code} label={t("copy_code_button", "Copy code")} />
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '4px' }}>
+          <CopyButton text={submission.code} label={t('copy_code_button', 'Copy code')} />
         </div>
         <SyntaxHighlighter
           language={getSyntaxHighlighterLanguage(submission.language)}
@@ -462,75 +514,130 @@ function SubmissionDetailPage() {
         </SyntaxHighlighter>
       </div>
 
+      {/* [wave E item 13] submission versioning: diff this attempt against
+          the viewer's own previous one on the same problem. */}
+      {submission.previous_submission_id != null && (
+        <div style={{ marginBottom: '1.5rem' }}>
+          <button
+            type="button"
+            className="btn"
+            onClick={() => setShowDiff((v) => !v)}
+            data-testid="diff-previous-toggle"
+          >
+            {showDiff
+              ? t('diff_previous_hide', 'Hide diff vs previous attempt')
+              : t('diff_previous_show', 'Diff vs previous attempt')}
+          </button>
+          {showDiff &&
+            (previousCode === null ? (
+              <p style={{ color: 'var(--muted)', fontSize: '0.85rem', marginTop: '0.5rem' }}>
+                {t('diff_previous_loading', 'Loading the previous attempt…')}
+              </p>
+            ) : (
+              <div style={{ marginTop: '0.75rem' }}>
+                <LineDiff left={previousCode} right={submission.code} />
+              </div>
+            ))}
+        </div>
+      )}
+
       {submission.test_results && submission.test_results.length > 0 && (
         <>
           <h2
             className="micro-label"
             style={{
-              fontSize: "0.8rem",
+              fontSize: '0.8rem',
               fontWeight: 700,
-              color: "var(--muted)",
-              letterSpacing: "0.07em",
-              marginBottom: "0.75rem",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
+              color: 'var(--muted)',
+              letterSpacing: '0.07em',
+              marginBottom: '0.75rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
             }}
           >
             <span
               style={{
-                width: "3px",
-                height: "14px",
+                width: '3px',
+                height: '14px',
                 background: palette.warn,
-                borderRadius: "2px",
-                display: "inline-block",
+                borderRadius: '2px',
+                display: 'inline-block',
               }}
               aria-hidden="true"
             />
-            {t("test_case_results_header", "Test Case Results")}
+            {t('test_case_results_header', 'Test Case Results')}
           </h2>
           {submission.test_results.map(renderTestResult)}
         </>
       )}
+
+      {/* [wave E item 14] compile-error explainers — bilingual hints
+          mapped from the raw diagnostics, CE verdicts only. */}
+      {submission.verdict === 'CE' &&
+        submission.compile_hints &&
+        submission.compile_hints.length > 0 && (
+          <div
+            data-testid="compile-hints"
+            style={{
+              background: hexAlpha(palette.warn, 0.08),
+              border: `1px solid ${hexAlpha(palette.warn, 0.25)}`,
+              borderRadius: 'var(--radius-lg)',
+              padding: '1rem 1.5rem',
+              marginBottom: '1.25rem',
+            }}
+          >
+            <div className="micro-label" style={{ color: palette.warn, marginBottom: '0.5rem' }}>
+              {t('compile_hints_title', 'What does this error mean?')}
+            </div>
+            <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.88rem' }}>
+              {submission.compile_hints.map((h, i) => (
+                <li key={i} style={{ marginBottom: '6px' }}>
+                  {i18n.language.startsWith('ro') ? h.hint_ro : h.hint_en}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
       {submission.detailed_feedback && (
         <>
           <h2
             className="micro-label"
             style={{
-              fontSize: "0.8rem",
+              fontSize: '0.8rem',
               fontWeight: 700,
-              color: "var(--muted)",
-              letterSpacing: "0.07em",
-              marginBottom: "0.75rem",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
+              color: 'var(--muted)',
+              letterSpacing: '0.07em',
+              marginBottom: '0.75rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
             }}
           >
             <span
               style={{
-                width: "3px",
-                height: "14px",
+                width: '3px',
+                height: '14px',
                 background: palette.violet,
-                borderRadius: "2px",
-                display: "inline-block",
+                borderRadius: '2px',
+                display: 'inline-block',
               }}
               aria-hidden="true"
             />
-            {t("judge_feedback_header", "Judge's Summary")}
+            {t('judge_feedback_header', "Judge's Summary")}
           </h2>
           <pre
             style={{
-              background: "var(--surface)",
-              padding: "12px",
-              border: "1px solid var(--border)",
-              whiteSpace: "pre-wrap",
-              wordWrap: "break-word",
-              borderRadius: "var(--radius-md)",
-              fontFamily: "var(--font-mono)",
-              fontSize: "0.8rem",
-              color: "var(--body)",
+              background: 'var(--surface)',
+              padding: '12px',
+              border: '1px solid var(--border)',
+              whiteSpace: 'pre-wrap',
+              wordWrap: 'break-word',
+              borderRadius: 'var(--radius-md)',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.8rem',
+              color: 'var(--body)',
             }}
           >
             {submission.detailed_feedback}

@@ -126,6 +126,9 @@ class ClassRoomSerializer(serializers.ModelSerializer):
     """
 
     teacher_username = serializers.CharField(source="teacher.username", read_only=True)
+    # [wave G item 99] the QR card needs to know whether joins need a
+    # password — a boolean echo, never the (hashed) value itself.
+    has_password = serializers.SerializerMethodField()
     member_count = serializers.SerializerMethodField()
     assignment_count = serializers.SerializerMethodField()
     is_owner = serializers.SerializerMethodField()
@@ -137,6 +140,7 @@ class ClassRoomSerializer(serializers.ModelSerializer):
             "name",
             "school",
             "join_code",
+            "has_password",
             "join_password",
             "is_open",
             "created_at",
@@ -146,6 +150,9 @@ class ClassRoomSerializer(serializers.ModelSerializer):
             "is_owner",
         ]
         read_only_fields = ["id", "join_code", "created_at"]
+
+    def get_has_password(self, obj):
+        return bool(obj.join_password)
 
     def get_member_count(self, obj):
         return obj.memberships.count()
@@ -305,13 +312,13 @@ class AssignmentSerializer(serializers.ModelSerializer):
         # `classroom` is a required field, so it is always present here
         # (create) or on the instance (update).
         classroom = attrs.get("classroom") or getattr(self.instance, "classroom", None)
-        # `classroom` is a required field, so exactly one of the two arms
-        # above is non-None; assert that invariant for the checker.
-        assert classroom is not None
         request = self.context.get("request")
         user = getattr(request, "user", None)
         if user is None or not user.is_authenticated:
             raise serializers.ValidationError({"classroom": "Authentication required."})
+        # Required field: `classroom` is present in attrs (create) or on the
+        # instance (update) on every path that reaches here.
+        assert classroom is not None
         if not (
             classroom.teacher_id == user.id
             or user.role == User.Roles.ADMIN

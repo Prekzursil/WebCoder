@@ -1,0 +1,48 @@
+flowchart TB
+    subgraph client["Client"]
+        BR["Browser / PWA<br/>(Next.js 16 UI, RO+EN + 10 locales)"]
+    end
+
+    subgraph frontend["Frontend — Next.js 16 (repo root, src/)"]
+        PAGES["App Router pages<br/>SSR + ISR (catalog 60s)"]
+        CM["CodeMirror 6 editor<br/>+ Blockly lane"]
+    end
+
+    subgraph api["Backend — Django 6 + DRF (backend/)"]
+        REST["/api/v1 REST endpoints<br/>(problems, submissions, contests,<br/>classroom, forum, messaging, …)"]
+        AUTH["dj-rest-auth cookie JWT<br/>+ CSRF double-submit"]
+        THROTTLE["DRF throttles<br/>(redis-shared counters)"]
+        PUBAPI["/api/v1/public read-only API<br/>+ personal tokens"]
+    end
+
+    subgraph data["State"]
+        PG[("PostgreSQL 16<br/>users · problems · testcases ·<br/>submissions · contests · ratings")]
+        RD[("Redis<br/>celery broker · cache ·<br/>throttle counters")]
+    end
+
+    subgraph judge["Judge pipeline"]
+        CW["celery-worker<br/>(judge + default queues)"]
+        SP["socket-proxy<br/>(docker API filter:<br/>containers/exec POST only)"]
+        JR["judge-runner container<br/>(network=none, read-only rootfs,<br/>cap-drop ALL, uid 1000)<br/>gcc · g++ · openjdk · python · node ·<br/>fpc · mono · golang"]
+    end
+
+    subgraph ops["Ops"]
+        BEAT["celery-beat<br/>(nightly recompute, purge,<br/>retention, digests, contest-tick)"]
+        BK[("db-backup sidecar<br/>pg_dump -Fc daily,<br/>7d/4w/6m retention")]
+    end
+
+    BR -->|"HTTPS + httpOnly cookies"| PAGES
+    PAGES -->|"fetch /api/v1 (credentials: include)"| REST
+    REST --> AUTH
+    REST --> THROTTLE
+    REST --> PG
+    THROTTLE --> RD
+    REST -->|"submission create"| RD
+    RD --> CW
+    CW -->|"docker exec via DOCKER_HOST"| SP
+    SP --> JR
+    CW -->|"verdict + per-test results"| PG
+    BEAT --> RD
+    BEAT --> CW
+    BK --> PG
+    PUBAPI --> PG

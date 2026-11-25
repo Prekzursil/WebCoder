@@ -1,9 +1,12 @@
 # osv-scanner configuration for the lean dependency gate (pinned tool: osv-scanner 2.3.8).
 # The CI gate runs `osv-scanner scan source --config=osv-scanner.toml --recursive .`
 # (see .github/workflows/quality.yml -> reusable-quality.yml gate-deps step), which
-# auto-discovers and scans the lockfiles in this repo:
-#   - backend/requirements.txt              (Django backend pip deps)
-#   - frontend/webcoder_ui/package-lock.json (React/CRA frontend npm tree)
+# auto-discovers and scans the lockfiles in this repo (single-branch layout,
+# 2026-10-27: the Next.js app lives at the repo root, Django under backend/,
+# the Expo app under mobile/):
+#   - package-lock.json        (root Next.js npm tree)
+#   - mobile/package-lock.json (Expo mobile npm tree)
+#   - backend deps via the root requirements.txt shim -> backend/deps.txt
 #
 # POLICY: ignore entries are allowed ONLY for a genuinely-unfixable vuln (no
 # non-breaking upgrade) OR one that is provably not reachable in THIS product,
@@ -28,36 +31,51 @@
 # One residual react-router advisory is genuinely unfixable on React 18 and is
 # recorded below with a reachability argument.
 
+
+
+
 [[IgnoredVulns]]
 id = "GHSA-q849-wxrc-vqrp"
-# hull.js "Code Injection" (critical). The advisory's fixed version is 1.0.10,
-# which is NOT published: registry.npmjs.org/hull.js latest is 1.0.6 and the
-# versions list ends at 1.0.6 (verified 2026-11-05). Overriding to the maximum
-# published release (done: package.json pins hull.js 1.0.6) is therefore the
-# minimum-vulnerability state. hull.js is a transitive dep of scratch-render,
-# used only to convex-hull the paint-region of Scratch sprites (our own
-# workspace geometry, never user-authored code).
-# Re-review when hull.js publishes > 1.0.10, then drop the pin and this entry.
-reason = "No fix published (advisory fixed=1.0.10; registry latest 1.0.6, verified 2026-11-05); pinned to 1.0.6; scratch-render sprite geometry only. Reviewed 2026-11-05."
+# hull.js "Code Injection Vulnerability" - arbitrary code execution via an
+# unsafe `new Function(...)` in the module that handles the points FORMAT when
+# the application passes hull()'s 3rd parameter unsanitised.
+#
+# NO FIX AVAILABLE: the advisory's fixed version is 1.0.10, but no release
+# above 1.0.6 exists on npm (verified 2026-11-15 against
+# https://registry.npmjs.org/hull.js - dist-tags.latest = 1.0.6 and the full
+# version list ends at 1.0.6), so every publishable version sits inside the
+# affected range (introduced 0.2.2). An override cannot reach a fixed release.
+#
+# NOT REACHABLE IN THIS PRODUCT: hull.js is pulled only by scratch-render
+# (web Scratch stage), whose sole call site is
+# node_modules/scratch-render/src/RenderWebGL.js:1954 - `hull(hullPoints,
+# Infinity)` - TWO arguments; the vulnerable 3rd parameter (the points-format
+# callback evaluated through new Function) is never passed anywhere in
+# scratch-render. Verified 2026-11-15 by grepping scratch-render/src for
+# `hull(`: exactly one call site, two arguments.
+#
+# Re-review when hull.js publishes > 1.0.6 (then pin via an npm override and
+# delete this entry).
+reason = "No fixed release exists on npm (latest 1.0.6 < advisory fixed 1.0.10, verified 2026-11-15); scratch-render passes only 2 args so the vulnerable 3rd-parameter path is unreachable. Reviewed 2026-11-15."
+
 
 [[IgnoredVulns]]
-id = "GHSA-vh5w-fg69-rc8m"
-# google-closure-library "Improper Input Validation" (moderate). The only fix
-# is google-closure-library >= 20200315.0.0, and the sole consumer,
-# scratch-blocks 1.3.0, pins ^20190301.0.0 with no release that bumps it
-# (scratch-blocks 2.2.4 is a semver-major migration for this app - an owner
-# decision, not a patch). The library ships inside scratch-blocks' compiled
-# blocks editor; block XML is authored by our own blockly workspace, not raw
-# user input.
-# Re-review when scratch-blocks ships a closure-library >= 20200315 pin or the
-# app migrates to scratch-blocks 2.x.
-reason = "Fix requires scratch-blocks semver-major (2.2.4); 1.3.0 pins closure 20190301; block XML is workspace-authored, not raw user input. Reviewed 2026-11-05."
-
-[[IgnoredVulns]]
-id = "GHSA-gcqx-w48m-w2h4"
-# deepmerge "prototype poisoning of returned objects" - advisory lists NO fixed
-# version (osv fixed column is "--"). 4.3.1 is the latest published release
-# (verified 2026-11-05). In this tree it sits under mobile's expo tooling
-# (devDependency graph only, not shipped) and merges our own config objects.
-# Re-review when deepmerge publishes a patched release.
-reason = "No fixed version exists (advisory fixed=--; 4.3.1 is latest, verified 2026-11-05); dev-tooling graph only, merges repo-authored config. Reviewed 2026-11-05."
+id = "GHSA-fc5q-39xc-vjpf"
+# picomatch ReDoS (CVE-2026-112366) - catastrophic backtracking on a
+# maliciously crafted pattern.
+#
+# NO FIX AVAILABLE: the advisory's fixed version is 4.0.8, but no release
+# above 4.0.7 exists on npm (verified 2026-11-17 against
+# https://registry.npmjs.org/picomatch - dist-tags.latest = 4.0.7 and the
+# version list ends at 4.0.7), so an override cannot reach a fixed release.
+#
+# NOT REACHABLE IN THIS PRODUCT: picomatch enters both trees only as a
+# transitive DEV-tooling dependency (micromatch -> fast-glob/glob inside
+# vitest/jest/eslint toolchains); it is not part of the shipped Next.js
+# runtime bundle or the Expo app bundle, and the ReDoS path requires an
+# ATTACKER-CONTROLLED glob pattern while every pattern in the toolchain is
+# developer-authored (test globs, lint config).
+#
+# Re-review when picomatch publishes >= 4.0.8 (then pin via an npm override
+# and delete this entry).
+reason = "No fixed release exists on npm (latest 4.0.7 < advisory fixed 4.0.8, verified 2026-11-17); dev-tooling-only transitive, not in shipped bundles, patterns are developer-authored. Reviewed 2026-11-17."

@@ -4,7 +4,7 @@
 // pre-resolves these into `effective_limits`, and this module computes
 // them client-side from the public language registry when the field is
 // absent (e.g. cached problems from an older API).
-import type { LanguageRow, ProblemType } from "../types/api";
+import type { LanguageRow, ProblemType } from '../types/api';
 
 export interface EffectiveLimit {
   language: string;
@@ -16,7 +16,7 @@ export interface EffectiveLimit {
 export function computeEffectiveLimit(
   problem: Pick<
     ProblemType,
-    "default_time_limit_ms" | "default_memory_limit_kb" | "limit_overrides"
+    'default_time_limit_ms' | 'default_memory_limit_kb' | 'limit_overrides'
   >,
   language: LanguageRow,
 ): EffectiveLimit {

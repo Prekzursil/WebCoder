@@ -40,11 +40,29 @@ class Submission(models.Model):
         related_name="submissions",
         verbose_name=_("problem"),
     )
+
     # Contest-bound submissions (competitive roadmap CON-1): set when the
     # submission was made through a contest's gated submit path; null for
     # ordinary practice submissions and for post-contest upsolving (which
     # deliberately goes through the problem page — CON-5 archive behaviour).
     # SET_NULL keeps the submission readable if the contest row is removed.
+    # Item 61 — solution-sharing license. PLATFORM_DISPLAY is the terms'
+    # default (the platform may display the source, COM-7); the author may
+    # relicense their own AC source (MIT / CC0 / CC BY-SA).
+    class License(models.TextChoices):
+        PLATFORM_DISPLAY = "PLATFORM_DISPLAY", _("Platform display right")
+        MIT = "MIT", _("MIT")
+        CC0 = "CC0", _("CC0")
+        CC_BY_SA = "CC_BY_SA", _("CC BY-SA 4.0")
+
+    license = models.CharField(
+        _("license"),
+        max_length=20,
+        choices=License.choices,
+        default=License.PLATFORM_DISPLAY,
+        help_text=_("How others may reuse this source once shared."),
+    )
+
     contest = models.ForeignKey(
         "contests.Contest",
         on_delete=models.SET_NULL,
@@ -84,8 +102,17 @@ class Submission(models.Model):
     # Could be JSONField if structured feedback is desired
     detailed_feedback = models.TextField(_("detailed feedback"), blank=True)
 
-    # IP address of submission (optional, for auditing/security)
-    # ip_address = models.GenericIPAddressField(null=True, blank=True)
+    # IP address of submission (for auditing/security). Captured on
+    # create by the submit view (item 115's multi-account heuristics);
+    # stored as a plain char field so IPv6-mapped forms pass unchanged.
+    # Wave G item 116 — AI-assistance self-declaration: the submitter
+    # affirms generative-AI help produced part of this solution (outside
+    # rated rounds; the rated-contest ban is the /policies/ai page).
+    ai_assisted = models.BooleanField(_("AI-assisted (self-declared)"), default=False)
+
+    ip_address = models.GenericIPAddressField(
+        _("submitter IP"), null=True, blank=True, unpack_ipv4=True
+    )
 
     def __str__(self):
         return f"Submission {self.id} by {self.user.username} for Problem {self.problem_id} ({self.verdict})"
@@ -134,6 +161,19 @@ class SubmissionTestResult(models.Model):
     actual_output = models.TextField(_("actual output"), blank=True, null=True)
     error_output = models.TextField(_("error output"), blank=True, null=True)
 
+    # Wave E items 6/19/25 (per-test time bars, memory profiling, TLE
+    # time-travel analysis): the limits the judge ACTUALLY applied for this
+    # test — the per-test override when set, the language-adjusted
+    # effective limit otherwise (and the same memory bar for every test).
+    # Persisted at judge time so the UI can draw "used vs bar" per test
+    # without recomputing the (language-dependent) limit later.
+    limit_time_ms = models.PositiveIntegerField(
+        _("applied time limit (ms)"), null=True, blank=True
+    )
+    limit_memory_kb = models.PositiveIntegerField(
+        _("applied memory limit (KB)"), null=True, blank=True
+    )
+
     def __str__(self):
         return f"Result for Sub {self.submission.id} on TC {self.test_case_id}: {self.verdict}"
 
@@ -142,3 +182,45 @@ class SubmissionTestResult(models.Model):
         verbose_name_plural = _("submission test results")
         ordering = ["submission", "test_case__order"]
         unique_together = ("submission", "test_case")
+
+
+class CodeDraft(models.Model):
+    """Cross-device code draft (wave G item 76).
+
+    One draft per (user, problem): the editor autosaves here, and any
+    device the user signs in on restores the latest code. Deliberately
+    NOT versioned — the submission history already is the audit trail;
+    this is the "pick up where you left off" affordance.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="code_drafts",
+        verbose_name=_("user"),
+    )
+    problem = models.ForeignKey(
+        "problems.Problem",
+        on_delete=models.CASCADE,
+        related_name="drafts",
+        verbose_name=_("problem"),
+    )
+    language = models.CharField(_("language"), max_length=20)
+    code = models.TextField(_("code"))
+    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("code draft")
+        verbose_name_plural = _("code drafts")
+        ordering = ["-updated_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "problem"], name="uniq_draft_user_problem"
+            )
+        ]
+
+    def __str__(self):
+        return (
+            f"CodeDraft user={self.user_id} problem={self.problem_id} ({self.language})"
+        )

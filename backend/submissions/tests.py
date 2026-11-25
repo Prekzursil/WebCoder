@@ -1,3 +1,9 @@
+from django.test import TestCase
+from submissions.models import Submission
+from rest_framework.test import APIClient
+from problems.models import Problem
+from users.models import User
+
 """Tests for the settings-driven JUDGE_BACKEND switch (judge_utils/backend.py).
 
 Deliberately plain ``unittest.TestCase`` classes: these are pure unit tests of
@@ -8,11 +14,6 @@ depend on a reachable PostgreSQL with matching credentials).
 any test class.
 """
 
-from django.test import TestCase
-from submissions.models import Submission
-from rest_framework.test import APIClient
-from problems.models import Problem
-from users.models import User
 import pathlib
 import subprocess
 import sys

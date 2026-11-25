@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React from "react";
-import Link from "next/link";
-import { RATING_BAND_COLORS } from "@/theme/tokens";
+import React from 'react';
+import Link from 'next/link';
+import { RATING_BAND_COLORS } from '@/theme/tokens';
 
 /**
  * RAT-3 (competitive roadmap): one chip renders a username + rating color
@@ -23,13 +23,14 @@ interface UserChipProps {
   username: string;
   /** Display rating (RAT-2 suppression already applied server-side). */
   rating?: number | null;
-  /** Render as a link to a route (e.g. /profile/3). Omit for plain text. */
+  /** Render as a link to a route (e.g. /profile/handle — the public
+   *  rating profile). Omit for plain text. */
   href?: string;
   bold?: boolean;
 }
 
 export default function UserChip({ username, rating, href, bold }: UserChipProps) {
-  const color = ratingColor(rating) ?? "inherit";
+  const color = ratingColor(rating) ?? 'inherit';
   const style: React.CSSProperties = {
     color,
     fontWeight: bold || (rating !== undefined && rating !== null && rating >= 1900) ? 700 : 500,
@@ -44,7 +45,7 @@ export default function UserChip({ username, rating, href, bold }: UserChipProps
   );
   if (href) {
     return (
-      <Link href={href} style={{ textDecoration: "none" }}>
+      <Link href={href} style={{ textDecoration: 'none' }}>
         {label}
       </Link>
     );

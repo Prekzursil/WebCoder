@@ -101,6 +101,172 @@ CURRICULUM = [
              "en": "Number theory", "ro": "Teoria numerelor"},
         ],
     },
+    # ---- Wave E item 26: grades 11-12 close the 5-12 tree ----------------
+    # Chapter names mirror the national programme's upper years (graphs,
+    # stacks/queues, dynamic programming; advanced algorithms + exam prep).
+    {
+        "slug": "g11", "kind": "GRADE", "order": 30,
+        "en": "Grade 11", "ro": "Clasa a XI-a",
+        "children": [
+            {"slug": "g11-stacks-queues", "kind": "CHAPTER", "order": 1,
+             "en": "Stacks & queues", "ro": "Stive și cozi"},
+            {"slug": "g11-graphs", "kind": "CHAPTER", "order": 2,
+             "en": "Graphs (BFS/DFS)", "ro": "Grafuri (BFS/DFS)"},
+            {"slug": "g11-dynamic-programming", "kind": "CHAPTER", "order": 3,
+             "en": "Dynamic programming", "ro": "Programare dinamică"},
+        ],
+    },
+    {
+        "slug": "g12", "kind": "GRADE", "order": 40,
+        "en": "Grade 12", "ro": "Clasa a XII-a",
+        "children": [
+            {"slug": "g12-advanced-algorithms", "kind": "CHAPTER", "order": 1,
+             "en": "Advanced algorithms", "ro": "Algoritmi avansați"},
+            {"slug": "g12-backtracking", "kind": "CHAPTER", "order": 2,
+             "en": "Backtracking", "ro": "Backtracking"},
+            {"slug": "g12-exam-prep", "kind": "CHAPTER", "order": 3,
+             "en": "Bac & admission prep", "ro": "Pregătire Bac și admitere"},
+        ],
+    },
+]
+
+#: Wave E items 27/28/31 — curated study tracks seeded with the starter
+#: pack: the guided first-solve ladder (ONB-1's next step), the OJI
+#: olympiad ladders (grade-band progressions) and the admission-prep
+#: tracks (Mate-Info admission's classic topics). Items reference the
+#: seeded problem slugs above, in ladder order.
+STUDY_TRACKS = [
+    {
+        "slug": "first-solve-ladder",
+        "en": "Guided first-solve ladder",
+        "ro": "Scara ghidată a primelor rezolvări",
+        "desc_en": "Six rungs from reading input to binary search — solve them in order for a gentle first hour.",
+        "desc_ro": "Șase trepte de la citirea datelor la căutarea binară — rezolvă-le în ordine pentru un prima oră blândă.",
+        "problems": [
+            "hello-judge", "sum-a-b", "sum-1-to-n", "max-in-array",
+            "sort-three", "binary-search",
+        ],
+    },
+    {
+        "slug": "oji-ladder-gimnaziu",
+        "en": "OJI ladder — gimnaziu",
+        "ro": "Scara OJI — gimnaziu",
+        "desc_en": "The grades 5-8 progression toward the county olympiad: basics, loops, arrays.",
+        "desc_ro": "Progresia claselor a V-a–a VIII-a spre olimpiada județeană: noțiuni de bază, bucle, tablouri.",
+        "problems": [
+            "hello-judge", "greet-friend", "parity-check", "count-to-n",
+            "sum-sequence", "array-max", "array-reverse", "array-sum",
+        ],
+    },
+    {
+        "slug": "oji-ladder-liceu",
+        "en": "OJI ladder — liceu",
+        "ro": "Scara OJI — liceu",
+        "desc_en": "The grades 9-12 climb: elementary algorithms to number theory.",
+        "desc_ro": "Urcușul claselor a IX-a–a XII-a: algoritmi elementari până la teoria numerelor.",
+        "problems": [
+            "sum-of-digits", "rectangle-area", "count-occurrences",
+            "array-sort", "palindrome-string", "factorial-n",
+            "prime-check", "gcd-euclid",
+        ],
+    },
+    {
+        "slug": "admitere-basics",
+        "en": "Admission prep — basics",
+        "ro": "Pregătire admitere — noțiuni de bază",
+        "desc_en": "The classic Mate-Info admission warm-up: expressions, loops, conditionals.",
+        "desc_ro": "Încălzirea clasică pentru admiterea la Mate-Info: expresii, bucle, condiționale.",
+        "problems": [
+            "sum-a-b", "bigger-of-two", "max-of-three", "minutes-to-hours",
+            "sum-of-digits", "count-divisors",
+        ],
+    },
+    {
+        "slug": "admitere-algorithms",
+        "en": "Admission prep — algorithms",
+        "ro": "Pregătire admitere — algoritmi",
+        "desc_en": "The algorithmic half of admission exams: arrays, sorting, search, recursion.",
+        "desc_ro": "Partea algoritmică a examenelor de admitere: tablouri, sortare, căutare, recursivitate.",
+        "problems": [
+            "array-sum", "array-max", "sort-three", "array-sort",
+            "binary-search", "fibonacci-n", "tower-of-hanoi-moves",
+        ],
+    },
+    {
+        "slug": "admitere-math",
+        "en": "Admission prep — number theory",
+        "ro": "Pregătire admitere — teoria numerelor",
+        "desc_en": "Primes, divisors and GCD — the math topics every admission written test probes.",
+        "desc_ro": "Numere prime, divizori și CMMDC — subiectele de matematică din fiecare test scris de admitere.",
+        "problems": ["parity-check", "divisors-of-n", "prime-check", "gcd-euclid", "count-divisors"],
+    },
+]
+
+
+#: Wave E item 30 — the skill graph: prerequisite edges between the seed
+#: tags (practice-next ordering + the /skills locked-node view).
+SKILL_EDGES = [
+    ("implementation", "loops"),
+    ("loops", "arrays"),
+    ("arrays", "sorting"),
+    ("arrays", "binary-search"),
+    ("sorting", "binary-search"),
+    ("implementation", "strings"),
+    ("recursion", "math"),
+    ("math", "number-theory"),
+]
+
+#: Wave E item 33 — the starter theory deck (one card per core tag).
+THEORY_CARDS = [
+    {
+        "tag": "loops",
+        "front_en": "What is the complexity of one loop over n elements?",
+        "back_en": "O(n) — the body runs n times. A loop INSIDE a loop is O(n²): fine for n ≤ ~5,000, too slow at n = 100,000.",
+        "front_ro": "Care e complexitatea unei bucle peste n elemente?",
+        "back_ro": "O(n) — corpul se execută de n ori. O buclă ÎN buclă e O(n²): ok pentru n ≤ ~5.000, prea lent la n = 100.000.",
+    },
+    {
+        "tag": "sorting",
+        "front_en": "Why is sorting often the first step of a solution?",
+        "back_en": "Sorting brings equal/similar items together and enables binary search or a two-pointer sweep — many 'find a pair/triplet' tasks collapse after a sort.",
+        "front_ro": "De ce sortarea e adesea primul pas al unei soluții?",
+        "back_ro": "Sortarea aduce elementele egale/apropiate un lângă altul și permite căutare binară sau tehnica a doi pointeri — multe probleme de tip 'găsește o pereche' se simplifică după sortare.",
+    },
+    {
+        "tag": "binary-search",
+        "front_en": "What property must hold to binary-search the answer?",
+        "back_en": "Monotonicity: there is a threshold x such that check(v) is False below it and True above. Binary search finds the boundary in O(log n) checks.",
+        "front_ro": "Ce proprietate trebuie să existe pentru a căuta binar răspunsul?",
+        "back_ro": "Monotonie: există un prag x astfel încât check(v) e False sub el și True peste el. Căutarea binară găsește frontiera în O(log n) verificări.",
+    },
+    {
+        "tag": "recursion",
+        "front_en": "What are a recursive function's two mandatory parts?",
+        "back_en": "The base case (the smallest input answered directly) and the recursive step that moves STRICTLY toward it. Missing/overshooting the base case = stack overflow.",
+        "front_ro": "Care sunt cele două părți obligatorii ale unei funcții recursive?",
+        "back_ro": "Cazul de bază (cea mai mică intrare, răspunsă direct) și pasul recursiv care avansează STRICT spre el. Fără bază sau sărind peste ea = depășire de stivă.",
+    },
+    {
+        "tag": "number-theory",
+        "front_en": "When is a number > 1 prime?",
+        "back_en": "It has no divisor in [2, floor(sqrt(n))]. Checking up to sqrt(n) is O(√n) per number — the trial-division test.",
+        "front_ro": "Când e prim un număr > 1?",
+        "back_ro": "Nu are niciun divizor în [2, floor(sqrt(n))]. Verificarea până la sqrt(n) e O(√n) pe număr — testul prin împărțiri succesive.",
+    },
+    {
+        "tag": "implementation",
+        "front_en": "What are the three parts of every program?",
+        "back_en": "Read the input, compute the answer, print the output. Every judge problem is this shape — get the I/O contract right first.",
+        "front_ro": "Care sunt cele trei părți ale oricărui program?",
+        "back_ro": "Citește datele, calculează răspunsul, afișează rezultatul. Orice problemă de evaluator are acest tipar — stabilește întâi contractul de intrare/ieșire.",
+    },
+    {
+        "tag": "arrays",
+        "front_en": "What does a prefix-sum array buy you?",
+        "back_en": "Any range sum [l, r] in O(1) as sum[r] - sum[l-1], after one O(n) precompute — the classic trade of memory for query speed.",
+        "front_ro": "Ce îți oferă un vector de sume parțiale?",
+        "back_ro": "Orice sumă pe interval [l, r] în O(1) ca sum[r] - sum[l-1], după o precalculare O(n) — clasicul schimb de memorie contra viteză de interogare.",
+    },
 ]
 
 

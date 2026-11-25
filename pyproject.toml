@@ -46,3 +46,28 @@ exclude_lines = [
     "^\\s*\\.\\.\\.\\s*$",
     ": \\.\\.\\.\\s*$",
 ]
+
+# basedpyright configuration note: the OPERATIVE config for the lean quality
+# gate is pyrightconfig.json at the repo root (basedpyright prefers it over
+# this table when both exist, and the gate's detector finds it first). The
+# #318 interim state moved the config here and scoped backend tests OUT of the
+# type gate; #263 restores the original stricter bar - standard mode over ALL
+# first-party code under backend/, tests included (fleet convention, cf. tss),
+# with the test typing debt cleared honestly (Optional handling, narrow
+# asserts, argument types) instead of excluded. This table stays as a fallback
+# carrying the same bar so a tool run that somehow misses pyrightconfig.json
+# still sees standard mode - it must NOT re-grow exclusions; change
+# pyrightconfig.json (and here in lockstep) when the bar changes.
+[tool.basedpyright]
+typeCheckingMode = "standard"
+pythonVersion = "3.12"
+include = ["backend"]
+exclude = [
+    "**/node_modules",
+    "**/__pycache__",
+    ".venv",
+    "backend/.venv",
+]
+extraPaths = ["backend"]
+reportMissingImports = "warning"
+reportMissingModuleSource = "none"

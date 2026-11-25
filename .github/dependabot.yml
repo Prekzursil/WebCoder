@@ -56,3 +56,12 @@ updates:
   - dependencies
   - type:chore
   - area:ci
+- package-ecosystem: docker
+  directory: /backend
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  labels:
+  - dependencies
+  - type:chore
+  - area:ci

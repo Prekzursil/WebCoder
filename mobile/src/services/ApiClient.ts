@@ -16,11 +16,11 @@
 //    refresh from Set-Cookie (rotation + blacklist means the previously
 //    stored refresh is single-use), retries the original request once;
 //  - refresh is single-flight: concurrent 401s await the same promise.
-import { API_V1_URL } from "./config";
-import type { CursorPaginatedResponse, PaginatedResponse } from "../types/api";
-import { cursorParamFromUrl } from "../types/api";
+import { API_V1_URL } from './config';
+import type { CursorPaginatedResponse, PaginatedResponse } from '../types/api';
+import { cursorParamFromUrl } from '../types/api';
 
-const REFRESH_ENDPOINT = "/auth/token/refresh/";
+const REFRESH_ENDPOINT = '/auth/token/refresh/';
 
 /** Credential storage seam — expo-secure-store in production, injected in tests. */
 export interface TokenStore {
@@ -63,14 +63,14 @@ export function cookieFromResponse(
   const get = response.headers.get?.bind(response.headers);
   let raw: string | string[] | null = null;
   if (get) {
-    raw = get("set-cookie");
+    raw = get('set-cookie');
     // Some fetch impls return the array under headers.map only.
     if (raw === null && response.headers.map) {
-      const mapValue = response.headers.map["set-cookie"] ?? response.headers.map["Set-Cookie"];
+      const mapValue = response.headers.map['set-cookie'] ?? response.headers.map['Set-Cookie'];
       raw = mapValue ?? null;
     }
   } else if (response.headers.map) {
-    raw = response.headers.map["set-cookie"] ?? null;
+    raw = response.headers.map['set-cookie'] ?? null;
   }
   if (!raw) return null;
   const parts: string[] = Array.isArray(raw)
@@ -85,6 +85,36 @@ export function cookieFromResponse(
 
 let refreshInFlight: Promise<boolean> | null = null;
 
+/**
+ * Parse `raw` and return it only if it resolves to the same origin as
+ * `base`: the URL-parsing/origin-allowlist counterpart of the relative
+ * path checks in apiUrl. Anything that would direct a request at
+ * another host (absolute URL to another origin, protocol-relative
+ * '//host', credential tricks) is rejected before it can reach
+ * fetch() (js/request-forgery).
+ */
+export function sameOriginUrl(raw: string, base: string): string {
+  const url = new URL(raw);
+  if (url.origin !== new URL(base).origin) {
+    throw new Error(`Refusing cross-origin URL: ${raw}`);
+  }
+  return url.toString();
+}
+
+/**
+ * Same-origin relative API path only: no absolute URLs, no
+ * protocol-relative '//host', no '..' escapes. Callers pass paths like
+ * '/problems/'; anything else would redirect the authenticated fetch to
+ * an attacker-chosen destination. The result is additionally
+ * origin-pinned via sameOriginUrl as defense in depth.
+ */
+export function apiUrl(path: string): string {
+  if (!path.startsWith('/') || path.startsWith('//') || path.includes('..')) {
+    throw new Error(`Refusing non-relative API path: ${path}`);
+  }
+  return sameOriginUrl(`${API_V1_URL}${path}`, API_V1_URL);
+}
+
 async function refreshTokens(): Promise<boolean> {
   if (!tokenStore) return false;
   if (!refreshInFlight) {
@@ -92,14 +122,9 @@ async function refreshTokens(): Promise<boolean> {
       const refresh = await tokenStore!.getRefresh();
       if (!refresh) return false;
       try {
-        // URL is module constants over the validated API origin; no user
-        // input (mirrors the web ApiService triage, alerts #120-122,
-        // 2026-10-27): the base collapses to URL.origin in config.ts and
-        // the path segments are fixed string literals.
-        // codeql[js/request-forgery]
-        const response = await fetch(`${API_V1_URL}${REFRESH_ENDPOINT}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        const response = await fetch(apiUrl(REFRESH_ENDPOINT), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ refresh }),
         });
         if (!response.ok) return false;
@@ -107,7 +132,7 @@ async function refreshTokens(): Promise<boolean> {
           access?: string;
         };
         if (!body.access) return false;
-        const rotatedRefresh = cookieFromResponse(response, "wc_refresh");
+        const rotatedRefresh = cookieFromResponse(response, 'wc_refresh');
         await tokenStore!.setAccess(body.access);
         // Rotation blacklisted the presented refresh; a missing rotated
         // cookie means the session dies at the next access expiry — treat
@@ -141,18 +166,13 @@ export interface ApiFetchOptions {
 /** Raw fetch with the Bearer header attached. */
 async function authenticatedFetch(url: string, options: ApiFetchOptions): Promise<Response> {
   const headers: Record<string, string> = {};
-  if (options.body !== undefined) headers["Content-Type"] = "application/json";
+  if (options.body !== undefined) headers['Content-Type'] = 'application/json';
   if (!options.anonymous && tokenStore) {
     const access = await tokenStore.getAccess();
-    if (access) headers["Authorization"] = `Bearer ${access}`;
+    if (access) headers['Authorization'] = `Bearer ${access}`;
   }
-  // URL is module constants over the validated API origin; no user
-  // input (mirrors the web ApiService triage, alerts #120-122,
-  // 2026-10-27): the base collapses to URL.origin in config.ts and
-  // the path segments are fixed string literals.
-  // codeql[js/request-forgery]
-  return fetch(`${API_V1_URL}${url}`, {
-    method: options.method ?? "GET",
+  return fetch(apiUrl(url), {
+    method: options.method ?? 'GET',
     headers,
     body: options.body,
   });
@@ -185,17 +205,17 @@ export async function apiFetch<T>(url: string, options: ApiFetchOptions = {}): P
 
 /** Human-readable message from a DRF error body (ported verbatim). */
 export function extractErrorMessage(errorData: unknown): string {
-  if (typeof errorData !== "object" || errorData === null) return "";
+  if (typeof errorData !== 'object' || errorData === null) return '';
   const data = errorData as Record<string, unknown>;
-  if (typeof data.detail === "string") return data.detail;
+  if (typeof data.detail === 'string') return data.detail;
   const nonField = data.non_field_errors;
   if (Array.isArray(nonField) && nonField.length > 0) return String(nonField[0]);
   for (const value of Object.values(data)) {
-    if (Array.isArray(value) && value.length > 0 && typeof value[0] === "string") {
+    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string') {
       return value[0];
     }
   }
-  return "";
+  return '';
 }
 
 /** Hard ceiling for the collect-all helpers (B4, ported). */

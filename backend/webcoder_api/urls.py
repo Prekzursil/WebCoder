@@ -24,7 +24,7 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 from users import views as users_views
-from webcoder_api import observability
+from webcoder_api import observability, search
 
 urlpatterns = [
     path("", RedirectView.as_view(url="/api/v1/problems/", permanent=False)),
@@ -33,9 +33,29 @@ urlpatterns = [
     # /readyz pings db+cache+broker (readiness). Unauthenticated by design —
     # they leak no data beyond up/down per component.
     path("healthz", observability.healthz, name="healthz"),
+    # Wave G item 82: federated search across public surfaces.
+    path(
+        "api/v1/search/", search.FederatedSearchView.as_view(), name="federated_search"
+    ),
+    # Wave G section H: integrity & safety (scans, flags, abuse queue,
+    # audit trail, appeals, multi-account heuristics).
+    path("api/v1/integrity/", include("integrity.urls", namespace="integrity_api_v1")),
+    # Wave G section G: analytics & insights (org dashboards, funnel,
+    # search analytics, webhooks, experiments, season reports).
+    path("api/v1/analytics/", include("analytics.urls", namespace="analytics_api_v1")),
+    # Wave G section J operator surface (items 135/136/139/143/145):
+    # public aggregate status feed + admin error/cost/autoscale views.
+    path("api/v1/ops/", include("ops.urls", namespace="ops_api_v1")),
+    # Item 147 (wave G section K): school partnerships program — public
+    # application intake + owner review queue.
+    path(
+        "api/v1/partnerships/",
+        include("partnerships.urls", namespace="partnerships_api_v1"),
+    ),
     path("readyz", observability.readyz, name="readyz"),
     path("api/v1/users/", include("users.urls", namespace="users_api_v1")),
     path("api/v1/problems/", include("problems.urls", namespace="problems_api_v1")),
+    path("api/v1/learning/", include("learning.urls", namespace="learning_api_v1")),
     path(
         "api/v1/submissions/",
         include("submissions.urls", namespace="submissions_api_v1"),
@@ -53,11 +73,23 @@ urlpatterns = [
     path("api/v1/contests/", include("contests.urls", namespace="contests_api_v1")),
     # Ratings (competitive roadmap Wave B: RAT-1/2/3 + SAF-2 rollback).
     path("api/v1/ratings/", include("ratings.urls", namespace="ratings_api_v1")),
+    path(
+        "api/v1/certificates/",
+        include("certificates.urls", namespace="certificates_api_v1"),
+    ),
     path("api/v1/classroom/", include("classroom.urls", namespace="classroom_api_v1")),
     # Community depth (competitive roadmap Wave C: COM-3/7, RAT-8/9/10).
     path(
         "api/v1/community/",
         include("community_depth.urls", namespace="community_depth_api_v1"),
+    ),
+    path(
+        "api/v1/community/",
+        include("publishing.urls", namespace="publishing_api_v1"),
+    ),
+    path(
+        "api/v1/community/",
+        include("recognition.urls", namespace="recognition_api_v1"),
     ),
     # Public read-only API (competitive roadmap OPS-1).
     path("api/v1/public/", include("public_api.urls", namespace="public_api")),

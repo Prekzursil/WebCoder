@@ -164,7 +164,19 @@ Endpoints from the installed package URLconf (`venv/.../dj_rest_auth/urls.py:11-
 
 Callbacks point at the CRA dev origin `http://localhost:3000/login/{google,github}/callback` (`users/api/oauth/google/views.py:7`, `github/views.py:7`) — will need updating for the Next.js frontend origin.
 
-## 7. Non-JSON surfaces (for completeness)
+## 7. Certificates app (Wave D atestats) — prefix `/api/v1/certificates/`
+- `verify/<uuid>/` GET — **anonymous**; the public verification answer
+  (serial, kind, holder, frozen details, VALID/REVOKED + reason). H-120.
+- `mine/` GET — the holder's list (paginated, newest first).
+- `?username=` GET — public per-user list (paginated; LEG-2: minors and
+  inactive holders never surface).
+- `<pk>/revoke/` POST — ADMIN-only integrity action `{reason}` (mandatory);
+  idempotent (the first reason sticks). Issuance itself is server-derived
+  only (ratings commit / leaderboard recompute hooks + the
+  `issue_certificates` management command) — there is deliberately no
+  create endpoint.
+
+## 8. Non-JSON surfaces (for completeness)
 
 - `/admin/` — Django admin site (`webcoder_api/urls.py:29`), session auth.
 - `/accounts/` — allauth browser views (login/signup/email/social flows; `webcoder_api/urls.py:42`).

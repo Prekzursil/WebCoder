@@ -1,14 +1,15 @@
-"use client";
+'use client';
 
-import React, { useCallback, useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { RatingService } from "@/services/ApiService";
-import { useAuth } from "@/context/AuthContext";
-import UserChip from "@/components/common/UserChip";
-import { MyRating, RatingLadderRow } from "@/types/api";
-import { palette, hexAlpha } from "@/theme/tokens";
-import EmptyState from "@/components/common/EmptyState";
-import PageHeader from "@/components/common/PageHeader";
+import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { RatingService } from '@/services/ApiService';
+import CalibrationCard from './CalibrationCard';
+import { useAuth } from '@/context/AuthContext';
+import UserChip from '@/components/common/UserChip';
+import { MyRating, RatingLadderRow } from '@/types/api';
+import { palette, hexAlpha } from '@/theme/tokens';
+import EmptyState from '@/components/common/EmptyState';
+import PageHeader from '@/components/common/PageHeader';
 
 /** RAT-1/3: the public Glicko ladder with color-band handles. */
 export default function RatingsPage() {
@@ -32,7 +33,7 @@ export default function RatingsPage() {
         setError(
           err instanceof Error && err.message
             ? err.message
-            : t("ratings_load_error", "Failed to load the ratings ladder."),
+            : t('ratings_load_error', 'Failed to load the ratings ladder.'),
         );
       } finally {
         if (append) setLoadingMore(false);
@@ -56,12 +57,12 @@ export default function RatingsPage() {
   }, [auth.isAuthenticated]);
 
   return (
-    <main style={{ maxWidth: 900, margin: "0 auto", padding: "24px 16px" }}>
+    <main style={{ maxWidth: 900, margin: '0 auto', padding: '24px 16px' }}>
       <PageHeader
-        title={t("ratings_title", "Ratings")}
+        title={t('ratings_title', 'Ratings')}
         subtitle={t(
-          "ratings_subtitle",
-          "Glicko contest rating. Color bands follow the handle ladder.",
+          'ratings_subtitle',
+          'Glicko contest rating. Color bands follow the handle ladder.',
         )}
       />
 
@@ -72,57 +73,59 @@ export default function RatingsPage() {
             border: `1px solid ${palette.border}`,
             background: hexAlpha(palette.accent, 0.08),
             borderRadius: 12,
-            padding: "12px 16px",
+            padding: '12px 16px',
             marginBottom: 16,
-            display: "flex",
+            display: 'flex',
             gap: 16,
-            alignItems: "baseline",
-            flexWrap: "wrap",
+            alignItems: 'baseline',
+            flexWrap: 'wrap',
           }}
         >
-          <strong>{t("ratings_my_rating", "Your rating")}</strong>
+          <strong>{t('ratings_my_rating', 'Your rating')}</strong>
           {mine.rated && mine.rating !== null ? (
             <>
-              <UserChip username={auth.user?.username ?? ""} rating={mine.rating} bold />
+              <UserChip username={auth.user?.username ?? ''} rating={mine.rating} bold />
               <span style={{ color: palette.muted }}>
                 {mine.band.name_en} · RD {mine.rd}
               </span>
             </>
           ) : (
             <span style={{ color: palette.muted }}>
-              {t("ratings_not_yet", "Unrated — enter a rated contest to get a rating.")}
+              {t('ratings_not_yet', 'Unrated — enter a rated contest to get a rating.')}
             </span>
           )}
         </div>
       )}
 
+      {auth.isAuthenticated && auth.user && <CalibrationCard username={auth.user.username} />}
+
       {error && (
         <div role="alert" style={{ color: palette.danger, marginBottom: 12 }}>
-          {error}{" "}
+          {error}{' '}
           <button type="button" onClick={() => load(1)}>
-            {t("retry", "Retry")}
+            {t('retry', 'Retry')}
           </button>
         </div>
       )}
 
       {rows === null ? (
-        <p aria-busy="true">{t("ratings_loading", "Loading ladder…")}</p>
+        <p aria-busy="true">{t('ratings_loading', 'Loading ladder…')}</p>
       ) : rows.length === 0 ? (
         <EmptyState
-          title={t("ratings_empty", "Nobody is rated yet")}
+          title={t('ratings_empty', 'Nobody is rated yet')}
           description={t(
-            "ratings_empty_message",
-            "The ladder fills as the first rated contests finalize.",
+            'ratings_empty_message',
+            'The ladder fills as the first rated contests finalize.',
           )}
         />
       ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ textAlign: "left", color: palette.muted }}>
+            <tr style={{ textAlign: 'left', color: palette.muted }}>
               <th style={{ padding: 8 }}>#</th>
-              <th>{t("ratings_handle", "Handle")}</th>
-              <th>{t("ratings_rating", "Rating")}</th>
-              <th>{t("ratings_contests", "Contests")}</th>
+              <th>{t('ratings_handle', 'Handle')}</th>
+              <th>{t('ratings_rating', 'Rating')}</th>
+              <th>{t('ratings_contests', 'Contests')}</th>
             </tr>
           </thead>
           <tbody>
@@ -137,7 +140,7 @@ export default function RatingsPage() {
                   <UserChip
                     username={row.user.username}
                     rating={row.rating}
-                    href={`/profile/${row.user.id}`}
+                    href={`/profile/${row.user.username}`}
                   />
                 </td>
                 <td style={{ padding: 8, fontWeight: 700 }}>{row.rating}</td>
@@ -153,9 +156,9 @@ export default function RatingsPage() {
           type="button"
           disabled={loadingMore}
           onClick={() => load(nextPage)}
-          style={{ marginTop: 16, padding: "8px 18px" }}
+          style={{ marginTop: 16, padding: '8px 18px' }}
         >
-          {loadingMore ? t("loading_more", "Loading…") : t("load_more", "Load more")}
+          {loadingMore ? t('loading_more', 'Loading…') : t('load_more', 'Load more')}
         </button>
       )}
     </main>

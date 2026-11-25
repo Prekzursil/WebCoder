@@ -1,18 +1,25 @@
-"use client";
+'use client';
 
 // [roadmap UXP-7 / QW-9 / X9] Problem-page metadata: tried / solved /
 // acceptance rate + the 3-level satisfaction vote. Gives verifiers signal
 // beyond solve rates and completes the catalog-honesty pack on the detail
 // page (the list cards already carry the counts from B8's annotation).
 
-import { useEffect, useState } from "react";
-import type { ReactNode } from "react";
-import { useTranslation } from "react-i18next";
-import { ProblemService } from "@/services/ApiService";
-import { useAuth } from "@/context/AuthContext";
-import { palette, hexAlpha } from "@/theme/tokens";
+import { useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
+import { ProblemService } from '@/services/ApiService';
+import { useAuth } from '@/context/AuthContext';
+import { palette, hexAlpha } from '@/theme/tokens';
+
+interface LanguageStat {
+  tried: number;
+  solved_users: number;
+  acceptance_rate: number | null;
+}
 
 interface ProblemStats {
+  language_stats?: Record<string, LanguageStat>;
   tried: number;
   solved: number;
   acceptance_rate: number | null;
@@ -58,46 +65,77 @@ export default function ProblemStatsPanel({ problemId }: { problemId: string }):
   return (
     <div
       style={{
-        display: "flex",
-        gap: "1.25rem",
-        flexWrap: "wrap",
-        alignItems: "center",
-        padding: "0.75rem 1rem",
-        borderRadius: "var(--radius-md)",
-        background: "rgba(255,255,255,0.03)",
-        border: "1px solid var(--border)",
-        marginBottom: "1.25rem",
-        fontSize: "0.8rem",
+        display: 'flex',
+        gap: '1.25rem',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        padding: '0.75rem 1rem',
+        borderRadius: 'var(--radius-md)',
+        background: 'rgba(255,255,255,0.03)',
+        border: '1px solid var(--border)',
+        marginBottom: '1.25rem',
+        fontSize: '0.8rem',
       }}
     >
       <span>
-        <strong style={{ color: "var(--foreground)" }}>{stats.tried}</strong>{" "}
-        <span style={{ color: "var(--muted)" }}>{t("stat_tried", "tried")}</span>
+        <strong style={{ color: 'var(--foreground)' }}>{stats.tried}</strong>{' '}
+        <span style={{ color: 'var(--muted)' }}>{t('stat_tried', 'tried')}</span>
       </span>
       <span>
-        <strong style={{ color: "var(--success)" }}>{stats.solved}</strong>{" "}
-        <span style={{ color: "var(--muted)" }}>{t("stat_solved", "solved")}</span>
+        <strong style={{ color: 'var(--success)' }}>{stats.solved}</strong>{' '}
+        <span style={{ color: 'var(--muted)' }}>{t('stat_solved', 'solved')}</span>
       </span>
       {stats.acceptance_rate != null && (
         <span>
-          <strong style={{ color: "var(--accent)" }}>
+          <strong style={{ color: 'var(--accent)' }}>
             {(stats.acceptance_rate * 100).toFixed(0)}%
-          </strong>{" "}
-          <span style={{ color: "var(--muted)" }}>{t("stat_acceptance", "AC rate")}</span>
+          </strong>{' '}
+          <span style={{ color: 'var(--muted)' }}>{t('stat_acceptance', 'AC rate')}</span>
         </span>
+      )}
+      {stats.language_stats && Object.keys(stats.language_stats).length > 0 && (
+        <div data-testid="language-stats" style={{ marginTop: '0.75rem' }}>
+          <div className="micro-label" style={{ color: 'var(--muted)', marginBottom: '0.35rem' }}>
+            {t('lang_stats_header', 'By language')}
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>{t('lang_stats_language', 'Language')}</th>
+                <th>{t('lang_stats_tried', 'Tried')}</th>
+                <th>{t('lang_stats_ac', 'Distinct AC')}</th>
+                <th>{t('lang_stats_rate', 'AC rate')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(stats.language_stats).map(([lang, row]) => (
+                <tr key={lang}>
+                  <td>{lang}</td>
+                  <td>{row.tried}</td>
+                  <td>{row.solved_users}</td>
+                  <td>
+                    {row.acceptance_rate != null
+                      ? `${Math.round(row.acceptance_rate * 100)}%`
+                      : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
       {stats.rating_count > 0 && stats.rating_avg != null && (
         <span>
-          <strong style={{ color: "var(--warn)" }}>{stats.rating_avg.toFixed(1)}</strong>{" "}
-          <span style={{ color: "var(--muted)" }}>
-            {t("stat_satisfaction", "rating ({{n}} votes)", { n: stats.rating_count })}
+          <strong style={{ color: 'var(--warn)' }}>{stats.rating_avg.toFixed(1)}</strong>{' '}
+          <span style={{ color: 'var(--muted)' }}>
+            {t('stat_satisfaction', 'rating ({{n}} votes)', { n: stats.rating_count })}
           </span>
         </span>
       )}
       {auth.isAuthenticated && (
-        <span style={{ marginLeft: "auto", display: "flex", gap: "4px", alignItems: "center" }}>
-          <span style={{ color: "var(--muted)", marginRight: "2px" }}>
-            {t("rate_problem_label", "Rate:")}
+        <span style={{ marginLeft: 'auto', display: 'flex', gap: '4px', alignItems: 'center' }}>
+          <span style={{ color: 'var(--muted)', marginRight: '2px' }}>
+            {t('rate_problem_label', 'Rate:')}
           </span>
           {([1, 2, 3] as const).map((value) => (
             <button
@@ -105,13 +143,13 @@ export default function ProblemStatsPanel({ problemId }: { problemId: string }):
               type="button"
               disabled={ratingBusy}
               aria-pressed={yourRating === value}
-              aria-label={t("rate_problem_aria", "Rate this problem {{value}} of 3", { value })}
+              aria-label={t('rate_problem_aria', 'Rate this problem {{value}} of 3', { value })}
               onClick={() => vote(value)}
               className="btn"
               style={{
-                padding: "2px 8px",
-                fontSize: "0.7rem",
-                minHeight: "26px",
+                padding: '2px 8px',
+                fontSize: '0.7rem',
+                minHeight: '26px',
                 ...(yourRating === value
                   ? {
                       color: palette.warn,
@@ -121,7 +159,7 @@ export default function ProblemStatsPanel({ problemId }: { problemId: string }):
                   : {}),
               }}
             >
-              {value === 1 ? "😕" : value === 2 ? "🙂" : "🤩"}
+              {value === 1 ? '😕' : value === 2 ? '🙂' : '🤩'}
             </button>
           ))}
         </span>

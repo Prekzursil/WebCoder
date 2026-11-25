@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { FollowService } from "@/services/ApiService";
-import { useAuth } from "@/context/AuthContext";
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { FollowService } from '@/services/ApiService';
+import { useAuth } from '@/context/AuthContext';
 
 /**
  * COM-4 — the follow toggle, by handle. Every public surface (forum
@@ -39,9 +39,9 @@ export default function FollowButton({ username }: { username: string | null }) 
       disabled={busy}
       data-testid="follow-button"
       aria-pressed={following}
-      style={{ marginLeft: "0.5rem", fontSize: "0.8rem" }}
+      style={{ marginLeft: '0.5rem', fontSize: '0.8rem' }}
     >
-      {following ? t("follow_unfollow", "Unfollow") : t("follow_follow", "Follow")}
+      {following ? t('follow_unfollow', 'Unfollow') : t('follow_follow', 'Follow')}
     </button>
   );
 }

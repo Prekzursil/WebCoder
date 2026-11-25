@@ -7,6 +7,8 @@ what the product already stores). Powers the weekly owner dashboard and
 the per-wave exit metrics; must precede Wave B/C/D sequencing decisions.
 """
 
+from __future__ import annotations
+
 from datetime import timedelta
 
 from django.db.models import Count, Min
@@ -14,7 +16,12 @@ from django.utils import timezone
 
 from submissions.models import Submission
 
-from .models import OwnerWeeklySnapshot, User
+from typing import TYPE_CHECKING
+
+from .models import User
+
+if TYPE_CHECKING:
+    from .models import OwnerWeeklySnapshot
 
 
 def _first_submission_times():
