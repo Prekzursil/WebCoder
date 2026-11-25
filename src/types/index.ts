@@ -14,6 +14,11 @@ export interface TestCaseType {
   /** [wave G item 86] localized sample comments (active locale, fallback). */
   comment_ro?: string;
   comment_en?: string;
+  /** [problem-page wave B2] display-threshold metadata. */
+  input_size?: number;
+  expected_size?: number;
+  input_editable?: boolean;
+  expected_editable?: boolean;
 }
 
 export interface TestCaseUIManaged extends TestCaseType {
@@ -38,6 +43,10 @@ export interface ProblemType {
   title_i18n: { [key: string]: string };
   difficulty: string;
   status: string;
+  /** [problem-page wave G] declared finite point value (difficulty band). */
+  target_points?: number;
+  /** [problem-page wave G] the difficulty's (min, max) point band hint. */
+  point_bounds?: [number, number] | null;
   statement_i18n?: { [key: string]: string };
   default_time_limit_ms?: number;
   default_memory_limit_kb?: number;

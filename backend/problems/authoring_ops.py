@@ -311,6 +311,23 @@ class AttachmentView(APIView):
         )
 
 
+def _merge_draft_payload(existing, incoming):
+    """Merge an autosave into the stored draft.
+
+    The studio saves one locale at a time. Replacing the payload dropped
+    the other locale's statement (and any sibling keys the client did not
+    resend). Statement maps are unioned; a non-dict statement still replaces.
+    """
+    if not isinstance(existing, dict):
+        return incoming
+    merged = {**existing, **incoming}
+    old_stmt = existing.get("statement")
+    new_stmt = incoming.get("statement")
+    if isinstance(old_stmt, dict) and isinstance(new_stmt, dict):
+        merged["statement"] = {**old_stmt, **new_stmt}
+    return merged
+
+
 class AuthoringDraftView(APIView):
     """Item A — autosaved rich-authoring drafts.
 
@@ -348,16 +365,19 @@ class AuthoringDraftView(APIView):
     def put(self, request, problem_id: str):
         from .models import AuthoringDraft
 
-        problem, _draft = self._slot(request, problem_id)
+        problem, draft = self._slot(request, problem_id)
         if problem is None and problem_id not in ("new", "0"):
             return Response({"detail": "problem not found"}, status=404)
         payload = request.data.get("payload")
         if not isinstance(payload, dict):
             return Response({"detail": "payload must be a JSON object"}, status=400)
+        stored = _merge_draft_payload(
+            draft.payload if draft is not None else None, payload
+        )
         draft, _created = AuthoringDraft.objects.update_or_create(
             user=request.user,
             problem=problem,
-            defaults={"payload": payload},
+            defaults={"payload": stored},
         )
         return Response({"payload": draft.payload, "updated_at": draft.updated_at})
 

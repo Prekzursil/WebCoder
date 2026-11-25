@@ -184,6 +184,65 @@ const MOCK_PROBLEMS = [
     allowed_languages: ['PYTHON', 'CPP'],
   },
   {
+    id: 5,
+    title_i18n: { en: 'Sum of Array', ro: 'Suma unui vector' },
+    // Problem-page wave: the authoring fixture — EASY band, declared point
+    // value, threshold-metadata tests, hint tiers, unlock/forfeit state.
+    difficulty: 'EASY',
+    status: 'DRAFT',
+    target_points: 50,
+    point_bounds: [10, 50],
+    statement_i18n: {
+      en: '## Story\n\nSum the array.\n\n## Constraints\n\n- $1 \\le n \\le 100$',
+      ro: '',
+    },
+    default_time_limit_ms: 1000,
+    default_memory_limit_kb: 262144,
+    allowed_languages: ['PYTHON', 'CPP'],
+    tags: [{ id: 1, name_i18n: { en: 'Arrays' }, slug: 'arrays' }],
+    test_cases: [
+      {
+        id: 501,
+        input_data: '3\n1 2 3\n',
+        expected_output_data: '6\n',
+        is_sample: true,
+        points: 20,
+        order: 1,
+        input_size: 8,
+        expected_size: 2,
+        input_editable: true,
+        expected_editable: true,
+      },
+      {
+        id: 502,
+        input_data: '5\n10 20 30 40 50\n',
+        expected_output_data: '150\n',
+        is_sample: false,
+        points: 20,
+        order: 2,
+        input_size: 16,
+        expected_size: 4,
+        input_editable: true,
+        expected_editable: true,
+      },
+    ],
+    hints_en: ['Consider a running total.', 'One pass is enough.', 'Prefix sums or a simple loop.'],
+    hints_ro: [],
+    hint_state: {
+      total: 3,
+      revealed_count: 0,
+      tiers: [
+        { tier: 1, kind: 'NUDGE', revealed: false, content: null, image: null },
+        { tier: 2, kind: 'STRONGER', revealed: false, content: null, image: null },
+        { tier: 3, kind: 'APPROACH', revealed: false, content: null, image: null },
+      ],
+    },
+    forfeited: false,
+    unlock_state: { passed_count: 0, unlocked_index: 1, total: 3, solved_all: false },
+    has_editorial: false,
+    editorial_locked: false,
+  },
+  {
     id: 3,
     title_i18n: { en: 'Guess the Number', ro: 'Ghicește numărul' },
     // Wave D (JDG-2): INTERACTIVE fixture — judged by an interactor over
@@ -1001,6 +1060,38 @@ const trackDetail = () => {
   };
 };
 
+// Problem-page wave (items A/B): stateful test rows for problem 5 so the
+// edit page's inline edits, flags, point changes and imports round-trip
+// across requests (handler-scope consts would reset per request).
+const WAVE_H_TESTS = [
+  {
+    id: 501,
+    problem: 5,
+    input_data: '3\n1 2 3\n',
+    expected_output_data: '6\n',
+    is_sample: true,
+    points: 20,
+    order: 1,
+    input_size: 8,
+    expected_size: 2,
+    input_editable: true,
+    expected_editable: true,
+  },
+  {
+    id: 502,
+    problem: 5,
+    input_data: '5\n10 20 30 40 50\n',
+    expected_output_data: '150\n',
+    is_sample: false,
+    points: 20,
+    order: 2,
+    input_size: 16,
+    expected_size: 4,
+    input_editable: true,
+    expected_editable: true,
+  },
+];
+
 const server = createServer((req, res) => {
   const requestUrl = new URL(req.url, `http://${HOST}:${PORT}`);
   const path = requestUrl.pathname;
@@ -1756,6 +1847,138 @@ const server = createServer((req, res) => {
         proposal.status = 'REJECTED';
       }
       json(res, 200, translationRow(proposal));
+    });
+    return;
+  }
+
+  // (waveTests lives at module scope — see the WAVE_H_TESTS declaration —
+  // so state survives across requests.)
+  const waveTests = WAVE_H_TESTS;
+  if (req.method === 'GET' && path === '/api/v1/problems/testcases/') {
+    const q = requestUrl.searchParams.get('problem_id');
+    json(res, 200, paged(q === '5' ? waveTests : []));
+    return;
+  }
+  const tcDetail = path.match(/^\/api\/v1\/problems\/testcases\/(\d+)\/$/);
+  if (tcDetail && ['PATCH', 'PUT'].includes(req.method)) {
+    readBody(req, (body) => {
+      const row = waveTests.find((t) => t.id === Number(tcDetail[1]));
+      if (row) Object.assign(row, body);
+      json(res, 200, row || {});
+    });
+    return;
+  }
+  if (tcDetail && req.method === 'DELETE') {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+  if (req.method === 'POST' && path === '/api/v1/problems/testcases/') {
+    readBody(req, (body) => {
+      const row = {
+        id: 500 + waveTests.length + 1,
+        problem: body.problem,
+        input_data: body.input_data,
+        expected_output_data: body.expected_output_data,
+        is_sample: !!body.is_sample,
+        points: body.points ?? 10,
+        order: body.order ?? waveTests.length + 1,
+        input_size: (body.input_data || '').length,
+        expected_size: (body.expected_output_data || '').length,
+        input_editable: (body.input_data || '').length <= 10240,
+        expected_editable: (body.expected_output_data || '').length <= 10240,
+      };
+      waveTests.push(row);
+      json(res, 201, row);
+    });
+    return;
+  }
+  // Autosaved authoring drafts (item A).
+  const authoringDraftMatch = path.match(/^\/api\/v1\/problems\/authoring-drafts\/([\w-]+)\/$/);
+  if (authoringDraftMatch && req.method === 'GET') {
+    json(res, 404, { detail: 'no draft' });
+    return;
+  }
+  if (authoringDraftMatch && req.method === 'PUT') {
+    readBody(req, (body) => {
+      json(res, 200, { payload: body.payload, updated_at: new Date().toISOString() });
+    });
+    return;
+  }
+  if (authoringDraftMatch && req.method === 'DELETE') {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+  // Archive import (item B1): multipart-tolerant — the dry-run previews
+  // the canned pairs, the real run appends them to the stateful rows.
+  const importMatch = path.match(/^\/api\/v1\/problems\/problems\/(\d+)\/tests\/import-archive\/$/);
+  if (importMatch && req.method === 'POST') {
+    const chunks = [];
+    req.on('data', (c) => chunks.push(c));
+    req.on('end', () => {
+      const raw = Buffer.concat(chunks).toString('latin1');
+      const dry = raw.includes('name="dry_run"');
+      const pairs = [
+        { name: 'data/sample/01', input: '3\n1 2 3\n', expected: '6\n', is_sample: true },
+        {
+          name: 'data/secret/02',
+          input: '5\n10 20 30 40 50\n',
+          expected: '150\n',
+          is_sample: false,
+        },
+      ];
+      if (dry) {
+        json(res, 200, {
+          pairs,
+          skipped: [],
+          other_files: ['notes.txt'],
+          total_members: 5,
+          created: 0,
+        });
+      } else {
+        for (const pair of pairs) {
+          waveTests.push({
+            id: 500 + waveTests.length + 1,
+            problem: Number(importMatch[1]),
+            input_data: pair.input,
+            expected_output_data: pair.expected,
+            is_sample: pair.is_sample,
+            points: 10,
+            order: waveTests.length + 1,
+            input_size: pair.input.length,
+            expected_size: pair.expected.length,
+            input_editable: true,
+            expected_editable: true,
+          });
+        }
+        json(res, 201, {
+          pairs,
+          skipped: [],
+          other_files: ['notes.txt'],
+          total_members: 5,
+          created: pairs.length,
+          points_each: 10,
+        });
+      }
+    });
+    return;
+  }
+  const distributeMatch = path.match(/^\/api\/v1\/problems\/problems\/(\d+)\/tests\/distribute\/$/);
+  if (distributeMatch && req.method === 'POST') {
+    readBody(req, (body) => {
+      const target = body.target ?? 50;
+      const base = Math.floor(target / waveTests.length);
+      let left = target - base * waveTests.length;
+      const points = waveTests.map(() => {
+        const p = base + (left > 0 ? 1 : 0);
+        left = Math.max(0, left - 1);
+        return p;
+      });
+      waveTests.forEach((row, i) => {
+        row.points = points[i];
+      });
+      json(res, 200, { target, tests: waveTests.length, total: target, points });
     });
     return;
   }
