@@ -29,15 +29,20 @@ def snapshot_owner_metrics_task():
 # decorated tasks read as plain functions and lose .run/.delay; the aliases
 # restore that surface. At runtime they are the very same Task objects.
 class _CeleryTask(Protocol):
-    def delay(self, *args: Any, **kwargs: Any) -> Any: ...
+    def delay(self, *args: Any, **kwargs: Any) -> Any:
+        """celery Task.delay."""
 
-    def apply(self, *args: Any, **kwargs: Any) -> Any: ...
+    def apply(self, *args: Any, **kwargs: Any) -> Any:
+        """celery Task.apply (eager local dispatch)."""
 
-    def apply_async(self, *args: Any, **kwargs: Any) -> Any: ...
+    def apply_async(self, *args: Any, **kwargs: Any) -> Any:
+        """celery Task.apply_async."""
 
-    def run(self, *args: Any, **kwargs: Any) -> Any: ...
+    def run(self, *args: Any, **kwargs: Any) -> Any:
+        """celery Task.run (the task body, invoked eagerly)."""
 
-    def __call__(self, *args: Any, **kwargs: Any) -> Any: ...
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        """celery Task.__call__."""
 
 
 purge_deleted_users: _CeleryTask = cast(_CeleryTask, purge_deleted_users_task)
