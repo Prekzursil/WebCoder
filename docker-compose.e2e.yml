@@ -1,0 +1,33 @@
+# Real-backend e2e overlay — RUNBOOK § "Real-backend e2e mode", step 1.
+#
+# The Playwright suite serves the Next.js app on http://localhost:3311
+# (playwright.config.ts APP_PORT) while this stack serves the API on
+# http://localhost:8000: two origins, so every browser request the app makes
+# is a credentialed cross-origin one (cookie-JWT auth sends
+# credentials: 'include', and unsafe methods add the X-CSRFToken header,
+# which makes them preflighted).
+#
+# The base file deliberately passes no CORS variables to the backend, so the
+# dev default in backend/webcoder_api/settings.py applies:
+# CORS_ALLOWED_ORIGINS = ["http://localhost:3000"] (the plain dev server) and
+# CSRF_TRUSTED_ORIGINS follows it. Against that allowlist the browser drops
+# every response for the :3311 origin — GETs surface as net::ERR_FAILED and
+# the login POST is never sent after its preflight (the nightly had never
+# been green for this reason).
+#
+# This overlay allowlists the dev-server origin and nothing else; the base
+# stack and every other overlay keep their defaults. Compose merges
+# `environment` mappings key by key, so only CORS_ALLOWED_ORIGINS changes.
+#
+# Use it for the whole stack lifecycle (up / exec / logs must resolve the
+# same project):
+#   COMPOSE_FILE=docker-compose.yml:docker-compose.e2e.yml docker compose up -d \
+#     postgres redis socket-proxy judge-runner backend celery-worker celery-beat
+# (Git Bash / PowerShell on Windows separate COMPOSE_FILE entries with ';'.)
+#
+# backend/webcoder_api/test_compose_guards.py pins this origin to
+# playwright.config.ts APP_PORT — change them together.
+services:
+  backend:
+    environment:
+      CORS_ALLOWED_ORIGINS: http://localhost:3311

@@ -32,6 +32,13 @@ jobs:
       SECRET_KEY: nightly-ci-secret-key
       POSTGRES_PASSWORD: nightly-ci-password
       DJANGO_SETTINGS_MODULE: webcoder_api.settings
+      # Base stack + the real-backend e2e overlay (docker-compose.e2e.yml),
+      # which allowlists the Playwright dev-server origin
+      # (http://localhost:3311) in the backend's CORS allowlist. Without it
+      # the browser drops every API response for that origin and the login
+      # POST is never sent after its preflight. Set once at job level so
+      # `up`, `exec` and `logs` all resolve the same stack definition.
+      COMPOSE_FILE: docker-compose.yml:docker-compose.e2e.yml
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -83,8 +90,14 @@ jobs:
 
       - name: OPR-4 load gate (item 138)
         run: |
-          PROBLEM_ID=$(curl -sf 'http://127.0.0.1:8000/api/v1/problems/?page_size=1' | \
+          # The newest visible catalog row. The list lives at
+          # /api/v1/problems/problems/ (the DRF router mounted under
+          # /api/v1/problems/); /api/v1/problems/ itself is the router's API
+          # root and carries no "results". A lookup failure fails the step
+          # (bash -e: the assignment takes python's exit status).
+          PROBLEM_ID=$(curl -sf 'http://127.0.0.1:8000/api/v1/problems/problems/?page_size=1' | \
             python3 -c 'import json,sys; print(json.load(sys.stdin)["results"][0]["id"])')
+          echo "load-gate problem id: ${PROBLEM_ID}"
           node e2e/loadtest/replay.mjs \
             --api http://127.0.0.1:8000 \
             --users 30 --submissions 2 --problem "${PROBLEM_ID}" \

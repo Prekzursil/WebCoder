@@ -7,28 +7,34 @@
 // verdict until terminal, records the wait. Summary = p50/p95 wait +
 // throughput + the OPR-4 exit-gate verdict (p95 < 20 s).
 //
-// Usage:
+// Usage (each flag also accepts the --name=value spelling):
 //   node e2e/loadtest/replay.mjs --api http://127.0.0.1:8010 \
 //     --users 30 --submissions 5 --problem 1 \
 //     --password 'BobPass-2026!x' --prefix bob
 // The harness derives usernames <prefix>01..<prefix>NN; seed them first
-// (scripts/seed-loadtest-users.py) or point --prefix at an existing
-// numeric family.
+// (`docker compose exec -T backend python manage.py seed_load_users
+// --count N --prefix <prefix> --password <password>`) or point --prefix at
+// an existing numeric family.
 
+import { parseArgs, positiveInt } from './lib-args.mjs';
 import { summarize, throughput } from './lib-stats.mjs';
 
-function arg(name, fallback) {
-  const hit = process.argv.find((a) => a.startsWith(`--${name}=`));
-  return hit ? hit.split('=').slice(1).join('=') : fallback;
-}
-
-const API = arg('api', 'http://127.0.0.1:8010');
-const USERS = Number(arg('users', 30));
-const PER_USER = Number(arg('submissions', 5));
-const PROBLEM = Number(arg('problem', 1));
-const PASSWORD = arg('password', 'BobPass-2026!x');
-const PREFIX = arg('prefix', 'load');
-const TIMEOUT_MS = Number(arg('timeout', 120000));
+const args = parseArgs(process.argv, {
+  api: 'http://127.0.0.1:8010',
+  users: 30,
+  submissions: 5,
+  problem: 1,
+  password: 'BobPass-2026!x',
+  prefix: 'load',
+  timeout: 120000,
+});
+const API = args.api;
+const USERS = positiveInt(args.users, 'users');
+const PER_USER = positiveInt(args.submissions, 'submissions');
+const PROBLEM = positiveInt(args.problem, 'problem');
+const PASSWORD = args.password;
+const PREFIX = args.prefix;
+const TIMEOUT_MS = Number(args.timeout);
 
 const TERMINAL = new Set(['AC', 'WA', 'TLE', 'MLE', 'RE', 'CE', 'SK']);
 

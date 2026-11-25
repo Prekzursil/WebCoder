@@ -32,12 +32,23 @@ The Playwright suite defaults to the hermetic mock API (CI never needs a
 backend). To run the SAME specs against the live compose stack:
 
 ```bash
-# 1. The stack must allow the dev-server origin (CORS) — wt-live override:
-#    services.backend.environment.CORS_ALLOWED_ORIGINS with http://localhost:3311
-#    (settings.py reads CORS_ALLOWED_ORIGINS; restart backend after changing).
-# 2. Run with the toggle:
-E2E_API_BASE=http://127.0.0.1:8010 npx playwright test
+# 1. Bring the stack up WITH the e2e overlay so it allows the dev-server
+#    origin (CORS): docker-compose.e2e.yml sets
+#    services.backend.environment.CORS_ALLOWED_ORIGINS=http://localhost:3311
+#    (settings.py reads CORS_ALLOWED_ORIGINS; CSRF_TRUSTED_ORIGINS follows
+#    it). Without it every browser request from the :3311 app is dropped by
+#    CORS — GETs fail with "Failed to fetch" and the login POST is never
+#    sent after its preflight. Use the same pair of files for every compose
+#    call of the stack (Git Bash / PowerShell on Windows: separate with ';'):
+COMPOSE_FILE=docker-compose.yml:docker-compose.e2e.yml \
+  docker compose up -d postgres redis socket-proxy judge-runner backend celery-worker celery-beat
+# 2. Run with the toggle (same hostname as the dev server — the auth
+#    cookies are SameSite=Lax; :8000 is the Mode A backend port):
+E2E_API_BASE=http://localhost:8000 npx playwright test
 ```
+
+The nightly prod-like e2e workflow does exactly this (`COMPOSE_FILE` at job
+level in `.github/workflows/e2e-nightly.yml`).
 
 - The mock API server is NOT started; `NEXT_PUBLIC_API_BASE` points at the
   live stack for both server-side and browser fetches (no route mocks).
