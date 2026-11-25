@@ -56,10 +56,22 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
+      # No -f here on purpose: an explicit -f OVERRIDES COMPOSE_FILE and would
+      # bring up the base stack without the e2e overlay (the CORS failure
+      # again). The file set comes from the job-level COMPOSE_FILE.
       - name: Bring up the prod-like stack
         run: |
-          docker compose -f docker-compose.yml up -d \
+          docker compose up -d \
             postgres redis socket-proxy judge-runner backend celery-worker celery-beat
+
+      # Fail here, not two steps later with a CORS-shaped Playwright failure:
+      # the browser requests only work if the stack really carries the
+      # overlay's allowlist for the dev-server origin.
+      - name: Assert the stack carries the e2e overlay (CORS)
+        run: |
+          origin="$(docker compose exec -T backend printenv CORS_ALLOWED_ORIGINS)"
+          echo "backend CORS_ALLOWED_ORIGINS=${origin}"
+          test "${origin}" = "http://localhost:3311"
 
       - name: Wait for readiness
         run: |

@@ -88,3 +88,34 @@ def test_nightly_brings_up_the_stack_with_the_e2e_overlay():
     assert match is not None, "the nightly workflow does not set COMPOSE_FILE"
     files = match.group(1).split(":")
     assert files == ["docker-compose.yml", "docker-compose.e2e.yml"]
+
+
+def _docker_compose_commands(workflow):
+    """Logical ``docker compose ...`` shell lines (backslash continuations joined)."""
+    joined = re.sub(r"\\\n\s*", " ", workflow)
+    return [
+        line.strip()
+        for line in joined.splitlines()
+        if line.strip().startswith("docker compose ")
+    ]
+
+
+def test_nightly_compose_calls_do_not_override_compose_file():
+    """An explicit ``-f`` beats COMPOSE_FILE.
+
+    The first run after the overlay landed still failed with the CORS
+    signature: ``docker compose -f docker-compose.yml up -d`` came up without
+    the overlay because a file flag replaces the COMPOSE_FILE list. Every
+    compose call in the workflow must take its file set from COMPOSE_FILE.
+    """
+    commands = _docker_compose_commands(NIGHTLY_WORKFLOW.read_text(encoding="utf-8"))
+    assert len(commands) >= 4, (
+        f"expected the stack lifecycle calls, found {len(commands)}"
+    )
+    for command in commands:
+        flags = [
+            token
+            for token in command.split()
+            if token == "-f" or token.startswith("--file")
+        ]
+        assert not flags, f"`{command}` overrides COMPOSE_FILE with {flags}"
