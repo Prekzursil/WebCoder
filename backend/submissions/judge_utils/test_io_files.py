@@ -12,6 +12,7 @@ the files a real judged program would).
 import pathlib
 import tempfile
 import unittest
+import unittest.mock  # noqa: F401 - makes the unittest.mock attribute static for the type checker (same module at runtime)
 
 from submissions.judge_utils.compilation import run_compile_step
 from submissions.judge_utils.execution import run_code_in_sandbox

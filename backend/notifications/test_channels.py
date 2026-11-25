@@ -86,6 +86,9 @@ class PushDeliveryTest(TestCase):
             return_value=(1, 1),
         ) as push:
             note = self._notify()
+            assert (
+                note is not None
+            )  # recipient != actor: notify() returns the created row
             summary = deliver_multichannel(note)
         self.assertEqual(summary["push"], 1)
         self.assertFalse(summary["email"])
@@ -99,6 +102,9 @@ class PushDeliveryTest(TestCase):
                 "notifications.channels.send_expo_push", return_value=(1, 0)
             ):
                 note = self._notify()
+                assert (
+                    note is not None
+                )  # recipient != actor: notify() returns the created row
                 summary = deliver_multichannel(note)
         self.assertEqual(summary["push"], 0)
         self.assertTrue(summary["email"])
@@ -107,6 +113,9 @@ class PushDeliveryTest(TestCase):
     def test_no_email_without_optin_or_host(self):
         with override_settings(EMAIL_HOST=""):
             note = self._notify()
+            assert (
+                note is not None
+            )  # recipient != actor: notify() returns the created row
             summary = deliver_multichannel(note)
         self.assertFalse(summary["email"])
 
@@ -116,6 +125,9 @@ class PushDeliveryTest(TestCase):
         with mock.patch("notifications.channels.send_expo_push", return_value=(1, 0)):
             with self.settings(SMS_BACKEND="console", EMAIL_HOST=""):
                 note = self._notify()
+                assert (
+                    note is not None
+                )  # recipient != actor: notify() returns the created row
                 summary = deliver_multichannel(note)
         self.assertTrue(summary["sms"])
 
@@ -134,6 +146,9 @@ class PushDeliveryTest(TestCase):
                     return_value=mock.Mock(status_code=200),
                 ) as post:
                     note = self._notify()
+                    assert (
+                        note is not None
+                    )  # recipient != actor: notify() returns the created row
                     summary = deliver_multichannel(note)
         self.assertTrue(summary["sms"])
         post.assert_called_once()
@@ -152,6 +167,9 @@ class PushDeliveryTest(TestCase):
                     side_effect=OSError("down"),
                 ):
                     note = self._notify()
+                    assert (
+                        note is not None
+                    )  # recipient != actor: notify() returns the created row
                     summary = deliver_multichannel(note)
         self.assertFalse(summary["sms"])
 

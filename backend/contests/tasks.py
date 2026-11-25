@@ -102,7 +102,7 @@ def rejudge_submissions_batch(submission_ids):
     Per-test outcomes from the first execution are replaced (the pretest
     rows are deleted); verdict history stays on the submission row itself.
     """
-    from submissions.tasks import judge_submission_task  # local: avoid cycle
+    from submissions.tasks import judge_task  # local: avoid cycle
 
     reset = 0
     reset_ids = []
@@ -121,7 +121,7 @@ def rejudge_submissions_batch(submission_ids):
             reset += 1
             reset_ids.append(submission_id)
     for submission_id in reset_ids:
-        judge_submission_task.apply_async(args=[submission_id], queue="judge-contest")  # pyright: ignore[reportFunctionMemberAccess] - celery runtime attr, absent in the bare lean-gate env.
+        judge_task.apply_async(args=[submission_id], queue="judge-contest")
     return f"rejudged {reset} submissions"
 
 

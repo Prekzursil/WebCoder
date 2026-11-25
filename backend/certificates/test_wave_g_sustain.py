@@ -173,9 +173,3 @@ def _sub(user, problem, code="print(1)", verdict="AC"):
     return Submission.objects.create(
         user=user, problem=problem, language="python3", code=code, verdict=verdict
     )
-
-
-def _sub(user, problem, code="print(1)", verdict="AC"):
-    return Submission.objects.create(
-        user=user, problem=problem, language="python3", code=code, verdict=verdict
-    )

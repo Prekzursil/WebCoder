@@ -1,5 +1,7 @@
 """Users-app Celery tasks (LEG-1 purge + ANA-1 weekly capture)."""
 
+from typing import Any, Protocol, cast
+
 from celery import shared_task
 
 
@@ -20,3 +22,28 @@ def snapshot_owner_metrics_task():
 
     snapshot = capture_weekly_snapshot()
     return f"owner metrics captured for {snapshot.week}"
+
+
+# Structural-task aliases (same pattern as submissions.tasks._CeleryTask):
+# celery.shared_task is untyped in the type-check environment, so the
+# decorated tasks read as plain functions and lose .run/.delay; the aliases
+# restore that surface. At runtime they are the very same Task objects.
+class _CeleryTask(Protocol):
+    def delay(self, *args: Any, **kwargs: Any) -> Any:
+        """celery Task.delay."""
+
+    def apply(self, *args: Any, **kwargs: Any) -> Any:
+        """celery Task.apply (eager local dispatch)."""
+
+    def apply_async(self, *args: Any, **kwargs: Any) -> Any:
+        """celery Task.apply_async."""
+
+    def run(self, *args: Any, **kwargs: Any) -> Any:
+        """celery Task.run (the task body, invoked eagerly)."""
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        """celery Task.__call__."""
+
+
+purge_deleted_users: _CeleryTask = cast(_CeleryTask, purge_deleted_users_task)
+snapshot_owner_metrics: _CeleryTask = cast(_CeleryTask, snapshot_owner_metrics_task)

@@ -700,7 +700,7 @@ class ScoringMaterializationTests(ContestBase):
 
     def test_judge_task_hook_fires_on_contest_verdict(self):
         """The terminal-verdict save schedules the materialization task."""
-        from submissions.tasks import judge_submission_task
+        from submissions.tasks import judge_task
 
         contest = self.mk_contest()
         self.register(contest, self.alice)
@@ -722,7 +722,7 @@ class ScoringMaterializationTests(ContestBase):
             run_mock.return_value = ("AC", 10, 1000, "2", "")
             cmp_mock.return_value = (True, "")
             with self.captureOnCommitCallbacks(execute=True):
-                judge_submission_task(submission.id)
+                judge_task(submission.id)
         score_mock.delay.assert_called_once_with(submission.id)
 
 

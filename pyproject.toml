@@ -47,10 +47,17 @@ exclude_lines = [
     ": \\.\\.\\.\\s*$",
 ]
 
-# basedpyright configuration for the lean quality gate (gate-types runs
-# basedpyright with NO backend dependencies installed, honoring a caller config
-# verbatim when present). Moved here from pyrightconfig.json so the exclusion
-# rationale below stays documented - JSON cannot carry comments.
+# basedpyright configuration note: the OPERATIVE config for the lean quality
+# gate is pyrightconfig.json at the repo root (basedpyright prefers it over
+# this table when both exist, and the gate's detector finds it first). The
+# #318 interim state moved the config here and scoped backend tests OUT of the
+# type gate; #263 restores the original stricter bar - standard mode over ALL
+# first-party code under backend/, tests included (fleet convention, cf. tss),
+# with the test typing debt cleared honestly (Optional handling, narrow
+# asserts, argument types) instead of excluded. This table stays as a fallback
+# carrying the same bar so a tool run that somehow misses pyrightconfig.json
+# still sees standard mode - it must NOT re-grow exclusions; change
+# pyrightconfig.json (and here in lockstep) when the bar changes.
 [tool.basedpyright]
 typeCheckingMode = "standard"
 pythonVersion = "3.12"
@@ -60,18 +67,6 @@ exclude = [
     "**/__pycache__",
     ".venv",
     "backend/.venv",
-    "**/migrations",
-    "backend/webcoder_api",
-    "scripts",
-    # Backend TESTS are scoped out of the type gate on purpose: the lean gate's
-    # basedpyright lane has no Django/celery installed, where Django test
-    # idioms degrade to stub noise (Model.objects.get() -> Optional member
-    # access, TextChoices tuple literals, celery .run attributes) - ~175
-    # line-level ignores for environment-driven noise. Tests stay governed by
-    # the repo's own stricter gate: pytest at 100% line+branch coverage,
-    # warning-clean (pytest.ini), plus ruff. Production code under backend/
-    # remains fully type-checked at the standard bar.
-    "backend/**/test_*.py",
 ]
 extraPaths = ["backend"]
 reportMissingImports = "warning"

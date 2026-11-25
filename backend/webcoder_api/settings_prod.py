@@ -158,7 +158,7 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 # A dedicated secret so rotating the web SECRET_KEY does not invalidate
 # issued tokens (and vice versa). Falls back to SECRET_KEY only when the
 # dedicated env var is absent — set JWT_SECRET_KEY in production.
-JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY") or SECRET_KEY
+JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY") or SECRET_KEY  # type: ignore[name-defined]  # imported via * above
 SIMPLE_JWT = {
     **SIMPLE_JWT,  # type: ignore[name-defined]  # imported via * above
     "SIGNING_KEY": JWT_SECRET_KEY,

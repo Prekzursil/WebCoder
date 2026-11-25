@@ -30,7 +30,7 @@ from notifications.models import Notification
 from problems.models import Problem
 from problems.models import TestCase as ProblemTestCase
 from submissions.models import Submission
-from submissions.tasks import judge_submission_task
+from submissions.tasks import judge_task
 from users.models import User
 
 
@@ -86,7 +86,9 @@ class ContestOpsBase(TestCase):
         )
         return contest
 
-    def mk_submission(self, contest, user, at=None, verdict="AC", score=100):
+    def mk_submission(
+        self, contest, user, at=None, verdict="AC", score: int | None = 100
+    ):
         sub = Submission.objects.create(
             user=user,
             problem=self.problem,
@@ -125,7 +127,7 @@ class PretestJudgingTests(ContestOpsBase):
             run_mock.return_value = ("AC", 5, 512, "ok", "")
             cmp_mock.return_value = (True, "")
             with self.captureOnCommitCallbacks(execute=True):
-                judge_submission_task(submission.id)
+                judge_task(submission.id)
         submission.refresh_from_db()
         return run_mock
 
@@ -235,7 +237,7 @@ class FinalizeTests(ContestOpsBase):
         for sub in subs:
             sub.verdict = "AC"
             sub.save()
-        with mock.patch("submissions.tasks.judge_submission_task") as judge_mock:
+        with mock.patch("submissions.tasks.judge_task") as judge_mock:
             result = rejudge_submissions_batch([s.id for s in subs] + [424242])
         self.assertIn("3 submissions", result)
         self.assertEqual(judge_mock.apply_async.call_count, 3)

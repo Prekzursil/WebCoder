@@ -208,7 +208,7 @@ class JudgeHookTest(TestCase):
         from unittest import mock
 
         from submissions.models import Submission
-        from submissions.tasks import judge_submission_task
+        from submissions.tasks import judge_task
 
         TASKS = "submissions.tasks"
         user = User.objects.create_user(username="j", password="p")
@@ -238,7 +238,7 @@ class JudgeHookTest(TestCase):
                 ),
             ),
         ):
-            judge_submission_task(submission.id)
+            judge_task(submission.id)
 
         row = ProblemUnlockState.objects.get(user=user, problem=problem)
         self.assertEqual(row.passed_count, 2)
