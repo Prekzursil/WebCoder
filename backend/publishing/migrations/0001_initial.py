@@ -65,7 +65,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(seed_wiki, unseed_wiki),
         migrations.CreateModel(
             name="WaHelpRequest",
             fields=[
@@ -327,5 +326,8 @@ class Migration(migrations.Migration):
                 fields=["page", "-created_at"], name="publishing__page_id_bf27ea_idx"
             ),
         ),
+        # Must stay after the CreateModels above: the seed reads WikiPage /
+        # WikiRevision from the migration state (a duplicate copy placed first
+        # broke migrate on every fresh database until 2026-11-25).
         migrations.RunPython(seed_wiki, unseed_wiki),
     ]
