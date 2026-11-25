@@ -11,6 +11,7 @@ Covers at the 100% bar:
 """
 
 import io
+from typing import Literal
 import tarfile
 import zipfile
 
@@ -49,7 +50,7 @@ def _zip_bytes(files: dict[str, str]) -> bytes:
     return buf.getvalue()
 
 
-def _tar_bytes(files: dict[str, str], mode: str = "w") -> bytes:
+def _tar_bytes(files: dict[str, str], mode: Literal["w", "w:gz"] = "w") -> bytes:
     buf = io.BytesIO()
     with tarfile.open(fileobj=buf, mode=mode) as tf:
         for name, content in files.items():

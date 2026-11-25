@@ -29,7 +29,11 @@ import os as _os
 
 if len(_os.environ.get("SECRET_KEY", "")) < 32:
     SECRET_KEY = "ci-only-signing-key-0123456789abcdef0123456789abcdef"
-    SIMPLE_JWT = {**SIMPLE_JWT, "SIGNING_KEY": SECRET_KEY, "VERIFYING_KEY": SECRET_KEY}
+    SIMPLE_JWT = {
+        **base_settings.SIMPLE_JWT,  # copied into this module by the loop above
+        "SIGNING_KEY": SECRET_KEY,
+        "VERIFYING_KEY": SECRET_KEY,
+    }
 
 # CI verify uses sqlite to avoid coupling governance checks to live Postgres credentials.
 DATABASES = {

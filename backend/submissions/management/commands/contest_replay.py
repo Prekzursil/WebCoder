@@ -31,7 +31,7 @@ from django.db import close_old_connections
 
 from contests.models import Contest, ContestParticipation, ContestProblem
 from submissions.models import Submission
-from submissions.tasks import judge_submission_task
+from submissions.tasks import judge_task
 from users.models import User
 
 #: The round-2 OPR-4 numeric gate.
@@ -113,7 +113,7 @@ class Command(BaseCommand):
                     code=SOLUTION,
                     contest=contest,
                 )
-                judge_submission_task.delay(submission.id)  # pyright: ignore[reportFunctionMemberAccess] - celery runtime attr, absent in the bare lean-gate env.
+                judge_task.delay(submission.id)
                 verdict = None
                 while time.monotonic() - start < options["timeout"]:
                     time.sleep(options["poll_interval"])
