@@ -2040,22 +2040,42 @@ const server = createServer((req, res) => {
   if (req.method === 'GET' && path === statusPath) {
     const passed = globalThis.WAVE_H_FORFEIT.problem === 2 ? 0 : 1;
     json(res, 200, {
-      unlock_state: { passed_count: passed, unlocked_index: passed + 1, total: 3, solved_all: false },
+      unlock_state: {
+        passed_count: passed,
+        unlocked_index: passed + 1,
+        total: 3,
+        solved_all: false,
+      },
       tests: [
         {
-          id: 11, order: 1, position: 1, points: 40, is_sample: true,
+          id: 11,
+          order: 1,
+          position: 1,
+          points: 40,
+          is_sample: true,
           status: passed >= 1 ? 'solved' : 'unlocked',
-          input_data: 'abcdef', expected_output_data: 'fedcba',
+          input_data: 'abcdef',
+          expected_output_data: 'fedcba',
         },
         {
-          id: 12, order: 2, position: 2, points: 40, is_sample: false,
+          id: 12,
+          order: 2,
+          position: 2,
+          points: 40,
+          is_sample: false,
           status: passed === 1 ? 'unlocked' : 'locked',
           input_data: passed === 1 ? 'xyz' : null,
           expected_output_data: passed === 1 ? 'zyx' : null,
         },
         {
-          id: 13, order: 3, position: 3, points: 40, is_sample: false,
-          status: 'locked', input_data: null, expected_output_data: null,
+          id: 13,
+          order: 3,
+          position: 3,
+          points: 40,
+          is_sample: false,
+          status: 'locked',
+          input_data: null,
+          expected_output_data: null,
         },
       ],
     });
