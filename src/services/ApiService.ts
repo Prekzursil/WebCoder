@@ -1094,6 +1094,8 @@ export const ProblemService = {
         detail?: string;
         locked?: boolean;
         publish_policy?: string;
+        solution_python?: string;
+        solution_cpp?: string;
       };
       const err = new Error(body.detail ?? 'editorial locked') as Error & {
         responseLocked: boolean;
@@ -1115,6 +1117,8 @@ export const ProblemService = {
       content_ro: string;
       content_en: string;
       publish_policy: string;
+      solution_python?: string;
+      solution_cpp?: string;
     };
   },
 
@@ -1319,6 +1323,64 @@ export const TestOpsService = {
       `/problems/problems/${problemId}/tests/distribute/`,
       { method: 'POST', body: JSON.stringify(target !== undefined ? { target } : {}) },
     ),
+};
+
+// Problem-page wave (items C/D/E/F): solver-side unlock economy endpoints.
+export interface UnlockSourceResponse {
+  reference_solution_code: string | null;
+  reference_language: string | null;
+  forfeited: boolean;
+  forfeited_at: string | null;
+  editorial_unlocked: boolean;
+}
+
+export interface HintTierState {
+  tier: number;
+  kind: string;
+  revealed: boolean;
+  content: string | null;
+  image: string | null;
+}
+
+export interface HintState {
+  total: number;
+  revealed_count: number;
+  tiers: HintTierState[];
+}
+
+export interface TestStatusRow {
+  id: number;
+  order: number;
+  position: number;
+  points: number;
+  is_sample: boolean;
+  status: 'locked' | 'unlocked' | 'solved';
+  input_data: string | null;
+  expected_output_data: string | null;
+}
+
+export interface TestsStatusResponse {
+  unlock_state: {
+    passed_count: number;
+    unlocked_index: number;
+    total: number;
+    solved_all: boolean;
+  };
+  tests: TestStatusRow[];
+}
+
+export const SolverService = {
+  unlockSource: (problemId: number | string) =>
+    apiFetch<UnlockSourceResponse>(`/problems/problems/${problemId}/unlock-source/`, {
+      method: 'POST',
+    }),
+  revealHint: (problemId: number | string, tier: number) =>
+    apiFetch<HintState>(`/problems/problems/${problemId}/hints/reveal/`, {
+      method: 'POST',
+      body: JSON.stringify({ tier }),
+    }),
+  getTestsStatus: (problemId: number | string) =>
+    apiFetch<TestsStatusResponse>(`/problems/problems/${problemId}/tests/status/`),
 };
 
 export const AdminService = {

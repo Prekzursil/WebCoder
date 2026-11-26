@@ -22,7 +22,49 @@ TAGS = [
     {"slug": "math",             "en": "Math",              "ro": "Matematică"},
     {"slug": "recursion",        "en": "Recursion",         "ro": "Recursivitate"},
     {"slug": "number-theory",    "en": "Number theory",     "ro": "Teoria numerelor"},
+    # Problem-page wave (item H): the canonical competitive topic set —
+    # the Codeforces/AtCoder tag vocabulary the catalog facets and the
+    # imported archive need beside the starter pack's pedagogical tags.
+    {"slug": "dp",                 "en": "Dynamic programming", "ro": "Programare dinamică"},
+    {"slug": "greedy",             "en": "Greedy", "ro": "Greedy"},
+    {"slug": "graphs",             "en": "Graphs", "ro": "Grafuri"},
+    {"slug": "dfs",                "en": "Depth-first search", "ro": "Parcurgere în adâncime"},
+    {"slug": "bfs",                "en": "Breadth-first search", "ro": "Parcurgere în lățime"},
+    {"slug": "trees",              "en": "Trees", "ro": "Arbori"},
+    {"slug": "two-pointers",       "en": "Two pointers", "ro": "Doi pointeri"},
+    {"slug": "brute-force",        "en": "Brute force", "ro": "Forță brută"},
+    {"slug": "constructive",       "en": "Constructive", "ro": "Constructiv"},
+    {"slug": "data-structures",    "en": "Data structures", "ro": "Structuri de date"},
+    {"slug": "hashing",            "en": "Hashing", "ro": "Hashing"},
+    {"slug": "geometry",           "en": "Geometry", "ro": "Geometrie"},
+    {"slug": "combinatorics",      "en": "Combinatorics", "ro": "Combinatorică"},
+    {"slug": "divide-and-conquer", "en": "Divide and conquer", "ro": "Divide et impera"},
+    {"slug": "games",              "en": "Game theory", "ro": "Teoria jocurilor"},
 ]
+
+#: Item H — keyword heuristics that tag the imported catalog from its
+#: statement metadata (statements mention the paradigm far more often
+#: than any package format carries topics). Slug -> needles, matched
+#: case-insensitively over the title+statement text (both locales).
+TOPIC_KEYWORDS = {
+    "dp": ["dynamic programming", "programare dinamică", "subproblem", "dp["],
+    "greedy": ["greedy", "lacom"],
+    "graphs": ["graph", "graf", "edge list", "adjacency", "vecinătate"],
+    "dfs": ["depth-first", "adâncime", "dfs"],
+    "bfs": ["breadth-first", "lățime", "bfs", "shortest path", "cel mai scurt drum"],
+    "trees": ["tree", "arbore", "rooted", "rădăcină"],
+    "two-pointers": ["two pointer", "doi pointeri", "sliding window", "fereastră glisantă"],
+    "brute-force": ["brute force", "forță brută", "all subsets", "toate submulțimile"],
+    "constructive": ["construct", "any valid answer", "un răspuns valid"],
+    "data-structures": ["stack", "queue", "segment tree", "arbore de segmente",
+                        "fenwick", "stivă", "coadă", "heap"],
+    "hashing": ["hash", "hashing"],
+    "geometry": ["geometry", "geometri", "polygon", "poligon"],
+    "combinatorics": ["combinatoric", "permutation", "permutare", "combination",
+                      "combinare", "binomial"],
+    "divide-and-conquer": ["divide and conquer", "divide et impera"],
+    "games": ["game", "joc", "nim", "grundy"],
+}
 
 # Curriculum taxonomy v1 (EDU-9, round-2 slice D.6: grades 9–10 first,
 # mirroring the national informatics programme's chapter names).

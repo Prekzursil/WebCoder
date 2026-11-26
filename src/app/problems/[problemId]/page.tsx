@@ -14,7 +14,8 @@ import { createTranslator, getLocale, PublicLocale } from '../../_lib/public-i18
 import { getProblemDetail, getProblems } from '../_lib/problems-api';
 import SubmitSolutionForm from './SubmitSolutionForm';
 import HintsPanel from './HintsPanel';
-import EditoralPanelPlaceholder from './EditorialPanel';
+import SolverEconomySection from './SolverEconomySection';
+import TestUnlockBoard from './TestUnlockBoard';
 import ProblemStatsPanel from './ProblemStatsPanel';
 import CommunityEditorialsPanel from './CommunityEditorialsPanel';
 import RelatedArticlesStrip from './RelatedArticlesStrip';
@@ -650,24 +651,34 @@ export default async function ProblemDetailPage({ params, searchParams }: Proble
             )}
           </div>
 
-          {/* Hints ladder [EDT-2] + editorial [EDT-1] */}
-          {(() => {
-            const hints = (locale === 'ro' ? problem.hints_ro : problem.hints_en) ?? [];
-            return hints.length > 0 ? <HintsPanel hints={hints} /> : null;
-          })()}
-          {problem.has_editorial && (
-            <div style={card}>
-              {sectionHeader('var(--success)', t('editorial_header', 'Editorial'))}
-              <EditorialEtiquetteBanner />
-              <EditoralPanelPlaceholder
+          {/* Hints area [item D — DISTINCT from the editorial]: tiered,
+              voluntary, FREE; reveals recorded for analytics. */}
+          {(problem.hint_state?.total ?? 0) > 0 && (
+            <HintsPanel problemId={problemId} hintState={problem.hint_state!} />
+          )}
+          {/* Editorial [item E] + the source-unlock economy [item F]:
+              AFTER_AC-locked walkthrough with the early-unlink forfeit
+              lane and the permanent-forfeit banner. */}
+          {(problem.has_editorial || !problem.forfeited) && (
+            <div style={{ ...card, display: 'grid', gap: '0.5rem' }}>
+              {Boolean(problem.has_editorial) &&
+                sectionHeader('var(--success)', t('editorial_header', 'Editorial'))}
+              {Boolean(problem.has_editorial) && <EditorialEtiquetteBanner />}
+              <SolverEconomySection
                 problemId={problemId}
                 hasEditorial={Boolean(problem.has_editorial)}
+                forfeited={Boolean(problem.forfeited)}
+                referenceCode={problem.reference_solution_code ?? null}
+                referenceLanguage={problem.reference_language ?? null}
                 /* UGC/editorial content ships ro|en; every other UI locale
                    reads the English variant (universal fallback). */
                 locale={locale === 'ro' ? 'ro' : 'en'}
               />
             </div>
           )}
+          {/* Incremental test unlocking [item C]: per-viewer board with
+              the single unlocked boundary test's data. */}
+          <TestUnlockBoard problemId={problemId} />
 
           {/* Sample test cases */}
           {sampleTestCases.length > 0 && (

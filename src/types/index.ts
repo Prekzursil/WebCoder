@@ -45,6 +45,23 @@ export interface ProblemType {
   status: string;
   /** [problem-page wave G] declared finite point value (difficulty band). */
   target_points?: number;
+  /** [problem-page wave D] per-viewer tiered-hint reveal state. */
+  hint_state?: {
+    total: number;
+    revealed_count: number;
+    tiers: {
+      tier: number;
+      kind: string;
+      revealed: boolean;
+      content: string | null;
+      image: string | null;
+    }[];
+  };
+  /** [problem-page wave F] permanent per-viewer forfeiture state. */
+  forfeited?: boolean;
+  /** [problem-page wave F] the reference source (visible when forfeited/privileged). */
+  reference_solution_code?: string | null;
+  reference_language?: string | null;
   /** [problem-page wave G] the difficulty's (min, max) point band hint. */
   point_bounds?: [number, number] | null;
   statement_i18n?: { [key: string]: string };
