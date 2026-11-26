@@ -37,8 +37,8 @@ class TopicSeedTest(TestCase):
         mod.seed(apps, None)
 
         slugs = {t["slug"] for t in TAGS}
-        self.assertTrue(
-            Tag.objects.filter(slug__in=slugs).count() >= len(TOPIC_KEYWORDS)
+        self.assertGreaterEqual(
+            Tag.objects.filter(slug__in=slugs).count(), len(TOPIC_KEYWORDS)
         )
         dp = _mk(
             "Max Sum",
