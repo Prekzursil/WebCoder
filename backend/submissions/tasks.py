@@ -94,12 +94,14 @@ class _CeleryTask(Protocol):
     ``apply_async``) without losing type checking on the rest of the module.
     """
 
-    def delay(self, *args: Any, **kwargs: Any) -> Any: ...
+    def delay(self, *args: Any, **kwargs: Any) -> Any:
+        """celery Task.delay."""
 
     def apply(self, *args: Any, **kwargs: Any) -> Any:
         """celery Task.apply (eager local dispatch)."""
 
-    def apply_async(self, *args: Any, **kwargs: Any) -> Any: ...
+    def apply_async(self, *args: Any, **kwargs: Any) -> Any:
+        """celery Task.apply_async."""
 
     def run(self, *args: Any, **kwargs: Any) -> Any:
         """celery Task.run (the task body, invoked eagerly)."""
